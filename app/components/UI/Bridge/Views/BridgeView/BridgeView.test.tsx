@@ -1,20 +1,19 @@
-import {
-  renderScreen,
-} from '../../../util/test/renderWithProvider';
-import BridgeView from '../Bridge';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import Routes from '../../../constants/navigation/Routes';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   setDestToken,
   setSourceToken,
-} from '../../../core/redux/slices/bridge';
+} from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import { initialState } from './_mocks_/initialState';
+import BridgeView from '.';
+import { createBridgeTestState } from '../../testUtils';
+import { initialState } from '../../_mocks_/initialState';
 
 // TODO remove this mock once we have a real implementation
-jest.mock('../../../selectors/confirmTransaction');
+jest.mock('../../../../../selectors/confirmTransaction');
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     SwapsController: {
       fetchAggregatorMetadataWithCache: jest.fn(),
@@ -24,9 +23,9 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../core/redux/slices/bridge', () => {
+jest.mock('../../../../../core/redux/slices/bridge', () => {
   const actualBridgeSlice = jest.requireActual(
-    '../../../core/redux/slices/bridge',
+    '../../../../../core/redux/slices/bridge',
   );
   return {
     __esModule: true,
@@ -58,7 +57,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 // Mock useLatestBalance hook
-jest.mock('./hooks/useLatestBalance', () => ({
+jest.mock('../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn().mockImplementation(({ address, chainId }) => {
     if (!address || !chainId) return undefined;
 
@@ -271,40 +270,43 @@ describe('BridgeView', () => {
     });
 
     it('should show "Insufficient balance" when amount exceeds balance', () => {
-      const stateWithHighAmount = {
-        ...initialState,
-        bridge: {
-          ...initialState.bridge,
-          sourceAmount: '3.0', // Balance is mocked at 2.0 ETH
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: true,
+          },
         },
-      };
+      });
 
       const { getByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: stateWithHighAmount },
+        { state: testState },
       );
 
-      expect(getByText('Insufficient balance')).toBeTruthy();
+      expect(getByText('Insufficient funds')).toBeTruthy();
     });
 
     it('should show Continue button and Terms link when amount is valid', () => {
-      const stateWithValidAmount = {
-        ...initialState,
-        bridge: {
-          ...initialState.bridge,
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+        },
+        bridgeReducerOverrides: {
           sourceAmount: '1.0', // Less than balance of 2.0 ETH
         },
-      };
+      });
 
       const { getByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: stateWithValidAmount },
+        { state: testState },
       );
 
       expect(getByText('Continue')).toBeTruthy();
@@ -345,20 +347,23 @@ describe('BridgeView', () => {
     });
 
     it('should handle Terms & Conditions press', () => {
-      const stateWithValidAmount = {
-        ...initialState,
-        bridge: {
-          ...initialState.bridge,
-          sourceAmount: '1.0',
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
         },
-      };
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0', // Less than balance of 2.0 ETH
+        },
+      });
 
       const { getByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: stateWithValidAmount },
+        { state: testState },
       );
 
       const termsButton = getByText('Terms & Conditions');

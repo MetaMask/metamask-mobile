@@ -7,15 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- fix(multi-srp): display errors only after all the words are have been entered ([#14607](https://github.com/MetaMask/metamask-mobile/pull/14607))
+
 ### Added
 
 - feat: migrate eth_accounts and permittedChains to CAIP-25 endowment ([#13970](https://github.com/MetaMask/metamask-mobile/pull/13970))
+- feat(bridge): add error handling and input management for bridge quotes ([#14693](https://github.com/MetaMask/metamask-mobile/pull/14693))
 - feat(multi-srp): enable multi-srp in main and beta ([#14558](https://github.com/MetaMask/metamask-mobile/pull/14558))
 - feat(ramp): Update ramp data flow to fetch cryptos before payment methods ([#14437](https://github.com/MetaMask/metamask-mobile/pull/14437))
 - feat(bridge): add destination account picker ([#14656](https://github.com/MetaMask/metamask-mobile/pull/14656))
 - feat(bridge): add Solana assets to bridge token pickers ([#14365](https://github.com/MetaMask/metamask-mobile/pull/14365))
 - feat: add AppMetadataController controller ([#14513](https://github.com/MetaMask/metamask-mobile/pull/14513))
 - feat(bridge): implement bridge quote fetching ([#14413](https://github.com/MetaMask/metamask-mobile/pull/14413))
+- feat(multi-srp): add e2e tests ([#14583](https://github.com/MetaMask/metamask-mobile/pull/14583))
 
 
 ### Changed
