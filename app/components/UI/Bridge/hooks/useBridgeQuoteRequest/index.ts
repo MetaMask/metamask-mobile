@@ -66,14 +66,9 @@ export const useBridgeQuoteRequest = () => {
         : walletAddress,
     };
 
-    try {
-      await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
-        params,
-      );
-    } catch (error) {
-      console.error('Error updating quote params:', error);
-      throw error;
-    }
+    await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
+      params,
+    );
   }, [
     sourceToken,
     destToken,
