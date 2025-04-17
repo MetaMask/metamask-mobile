@@ -27,8 +27,15 @@ import {
 import {
   PermissionControllerState,
   PermissionConstraint,
+  Caveat,
 } from '@metamask/permission-controller';
-import { Caip25EndowmentPermissionName, getEthAccounts, getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  getEthAccounts,
+  getPermittedEthChainIds,
+} from '@metamask/chain-agnostic-permission';
+import { Json } from '@metamask/utils';
 
 interface SDKSessionsManagerProps {
   navigation: NavigationProp<ParamListBase>;
@@ -93,15 +100,32 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
 
     const mappedInAppBrowserPermissions: PermissionListItemViewModel[] =
       inAppBrowserSubjects.map((subject) => {
-        const caip25CaveatValue = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats?.[0]?.value
+        const caip25CaveatValue = subject.permissions?.[
+          Caip25EndowmentPermissionName
+        ]?.caveats?.find(
+          (caveat: { type: string; value: Caveat<string, Json> }) =>
+            caveat.type === Caip25CaveatType,
+        )?.value ?? {
+          optionalScopes: {
+            'wallet:eip155': { accounts: [] },
+          },
+          requiredScopes: {},
+          sessionProperties: {},
+          isMultichainOrigin: false,
+        };
 
         return {
-        dappLogoUrl: '',
-        dappHostName: subject.origin,
-        numberOfAccountPermissions: caip25CaveatValue ? getEthAccounts(caip25CaveatValue).length : 0,
-        numberOfNetworkPermissions: caip25CaveatValue ? getPermittedEthChainIds(caip25CaveatValue).length : 0,
-        permissionSource: PermissionSource.MetaMaskBrowser,
-      }});
+          dappLogoUrl: '',
+          dappHostName: subject.origin,
+          numberOfAccountPermissions: caip25CaveatValue
+            ? getEthAccounts(caip25CaveatValue).length
+            : 0,
+          numberOfNetworkPermissions: caip25CaveatValue
+            ? getPermittedEthChainIds(caip25CaveatValue).length
+            : 0,
+          permissionSource: PermissionSource.MetaMaskBrowser,
+        };
+      });
 
     const mappedPermissions: PermissionListItemViewModel[] = [
       ...mappedInAppBrowserPermissions,
