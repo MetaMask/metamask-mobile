@@ -459,7 +459,6 @@ class Approval extends PureComponent {
   };
 
   onLedgerConfirmation = (approve, transactionId, gaParams) => {
-    const { TransactionController } = Engine.context;
     try {
       //manual cancel from UI when transaction is awaiting from ledger confirmation
       if (!approve) {
@@ -469,8 +468,6 @@ class Approval extends PureComponent {
           'TransactionController:transactionFinished',
           this.#transactionFinishedListener,
         );
-
-        TransactionController.cancelTransaction(transactionId);
 
         this.showWalletConnectNotification();
 
