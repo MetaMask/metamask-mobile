@@ -1,3 +1,5 @@
+import BigNumber from 'bignumber.js';
+
 export const DummyQuotesNoApproval = {
   OP_0_005_ETH_TO_ARB: [
     {
@@ -980,4 +982,41 @@ export const DummyQuotesWithApproval = {
       'estimatedProcessingTimeInSeconds': 1002
     }
   ],
+};
+
+export const DummyQuoteMetadata = {
+    sentAmount: {
+        amount: BigNumber('0.005'),
+        valueInCurrency: BigNumber('9.8128810694176015'),
+        usd: BigNumber('9.8128810694176015'),
+    },
+    gasFee: {
+        amount: BigNumber('0.000330764431277595'),
+        valueInCurrency: BigNumber('0.64914834989246961915'),
+        usd: BigNumber('0.64914834989246961915'),
+    },
+    totalNetworkFee: {
+        amount: BigNumber('0.000330764431277595'),
+        valueInCurrency: BigNumber('0.64914834989246961915'),
+        usd: BigNumber('0.64914834989246961915'),
+    },
+    totalMaxNetworkFee: {
+        amount: BigNumber('0.000677325191980185'),
+        valueInCurrency: BigNumber('1.32929810202455167545'),
+        usd: BigNumber('1.32929810202455167545'),
+    },
+    toTokenAmount: {
+        amount: BigNumber('0.004946243543883951'),
+        valueInCurrency: BigNumber('9.7076142722238981036723208247346'),
+        usd: BigNumber('9.7076142722238981036723208247346'),
+    },
+    adjustedReturn: {
+        valueInCurrency: BigNumber('9.0584659223314284845223208247346'),
+        usd: BigNumber('9.0584659223314284845223208247346'),
+    },
+    swapRate: BigNumber('0.9892487087767902'),
+    cost: {
+        valueInCurrency: BigNumber('0.7544151470861730154776791752654'),
+        usd: BigNumber('0.7544151470861730154776791752654'),
+    }
 };
