@@ -626,7 +626,8 @@ function decodeConfirmTx(args) {
   const chainId = txChainId;
 
   const tokenList =
-    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]?.data;
+    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
+      ?.data || [];
   let symbol;
   if (renderTo in tokenList) {
     symbol = tokenList[renderTo].symbol;

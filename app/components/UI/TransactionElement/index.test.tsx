@@ -22,7 +22,11 @@ jest.mock('../../../core/Engine', () => ({
     },
     TokenListController: {
       state: {
-        tokenList: [],
+        tokensChainsCache: {
+          '0x1': {
+            data: [],
+          },
+        },
       },
     },
   },
@@ -57,6 +61,7 @@ describe('TransactionElement', () => {
               to: '0x0',
               from: '0x1',
               nonce: 1,
+              // chainId: '0x1',
             },
             chainId: '0x1',
             txParams: {
