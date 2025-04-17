@@ -99,13 +99,6 @@ export const selectSelectedNonEvmNetworkSymbol = createSelector(
       ?.ticker,
 );
 
-/**
- * This selector is used to get the accounts with activity for EVM networks.
- *
- * @param state - The root state object.
- * @returns An object where the keys are hex addresses and the values contain the namespace and an array of active chain IDs for that address.
- * @returns {ActiveNetworksByAddress} Object mapping hex addresses to their network activity status.
- */
 export const selectNetworksWithActivity = createSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
