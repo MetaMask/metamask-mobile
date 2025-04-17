@@ -1,5 +1,3 @@
-import BigNumber from 'bignumber.js';
-
 export const DummyQuotesNoApproval = {
   OP_0_005_ETH_TO_ARB: [
     {
