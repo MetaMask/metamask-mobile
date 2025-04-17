@@ -182,6 +182,15 @@ export const parseAndNormalizeSignTypedData = (messageParamsData: string) => {
 export const parseAndSanitizeSignTypedData = (messageParamsData: string) => {
   if (!messageParamsData) { return {}; }
 
+  const { domain, message, primaryType, types } = JSON.parse(messageParamsData);
+  const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
+
+  return { sanitizedMessage, primaryType, domain };
+};
+
+export const parseNormalizeAndSanitizeSignTypedData = (messageParamsData: string) => {
+  if (!messageParamsData) { return {}; }
+
   const { domain, message, primaryType, types } = parseAndNormalizeSignTypedData(messageParamsData);
   const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
 
