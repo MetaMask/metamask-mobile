@@ -59,6 +59,7 @@ const EditGasFee1559Update = ({
   warning,
   selectedGasObject,
   onlyGas,
+  isRedesignedTransaction,
 }) => {
   const [modalInfo, updateModalInfo] = useState({
     isVisible: false,
@@ -86,7 +87,7 @@ const EditGasFee1559Update = ({
   ] = useModalHandler(false);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const { trackEvent, createEventBuilder } = useMetrics();
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, isRedesignedTransaction);
 
   const gasTransaction = useGasTransaction({
     onlyGas,

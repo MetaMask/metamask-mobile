@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import Device from '../../../../../../util/device';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+const createStyles = (colors: any, isRedesignedTransaction: boolean) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
@@ -15,6 +15,7 @@ const createStyles = (colors: any) =>
     },
     wrapper: {
       paddingHorizontal: 24,
+      ...(isRedesignedTransaction ? { paddingBottom: 30 } : {}),
     },
     customGasHeader: {
       flexDirection: 'row',

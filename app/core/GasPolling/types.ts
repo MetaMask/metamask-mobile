@@ -212,6 +212,10 @@ export interface GetEIP1559TransactionDataProps extends TransactionSharedProps {
    */
   suggestedGasLimit: string;
   onlyGas?: boolean;
+  /**
+   * The user fee level.
+   */
+  userFeeLevel: string;
 }
 
 export interface LegacyProps {

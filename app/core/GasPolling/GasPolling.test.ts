@@ -121,6 +121,7 @@ describe('GetEIP1559TransactionData', () => {
     conversionRate,
     currentCurrency,
     nativeCurrency,
+    userFeeLevel: 'custom',
   };
 
   it('should fail when incomplete props is passed for ', async () => {
@@ -185,6 +186,7 @@ describe('GetEIP1559TransactionData', () => {
       totalMinConversion: '1844.4',
       totalMinHex: 'de0e3e3ba63bf07',
       totalMinNative: '1.00006',
+      userFeeLevel: 'custom',
     };
 
     mockedParseTransactionEIP1559.mockReturnValue(expected);

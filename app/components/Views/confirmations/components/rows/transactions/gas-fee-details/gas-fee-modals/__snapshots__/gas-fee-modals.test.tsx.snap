@@ -1,0 +1,661 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GasFeeModals should render 1`] = `
+<Modal
+  animationType="none"
+  deviceHeight={null}
+  deviceWidth={null}
+  hardwareAccelerated={false}
+  hideModalContentWhileAnimating={false}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  onRequestClose={[Function]}
+  onSwipeComplete={[Function]}
+  panResponderThreshold={4}
+  scrollHorizontal={false}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  statusBarTranslucent={false}
+  supportedOrientations={
+    [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeDirection="down"
+  swipeThreshold={100}
+  transparent={true}
+  visible={true}
+>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "backgroundColor": "#00000066",
+        "bottom": 0,
+        "height": 1334,
+        "left": 0,
+        "opacity": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "width": 750,
+      }
+    }
+  />
+  <View
+    collapsable={false}
+    deviceHeight={null}
+    deviceWidth={null}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    pointerEvents="box-none"
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    style={
+      {
+        "flex": 1,
+        "justifyContent": "flex-end",
+        "left": 0,
+        "margin": 0,
+        "top": 0,
+        "transform": [
+          {
+            "translateY": 1334,
+          },
+        ],
+      }
+    }
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+  >
+    <View
+      style={
+        {
+          "justifyContent": "flex-end",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignSelf": "center",
+            "backgroundColor": "#ebecef",
+            "borderRadius": 4,
+            "height": 4,
+            "marginBottom": -8,
+            "width": 56,
+            "zIndex": 1,
+          }
+        }
+      />
+      <View
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderTopLeftRadius": 20,
+            "borderTopRightRadius": 20,
+            "maxHeight": "95%",
+            "minHeight": 200,
+            "paddingBottom": 32,
+            "paddingTop": 24,
+          }
+        }
+      >
+        <RCTScrollView
+          style={
+            {
+              "paddingBottom": 30,
+              "paddingHorizontal": 24,
+            }
+          }
+          testID="edit-priority-screen"
+        >
+          <View>
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessible={true}
+              focusable={false}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+            >
+              <View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "justifyContent": "space-between",
+                      "paddingBottom": 20,
+                      "width": "100%",
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    onPress={[Function]}
+                  >
+                    <Text
+                      allowFontScaling={false}
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "fontSize": 24,
+                          },
+                          undefined,
+                          {
+                            "fontFamily": "Ionicons",
+                            "fontStyle": "normal",
+                            "fontWeight": "normal",
+                          },
+                          {},
+                        ]
+                      }
+                    >
+                      
+                    </Text>
+                  </TouchableOpacity>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        {
+                          "fontFamily": "CentraNo1-Bold",
+                          "fontWeight": "600",
+                        },
+                        undefined,
+                        {
+                          "color": "#121314",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "#121314",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Edit priority
+                  </Text>
+                  <Text
+                    allowFontScaling={false}
+                    style={
+                      [
+                        {
+                          "color": "#ffffff",
+                          "fontSize": 24,
+                        },
+                        undefined,
+                        {
+                          "fontFamily": "Ionicons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
+                    }
+                  >
+                    
+                  </Text>
+                </View>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents={null}
+                style={
+                  {
+                    "alignItems": "center",
+                    "marginBottom": 22,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    adjustsFontSizeToFit={true}
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "#121314",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "#121314",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        {
+                          "flex": 1,
+                          "fontSize": 48,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                    ~
+                  </Text>
+                </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 30,
+                        "fontWeight": "400",
+                        "marginVertical": 2,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "color": "#121314",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "color": "#121314",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "fontSize": 16,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "marginVertical": 0,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        {
+                          "fontFamily": "CentraNo1-Bold",
+                          "fontWeight": "600",
+                        },
+                        undefined,
+                        {
+                          "color": "#121314",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "#121314",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Max fee
+                    :
+                     
+                  </Text>
+                   
+                  (
+                  )
+                </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        {
+                          "fontFamily": "CentraNo1-Bold",
+                          "fontWeight": "600",
+                        },
+                        false,
+                        undefined,
+                        undefined,
+                        undefined,
+                        false,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "marginVertical": 20,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  activeOpacity={0.2}
+                  onPress={[Function]}
+                  style={
+                    [
+                      [
+                        {
+                          "borderRadius": 100,
+                          "justifyContent": "center",
+                          "padding": 15,
+                        },
+                        {
+                          "borderColor": "#9a6300",
+                          "borderWidth": 1,
+                        },
+                        undefined,
+                      ],
+                      null,
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#007aff",
+                          "fontSize": 17,
+                          "fontWeight": "500",
+                          "textAlign": "center",
+                        },
+                        null,
+                        [
+                          {
+                            "fontFamily": "CentraNo1-Bold",
+                            "fontSize": 14,
+                            "fontWeight": "600",
+                            "textAlign": "center",
+                          },
+                          {
+                            "color": "#9a6300",
+                          },
+                          undefined,
+                        ],
+                        null,
+                      ]
+                    }
+                  >
+                    Edit suggested gas fee
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <Modal
+                animationType="none"
+                deviceHeight={null}
+                deviceWidth={null}
+                hardwareAccelerated={false}
+                hideModalContentWhileAnimating={false}
+                onBackdropPress={[Function]}
+                onModalHide={[Function]}
+                onModalWillHide={[Function]}
+                onModalWillShow={[Function]}
+                onRequestClose={[Function]}
+                onSwipeComplete={[Function]}
+                panResponderThreshold={4}
+                scrollHorizontal={false}
+                scrollOffset={0}
+                scrollOffsetMax={0}
+                scrollTo={null}
+                statusBarTranslucent={false}
+                supportedOrientations={
+                  [
+                    "portrait",
+                    "landscape",
+                  ]
+                }
+                swipeDirection="down"
+                swipeThreshold={100}
+                transparent={true}
+                visible={false}
+              />
+              <Modal
+                animationType="none"
+                deviceHeight={null}
+                deviceWidth={null}
+                hardwareAccelerated={false}
+                hideModalContentWhileAnimating={false}
+                onBackdropPress={[Function]}
+                onModalHide={[Function]}
+                onModalWillHide={[Function]}
+                onModalWillShow={[Function]}
+                onRequestClose={[Function]}
+                onSwipeComplete={[Function]}
+                panResponderThreshold={4}
+                scrollHorizontal={false}
+                scrollOffset={0}
+                scrollOffsetMax={0}
+                scrollTo={null}
+                statusBarTranslucent={false}
+                supportedOrientations={
+                  [
+                    "portrait",
+                    "landscape",
+                  ]
+                }
+                swipeDirection="down"
+                swipeThreshold={100}
+                transparent={true}
+                visible={false}
+              />
+              <Modal
+                animationType="none"
+                deviceHeight={null}
+                deviceWidth={null}
+                hardwareAccelerated={false}
+                hideModalContentWhileAnimating={false}
+                onBackdropPress={[Function]}
+                onModalHide={[Function]}
+                onModalWillHide={[Function]}
+                onModalWillShow={[Function]}
+                onRequestClose={[Function]}
+                onSwipeComplete={[Function]}
+                panResponderThreshold={4}
+                scrollHorizontal={false}
+                scrollOffset={0}
+                scrollOffsetMax={0}
+                scrollTo={null}
+                statusBarTranslucent={false}
+                supportedOrientations={
+                  [
+                    "portrait",
+                    "landscape",
+                  ]
+                }
+                swipeDirection="down"
+                swipeThreshold={100}
+                transparent={true}
+                visible={false}
+              />
+            </View>
+          </View>
+        </RCTScrollView>
+      </View>
+    </View>
+  </View>
+</Modal>
+`;

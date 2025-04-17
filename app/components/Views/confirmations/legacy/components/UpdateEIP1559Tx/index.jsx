@@ -38,12 +38,16 @@ const UpdateEIP1559Tx = ({
   chainId,
   onCancel,
   onSave,
+  dappSuggestedGas,
+  dontIgnoreOptions = false,
+  defaultStopUpdateGas = false,
+  isRedesignedTransaction = false,
 }) => {
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [gasSelected, setGasSelected] = useState(
     AppConstants.GAS_OPTIONS.MEDIUM,
   );
-  const stopUpdateGas = useRef(false);
+  const stopUpdateGas = useRef(defaultStopUpdateGas);
   /**
    * Flag to only display high gas selection option if the legacy is higher then low/med
    */
@@ -236,6 +240,7 @@ const UpdateEIP1559Tx = ({
   };
   return (
     <EditGasFee1559Update
+      dappSuggestedGas={dappSuggestedGas}
       selectedGasValue={gasSelected}
       gasOptions={gasFeeEstimates}
       primaryCurrency={primaryCurrency}
@@ -244,15 +249,18 @@ const UpdateEIP1559Tx = ({
       onCancel={onCancel}
       onSave={onSaveTxnWithError}
       ignoreOptions={
-        onlyDisplayHigh.current
-          ? [AppConstants.GAS_OPTIONS.LOW, AppConstants.GAS_OPTIONS.MEDIUM]
-          : [AppConstants.GAS_OPTIONS.LOW]
+        dontIgnoreOptions ?
+          [] : 
+          onlyDisplayHigh.current
+            ? [AppConstants.GAS_OPTIONS.LOW, AppConstants.GAS_OPTIONS.MEDIUM]
+            : [AppConstants.GAS_OPTIONS.LOW]
       }
       updateOption={updateTx1559Options.current}
       analyticsParams={getGasAnalyticsParams()}
       animateOnChange={animateOnGasChange}
       selectedGasObject={selectedGasObject}
       onlyGas
+      isRedesignedTransaction={isRedesignedTransaction}
     />
   );
 };

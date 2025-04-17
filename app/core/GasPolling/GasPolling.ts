@@ -109,6 +109,7 @@ export const getEIP1559TransactionData = ({
   currentCurrency,
   nativeCurrency,
   onlyGas,
+  userFeeLevel,
 }: GetEIP1559TransactionDataProps) => {
   try {
     if (
@@ -144,7 +145,7 @@ export const getEIP1559TransactionData = ({
       { onlyGas },
     );
 
-    return parsedTransactionEIP1559;
+    return { ...parsedTransactionEIP1559, userFeeLevel };
   } catch (error) {
     return 'Error parsing transaction data';
   }
@@ -275,5 +276,6 @@ export const useGasTransaction = ({
     nativeCurrency: ticker,
     suggestedGasLimit,
     onlyGas,
+    userFeeLevel: gasSelected || 'custom',
   });
 };

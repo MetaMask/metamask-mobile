@@ -119,6 +119,15 @@ export function updateEditableParams(
   return TransactionController.updateEditableParams(...args);
 }
 
+export async function updateTransactionGasFees(
+  transactionId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  gasFees: any,
+) {
+  const { TransactionController } = Engine.context;
+  return TransactionController.updateTransactionGasFees(transactionId, gasFees);
+}
+
 export const getNetworkNonce = async (
   { from }: { from: string },
   networkClientId: NetworkClientId,
