@@ -93,14 +93,9 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         navigation.navigate('OptinMetrics', {
           steps: route.params?.steps,
           words,
-          params: {
-            showRecoveryHint: true,
-          },
           onContinue: () => {
             navigation.navigate('OnboardingSuccess', {
-              params: {
-                showRecoveryHint: true,
-              },
+              showPasswordHint: true,
             });
           },
         });

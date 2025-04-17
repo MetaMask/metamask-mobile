@@ -70,10 +70,8 @@ const OnboardingSuccess = ({
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const params = useRoute()?.params as {
-    params: {
-      showRecoveryHint?: boolean;
-    };
+  const { showPasswordHint = false } = useRoute()?.params as {
+    showPasswordHint?: boolean;
   };
 
   const headerLeft = useCallback(
@@ -172,7 +170,7 @@ const OnboardingSuccess = ({
   }, [showHint]);
 
   const renderContent = () => {
-    if (backedUpSRP && !params?.params?.showRecoveryHint) {
+    if (backedUpSRP && !showPasswordHint) {
       return (
         <>
           <Text variant={TextVariant.DisplayMD}>
@@ -215,7 +213,7 @@ const OnboardingSuccess = ({
           </View>
         </>
       );
-    } else if (noSRP && !params?.params?.showRecoveryHint) {
+    } else if (noSRP && !showPasswordHint) {
       return (
         <>
           <Text variant={TextVariant.DisplayMD}>
@@ -268,7 +266,7 @@ const OnboardingSuccess = ({
 
   const renderFooter = () => (
     <View style={styles.footerWrapper}>
-      {params?.params?.showRecoveryHint && (
+      {showPasswordHint && (
         <View style={styles.footer}>
           <TouchableOpacity
             style={[styles.linkWrapper]}
@@ -330,7 +328,7 @@ const OnboardingSuccess = ({
     </View>
   );
 
-  const marginTop = params?.params?.showRecoveryHint ? 80 : noSRP ? 100 : 0;
+  const marginTop = showPasswordHint ? 80 : noSRP ? 100 : 0;
 
   return (
     <ScrollView

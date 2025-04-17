@@ -74,6 +74,7 @@ import HelpText, {
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import Fox from '../../../images/fantom.png';
+import { UserActionType } from '../../../actions/user';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -225,6 +226,10 @@ class Login extends PureComponent {
      */
     setAllowLoginWithRememberMe: PropTypes.func,
     /**
+     * Action to reset the oauth2 login
+     */
+    dispatchOauth2LoginReset: PropTypes.func,
+    /**
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
@@ -317,6 +322,11 @@ class Login extends PureComponent {
   componentWillUnmount() {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
   }
+
+  handleUseOtherMethod = () => {
+    this.props.dispatchOauth2LoginReset();
+    this.props.navigation.navigate('Onboarding');
+  };
 
   handleBackPress = async () => {
     if (!this.props.oauth2LoginSuccess) {
@@ -659,21 +669,35 @@ class Login extends PureComponent {
                 />
               </View>
 
-              <View style={styles.footer}>
-                <Text
-                  variant={TextVariant.HeadingSMRegular}
-                  style={styles.cant}
-                >
-                  {strings('login.go_back')}
-                </Text>
-                <Button
-                  style={styles.goBack}
-                  variant={ButtonVariants.Link}
-                  onPress={this.toggleWarningModal}
-                  testID={LoginViewSelectors.RESET_WALLET}
-                  label={strings('login.reset_wallet')}
-                />
-              </View>
+              {!this.props.oauth2LoginSuccess && (
+                <View style={styles.footer}>
+                  <Text
+                    variant={TextVariant.HeadingSMRegular}
+                    style={styles.cant}
+                  >
+                    {strings('login.go_back')}
+                  </Text>
+                  <Button
+                    style={styles.goBack}
+                    variant={ButtonVariants.Link}
+                    onPress={this.toggleWarningModal}
+                    testID={LoginViewSelectors.RESET_WALLET}
+                    label={strings('login.reset_wallet')}
+                  />
+                </View>
+              )}
+
+              { this.props.oauth2LoginSuccess && (
+                <View style={styles.footer}>
+                  <Button
+                    style={styles.goBack}
+                    variant={ButtonVariants.Link}
+                    onPress={this.handleUseOtherMethod}
+                    testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+                    label={strings('login.other_methods')}
+                  />
+                </View>
+              )}
             </View>
           </KeyboardAwareScrollView>
           <FadeOutOverlay />
@@ -695,6 +719,9 @@ const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   setAllowLoginWithRememberMe: (enabled) =>
     dispatch(setAllowLoginWithRememberMe(enabled)),
+  dispatchOauth2LoginReset: () => dispatch({
+    type: UserActionType.OAUTH2_LOGIN_RESET,
+  }),
 });
 
 export default connect(

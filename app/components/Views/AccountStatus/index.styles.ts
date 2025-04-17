@@ -8,6 +8,7 @@ const styles = StyleSheet.create({
     padding: 24,
     justifyContent: 'space-between',
     marginBottom: 16,
+    marginTop: 100,
   },
   content: {
     flex: 1,
@@ -28,7 +29,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   descriptionWrapper: {
-    width: '90%',
+    width: '100%',
     flexDirection: 'column',
     rowGap: 20,
   },
