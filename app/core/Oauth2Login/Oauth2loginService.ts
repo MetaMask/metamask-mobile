@@ -9,10 +9,10 @@ import { OAuthVerifier } from '@metamask/seedless-onboarding-controller';
 import { UserActionType } from '../../actions/user';
 import { handleAndroidAppleLogin } from './android/apple';
 import { handleAndroidGoogleLogin } from './android/google';
-import { ByoaResponse, HandleFlowParams, ByoaServerUrl, HandleOauth2LoginResult, LoginMode, LoginProvider, Web3AuthNetwork, DefaultWeb3AuthNetwork } from './Oauth2loginInterface';
+import { ByoaResponse, HandleFlowParams, ByoaServerUrl, HandleOauth2LoginResult, LoginProvider, Web3AuthNetwork, DefaultWeb3AuthNetwork } from './Oauth2loginInterface';
 import { handleIosGoogleLogin } from './ios/google';
 import { handleIosAppleLogin } from './ios/apple';
-import { jwtDecode, JwtPayload } from "jwt-decode";
+import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 export class Oauth2LoginService {
     public localState: {
@@ -73,23 +73,23 @@ export class Oauth2LoginService {
         });
     };
 
-    #iosHandleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleFlowParams | undefined> => {
+    #iosHandleOauth2Login = async (provider: LoginProvider) : Promise<HandleFlowParams | undefined> => {
         if (provider === 'apple') {
             const result = await handleIosAppleLogin();
             return result;
         } else if (provider === 'google') {
-            const result = await handleIosGoogleLogin(mode);
+            const result = await handleIosGoogleLogin();
             return result;
         }
         throw new Error('Invalid provider : ' + provider);
     };
 
-    #androidHandleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleFlowParams | undefined> => {
+    #androidHandleOauth2Login = async (provider: LoginProvider) : Promise<HandleFlowParams | undefined> => {
         if (provider === 'apple') {
-            const result = await handleAndroidAppleLogin(mode);
+            const result = await handleAndroidAppleLogin();
             return result;
         } else if (provider === 'google') {
-            const result = await handleAndroidGoogleLogin(mode);
+            const result = await handleAndroidGoogleLogin();
             return result;
         }
         throw new Error('Invalid provider : ' + provider);
@@ -155,7 +155,7 @@ export class Oauth2LoginService {
         }
     };
 
-    handleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleOauth2LoginResult> => {
+    handleOauth2Login = async (provider: LoginProvider) : Promise<HandleOauth2LoginResult> => {
         const web3AuthNetwork = this.config.web3AuthNetwork;
 
         if (this.localState.loginInProgress) {
@@ -166,9 +166,9 @@ export class Oauth2LoginService {
         try {
             let result;
             if (Platform.OS === 'ios') {
-                result = await this.#iosHandleOauth2Login(provider, mode);
+                result = await this.#iosHandleOauth2Login(provider);
             } else if (Platform.OS === 'android') {
-                result = await this.#androidHandleOauth2Login(provider, mode);
+                result = await this.#androidHandleOauth2Login(provider);
             } else {
                 throw new Error('Invalid platform');
             }
