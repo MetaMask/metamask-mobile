@@ -1648,6 +1648,10 @@ const mapStateToProps = (state) => {
 
   const sendFlowContextualChainId = selectSendFlowContextualChainId(state);
 
+  const transactionState = {
+    ...state.transaction,
+    chainId: sendFlowContextualChainId || chainId,
+  };
   return {
     accounts: selectAccounts(state),
     contractExchangeRates: selectContractExchangeRatesByChainId(state, chainId),
@@ -1663,7 +1667,7 @@ const mapStateToProps = (state) => {
     ticker: selectNativeCurrencyByChainId(state, chainId),
     transaction,
     selectedAsset: state.transaction.selectedAsset,
-    transactionState: state.transaction,
+    transactionState,
     primaryCurrency: state.settings.primaryCurrency,
     gasFeeEstimates: selectGasFeeEstimates(state),
     gasEstimateType: selectGasFeeControllerEstimateType(state),

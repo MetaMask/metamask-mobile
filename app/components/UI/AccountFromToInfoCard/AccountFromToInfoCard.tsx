@@ -24,13 +24,14 @@ import { RootState } from '../../../reducers';
 import AddressFrom from './AddressFrom';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
-  const { internalAccounts, chainId, ticker, transactionState, origin } = props;
+  const { internalAccounts, ticker, transactionState, origin } = props;
   const {
     transaction: { from: rawFromAddress, data, to },
     transactionTo,
     transactionFromName,
     selectedAsset,
     ensRecipient,
+    chainId,
   } = transactionState;
 
   const fromAddress = safeToChecksumAddress(rawFromAddress);
