@@ -67,6 +67,46 @@ const getIsStablecoinPair = (
   );
 };
 
+export const handleStablecoinSlippage = ({
+  sourceTokenAddress,
+  destTokenAddress,
+  chainId,
+  setSlippage,
+  prevSourceTokenAddress,
+  prevDestTokenAddress,
+}: {
+  sourceTokenAddress?: string;
+  destTokenAddress?: string;
+  chainId: Hex;
+  setSlippage: (slippage: number) => void;
+  prevSourceTokenAddress?: string;
+  prevDestTokenAddress?: string;
+}) => {
+  if (!sourceTokenAddress || !destTokenAddress) return;
+
+  const isStablecoinPair = getIsStablecoinPair(
+    sourceTokenAddress,
+    destTokenAddress,
+    chainId,
+  );
+
+  if (isStablecoinPair) {
+    setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
+  }
+
+  if (!prevSourceTokenAddress || !prevDestTokenAddress) return;
+
+  const prevIsStablecoinPair = getIsStablecoinPair(
+    prevSourceTokenAddress,
+    prevDestTokenAddress,
+    chainId,
+  );
+
+  if (prevIsStablecoinPair && !isStablecoinPair) {
+    setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+  }
+};
+
 /**
  * This hook is used to update the slippage for stablecoins swaps.
  * It checks if the source and destination tokens are both stablecoins and if so,
@@ -91,29 +131,14 @@ export const useStablecoinsDefaultSlippage = ({
   const prevDestTokenAddress = usePrevious(destTokenAddress);
 
   useEffect(() => {
-    if (!sourceTokenAddress || !destTokenAddress) return;
-
-    const isStablecoinPair = getIsStablecoinPair(
+    handleStablecoinSlippage({
       sourceTokenAddress,
       destTokenAddress,
       chainId,
-    );
-
-    if (isStablecoinPair) {
-      setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
-    }
-
-    if (!prevSourceTokenAddress || !prevDestTokenAddress) return;
-
-    const prevIsStablecoinPair = getIsStablecoinPair(
+      setSlippage,
       prevSourceTokenAddress,
       prevDestTokenAddress,
-      chainId,
-    );
-
-    if (prevIsStablecoinPair && !isStablecoinPair) {
-      setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
-    }
+    });
   }, [
     setSlippage,
     sourceTokenAddress,
