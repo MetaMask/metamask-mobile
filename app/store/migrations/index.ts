@@ -198,7 +198,16 @@ export const asyncifyMigrations = (
 
 // Convert all migrations to async
 export const migrations = asyncifyMigrations(migrationList, (state) => {
-  validatePostMigrationState(state as RootState);
+  // eslint-disable-next-line no-console
+  console.log(' ====== MIGRATION: All migrations completed, running validation ====== ');
+  try {
+    validatePostMigrationState(state as RootState);
+    // eslint-disable-next-line no-console
+    console.log(' ====== MIGRATION: Validation completed successfully ====== ');
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(' ====== MIGRATION: Validation failed with error:', error, '======');
+  }
 }) as unknown as MigrationManifest;
 
 // The latest (i.e. highest) version number.

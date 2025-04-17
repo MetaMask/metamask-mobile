@@ -13,8 +13,11 @@ interface SmartTransactionsState {
 }
 
 export default function migrate(state: unknown) {
-  console.log(' ====== MIGRATION 063 started ====== !')
+  // eslint-disable-next-line no-console
+  console.log(' ====== MIGRATION 063 started ====== ');
   if (!ensureValidState(state, migrationVersion)) {
+    // eslint-disable-next-line no-console
+    console.log(' ====== MIGRATION 063: Invalid state version, skipping ====== ');
     return state;
   }
 
@@ -22,6 +25,8 @@ export default function migrate(state: unknown) {
   const smartTransactionsControllerState = state.engine.backgroundState.SmartTransactionsController;
 
   if (!isObject(transactionControllerState)) {
+    // eslint-disable-next-line no-console
+    console.log(' ====== MIGRATION 063: Invalid TransactionController state ====== ');
     captureException(
       new Error(
         `Migration ${migrationVersion}: Invalid TransactionController state: '${transactionControllerState}'`,
@@ -31,6 +36,8 @@ export default function migrate(state: unknown) {
   }
 
   if (!isObject(smartTransactionsControllerState)) {
+    // eslint-disable-next-line no-console
+    console.log(' ====== MIGRATION 063: Invalid SmartTransactionsController state ====== ');
     captureException(
       new Error(
         `Migration ${migrationVersion}: Invalid SmartTransactionsController state: '${smartTransactionsControllerState}'`,
@@ -40,6 +47,8 @@ export default function migrate(state: unknown) {
   }
 
   if (!Array.isArray(transactionControllerState.transactions)) {
+    // eslint-disable-next-line no-console
+    console.log(' ====== MIGRATION 063: Missing transactions array ====== ');
     captureException(
       new Error(
         `Migration ${migrationVersion}: Missing transactions property from TransactionController: '${typeof state
@@ -48,8 +57,11 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
+
   const smartTransactions = (smartTransactionsControllerState?.smartTransactionsState as SmartTransactionsState)?.smartTransactions;
   if (!isObject(smartTransactions)) {
+    // eslint-disable-next-line no-console
+    console.log(' ====== MIGRATION 063: Missing smart transactions ====== ');
     captureException(
       new Error(
         `Migration ${migrationVersion}: Missing smart transactions property from SmartTransactionsController: '${typeof smartTransactionsControllerState?.smartTransactionsState}'`,
@@ -65,8 +77,13 @@ export default function migrate(state: unknown) {
     !Array.isArray(ethereumMainnetSmartTransactions) ||
     ethereumMainnetSmartTransactions.length === 0
   ) {
+    // eslint-disable-next-line no-console
+    console.log(' ====== MIGRATION 063: No smart transactions to process ====== ');
     return state;
   }
+
+  // eslint-disable-next-line no-console
+  console.log(' ====== MIGRATION 063: Processing', ethereumMainnetSmartTransactions.length, 'smart transactions ====== ');
 
   const smartTransactionStatusesForUpdate: SmartTransactionStatuses[] = [
     SmartTransactionStatuses.CANCELLED,
@@ -86,6 +103,9 @@ export default function migrate(state: unknown) {
       .map((smartTransaction) => smartTransaction.txHash?.toLowerCase()),
   );
 
+  // eslint-disable-next-line no-console
+  console.log(' ====== MIGRATION 063: Found', smartTransactionTxHashesForUpdate.size, 'transactions to update ====== ');
+
   // Update transactions based on the Set.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transactionControllerState.transactions.forEach((transaction: any) => {
@@ -102,5 +122,7 @@ export default function migrate(state: unknown) {
     }
   });
 
+  // eslint-disable-next-line no-console
+  console.log(' ====== MIGRATION 063 completed successfully ====== ');
   return state;
 }

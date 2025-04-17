@@ -22,31 +22,43 @@ const debouncedSetItem = debounce(
 const MigratedStorage = {
   async getItem(key: string) {
     try {
+      // eslint-disable-next-line no-console
+      console.log(` ====== MIGRATION: Attempting to get item from new storage system for key: ${key} ====== `);
       const res = await FilesystemStorage.getItem(key);
       if (res) {
-        // Using new storage system
+        // eslint-disable-next-line no-console
+        console.log(` ====== MIGRATION: Successfully loaded from new storage system for key: ${key}, state version:`, JSON.parse(res)?._persist?.version, '====== ');
         return res;
       }
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to get item for ${key}`,
       });
+      // eslint-disable-next-line no-console
+      console.error(' ====== MIGRATION: Failed to load from new storage system:', error, '======');
     }
 
     // Using old storage system, should only happen once
     try {
+      // eslint-disable-next-line no-console
+      console.log(` ====== MIGRATION: Attempting to get item from old storage system for key: ${key} ====== `);
       const res = await AsyncStorage.getItem(key);
       if (res) {
-        // Using old storage system
+        // eslint-disable-next-line no-console
+        console.log(` ====== MIGRATION: Successfully loaded from old storage system for key: ${key}, state version:`, JSON.parse(res)?._persist?.version, '====== ');
         return res;
       }
     } catch (error) {
       Logger.error(error as Error, { message: 'Failed to run migration' });
+      // eslint-disable-next-line no-console
+      console.error(' ====== MIGRATION: Failed to load from old storage system:', error, '======');
       throw new Error('Failed async storage storage fetch.');
     }
   },
   async setItem(key: string, value: string) {
     try {
+      // eslint-disable-next-line no-console
+      console.log(` ====== Setting item for key: ${key} ====== `);
       return await debouncedSetItem(key, value);
     } catch (error) {
       Logger.error(error as Error, {
@@ -56,6 +68,8 @@ const MigratedStorage = {
   },
   async removeItem(key: string) {
     try {
+      // eslint-disable-next-line no-console
+      console.log(` ====== Removing item for key: ${key} ====== `);
       return await FilesystemStorage.removeItem(key);
     } catch (error) {
       Logger.error(error as Error, {
@@ -114,22 +128,19 @@ const persistUserTransform = createTransform(
   { whitelist: ['user'] },
 );
 
-// Create a custom migrate function with logging
-const customMigrate = createMigrate(migrations, {
-  debug: true, // Enable debug mode to get migration logs
-});
-
 const persistConfig = {
   key: 'root',
   version,
   blacklist: ['onboarding', 'rpcEvents', 'accounts', 'confirmationMetrics'],
   storage: MigratedStorage,
   transforms: [persistTransform, persistUserTransform],
-  stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
-  migrate: customMigrate,
+  stateReconciler: autoMergeLevel2,
+  migrate: createMigrate(migrations, { debug: true }),
   timeout: TIMEOUT,
-  writeFailHandler: (error: Error) =>
-    Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
+  writeFailHandler: (error: Error) => {
+    Logger.error(error, { message: 'Error persisting data' });
+    console.error(' ====== Failed to persist data:', error, '======');
+  },
 };
 
 export default persistConfig;
