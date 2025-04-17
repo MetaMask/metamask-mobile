@@ -261,6 +261,7 @@ export async function switchToNetwork({
     ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
   } else {
     await requestPermittedChainsPermissionIncrementalForOrigin({
+      origin,
       chainId,
       autoApprove: isAddNetworkFlow,
     });
@@ -319,6 +320,7 @@ export async function switchToNetwork({
 
   if (!shouldShowRequestModal && !ethChainIds.includes(chainId)) {
     await requestPermittedChainsPermissionIncrementalForOrigin({
+      origin,
       chainId,
       autoApprove: isAddNetworkFlow,
     });
