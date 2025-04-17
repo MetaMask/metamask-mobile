@@ -290,7 +290,7 @@ describe('AddAccountActions', () => {
       },
     } as unknown as RootState;
 
-    it('calls onAddHdAccount when there are multiple srps', async () => {
+    it('calls navigate to AddAccount screen when there are multiple srps', async () => {
       renderScreen(
         () => <AddAccountActions {...mockProps} />,
         {
@@ -306,7 +306,7 @@ describe('AddAccountActions', () => {
       );
       await fireEvent.press(addAccountButton);
 
-      expect(mockProps.onAddHdAccount).toHaveBeenCalled();
+      expect(mockedNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_ACCOUNT, {});
     });
   });
 });
