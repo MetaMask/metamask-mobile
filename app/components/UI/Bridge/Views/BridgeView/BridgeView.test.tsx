@@ -81,14 +81,14 @@ describe('BridgeView', () => {
   });
 
   it('renders', async () => {
-    const { getByText } = renderScreen(
+    const { toJSON } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
       },
       { state: initialState },
     );
-    expect(getByText('Select amount')).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should open BridgeTokenSelector when clicking source token', async () => {
