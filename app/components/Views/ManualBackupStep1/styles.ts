@@ -9,7 +9,6 @@ export const createStyles = (colors: any) =>
     container: {
       flex: 1,
       paddingHorizontal: 16,
-      marginTop: 50,
     },
     mainWrapper: {
       backgroundColor: colors.background.default,

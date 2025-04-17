@@ -193,7 +193,12 @@ const AccountBackupStep1 = (props) => {
     !onboardingWizard && props.setOnboardingWizardStep(1);
     props.navigation.reset({
       index: 1,
-      routes: [{ name: Routes.ONBOARDING.SUCCESS }],
+      routes: [
+        {
+          name: Routes.ONBOARDING.SUCCESS,
+          params: { showPasswordHint: false },
+        },
+      ],
     });
   };
 

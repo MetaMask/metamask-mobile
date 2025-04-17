@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   SafeAreaView,
@@ -66,8 +66,11 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
   const [words, setWords] = useState([]);
   const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
 
+  const marginOffset = route.params?.marginOffset;
+  // eslint-disable-next-line no-console
+  console.log('marginOffset', marginOffset);
   const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const steps = MANUAL_BACKUP_STEPS;
 
@@ -126,6 +129,8 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     getSeedphrase();
     setWords(route.params?.words ?? []);
     setReady(true);
+    // eslint-disable-next-line no-console
+    console.log('route.params', route.params);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -141,6 +146,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     navigation.navigate('ManualBackupStep2', {
       words,
       steps,
+      marginOffset,
     });
   };
 
@@ -348,9 +354,11 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     </ActionView>
   );
 
+  const marginTop = marginOffset ? 100 : 50;
+
   return ready ? (
     <SafeAreaView style={styles.mainWrapper}>
-      <View style={styles.container}>
+      <View style={[styles.container, { marginTop }]}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           Step 2 of 3
         </Text>

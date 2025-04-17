@@ -70,9 +70,9 @@ const OnboardingSuccess = ({
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const { showPasswordHint = false } = useRoute()?.params as {
+  const { showPasswordHint } = (useRoute()?.params as {
     showPasswordHint?: boolean;
-  };
+  }) || { showPasswordHint: false };
 
   const headerLeft = useCallback(
     () => (
