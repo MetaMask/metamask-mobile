@@ -4,9 +4,8 @@ import { AuthRequest, CodeChallengeMethod, ResponseType } from "expo-auth-sessio
 import { IosGoogleRedirectUri } from "../Oauth2loginInterface";
 import { IosGID } from "../Oauth2loginInterface";
 
-export const handleIosGoogleLogin = async (mode: LoginMode): Promise<HandleFlowParams | undefined> => {
+export const handleIosGoogleLogin = async (): Promise<HandleFlowParams | undefined> => {
     const state = JSON.stringify({
-        mode,
         random: Math.random().toString(36).substring(2, 15),
     });
     const authRequest = new AuthRequest({

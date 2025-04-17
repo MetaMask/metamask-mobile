@@ -18,7 +18,6 @@ export const AppleWebClientId = 'com.web3auth.appleloginextension';
 
 export type HandleOauth2LoginResult = ({type: 'pending'} | {type: AuthSessionResult['type'], existingUser: boolean} | {type: 'error', error: string});
 export type LoginProvider = 'apple' | 'google';
-export type LoginMode = 'onboarding' | 'change-password';
 export type Web3AuthNetwork = 'sapphire_devnet' | 'sapphire_mainnet';
 
 export interface HandleFlowParams {

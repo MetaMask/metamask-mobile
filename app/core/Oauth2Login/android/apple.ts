@@ -6,14 +6,13 @@ import { AppRedirectUri, AppleServerRedirectUri, AppleWebClientId, HandleFlowPar
 
 const AppleAuthorizeEndpoint = 'https://appleid.apple.com/auth/authorize';
 
-export const handleAndroidAppleLogin = async (mode: LoginMode): Promise<HandleFlowParams | undefined> => {
+export const handleAndroidAppleLogin = async (): Promise<HandleFlowParams | undefined> => {
     const state = JSON.stringify({
         provider: 'apple',
         client_redirect_back_uri: AppRedirectUri,
         redirectUri: AppleServerRedirectUri,
         clientId: AppleWebClientId,
         random: Math.random().toString(36).substring(2, 15),
-        mode,
     });
     const authRequest = new AuthRequest({
         clientId: AppleWebClientId,
