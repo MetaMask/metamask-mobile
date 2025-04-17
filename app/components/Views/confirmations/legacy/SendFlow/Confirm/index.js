@@ -873,8 +873,6 @@ class Confirm extends PureComponent {
     const { id: transactionId } = transactionMeta;
 
     const selectedAddress = transaction?.from;
-    console.log('accounts ************', accounts);
-    console.log('selectedAddress ************', selectedAddress);
     const weiBalance = hexToBN(accounts[selectedAddress].balance);
     const totalTransactionValue = hexToBN(value);
 
@@ -927,7 +925,6 @@ class Confirm extends PureComponent {
     assetType,
     gaParams,
   ) => {
-
     const { navigation } = this.props;
     // Manual cancel from UI or rejected from ledger device.
     try {
