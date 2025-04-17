@@ -226,7 +226,7 @@ const BrowserFlow = (props) => (
     <Stack.Screen
       name={Routes.BROWSER.ASSET_LOADER}
       component={AssetLoader}
-      options={{ headerShown: false }}
+      options={{ headerShown: false, animationEnabled: false }}
     />
     <Stack.Screen
       name={Routes.BROWSER.ASSET_VIEW}

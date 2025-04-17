@@ -38,15 +38,7 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { add
         }
     }, [tokenResult, address, chainId, navigation]);
 
-    if (!tokenResult) {
-        return (
-            <View style={styles.container}>
-                <ActivityIndicator testID="asset-loader-spinner" size="large" />
-            </View>
-        );
-    }
-
-    if (!tokenResult.found) {
+    if (tokenResult && !tokenResult.found) {
         return (
             <View style={styles.container}>
                 <Text>Token not found</Text>
@@ -54,5 +46,9 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { add
         );
     }
 
-    return null;
+    return (
+        <View style={styles.container}>
+            <ActivityIndicator testID="asset-loader-spinner" size="large" />
+        </View>
+    );
 };
