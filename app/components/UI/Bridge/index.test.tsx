@@ -263,11 +263,6 @@ describe('BridgeView', () => {
           },
         },
         AccountTrackerController: {
-          accounts: {
-            [mockAddress]: {
-              balance: '0x29a2241af62c0000' as Hex, // 3 ETH
-            },
-          },
           accountsByChainId: {
             [mockChainId]: {
               [mockAddress]: {
@@ -343,17 +338,6 @@ describe('BridgeView', () => {
           ipfsGateway: 'https://dweb.link/ipfs/',
         },
         TokenListController: {
-          tokenList: {
-            [token3Address]: {
-              name: 'Token Three',
-              symbol: 'TOKEN3',
-              decimals: 18,
-              address: token3Address,
-              iconUrl: 'https://token3.com/logo.png',
-              occurrences: 1,
-              aggregators: [],
-            },
-          },
           tokensChainsCache: {
             [mockChainId]: {
               timestamp: Date.now(),

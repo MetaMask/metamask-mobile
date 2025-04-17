@@ -139,7 +139,11 @@ describe('CollectibleContracts', () => {
             }),
           },
           AccountTrackerController: {
-            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
+            accountsByChainId: {
+              '0x1': {
+                [MOCK_ADDRESS]: { balance: '0' },
+              },
+            },
           },
           PreferencesController: {
             displayNftMedia: true,
@@ -251,7 +255,11 @@ describe('CollectibleContracts', () => {
             }),
           },
           AccountTrackerController: {
-            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
+            accountsByChainId: {
+              '0x1': {
+                [MOCK_ADDRESS]: { balance: '0' },
+              },
+            },
           },
           PreferencesController: {
             useNftDetection: true,
@@ -363,7 +371,11 @@ describe('CollectibleContracts', () => {
             }),
           },
           AccountTrackerController: {
-            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
+            accountsByChainId: {
+              '0x1': {
+                [MOCK_ADDRESS]: { balance: '0' },
+              },
+            },
           },
           PreferencesController: {
             useNftDetection: true,
@@ -437,7 +449,11 @@ describe('CollectibleContracts', () => {
             }),
           },
           AccountTrackerController: {
-            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+            accountsByChainId: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: { balance: '0' },
+              },
+            },
           },
           PreferencesController: {
             useNftDetection: true,
@@ -491,7 +507,11 @@ describe('CollectibleContracts', () => {
             }),
           },
           AccountTrackerController: {
-            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+            accountsByChainId: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: { balance: '0' },
+              },
+            },
           },
           PreferencesController: {
             useNftDetection: true,

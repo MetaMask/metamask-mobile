@@ -44,7 +44,6 @@ const initialState = {
             },
           },
         },
-        tokens: [],
         allTokens: {
           '0x1': {
             '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272': [],
@@ -71,7 +70,6 @@ const initialState = {
         },
       },
       TokenListController: {
-        tokenList: {},
         tokensChainsCache: {
           '0x1': {
             data: [

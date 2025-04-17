@@ -63,7 +63,9 @@ export const selectIgnoreTokens = createSelector(
     chainId: Hex,
     selectedAddress: string | undefined,
   ) =>
-    tokensControllerState?.allIgnoredTokens[chainId]?.[selectedAddress as Hex],
+    tokensControllerState?.allIgnoredTokens?.[chainId]?.[
+      selectedAddress as Hex
+    ],
 );
 
 export const selectDetectedTokens = createSelector(
@@ -75,7 +77,9 @@ export const selectDetectedTokens = createSelector(
     chainId: Hex,
     selectedAddress: string | undefined,
   ) =>
-    tokensControllerState?.allDetectedTokens[chainId]?.[selectedAddress as Hex],
+    tokensControllerState?.allDetectedTokens?.[chainId]?.[
+      selectedAddress as Hex
+    ],
 );
 
 export const selectAllTokens = createSelector(

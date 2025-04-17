@@ -75,7 +75,11 @@ ENGINE_MOCK.context = {
   },
   TokenListController: {
     state: {
-      tokenList: {},
+      tokensChainsCache: {
+        '0x1': {
+          data: [],
+        },
+      },
     },
   },
 };
