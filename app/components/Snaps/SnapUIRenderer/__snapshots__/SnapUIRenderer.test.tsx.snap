@@ -1987,6 +1987,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 >
                   <SvgMock
                     color="#ffffff"
+                    fill="currentColor"
                     height={20}
                     name="CheckBold"
                     onPress={[Function]}
@@ -2209,6 +2210,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 </View>
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={16}
                   name="ArrowDown"
                   style={
@@ -2425,6 +2427,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                           >
                             <SvgMock
                               color="#121314"
+                              fill="currentColor"
                               height={16}
                               name="ArrowLeft"
                               style={

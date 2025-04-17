@@ -343,6 +343,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                           >
                             <SvgMock
                               color="#121314"
+                              fill="currentColor"
                               height={16}
                               name="ArrowLeft"
                               style={
@@ -412,6 +413,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                         >
                           <SvgMock
                             color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Add"
                             style={
@@ -455,6 +457,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                         >
                           <SvgMock
                             color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Add"
                             style={
@@ -498,6 +501,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                         >
                           <SvgMock
                             color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Add"
                             style={
@@ -541,6 +545,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                         >
                           <SvgMock
                             color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Add"
                             style={
@@ -601,6 +606,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                         >
                           <SvgMock
                             color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Wallet"
                             style={
@@ -644,6 +650,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                         >
                           <SvgMock
                             color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Key"
                             style={
@@ -704,6 +711,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                         >
                           <SvgMock
                             color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Hardware"
                             style={

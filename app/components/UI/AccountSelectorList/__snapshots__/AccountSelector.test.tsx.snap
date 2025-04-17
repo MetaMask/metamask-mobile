@@ -411,6 +411,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="MoreVertical"
               style={
@@ -756,6 +757,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="MoreVertical"
               style={
@@ -1121,6 +1123,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="MoreVertical"
               style={
@@ -1430,6 +1433,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="MoreVertical"
               style={
@@ -1859,6 +1863,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="MoreVertical"
               style={
@@ -2204,6 +2209,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="MoreVertical"
               style={

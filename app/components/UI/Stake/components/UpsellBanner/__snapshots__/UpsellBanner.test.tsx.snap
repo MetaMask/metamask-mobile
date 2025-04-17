@@ -80,6 +80,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       >
         <SvgMock
           color="#686e7d"
+          fill="currentColor"
           height={16}
           name="Info"
           style={

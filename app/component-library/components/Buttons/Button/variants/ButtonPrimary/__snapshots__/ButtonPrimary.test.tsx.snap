@@ -24,6 +24,7 @@ exports[`ButtonPrimary render matches latest snapshot 1`] = `
 >
   <SvgMock
     color="#ffffff"
+    fill="currentColor"
     height={16}
     name="Add"
     style={
@@ -52,6 +53,7 @@ exports[`ButtonPrimary render matches latest snapshot 1`] = `
   </Text>
   <SvgMock
     color="#ffffff"
+    fill="currentColor"
     height={16}
     name="AddSquare"
     style={

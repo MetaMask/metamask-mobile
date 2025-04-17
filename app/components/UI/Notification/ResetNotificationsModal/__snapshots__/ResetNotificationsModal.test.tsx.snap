@@ -126,6 +126,7 @@ exports[`ProfileSyncingModal should render correctly 1`] = `
       >
         <SvgMock
           color="#ca3542"
+          fill="currentColor"
           height={32}
           name="Danger"
           style={

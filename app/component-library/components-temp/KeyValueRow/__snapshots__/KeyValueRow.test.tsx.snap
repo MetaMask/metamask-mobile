@@ -35,6 +35,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={20}
         name="Activity"
         style={
@@ -91,6 +92,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={20}
         name="Add"
         style={
@@ -166,6 +168,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={20}
         name="Activity"
         style={
@@ -222,6 +225,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
         >
           <SvgMock
             color="#9ca1af"
+            fill="currentColor"
             height={20}
             name="Question"
             style={
@@ -255,6 +259,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={20}
         name="Add"
         style={
@@ -311,6 +316,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
         >
           <SvgMock
             color="#9ca1af"
+            fill="currentColor"
             height={20}
             name="Question"
             style={
@@ -407,6 +413,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
         >
           <SvgMock
             color="#9ca1af"
+            fill="currentColor"
             height={20}
             name="Question"
             style={
@@ -484,6 +491,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
         >
           <SvgMock
             color="#9ca1af"
+            fill="currentColor"
             height={20}
             name="Question"
             style={

@@ -21,6 +21,7 @@ exports[`ButtonIcon should render correctly 1`] = `
 >
   <SvgMock
     color="#121314"
+    fill="currentColor"
     height={16}
     name="Add"
     style={

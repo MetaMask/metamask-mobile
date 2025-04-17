@@ -356,6 +356,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
         </Text>
         <SvgMock
           color="#121314"
+          fill="currentColor"
           height={12}
           name="ArrowDown"
           style={

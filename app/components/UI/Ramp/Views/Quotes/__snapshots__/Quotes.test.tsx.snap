@@ -1138,6 +1138,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 >
                                   <SvgMock
                                     color="#121314"
+                                    fill="currentColor"
                                     height={16}
                                     name="Close"
                                     style={
@@ -3261,6 +3262,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 >
                                   <SvgMock
                                     color="#121314"
+                                    fill="currentColor"
                                     height={16}
                                     name="Close"
                                     style={
@@ -5117,6 +5119,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 >
                                   <SvgMock
                                     color="#121314"
+                                    fill="currentColor"
                                     height={16}
                                     name="Close"
                                     style={

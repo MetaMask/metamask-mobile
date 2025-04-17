@@ -386,6 +386,7 @@ exports[`Browser should render correctly 1`] = `
                             >
                               <SvgMock
                                 color="#4459ff"
+                                fill="currentColor"
                                 height={24}
                                 name="Info"
                                 style={
@@ -444,6 +445,7 @@ exports[`Browser should render correctly 1`] = `
                             >
                               <SvgMock
                                 color="#9a6300"
+                                fill="currentColor"
                                 height={24}
                                 name="Danger"
                                 style={
@@ -540,6 +542,7 @@ exports[`Browser should render correctly 1`] = `
                             >
                               <SvgMock
                                 color="#4459ff"
+                                fill="currentColor"
                                 height={16}
                                 name="Copy"
                                 style={

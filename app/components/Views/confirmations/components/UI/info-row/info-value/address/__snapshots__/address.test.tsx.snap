@@ -21,6 +21,7 @@ exports[`InfoAddress should match snapshot 1`] = `
 >
   <SvgMock
     color="#121314"
+    fill="currentColor"
     height={20}
     name="Question"
     style={

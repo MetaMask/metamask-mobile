@@ -492,6 +492,7 @@ exports[`ActivityView should render correctly 1`] = `
                           </Text>
                           <SvgMock
                             color="#121314"
+                            fill="currentColor"
                             height={16}
                             name="ArrowDown"
                             style={

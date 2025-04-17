@@ -205,6 +205,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={16}
                   name="Close"
                   style={

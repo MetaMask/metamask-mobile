@@ -526,6 +526,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       >
                                         <SvgMock
                                           color="#121314"
+                                          fill="currentColor"
                                           height={16}
                                           name="Close"
                                           style={
@@ -624,6 +625,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     </Text>
                                     <SvgMock
                                       color="#4459ff"
+                                      fill="currentColor"
                                       height={16}
                                       name="ArrowDown"
                                       style={
@@ -718,6 +720,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 >
                                   <SvgMock
                                     color="#121314"
+                                    fill="currentColor"
                                     height={16}
                                     name="Search"
                                     style={
@@ -1069,6 +1072,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     >
                                       <SvgMock
                                         color="#686e7d"
+                                        fill="currentColor"
                                         height={20}
                                         name="Info"
                                         style={
@@ -1331,6 +1335,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     >
                                       <SvgMock
                                         color="#686e7d"
+                                        fill="currentColor"
                                         height={20}
                                         name="Info"
                                         style={
@@ -1625,6 +1630,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     >
                                       <SvgMock
                                         color="#686e7d"
+                                        fill="currentColor"
                                         height={20}
                                         name="Info"
                                         style={

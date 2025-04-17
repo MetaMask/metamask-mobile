@@ -611,6 +611,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -1358,6 +1359,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -2105,6 +2107,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={

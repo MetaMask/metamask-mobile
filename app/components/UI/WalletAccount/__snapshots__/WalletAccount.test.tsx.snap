@@ -221,6 +221,7 @@ exports[`WalletAccount renders correctly 1`] = `
       </View>
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={12}
         name="ArrowDown"
         style={
@@ -286,6 +287,7 @@ exports[`WalletAccount renders correctly 1`] = `
         >
           <SvgMock
             color="#121314"
+            fill="currentColor"
             height={24}
             name="Copy"
             style={
@@ -320,6 +322,7 @@ exports[`WalletAccount renders correctly 1`] = `
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={16}
         name="MoreHorizontal"
         style={

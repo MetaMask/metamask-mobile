@@ -94,8 +94,9 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
         >
           <SvgMock
             color="#ffffff"
+            fill="currentColor"
             height={10}
-            name="Send2"
+            name="Send"
             style={
               {
                 "height": 10,

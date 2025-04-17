@@ -433,6 +433,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                               </Text>
                               <SvgMock
                                 color="#121314"
+                                fill="currentColor"
                                 height={16}
                                 name="SwapVertical"
                                 style={
@@ -510,6 +511,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                 >
                                   <SvgMock
                                     color="#9ca1af"
+                                    fill="currentColor"
                                     height={16}
                                     name="Question"
                                     style={
@@ -709,6 +711,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#121314"
+                              fill="currentColor"
                               height={16}
                               name="Sparkle"
                               style={
@@ -2031,6 +2034,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                               </Text>
                               <SvgMock
                                 color="#121314"
+                                fill="currentColor"
                                 height={16}
                                 name="SwapVertical"
                                 style={
@@ -2108,6 +2112,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                 >
                                   <SvgMock
                                     color="#9ca1af"
+                                    fill="currentColor"
                                     height={16}
                                     name="Question"
                                     style={
@@ -2307,6 +2312,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                           >
                             <SvgMock
                               color="#121314"
+                              fill="currentColor"
                               height={16}
                               name="Sparkle"
                               style={

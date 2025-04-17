@@ -168,6 +168,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
           >
             <SvgMock
               color="#686e7d"
+              fill="currentColor"
               height={20}
               name="Data"
               style={
