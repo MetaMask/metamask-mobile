@@ -509,6 +509,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
       expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(1);
       expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
+        origin: 'https://example.com',
         autoApprove: true,
         chainId: '0x64',
       });
