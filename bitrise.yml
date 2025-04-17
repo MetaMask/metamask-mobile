@@ -186,13 +186,13 @@ stages:
       - run_trade_swimlane_android_smoke: {}
       - run_network_abstraction_swimlane_ios_smoke: {}
       - run_network_abstraction_swimlane_android_smoke: {}
-      # - run_network_expansion_swimlane_ios_smoke: {}
-      # - run_network_expansion_swimlane_android_smoke: {}
-      # - run_wallet_platform_swimlane_ios_smoke: {}
-      # - run_wallet_platform_swimlane_android_smoke: {}
-      # - run_tag_smoke_confirmations_ios: {}
-      # - run_tag_smoke_confirmations_android: {}
-      # - run_tag_smoke_confirmations_redesigned_ios: {}
+      - run_network_expansion_swimlane_ios_smoke: {}
+      - run_network_expansion_swimlane_android_smoke: {}
+      - run_wallet_platform_swimlane_ios_smoke: {}
+      - run_wallet_platform_swimlane_android_smoke: {}
+      - run_tag_smoke_confirmations_ios: {}
+      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_redesigned_ios: {}
       # - run_tag_multichain_permissions_ios: {}
       # - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
