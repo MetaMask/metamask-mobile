@@ -33,7 +33,7 @@ import { isPortfolioViewEnabled } from '../../../../util/networks';
 import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
 import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
 import { parseFloatSafe } from '../../Earn/utils';
-import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -57,6 +57,10 @@ interface TokenDetailsProps {
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+
   const tokenExchangeRatesByChainId = useSelector((state: RootState) =>
     selectTokenMarketDataByChainId(state, asset.chainId as Hex),
   );
@@ -154,7 +158,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   return (
     <View style={styles.tokenDetailsContainer}>
       {asset.isETH && <StakingEarnings asset={asset} />}
-      {isStablecoinLendingFeatureEnabled() &&
+      {isStablecoinLendingEnabled &&
         isSupportedLendingTokenByChainId(asset.symbol, asset.chainId ?? '') &&
         hasAssetBalance && <EarnEmptyStateCta token={asset} />}
       {(asset.isETH || tokenMetadata) && (

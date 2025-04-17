@@ -64,34 +64,72 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+const render = (state = STATE_MOCK) =>
+  renderWithProvider(
+    <StakingEarnings
+      asset={{
+        chainId: '0x1',
+        symbol: 'ETH',
+        address: '0x0',
+        decimals: 18,
+        image: '',
+        name: '',
+        aggregators: [],
+        balance: '0',
+        balanceFiat: '0',
+        logo: '',
+        isETH: true,
+      }}
+    />,
+    {
+      state,
+    },
+  );
+
 describe('Staking Earnings', () => {
   it('should render correctly', () => {
-    const { toJSON, getByText } = renderWithProvider(
-      <StakingEarnings
-        asset={{
-          chainId: '0x1',
-          symbol: 'ETH',
-          address: '0x0',
-          decimals: 18,
-          image: '',
-          name: '',
-          aggregators: [],
-          balance: '0',
-          balanceFiat: '0',
-          logo: '',
-          isETH: true,
-        }}
-      />,
-      {
-        state: STATE_MOCK,
-      },
-    );
+    const { toJSON, getByText, queryByText } = render();
 
     expect(getByText(strings('stake.your_earnings'))).toBeDefined();
     expect(getByText(strings('stake.annual_rate'))).toBeDefined();
     expect(getByText(strings('stake.lifetime_rewards'))).toBeDefined();
     expect(getByText(strings('stake.estimated_annual_earnings'))).toBeDefined();
     expect(getByText(strings('stake.view_earnings_history'))).toBeDefined();
+    expect(
+      queryByText(
+        strings('earn.service_interruption_banner.maintenance_message'),
+      ),
+    ).toBeNull();
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('displays pooled-staking maintenance banner when feature flag is enabled', () => {
+    const mockStateWithPooledStakingMaintenanceBanner = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: '0x1',
+            }),
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              earnPooledStakingServiceInterruptionBannerEnabled: true,
+            },
+          },
+        },
+      },
+    };
+
+    const { toJSON, getByText } = render(
+      mockStateWithPooledStakingMaintenanceBanner,
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByText(
+        strings('earn.service_interruption_banner.maintenance_message'),
+      ),
+    ).toBeDefined();
   });
 });

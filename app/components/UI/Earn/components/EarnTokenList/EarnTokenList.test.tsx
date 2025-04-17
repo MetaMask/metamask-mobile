@@ -15,9 +15,9 @@ import {
 import Engine from '../../../../../core/Engine';
 import * as tokenUtils from '../../../Earn/utils/token';
 import * as useStakingEligibilityHook from '../../../Stake/hooks/useStakingEligibility';
-import * as stakeConstants from '../../../Stake/constants';
 import * as portfolioNetworkUtils from '../../../../../util/networks';
 import { act, fireEvent } from '@testing-library/react-native';
+import { mockedEarnFeatureFlagsEnabledState } from '../../__mocks__/mockData';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -38,10 +38,6 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('../../../../../util/networks', () => ({
   isPortfolioViewEnabled: jest.fn().mockReturnValue(true),
-}));
-
-jest.mock('../../../Stake/constants', () => ({
-  isStablecoinLendingFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
 
 const mockNavigate = jest.fn();
@@ -69,6 +65,11 @@ const initialState = {
     backgroundState: {
       ...initialRootState.engine.backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          ...mockedEarnFeatureFlagsEnabledState,
+        },
+      },
     },
   },
 };
@@ -145,16 +146,87 @@ describe('EarnTokenList', () => {
   });
 
   it('does not render the EarnTokenList when required feature flags are disabled', () => {
-    jest
-      .spyOn(stakeConstants, 'isStablecoinLendingFeatureEnabled')
-      .mockReturnValueOnce(false);
+    // Requires stablecoin lending an portfolio view to be enabled.
+    const stateWithStablecoinLendingDisabled = {
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              earnStablecoinLendingEnabled: false,
+            },
+          },
+        },
+      },
+    };
+
     jest
       .spyOn(portfolioNetworkUtils, 'isPortfolioViewEnabled')
       .mockReturnValueOnce(false);
 
-    const { toJSON } = renderWithProvider(<EarnTokenList />);
+    const { toJSON } = renderWithProvider(<EarnTokenList />, {
+      state: stateWithStablecoinLendingDisabled,
+    });
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('filters out pooled-staking assets when pooled staking is disabled', () => {
+    const stateWithPooledStakingDisabled = {
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              ...mockedEarnFeatureFlagsEnabledState,
+              earnPooledStakingEnabled: false,
+            },
+          },
+        },
+      },
+    };
+
+    const { queryAllByText, getByText, getAllByText } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      {
+        state: stateWithPooledStakingDisabled,
+      },
+    );
+
+    // Bottom Sheet Title
+    expect(getByText(strings('stake.select_a_token'))).toBeDefined();
+
+    // Upsell Banner
+    expect(getByText(strings('stake.you_could_earn'))).toBeDefined();
+    expect(getByText(strings('stake.per_year_on_your_tokens'))).toBeDefined();
+
+    // Token List
+    // Ethereum should be filtered out
+    expect(queryAllByText('Ethereum').length).toBe(0);
+    expect(queryAllByText('2.3% APR').length).toBe(0);
+
+    // DAI
+    expect(getByText('Dai Stablecoin')).toBeDefined();
+    expect(getByText('5.0% APR')).toBeDefined();
+
+    // USDT
+    expect(getByText('Tether USD')).toBeDefined();
+    expect(getByText('4.1% APR')).toBeDefined();
+
+    // USDC
+    expect(getByText('USDC')).toBeDefined();
+    expect(getAllByText('4.5% APR').length).toBe(1);
+
+    expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
+    expect(filterEligibleTokensSpy).toHaveBeenCalled();
   });
 
   it('changes active network if selected token is on a different network', async () => {

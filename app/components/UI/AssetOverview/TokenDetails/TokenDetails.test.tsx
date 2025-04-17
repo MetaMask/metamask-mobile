@@ -16,9 +16,8 @@ import {
 } from '../../../../selectors/networkController';
 // eslint-disable-next-line import/no-namespace
 import * as reactRedux from 'react-redux';
-// eslint-disable-next-line import/no-namespace
-import * as StakeConstants from '../../Stake/constants';
 import { strings } from '../../../../../locales/i18n';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
@@ -47,6 +46,11 @@ const initialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          earnStablecoinLendingEnabled: false,
+        },
+      },
     },
   },
   settings: {
@@ -131,16 +135,9 @@ const mockTokenMarketDataByChainId: Record<
   },
 };
 
-let isStablecoinLendingFeatureEnabledSpy: jest.SpyInstance;
-
 describe('TokenDetails', () => {
   beforeAll(() => {
     jest.resetAllMocks();
-  });
-  beforeEach(() => {
-    isStablecoinLendingFeatureEnabledSpy = jest
-      .spyOn(StakeConstants, 'isStablecoinLendingFeatureEnabled')
-      .mockReturnValue(false);
   });
 
   const mockSelectors = () => {
@@ -171,6 +168,8 @@ describe('TokenDetails', () => {
           return mockExchangeRate;
         case selectCurrentCurrency:
           return mockCurrentCurrency;
+        case selectStablecoinLendingEnabledFlag:
+          return false;
         default:
           return undefined;
       }
@@ -301,9 +300,44 @@ describe('TokenDetails', () => {
   });
 
   it('renders EarnEmptyStateCta if asset can be lent and balance is not zero', () => {
-    isStablecoinLendingFeatureEnabledSpy.mockReturnValue(true);
+    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
+    const SELECTOR_MOCKS = {
+      selectTokenMarketDataByChainId: {},
+      selectConversionRateBySymbol: mockExchangeRate,
+      selectNativeCurrencyByChainId: 'ETH',
+      // selectStablecoinLendingEnabledFlag: true,
+    } as const;
 
-    mockSelectors();
+    useSelectorSpy.mockImplementation((selectorOrCallback) => {
+      if (typeof selectorOrCallback === 'function') {
+        const selectorString = selectorOrCallback.toString();
+        const matchedSelector = Object.keys(SELECTOR_MOCKS).find((key) =>
+          selectorString.includes(key),
+        );
+        if (matchedSelector) {
+          return SELECTOR_MOCKS[matchedSelector as keyof typeof SELECTOR_MOCKS];
+        }
+      }
+
+      switch (selectorOrCallback) {
+        case selectTokenList:
+          return mockAssets;
+        case selectContractExchangeRates:
+          return {};
+        case selectConversionRate:
+          return mockExchangeRate;
+        case selectCurrentCurrency:
+          return mockCurrentCurrency;
+        case selectProviderConfig:
+          return { ticker: 'ETH' };
+        case selectEvmTicker:
+          return 'ETH';
+        case selectStablecoinLendingEnabledFlag:
+          return true;
+        default:
+          return undefined;
+      }
+    });
 
     const { getByText } = renderWithProvider(<TokenDetails asset={mockDAI} />, {
       state: initialState,
@@ -322,8 +356,6 @@ describe('TokenDetails', () => {
   });
 
   it('does not render EarnEmptyCta if asset can be lent but balance is zero', () => {
-    isStablecoinLendingFeatureEnabledSpy.mockReturnValue(true);
-
     mockSelectors();
 
     const mockDaiWithoutBalance = {

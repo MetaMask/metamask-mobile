@@ -11,8 +11,6 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 // eslint-disable-next-line import/no-namespace
-import * as StakeConstants from '../../../Stake/constants';
-// eslint-disable-next-line import/no-namespace
 import * as useEarnTokenDetails from '../../../Earn/hooks/useEarnTokenDetails';
 
 jest.mock('../../../../hooks/useMetrics');
@@ -37,16 +35,19 @@ const initialState = {
     backgroundState: {
       ...initialRootState.engine.backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          earnStablecoinLendingEnabled: true,
+        },
+      },
     },
   },
 };
 
-const renderComponent = (token: TokenI) =>
+const renderComponent = (token: TokenI, state = initialState) =>
   renderWithProvider(<EarnEmptyStateCta token={token} />, {
-    state: initialState,
+    state,
   });
-
-let isStablecoinLendingFeatureEnabledSpy: jest.SpyInstance;
 
 describe('EmptyStateCta', () => {
   beforeEach(() => {
@@ -65,10 +66,6 @@ describe('EmptyStateCta', () => {
       isEnabled: jest.fn(),
       getMetaMetricsId: jest.fn(),
     });
-
-    isStablecoinLendingFeatureEnabledSpy = jest
-      .spyOn(StakeConstants, 'isStablecoinLendingFeatureEnabled')
-      .mockReturnValue(true);
 
     jest.spyOn(useEarnTokenDetails, 'useEarnTokenDetails').mockReturnValue({
       getTokenWithBalanceAndApr: () => ({
@@ -155,9 +152,26 @@ describe('EmptyStateCta', () => {
   });
 
   it('does not render if stablecoin lending feature flag disabled', () => {
-    isStablecoinLendingFeatureEnabledSpy.mockReturnValue(false);
+    const stateWithStablecoinLendingDisabled = {
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              earnStablecoinLendingEnabled: false,
+            },
+          },
+        },
+      },
+    };
 
-    const { toJSON } = renderComponent({} as TokenI);
+    const { toJSON } = renderComponent(
+      MOCK_USDC_MAINNET_ASSET,
+      stateWithStablecoinLendingDisabled,
+    );
     expect(toJSON()).toBeNull();
   });
 });
