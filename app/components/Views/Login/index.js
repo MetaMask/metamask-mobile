@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -73,7 +74,8 @@ import HelpText, {
 } from '../../../component-library/components/Form/HelpText';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
-import Fox from '../../../images/fantom.png';
+import metamask_name from '../../../images/branding/metamask-name.png';
+import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -86,14 +88,21 @@ const createStyles = (colors) =>
     },
     wrapper: {
       flex: 1,
-      paddingHorizontal: 32,
+      paddingHorizontal: 16,
+    },
+    container: {
+      flex: 1,
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      flexDirection: 'column',
+      width: '100%',
     },
     foxWrapper: {
       justifyContent: 'center',
       alignSelf: 'center',
       width: Device.isIos() ? 130 : 100,
       height: Device.isIos() ? 130 : 100,
-      marginTop: 100,
+      marginTop: 48,
     },
     image: {
       alignSelf: 'center',
@@ -101,25 +110,25 @@ const createStyles = (colors) =>
       height: Device.isIos() ? 130 : 100,
     },
     title: {
-      fontSize: Device.isAndroid() ? 30 : 35,
-      lineHeight: Device.isAndroid() ? 35 : 40,
-      marginTop: 20,
-      marginBottom: 20,
-      color: colors.text.default,
-      justifyContent: 'center',
       textAlign: 'center',
-      ...fontStyles.bold,
+      marginVertical: 24,
     },
     field: {
-      flex: 1,
       marginBottom: Device.isAndroid() ? 0 : 10,
       flexDirection: 'column',
+      width: '100%',
+      rowGap: 2,
+      justifyContent: 'flex-start',
     },
     label: {
       marginBottom: 12,
     },
     ctaWrapper: {
-      marginTop: 20,
+      width: '100%',
+      flexDirection: 'column',
+      alignItems: 'center',
+      rowGap: 24,
+      marginTop: 24,
     },
     footer: {
       marginVertical: 40,
@@ -193,6 +202,29 @@ const createStyles = (colors) =>
       marginTop: 10,
       color: colors.error.default,
     },
+    metamaskName: {
+      width: 80,
+      height: 40,
+      marginTop: 10,
+    },
+    input: {
+      width: '100%',
+    },
+    labelContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    hintText: {
+      textAlign: 'left',
+    },
+    helperTextContainer: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      rowGap: 2,
+      alignSelf: 'flex-start',
+    },
   });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
@@ -238,7 +270,7 @@ class Login extends PureComponent {
     password: '',
     biometryType: null,
     rememberMe: false,
-    biometryChoice: false,
+    biometryChoice: true,
     loading: false,
     error: null,
     biometryPreviouslyDisabled: false,
@@ -248,6 +280,7 @@ class Login extends PureComponent {
     deleteText: '',
     showDeleteWarning: false,
     hasBiometricCredentials: false,
+    showHint: false,
   };
 
   fieldRef = React.createRef();
@@ -545,6 +578,10 @@ class Login extends PureComponent {
     downloadStateLogs(fullState, false);
   };
 
+  toggleHint = () => {
+    this.setState({ showHint: !this.state.showHint });
+  };
+
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -561,9 +598,18 @@ class Login extends PureComponent {
           <KeyboardAwareScrollView
             keyboardShouldPersistTaps="handled"
             resetScrollToCoords={{ x: 0, y: 0 }}
-            style={styles.wrapper}
+            contentContainerStyle={styles.wrapper}
           >
-            <View testID={LoginViewSelectors.CONTAINER}>
+            <View
+              testID={LoginViewSelectors.CONTAINER}
+              style={styles.container}
+            >
+              <Image
+                source={metamask_name}
+                style={styles.metamaskName}
+                resizeMethod={'auto'}
+              />
+
               <TouchableOpacity
                 style={styles.foxWrapper}
                 delayLongPress={10 * 1000} // 10 seconds
@@ -577,19 +623,37 @@ class Login extends PureComponent {
                 />
               </TouchableOpacity>
 
-              <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
+              <Text
+                variant={TextVariant.DisplayMD}
+                color={TextColor.Default}
+                style={styles.title}
+                testID={LoginViewSelectors.TITLE_ID}
+              >
                 {strings('login.title')}
               </Text>
+
               <View style={styles.field}>
-                <Label
-                  variant={TextVariant.HeadingSMRegular}
-                  style={styles.label}
-                >
-                  {strings('login.password')}
-                </Label>
+                <View style={styles.labelContainer}>
+                  <Label
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
+                  >
+                    {strings('login.password')}
+                  </Label>
+                  <Button
+                    variant={ButtonVariants.Link}
+                    onPress={this.toggleHint}
+                    testID={LoginViewSelectors.SHOW_HINT_BUTTON}
+                    label={
+                      this.state.showHint
+                        ? strings('login.hide_hint')
+                        : strings('login.show_hint')
+                    }
+                  />
+                </View>
                 <TextField
                   size={TextFieldSize.Lg}
-                  placeholder={strings('login.password')}
+                  placeholder={strings('login.password_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   testID={LoginViewSelectors.PASSWORD_INPUT}
                   returnKeyType={'done'}
@@ -609,24 +673,45 @@ class Login extends PureComponent {
                     />
                   }
                   keyboardAppearance={themeAppearance}
+                  style={styles.input}
                 />
               </View>
 
               {this.renderSwitch()}
 
-              {!!this.state.error && (
-                <HelpText
-                  severity={HelpTextSeverity.Error}
-                  variant={TextVariant.BodyMD}
-                  testID={LoginViewSelectors.PASSWORD_ERROR}
-                >
-                  {this.state.error}
-                </HelpText>
-              )}
+              <View style={styles.helperTextContainer}>
+                {this.state.showHint && (
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                    style={styles.hintText}
+                  >
+                    {strings('login.hint', { hint: 'mom’s home' })}
+                  </Text>
+                )}
+
+                {!!this.state.error && (
+                  <HelpText
+                    severity={HelpTextSeverity.Error}
+                    variant={TextVariant.BodyMD}
+                    testID={LoginViewSelectors.PASSWORD_ERROR}
+                  >
+                    {this.state.error}
+                  </HelpText>
+                )}
+              </View>
+
               <View
                 style={styles.ctaWrapper}
                 testID={LoginViewSelectors.LOGIN_BUTTON_ID}
               >
+                <SecurityOptionToggle
+                  title={strings('import_from_seed.unlock_with_face_id')}
+                  value={this.state.biometryChoice}
+                  onOptionUpdated={this.updateBiometryChoice}
+                  style={styles.input}
+                />
+
                 <Button
                   variant={ButtonVariants.Primary}
                   width={ButtonWidthTypes.Full}
@@ -642,10 +727,19 @@ class Login extends PureComponent {
                       strings('login.unlock_button')
                     )
                   }
+                  isDisabled={this.state.password.length === 0}
+                />
+
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={this.toggleWarningModal}
+                  testID={LoginViewSelectors.RESET_WALLET}
+                  label={strings('login.reset_wallet')}
                 />
               </View>
 
-              <View style={styles.footer}>
+              {/* <View style={styles.footer}>
                 <Text
                   variant={TextVariant.HeadingSMRegular}
                   style={styles.cant}
@@ -659,7 +753,7 @@ class Login extends PureComponent {
                   testID={LoginViewSelectors.RESET_WALLET}
                   label={strings('login.reset_wallet')}
                 />
-              </View>
+              </View> */}
             </View>
           </KeyboardAwareScrollView>
           <FadeOutOverlay />

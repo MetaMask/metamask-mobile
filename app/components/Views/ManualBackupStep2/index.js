@@ -136,6 +136,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     setGridWords(tempGrid);
     setMissingWords(removed);
     setEmptySlots(indexesToEmpty);
+    setSelectedSlot(indexesToEmpty.sort((a, b) => a - b)[0]);
   }, [words, showStatusBottomSheet]);
 
   const handleWordSelect = useCallback(
@@ -216,8 +217,10 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
             numColumns={3}
             keyExtractor={(_, index) => index.toString()}
             renderItem={({ item, index }) => {
+              // eslint-disable-next-line no-console
               const isEmpty = emptySlots.includes(index);
               const isSelected = selectedSlot === index;
+
               return (
                 <TouchableOpacity
                   key={index}
@@ -273,10 +276,8 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
               onPress={() => handleWordSelect(word)}
             >
               <Text
-                style={[
-                  styles.missingWordText,
-                  isUsed && styles.missingWordTextSelected,
-                ]}
+                variant={TextVariant.BodyMDMedium}
+                color={isUsed ? TextColor.Default : TextColor.Primary}
               >
                 {word}
               </Text>
@@ -293,12 +294,10 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       gridWords,
       innerWidth,
       handleWordSelect,
-      styles.missingWordText,
-      styles.missingWordTextSelected,
     ],
   );
 
-  const marginTop = marginOffset ? 100 : 50;
+  const marginTop = marginOffset ? 110 : 50;
 
   return (
     <SafeAreaView style={styles.mainWrapper}>

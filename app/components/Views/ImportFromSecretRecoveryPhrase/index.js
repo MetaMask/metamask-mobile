@@ -151,6 +151,7 @@ const ImportFromSecretRecoveryPhrase = ({
     seedPhraseLength !== 18 &&
     seedPhraseLength !== 21 &&
     seedPhraseLength !== 24;
+
   const hideWhatIsSeedPhrase = () => setWhatIsSeedPhraseModal(false);
 
   const handleLayout = (event) => {
@@ -786,7 +787,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     onPress={() => handleContinueImportFlow()}
                     width={ButtonWidthTypes.Full}
                     size={ButtonSize.Lg}
-                    isDisabled={isSRPContinueButtonDisabled()}
+                    isDisabled={isSRPContinueButtonDisabled() || error}
                   />
                 </View>
               </View>

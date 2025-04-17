@@ -1,11 +1,14 @@
 import React from 'react';
 import { TouchableOpacity, Image as ImageRN, Platform } from 'react-native';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../../util/theme';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { createStyles } from './styles';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../component-library/components/Icons/Icon';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
@@ -34,20 +37,20 @@ const BiometryButton = ({
     if (Platform.OS === 'ios') {
       if (type === 'TouchID') {
         return (
-          <Ionicons
-            color={colors.text.default}
-            size={28}
+          <Icon
+            color={IconColor.Default}
+            size={IconSize.Lg}
             style={styles.fixCenterIcon}
-            name="ios-finger-print"
+            name={IconName.ScanFocus}
           />
         );
       } else if (type.includes(AUTHENTICATION_TYPE.PASSCODE)) {
         return (
-          <Ionicons
-            color={colors.text.default}
-            size={28}
+          <Icon
+            color={IconColor.Default}
+            size={IconSize.Lg}
             style={styles.fixCenterIcon}
-            name="ios-lock"
+            name={IconName.Lock}
           />
         );
       }
@@ -57,11 +60,11 @@ const BiometryButton = ({
     if (Platform.OS === 'android') {
       if (type === 'Fingerprint') {
         return (
-          <MaterialIcon
-            color={colors.text.default}
+          <Icon
+            color={IconColor.Default}
             style={styles.fixCenterIcon}
-            size={28}
-            name="fingerprint"
+            size={IconSize.Lg}
+            name={IconName.Scan}
           />
         );
       } else if (type === 'Face') {
@@ -70,22 +73,22 @@ const BiometryButton = ({
         return <ImageRN style={styles.image} source={androidIris} />;
       } else if (type.includes(AUTHENTICATION_TYPE.PASSCODE)) {
         return (
-          <MaterialIcon
-            color={colors.text.default}
+          <Icon
+            color={IconColor.Default}
             style={styles.fixCenterIcon}
-            size={28}
-            name="lock"
+            size={IconSize.Lg}
+            name={IconName.Lock}
           />
         );
       }
     }
 
     return (
-      <Ionicons
-        color={colors.text.default}
+      <Icon
+        color={IconColor.Default}
         style={styles.fixCenterIcon}
-        size={28}
-        name="ios-finger-print"
+        size={IconSize.Lg}
+        name={IconName.Scan}
       />
     );
   };

@@ -527,12 +527,12 @@ class Onboarding extends PureComponent {
 
         <View>{this.handleSimpleNotification()}</View>
 
-        <WarningExistingUserModal
+        {/* <WarningExistingUserModal
           warningModalVisible={this.state.warningModalVisible}
           onCancelPress={this.warningCallback}
           onRequestClose={this.toggleWarningModal}
           onConfirmPress={this.toggleWarningModal}
-        />
+        /> */}
 
         {this.state.bottomSheetVisible && (
           <BottomSheet

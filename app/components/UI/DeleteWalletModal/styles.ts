@@ -1,48 +1,57 @@
 /* eslint-disable import/prefer-default-export */
 import { fontStyles } from '../../../styles/common';
 import { StyleSheet } from 'react-native';
-import Device from '../../../util/device';
+// import Device from '../../../util/device';
 
-const breakPoint = Device.getDeviceHeight() < 700;
+// const breakPoint = Device.getDeviceHeight() < 700;
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createStyles = (colors: any) =>
   StyleSheet.create({
+    container: {
+      flexDirection: 'column',
+      rowGap: 24,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+      width: '100%',
+      paddingHorizontal: 16,
+    },
     bottomModal: {
       justifyContent: 'flex-end',
       margin: 0,
     },
     areYouSure: {
+      paddingVertical: 24,
       width: '100%',
-      padding: breakPoint ? 16 : 24,
       justifyContent: 'center',
       alignSelf: 'center',
+      flexDirection: 'column',
+      rowGap: 16,
     },
     warningIcon: {
       alignSelf: 'center',
-      color: colors.error.default,
-      marginVertical: 10,
     },
     heading: {
-      marginHorizontal: 6,
-      color: colors.text.default,
-      ...fontStyles.bold,
-      fontSize: 20,
       textAlign: 'center',
-      lineHeight: breakPoint ? 24 : 26,
+      width: '80%',
+      marginLeft: 'auto',
+      marginRight: 'auto',
     },
     red: {
       marginHorizontal: 24,
       color: colors.error.default,
     },
     warningText: {
-      ...fontStyles.normal,
-      textAlign: 'center',
-      fontSize: 14,
-      lineHeight: breakPoint ? 18 : 22,
-      color: colors.text.default,
-      marginTop: 20,
+      textAlign: 'left',
+      width: '100%',
+    },
+    warningTextContainer: {
+      flexDirection: 'column',
+      rowGap: 24,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+      width: '100%',
     },
     bold: {
       ...fontStyles.bold,
@@ -63,5 +72,23 @@ export const createStyles = (colors: any) =>
       lineHeight: 20,
       marginTop: 10,
       color: colors.error.default,
+    },
+    inputContainer: {
+      flexDirection: 'column',
+      rowGap: 2,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+      width: '100%',
+    },
+    buttonContainer: {
+      flexDirection: 'column',
+      rowGap: 16,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+      width: '100%',
+      marginTop: 24,
+    },
+    deleteButton: {
+      backgroundColor: colors.error.default,
     },
   });
