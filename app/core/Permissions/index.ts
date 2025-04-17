@@ -202,7 +202,6 @@ export const addPermittedAccounts = (
       `eth_accounts permission for hostname: (${origin}) already exists for account addresses: (${updatedEthAccounts}).`,
     );
 
-    // TODO: why return the first account?...
     return ethAccounts[0];
   }
 
@@ -218,7 +217,6 @@ export const addPermittedAccounts = (
     updatedCaveatValue,
   );
 
-  // TODO: why return the first account?...
   return updatedEthAccounts[0];
 };
 
