@@ -3,6 +3,7 @@ import AppConstants from '../../../core/AppConstants';
 import { Hex } from '@metamask/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import usePrevious from '../../hooks/usePrevious';
 
 // USDC and USDT for now
 const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
@@ -69,21 +70,43 @@ export const useStablecoinsDefaultSlippage = ({
   chainId: Hex;
   setSlippage: (slippage: number) => void;
 }) => {
+  const prevSourceTokenAddress = usePrevious(sourceTokenAddress);
+  const prevDestTokenAddress = usePrevious(destTokenAddress);
+
   useEffect(() => {
     const stablecoins = StablecoinsByChainId[chainId];
 
     if (!sourceTokenAddress || !destTokenAddress) return;
 
-    if (
+    const isStablecoinPair =
       stablecoins &&
       (stablecoins.has(sourceTokenAddress.toLowerCase()) ||
         stablecoins.has(toChecksumHexAddress(sourceTokenAddress))) &&
       (stablecoins.has(destTokenAddress.toLowerCase()) ||
-        stablecoins.has(toChecksumHexAddress(destTokenAddress)))
-    ) {
+        stablecoins.has(toChecksumHexAddress(destTokenAddress)));
+
+    if (isStablecoinPair) {
       setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
-    } else {
+    }
+
+    if (!prevSourceTokenAddress || !prevDestTokenAddress) return;
+
+    const prevIsStablecoinPair =
+      stablecoins &&
+      (stablecoins.has(prevSourceTokenAddress.toLowerCase()) ||
+        stablecoins.has(toChecksumHexAddress(prevSourceTokenAddress))) &&
+      (stablecoins.has(prevDestTokenAddress.toLowerCase()) ||
+        stablecoins.has(toChecksumHexAddress(prevDestTokenAddress)));
+
+    if (prevIsStablecoinPair && !isStablecoinPair) {
       setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
     }
-  }, [setSlippage, sourceTokenAddress, destTokenAddress, chainId]);
+  }, [
+    setSlippage,
+    sourceTokenAddress,
+    destTokenAddress,
+    chainId,
+    prevSourceTokenAddress,
+    prevDestTokenAddress,
+  ]);
 };
