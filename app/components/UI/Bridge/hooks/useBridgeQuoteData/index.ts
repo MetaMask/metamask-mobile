@@ -99,6 +99,7 @@ export const useBridgeQuoteData = () => {
   }, [activeQuote, sourceToken, destToken, quoteRate, slippage]);
 
   return {
+    bestQuote,
     quoteFetchError,
     activeQuote,
     destTokenAmount: formattedDestTokenAmount,
