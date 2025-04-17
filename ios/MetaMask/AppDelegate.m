@@ -2,7 +2,6 @@
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
-#import <React/RCTPushNotificationManager.h>
 
 #import <RNBranch/RNBranch.h>
 #import <Firebase.h>

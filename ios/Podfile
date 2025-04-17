@@ -82,7 +82,6 @@ def common_target_logic
   use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
 
   # Pods for MetaMask
-  pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
   pod 'ReactNativePayments', :path => '../node_modules/@metamask/react-native-payments/lib/ios/'
 
   # Pods for Push Notifications
@@ -163,34 +162,6 @@ post_install do |installer|
       system "chmod -w #{file}"
     rescue => e
       Pod::UI.warn "Failed to modify Portability.h: #{e.message}"
-    end
-  end
-
-  # Fix for React-Core privacy bundle duplication
-  installer.pods_project.targets.each do |target|
-    if target.name.include?('React-Core') && target.name.include?('privacy')
-      # Get all build phases
-      resource_phase = target.build_phases.find { |phase| phase.is_a?(Xcodeproj::Project::Object::PBXResourcesBuildPhase) }
-      shell_script_phases = target.build_phases.select { |phase| phase.is_a?(Xcodeproj::Project::Object::PBXShellScriptBuildPhase) }
-      
-      # Check for the specific target that's causing issues
-      if target.name == 'React-Core.common-RCTPushNotificationHeaders-React-Core_privacy'
-        # Modify shell script phases to prevent bundle creation
-        shell_script_phases.each do |phase|
-          if phase.shell_script.include?('React-Core_privacy.bundle')
-            phase.shell_script = "# Disabled to prevent duplication\n# Original script: #{phase.shell_script}"
-          end
-        end
-        
-        # Remove resource references if they exist
-        if resource_phase
-          resource_phase.files.each do |file|
-            if file.display_name&.include?('React-Core_privacy.bundle')
-              file.remove_from_project
-            end
-          end
-        end
-      end
     end
   end
 
