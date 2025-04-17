@@ -12,7 +12,7 @@ import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
 import { isWebUri } from 'valid-url';
 import { useDispatch, useSelector } from 'react-redux';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, store } from '../../../core/Analytics';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import {
   ButtonSize,
@@ -47,6 +47,13 @@ import {
   AddNetworkFields,
 } from '@metamask/network-controller';
 import { Network } from '../../../util/networks/customNetworks';
+import {
+  endTrace,
+  TraceName,
+  TraceOperation,
+  trace,
+} from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
 
 export interface SafeChain {
   chainId: string;
@@ -236,6 +243,10 @@ const NetworkModals = (props: NetworkProps) => {
     let networkClientId;
 
     if (existingNetwork) {
+      trace({
+        name: TraceName.UpdateNetwork,
+        tags: getTraceTags(store.getState()),
+      });
       const updatedNetwork = await NetworkController.updateNetwork(
         existingNetwork.chainId,
         existingNetwork,
@@ -246,11 +257,16 @@ const NetworkModals = (props: NetworkProps) => {
             }
           : undefined,
       );
+      endTrace({ name: TraceName.UpdateNetwork });
 
       networkClientId =
         updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex]
           ?.networkClientId;
     } else {
+      trace({
+        name: TraceName.AddNetwork,
+        tags: getTraceTags(store.getState()),
+      });
       const addedNetwork = await NetworkController.addNetwork({
         chainId,
         blockExplorerUrls: [blockExplorerUrl],
@@ -267,6 +283,7 @@ const NetworkModals = (props: NetworkProps) => {
           },
         ],
       });
+      endTrace({ name: TraceName.AddNetwork });
 
       networkClientId =
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
@@ -285,6 +302,10 @@ const NetworkModals = (props: NetworkProps) => {
     networkId: string,
   ) => {
     const { NetworkController, MultichainNetworkController } = Engine.context;
+    trace({
+      name: TraceName.UpdateNetwork,
+      tags: getTraceTags(store.getState()),
+    });
     const updatedNetwork = await NetworkController.updateNetwork(
       existingNetwork.chainId,
       existingNetwork,
@@ -301,6 +322,7 @@ const NetworkModals = (props: NetworkProps) => {
       {};
     onUpdateNetworkFilter();
     await MultichainNetworkController.setActiveNetwork(networkClientId);
+    endTrace({ name: TraceName.UpdateNetwork });
   };
 
   const handleNewNetwork = async (
@@ -311,6 +333,10 @@ const NetworkModals = (props: NetworkProps) => {
     nativeCurrency: string,
     networkBlockExplorerUrl: string,
   ) => {
+    trace({
+      name: TraceName.AddNetwork,
+      tags: getTraceTags(store.getState()),
+    });
     const { NetworkController } = Engine.context;
     const networkConfig = {
       chainId: networkId,
@@ -331,6 +357,7 @@ const NetworkModals = (props: NetworkProps) => {
       ],
     } satisfies AddNetworkFields;
 
+    endTrace({ name: TraceName.AddNetwork });
     return NetworkController.addNetwork(networkConfig);
   };
 
@@ -348,6 +375,11 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const switchNetwork = async () => {
+    trace({
+      name: TraceName.SwitchCustomNetwork,
+      tags: getTraceTags(store.getState()),
+      op: TraceOperation.SwitchCustomNetwork,
+    });
     const { MultichainNetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     const existingNetwork = networkConfigurationByChainId[chainId];
@@ -374,6 +406,7 @@ const NetworkModals = (props: NetworkProps) => {
 
       onUpdateNetworkFilter();
       await MultichainNetworkController.setActiveNetwork(networkClientId);
+      endTrace({ name: TraceName.SwitchCustomNetwork });
     }
     onClose();
 

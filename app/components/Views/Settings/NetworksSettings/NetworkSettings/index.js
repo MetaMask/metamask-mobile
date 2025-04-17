@@ -98,6 +98,14 @@ import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
 import { CellComponentSelectorsIDs } from '../../../../../../e2e/selectors/wallet/CellComponent.selectors';
 import stripProtocol from '../../../../../util/stripProtocol';
 import stripKeyFromInfuraUrl from '../../../../../util/stripKeyFromInfuraUrl';
+import {
+  trace,
+  TraceName,
+  TraceOperation,
+  endTrace,
+} from '../../../../../util/trace';
+import { store } from '../../../../../core/Analytics';
+import { getTraceTags } from '../../../../../util/sentry/tags';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -883,6 +891,10 @@ export class NetworkSettings extends PureComponent {
     };
 
     if (isNetworkExists.length === 0) {
+      trace({
+        name: TraceName.UpdateNetwork,
+        tags: getTraceTags(store.getState()),
+      });
       await NetworkController.updateNetwork(
         existingNetwork.chainId,
         networkConfig,
@@ -892,10 +904,16 @@ export class NetworkSettings extends PureComponent {
             }
           : undefined,
       );
+      endTrace({ name: TraceName.UpdateNetwork });
     } else {
+      trace({
+        name: TraceName.AddNetwork,
+        tags: getTraceTags(store.getState()),
+      });
       await NetworkController.addNetwork({
         ...networkConfig,
       });
+      endTrace({ name: TraceName.AddNetwork });
     }
 
     isCustomMainnet
@@ -1570,6 +1588,11 @@ export class NetworkSettings extends PureComponent {
   };
 
   switchToMainnet = async () => {
+    trace({
+      name: TraceName.SwitchCustomNetwork,
+      tags: getTraceTags(store.getState()),
+      op: TraceOperation.SwitchCustomNetwork,
+    });
     const { MultichainNetworkController } = Engine.context;
     const { networkConfigurations } = this.props;
 
@@ -1579,6 +1602,8 @@ export class NetworkSettings extends PureComponent {
       ] ?? {};
 
     await MultichainNetworkController.setActiveNetwork(networkClientId);
+
+    endTrace({ name: TraceName.SwitchCustomNetwork });
 
     setTimeout(async () => {
       await updateIncomingTransactions();
