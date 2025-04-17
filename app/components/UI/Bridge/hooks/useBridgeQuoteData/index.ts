@@ -5,12 +5,11 @@ import {
   selectDestToken,
   selectSourceAmount,
   selectSlippage,
+  selectBridgeQuotes,
 } from '../../../../../core/redux/slices/bridge';
 import {
   BridgeFeatureFlagsKey,
   RequestStatus,
-  selectBridgeQuotes,
-  SortOrder,
 } from '@metamask/bridge-controller';
 import { useMemo } from 'react';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
@@ -20,9 +19,6 @@ import {
   getQuoteRefreshRate,
   shouldRefreshQuote,
 } from '../../utils/quoteUtils';
-import { RootState } from '../../../../../reducers';
-import { GasFeeEstimates } from '@metamask/gas-fee-controller';
-import { useMetrics } from '../../../../hooks/useMetrics';
 
 /**
  * Hook for getting bridge quote data without request logic
@@ -34,25 +30,7 @@ export const useBridgeQuoteData = () => {
   const sourceAmount = useSelector(selectSourceAmount);
   const slippage = useSelector(selectSlippage);
 
-  const { isEnabled: isMetricsEnabled } = useMetrics();
-
-  const quotes = useSelector((state: RootState) =>
-    selectBridgeQuotes(
-      {
-        ...state.engine.backgroundState.BridgeController,
-        gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates as GasFeeEstimates,
-        ...state.engine.backgroundState.MultichainAssetsRatesController,
-        ...state.engine.backgroundState.TokenRatesController,
-        ...state.engine.backgroundState.CurrencyRateController,
-        participateInMetaMetrics: isMetricsEnabled(),
-      },
-      {
-        sortOrder: SortOrder.COST_ASC,
-        selectedQuote: null, // TODO for v1 we don't allow user to select alternative quotes, pass in null for now
-        featureFlagsKey: BridgeFeatureFlagsKey.MOBILE_CONFIG,
-      },
-    ),
-  );
+  const quotes = useSelector(selectBridgeQuotes);
 
   console.log('quotes', quotes);
 

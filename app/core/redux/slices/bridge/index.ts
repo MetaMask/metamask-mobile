@@ -9,9 +9,14 @@ import {
   AllowedBridgeChainIds,
   BridgeFeatureFlagsKey,
   formatChainIdToCaip,
+  selectBridgeQuotes as selectBridgeQuotesBase,
+  SortOrder,
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
+import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
+import { MetaMetrics } from '../../../Analytics';
+import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -209,6 +214,25 @@ export const selectSlippage = createSelector(
 export const selectDestAddress = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAddress,
+);
+
+const selectControllerFields = (state: RootState) => ({
+  ...state.engine.backgroundState.BridgeController,
+  gasFeeEstimates: selectGasFeeControllerEstimates(state) as GasFeeEstimates,
+  ...state.engine.backgroundState.MultichainAssetsRatesController,
+  ...state.engine.backgroundState.TokenRatesController,
+  ...state.engine.backgroundState.CurrencyRateController,
+  participateInMetaMetrics: MetaMetrics.getInstance().isEnabled(),
+});
+
+export const selectBridgeQuotes = createSelector(
+  selectControllerFields,
+  (requiredControllerFields) =>
+    selectBridgeQuotesBase(requiredControllerFields, {
+      sortOrder: SortOrder.COST_ASC,
+      selectedQuote: null, // TODO for v1 we don't allow user to select alternative quotes, pass in null for now
+      featureFlagsKey: BridgeFeatureFlagsKey.MOBILE_CONFIG,
+    }),
 );
 
 // Actions
