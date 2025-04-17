@@ -4458,10 +4458,9 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/auth-network-utils@^0.0.0", "@metamask/auth-network-utils@https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/auth-network-utils.tgz":
+"@metamask/auth-network-utils@^0.0.0", "@metamask/auth-network-utils@https://github.com/MetaMask/metamask-mobile/raw/3f3c37e803ed5b9ac1561d9d7c260b80d5330eef/auth-network-utils.tgz":
   version "0.0.0"
-  uid daf330dd5d37cd709ca4a63d4df48d50ee9609ce
-  resolved "https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/auth-network-utils.tgz#daf330dd5d37cd709ca4a63d4df48d50ee9609ce"
+  resolved "https://github.com/MetaMask/metamask-mobile/raw/3f3c37e803ed5b9ac1561d9d7c260b80d5330eef/auth-network-utils.tgz#1d7067597cc391c90e091af7b9170a9e08f98085"
   dependencies:
     "@noble/curves" "^1.8.1"
     "@noble/hashes" "^1.7.1"
@@ -5372,31 +5371,16 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/package-seedless.tgz":
-  version "0.0.1"
-  resolved "https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/package-seedless.tgz#94b5a6babb86d84e35a795902545668d05cdc630"
+"@metamask/seedless-onboarding-controller@https://github.com/MetaMask/metamask-mobile/raw/3f3c37e803ed5b9ac1561d9d7c260b80d5330eef/seedless-onboarding-controller.tgz":
+  version "0.0.0"
+  resolved "https://github.com/MetaMask/metamask-mobile/raw/3f3c37e803ed5b9ac1561d9d7c260b80d5330eef/seedless-onboarding-controller.tgz#f1bd51402d7b72fe2494e791f8efc39073537e07"
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/keyring-controller" "^21.0.0"
-    "@metamask/toprf-secure-backup" "file:../../../Library/Caches/Yarn/v6/.tmp/cf2b3ab9814dbdb69995d9396542a2f7/toprf-secure-backup.tgz"
-    "@metamask/utils" "^11.2.0"
-    "@noble/hashes" "^1.4.0"
-    async-mutex "^0.5.0"
-    loglevel "^1.8.1"
-
-"@metamask/seedless-onboarding-controller@https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/seedless-onboarding-controller.tgz":
-  version "0.0.1"
-  resolved "https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/seedless-onboarding-controller.tgz#dfa6c8444ce21a7ed6e7c5c99ed4e890a49a6a8a"
-  dependencies:
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/keyring-controller" "^21.0.0"
     "@metamask/toprf-secure-backup" "./toprf-secure-backup.tgz"
     "@metamask/utils" "^11.2.0"
     "@noble/hashes" "^1.4.0"
     async-mutex "^0.5.0"
-    loglevel "^1.8.1"
 
 "@metamask/selected-network-controller@^21.0.0":
   version "21.0.0"
@@ -5650,9 +5634,9 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.1.0"
 
-"@metamask/toprf-secure-backup@./toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@file:../../../Library/Caches/Yarn/v6/.tmp/ea5e0e24f7777bc954b7e4f37c709ccd/toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/toprf-secure-backup.tgz":
+"@metamask/toprf-secure-backup@./toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@https://github.com/MetaMask/metamask-mobile/raw/3f3c37e803ed5b9ac1561d9d7c260b80d5330eef/toprf-secure-backup.tgz":
   version "0.0.0"
-  resolved "https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/toprf-secure-backup.tgz#65be9bb22084abce031dabfa35195228ae7cc988"
+  resolved "https://github.com/MetaMask/metamask-mobile/raw/3f3c37e803ed5b9ac1561d9d7c260b80d5330eef/toprf-secure-backup.tgz#c39674559959c317cd3c1e8990e9afa4f0e9443a"
   dependencies:
     "@metamask/auth-network-utils" "^0.0.0"
     "@noble/ciphers" "^1.2.1"
