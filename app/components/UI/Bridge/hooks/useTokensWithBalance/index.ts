@@ -1,9 +1,14 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import {
+  selectLastSelectedEvmAccount,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectLastSelectedSolanaAccount,
+  ///: END:ONLY_INCLUDE_IF
+} from '../../../../../selectors/accountsController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import {
@@ -15,9 +20,13 @@ import {
   sortAssets,
 } from '../../../Tokens/util';
 import { selectTokenSortConfig } from '../../../../../selectors/preferencesController';
-import { selectAccountTokensAcrossChains } from '../../../../../selectors/multichain';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain';
+///: END:ONLY_INCLUDE_IF
+import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
-
+import { RootState } from '../../../../../reducers';
+import { renderNumber, renderFiat } from '../../../../../util/number';
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
   multiChainMarketData: ReturnType<typeof selectTokenMarketData>;
@@ -105,66 +114,116 @@ export const calculateBalances = ({
 export const useTokensWithBalance: ({
   chainIds,
 }: {
-  chainIds: Hex[];
+  chainIds: (Hex | CaipChainId)[] | undefined;
 }) => BridgeToken[] = ({ chainIds }) => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  ) as Hex;
   const networkConfigurationsByChainId = useSelector(
     selectNetworkConfigurations,
   );
+
+  const lastSelectedEvmAccount = useSelector(selectLastSelectedEvmAccount);
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const lastSelectedSolanaAccount = useSelector(selectLastSelectedSolanaAccount);
+  ///: END:ONLY_INCLUDE_IF
 
   // Fiat conversion rates
   const multiChainMarketData = useSelector(selectTokenMarketData);
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
 
-  // All tokens across chains and their balances
+  // All EVM tokens across chains and their balances
   // Includes native and non-native tokens
-  const accountTokensAcrossChains = useSelector(
-    selectAccountTokensAcrossChains,
+  const evmAccountTokensAcrossChains = useSelector((state: RootState) =>
+    selectAccountTokensAcrossChainsForAddress(
+      state,
+      lastSelectedEvmAccount?.address,
+    ),
   );
-  const multiChainTokenBalance = useSelector(selectTokensBalances);
+  const evmTokenBalances = useSelector(selectTokensBalances);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  // Already contains balance and fiat values for native SOL and SPL tokens
+  // Balance and fiat values are not truncated
+  const nonEvmTokens = useSelector((state: RootState) =>
+    selectMultichainTokenListForAccountId(state, lastSelectedSolanaAccount?.id),
+  );
+  ///: END:ONLY_INCLUDE_IF
 
   const sortedTokens = useMemo(() => {
-    const allAccountTokens = (
-      Object.values(accountTokensAcrossChains).flat() as TokenI[]
-    ).filter((token) => chainIds.includes(token.chainId as Hex));
+    if (!chainIds) {
+      return [];
+    }
+
+    const allEvmAccountTokens = (
+      Object.values(evmAccountTokensAcrossChains).flat() as TokenI[]
+    )
+      .filter((token) => chainIds.includes(token.chainId as Hex))
+      .filter((token) => !token.isStaked);
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const allNonEvmAccountTokens = (
+      Object.values(nonEvmTokens).flat()
+    ).filter((token) => chainIds.includes(token.chainId));
+    ///: END:ONLY_INCLUDE_IF
 
     const balances = calculateBalances({
-      assets: allAccountTokens,
+      assets: allEvmAccountTokens,
       multiChainMarketData,
-      multiChainTokenBalance,
+      multiChainTokenBalance: evmTokenBalances,
       networkConfigurationsByChainId,
       multiChainCurrencyRates,
       currentCurrency,
-      selectedAddress: selectedInternalAccountAddress,
+      selectedAddress: lastSelectedEvmAccount?.address as Hex,
     });
-    const properTokens: BridgeToken[] = allAccountTokens
+
+    const allTokens = [
+      ...allEvmAccountTokens,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      ...allNonEvmAccountTokens,
+      ///: END:ONLY_INCLUDE_IF
+    ];
+
+    const properTokens: BridgeToken[] = allTokens
       .filter((token) => Boolean(token.chainId)) // Ensure token has a chainId
-      .map((token, i) => ({
-        address: token.address,
-        name: token.name,
-        decimals: token.decimals,
-        symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
-        chainId: token.chainId as Hex,
-        image: token.image,
-        tokenFiatAmount: balances[i].tokenFiatAmount ?? 0,
-        balance: balances[i].balance,
-        balanceFiat: balances[i].balanceFiat,
-      }));
+      .map((token, i) => {
+        const evmBalance = balances?.[i]?.balance;
+        const nonEvmBalance = renderNumber(token.balance ?? '0');
+
+        const evmBalanceFiat = balances?.[i]?.balanceFiat;
+        const nonEvmBalanceFiat = renderFiat(
+          Number(token.balanceFiat ?? 0),
+          currentCurrency,
+        );
+
+        const evmTokenFiatAmount = balances?.[i]?.tokenFiatAmount;
+        const nonEvmTokenFiatAmount = Number(token.balanceFiat);
+
+        return {
+          address: token.address,
+          name: token.name,
+          decimals: token.decimals,
+          symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
+          chainId: token.chainId as Hex | CaipChainId,
+          image: token.image,
+          tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
+          balance: evmBalance ?? nonEvmBalance,
+          balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
+        };
+      });
     return sortAssets(properTokens, tokenSortConfig);
   }, [
-    accountTokensAcrossChains,
+    evmAccountTokensAcrossChains,
     multiChainMarketData,
-    multiChainTokenBalance,
+    evmTokenBalances,
     networkConfigurationsByChainId,
     multiChainCurrencyRates,
     currentCurrency,
-    selectedInternalAccountAddress,
     tokenSortConfig,
+    lastSelectedEvmAccount?.address,
     chainIds,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    nonEvmTokens,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   return sortedTokens;

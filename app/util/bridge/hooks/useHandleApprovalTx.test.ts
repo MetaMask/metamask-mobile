@@ -1,11 +1,13 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { TransactionType } from '@metamask/transaction-controller';
-import useHandleApprovalTx, {
-  APPROVAL_TX_ERROR,
-} from './useHandleApprovalTx';
+import useHandleApprovalTx, { APPROVAL_TX_ERROR } from './useHandleApprovalTx';
 import { DummyQuotesWithApproval } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
-import { isEthUsdt, getEthUsdtResetData, FeeType } from '@metamask/bridge-controller';
+import {
+  isEthUsdt,
+  getEthUsdtResetData,
+  FeeType,
+} from '@metamask/bridge-controller';
 
 // Mock the useHandleTx hook
 const mockHandleTx = jest.fn();
@@ -23,7 +25,8 @@ jest.mock('../../../core/Engine', () => ({
   default: {
     context: {
       BridgeController: {
-        getBridgeERC20Allowance: (...args: [string, string, string]) => mockGetBridgeERC20Allowance(...args),
+        getBridgeERC20Allowance: (...args: [string, string, string]) =>
+          mockGetBridgeERC20Allowance(...args),
       },
     },
   },
@@ -104,7 +107,9 @@ describe('useHandleApprovalTx', () => {
 
     it('should reset allowance before approval if current allowance is non-zero but insufficient', async () => {
       const mockTxMeta = { id: '123', status: 'submitted' };
-      mockHandleTx.mockResolvedValueOnce({ id: 'reset' }).mockResolvedValueOnce(mockTxMeta);
+      mockHandleTx
+        .mockResolvedValueOnce({ id: 'reset' })
+        .mockResolvedValueOnce(mockTxMeta);
       mockGetBridgeERC20Allowance.mockResolvedValueOnce('500000'); // Lower than required amount
 
       const { result } = renderHook(() => useHandleApprovalTx());
@@ -172,7 +177,9 @@ describe('useHandleApprovalTx', () => {
           approval: mockQuote.approval,
           quoteResponse: mockQuote as QuoteResponse,
         }),
-      ).rejects.toThrow(`${APPROVAL_TX_ERROR}: Error: Eth USDT allowance reset failed: ${mockError}`);
+      ).rejects.toThrow(
+        `${APPROVAL_TX_ERROR}: Error: Eth USDT allowance reset failed: ${mockError}`,
+      );
     });
   });
 });

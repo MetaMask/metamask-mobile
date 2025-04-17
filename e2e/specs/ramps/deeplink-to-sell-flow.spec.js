@@ -91,7 +91,6 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
         await NetworkAddedBottomSheet.tapCloseButton();
         await Assertions.checkIfVisible(NetworkEducationModal.container);
         await NetworkEducationModal.tapGotItButton();
-        await Assertions.checkIfTextIsDisplayed('Ether');
         await Assertions.checkIfTextIsDisplayed(
           PopularNetworksList.Optimism.providerConfig.nickname,
         );

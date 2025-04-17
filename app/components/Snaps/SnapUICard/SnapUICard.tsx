@@ -41,7 +41,7 @@ export const SnapUICard: FunctionComponent<SnapUICardProps> = ({
       alignItems={AlignItems.center}
     >
       {image && (
-        <SnapUIImage width={32} height={32} borderRadius="full" value={image} />
+        <SnapUIImage width={32} height={32} borderRadius={999} value={image} />
       )}
       <Box flexDirection={FlexDirection.Column}>
         <Text variant={TextVariant.BodyMDMedium} ellipsizeMode="tail">

@@ -5,6 +5,9 @@ export const FIXTURE_SERVER_PORT = 12345;
 // E2E test configuration required in app
 export const testConfig = {};
 
+// SEGMENT TRACK URL for E2E tests - this is not a real URL and is used for testing purposes only
+export const E2E_METAMETRICS_TRACK_URL = 'https://metametrics.test/track';
+
 /**
  * TODO: Update this condition once we change E2E builds to use release instead of debug
  */

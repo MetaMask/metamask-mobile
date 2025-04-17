@@ -38,6 +38,10 @@ export interface AccountSelectorListProps
    */
   isMultiSelect?: boolean;
   /**
+   * Optional boolean that indicates if list should be used as select without menu.
+   */
+  isSelectWithoutMenu?: boolean;
+  /**
    * Optional boolean that indicates if list should auto scroll to selected address.
    */
   isAutoScrollEnabled?: boolean;

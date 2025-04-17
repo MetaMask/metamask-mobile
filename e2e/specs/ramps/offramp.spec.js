@@ -57,7 +57,7 @@ describe(SmokeRamps('Off-Ramp'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should display Build Sell Quote based on selected Region and Payment', async () => {
+  it('should display Build Sell Quote page after user selects a region', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSellButton();
@@ -66,10 +66,6 @@ describe(SmokeRamps('Off-Ramp'), () => {
     await SelectRegionView.tapRegionOption(Regions.USA);
     await SelectRegionView.tapRegionOption(Regions.CALIFORNIA);
     await SelectRegionView.tapContinueButton();
-    await SelectPaymentMethodView.tapPaymentMethodOption(
-      PaymentMethods.DEBIT_OR_CREDIT,
-    );
-    await SelectPaymentMethodView.tapContinueButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToSellLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
     await BuildQuoteView.tapCancelButton();

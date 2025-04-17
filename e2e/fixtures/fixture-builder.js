@@ -9,6 +9,12 @@ import { SolScope } from '@metamask/keyring-api';
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 
+export const DEFAULT_FIXTURE_ACCOUNT_2 =
+  '0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da';
+
+export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
+  '0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b';
+
 const DAPP_URL = 'localhost';
 
 /**
@@ -1040,7 +1046,7 @@ class FixtureBuilder {
         },
         {
           type: 'HD Key Tree',
-          accounts: ['0x43e1c289177ECFbe6Ef34B5fb2B66EBCE5a8E05b'],
+          accounts: [DEFAULT_IMPORTED_FIXTURE_ACCOUNT],
         },
       ],
       keyringsMetadata: [
@@ -1055,6 +1061,34 @@ class FixtureBuilder {
       ],
       vault:
         '{"cipher":"IpV+3goe8Vey0mmfHz6DT0NiLwcTbjeglBI+WckZ/HeW0JcyE6kK9rBaqiZ+I0adwWAysIf/OanwvpE5YkYw9xYEkVXDUBQ/0lmscFGatXl24hadMdD01MRkKH6qyjUUw6ZqqmFnIRFbSwwYtD1X8UaRDhX+k/vnzAD9ETFW2cUpji7n5VU5hJQYOaCDO6hUxzE55scp2k68bDm/26EJ5SVgcsDXP/BW/MKnsqGGLAIPtQbVYUVChQ9D150WJif3HLJS1p0SSdGluL85JBLEQqShbBRZ3SiAHtJilf3oQBJB/YcAM6j6Uo7Sf+gAhc7cOvMYQ+YrTc+0Solzfa2OkLemskd4IOIVj6vWY+w0TPLo1IYSR1mFE2JVXE064zhUO0PKXME1qENQTiQCAAIfeEBwfdbQfrv92Zo/nU4VFyzdC3Rf+WPmWjLMXkZYqb1PdwhcgY85EpdFcjZAtcye6VF2iBTO0nMmZIyUabI/3RFizUgKtTlNH/H4NOLTm2HwUHOwAe4pxBbtEIFyuqo050n7UAJftN14Lp+/0kmraguFvsf0sg+AWXK5Tk9Bmkqm74bCuvmDCw2l28/+VEXOiYvytr9105NstlOnG/MmIJoYx8NkIJr5jMSCRtX8byBGRT+lhNq70CjWZIub5USmHkRdx1AuBAipQCdTjisaS2QRPwcA7M4PFbE2ltil1TavcRGRo+xa5nKji04jsx9AotAKkCqUPTOFr/h+WazGtx5+LWTAGXPUe9YtUraBCABXdnNhq7t7dXR7ivaZLkl6oXhQN6u2wmGRRvg3D36gddFVgDcqNafk/y82e0uWAu3F9VrGynYd0t7txkmzup1J19kpBlv7YVWy17J2MT3/PkatNrqdo21qFlhnYAcYKBC52MMInaY8qwQWXLMPud+cDdSR7QDLefl2AQEvH+hyzh2DI6d3Wri17LjujvSRdcwjAitylxnz9k4H2IAgJLlXIh5W69C+JdsNzoHanuJd+Hk=","iv":"68e751a7883bd7119118ebd2b3d30a6f","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"pOiYCrlywkH4UDFq/IHIKg=="}',
+    });
+    return this;
+  }
+
+  withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          type: 'HD Key Tree',
+          accounts: [DEFAULT_FIXTURE_ACCOUNT, DEFAULT_FIXTURE_ACCOUNT_2],
+        },
+        {
+          type: 'HD Key Tree',
+          accounts: [DEFAULT_IMPORTED_FIXTURE_ACCOUNT],
+        },
+      ],
+      keyringsMetadata: [
+        {
+          id: '01JN61V4CZ5WSJXSS7END4FJQ9',
+          name: '',
+        },
+        {
+          id: '01JN61V9ACE7ZA3ZRZFPYFYCJ1',
+          name: '',
+        },
+      ],
+      vault:
+        '{"cipher":"wWIegxm+og31XAr34sZAkaf+wsuIycthFqmLa2mA0zxD0HSJKp1uITa4dJ94uGN10RgaDHHRmqpLzMqx7l7W+LiG6KMkdaPiZUqDLq3zdQVecY+rwWt+G4DZbIrZC6jUMopKTdvSv0Lrzb3fRnsQ1sDJ4R99OY8Dvhloc4V+rgi43rLc4eT7DB7zLlK0GuUtxfZwStJVeq5lBlYsVNrsZF2kfBCZQxqZGxLlSk6qaIP8HNY/ptttB/ZdOBjYYPqZkr5J5oUhmiIQDqN+MqsjUrOEmfz9fP3HIi8IxCFGA94G1tvDClMHMqpzwYsBQpcA0k7NJiSc+UdB8dcilXQLXF33PvQKSbgVeXuNkgKgnWPGtsGxPTJ0gIxCBxsW0MmyYvyBsHO8BoocflrOaqkXvSwmXUja9aQwHdZAmayvxWXnIE4MRAD1nLnvXdMO+qY+nW3yCvw5R6DoNBtnQIk9cKCuj2UL0/fxhNDdfbK8rhTyPZMRqRH2dhhuji71V+OeQBPV1/R0srvSUggOfSmcxVNe+ok5SJdzJpCavXE4/JVwTPe1Jrr/uz4AC4R2ih7lDBPFZnNXy7uSRn0lZWbKZFoM6jkLO7oTn9UN1C+YcteyNqkDiYGNJ0zxjuMzU/r6aJGAlvKGCkvBph3ON9vfD2ARAwpSSIFckh4a6t37vmKzmpsW7tQE95uqJHe7h+KMraWxtqlCCWB6BsJkpbm0BqjBdg8zUH8pP0GA0un3KCJjUEfTOWw+Yn69IkJQzX1Jyr5Hepzt500Va7K7kDDlFG4KFUt5RO80GnT7jtRGPGjPx29pKK2Zp61dmP5BZu+0xnXMlSGozJv+dgRCsZuzqvzUu5/44jYpggHrApNk5hhw0crBeovV+EgHE2VVnGNdLwwSngJ00b/cUnCUsPW0FjR7IscaI96eslFAPkdZXr70zXPVzA/NiE05ADciMoZxD8Qv8dGGU+yQMnDo2wABv+YEroO3VOtJiKBPqIB0GC0=","iv":"1ccda0516bc876f905e08e76bad201b9","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"E9val7NN4h2AfX/pwUkd9aa2iNyn+LwIurZXIdxlG/o="}',
     });
     return this;
   }

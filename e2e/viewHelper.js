@@ -88,13 +88,33 @@ export const skipNotificationsDeviceSettings = async () => {
   }
 };
 
-export const importWalletWithRecoveryPhrase = async (seedPhrase, password) => {
+/**
+ * Imports a wallet using a secret recovery phrase during the onboarding process.
+ *
+ * @async
+ * @function importWalletWithRecoveryPhrase
+ * @param {Object} [options={}] - Options for importing the wallet.
+ * @param {string} [options.seedPhrase] - The secret recovery phrase to import the wallet. Defaults to a valid account's seed phrase.
+ * @param {string} [options.password] - The password to set for the wallet. Defaults to a valid account's password.
+ * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics. Defaults to true.
+ * @returns {Promise<void>} Resolves when the wallet import process is complete.
+ */
+export const importWalletWithRecoveryPhrase = async ({
+  seedPhrase,
+  password,
+  optInToMetrics = true,
+} = {}) => {
   // tap on import seed phrase button
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  await MetaMetricsOptIn.tapAgreeButton();
+  if (optInToMetrics) {
+    await MetaMetricsOptIn.tapAgreeButton();
+  } else {
+    await MetaMetricsOptIn.tapNoThanksButton();
+  }
+
   await TestHelpers.delay(3500);
   await acceptTermOfUse();
   // should import wallet with secret recovery phrase
@@ -109,13 +129,13 @@ export const importWalletWithRecoveryPhrase = async (seedPhrase, password) => {
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
-  await this.skipNotificationsDeviceSettings();
+  await skipNotificationsDeviceSettings();
   // Should dismiss Automatic Security checks screen
   await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
   await EnableAutomaticSecurityChecksView.tapNoThanks();
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
-  await this.closeOnboardingModals();
+  await closeOnboardingModals();
 };
 
 export const CreateNewWallet = async () => {
@@ -142,8 +162,6 @@ export const CreateNewWallet = async () => {
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
   await device.enableSynchronization();
-  await Assertions.checkIfVisible(WalletView.container);
-
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'

@@ -41,6 +41,9 @@ const valid12WordMnemonic =
 const valid24WordMnemonic =
   'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
 
+const invalidMnemonic =
+  'aaaaa youth dentist air relief leave neither liquid belt aspect bone frame';
+
 const mockPaste = jest
   .spyOn(ClipboardManager, 'getString')
   .mockResolvedValue(valid24WordMnemonic);
@@ -203,22 +206,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   });
 
   describe('errors', () => {
-    it('displays error for invalid SRP', async () => {
-      const { getByText } = await renderSRPImportComponentAndPasteSRP(
-        'invalid mnemonic',
-      );
-
-      expect(
-        getByText(
-          messages.import_new_secret_recovery_phrase
-            .error_number_of_words_error_message,
-        ),
-      ).toBeTruthy();
-    });
-
     it('displays single incorrect word', async () => {
       const { getByText } = await renderSRPImportComponentAndPasteSRP(
-        valid24WordMnemonic.replace('verb', 'asdf'), // replace the first word
+        invalidMnemonic,
       );
 
       expect(
@@ -270,7 +260,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     it('does not display error if SRP is empty', async () => {
       const { getByTestId, queryByTestId } =
-        await renderSRPImportComponentAndPasteSRP('invalid mnemonic');
+        await renderSRPImportComponentAndPasteSRP(invalidMnemonic);
 
       const error = queryByTestId(ImportSRPIDs.SRP_ERROR);
 
@@ -286,21 +276,35 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     it('does not display error if SRP is cleared manually', async () => {
       const { getByTestId, queryByTestId } =
-        await renderSRPImportComponentAndPasteSRP('invalid mnemonic');
+        await renderSRPImportComponentAndPasteSRP(invalidMnemonic);
 
       const error = queryByTestId(ImportSRPIDs.SRP_ERROR);
 
       expect(error).toBeTruthy();
 
       const firstWord = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-1`);
-      fireEvent.changeText(firstWord, '');
-
-      const secondWord = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-2`);
-      fireEvent.changeText(secondWord, '');
+      fireEvent.changeText(firstWord, 'lazy');
 
       const updatedError = queryByTestId(ImportSRPIDs.SRP_ERROR);
 
       expect(updatedError).toBeNull();
+    });
+
+    it('displays errors only if all the words are entered', async () => {
+      const { getByTestId, queryByTestId } =
+        await renderSRPImportComponentAndPasteSRP('');
+
+      let error = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(error).toBeNull();
+
+      mockPaste.mockResolvedValue(invalidMnemonic);
+      const pasteButton = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      await userEvent.press(pasteButton);
+
+      error = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(error).toBeTruthy();
     });
   });
 });

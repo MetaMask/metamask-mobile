@@ -8,7 +8,7 @@ import BitcoinWalletSnap from '@metamask/bitcoin-wallet-snap/dist/preinstalled-s
 ///: END:ONLY_INCLUDE_IF
 
 const PREINSTALLED_SNAPS: readonly PreinstalledSnap[] = Object.freeze([
-  MessageSigningSnap as PreinstalledSnap,
+  MessageSigningSnap as unknown as PreinstalledSnap,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   SolanaWalletSnap as unknown as PreinstalledSnap,
   ///: END:ONLY_INCLUDE_IF

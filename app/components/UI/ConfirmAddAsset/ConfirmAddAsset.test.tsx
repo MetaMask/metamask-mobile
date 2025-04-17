@@ -11,10 +11,14 @@ import BN4 from 'bnjs4';
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useRoute } from '@react-navigation/native';
+import { useParams } from '../../../util/navigation/navUtils';
+import { TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT } from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockAddTokenList = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -25,6 +29,7 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetOptions,
       goBack: mockGoBack,
     }),
+    useRoute: jest.fn(),
   };
 });
 
@@ -37,13 +42,15 @@ jest.mock('../../../util/navigation/navUtils', () => ({
         name: 'Tether USD',
         iconUrl: 'https://example.com/usdt.png',
         decimals: 18,
+        chainId: '0x1',
       },
     ],
-    networkName: 'Ethereum',
-    chainId: '1',
+    networkName: 'Ethereum Main Network',
+    chainId: '0x1',
     ticker: 'ETH',
-    addTokenList: jest.fn(),
+    addTokenList: mockAddTokenList,
   }),
+  useRoute: jest.fn(),
   createNavigationDetails: jest.fn(),
 }));
 
@@ -77,9 +84,9 @@ const mockInitialState: DeepPartial<RootState> = {
       },
       NetworkController: {
         ...mockNetworkState({
-          chainId: CHAIN_IDS.SEPOLIA,
-          id: 'sepolia',
-          nickname: 'Sepolia',
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Mainnet',
           ticker: 'ETH',
         }),
       },
@@ -94,6 +101,7 @@ describe('ConfirmAddAsset', () => {
     });
     expect(wrapper).toMatchSnapshot();
   });
+
   it('displays selected asset information', () => {
     const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
@@ -102,6 +110,7 @@ describe('ConfirmAddAsset', () => {
     expect(getByText('USDT')).toBeTruthy();
     expect(getByText('$27.02')).toBeTruthy();
   });
+
   it('handles cancel button click', () => {
     const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
@@ -112,5 +121,48 @@ describe('ConfirmAddAsset', () => {
     expect(
       getByText('Your search information will not be saved.'),
     ).toBeTruthy();
+  });
+
+  it('should call addTokenList when confirm button is pressed', () => {
+    const mockAsset = {
+      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      iconUrl: 'https://example.com/usdt.png',
+      decimals: 18,
+      chainId: '0x1',
+    };
+
+    const mockParams = {
+      selectedAsset: [mockAsset],
+      networkName: 'Ethereum Main Network',
+      addTokenList: mockAddTokenList,
+      chainId: '0x1',
+      ticker: 'ETH',
+    };
+
+    // Mock useRoute
+    (useRoute as jest.Mock).mockReturnValue({
+      params: mockParams,
+    });
+
+    (useParams as jest.Mock).mockReturnValue({
+      selectedAsset: [mockAsset],
+      networkName: 'Ethereum Main Network',
+      chainId: '0x1',
+      ticker: 'ETH',
+      addTokenList: mockAddTokenList,
+    });
+
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    const confirmButton = getByTestId(
+      TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
+    );
+    fireEvent.press(confirmButton);
+
+    expect(mockAddTokenList).toHaveBeenCalledTimes(1);
   });
 });

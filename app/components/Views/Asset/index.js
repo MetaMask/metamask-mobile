@@ -70,6 +70,7 @@ import {
 import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -488,11 +489,9 @@ class Asset extends PureComponent {
   };
 
   onRefresh = async () => {
-    const { chainId } = this.props;
-
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions([chainId]);
+    await updateIncomingTransactions();
 
     this.setState({ refreshing: false });
   };
@@ -528,6 +527,8 @@ class Asset extends PureComponent {
     const displaySwapsButton =
       isNetworkAllowed && isAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
+    const displayBridgeButton = isBridgeAllowed(asset.chainId);
+
     const displayBuyButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
       : this.props.isNetworkRampSupported;
@@ -543,6 +544,7 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
+                  displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name

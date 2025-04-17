@@ -89,6 +89,7 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 
 const Stack = createStackNavigator();
@@ -205,6 +206,7 @@ const TransactionsHome = () => (
       name={Routes.RAMP.SEND_TRANSACTION}
       component={SendTransaction}
     />
+    <Stack.Screen name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS} component={BridgeTransactionDetails} />
   </Stack.Navigator>
 );
 

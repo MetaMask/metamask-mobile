@@ -22,6 +22,12 @@
   "AddressBookController": {
     "addressBook": {}
   },
+  "AppMetadataController": {
+    "currentAppVersion": "",
+    "currentMigrationVersion": 0,
+    "previousAppVersion": "",
+    "previousMigrationVersion": 0
+  },
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
@@ -356,7 +362,8 @@
     "isAccountSyncingReadyToBeDispatched": false,
     "isAccountSyncingInProgress": false,
     "isProfileSyncingEnabled": true,
-    "isProfileSyncingUpdateLoading": false
+    "isProfileSyncingUpdateLoading": false,
+    "isAccountSyncingEnabled": true
   },
   "MultichainBalancesController": {
     "balances": {}

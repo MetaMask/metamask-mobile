@@ -138,14 +138,7 @@ const Main = (props) => {
 
   useEffect(() => {
     stopIncomingTransactionPolling();
-
-    const filteredChainIds = Object.keys(props.networkConfigurations).filter(
-      (id) => showIncomingTransactionsNetworks[id],
-    );
-
-    if (filteredChainIds.length > 0) {
-      startIncomingTransactionPolling(filteredChainIds);
-    }
+    startIncomingTransactionPolling();
   }, [
     chainId,
     networkClientId,
@@ -194,11 +187,11 @@ const Main = (props) => {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions([props.chainId]);
+          await updateIncomingTransactions();
         }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
-    [backgroundMode, removeNotVisibleNotifications, props.chainId],
+    [backgroundMode, removeNotVisibleNotifications],
   );
 
   const initForceReload = () => {

@@ -51,7 +51,7 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
   });
 
   it('show nft detection modal after user switches to mainnet and taps allow when nftDetection toggle is off', async () => {
-    const testNftOnMainnet = 'LifesAJokeNFT';
+    const testNftOnMainnet = 'Rarible';
 
     await withFixtures(
       {

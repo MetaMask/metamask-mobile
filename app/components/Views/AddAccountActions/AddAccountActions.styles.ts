@@ -10,6 +10,7 @@ const styleSheet = () =>
   StyleSheet.create({
     subHeaders: {
       paddingHorizontal: 16,
+      marginVertical: 16,
     },
   });
 

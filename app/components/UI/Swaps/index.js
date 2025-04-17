@@ -86,7 +86,7 @@ import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
-
+import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
 const createStyles = (colors) =>
   StyleSheet.create({
     container: { backgroundColor: colors.background.default },
@@ -233,6 +233,14 @@ function SwapsAmountView({
       toLowerCaseEquals(token.address, initialDestination),
     ),
   );
+
+  useStablecoinsDefaultSlippage({
+    sourceTokenAddress: sourceToken?.address,
+    destTokenAddress: destinationToken?.address,
+    chainId,
+    setSlippage,
+  });
+
   const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
   const [contractBalance, setContractBalance] = useState(null);
   const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(

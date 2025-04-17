@@ -1,4 +1,34 @@
 {
+  "alert_system": {
+    "alert_modal": {
+      "title": "Peringatan",
+      "checkbox_label": "Saya telah memahami risikonya dan masih ingin melanjutkan",
+      "got_it_btn": "Mengerti",
+      "alert_details": "Detail Peringatan"
+    },
+    "confirm_modal": {
+      "title": "Permintaan berisiko tinggi",
+      "checkbox_label": "Saya telah memahami peringatan tersebut dan masih ingin melanjutkan",
+      "review_alerts": "Tinjau semua peringatan",
+      "message": "Sebaiknya tolak permintaan ini. Jika dilanjutkan, aset Anda mungkin akan berisiko.",
+      "title_blockaid": "Aset Anda berpotensi hilang",
+      "blockaid": {
+        "message": "Jika permintaan ini dikonfirmasi, Anda dapat kehilangan aset milik Anda. Sebaiknya batalkan permintaan ini.",
+        "message1": "Jika permintaan ini dikonfirmasi, Anda mengizinkan penipu untuk menarik dan menggunakan aset Anda. Anda tidak akan mendapatkannya kembali.",
+        "message2": "Anda mengirimkan aset milik Anda ke penipu. Jika dilanjutkan, Anda akan kehilangan aset tersebut.",
+        "message3": "Jika dilanjutkan, semua aset yang Anda daftarkan di OpenSea bisa berpotensi hilang.",
+        "message4": "Jika dilanjutkan, semua aset yang Anda daftarkan di Blur bisa berpotensi hilang.",
+        "message5": "Anda berinteraksi dengan situs berbahaya. Jika dilanjutkan, Anda akan kehilangan aset milik Anda."
+      }
+    },
+    "inline_alert_label": "Peringatan",
+    "review_alerts": "Tinjau peringatan",
+    "review_alert": "Tinjau peringatan",
+    "domain_mismatch": {
+      "title": "Permintaan masuk yang mencurigakan",
+      "message": "Situs yang mengajukan permintaan tersebut bukanlah situs yang Anda masuki. Ini mungkin merupakan upaya untuk mencuri kredensial masuk Anda."
+    }
+  },
   "blockaid_banner": {
     "approval_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan dapat mengambil semua aset Anda.",
     "blur_farming_description": "Jika Anda menyetujui permintaan ini, seseorang dapat mencuri aset Anda yang terdaftar di Blur.",
@@ -382,32 +412,35 @@
     "description": "Saat ini kami mendukung berbagai RPC untuk satu jaringan. RPC terbaru Anda telah dipilih sebagai RPC default untuk mengatasi informasi yang saling bertentangan",
     "accept": "Terima"
   },
-  "nft_details": {
-    "bought_for": "Dibeli senilai",
-    "highest_floor_price": "Harga dasar tertinggi",
-    "data_unavailable": "data tidak tersedia",
-    "price_unavailable": "harga tidak tersedia",
-    "rank": "Peringkat",
-    "contract_address": "Alamat kontrak",
-    "token_id": "ID Token",
-    "token_symbol": "Simbol token",
-    "token_standard": "Standar token",
-    "date_created": "Tanggal dibuat",
-    "unique_token_holders": "Pemegang token unik",
-    "tokens_in_collection": "Token dalam koleksi",
-    "creator_address": "Alamat pembuat",
-    "last_sold": "Terakhir terjual",
-    "highest_current_bid": "Penawaran tertinggi saat ini",
-    "options": {
-      "view_on_os": "Lihat di OpenSea",
-      "remove_nft": "Hapus NFT"
-    },
-    "attributes": "Atribut",
-    "disclaimer": "Penafian: MetaMask mengambil fail media dari URL sumber. URL ini terkadang diubah oleh pasar tempat NFT dicetak."
-  },
   "qr_tab_switcher": {
     "scanner_tab": "Pindai kode QR",
     "receive_tab": "Kode QR Anda"
+  },
+  "banner": {
+    "bridge": {
+      "title": "Siap untuk menggunakan bridge?",
+      "subtitle": "Bergerak melintasi 9 chain, semuanya di dalam dompet Anda"
+    },
+    "card": {
+      "title": "Kartu MetaMask",
+      "subtitle": "Tersedia di wilayah tertentu"
+    },
+    "fund": {
+      "title": "Danai dompet Anda",
+      "subtitle": "Tambah atau transfer token untuk memulai"
+    },
+    "cashout": {
+      "title": "Cairkan uang tunai dengan MetaMask",
+      "subtitle": "Jual kripto Anda untuk mendapatkan uang tunai"
+    },
+    "aggregated": {
+      "title": "Saldo Anda dikumpulkan",
+      "subtitle": "Kontrol tampilan saldo Anda di pengaturan"
+    },
+    "multisrp": {
+      "title": "Add multiple Secret Recovery Phrases",
+      "subtitle": "Import and use multiple wallets in MetaMask"
+    }
   },
   "wallet": {
     "title": "Dompet",
@@ -524,6 +557,29 @@
       "token_details": "Detail token",
       "remove_token": "Hapus token"
     }
+  },
+  "nft_details": {
+    "bought_for": "Dibeli senilai",
+    "highest_floor_price": "Harga dasar tertinggi",
+    "data_unavailable": "data tidak tersedia",
+    "price_unavailable": "harga tidak tersedia",
+    "rank": "Peringkat",
+    "contract_address": "Alamat kontrak",
+    "token_id": "ID Token",
+    "token_symbol": "Simbol token",
+    "token_standard": "Standar token",
+    "date_created": "Tanggal dibuat",
+    "unique_token_holders": "Pemegang token unik",
+    "tokens_in_collection": "Token dalam koleksi",
+    "creator_address": "Alamat pembuat",
+    "last_sold": "Terakhir terjual",
+    "highest_current_bid": "Penawaran tertinggi saat ini",
+    "options": {
+      "view_on_os": "Lihat di OpenSea",
+      "remove_nft": "Hapus NFT"
+    },
+    "attributes": "Atribut",
+    "disclaimer": "Penafian: MetaMask mengambil fail media dari URL sumber. URL ini terkadang diubah oleh pasar tempat NFT dicetak."
   },
   "activity_view": {
     "title": "Aktivitas"
@@ -693,6 +749,7 @@
     "select_accounts_description": "Pilih akun yang akan digunakan di situs ini:",
     "connect_multiple_accounts": "Hubungkan beberapa akun",
     "connect_more_accounts": "Hubungkan lebih banyak akun",
+    "add": "Tambah",
     "cancel": "Batalkan",
     "connect": "Hubungkan",
     "connect_with_count": "Hubungkan {{countLabel}}",
@@ -720,7 +777,15 @@
     "potential_threat": "Potensi ancaman meliputi",
     "fake_metamask": "Versi palsu MetaMask",
     "srp_theft": "Pencurian frasa pemulihan rahasia atau kata sandi",
-    "malicious_transactions": "Transaksi berbahaya yang mengakibatkan aset dicuri"
+    "malicious_transactions": "Transaksi berbahaya yang mengakibatkan aset dicuri",
+    "secret_recovery_phrase": "Frasa Pemulihan Rahasia",
+    "account_name": "Nama akun",
+    "select_secret_recovery_phrase": "Pilih Frasa Pemulihan Rahasia",
+    "reveal_secret_recovery_phrase": "Tampilkan Frasa Pemulihan Rahasia",
+    "add_new_hd_account_helper_text": "Frasa Pemulihan Rahasia akun baru Anda akan dibuat dari",
+    "accounts": "akun",
+    "show_accounts": "Tampilkan",
+    "hide_accounts": "Sembunyikan"
   },
   "toast": {
     "connected_and_active": "terhubung dan aktif.",
@@ -773,7 +838,8 @@
   },
   "app_settings": {
     "enabling_notifications": "Mengaktifkan notifikasi...",
-    "disabling_notifications": "Menonaktifkan notifikasi...",
+    "updating_notifications": "Memperbarui notifikasi...",
+    "updating_account_settings": "Memperbarui pengaturan akun...",
     "reset_notifications_title": "Reset notifikasi",
     "reset_notifications_description": "Mereset notifikasi berarti Anda menghapus kunci penyimpanan notifikasi dan mereset semua riwayat notifikasi. Yakin ingin melakukan ini?",
     "reset_notifications": "Reset notifikasi",
@@ -864,6 +930,7 @@
     "notifications_title": "Notifikasi",
     "notifications_desc": "Kelola notifikasi",
     "allow_notifications": "Izinkan notifikasi",
+    "enable_push_notifications": "Aktifkan notifikasi push",
     "allow_notifications_desc": "Pantau terus segala yang terjadi di dompet Anda dengan notifikasi. Untuk menggunakan notifikasi, kami menggunakan profil untuk menyinkronkan beberapa pengaturan di seluruh perangkat Anda.",
     "notifications_opts": {
       "customize_session_title": "Sesuaikan notifikasi",
@@ -899,9 +966,11 @@
     "networks_desc": "Tambahkan dan edit jaringan RPC khusus",
     "network_name_label": "Nama Jaringan",
     "network_name_placeholder": "Nama Jaringan (opsional)",
-    "network_rpc_url_label": "URL RPC",
+    "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "Nama RPC",
     "network_rpc_placeholder": "Jaringan RPC Baru",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "ID Chain",
     "network_chain_id_placeholder": "ID Chain",
     "network_symbol_label": "Simbol",
@@ -918,6 +987,7 @@
     "remove_network": "Hapus",
     "cancel_remove_network": "Batal",
     "info_title": "Seputar MetaMask",
+    "info_title_beta": "Tentang MetaMask Beta",
     "info_title_flask": "Tentang MetaMask Flask",
     "experimental_title": "Eksperimental",
     "experimental_desc": "WalletConnect dan lainnya...",
@@ -1118,6 +1188,7 @@
     "security_alerts": "Peringatan keamanan",
     "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia.",
     "smart_transactions_opt_in_heading": "Transaksi Pintar",
+    "smart_transactions_opt_in_desc_supported_networks": "Aktifkan Transaksi Pintar untuk transaksi yang lebih andal dan aman pada jaringan yang didukung.",
     "smart_transactions_learn_more": "Selengkapnya.",
     "simulation_details": "Estimasikan perubahan saldo",
     "simulation_details_description": "Aktifkan ini untuk mengestimasikan perubahan saldo transaksi sebelum Anda mengonfirmasikannya. Ini tidak menjamin hasil akhir transaksi Anda. ",
@@ -1280,8 +1351,8 @@
       "swap": "Swap tidak didukung untuk akun ini",
       "bridge": "Bridge tidak didukung untuk akun ini",
       "send": "Pengiriman tidak didukung untuk akun ini",
-      "earn": "Penghasilan tidak didukung untuk akun ini",
-      "action": "Tindakan ini tidak didukung untuk akun ini"
+      "action": "Tindakan ini tidak didukung untuk akun ini",
+      "earn": "Penghasilan tidak didukung untuk akun ini"
     },
     "description": "Deskripsi",
     "totalSupply": "Jumlah Pasokan",
@@ -1617,6 +1688,9 @@
     "tabs_done": "Selesai",
     "no_tabs_title": "Tidak Ada Tab Terbuka",
     "no_tabs_desc": "Untuk menelusuri web yang terdesentralisasi, tambahkan tab baru",
+    "got_it": "Mengerti",
+    "max_tabs_title": "Jumlah tab maksimum tercapai",
+    "max_tabs_desc": "Saat ini kami hanya mendukung 5 tab yang terbuka sekaligus. Tutup tab yang ada sebelum menambahkan tab baru.",
     "failed_to_resolve_ens_name": "Kami tidak dapat menyelesaikan nama ENS tersebut",
     "remove_bookmark_title": "Hapus favorit",
     "remove_bookmark_msg": "Yakin ingin menghapus situs ini dari favorit Anda?",
@@ -1682,6 +1756,9 @@
     "sent_collectible": "Mengirim Koleksi",
     "sent": "Mengirim",
     "received": "Menerima",
+    "receive": "Terima",
+    "swap": "Tukar",
+    "send": "Kirim",
     "contract_deploy": "Penempatan Kontrak",
     "to_contract": "Kontrak Baru",
     "tx_details_free": "Gratis",
@@ -1705,6 +1782,7 @@
     "gas_price": "Harga Gas (GWEI)",
     "base_fee": "Biaya Dasar (GWEI)",
     "priority_fee": "Biaya Prioritas (GWEI)",
+    "multichain_priority_fee": "Biaya Prioritas",
     "max_fee": "Biaya Maks Per Gas",
     "total": "Total",
     "view_on": "LIHAT DI",
@@ -1728,7 +1806,9 @@
     "sign_description_1": "Setelah menandatangani dengan dompet perangkat keras,",
     "sign_description_2": "ketuk Dapatkan Tanda Tangan",
     "sign_get_signature": "Dapatkan Tanda Tangan",
-    "network_fee": "Biaya Jaringan"
+    "transaction_id": "ID Transaksi",
+    "network_fee": "Biaya Jaringan",
+    "network_fee_tooltip": "Jumlah yang dibayarkan untuk memproses transaksi di jaringan."
   },
   "smart_transactions": {
     "status_submitting_header": "Mengirimkan transaksi Anda",
@@ -1840,6 +1920,7 @@
     "you_can": "Atau Anda dapat",
     "add_network": "menambahkan lebih banyak jaringan secara manual.",
     "add_specific_network": "Tambahkan {{network_name}}",
+    "update_network": "Perbarui {{network_name}}",
     "select_network": "Pilih jaringan",
     "enabled_networks": "Jaringan yang diaktifkan",
     "additional_networks": "Jaringan tambahan",
@@ -1875,7 +1956,8 @@
     "this_site_cant": "Situs ini tidak dapat digunakan bersama dengan jaringan Anda saat ini. Tambahkan izin jaringan atau pilih jaringan yang sudah diizinkan.",
     "non_permitted_network_description": "Situs ini tidak dapat digunakan bersama dengan jaringan Anda saat ini. Tambahkan izin jaringan atau pilih jaringan yang sudah diizinkan.",
     "edit_permissions": "Edit izin",
-    "permitted_networks_info_sheet_description": "Ini merupakan daftar jaringan yang sebelumnya telah Anda beri izin untuk digunakan di situs ini. Pilih satu dari daftar atau edit izin jaringan untuk situs ini."
+    "permitted_networks_info_sheet_description": "Ini merupakan daftar jaringan yang sebelumnya telah Anda beri izin untuk digunakan di situs ini. Pilih satu dari daftar atau edit izin jaringan untuk situs ini.",
+    "connect_an_account": "Hubungkan akun"
   },
   "select": {
     "cancel": "Batal",
@@ -1966,6 +2048,31 @@
     "title": "Akun berhasil diimpor!",
     "description_one": "Kini Anda dapat melihat akun Anda di MetaMask."
   },
+  "import_new_secret_recovery_phrase": {
+    "title": "Impor Frasa Pemulihan Rahasia",
+    "description": "Masukkan frasa pemulihan rahasia dompet Anda. Anda dapat mengimpor frasa pemulihan rahasia Ethereum, Solana, atau Bitcoin.",
+    "subtitle": "Tempel frasa pemulihan rahasia",
+    "cta_text": "Lanjutkan",
+    "paste": "Tempel",
+    "clear": "Hapus semua",
+    "srp_number_of_words_option_title": "Jumlah kata",
+    "12_word_option": "Saya memiliki frasa 12 kata",
+    "24_word_option": "Saya memiliki frasa 24 kata",
+    "error_title": "Terjadi kesalahan",
+    "error_message": "Kami tidak dapat mengimpor frasa pemulihan rahasia tersebut. Pastikan Anda memasukkannya dengan benar.",
+    "error_empty_message": "Anda perlu memasukkan frasa pemulihan rahasia.",
+    "error_number_of_words_error_message": "Frasa Pemulihan Rahasia terdiri dari 12 atau 24 kata",
+    "error_srp_is_case_sensitive": "Masukan tidak valid! Frasa Pemulihan Rahasia peka kapital.",
+    "error_srp_word_error_1": "Kata ",
+    "error_srp_word_error_2": " salah atau salah eja.",
+    "error_multiple_srp_word_error_1": "Kata ",
+    "error_multiple_srp_word_error_2": " dan ",
+    "error_multiple_srp_word_error_3": " salah atau salah eja.",
+    "error_invalid_srp": "Frasa Pemulihan Rahasia Tidak Valid",
+    "error_duplicate_srp": "Frasa Pemulihan Rahasia ini telah diimpor.",
+    "success_1": "Frasa Pemulihan Rahasia",
+    "success_2": "diimpor"
+  },
   "first_incoming_transaction": {
     "title": "{{asset}} telah didepositkan di akun Anda",
     "amount": "Jumlah:",
@@ -1982,7 +2089,8 @@
     "info_text_1": "Luangkan waktu beberapa saat untuk menyelesaikan pengaturan dompet MetaMask.",
     "info_text_2": "Ini akan memastikan Andalah satu-satunya yang dapat mengakses dana dan memungkinkan Anda memulihkan dompet jika perangkat hilang",
     "cta_text": "Buat kata sandi",
-    "creating_password": "Membuat kata sandi..."
+    "creating_password": "Membuat kata sandi...",
+    "srp_list_selection": "Select Secret Recovery Phrase"
   },
   "account_backup_step_1": {
     "remind_me_later": "Ingatkan saya nanti",
@@ -2136,7 +2244,15 @@
     "continue_on_your_own": "melanjutkan dan menanggung risikonya sendiri.",
     "file_an_issue_intro": "Jika menurut Anda domain ini salah ditandai atau jika situs web sah yang diblokir telah menyelesaikan masalah keamanannya,",
     "file_an_issue": "silakan ajukan masalah ini.",
-    "back_to_safety": "Kembali ke keamanan"
+    "back_to_safety": "Kembali ke keamanan",
+    "site_might_be_harmful": "Situs web ini mungkin berbahaya",
+    "metamask_flagged_site": "MetaMask menandai situs yang Anda coba kunjungi sebagai situs yang berpotensi menipu. Penyerang dapat menipu Anda agar melakukan sesuatu yang berbahaya.",
+    "you_may_proceed_anyway": "Anda dapat juga",
+    "proceed_anyway": "tetap melanjutkan",
+    "but_please_do_so_at_your_own_risk": "tetapi dengan risiko yang ditanggung sendiri.",
+    "report_detection_problem": "Laporkan masalah deteksi",
+    "share_on_twitter": "Jika Anda merasa ini bermanfaat, bagikan di X!",
+    "share_text": "MetaMask melindungi saya agar tidak mengunjungi situs yang berpotensi membahayakan: {{url}}. Tetap aman!"
   },
   "notifications": {
     "timeout": "Waktu habis",
@@ -2227,7 +2343,7 @@
     "lido_stake_completed_title": "Stake selesai",
     "lido_withdrawal_requested_title": "Permintaan penarikan",
     "lido_withdrawal_completed_title": "Penarikan selesai",
-    "lido_stake_ready_to_be_withdrawn_title": "Stake siap untuk penarikan ",
+    "lido_stake_ready_to_be_withdrawn_title": "Stake siap untuk penarikan",
     "erc721_sent_title": "NFT terkirim",
     "erc721_received_title": "NFT diterima",
     "erc1155_sent_title": "NFT terkirim",
@@ -2261,36 +2377,30 @@
     "lido_withdrawal_completed_message": "Pembatalan stake selesai",
     "lido_stake_ready_to_be_withdrawn_message": "Permintaan penarikan",
     "push_notification_content": {
+      "funds_sent_title": "Dana terkirim",
+      "funds_sent_description": "Anda berhasil mengirim {{amount}} {{symbol}}",
+      "funds_sent_default_description": "Anda berhasil mengirim beberapa token",
+      "funds_received_title": "Dana diterima",
+      "funds_received_description": "Anda menerima {{amount}} {{symbol}}",
+      "funds_received_default_description": "Anda menerima beberapa token",
       "metamask_swap_completed_title": "Swap selesai",
       "metamask_swap_completed_description": "Swap MetaMask berhasil",
-      "erc20_sent_title": "Dana terkirim",
-      "erc20_sent_description": "Anda berhasil mengirim {{amount}} {{token}}",
-      "erc20_received_title": "Dana diterima",
-      "erc20_received_description": "Anda menerima {{amount}} {{token}}",
-      "eth_sent_title": "Dana terkirim",
-      "eth_sent_description": "Anda berhasil mengirim {{amount}} ETH",
-      "eth_received_title": "Dana diterima",
-      "eth_received_description": "Anda menerima {{amount}} {{token}}",
+      "nft_sent_title": "NFT terkirim",
+      "nft_sent_description": "Anda telah berhasil mengirim NFT",
+      "nft_received_title": "NFT diterima",
+      "nft_received_description": "Anda menerima NFT baru",
       "rocketpool_stake_completed_title": "Stake selesai",
       "rocketpool_stake_completed_description": "Stake RocketPool berhasil",
       "rocketpool_unstake_completed_title": "Pembatalan stake selesai",
       "rocketpool_unstake_completed_description": "Pembatalan stake RocketPool berhasil",
       "lido_stake_completed_title": "Stake selesai",
       "lido_stake_completed_description": "Stake Lido berhasil",
+      "lido_stake_ready_to_be_withdrawn_title": "Stake siap untuk penarikan",
+      "lido_stake_ready_to_be_withdrawn_description": "Stake Lido kini siap untuk ditarik",
       "lido_withdrawal_requested_title": "Penarikan diminta",
       "lido_withdrawal_requested_description": "Permintaan penarikan Lido telah dikirimkan",
       "lido_withdrawal_completed_title": "Penarikan selesai",
-      "lido_withdrawal_completed_description": "Penarikan Lido berhasil",
-      "lido_stake_ready_to_be_withdrawn_title": "Stake siap untuk ditarik ",
-      "lido_stake_ready_to_be_withdrawn_description": "Stake Lido kini siap untuk ditarik",
-      "erc721_sent_title": "NFT terkirim",
-      "erc721_sent_description": "Anda telah berhasil mengirim NFT",
-      "erc721_received_title": "NFT diterima",
-      "erc721_received_description": "Anda menerima NFT baru",
-      "erc1155_sent_title": "NFT terkirim",
-      "erc1155_sent_description": "Anda telah berhasil mengirim NFT",
-      "erc1155_received_title": "NFT diterima",
-      "erc1155_received_description": "Anda menerima NFT baru"
+      "lido_withdrawal_completed_description": "Penarikan Lido berhasil"
     },
     "prompt_title": "Terima Notifikasi Push",
     "notifications_enabled_error_title": "Terjadi kesalahan",
@@ -2588,6 +2698,8 @@
     "one_more_option": "1 opsi lain",
     "more_options": "{{count}} opsi lain",
     "previously_used": "Digunakan sebelumnya",
+    "best_rate": "Tarif terbaik",
+    "most_reliable": "Paling dapat diandalkan",
     "quotes_timeout": "Waktu kuotasi habis",
     "request_new_quotes": "Minta kuotasi baru untuk mendapatkan tarif terbaik saat ini.",
     "terms_of_service": "Ketentuan Layanan",
@@ -2602,6 +2714,7 @@
     "done": "Selesai",
     "fetching_quotes": "Mengambil kuotasi",
     "select_a_quote": "Pilih Kuotasi",
+    "recommended_quote": "Kuotasi yang direkomendasikan",
     "select_a_cryptocurrency": "Pilih mata uang kripto",
     "select_a_cryptocurrency_description": "Pilih dari daftar token yang tersedia di {{network}}.",
     "search_by_cryptocurrency": "Cari berdasarkan mata uang kripto",
@@ -2618,6 +2731,7 @@
     "minimum": "Deposit minimum adalah",
     "maximum": "Deposit maksimum adalah",
     "insufficient_balance": "Jumlah ini lebih tinggi dari saldo Anda",
+    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
     "enter_larger_amount": "Masukkan jumlah yang lebih besar untuk melanjutkan",
     "enter_smaller_amount": "Masukkan jumlah yang lebih kecil untuk melanjutkan",
     "enter_lower_gas_fees": "Masukkan jumlah yang lebih rendah untuk membayar biaya gas",
@@ -2764,7 +2878,7 @@
     "token_to_verify": "untuk memverifikasi bahwa ini merupakan token yang Anda cari.",
     "continue": "Lanjutkan",
     "select_a_token": "Pilih token",
-    "search_token": "Cari token",
+    "search_token": "Masukkan nama token atau tempel alamat",
     "no_tokens_result": "Tidak ada token yang cocok dengan “{{searchString}}”",
     "find_token_address": "Temukan alamat token",
     "cant_find_token": "Tidak dapat menemukan token?",
@@ -2816,12 +2930,12 @@
     "n_quotes": "{{numberOfQuotes}} kuotasi",
     "view_details": "Lihat detail",
     "estimated_gas_fee": "Estimasi biaya gas",
-    "gas_fee": "Gas fee",
-    "included": "included",
+    "gas_fee": "Biaya gas",
+    "included": "termasuk",
     "max_gas_fee": "Biaya gas maks",
     "edit": "Edit",
     "quotes_include_fee": "Kuotasi mencakup {{fee}}% biaya MetaMask",
-    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
+    "quotes_include_gas_and_metamask_fee": "Kuotasi mencakup biaya gas dan biaya MetaMask sebesar {{fee}}%",
     "tap_to_swap": "Ketuk untuk Menukar",
     "swipe_to_swap": "Usap untuk menukar",
     "swipe_to": "Usap untuk",
@@ -2891,8 +3005,8 @@
     "high_recommendation": "Pertukaran biasanya sensitif terhadap waktu. “Tinggi” akan membantu menghindari potensi kerugian akibat perubahan kondisi pasar.",
     "recommended": "Direkomendasikan",
     "recommended_gas": "Biaya gas yang direkomendasikan",
-    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
-    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
+    "gas_included_tooltip_explanation": "Kuotasi ini mencakup biaya gas dengan menyesuaikan jumlah token yang dikirim atau diterima. Anda mungkin akan menerima ETH dalam transaksi terpisah pada daftar aktivitas Anda.",
+    "gas_included_tooltip_explanation_link_text": "Pelajari selengkapnya seputar biaya gas",
     "gas_education_title": "Estimasi biaya gas",
     "gas_education_1": "Biaya gas dibayarkan kepada penambang kripto yang memproses transaksi di",
     "gas_education_2_ethereum": "jaringan Ethereum.",
@@ -2981,6 +3095,8 @@
     "title_new_network": "Jaringan baru ditambahkan",
     "switch_warning": "Ini akan mengalihkan jaringan yang dipilih dalam MetaMask ke jaringan yang ditambahkan sebelumnya:",
     "add_network_and_give_dapp_permission_warning": "Anda menambahkan jaringan ini ke MetaMask dan memberikan {{dapp_origin}} izin untuk menggunakannya.",
+    "update_network_and_give_dapp_permission_warning": "Anda memperbarui jaringan ini di MetaMask dan memberikan {{dapp_origin}} izin untuk menggunakannya.",
+    "request_update_network_url": "{{dapp_origin}} meminta untuk memperbarui URL jaringan default. Anda dapat mengedit informasi jaringan default setiap saat.",
     "available": "kini tersedia di pemilih jaringan.",
     "cancel": "Batal",
     "switch": "Alihkan jaringan"
@@ -3143,7 +3259,9 @@
     "enable_token_detection": "Aktifkan deteksi token otomatis",
     "token_detection_mainnet_title": "Deteksi token diaktifkan sehingga token-token akan muncul di dompet Anda secara otomatis.",
     "token_detection_mainnet_link": "Anda juga dapat menambahkan token secara manual.",
-    "or": "atau"
+    "or": "atau",
+    "non_evm_first_description": "Aset asli di jaringan ini adalah {{ticker}}. Aset ini digunakan untuk biaya transaksi.",
+    "non_evm_second_description": "Anda akan kehilangan aset milik Anda jika mencoba mengirimnya dari atau ke jaringan lain."
   },
   "download_files": {
     "error": "Gagal mengunduh lampiran.",
@@ -3361,13 +3479,17 @@
   "account_actions": {
     "edit_name": "Edit nama akun",
     "add_account_or_hardware_wallet": "Tambahkan akun atau dompet perangkat keras",
-    "add_account": "Tambahkan akun",
-    "add_new_account": "Tambahkan akun baru",
-    "add_hardware_wallet": "Tambahkan dompet perangkat keras",
-    "import_account": "Impor akun",
-    "add_bitcoin_account_testnet": "Tambahkan Akun Bitcoin baru (Testnet)",
-    "add_bitcoin_account_mainnet": "Tambahkan Akun Bitcoin baru (Beta)",
-    "add_solana_account": "Tambahkan Akun Solana baru (Beta)"
+    "connect_hardware_wallet": "Hubungkan akun",
+    "import_wallet_or_account": "Impor dompet atau akun",
+    "add_account": "Buat akun baru",
+    "create_an_account": "Buat akun baru",
+    "add_new_account": "Akun Ethereum",
+    "import_srp": "Frasa Pemulihan Rahasia",
+    "add_hardware_wallet": "Dompet perangkat keras",
+    "import_account": "Kunci pribadi",
+    "add_bitcoin_account_testnet": "Akun testnet Bitcoin",
+    "add_bitcoin_account_mainnet": "Akun Bitcoin",
+    "add_solana_account": "Akun Solana"
   },
   "show_nft": {
     "show_nft_title": "Tampilkan NFT",
@@ -3385,6 +3507,18 @@
     "show_display_nft_media_content_3": "Menampilkan media dan data NFT mengekspos alamat IP ke OpenSea atau pihak ketiga lainnya. Autodeteksi NFT mengandalkan fitur ini, dan tidak akan tersedia jika fitur ini dinonaktifkan.",
     "show_display_nft_media_content_4": "Anda dapat menonaktifkan Tampilkan media NFT di",
     "show_display_nft_media_content_5": "Pengaturan > Keamanan dan privasi."
+  },
+  "solana_new_feature_content": {
+    "title": "Solana di MetaMask",
+    "create_solana_account": "Buat akun Solana",
+    "not_now": "Tidak sekarang",
+    "got_it": "Mengerti",
+    "feature_1_title": "Kirim, terima, dan tukar token",
+    "feature_1_description": "Transfer dan bertransaksi dengan token seperti SOL, USDC, dan lainnya.",
+    "feature_2_title": "Impor akun Solana",
+    "feature_2_description": "Impor Frasa Pemulihan Rahasia untuk memindahkan akun Solana dari dompet lain.",
+    "feature_3_title": "Fitur lainnya segera hadir",
+    "feature_3_description": "Dapp Solana, NFT, dukungan dompet perangkat keras, dan lainnya segera hadir."
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Gateway IPFS",
@@ -3412,6 +3546,14 @@
     "error_title": "Gagal diinstal",
     "error_description": "Instalasi {{snap}} gagal."
   },
+  "earn": {
+    "empty_state_cta": {
+      "heading": "Pinjamkan {{tokenSymbol}} dan hasilkan",
+      "body_prefix": "Anda bisa menghasilkan hingga",
+      "body_suffix": "per tahun dengan meminjamkan {{tokenSymbol}} milik Anda.",
+      "start_earning": "Mulai menghasilkan"
+    }
+  },
   "stake": {
     "stake": "Stake",
     "earn": "Hasilkan",
@@ -3430,12 +3572,18 @@
       "stake_annual_rate_tooltip": "Tooltip nilai tahunan"
     },
     "estimated_annual_rewards": "Estimasi reward tahunan",
+    "estimated_annual_reward": "Estimasi reward tahunan",
+    "reward_frequency": "Frekuensi reward",
+    "reward_frequency_tooltip": "Saldo yang di-stake diperbarui setiap {{frequency}} untuk memperhitungkan reward baru.",
+    "withdrawal_time": "Waktu penarikan",
     "metamask_pool": "MetaMask Pool",
     "enter_amount": "Masukkan jumlah",
     "review": "Tinjau",
     "not_enough_eth": "ETH tidak cukup",
+    "not_enough_token": "Tidak cukup {{ticker}}",
     "balance": "Saldo",
     "stake_eth_and_earn": "Stake ETH dan dapatkan",
+    "how_it_works": "Cara kerjanya",
     "stake_any_amount_of_eth": "Stake sejumlah ETH.",
     "no_minimum_required": "Tidak ada jumlah minimum.",
     "earn_eth_rewards": "Dapatkan reward ETH.",
@@ -3480,6 +3628,8 @@
     "unstake_input_banner_description": "Rata-rata, diperlukan waktu kurang dari 3 hari agar ETH yang batal di-stake dapat diklaim, tetapi tindakan ini dapat memakan waktu hingga 11 hari.",
     "max": "Maks",
     "staking_from": "Stake dari",
+    "advanced_details": "Detail lanjutan",
+    "ethereum_mainnet": "Mainnet Ethereum",
     "interacting_with": "Berinteraksi dengan",
     "12_hours": "12 jam",
     "terms_of_service": "Ketentuan layanan",
@@ -3491,14 +3641,21 @@
     "you_receive": "Anda menerima",
     "up_to_n": "Hingga {{count}}",
     "unstaking_to": "Batalkan stake ke",
+    "claiming_to": "Mengeklaim ke",
     "max_modal": {
       "title": "Maks",
-      "description": "Maks merupakan jumlah total ETH yang Anda miliki, dikurangi biaya gas yang diperlukan untuk melakukan stake. Sebaiknya simpan sejumlah ETH tambahan di dompet Anda untuk transaksi di masa mendatang."
+      "eth": {
+        "description": "Maks merupakan jumlah total ETH yang Anda miliki, dikurangi biaya gas yang diperlukan untuk melakukan stake. Sebaiknya simpan sejumlah ETH tambahan di dompet Anda untuk transaksi di masa mendatang."
+      }
     },
     "use_max": "Gunakan maks",
     "estimated_unstaking_time": "1 sampai 11 hari",
     "proceed_anyway": "Tetap lanjutkan",
     "gas_cost_impact": "Dampak biaya gas",
+    "select_a_token": "Pilih token",
+    "you_could_earn": "Anda bisa mendapatkan",
+    "per_year_on_your_tokens": "per tahun atas token Anda",
+    "deposit": "Deposit",
     "gas_cost_impact_warning": "Peringatan: biaya gas transaksi akan mencapai lebih dari {{percentOverDeposit}}% dari deposit Anda.",
     "view_earnings_history": "Lihat riwayat pendapatan",
     "earnings_history_title": "Pendapatan {{ticker}}",
@@ -3599,27 +3756,47 @@
     }
   },
   "confirm": {
-    "reject": "Tolak",
+    "cancel": "Batal",
     "confirm": "Konfirmasikan",
+    "staking_footer": {
+      "part1": "Dengan melanjutkan, Anda menyetujui ",
+      "terms_of_use": "Ketentuan Penggunaan",
+      "part2": " dan",
+      "risk_disclosure": "Pengungkapan Risiko",
+      "part3": "."
+    },
+    "label": {
+      "account": "Akun",
+      "balance": "Saldo",
+      "interacting_with": "Berinteraksi dengan",
+      "network": "Jaringan",
+      "primary_type": "Tipe primer",
+      "request_from": "Permintaan dari",
+      "signing_in_with": "Masuk dengan",
+      "spender": "Spender"
+    },
     "title": {
       "signature": "Permintaan tanda tangan",
+      "permit": "Permintaan batas penggunaan",
+      "permit_revoke": "Hapus izin",
+      "permit_NFTs": "Permintaan penarikan",
       "signature_siwe": "Permintaan masuk"
     },
     "sub_title": {
+      "permit": "Situs ini meminta izin untuk menggunakan token Anda.",
+      "permit_NFTs": "Situs ini meminta izin untuk menarik NFT Anda.",
       "signature": "Tinjau detail permintaan sebelum mengonfirmasi.",
       "signature_siwe": "Sebuah situs ingin Anda masuk untuk membuktikan bahwa Anda merupakan pemilik akun ini."
     },
     "request_from": "Permintaan dari",
+    "staking_from": "Stake dari",
     "signing_in_with": "Masuk dengan",
     "message": "Pesan",
-    "primary_type": "Tipe primer",
     "personal_sign_tooltip": "Situs ini meminta tanda tangan Anda",
     "details": "Detail",
-    "account": "Akun",
-    "balance": "Saldo",
-    "network": "Jaringan",
     "qr_get_sign": "Dapatkan Tanda Tangan",
     "qr_scan_text": "Pindai dengan dompet perangkat keras",
+    "sign_with_ledger": "Tandatangani dengan Ledger",
     "siwe_message": {
       "url": "URL",
       "network": "Jaringan",
@@ -3635,6 +3812,7 @@
       "decoded_tooltip_bid_nft": "NFT akan terlihat di dompet Anda saat tawaran diterima.",
       "decoded_tooltip_list_nft": "Nantikan perubahan hanya jika seseorang membeli NFT Anda.",
       "info_permit": "Anda memberi izin kepada spender untuk menggunakan sejumlah token ini dari akun Anda.",
+      "info_revoke": "Anda menghapus izin seseorang untuk menggunakan token dari akun Anda.",
       "label_change_type_bidding": "Anda menawar",
       "label_change_type_listing": "Anda mendaftar",
       "label_change_type_nft_listing": "Harga yang terdaftar",
@@ -3662,5 +3840,34 @@
     "input_title": "Nama akun",
     "add_account_button": "Tambahkan akun",
     "name_taken_message": "Nama akun ini sudah ada"
+  },
+  "smart_transactions_migration": {
+    "title": "Transaksi kini menjadi lebih pintar",
+    "link": "Tingkat keberhasilan lebih tinggi",
+    "description": " dan perlindungan MEV. Kini aktif secara default."
+  },
+  "bridge": {
+    "continue": "Lanjutkan",
+    "terms_and_conditions": "Syarat & Ketentuan",
+    "select_token": "Pilih token",
+    "select_network": "Pilih jaringan",
+    "all_networks": "Semua jaringan",
+    "num_networks": "{{numNetworks}} jaringan",
+    "one_network": "1 jaringan",
+    "select_all_networks": "Pilih semua",
+    "deselect_all_networks": "Batal pilih semua",
+    "see_all": "Lihat semua",
+    "apply": "Terapkan",
+    "slippage": "Selip",
+    "slippage_info": "Jika harga berubah antara waktu penempatan dan konfirmasi order Anda, ini disebut “selip”. Pertukaran akan otomatis dibatalkan jika selip melebihi toleransi yang Anda tetapkan di sini.",
+    "network_fee": "Biaya Jaringan",
+    "estimated_time": "Estimasi Waktu",
+    "quote": "Kuotasi",
+    "quote_details": "Detail Kuotasi",
+    "price_impact": "Dampak Harga",
+    "time": "Waktu",
+    "quote_info_content": "Kuotasi ini menawarkan hasil terbaik dari pencarian kami. Kuotasi ini didasarkan pada nilai tukar, termasuk biaya bridge dan biaya MetaMask 0,875%, tetapi tidak termasuk biaya gas. Biaya gas bervariasi tergantung aktivitas jaringan dan kompleksitas transaksi.",
+    "quote_info_title": "Alasan kami merekomendasikan kuotasi ini",
+    "see_other_quotes": "Lihat kuotasi lainnya"
   }
 }

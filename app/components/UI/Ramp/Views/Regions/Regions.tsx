@@ -20,7 +20,7 @@ import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
-import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
+import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 
 import { useRampSDK } from '../../sdk';
 import { Region } from '../../types';
@@ -98,7 +98,7 @@ const RegionsView = () => {
   }, [isBuy, navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
-    navigation.navigate(...createPaymentMethodsNavDetails());
+    navigation.navigate(...createBuildQuoteNavDetails());
   }, [navigation]);
 
   const handleRegionPress = useCallback(

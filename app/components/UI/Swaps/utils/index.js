@@ -4,6 +4,10 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { SolScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF(keyring-snaps)
+import { isBridgeUiEnabled } from '../../Bridge/utils';
 
 const {
   ETH_CHAIN_ID,
@@ -47,6 +51,13 @@ export function isSwapsAllowed(chainId) {
   if (!AppConstants.SWAPS.ONLY_MAINNET) {
     allowedChainIds.push(SWAPS_TESTNET_CHAIN_ID);
   }
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  if (chainId === SolScope.Mainnet && isBridgeUiEnabled()) {
+    return true;
+  }
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+
   return allowedChainIds.includes(chainId);
 }
 

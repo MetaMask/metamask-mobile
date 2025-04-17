@@ -4,7 +4,12 @@ import Engine from '../../../core/Engine';
 import { isMultichainV1Enabled, getDecimalChainId } from '../../../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { InfuraNetworkType, BUILT_IN_NETWORKS } from '@metamask/controller-utils';
-import { Hex } from '@metamask/utils';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  CaipChainId,
+  ///: END:ONLY_INCLUDE_IF
+  Hex,
+} from '@metamask/utils';
 import Logger from '../../../util/Logger';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -18,6 +23,13 @@ import {
   endTrace,
   trace,
 } from '../../../util/trace';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectHasCreatedSolanaMainnetAccount } from '../../../selectors/accountsController';
+import { SolScope } from '@metamask/keyring-api';
+import Routes from '../../../constants/navigation/Routes';
+import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
+import { useNavigation } from '@react-navigation/native';
+///: END:ONLY_INCLUDE_IF
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
@@ -32,6 +44,9 @@ interface UseSwitchNetworksProps {
 interface UseSwitchNetworksReturn {
   onSetRpcTarget: (networkConfiguration: NetworkConfiguration) => Promise<void>;
   onNetworkChange: (type: InfuraNetworkType) => Promise<void>;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  onNonEvmNetworkChange: (chainId: CaipChainId) => Promise<void>;
+  ///: END:ONLY_INCLUDE_IF
 }
 
 /**
@@ -56,6 +71,13 @@ export function useSwitchNetworks({
   );
   const { trackEvent, createEventBuilder } = useMetrics();
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const isSolanaAccountAlreadyCreated = useSelector(
+    selectHasCreatedSolanaMainnetAccount,
+  );
+  const { navigate } = useNavigation();
+  ///: END:ONLY_INCLUDE_IF
+
   /**
    * Sets the token network filter based on the chain ID
    */
@@ -76,9 +98,9 @@ export function useSwitchNetworks({
   );
 
   /**
-   * Switches to a custom network configuration
+   * Switches to a custom EVM network configuration
    */
-  const switchToCustomNetwork = useCallback(
+  const onSetRpcTarget = useCallback(
     async (networkConfiguration: NetworkConfiguration) => {
       if (!networkConfiguration) return;
 
@@ -139,7 +161,7 @@ export function useSwitchNetworks({
    * Switches to a built-in network
    * The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
    */
-  const switchToBuiltInNetwork = useCallback(
+  const onNetworkChange = useCallback(
     async (type: InfuraNetworkType) => {
       trace({
         name: TraceName.SwitchBuiltInNetwork,
@@ -170,7 +192,7 @@ export function useSwitchNetworks({
 
         // Update incoming transactions after a delay
         setTimeout(async () => {
-          await updateIncomingTransactions([networkConfiguration.chainId]);
+          await updateIncomingTransactions();
         }, 1000);
       }
 
@@ -203,8 +225,29 @@ export function useSwitchNetworks({
     ],
   );
 
+   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+   /**
+    * Switches to a non-EVM network
+    */
+   const onNonEvmNetworkChange = useCallback(async (chainId: CaipChainId) => {
+    if (!isSolanaAccountAlreadyCreated && chainId === SolScope.Mainnet) {
+      navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
+        navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
+      });
+
+      return;
+    }
+
+    await Engine.context.MultichainNetworkController.setActiveNetwork(chainId);
+    dismissModal?.();
+  }, [dismissModal, isSolanaAccountAlreadyCreated, navigate]);
+  ///: END:ONLY_INCLUDE_IF
+
   return {
-    onSetRpcTarget: switchToCustomNetwork,
-    onNetworkChange: switchToBuiltInNetwork,
+    onSetRpcTarget,
+    onNetworkChange,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    onNonEvmNetworkChange,
+    ///: END:ONLY_INCLUDE_IF
   };
 }

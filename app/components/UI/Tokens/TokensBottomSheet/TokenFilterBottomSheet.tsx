@@ -21,6 +21,7 @@ import { VerticalAlignment } from '../../../../component-library/components/List
 import { strings } from '../../../../../locales/i18n';
 import { enableAllNetworksFilter } from '../util/enableAllNetworksFilter';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import NetworkImageComponent from '../../NetworkImages';
 
 enum FilterOption {
   AllNetworks,
@@ -83,6 +84,13 @@ const TokenFilterBottomSheet = () => {
               'app_settings.networks',
             )}`}
           </Text>
+          <View style={styles.networkImageContainer}>
+            <NetworkImageComponent
+              isAllNetworksEnabled
+              allNetworksEnabled={allNetworksEnabled}
+              selectorButtonDisplayed={false}
+            />
+          </View>
         </ListItemSelect>
         <ListItemSelect
           testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT}
@@ -96,6 +104,13 @@ const TokenFilterBottomSheet = () => {
           <Text style={styles.bottomSheetText}>
             {strings('wallet.current_network')}
           </Text>
+          <View style={styles.networkImageContainer}>
+            <NetworkImageComponent
+              isAllNetworksEnabled={false}
+              allNetworksEnabled={{ [chainId]: true }}
+              selectorButtonDisplayed={false}
+            />
+          </View>
         </ListItemSelect>
       </View>
     </BottomSheet>

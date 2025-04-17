@@ -101,6 +101,7 @@ exports[`AssetSearch should render correctly 1`] = `
           "width": 24,
         }
       }
+      testID="clear-search-bar"
     >
       <SvgMock
         color="#121314"
