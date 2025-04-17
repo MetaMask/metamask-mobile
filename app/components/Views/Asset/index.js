@@ -520,10 +520,14 @@ class Asset extends PureComponent {
       ? isSwapsAllowed(asset.chainId)
       : isSwapsAllowed(chainId);
 
-    const isAssetAllowed =
-      asset.isETH ||
-      asset.isNative ||
-      (isAssetFromSearch(asset) ? this.props.searchDiscoverySwapsTokens?.includes(asset.address?.toLowerCase()) : asset.address?.toLowerCase() in this.props.swapsTokens);
+    let isAssetAllowed;
+    if (asset.isETH || asset.isNative) {
+      isAssetAllowed = true;
+    } else if (isAssetFromSearch(asset)) {
+      isAssetAllowed = this.props.searchDiscoverySwapsTokens?.includes(asset.address?.toLowerCase());
+    } else {
+      isAssetAllowed = asset.address?.toLowerCase() in this.props.swapsTokens;
+    }
 
     const displaySwapsButton =
       isNetworkAllowed && isAssetAllowed && AppConstants.SWAPS.ACTIVE;
