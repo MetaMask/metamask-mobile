@@ -97,6 +97,7 @@ import {
   TransactionControllerActions,
   TransactionControllerEvents,
   TransactionControllerState,
+  TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -403,7 +404,7 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
-  | AppMetadataControllerEvents;
+  | AppMetadataControllerEvents
   | SeedlessOnboardingControllerStateChangeEvent;
 
 // TODO: Abstract this into controller utils for TransactionController
@@ -599,7 +600,7 @@ export type ControllersToInitialize =
   | 'MultichainNetworkController'
   | 'TransactionController'
   | 'GasFeeController'
-  | 'SignatureController';
+  | 'SignatureController'
   | 'SeedlessOnboardingController';
 
 /**
