@@ -7,7 +7,6 @@ import {
 import {
   getRequestedCaip25CaveatValue,
   getCaip25PermissionsResponse,
-  PermissionsRequest,
 } from './utils';
 
 describe('getRequestedCaip25CaveatValue', () => {
@@ -24,12 +23,12 @@ describe('getRequestedCaip25CaveatValue', () => {
   });
 
   it(`should return default value if param object does not have the key ${Caip25EndowmentPermissionName}`, () => {
-    const permissions: PermissionsRequest = {
+    const permissions = {
       anotherPermission: {
         caveats: [
           {
             type: 'anotherType',
-            value: defaultCaveatValue,
+            value: {},
           },
         ],
       },
@@ -46,12 +45,12 @@ describe('getRequestedCaip25CaveatValue', () => {
       sessionProperties: { foo: 'bar' },
     };
 
-    const permissions: PermissionsRequest = {
+    const permissions = {
       [Caip25EndowmentPermissionName]: {
         caveats: [
           {
             type: 'anotherType',
-            value: defaultCaveatValue,
+            value: {},
           },
           {
             type: Caip25CaveatType,
@@ -65,12 +64,12 @@ describe('getRequestedCaip25CaveatValue', () => {
   });
 
   it(`should return default value if no caveat is found with type ${Caip25CaveatType}`, () => {
-    const permissions: PermissionsRequest = {
+    const permissions = {
       [Caip25EndowmentPermissionName]: {
         caveats: [
           {
             type: 'anotherType',
-            value: defaultCaveatValue,
+            value: {},
           },
         ],
       },
@@ -296,7 +295,7 @@ describe('getCaip25PermissionsResponse', () => {
     });
   });
 
-  it('should replace existing scopes and add new ones', () => {
+  it('should replace existing EVM scopes and accounts', () => {
     const initialCaveatValue: Caip25CaveatValue = {
       optionalScopes: {
         'eip155:1': {
