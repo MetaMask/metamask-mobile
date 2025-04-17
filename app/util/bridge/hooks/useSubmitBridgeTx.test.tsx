@@ -14,10 +14,10 @@ import { QuoteMetadata } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
-let mockSubmitTx: jest.Mock<Promise<TransactionMeta>, [any, boolean]>;
+let mockSubmitTx: jest.Mock<Promise<TransactionMeta>, [QuoteResponse & QuoteMetadata, boolean]>;
 
 jest.mock('../../../core/Engine', () => {
-  mockSubmitTx = jest.fn<Promise<TransactionMeta>, [any, boolean]>();
+  mockSubmitTx = jest.fn<Promise<TransactionMeta>, [QuoteResponse & QuoteMetadata, boolean]>();
   return {
     context: {
       TokensController: {
@@ -77,9 +77,6 @@ describe('useSubmitBridgeTx', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
-  const mockHandleBridgeTx = jest.fn();
-  const mockHandleApprovalTx = jest.fn();
 
   const createWrapper = (mockState = {}) => {
     const store = mockStore({
