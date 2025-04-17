@@ -113,7 +113,8 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
   useEffect(() => {
     if (channelId) {
       const origin = channelId;
-      setPermittedAccountsAddresses(getPermittedAccounts(origin));
+      const permittedAccountsForOrigin = getPermittedAccounts(origin);
+      setPermittedAccountsAddresses(permittedAccountsForOrigin);
     }
   }, [channelId]);
 
