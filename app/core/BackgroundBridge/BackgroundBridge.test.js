@@ -114,7 +114,6 @@ describe('BackgroundBridge', () => {
       // Assert getAccounts
       eip1193MethodMiddlewareHooks.getAccounts();
       expect(getPermittedAccounts).toHaveBeenCalledWith(bridge.channelId);
-      // expect(getPermittedAccounts).toHaveBeenCalledWith(bridge.hostname);
 
       // Assert getCaip25PermissionFromLegacyPermissionsForOrigin
       const requestedPermissions = { somePermission: true };
