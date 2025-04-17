@@ -154,18 +154,18 @@ describe(
       // Verify initial state and balance
       // Adding a delay here to make sure that importAdditionalAccounts has completed
       await TestHelpers.delay(12000);
-      await device.disableSynchronization();
       await WalletView.tapIdenticon();
-      await device.enableSynchronization();
 
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
       await TestHelpers.delay(2000);
 
       // Verify all accounts including newly discovered ones (which would have been synced / have balances)
       for (const accountName of EXPECTED_ACCOUNT_NAMES.WITH_NEW_ACCOUNTS) {
+        await device.disableSynchronization();
         await Assertions.checkIfVisible(
           AccountListBottomSheet.getAccountElementByAccountName(accountName),
         );
+      await device.enableSynchronization();
       }
     });
   },
