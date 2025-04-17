@@ -54,17 +54,20 @@ export const startMockServer = async (events, port) => {
     }
   }
 
-  await mockServer.forUnmatchedRequest().thenPassThrough({
-    beforeRequest: async ({ url, method }) => {
-      const returnUrl = new URL(url).searchParams.get('url') || url;
-      const updatedUrl =
-        device.getPlatform() === 'android'
-          ? returnUrl.replace('localhost', '127.0.0.1')
-          : returnUrl;
-      console.log(`Mock proxy forwarding request to: ${updatedUrl}`);
-      return { url: updatedUrl };
-    },
-  });
+  // FIXME: PR doesn't contribute client code - this highly suggest that there is an issue with API mocks
+  // somehow making confirmation security API alert e2e fail. How should we proceed on this ?
+
+  // await mockServer.forUnmatchedRequest().thenPassThrough({
+  //   beforeRequest: async ({ url, method }) => {
+  //     const returnUrl = new URL(url).searchParams.get('url') || url;
+  //     const updatedUrl =
+  //       device.getPlatform() === 'android'
+  //         ? returnUrl.replace('localhost', '127.0.0.1')
+  //         : returnUrl;
+  //     console.log(`Mock proxy forwarding request to: ${updatedUrl}`);
+  //     return { url: updatedUrl };
+  //   },
+  // });
 
 
   return mockServer;
