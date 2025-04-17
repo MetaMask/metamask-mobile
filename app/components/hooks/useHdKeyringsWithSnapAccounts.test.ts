@@ -73,7 +73,7 @@ const mockSnapKeyring = {
   metadata: mockSnapKeyringMetadata,
 };
 
-const mockInitialState: DeepPartial<RootState> = {
+const mockInitialState = {
   engine: {
     backgroundState: {
       AccountsController: {
@@ -99,19 +99,12 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
-// jest.mock('react-redux', () => ({
-//   ...jest.requireActual('react-redux'),
-//   // TODO: Replace "any" with type
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   useSelector: (fn: any) => fn(mockInitialState),
-// }));
-
 describe('useHdKeyringsWithSnapAccounts', () => {
   it('includes snap accounts that have a matching entropy source', () => {
     const { result } = renderHookWithProvider(
       () => useHdKeyringsWithSnapAccounts(),
       {
-        state: mockInitialState as any,
+        state: mockInitialState,
       },
     );
 
