@@ -52,6 +52,7 @@ import {
   validateWords,
   validateMnemonic,
 } from './validation';
+import { AppThemeKey } from '../../../util/theme/models';
 
 const defaultNumberOfWords = 12;
 
@@ -306,6 +307,10 @@ const ImportNewSecretRecoveryPhrase = () => {
                     borderColor: invalidSRPWords[index]
                       ? colors.error.default
                       : colors.border.muted,
+                    color:
+                      themeAppearance === AppThemeKey.light
+                        ? colors.text.default
+                        : colors.text.alternative,
                   }}
                   autoCapitalize="none"
                   keyboardAppearance={themeAppearance}
