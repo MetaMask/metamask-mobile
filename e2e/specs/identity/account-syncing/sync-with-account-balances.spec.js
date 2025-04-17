@@ -153,7 +153,7 @@ describe(
 
       // Verify initial state and balance
       // Adding a delay here to make sure that importAdditionalAccounts has completed
-      await TestHelpers.delay(6000);
+      await TestHelpers.delay(12000);
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
       await TestHelpers.delay(2000);
