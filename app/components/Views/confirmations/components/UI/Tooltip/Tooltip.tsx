@@ -17,6 +17,7 @@ interface TooltipProps {
   onPress?: () => void;
   title?: string;
   tooltipTestId?: string;
+  iconColor?: IconColor;
 }
 
 interface TooltipModalProps {
@@ -67,6 +68,7 @@ const Tooltip = ({
   title,
   tooltipTestId = 'info-row-tooltip',
   onPress,
+  iconColor = IconColor.Muted,
 }: TooltipProps) => {
   const [open, setOpen] = useState(false);
 
@@ -78,7 +80,7 @@ const Tooltip = ({
   return (
     <View>
       <ButtonIcon
-        iconColor={IconColor.Muted}
+        iconColor={iconColor}
         iconName={IconName.Info}
         onPress={handlePress}
         size={ButtonIconSizes.Sm}
