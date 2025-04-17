@@ -50,6 +50,13 @@ const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   ]),
 };
 
+/**
+ * This function checks if the source and destination tokens are both stablecoins.
+ * @param sourceTokenAddress - The address of the source token.
+ * @param destTokenAddress - The address of the destination token.
+ * @param chainId - The chain id of the swap.
+ * @returns true if the source and destination tokens are both stablecoins, false otherwise.
+ */
 const getIsStablecoinPair = (
   sourceTokenAddress: string,
   destTokenAddress: string,
@@ -67,6 +74,17 @@ const getIsStablecoinPair = (
   );
 };
 
+/**
+ * This function handles the slippage for stablecoins swaps.
+ * It checks if the source and destination tokens are both stablecoins and if so,
+ * it sets the slippage to 0.5%.
+ * @param sourceTokenAddress - The address of the source token.
+ * @param destTokenAddress - The address of the destination token.
+ * @param chainId - The chain id of the swap.
+ * @param setSlippage - The function to set the slippage.
+ * @param prevSourceTokenAddress - The previous source token address.
+ * @param prevDestTokenAddress - The previous destination token address.
+ */
 export const handleStablecoinSlippage = ({
   sourceTokenAddress,
   destTokenAddress,
