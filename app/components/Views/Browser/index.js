@@ -1,11 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
@@ -35,12 +29,7 @@ import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appendURLParams } from '../../../util/browser';
-import {
-  THUMB_WIDTH,
-  THUMB_HEIGHT,
-  IDLE_TIME_CALC_INTERVAL,
-  IDLE_TIME_MAX,
-} from './constants';
+import { THUMB_WIDTH, THUMB_HEIGHT, IDLE_TIME_CALC_INTERVAL, IDLE_TIME_MAX } from './constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
