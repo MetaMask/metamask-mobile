@@ -363,8 +363,8 @@ class ChoosePassword extends PureComponent {
 
       if (authType.oauth2Login) {
         this.props.navigation.reset({
-          index: 1,
-          routes: [{ name: Routes.ONBOARDING.SUCCESS }],
+          index: 0,
+          routes: [{ name: Routes.ONBOARDING.SUCCESS, params: { showPasswordHint: true } }],
         });
       } else {
         this.props.navigation.replace('AccountBackupStep1');

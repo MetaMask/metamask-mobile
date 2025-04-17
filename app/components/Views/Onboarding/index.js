@@ -622,7 +622,7 @@ class Onboarding extends PureComponent {
           onConfirmPress={this.toggleWarningModal}
         />
 
-        {this.state.bottomSheetVisible && (
+        {this.state.bottomSheetVisible && !loading && (
           <BottomSheet
             shouldNavigateBack={false}
             onClose={() =>

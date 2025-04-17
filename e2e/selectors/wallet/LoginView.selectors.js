@@ -6,4 +6,5 @@ export const LoginViewSelectors = {
   TITLE_ID: 'login-title',
   REMEMBER_ME_SWITCH: 'login-with-remember-me-switch',
   PASSWORD_INPUT: 'login-password-input',
+  OTHER_METHODS_BUTTON: 'other-methods-button',
 };

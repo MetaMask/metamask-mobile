@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from 'react';
-import { View, Image } from 'react-native';
+import { View, Image, TouchableOpacity } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import {
   TextColor,
@@ -7,7 +7,7 @@ import {
 } from '../../../component-library/components/Texts/Text/Text.types';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
+import { getOnboardingNavbarOptions  } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
 import styles from './index.styles';
 import Button, {
@@ -15,6 +15,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import Icon , { IconName, IconSize } from '../../../component-library/components/Icons/Icon';
 
 const account_status_img = require('../../../images/account_status.png'); // eslint-disable-line
 
@@ -37,10 +38,30 @@ const AccountStatus = ({
   const accountName = (route.params as AccountRouteParams)?.accountName;
   const onContinue = (route.params as AccountRouteParams)?.onContinue;
 
-
   useLayoutEffect(() => {
-    navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
-  }, [navigation, colors]);
+    const marginLeft = 16;
+    const headerLeft = () => (
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Lg}
+          color={colors.text.default}
+          style={{ marginLeft }}
+        />
+      </TouchableOpacity>
+    );
+
+    const headerRight = () => (
+      <View />
+    );
+
+    navigation.setOptions(getOnboardingNavbarOptions(route, {
+      headerLeft,
+      headerRight,
+    },
+    colors,
+    false,));
+  }, [navigation, colors, route]);
 
   return (
     <View style={styles.root}>
