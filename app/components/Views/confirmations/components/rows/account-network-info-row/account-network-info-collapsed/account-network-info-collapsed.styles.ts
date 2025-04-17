@@ -31,7 +31,6 @@ const styleSheet = (params: {
       color: theme.colors.text.default,
       width: accountNameWide ? '86%' : '40%',
       ...fontStyles.bold,
-      fontSize: 14,
     },
     accountLabel: {
       borderRadius: 16,
@@ -41,7 +40,6 @@ const styleSheet = (params: {
     networkName: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
     },
   });
 };

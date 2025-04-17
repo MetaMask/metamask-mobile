@@ -17,12 +17,10 @@ const styleSheet = (params: { theme: Theme }) => {
     title: {
       color: theme.colors.text.default,
       ...fontStyles.bold,
-      fontSize: 14,
     },
     description: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
     },
     messageContainer: {
       backgroundColor: theme.colors.background.default,
@@ -36,7 +34,6 @@ const styleSheet = (params: { theme: Theme }) => {
     messageExpanded: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
     },
     copyButtonContainer: {
       position: 'absolute',
