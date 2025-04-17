@@ -38,10 +38,6 @@ jest.mock('../../store', () => ({
   },
 }));
 
-jest.mock('../RPCMethods/createEip1193MethodMiddleware', () => ({
-  createEip1193MethodMiddleware: jest.fn(),
-}));
-
 jest.mock('../RPCMethods/createEthAccountsMethodMiddleware');
 
 createEthAccountsMethodMiddleware;
