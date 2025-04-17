@@ -526,10 +526,6 @@ class Confirm extends PureComponent {
     const contextualNetworkClientId =
       NetworkController.findNetworkClientIdByChainId(chainId);
 
-    console.log(
-      '>>> Confirm component - contextualNetworkClientId',
-      contextualNetworkClientId,
-    );
     let result, transactionMeta;
     try {
       ({ result, transactionMeta } = await TransactionController.addTransaction(
@@ -575,11 +571,6 @@ class Confirm extends PureComponent {
     };
 
     ppomUtil.validateRequest(reqObject, id);
-
-    console.log(
-      '>>> Confirm component - sendFlowContextualChainId:',
-      this.props.sendFlowContextualChainId,
-    );
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -717,19 +708,6 @@ class Confirm extends PureComponent {
         }
         this.parseTransactionDataHeader();
       }
-    }
-
-    if (
-      prevProps.sendFlowContextualChainId !==
-      this.props.sendFlowContextualChainId
-    ) {
-      console.log(
-        '>>> Confirm component - sendFlowContextualChainId changed:',
-        'previous:',
-        prevProps.sendFlowContextualChainId,
-        'current:',
-        this.props.sendFlowContextualChainId,
-      );
     }
   };
 

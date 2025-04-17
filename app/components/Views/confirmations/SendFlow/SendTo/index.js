@@ -225,43 +225,18 @@ class SendFlow extends PureComponent {
     const initialContextualChainId = selectSendFlowContextualChainId(
       store.getState(),
     );
-    console.log(
-      '>>> SendTo initial contextualChainId before setting:',
-      initialContextualChainId,
-    );
 
     // Initialize contextual chain ID with global chain ID
     this.props.dispatch(
       setTransactionSendFlowContextualChainId(this.props.globalChainId),
     );
 
-    console.log(
-      '>>> SendTo initializing contextual chainId with global:',
-      this.props.globalChainId,
-    );
-
     // Verify the state was set by checking selector directly
     const contextualChainId = selectSendFlowContextualChainId(store.getState());
-    console.log(
-      '>>> SendTo after dispatch - globalChainId:',
-      this.props.globalChainId,
-      'contextualChainId:',
-      contextualChainId,
-    );
   };
 
   componentDidUpdate(prevProps) {
     this.updateNavBar();
-
-    if (
-      prevProps.sendFlowContextualChainId !==
-      this.props.sendFlowContextualChainId
-    ) {
-      console.log(
-        '>>> SendTo sendFlowContextualChainId:',
-        this.props.sendFlowContextualChainId,
-      );
-    }
   }
 
   componentWillUnmount() {

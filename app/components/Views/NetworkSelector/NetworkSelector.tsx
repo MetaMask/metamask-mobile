@@ -161,12 +161,7 @@ const NetworkSelector = () => {
   // Get both chain IDs
   const globalChainId = useSelector(selectChainId);
   const contextualChainId = useSelector(selectSendFlowContextualChainId);
-  console.log(
-    '>>> NetworkSelector globalChainId:',
-    globalChainId,
-    '>>> NetworkSelector contextualChainId:',
-    contextualChainId,
-  );
+
   const {
     chainId: perDappChainId,
     rpcUrl: selectedRpcUrl,
@@ -183,26 +178,6 @@ const NetworkSelector = () => {
     route.params?.source === 'SendFlow' && contextualChainId
       ? contextualChainId
       : globalChainId;
-
-  useEffect(() => {
-    console.log('>>> NetworkSelector mounted, source:', route.params?.source);
-    const state = store.getState();
-    console.log(
-      '>>> NetworkSelector initial state check:',
-      selectSendFlowContextualChainId(state),
-    );
-  }, []); // Empty deps array for mount only
-
-  useEffect(() => {
-    // Initialize with the effective chain ID
-    if (route.params?.source === 'SendFlow' && contextualChainId) {
-      console.log(
-        '>>> NetworkSelector component used from send flow, should initialize with contextual chainId:',
-        contextualChainId,
-      );
-    }
-    // ... rest of initialization
-  }, [effectiveChainId]);
 
   const KEYBOARD_OFFSET = 120;
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
@@ -270,10 +245,6 @@ const NetworkSelector = () => {
   const source = route.params?.source;
 
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
-    console.log(
-      '>>> NetworkSelector onSetRpcTarget with chainId:',
-      networkConfiguration.chainId,
-    );
     const { MultichainNetworkController, SelectedNetworkController } =
       Engine.context;
     trace({
@@ -437,10 +408,6 @@ const NetworkSelector = () => {
         setTokenNetworkFilter(networkConfiguration.chainId);
         await MultichainNetworkController.setActiveNetwork(clientId);
       } else {
-        console.log(
-          '>>> NetworkSelector onNetworkChange with chainId:',
-          networkConfiguration.chainId,
-        );
         dispatch(
           setTransactionSendFlowContextualChainId(networkConfiguration.chainId),
         );

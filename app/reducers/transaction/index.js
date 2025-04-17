@@ -163,19 +163,6 @@ const transactionReducer = (state = initialState, action) => {
         transaction: { ...state.transaction, value: action.value },
       };
     }
-    // case SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID: {
-    //   console.log(
-    //     '>>> transactionReducer SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID:',
-    //     'prevState:',
-    //     state.sendFlowContextualChainId,
-    //     'newState:',
-    //     action.chainId,
-    //   );
-    //   return {
-    //     ...state,
-    //     sendFlowContextualChainId: action.chainId,
-    //   };
-    // }
     default:
       return state;
   }

@@ -77,13 +77,6 @@ function networkOnboardReducer(
         },
       };
     case SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID: {
-      console.log(
-        '>>> networkSelectorReducer SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID:',
-        'prevState:',
-        state.sendFlowChainId,
-        'newState:',
-        action.chainId,
-      );
       return {
         ...state,
         sendFlowChainId: action.chainId,
