@@ -4793,10 +4793,10 @@
     "@metamask/snaps-utils" "^8.10.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/bridge-controller@npm:@metamask-previews/bridge-controller@13.0.0-preview-23d1c73f":
-  version "13.0.0-preview-23d1c73f"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/bridge-controller/-/bridge-controller-13.0.0-preview-23d1c73f.tgz#410886627c5b680431a92276126c3f92fadf5d8a"
-  integrity sha512-4HLenq28s7ZNQpDVqCydXDyYA9cZgYiEZSB6UPucJ/DIOkju/BPOg5v6fA9fnt5vSMaEvGoU3+sTkj9TlWrMhg==
+"@metamask/bridge-controller@^15.0.0":
+  version "15.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-15.0.0.tgz#9ce811bd94565d135596e6be5e024c0046a7f332"
+  integrity sha512-9vfuiY/TwQpMUPULtvXdx0H9JcgjaOEevPDQeIiGm4/SbaO5rxuly3F6RoYjqEB+1JSRcNDBOk7OOpDTq9d1ig==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -4808,7 +4808,7 @@
     "@metamask/gas-fee-controller" "^23.0.0"
     "@metamask/keyring-api" "^17.4.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/multichain-network-controller" "^0.3.0"
+    "@metamask/multichain-network-controller" "^0.4.0"
     "@metamask/polling-controller" "^13.0.0"
     "@metamask/utils" "^11.2.0"
     bignumber.js "^9.1.2"
@@ -5290,6 +5290,16 @@
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/keyring-api" "^17.2.0"
+    "@metamask/utils" "^11.2.0"
+    "@solana/addresses" "^2.0.0"
+
+"@metamask/multichain-network-controller@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.4.0.tgz#10005bc04771d9cf4287009875c0cf865aec4893"
+  integrity sha512-g+aHu4Ctoe/Ocl0C3XTngI/Lj4OcpZPo35Lf5199k428T3av6GbSxw38srch9usCx/VtsQk7pD6xNXXo3OLZ1A==
+  dependencies:
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/keyring-api" "^17.4.0"
     "@metamask/utils" "^11.2.0"
     "@solana/addresses" "^2.0.0"
 
