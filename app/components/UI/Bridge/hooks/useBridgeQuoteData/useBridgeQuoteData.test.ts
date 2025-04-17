@@ -35,6 +35,7 @@ describe('useBridgeQuoteData', () => {
 
     expect(result.current).toEqual({
       activeQuote: mockQuotes[0],
+      bestQuote: mockQuotes[0],
       destTokenAmount: '57.06',
       formattedQuoteData: {
         networkFee: '44',
@@ -91,6 +92,7 @@ describe('useBridgeQuoteData', () => {
 
     expect(result.current).toEqual({
       activeQuote: undefined,
+      bestQuote: mockQuotes[0],
       destTokenAmount: undefined,
       formattedQuoteData: undefined,
       isLoading: false,
