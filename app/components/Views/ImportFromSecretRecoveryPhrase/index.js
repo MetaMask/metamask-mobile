@@ -190,13 +190,21 @@ const ImportFromSecretRecoveryPhrase = ({
     });
   }, [hideSeedPhraseInput, navigation]);
 
+  const onBackPress = () => {
+    if (currentStep === 0) {
+      navigation.goBack();
+    } else {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   const updateNavBar = () => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
         {
           headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()}>
+            <TouchableOpacity onPress={onBackPress}>
               <Icon
                 name={IconName.ArrowLeft}
                 size={24}
@@ -251,7 +259,7 @@ const ImportFromSecretRecoveryPhrase = ({
     //   setInputWidth({ width: '100%' });
     // }, 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentStep]);
 
   const termsOfUse = useCallback(async () => {
     if (navigation) {
@@ -546,7 +554,12 @@ const ImportFromSecretRecoveryPhrase = ({
           onContinue: () => {
             navigation.reset({
               index: 1,
-              routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+              routes: [
+                {
+                  name: Routes.ONBOARDING.SUCCESS_FLOW,
+                  params: { showPasswordHint: false },
+                },
+              ],
             });
           },
         });
