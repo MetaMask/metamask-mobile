@@ -39,6 +39,7 @@ import Text, {
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const words = route.params?.words;
+  const marginOffset = route.params?.marginOffset;
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -89,16 +90,17 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     if (validateWords()) {
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(async () => {
-        const words = route.params?.words;
-        navigation.navigate('OptinMetrics', {
-          steps: route.params?.steps,
-          words,
-          onContinue: () => {
-            navigation.navigate('OnboardingSuccess', {
-              showPasswordHint: true,
+        marginOffset
+          ? navigation.navigate('OptinMetrics')
+          : navigation.navigate('OptinMetrics', {
+              steps: route.params?.steps,
+              words,
+              onContinue: () => {
+                navigation.navigate('OnboardingSuccess', {
+                  showPasswordHint: true,
+                });
+              },
             });
-          },
-        });
         trackOnboarding(
           MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
@@ -296,9 +298,11 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     ],
   );
 
+  const marginTop = marginOffset ? 100 : 50;
+
   return (
     <SafeAreaView style={styles.mainWrapper}>
-      <View style={styles.container}>
+      <View style={[styles.container, { marginTop }]}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           Step 3 of 3
         </Text>
