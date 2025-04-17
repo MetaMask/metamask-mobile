@@ -229,7 +229,7 @@ export const selectBridgeQuotes = createSelector(
   selectControllerFields,
   (requiredControllerFields) =>
     selectBridgeQuotesBase(requiredControllerFields, {
-      sortOrder: SortOrder.COST_ASC,
+      sortOrder: SortOrder.COST_ASC, // TODO for v1 we don't allow user to select alternative quotes, hardcode for now
       selectedQuote: null, // TODO for v1 we don't allow user to select alternative quotes, pass in null for now
       featureFlagsKey: BridgeFeatureFlagsKey.MOBILE_CONFIG,
     }),
