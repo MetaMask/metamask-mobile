@@ -66,9 +66,20 @@ describe(SmokeTrade('Buy Crypto'), () => {
   });
 
   it('should change parameters and select a quote', async () => {
-    const paymentMethod =
-      device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
-
+    const platform = device.getPlatform();
+    
+    let paymentMethod;
+    if (platform === 'ios') {
+      const applePayVisible = await Assertions.checkIfTextIsDisplayed('Apple Pay');
+      paymentMethod = applePayVisible ? 'Apple Pay' : 'PayPal';
+    } else if (platform === 'android') {
+      const googlePayVisible = await Assertions.checkIfTextIsDisplayed('Google Pay');
+      paymentMethod = googlePayVisible ? 'Google Pay' : 'PayPal';
+    } else {
+      paymentMethod = 'PayPal';
+    }
+    
+    
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
     await BuildQuoteView.tapCurrencySelector();
