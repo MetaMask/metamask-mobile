@@ -72,16 +72,18 @@ export const useStablecoinsDefaultSlippage = ({
   useEffect(() => {
     const stablecoins = StablecoinsByChainId[chainId];
 
+    if (!sourceTokenAddress || !destTokenAddress) return;
+
     if (
       stablecoins &&
-      sourceTokenAddress &&
-      destTokenAddress &&
       (stablecoins.has(sourceTokenAddress.toLowerCase()) ||
         stablecoins.has(toChecksumHexAddress(sourceTokenAddress))) &&
       (stablecoins.has(destTokenAddress.toLowerCase()) ||
         stablecoins.has(toChecksumHexAddress(destTokenAddress)))
     ) {
       setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
+    } else {
+      setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
     }
   }, [setSlippage, sourceTokenAddress, destTokenAddress, chainId]);
 };
