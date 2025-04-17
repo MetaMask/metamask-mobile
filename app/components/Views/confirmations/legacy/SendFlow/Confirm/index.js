@@ -324,6 +324,7 @@ class Confirm extends PureComponent {
     result: {},
     transactionMeta: {},
     isChangeInSimulationModalShown: false,
+    hasHandledFirstGasUpdate: false,
   };
 
   originIsWalletConnect = this.props.transaction.origin?.startsWith(
@@ -337,7 +338,7 @@ class Confirm extends PureComponent {
   setNetworkNonce = async () => {
     const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
       this.props;
-    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
+      const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -601,10 +602,10 @@ class Confirm extends PureComponent {
     const isEIP1559Transaction =
       this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET;
     const haveGasFeeMaxNativeChanged = isEIP1559Transaction
-      ? EIP1559GasTransaction.gasFeeMaxNative !==
-        prevState.EIP1559GasTransaction.gasFeeMaxNative
-      : legacyGasTransaction.gasFeeMaxNative !==
-        prevState.legacyGasTransaction.gasFeeMaxNative;
+      ? EIP1559GasTransaction.gasFeeMaxHex !==
+        prevState.EIP1559GasTransaction.gasFeeMaxHex
+      : legacyGasTransaction.gasFeeMaxHex !==
+        prevState.legacyGasTransaction.gasFeeMaxHex;
 
     const haveGasPropertiesChanged =
       (this.props.gasFeeEstimates &&
@@ -627,32 +628,32 @@ class Confirm extends PureComponent {
       this.scrollView.scrollToEnd({ animated: true });
     }
 
+    if (
+      transactionId &&
+      maxValueMode &&
+      selectedAsset.isETH &&
+      !isEmpty(gasFeeEstimates) &&
+      (haveGasFeeMaxNativeChanged ||
+        (this.state.hasHandledFirstGasUpdate && !prevState.transactionMeta?.id))
+    ) {
+      updateTransactionToMaxValue({
+        transactionId,
+        isEIP1559Transaction,
+        EIP1559GasTransaction,
+        legacyGasTransaction,
+        accountBalance: accounts[from].balance,
+        setTransactionValue: this.props.setTransactionValue,
+      });
+
+      return;
+    }
+
     if (haveGasPropertiesChanged) {
       const gasEstimateTypeChanged =
         prevProps.gasEstimateType !== this.props.gasEstimateType;
       const gasSelected = gasEstimateTypeChanged
         ? AppConstants.GAS_OPTIONS.MEDIUM
         : this.state.gasSelected;
-
-      if (
-        maxValueMode &&
-        isNativeToken(selectedAsset) &&
-        !isEmpty(gasFeeEstimates) &&
-        haveGasFeeMaxNativeChanged
-      ) {
-        updateTransactionToMaxValue({
-          transactionId,
-          isEIP1559Transaction,
-          EIP1559GasTransaction,
-          legacyGasTransaction,
-          accountBalance: accounts[from].balance,
-          setTransactionValue: this.props.setTransactionValue,
-        });
-
-        // In order to prevent race condition do not remove this early return.
-        // Another update will be triggered by `updateEditableParams` and validateAmount will be called next update.
-        return;
-      }
 
       if (
         (!this.state.stopUpdateGas && !this.state.advancedGasInserted) ||
@@ -695,6 +696,11 @@ class Confirm extends PureComponent {
         }
         this.parseTransactionDataHeader();
       }
+    }
+
+    // Track if this is the first gas update
+    if (haveGasFeeMaxNativeChanged && !this.state.hasHandledFirstGasUpdate) {
+      this.setState({ hasHandledFirstGasUpdate: true });
     }
   };
 
@@ -866,12 +872,22 @@ class Confirm extends PureComponent {
       },
       updateConfirmationMetric,
     } = this.props;
-    const { transactionMeta } = this.state;
+    const { EIP1559GasTransaction, legacyGasTransaction, transactionMeta } =
+      this.state;
     const { id: transactionId } = transactionMeta;
+    const isEIP1559Transaction =
+      this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET;
+    const { gasFeeMaxHex } = isEIP1559Transaction
+      ? EIP1559GasTransaction
+      : legacyGasTransaction;
+
+    const transactionFeeMax = hexToBN(gasFeeMaxHex);
+    const transactionValueHex = hexToBN(value);
+
+    const totalTransactionValue = transactionValueHex.add(transactionFeeMax);
 
     const selectedAddress = transaction?.from;
     const weiBalance = hexToBN(accounts[selectedAddress].balance);
-    const totalTransactionValue = hexToBN(value);
 
     if (!isDecimal(value)) {
       return strings('transaction.invalid_amount');
@@ -1629,6 +1645,7 @@ const mapStateToProps = (state) => {
     transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+    maxValueMode: state.transaction.maxValueMode,
   };
 };
 
