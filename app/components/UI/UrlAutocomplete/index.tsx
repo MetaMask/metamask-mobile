@@ -42,6 +42,7 @@ import { PopularList } from '../../../util/networks/customNetworks';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { useNavigation } from '@react-navigation/native';
 import { selectCurrentCurrency, selectUsdConversionRate } from '../../../selectors/currencyRateController';
+import Routes from '../../../constants/navigation/Routes';
 
 export * from './types';
 
@@ -217,8 +218,8 @@ const UrlAutocomplete = forwardRef<
   const handleSwapNavigation = useCallback((result: TokenSearchResult) => {
     hide();
     onDismiss();
-    navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
+    navigation.navigate(Routes.SWAPS, {
+      screen: Routes.SWAPS_AMOUNT_VIEW,
       params: {
       sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       destinationToken: result.address,
