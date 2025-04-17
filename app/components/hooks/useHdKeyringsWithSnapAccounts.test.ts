@@ -6,8 +6,6 @@ import {
   MOCK_ADDRESS_2,
 } from '../../util/test/accountsControllerTestUtils';
 import { SolAccountType } from '@metamask/keyring-api';
-import { DeepPartial } from 'redux';
-import { RootState } from '../../reducers';
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 
 const mockHdAccount = createMockInternalAccount(
