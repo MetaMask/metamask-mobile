@@ -295,7 +295,7 @@ const BridgeView = () => {
 
   const renderBottomContent = () => (
     <Box style={styles.buttonContainer}>
-      {!hasValidBridgeInputs || isLoading || isWaitingForInitialQuote ? (
+      {!hasValidBridgeInputs || isLoading ? (
         <Text color={TextColor.Primary}>{strings('bridge.select_amount')}</Text>
       ) : isError ? (
         <BannerAlert
