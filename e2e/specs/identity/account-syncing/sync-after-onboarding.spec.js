@@ -8,7 +8,7 @@ import {
   startMockServer,
   stopMockServer,
 } from '../../../api-mocking/mock-server';
-import { accountsSyncMockResponse } from './mockData';
+import { getAccountsSyncMockResponse } from './mock-data';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
@@ -17,61 +17,116 @@ import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+import { getEventsPayloads } from '../../analytics/helpers';
+import { EVENT_NAME } from '../../../../app/core/Analytics/MetaMetrics.events';
 
-describe(SmokeIdentity('Account syncing'), () => {
-  beforeAll(async () => {
-    const mockServer = await startMockServer({
-      mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
-    });
+describe(
+  SmokeIdentity('Account syncing - syncs previously synced accounts'),
+  () => {
+    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8001;
+    let mockServer;
 
-    const { userStorageMockttpControllerInstance } = await mockIdentityServices(
-      mockServer,
-    );
+    beforeAll(async () => {
+        const segmentMock = {
+          POST: [mockEvents.POST.segmentTrack],
+        };
 
-    userStorageMockttpControllerInstance.setupPath(
-      USER_STORAGE_FEATURE_NAMES.accounts,
-      mockServer,
-      {
-        getResponse: accountsSyncMockResponse,
-      },
-    );
 
-    jest.setTimeout(200000);
-    await TestHelpers.reverseServerPort();
+      mockServer = await startMockServer(segmentMock, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
-    await TestHelpers.launchApp({
-      newInstance: true,
-      delete: true,
-    });
-  });
+      const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
-  afterAll(async () => {
-    await stopMockServer();
-  });
+      const { userStorageMockttpControllerInstance } =
+        await mockIdentityServices(mockServer);
 
-  it('retrieves all previously synced accounts', async () => {
-    const decryptedAccountNames = await Promise.all(
-      accountsSyncMockResponse.map(async (response) => {
-        const decryptedAccountName = await SDK.Encryption.decryptString(
-          response.Data,
-          IDENTITY_TEAM_STORAGE_KEY,
-        );
-        return JSON.parse(decryptedAccountName).n;
-      }),
-    );
-
-    await importWalletWithRecoveryPhrase(
-      IDENTITY_TEAM_SEED_PHRASE,
-      IDENTITY_TEAM_PASSWORD,
-    );
-
-    await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-
-    for (const accountName of decryptedAccountNames) {
-      await Assertions.checkIfVisible(
-        AccountListBottomSheet.getAccountElementByAccountName(accountName),
+      await userStorageMockttpControllerInstance.setupPath(
+        USER_STORAGE_FEATURE_NAMES.accounts,
+        mockServer,
+        {
+          getResponse: accountsSyncMockResponse,
+        },
       );
-    }
-  });
-});
+
+      await TestHelpers.reverseServerPort();
+
+      await TestHelpers.launchApp({
+        newInstance: true,
+        delete: true,
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT), sendMetaMetricsinE2E: true },
+      });
+    });
+
+    afterAll(async () => {
+      if (mockServer) {
+        await stopMockServer(mockServer);
+      }
+    });
+
+    it('retrieves all previously synced accounts', async () => {
+      const accountsSyncMockResponse = await getAccountsSyncMockResponse();
+
+      const decryptedAccountNames = await Promise.all(
+        accountsSyncMockResponse.map(async (response) => {
+          const decryptedAccountName = await SDK.Encryption.decryptString(
+            response.Data,
+            IDENTITY_TEAM_STORAGE_KEY,
+          );
+          return JSON.parse(decryptedAccountName).n;
+        }),
+      );
+
+      await importWalletWithRecoveryPhrase(
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        },
+      );
+
+      await WalletView.tapIdenticon();
+      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+      await TestHelpers.delay(4000);
+
+      for (const accountName of decryptedAccountNames) {
+        await Assertions.checkIfVisible(
+          AccountListBottomSheet.getAccountElementByAccountName(accountName),
+        );
+      }
+
+      /**
+       * TEST SEGMENT/METAMETRICS EVENTS
+       */
+      const events = await getEventsPayloads(
+        mockServer,
+        [
+          EVENT_NAME.ACCOUNTS_SYNC_ADDED,
+          EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
+        ],
+      );
+
+      // There should be 3 events:
+      // 1 for adding the account (Since every wallet always adds the first account) and 2 for updating the names (from user storage)
+      const addedAccountEvent = events.find(
+        (event) => event.event === EVENT_NAME.ACCOUNTS_SYNC_ADDED,
+      );
+      const updatedAccountEvents = events.filter(
+        (event) => event.event === EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
+      );
+
+      await Assertions.checkIfValueIsPresent(addedAccountEvent);
+
+      await Assertions.checkIfArrayHasLength(
+        updatedAccountEvents,
+        2,
+      );
+
+      for (const event of events) {
+        await Assertions.checkIfValueIsPresent(
+          event.properties,
+          'profile_id',
+        );
+      }
+
+    });
+  },
+);

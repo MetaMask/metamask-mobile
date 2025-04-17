@@ -28,7 +28,7 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "textAlign": "center",
@@ -93,7 +93,7 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 11,
           "fontWeight": "400",
           "lineHeight": 11,

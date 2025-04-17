@@ -1,7 +1,13 @@
 import { useSelector } from 'react-redux';
-import { type NetworkConfiguration, RpcEndpointType } from '@metamask/network-controller';
+import {
+  type NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
 import Engine from '../../../core/Engine';
-import { selectEvmNetworkConfigurationsByChainId, selectSelectedNetworkClientId } from '../../../selectors/networkController';
+import {
+  selectEvmNetworkConfigurationsByChainId,
+  selectSelectedNetworkClientId,
+} from '../../../selectors/networkController';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
 import { decimalToHex } from '../../conversions';
 import { addHexPrefix } from 'ethereumjs-util';
@@ -9,7 +15,9 @@ import { PopularList } from '../../networks/customNetworks';
 import { Hex } from '@metamask/utils';
 
 export default function useAddToken() {
-  const networkConfigurations = useSelector(selectEvmNetworkConfigurationsByChainId);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const sourceNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   const addSourceToken = (quoteResponse: QuoteResponse) => {
@@ -30,7 +38,9 @@ export default function useAddToken() {
 
   const addDestToken = async (quoteResponse: QuoteResponse) => {
     // Look up the destination chain
-    const hexDestChainId = addHexPrefix(String(decimalToHex(quoteResponse.quote.destChainId))) as Hex;
+    const hexDestChainId = addHexPrefix(
+      String(decimalToHex(quoteResponse.quote.destChainId)),
+    ) as Hex;
     const foundDestNetworkConfig: NetworkConfiguration | undefined =
       networkConfigurations[hexDestChainId];
     let addedDestNetworkConfig: NetworkConfiguration | undefined;
@@ -49,6 +59,7 @@ export default function useAddToken() {
         rpcEndpoints: [
           {
             url: featuredRpc.rpcUrl,
+            failoverUrls: featuredRpc.failoverRpcUrls,
             type: RpcEndpointType.Custom,
           },
         ],

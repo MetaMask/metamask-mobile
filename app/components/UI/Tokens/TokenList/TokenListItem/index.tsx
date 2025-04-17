@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
-import { Hex } from '@metamask/utils';
+import { Hex, isCaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -47,12 +47,14 @@ import {
   PopularList,
   UnpopularNetworkList,
   CustomNetworkImgMapping,
+  getNonEvmNetworkImageSourceByChainId,
 } from '../../../../../util/networks/customNetworks';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { formatWithThreshold } from '../../../../../util/assets';
+import { CustomNetworkNativeImgMapping } from './CustomNetworkNativeImgMapping';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -61,7 +63,6 @@ interface TokenListItemProps {
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
-  showNetworkBadge?: boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -72,7 +73,6 @@ export const TokenListItem = React.memo(
     setShowScamWarningModal,
     privacyMode,
     showPercentageChange = true,
-    showNetworkBadge = true,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useMetrics();
     const navigation = useNavigation();
@@ -212,37 +212,43 @@ export const TokenListItem = React.memo(
 
     const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
 
-    const networkBadgeSource = useCallback((currentChainId: Hex) => {
-      if (isTestNet(currentChainId))
-        return getTestNetImageByChainId(currentChainId);
-      const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as
-        | {
-            imageSource: string;
-          }
-        | undefined;
+    const networkBadgeSource = useCallback(
+      (currentChainId: Hex) => {
+        if (isTestNet(currentChainId))
+          return getTestNetImageByChainId(currentChainId);
+        const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as
+          | {
+              imageSource: string;
+            }
+          | undefined;
 
-      if (defaultNetwork) {
-        return defaultNetwork.imageSource;
-      }
+        if (defaultNetwork) {
+          return defaultNetwork.imageSource;
+        }
 
-      const unpopularNetwork = UnpopularNetworkList.find(
-        (networkConfig) => networkConfig.chainId === currentChainId,
-      );
+        const unpopularNetwork = UnpopularNetworkList.find(
+          (networkConfig) => networkConfig.chainId === currentChainId,
+        );
 
-      const customNetworkImg = CustomNetworkImgMapping[currentChainId];
+        const customNetworkImg = CustomNetworkImgMapping[currentChainId];
 
-      const popularNetwork = PopularList.find(
-        (networkConfig) => networkConfig.chainId === currentChainId,
-      );
+        const popularNetwork = PopularList.find(
+          (networkConfig) => networkConfig.chainId === currentChainId,
+        );
 
-      const network = unpopularNetwork || popularNetwork;
-      if (network) {
-        return network.rpcPrefs.imageSource;
-      }
-      if (customNetworkImg) {
-        return customNetworkImg;
-      }
-    }, []);
+        const network = unpopularNetwork || popularNetwork;
+        if (network) {
+          return network.rpcPrefs.imageSource;
+        }
+        if (isCaipChainId(chainId)) {
+          return getNonEvmNetworkImageSourceByChainId(chainId);
+        }
+        if (customNetworkImg) {
+          return customNetworkImg;
+        }
+      },
+      [chainId],
+    );
 
     const onItemPress = (token: TokenI) => {
       // Track the event
@@ -256,7 +262,9 @@ export const TokenListItem = React.memo(
           .build(),
       );
 
-      // token details only currently supported for evm
+      // Token details are currently only supported for EVM networks.
+      // This early return prevents navigation to token details for non-EVM networks.
+      // TODO: Remove this when shipping the multichain token details feature, which is slated for 7.45 RC
       if (!isEvmNetworkSelected) {
         return;
       }
@@ -274,6 +282,18 @@ export const TokenListItem = React.memo(
 
     const renderNetworkAvatar = useCallback(() => {
       if (asset.isNative) {
+        const isCustomNetwork = CustomNetworkNativeImgMapping[chainId];
+
+        if (isCustomNetwork) {
+          return (
+            <AvatarToken
+              name={asset.symbol}
+              imageSource={CustomNetworkNativeImgMapping[chainId]}
+              size={AvatarSize.Md}
+            />
+          );
+        }
+
         return (
           <NetworkAssetLogo
             chainId={chainId as Hex}
@@ -313,21 +333,17 @@ export const TokenListItem = React.memo(
         secondaryBalance={secondaryBalance}
         privacyMode={privacyMode}
       >
-        {showNetworkBadge ? (
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkBadgeSource(chainId as Hex)}
-              />
-            }
-          >
-            {renderNetworkAvatar()}
-          </BadgeWrapper>
-        ) : (
-          renderNetworkAvatar()
-        )}
+        <BadgeWrapper
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={networkBadgeSource(chainId as Hex)}
+            />
+          }
+        >
+          {renderNetworkAvatar()}
+        </BadgeWrapper>
         <View style={styles.balances}>
           {/*
            * The name of the token must callback to the symbol

@@ -5,9 +5,15 @@ import configureMockStore from 'redux-mock-store';
 import useSubmitBridgeTx from './useSubmitBridgeTx';
 import useHandleBridgeTx from './useHandleBridgeTx';
 import useHandleApprovalTx from './useHandleApprovalTx';
-import { DummyQuotesNoApproval, DummyQuotesWithApproval } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
+import {
+  DummyQuoteMetadata,
+  DummyQuotesNoApproval,
+  DummyQuotesWithApproval,
+} from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
 import Engine from '../../../core/Engine';
+import { QuoteMetadata } from '@metamask/bridge-controller';
+import { BigNumber } from 'bignumber.js';
 
 jest.mock('./useHandleBridgeTx');
 jest.mock('./useHandleApprovalTx');
@@ -17,13 +23,14 @@ jest.mock('../../../core/Engine', () => ({
     TokensController: {
       addToken: jest.fn(),
     },
+    BridgeStatusController: {
+      startPollingForBridgeTxStatus: jest.fn(),
+    },
   },
 }));
 
 jest.mock('../../../selectors/networkController', () => {
-  const original = jest.requireActual(
-    '../../../selectors/networkController',
-  );
+  const original = jest.requireActual('../../../selectors/networkController');
   return {
     ...original,
     selectSelectedNetworkClientId: () => 'mainnet',
@@ -82,7 +89,21 @@ describe('useSubmitBridgeTx', () => {
   });
 
   const createWrapper = (mockState = {}) => {
-    const store = mockStore({...mockState,});
+    const store = mockStore({
+      engine: {
+        backgroundState: {
+          BridgeController: {
+            quoteRequest: {
+              slippage: 0.5,
+            },
+          },
+          BridgeStatusController: {
+            startPollingForBridgeTxStatus: jest.fn(),
+          },
+        },
+      },
+      ...mockState,
+    });
     return ({ children }: { children: React.ReactNode }) => (
       <Provider store={store}>{children}</Provider>
     );
@@ -93,12 +114,15 @@ describe('useSubmitBridgeTx', () => {
       wrapper: createWrapper(),
     });
 
-    const mockQuoteResponse = DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0];
+    const mockQuoteResponse = {
+      ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
 
     mockHandleBridgeTx.mockResolvedValueOnce({ success: true });
 
     const txResult = await result.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as QuoteResponse,
+      quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
     });
 
     expect(mockHandleApprovalTx).not.toHaveBeenCalled();
@@ -114,13 +138,16 @@ describe('useSubmitBridgeTx', () => {
       wrapper: createWrapper(),
     });
 
-    const mockQuoteResponse = DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0];
+    const mockQuoteResponse = {
+      ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
 
     mockHandleApprovalTx.mockResolvedValueOnce({ id: '123' });
     mockHandleBridgeTx.mockResolvedValueOnce({ success: true });
 
     const txResult = await result.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as QuoteResponse,
+      quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
     });
 
     expect(mockHandleApprovalTx).toHaveBeenCalledWith({
@@ -136,7 +163,7 @@ describe('useSubmitBridgeTx', () => {
         address: mockQuoteResponse.quote.srcAsset.address,
         symbol: mockQuoteResponse.quote.srcAsset.symbol,
         decimals: mockQuoteResponse.quote.srcAsset.decimals,
-      })
+      }),
     );
     expect(txResult).toEqual({ success: true });
   });
@@ -146,15 +173,18 @@ describe('useSubmitBridgeTx', () => {
       wrapper: createWrapper(),
     });
 
-    const mockQuoteResponse = DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0];
+    const mockQuoteResponse = {
+      ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
 
     const error = new Error('Approval failed');
     mockHandleApprovalTx.mockRejectedValueOnce(error);
 
     await expect(
       result.current.submitBridgeTx({
-        quoteResponse: mockQuoteResponse as QuoteResponse,
-      })
+        quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+      }),
     ).rejects.toThrow('Approval failed');
 
     expect(mockHandleBridgeTx).not.toHaveBeenCalled();
@@ -165,15 +195,41 @@ describe('useSubmitBridgeTx', () => {
       wrapper: createWrapper(),
     });
 
-    const mockQuoteResponse = DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0];
+    const mockQuoteResponse = {
+      ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
 
     const error = new Error('Bridge transaction failed');
     mockHandleBridgeTx.mockRejectedValueOnce(error);
 
     await expect(
       result.current.submitBridgeTx({
-        quoteResponse: mockQuoteResponse as QuoteResponse,
-      })
+        quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+      }),
     ).rejects.toThrow('Bridge transaction failed');
+  });
+
+  it('should handle errors from serializeQuoteMetadata', async () => {
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    // Create an invalid quote response that will cause serialization to fail
+    const invalidQuoteResponse = {
+      ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
+      ...DummyQuoteMetadata,
+      sentAmount: {
+        amount: BigNumber(NaN), // This will cause serialization to fail
+        valueInCurrency: BigNumber('0'),
+        usd: BigNumber('0'),
+      },
+    };
+
+    await expect(
+      result.current.submitBridgeTx({
+        quoteResponse: invalidQuoteResponse as QuoteResponse & QuoteMetadata,
+      }),
+    ).rejects.toThrow();
   });
 });

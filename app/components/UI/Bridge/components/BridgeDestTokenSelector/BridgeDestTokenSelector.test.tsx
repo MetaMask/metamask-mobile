@@ -2,12 +2,13 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeDestTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
-import { Hex } from '@metamask/utils';
 import { setDestToken } from '../../../../../core/redux/slices/bridge';
 import {
-  BridgeFeatureFlagsKey,
-  formatChainIdToCaip,
-} from '@metamask/bridge-controller';
+  initialState as initialStateBase,
+  ethToken2Address,
+} from '../../_mocks_/initialState';
+import { cloneDeep } from 'lodash';
+import { useRoute } from '@react-navigation/native';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -17,6 +18,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+  }),
+  useRoute: jest.fn().mockReturnValue({
+    params: {
+      bridgeViewMode: 'Bridge',
+    },
   }),
 }));
 
@@ -30,249 +36,59 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
   };
 });
 
-describe('BridgeDestTokenSelector', () => {
-  const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
-  const mockSourceChainId = '0x1' as Hex;
-  const mockDestChainId = '0xa' as Hex;
-  const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
-  const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
+jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
+  useSwitchNetworks: () => ({
+    onSetRpcTarget: jest.fn(),
+    onNetworkChange: jest.fn(),
+  }),
+}));
 
-  const initialState = {
-    engine: {
-      backgroundState: {
-        BridgeController: {
-          bridgeFeatureFlags: {
-            [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
-              chains: {
-                [formatChainIdToCaip(mockSourceChainId)]: {
-                  isActiveSrc: true,
-                  isActiveDest: true,
-                },
-                [formatChainIdToCaip(mockDestChainId)]: {
-                  isActiveSrc: true,
-                  isActiveDest: true,
-                },
-              },
-            },
-          },
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    SwapsController: {
+      fetchTopAssetsWithCache: jest.fn().mockReturnValue([
+        {
+          address: '0x0000000000000000000000000000000000000001',
+          symbol: 'TOKEN1',
         },
-        TokenBalancesController: {
-          tokenBalances: {
-            [mockAddress]: {
-              [mockSourceChainId]: {
-                [token1Address]: '0x0de0b6b3a7640000' as Hex, // 1 TOKEN1
-              },
-              [mockDestChainId]: {
-                [token2Address]: '0x1bc16d674ec80000' as Hex, // 2 HELLO on Optimism
-              },
-            },
-          },
+        {
+          address: '0x0000000000000000000000000000000000000002',
+          symbol: 'HELLO',
         },
-        TokensController: {
-          allTokens: {
-            [mockSourceChainId]: {
-              [mockAddress]: [
-                {
-                  address: token1Address,
-                  symbol: 'TOKEN1',
-                  decimals: 18,
-                  image: 'https://token1.com/logo.png',
-                  name: 'Token One',
-                  aggregators: ['1inch'],
-                },
-              ],
-            },
-            [mockDestChainId]: {
-              [mockAddress]: [
-                {
-                  address: token2Address,
-                  symbol: 'HELLO',
-                  decimals: 18,
-                  image: 'https://token2.com/logo.png',
-                  name: 'Hello Token',
-                  aggregators: ['uniswap'],
-                },
-              ],
-            },
-          },
-          tokens: [
-            {
-              address: token1Address,
-              symbol: 'TOKEN1',
-              decimals: 18,
-              image: 'https://token1.com/logo.png',
-              name: 'Token One',
-              aggregators: ['1inch'],
-            },
-            {
-              address: token2Address,
-              symbol: 'HELLO',
-              decimals: 18,
-              image: 'https://token2.com/logo.png',
-              name: 'Hello Token',
-              aggregators: ['uniswap'],
-            },
-          ],
-        },
-        NetworkController: {
-          selectedNetworkClientId: 'selectedNetworkClientId',
-          networksMetadata: {
-            mainnet: {
-              EIPS: {
-                1559: true,
-              },
-            },
-            '0xa': {
-              EIPS: {
-                1559: true,
-              },
-            },
-          },
-          networkConfigurationsByChainId: {
-            [mockSourceChainId]: {
-              chainId: mockSourceChainId,
-              rpcEndpoints: [
-                {
-                  networkClientId: 'selectedNetworkClientId',
-                },
-              ],
-              defaultRpcEndpointIndex: 0,
-              nativeCurrency: 'ETH',
-              name: 'Ethereum',
-            },
-            [mockDestChainId]: {
-              chainId: mockDestChainId,
-              rpcEndpoints: [
-                {
-                  networkClientId: 'optimismNetworkClientId',
-                },
-              ],
-              defaultRpcEndpointIndex: 0,
-              nativeCurrency: 'ETH',
-              name: 'Optimism',
-            },
-          },
-          providerConfig: {
-            chainId: mockSourceChainId,
-            ticker: 'ETH',
-            rpcPrefs: { blockExplorerUrl: 'https://etherscan.io' },
-            type: 'infura',
-          },
-        },
-        AccountTrackerController: {
-          accounts: {
-            [mockAddress]: {
-              balance: '0x29a2241af62c0000' as Hex, // 3 ETH
-            },
-          },
-          accountsByChainId: {
-            [mockSourceChainId]: {
-              [mockAddress]: {
-                balance: '0x29a2241af62c0000' as Hex, // 3 ETH
-              },
-            },
-            [mockDestChainId]: {
-              [mockAddress]: {
-                balance: '0x1158e460913d00000' as Hex, // 20 ETH on Optimism
-              },
-            },
-          },
-        },
-        MultichainNetworkController: {
-          isEvmSelected: true,
-          selectedMultichainNetworkChainId: undefined,
-          multichainNetworkConfigurationsByChainId: {},
-        },
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: 'account1',
-            accounts: {
-              account1: {
-                id: 'account1',
-                address: mockAddress,
-                name: 'Account 1',
-              },
-            },
-          },
-        },
-        CurrencyRateController: {
-          currentCurrency: 'USD',
-          currencyRates: {
-            ETH: {
-              conversionRate: 2000, // 1 ETH = $2000
-            },
-          },
-          conversionRate: 2000,
-        },
-        TokenRatesController: {
-          marketData: {
-            [mockSourceChainId]: {
-              [token1Address]: {
-                tokenAddress: token1Address,
-                currency: 'ETH',
-                price: 10, // 1 TOKEN1 = 10 ETH
-              },
-            },
-            [mockDestChainId]: {
-              [token2Address]: {
-                tokenAddress: token2Address,
-                currency: 'ETH',
-                price: 5, // 1 TOKEN2 = 5 ETH on Optimism
-              },
-            },
-          },
-        },
-        PreferencesController: {
-          tokenSortConfig: {
-            key: 'tokenFiatAmount',
-            order: 'dsc' as const,
-          },
-        },
-        TokenListController: {
-          tokenList: {
-            [token1Address]: {
-              name: 'Token One',
-              symbol: 'TOKEN1',
-              decimals: 18,
-              address: token1Address,
-              iconUrl: 'https://token1.com/logo.png',
-              occurrences: 1,
-              aggregators: [],
-            },
-            [token2Address]: {
-              name: 'Hello Token',
-              symbol: 'HELLO',
-              decimals: 18,
-              address: token2Address,
-              iconUrl: 'https://token2.com/logo.png',
-            },
-          },
-          tokensChainsCache: {
-            [mockDestChainId]: {
-              timestamp: Date.now(),
-              data: {
-                [token2Address]: {
-                  name: 'Hello Token',
-                  symbol: 'HELLO',
-                  decimals: 18,
-                  address: token2Address,
-                  iconUrl: 'https://token2.com/logo.png',
-                },
-              },
-            },
-          },
-        },
-      },
+      ]),
     },
-    bridge: {
-      sourceAmount: undefined,
-      destAmount: undefined,
-      sourceToken: undefined,
-      destToken: undefined,
-      selectedSourceChainIds: [mockSourceChainId, mockDestChainId],
-      selectedDestChainId: mockDestChainId,
+  },
+}));
+
+jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
+  fetchBridgeTokens: jest.fn().mockReturnValue({
+    '0x0000000000000000000000000000000000000001': {
+      address: '0x0000000000000000000000000000000000000001',
+      symbol: 'TOKEN1',
+      name: 'Token One',
+      decimals: 18,
+      chainId: '0x1',
+      iconUrl: 'https://token1.com/logo.png',
     },
-  };
+    '0x0000000000000000000000000000000000000002': {
+      address: '0x0000000000000000000000000000000000000002',
+      symbol: 'HELLO',
+      name: 'Hello Token',
+      decimals: 18,
+      chainId: '0x1',
+      iconUrl: 'https://token2.com/logo.png',
+    },
+  }),
+}));
+
+describe('BridgeDestTokenSelector', () => {
+  // Fix ReferenceError: You are trying to access a property or method of the Jest environment after it has been torn down.
+  jest.useFakeTimers();
+
+  const initialState = cloneDeep(initialStateBase);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  initialState.bridge.selectedDestChainId = '0x1' as any;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -314,10 +130,9 @@ describe('BridgeDestTokenSelector', () => {
 
     expect(setDestToken).toHaveBeenCalledWith(
       expect.objectContaining({
-        address: token2Address,
-        aggregators: ['uniswap'],
+        address: ethToken2Address,
         balance: '2',
-        chainId: mockDestChainId,
+        chainId: '0x1',
         decimals: 18,
         image: 'https://token2.com/logo.png',
         name: 'Hello Token',
@@ -337,7 +152,8 @@ describe('BridgeDestTokenSelector', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('ETH')).toBeTruthy();
+      expect(getByText('HELLO')).toBeTruthy();
+      expect(getByText('TOKEN1')).toBeTruthy();
     });
 
     // Get the info button using its test ID
@@ -353,22 +169,15 @@ describe('BridgeDestTokenSelector', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       'Asset',
       expect.objectContaining({
-        address: '0x0000000000000000000000000000000000000000',
-        aggregators: [],
-        balance: '20',
-        balanceFiat: '$40000',
-        chainId: '0xa',
+        address: ethToken2Address,
+        balance: '2',
+        balanceFiat: '$200000',
+        chainId: '0x1',
         decimals: 18,
-        image: '',
-        isETH: true,
-        isNative: true,
-        isStaked: false,
-        logo: '../images/eth-logo-new.png',
-        name: 'Ethereum',
-        stakedBalance: '0x0',
-        symbol: 'ETH',
-        ticker: 'ETH',
-        tokenFiatAmount: 40000,
+        image: 'https://token2.com/logo.png',
+        name: 'Hello Token',
+        symbol: 'HELLO',
+        tokenFiatAmount: 200000,
       }),
     );
   });
@@ -435,6 +244,44 @@ describe('BridgeDestTokenSelector', () => {
     await waitFor(() => {
       expect(getByText('No tokens match', { exact: false })).toBeTruthy();
     });
+  });
+
+  it('hides destination network bar when mode is Swap', async () => {
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        bridgeViewMode: 'Swap',
+      },
+    });
+    const { queryByText } = renderScreen(
+      BridgeDestTokenSelector,
+      {
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+      },
+      { state: initialState },
+    );
+
+    const seeAllButton = queryByText('See all');
+    expect(seeAllButton).toBeNull();
+
+    // Restore the original mock
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        bridgeViewMode: 'Bridge',
+      },
+    });
+  });
+
+  it('shows destination network bar when mode is Bridge', async () => {
+    const { getByText } = renderScreen(
+      BridgeDestTokenSelector,
+      {
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+      },
+      { state: initialState },
+    );
+
+    const seeAllButton = getByText('See all');
+    expect(seeAllButton).toBeTruthy();
   });
 
   it('navigates to destination network selector when See all is pressed', async () => {
