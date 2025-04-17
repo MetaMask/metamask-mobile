@@ -1085,7 +1085,7 @@ export class Engine {
       estimateGasFeeFn: (...args: Parameters<typeof this.transactionController.estimateGasFee>) =>
         this.transactionController.estimateGasFee(...args),
       addUserOperationFromTransactionFn: (...args: unknown[]) =>
-        // @ts-ignore
+        // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
         this.userOperationController?.addUserOperationFromTransaction?.(...args),
       config: {
         customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
