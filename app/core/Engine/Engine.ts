@@ -1088,8 +1088,7 @@ export class Engine {
         // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
         this.userOperationController?.addUserOperationFromTransaction?.(...args),
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
-        smartTransactionsEnabledByDefault: true,
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL
       },
     });
 

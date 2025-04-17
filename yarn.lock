@@ -4774,25 +4774,6 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
   integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
-"@metamask/bridge-controller@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-13.0.0.tgz#aafb13ab9412a19dee335e04b2d66e75a7c555d9"
-  integrity sha512-K1XfgXZJ712Uy4xJs3Zly/fFzM3sGFYFrPTd3txX9iYYwTHC87VPrXj/tkOTrjqkr+uhc5B36sEtS2NQrNxjYA==
-  dependencies:
-    "@ethersproject/address" "^5.7.0"
-    "@ethersproject/bignumber" "^5.7.0"
-    "@ethersproject/constants" "^5.7.0"
-    "@ethersproject/contracts" "^5.7.0"
-    "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.7.0"
-    "@metamask/keyring-api" "^17.4.0"
-    "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/multichain-network-controller" "^0.3.0"
-    "@metamask/polling-controller" "^13.0.0"
-    "@metamask/snaps-utils" "^8.10.0"
-    "@metamask/utils" "^11.2.0"
-
 "@metamask/bridge-controller@^15.0.0":
   version "15.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-15.0.0.tgz#9ce811bd94565d135596e6be5e024c0046a7f332"
@@ -4814,17 +4795,17 @@
     bignumber.js "^9.1.2"
     reselect "^5.1.1"
 
-"@metamask/bridge-status-controller@npm:@metamask-previews/bridge-status-controller@12.0.1-preview-23d1c73f":
-  version "12.0.1-preview-23d1c73f"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/bridge-status-controller/-/bridge-status-controller-12.0.1-preview-23d1c73f.tgz#70ad9c86290c27764731eafdfa8ecc85d7c8258f"
-  integrity sha512-ordln1bQ6JbTS1+omi8JmCwBgqpgBzm9ppnrzojTNbm1Gu6tbKmiol3gyfColehJl77per/ltxg2bgFKHsBkWw==
+"@metamask/bridge-status-controller@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-13.0.0.tgz#81254d11c813d1d6e1d276f25d1b55ca5d549419"
+  integrity sha512-Pjrsh5RL7XrzG8xhVRhCV9mlEIKYsuCRRNSP/g7DC+Lrsfc6KdUS0t/r2tswPR8dTN1OblEAxkaMFkATIvMOLw==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/bridge-controller" "^13.0.0"
     "@metamask/controller-utils" "^11.7.0"
     "@metamask/keyring-api" "^17.4.0"
     "@metamask/polling-controller" "^13.0.0"
     "@metamask/superstruct" "^3.1.0"
+    "@metamask/user-operation-controller" "^33.0.0"
     "@metamask/utils" "^11.2.0"
     bignumber.js "^9.1.2"
     uuid "^8.3.2"
@@ -5869,6 +5850,23 @@
     bn.js "^5.2.1"
     eth-method-registry "^4.0.0"
     fast-json-patch "^3.1.1"
+    lodash "^4.17.21"
+    uuid "^8.3.2"
+
+"@metamask/user-operation-controller@^33.0.0":
+  version "33.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/user-operation-controller/-/user-operation-controller-33.0.0.tgz#5374d34bdef680e56dcd4ebfde5c995171637c1a"
+  integrity sha512-JhyIFyTGMfcqPEuMaFKDsd1x0haQV9Q7/Z3NhyYx0fiAzq1yiGCvmYuH48w87V206s3ZOKDvolt/6eTHEY2udQ==
+  dependencies:
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.7.0"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/polling-controller" "^13.0.0"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.2.0"
+    bn.js "^5.2.1"
+    immer "^9.0.6"
     lodash "^4.17.21"
     uuid "^8.3.2"
 
