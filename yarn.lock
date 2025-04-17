@@ -4795,10 +4795,10 @@
     bignumber.js "^9.1.2"
     reselect "^5.1.1"
 
-"@metamask/bridge-status-controller@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-13.0.0.tgz#81254d11c813d1d6e1d276f25d1b55ca5d549419"
-  integrity sha512-Pjrsh5RL7XrzG8xhVRhCV9mlEIKYsuCRRNSP/g7DC+Lrsfc6KdUS0t/r2tswPR8dTN1OblEAxkaMFkATIvMOLw==
+"@metamask/bridge-status-controller@^13.1.0":
+  version "13.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-13.1.0.tgz#8c61c5d4ea369e068d160291dc0ddac8a879c084"
+  integrity sha512-RoP+Jm4LMzHhR6bpWBBX1rw4/cQIy4Yl7MKubZ1i3HnHQsHnFEco0YyIYSiKU2u8kg45omV9ri32A1jVqQJ/6Q==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.7.0"
