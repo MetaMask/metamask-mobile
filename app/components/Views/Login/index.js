@@ -41,6 +41,7 @@ import {
   ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
+  SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -281,6 +282,7 @@ class Login extends PureComponent {
     showDeleteWarning: false,
     hasBiometricCredentials: false,
     showHint: false,
+    hintText: '',
   };
 
   fieldRef = React.createRef();
@@ -580,6 +582,13 @@ class Login extends PureComponent {
 
   toggleHint = () => {
     this.setState({ showHint: !this.state.showHint });
+    this.getHint();
+  };
+
+  getHint = async () => {
+    const hint = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
+    const parsedHints = await JSON.parse(hint);
+    this.setState({ hintText: parsedHints?.manualBackup || 'mom’s home' });
   };
 
   render = () => {
@@ -682,11 +691,11 @@ class Login extends PureComponent {
               <View style={styles.helperTextContainer}>
                 {this.state.showHint && (
                   <Text
-                    variant={TextVariant.BodySM}
+                    variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                     style={styles.hintText}
                   >
-                    {strings('login.hint', { hint: 'mom’s home' })}
+                    {strings('login.hint', { hint: this.state.hintText })}
                   </Text>
                 )}
 
