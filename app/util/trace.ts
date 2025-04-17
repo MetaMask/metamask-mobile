@@ -44,6 +44,9 @@ export enum TraceName {
   SelectAccount = 'Select Account',
   AddNetwork = 'Add Network',
   UpdateNetwork = 'Update Network',
+  AssetDetails = 'Asset Details',
+  ImportNfts = 'Import Nfts',
+  ImportTokens = 'Import Tokens',
 }
 
 export enum TraceOperation {
