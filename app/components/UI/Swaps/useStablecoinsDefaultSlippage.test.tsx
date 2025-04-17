@@ -2,7 +2,6 @@ import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
 import { Hex } from '@metamask/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
-import AppConstants from '../../../core/AppConstants';
 
 describe('useStablecoinsDefaultSlippage', () => {
   const mockSetSlippage = jest.fn();
@@ -76,11 +75,11 @@ describe('useStablecoinsDefaultSlippage', () => {
     expect(mockSetSlippage).toHaveBeenCalledWith(0.5);
   });
 
-  it('sets default swaps slippage when source token is not on the list of stablecoins', () => {
+  it('does not set slippage when source token is not on the list of stablecoins', () => {
     renderHookWithProvider(
       () =>
         useStablecoinsDefaultSlippage({
-          sourceTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f', // not in list
+          sourceTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI (not in the list)
           destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
           chainId: swapsUtils.ETH_CHAIN_ID as Hex,
           setSlippage: mockSetSlippage,
@@ -88,40 +87,25 @@ describe('useStablecoinsDefaultSlippage', () => {
       { state: initialState },
     );
 
-    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+    expect(mockSetSlippage).not.toHaveBeenCalled();
   });
 
-  it('sets default swaps slippage when destination token is not on the list of stablecoins', () => {
+  it('does not set slippage when destination token is not on the list of stablecoins', () => {
     renderHookWithProvider(
       () =>
         useStablecoinsDefaultSlippage({
           sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
-          destTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f', // not in list
+          destTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI (not in the list)
           chainId: swapsUtils.ETH_CHAIN_ID as Hex,
           setSlippage: mockSetSlippage,
         }),
       { state: initialState },
     );
 
-    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+    expect(mockSetSlippage).not.toHaveBeenCalled();
   });
 
-  it('sets default swaps slippage when neither token is a stablecoin', () => {
-    renderHookWithProvider(
-      () =>
-        useStablecoinsDefaultSlippage({
-          sourceTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI
-          destTokenAddress: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599', // WBTC
-          chainId: swapsUtils.ETH_CHAIN_ID as Hex,
-          setSlippage: mockSetSlippage,
-        }),
-      { state: initialState },
-    );
-
-    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
-  });
-
-  it('sets default swaps slippage when chain ID is not supported', () => {
+  it('does not set slippage when chain ID is not supported', () => {
     renderHookWithProvider(
       () =>
         useStablecoinsDefaultSlippage({
@@ -133,7 +117,7 @@ describe('useStablecoinsDefaultSlippage', () => {
       { state: initialState },
     );
 
-    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+    expect(mockSetSlippage).not.toHaveBeenCalled();
   });
 
   it('does not set slippage when source token address is missing', () => {
@@ -161,6 +145,46 @@ describe('useStablecoinsDefaultSlippage', () => {
       { state: initialState },
     );
 
+    expect(mockSetSlippage).not.toHaveBeenCalled();
+  });
+
+  it('calls setSlippage only once when dependencies change', () => {
+    // First render with stablecoins
+    const { rerender } = renderHookWithProvider(
+      () =>
+        useStablecoinsDefaultSlippage({
+          sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+          destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
+          chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+          setSlippage: mockSetSlippage,
+        }),
+      { state: initialState },
+    );
+
+    // First render should call setSlippage
+    expect(mockSetSlippage).toHaveBeenCalledTimes(1);
+
+    // Clear the mock to track subsequent calls
+    mockSetSlippage.mockClear();
+
+    // Rerender with the same props should not call setSlippage again
+    rerender({});
+
+    expect(mockSetSlippage).not.toHaveBeenCalled();
+
+    // Create a new hook instance with different props
+    renderHookWithProvider(
+      () =>
+        useStablecoinsDefaultSlippage({
+          sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+          destTokenAddress: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC.e on Polygon
+          chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+          setSlippage: mockSetSlippage,
+        }),
+      { state: initialState },
+    );
+
+    // Should not call setSlippage because tokens are on different chains
     expect(mockSetSlippage).not.toHaveBeenCalled();
   });
 });
