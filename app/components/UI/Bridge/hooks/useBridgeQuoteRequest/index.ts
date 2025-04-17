@@ -1,6 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
-import { type GenericQuoteRequest } from '@metamask/bridge-controller';
+import {
+  isSolanaChainId,
+  type GenericQuoteRequest,
+} from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import {
   selectSourceAmount,
@@ -8,6 +11,7 @@ import {
   selectDestToken,
   selectSelectedDestChainId,
   selectSlippage,
+  selectDestAddress,
 } from '../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../../../util/networks';
@@ -25,6 +29,7 @@ export const useBridgeQuoteRequest = () => {
   const destChainId = useSelector(selectSelectedDestChainId);
   const slippage = useSelector(selectSlippage);
   const walletAddress = useSelector(selectSelectedInternalAccountAddress);
+  const destAddress = useSelector(selectDestAddress);
 
   /**
    * Updates quote parameters in the bridge controller
@@ -56,6 +61,9 @@ export const useBridgeQuoteRequest = () => {
       srcTokenAmount: normalizedSourceAmount,
       slippage: Number(slippage),
       walletAddress,
+      destWalletAddress: isSolanaChainId(destChainId)
+        ? destAddress
+        : walletAddress,
     };
 
     try {
@@ -73,6 +81,7 @@ export const useBridgeQuoteRequest = () => {
     destChainId,
     slippage,
     walletAddress,
+    destAddress,
   ]);
 
   // Create a stable debounced function that persists across renders

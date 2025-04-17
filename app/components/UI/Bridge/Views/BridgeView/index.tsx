@@ -132,6 +132,10 @@ const BridgeView = () => {
     useState(false);
   const [isError, setIsError] = useState(false);
 
+  // Primary condition for keypad visibility - when input is focused or we don't have valid inputs or we are waiting for the initial quote
+  const shouldDisplayKeypad =
+    isInputFocused || !hasValidBridgeInputs || isWaitingForInitialQuote;
+
   // Update error state when relevant states change
   // We don't show errors while either loading state is true to prevent flashing
   useEffect(() => {
@@ -197,9 +201,6 @@ const BridgeView = () => {
       setIsWaitingForInitialQuote(false);
     };
   }, [hasValidBridgeInputs, updateQuoteParams]);
-
-  const shouldDisplayKeypad =
-    !isError || !hasValidBridgeInputs || isInputFocused || isLoading;
 
   // Reset bridge state when component unmounts
   useEffect(
@@ -287,9 +288,14 @@ const BridgeView = () => {
       } as BridgeDestTokenSelectorRouteParams,
     });
 
+  const hasDestinationPickerAndQuoteCard =
+    hasDestinationPicker && hasQuoteDetails && !isInputFocused;
+
+  const hasOnlyQuoteCard = hasQuoteDetails && !isInputFocused;
+
   const renderBottomContent = () => (
     <Box style={styles.buttonContainer}>
-      {!hasValidBridgeInputs || isLoading ? (
+      {!hasValidBridgeInputs || isLoading || isWaitingForInitialQuote ? (
         <Text color={TextColor.Primary}>{strings('bridge.select_amount')}</Text>
       ) : isError ? (
         <BannerAlert
@@ -376,20 +382,19 @@ const BridgeView = () => {
               isLoading={isLoading}
             />
           </Box>
-
           <Box
             style={[
               styles.dynamicContent,
-              shouldDisplayKeypad
-                ? styles.dynamicContentWithKeypad
-                : styles.dynamicContentWithoutKeypad,
+              hasDestinationPickerAndQuoteCard
+                ? styles.dynamicContentWithDestinationPickerAndQuoteCard
+                : hasOnlyQuoteCard
+                ? styles.dynamicContentWithOnlyQuoteCard
+                : styles.dynamicContent,
             ]}
           >
-            {hasDestinationPicker && (
-              <Box style={styles.destinationAccountSelectorContainer}>
-                <DestinationAccountSelector />
-              </Box>
-            )}
+            <Box style={styles.destinationAccountSelectorContainer}>
+              {hasDestinationPicker && <DestinationAccountSelector />}
+            </Box>
 
             {hasQuoteDetails && !isInputFocused ? (
               <Box style={styles.quoteContainer}>
