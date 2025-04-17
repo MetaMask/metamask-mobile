@@ -9,7 +9,7 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
 import { removeBookmark } from '../../../actions/bookmarks';
 import stylesheet from './styles';
-import { AutocompleteSearchResult, TokenSearchResult } from './types';
+import { AutocompleteSearchResult, TokenSearchResult, UrlAutocompleteCategory } from './types';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
@@ -30,7 +30,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
     const theme = useTheme();
     const styles = stylesheet({theme});
 
-    const name = typeof result.name === 'string' || result.category === 'tokens' ? result.name : getHost(result.url);
+    const name = typeof result.name === 'string' || result.category === UrlAutocompleteCategory.Tokens ? result.name : getHost(result.url);
 
     const dispatch = useDispatch();
 
@@ -38,7 +38,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
         dispatch(removeBookmark(result));
     }, [dispatch, result]);
 
-    const swapsEnabled = result.category === 'tokens' && isSwapsAllowed(result.chainId) && AppConstants.SWAPS.ACTIVE;
+    const swapsEnabled = result.category === UrlAutocompleteCategory.Tokens && isSwapsAllowed(result.chainId) && AppConstants.SWAPS.ACTIVE;
 
     const currentCurrency = useSelector(selectCurrentCurrency);
 
@@ -48,7 +48,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
         onPress={onPress}
       >
         <View style={styles.itemWrapper}>
-          {result.category === 'tokens' ? (
+          {result.category === UrlAutocompleteCategory.Tokens ? (
             <BadgeWrapper
               badgeElement={(
                 <Badge
@@ -75,11 +75,11 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
               {result.name}
             </Text>
             <Text style={styles.url} numberOfLines={1}>
-              {result.category === 'tokens' ? result.symbol : result.url}
+              {result.category === UrlAutocompleteCategory.Tokens ? result.symbol : result.url}
             </Text>
           </View>
           {
-            result.category === 'favorites' && (
+            result.category === UrlAutocompleteCategory.Favorites && (
               <ButtonIcon
                 testID={deleteFavoriteTestId(result.url)}
                 style={styles.resultActionButton}
@@ -89,7 +89,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
             )
           }
           {
-            result.category === 'tokens' && (
+            result.category === UrlAutocompleteCategory.Tokens && (
               <View style={styles.priceContainer}>
                 <Text style={styles.price}>
                   {addCurrencySymbol(result.price, currentCurrency, true)}
@@ -99,7 +99,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
             )
           }
           {
-            result.category === 'tokens' && (
+            result.category === UrlAutocompleteCategory.Tokens && (
               <ButtonIcon
                 style={{
                   ...styles.resultActionButton,

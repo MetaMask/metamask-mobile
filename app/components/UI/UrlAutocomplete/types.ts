@@ -18,6 +18,13 @@ export type UrlAutocompleteComponentProps = {
   onDismiss: () => void;
 };
 
+export enum UrlAutocompleteCategory {
+  Sites = 'sites',
+  Recents = 'recents',
+  Favorites = 'favorites',
+  Tokens = 'tokens',
+}
+
 /**
  * Ref for the UrlAutocomplete component
  */
@@ -42,7 +49,7 @@ export type UrlAutocompleteRef = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type FuseSearchResult = {
-  category: 'sites' | 'recents' | 'favorites';
+  category: UrlAutocompleteCategory.Sites | UrlAutocompleteCategory.Recents | UrlAutocompleteCategory.Favorites;
   url: string;
   name: string;
 };
@@ -52,7 +59,7 @@ export type FuseSearchResult = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type TokenSearchResult = {
-  category: 'tokens';
+  category: UrlAutocompleteCategory.Tokens;
   name: string;
   symbol: string;
   address: string;

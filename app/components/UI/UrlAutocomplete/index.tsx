@@ -26,6 +26,7 @@ import {
   TokenSearchResult,
   AutocompleteSearchResult,
   UrlAutocompleteRef,
+  UrlAutocompleteCategory,
 } from './types';
 import { debounce } from 'lodash';
 import { strings } from '../../../../locales/i18n';
@@ -44,9 +45,14 @@ import { selectCurrentCurrency, selectUsdConversionRate } from '../../../selecto
 
 export * from './types';
 
-const dappsWithType: FuseSearchResult[] = dappUrlList.map(i => ({...i, category: 'sites'} as const));
+const dappsWithType: FuseSearchResult[] = dappUrlList.map(i => ({...i, category: UrlAutocompleteCategory.Sites} as const));
 
 const TOKEN_SEARCH_LIMIT = 10;
+
+interface ResultsWithCategory {
+  category: UrlAutocompleteCategory;
+  data: AutocompleteSearchResult[];
+}
 
 /**
  * Autocomplete list that appears when the browser url bar is focused
@@ -63,7 +69,7 @@ const UrlAutocomplete = forwardRef<
       tokenSearchResults
       .map(({tokenAddress, usdPricePercentChange, usdPrice, chainId, ...rest}) => ({
         ...rest,
-        category: 'tokens' as const,
+        category: UrlAutocompleteCategory.Tokens as const,
         address: tokenAddress,
         chainId: chainId as Hex,
         price: usdConversionRate ? usdPrice / usdConversionRate : -1,
@@ -84,9 +90,9 @@ const UrlAutocomplete = forwardRef<
     }
   }, [currentCurrency]);
 
-  const resultsByCategory: {category: string, data: AutocompleteSearchResult[]}[] = useMemo(() => (
+  const resultsByCategory: ResultsWithCategory[] = useMemo(() => (
     ORDERED_CATEGORIES.flatMap((category) => {
-      if (category === 'tokens') {
+      if (category === UrlAutocompleteCategory.Tokens) {
         if (tokenResults.length === 0 && !isTokenSearchLoading) {
           return [];
         }
@@ -103,7 +109,7 @@ const UrlAutocomplete = forwardRef<
       if (data.length === 0) {
         return [];
       }
-      if (category === 'recents') {
+      if (category === UrlAutocompleteCategory.Recents) {
         data = data.slice(0, MAX_RECENTS);
       }
       return {
@@ -265,10 +271,10 @@ const UrlAutocomplete = forwardRef<
     addPopularNetwork,
   ]);
 
-  const renderSectionHeader = useCallback(({section: {category}}) => (
+  const renderSectionHeader = useCallback(({section: { category }}: {section: ResultsWithCategory}) => (
     <View style={styles.categoryWrapper}>
       <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
-      {category === 'tokens' && isTokenSearchLoading && (
+      {category === UrlAutocompleteCategory.Tokens && isTokenSearchLoading && (
         <ActivityIndicator testID="loading-indicator" size="small" />
       )}
     </View>
@@ -297,11 +303,11 @@ const UrlAutocomplete = forwardRef<
 
   return (
     <View ref={resultsRef} style={styles.wrapper}>
-      <SectionList
+      <SectionList<AutocompleteSearchResult, ResultsWithCategory>
         contentContainerStyle={styles.contentContainer}
         sections={resultsByCategory}
         keyExtractor={(item) =>
-          item.category === 'tokens'
+          item.category === UrlAutocompleteCategory.Tokens
             ? `${item.category}-${item.chainId}-${item.address}`
             : `${item.category}-${item.url}`
         }
