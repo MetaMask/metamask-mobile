@@ -63,10 +63,12 @@ export type TokenSearchResult = {
   name: string;
   symbol: string;
   address: string;
+  decimals: number;
   chainId: Hex;
   logoUrl?: string;
   price: number;
   percentChange: number;
+  isFromSearch: true;
 };
 
 export type AutocompleteSearchResult = FuseSearchResult | TokenSearchResult;

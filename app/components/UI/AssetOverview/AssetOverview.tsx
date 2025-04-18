@@ -46,8 +46,6 @@ import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
-import useGoToBridge from '../Bridge/hooks/useGoToBridge';
-import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -55,15 +53,15 @@ import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import { isAssetFromSearch, selectTokenDisplayData } from '../../../selectors/tokenSearchDiscoveryDataController';
-import { useAddNetwork } from '../../hooks/useAddNetwork';
-import { PopularList } from '../../../util/networks/customNetworks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { formatWithThreshold } from '../../../util/assets';
-
+import { useSwapBridgeNavigation, SwapBridgeNavigationLocation } from '../Bridge/hooks/useSwapBridgeNavigation';
+import { swapsUtils } from '@metamask/swaps-controller';
 interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
+  displayBridgeButton?: boolean;
   swapsIsLive?: boolean;
   networkName?: string;
 }
@@ -72,6 +70,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
   displayBuyButton,
   displaySwapsButton,
+  displayBridgeButton,
   swapsIsLive,
   networkName,
 }: AssetOverviewProps) => {
@@ -109,6 +108,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     vsCurrency: currentCurrency,
   });
 
+  const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TokenDetails,
+    sourcePage: 'MainView',
+    token: {
+      ...asset,
+      address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      chainId: asset.chainId as Hex,
+      decimals: asset.decimals,
+      symbol: asset.symbol,
+      name: asset.name,
+      image: asset.image,
+    },
+  });
+
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
@@ -138,47 +151,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       networkName,
     });
   };
-
-  const handleSwapNavigation = useCallback(() => {
-    if (isAssetFromSearch(asset)) {
-      navigation.navigate('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-          destinationToken: asset.address,
-          sourcePage: 'MainView',
-          chainId: asset.chainId,
-        }
-      });
-    } else {
-      navigation.navigate('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-          sourcePage: 'MainView',
-          chainId: asset.chainId,
-        },
-      });
-    }
-  }, [navigation, asset]);
-
-  const handleBridgeNavigation = useCallback(() => {
-    navigation.navigate('Bridge', {
-      screen: 'BridgeView',
-      params: {
-        sourceToken: asset.address,
-        sourcePage: 'MainView',
-        chainId: asset.chainId,
-      },
-    });
-  }, [navigation, asset.address, asset.chainId]);
-
-  const goToPortfolioBridge = useGoToBridge('TokenDetails');
-
-  const goToBridge =
-    process.env.MM_BRIDGE_UI_ENABLED === 'true'
-      ? handleBridgeNavigation
-      : goToPortfolioBridge;
 
   const onSend = async () => {
     navigation.navigate(Routes.WALLET.HOME, {
@@ -212,62 +184,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     }
     navigation.navigate('SendFlowView', {});
   };
-
-  const { addPopularNetwork, networkModal } = useAddNetwork();
-
-  const goToSwaps = useCallback(async () => {
-      if (!isAssetFromSearch(asset)) {
-        navigation.navigate(Routes.WALLET.HOME, {
-          screen: Routes.WALLET.TAB_STACK_FLOW,
-          params: {
-            screen: Routes.WALLET_VIEW,
-          },
-        });
-      }
-      if (asset.chainId !== selectedChainId) {
-        const { NetworkController, MultichainNetworkController } =
-          Engine.context;
-        let networkConfiguration =
-          NetworkController.getNetworkConfigurationByChainId(
-            asset.chainId as Hex,
-          );
-
-        if (!networkConfiguration && isAssetFromSearch(asset)) {
-          const network = PopularList.find((popularNetwork) => popularNetwork.chainId === asset.chainId);
-          if (network) {
-            try {
-              await addPopularNetwork(network);
-            } catch (error) {
-              return;
-            }
-            networkConfiguration = NetworkController.getNetworkConfigurationByChainId(
-              asset.chainId as Hex,
-            );
-          }
-        }
-
-        const networkClientId =
-          networkConfiguration?.rpcEndpoints?.[
-            networkConfiguration.defaultRpcEndpointIndex
-          ]?.networkClientId;
-
-        await MultichainNetworkController.setActiveNetwork(
-          networkClientId as string,
-        );
-
-        setTimeout(() => {
-          handleSwapNavigation();
-        }, 500);
-      } else {
-        handleSwapNavigation();
-      }
-  }, [
-    navigation,
-    selectedChainId,
-    handleSwapNavigation,
-    addPopularNetwork,
-    asset,
-  ]);
 
   const onBuy = () => {
     navigation.navigate(
@@ -418,6 +334,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
+            displayBridgeButton={displayBridgeButton}
             swapsIsLive={swapsIsLive}
             goToBridge={goToBridge}
             goToSwaps={goToSwaps}

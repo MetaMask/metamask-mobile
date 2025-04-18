@@ -36,13 +36,8 @@ import { Result } from './Result';
 import useTokenSearchDiscovery from '../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../core/Engine';
-import { selectEvmChainId } from '../../../selectors/networkController';
-import { useAddNetwork } from '../../hooks/useAddNetwork';
-import { PopularList } from '../../../util/networks/customNetworks';
-import { swapsUtils } from '@metamask/swaps-controller';
-import { useNavigation } from '@react-navigation/native';
 import { selectCurrentCurrency, selectUsdConversionRate } from '../../../selectors/currencyRateController';
-import Routes from '../../../constants/navigation/Routes';
+import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '../Bridge/hooks/useSwapBridgeNavigation';
 
 export * from './types';
 
@@ -75,6 +70,8 @@ const UrlAutocomplete = forwardRef<
         chainId: chainId as Hex,
         price: usdConversionRate ? usdPrice / usdConversionRate : -1,
         percentChange: usdPricePercentChange.oneDay,
+        decimals: 18,
+        isFromSearch: true as const,
       }))
       .slice(0, TOKEN_SEARCH_LIMIT)
     ),
@@ -209,68 +206,20 @@ const UrlAutocomplete = forwardRef<
     }
   }, [browserHistory, bookmarks, search]);
 
-  const selectedChainId = useSelector(selectEvmChainId);
-
-  const { addPopularNetwork, networkModal } = useAddNetwork();
-
-  const navigation = useNavigation();
-
-  const handleSwapNavigation = useCallback((result: TokenSearchResult) => {
-    hide();
-    onDismiss();
-    navigation.navigate(Routes.SWAPS, {
-      screen: Routes.SWAPS_AMOUNT_VIEW,
-      params: {
-      sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-      destinationToken: result.address,
-      sourcePage: 'MainView',
-      chainId: result.chainId,
-    }});
-  }, [navigation, hide, onDismiss]);
+  const { goToSwaps: goToSwapsHook, networkModal } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TokenDetails,
+    sourcePage: 'MainView',
+  });
 
   const goToSwaps = useCallback(async (result: TokenSearchResult) => {
-    if (result.chainId !== selectedChainId) {
-      const { NetworkController, MultichainNetworkController } =
-        Engine.context;
-      let networkConfiguration =
-        NetworkController.getNetworkConfigurationByChainId(
-          result.chainId,
-        );
-
-      if (!networkConfiguration) {
-        const network = PopularList.find((popularNetwork) => popularNetwork.chainId === result.chainId);
-        if (network) {
-          try {
-            await addPopularNetwork(network);
-          } catch (error) {
-            return;
-          }
-          networkConfiguration = NetworkController.getNetworkConfigurationByChainId(
-            result.chainId,
-          );
-        }
-      }
-
-      const networkClientId =
-        networkConfiguration?.rpcEndpoints?.[
-          networkConfiguration.defaultRpcEndpointIndex
-        ]?.networkClientId;
-
-      await MultichainNetworkController.setActiveNetwork(
-        networkClientId as string,
-      );
-
-      setTimeout(() => {
-        handleSwapNavigation(result);
-      }, 500);
-    } else {
-      handleSwapNavigation(result);
+    try {
+      await goToSwapsHook(result);
+    } catch (error) {
+      return;
     }
-  }, [
-    selectedChainId,
-    handleSwapNavigation,
-    addPopularNetwork,
-  ]);
+    hide();
+    onDismiss();
+  }, [hide, onDismiss, goToSwapsHook]);
 
   const renderSectionHeader = useCallback(({section: { category }}: {section: ResultsWithCategory}) => (
     <View style={styles.categoryWrapper}>

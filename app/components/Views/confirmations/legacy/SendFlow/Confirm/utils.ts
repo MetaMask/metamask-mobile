@@ -28,7 +28,8 @@ export const updateTransactionToMaxValue = async ({
     : legacyGasTransaction;
 
   const accountBalanceBN = new BN(remove0x(accountBalance), 16);
-  const transactionFeeMax = new BN(toWei(gasFeeMaxNative, 'ether'), 16);
+  const gasFeeInWei = toWei(gasFeeMaxNative, 'ether').toString();
+  const transactionFeeMax = new BN(gasFeeInWei);
 
   const maxTransactionValueBN = accountBalanceBN.sub(transactionFeeMax);
 
