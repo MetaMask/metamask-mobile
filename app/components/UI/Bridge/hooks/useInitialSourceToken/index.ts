@@ -1,7 +1,7 @@
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { setSourceToken } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
@@ -40,6 +40,7 @@ export const useInitialSourceToken = () => {
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const hasSetInitialSourceToken = useRef(false);
 
   const {
     chainId: selectedChainId,
@@ -60,6 +61,8 @@ export const useInitialSourceToken = () => {
   const initialSourceToken = route.params?.token;
 
   useEffect(() => {
+    if (hasSetInitialSourceToken.current) return;
+
     // Will default to the native token of the current chain if no token is provided
     if (!initialSourceToken) {
       dispatch(setSourceToken(getNativeSourceToken(selectedChainId)));
@@ -90,6 +93,8 @@ export const useInitialSourceToken = () => {
         evmNetworkConfigurations[initialSourceToken.chainId as Hex],
       );
     }
+
+    hasSetInitialSourceToken.current = true;
   }, [
     dispatch,
     initialSourceToken,
