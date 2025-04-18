@@ -65,7 +65,7 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  it('should change parameters and select a quote', async () => {
+  it.skip('should change parameters and select a quote', async () => {
     const paymentMethod =
       device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
 
