@@ -26,8 +26,10 @@ describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
   });
 
   it('from a dApp', async () => {
-    const testSpecificMock = {
-      GET: [mockEvents.GET.suggestedGasFeesApiGanache],
+    const testSpecificMock  = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
     };
 
     await withFixtures(

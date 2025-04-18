@@ -77,22 +77,14 @@ describe('useDomainMismatchAlerts', () => {
           backgroundState: {
             ...siweSignatureConfirmationState.engine.backgroundState,
             ApprovalController: {
-              ...siweSignatureConfirmationState.engine.backgroundState
-                .ApprovalController,
+              ...siweSignatureConfirmationState.engine.backgroundState.ApprovalController,
               pendingApprovals: {
-                ...siweSignatureConfirmationState.engine.backgroundState
-                  .ApprovalController.pendingApprovals,
+                ...siweSignatureConfirmationState.engine.backgroundState.ApprovalController.pendingApprovals,
                 '72424261-e22f-11ef-8e59-bf627a5d8354': {
-                  ...siweSignatureConfirmationState.engine.backgroundState
-                    .ApprovalController.pendingApprovals[
-                    '72424261-e22f-11ef-8e59-bf627a5d8354'
-                  ],
+                  ...siweSignatureConfirmationState.engine.backgroundState.ApprovalController.pendingApprovals['72424261-e22f-11ef-8e59-bf627a5d8354'],
                   origin: 'https://metamask.github.io',
                   requestData: {
-                    ...siweSignatureConfirmationState.engine.backgroundState
-                      .ApprovalController.pendingApprovals[
-                      '72424261-e22f-11ef-8e59-bf627a5d8354'
-                    ].requestData,
+                    ...siweSignatureConfirmationState.engine.backgroundState.ApprovalController.pendingApprovals['72424261-e22f-11ef-8e59-bf627a5d8354'].requestData,
                     origin: 'https://metamask.github.io',
                   },
                 },

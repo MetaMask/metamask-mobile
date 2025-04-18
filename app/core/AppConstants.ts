@@ -139,9 +139,7 @@ export default {
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
   },
-  DECODING_API_URL:
-    process.env.DECODING_API_URL ||
-    'https://signature-insights.api.cx.metamask.io/v1',
+  DECODING_API_URL: process.env.DECODING_API_URL || 'https://signature-insights.api.cx.metamask.io/v1',
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',

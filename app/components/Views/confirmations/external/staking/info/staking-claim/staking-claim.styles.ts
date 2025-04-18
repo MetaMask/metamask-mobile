@@ -1,9 +1,8 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () =>
-  StyleSheet.create({
+const styleSheet = () => StyleSheet.create({
     simulationsDetailsContainer: {
-      paddingBottom: 8,
+        paddingBottom: 8,
     },
   });
 

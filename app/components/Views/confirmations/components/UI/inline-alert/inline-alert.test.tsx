@@ -8,8 +8,7 @@ describe('InlineAlert', () => {
   const INLINE_ALERT_LABEL = 'Alert';
   const onClickMock = jest.fn();
 
-  const renderComponent = (props: Partial<InlineAlertProps> = {}) =>
-    render(<InlineAlert onClick={onClickMock} {...props} />);
+  const renderComponent = (props: Partial<InlineAlertProps> = {}) => render(<InlineAlert onClick={onClickMock} {...props} />);
 
   it('renders correctly with default props', () => {
     const { getByTestId, getByText } = renderComponent();

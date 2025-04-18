@@ -85,11 +85,7 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('renders loading state when fetching token details', async () => {
-    (
-      useGetTokenStandardAndDetails as jest.MockedFn<
-        typeof useGetTokenStandardAndDetails
-      >
-    ).mockReturnValue({
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
       details: { decimalsNumber: undefined },
       isPending: true,
     });
@@ -122,11 +118,7 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('renders no value display if no value was loaded', () => {
-    (
-      useGetTokenStandardAndDetails as jest.MockedFn<
-        typeof useGetTokenStandardAndDetails
-      >
-    ).mockReturnValue({
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
       details: { decimalsNumber: undefined },
       isPending: false,
     });
@@ -144,11 +136,8 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('renders "Unlimited" for large values when canDisplayValueAsUnlimited is true', async () => {
-    (
-      useGetTokenStandardAndDetails as jest.MockedFn<
-        typeof useGetTokenStandardAndDetails
-      >
-    ).mockReturnValue(mockErc20TokenDetails);
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>)
+      .mockReturnValue(mockErc20TokenDetails);
 
     const { findByText } = renderWithProvider(
       <SimulationValueDisplay
@@ -165,11 +154,8 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('renders Dai Revoke', async () => {
-    (
-      useGetTokenStandardAndDetails as jest.MockedFn<
-        typeof useGetTokenStandardAndDetails
-      >
-    ).mockReturnValue(mockErc20TokenDetails);
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>)
+      .mockReturnValue(mockErc20TokenDetails);
 
     const { findByText } = renderWithProvider(
       <SimulationValueDisplay
@@ -187,11 +173,8 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('renders Dai Revoke when value is 0', async () => {
-    (
-      useGetTokenStandardAndDetails as jest.MockedFn<
-        typeof useGetTokenStandardAndDetails
-      >
-    ).mockReturnValue(mockErc20TokenDetails);
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>)
+      .mockReturnValue(mockErc20TokenDetails);
 
     const { findByText } = renderWithProvider(
       <SimulationValueDisplay
@@ -208,11 +191,8 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('renders Dai Approve', async () => {
-    (
-      useGetTokenStandardAndDetails as jest.MockedFn<
-        typeof useGetTokenStandardAndDetails
-      >
-    ).mockReturnValue(mockErc20TokenDetails);
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>)
+      .mockReturnValue(mockErc20TokenDetails);
 
     const { findByText } = renderWithProvider(
       <SimulationValueDisplay

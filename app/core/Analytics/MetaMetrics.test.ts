@@ -17,10 +17,12 @@ import {
 } from './MetaMetrics.types';
 import { MetricsEventBuilder } from './MetricsEventBuilder';
 
+
 jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
 const mockSet = jest.fn();
 const mockClear = jest.fn();
+
 
 jest.mock('axios');
 
@@ -36,6 +38,7 @@ jest.mock('./MetaMetricsTestUtils', () => ({
     getInstance: jest.fn().mockImplementation(() => mockInstance),
   },
 }));
+
 
 /**
  * Extend MetaMetrics to allow reset of the singleton instance
@@ -748,6 +751,7 @@ describe('MetaMetrics', () => {
   });
 
   describe('E2E Mode', () => {
+
     beforeEach(() => {
       mockTrackE2EEvent.mockClear();
     });

@@ -53,10 +53,12 @@ describe(SmokeNotifications('Notification Onboarding'), () => {
 
   it('enables notifications through bell icon', async () => {
     // Onboard - Import SRP
-    await importWalletWithRecoveryPhrase({
-      seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
-      password: NOTIFICATIONS_TEAM_PASSWORD,
-    });
+    await importWalletWithRecoveryPhrase(
+      {
+        seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
+        password: NOTIFICATIONS_TEAM_PASSWORD,
+      }
+    );
 
     // Bell Icon
     await WalletView.tapBellIcon();

@@ -72,10 +72,12 @@ describe(
     });
 
     it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
-      await importWalletWithRecoveryPhrase({
-        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-        password: IDENTITY_TEAM_PASSWORD,
-      });
+      await importWalletWithRecoveryPhrase(
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        }
+      );
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
@@ -105,10 +107,12 @@ describe(
         launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
 
-      await importWalletWithRecoveryPhrase({
-        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-        password: IDENTITY_TEAM_PASSWORD,
-      });
+      await importWalletWithRecoveryPhrase(
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        }
+      );
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);

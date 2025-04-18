@@ -26,8 +26,10 @@ describe(SmokeConfirmations('ERC721 token'), () => {
   });
 
   it('approve all ERC721 tokens', async () => {
-    const testSpecificMock = {
-      GET: [mockEvents.GET.suggestedGasFeesApiGanache],
+    const testSpecificMock  = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
     };
 
     await withFixtures(

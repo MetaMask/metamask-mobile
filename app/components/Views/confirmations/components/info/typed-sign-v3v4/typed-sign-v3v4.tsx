@@ -5,12 +5,12 @@ import Message from './message';
 import TypedSignV3V4Simulation from './simulation';
 
 const TypedSignV3V4 = () => (
-  <>
-    <AccountNetworkInfo />
-    <TypedSignV3V4Simulation />
-    <InfoSectionOriginAndDetails />
-    <Message />
-  </>
-);
+    <>
+      <AccountNetworkInfo />
+      <TypedSignV3V4Simulation />
+      <InfoSectionOriginAndDetails />
+      <Message />
+    </>
+  );
 
 export default TypedSignV3V4;

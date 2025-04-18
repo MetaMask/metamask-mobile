@@ -40,15 +40,19 @@ const AnimatedPulse = ({
 
       return () => opacity.stopAnimation();
     }
-    Animated.timing(opacity, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
   }, [isPulsing, opacity]);
 
   return (
-    <Animated.View style={{ opacity }} {...props}>
+    <Animated.View
+      style={{ opacity }}
+      {...props}
+      >
       {children}
     </Animated.View>
   );

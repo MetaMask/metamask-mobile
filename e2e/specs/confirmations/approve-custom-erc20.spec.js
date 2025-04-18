@@ -27,10 +27,12 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
   });
 
   it('approve custom ERC20 token amount from a dapp', async () => {
-    const testSpecificMock = {
-      GET: [mockEvents.GET.suggestedGasFeesApiGanache],
+    const testSpecificMock  = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
     };
-
+    
     await withFixtures(
       {
         dapp: true,

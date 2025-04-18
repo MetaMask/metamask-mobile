@@ -21,6 +21,7 @@ import BASE from './base.png';
 import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
 import XRPLEVM_XRP_TOKEN from './xrp-logo.png';
 
+
 export default {
   PALM,
   MATIC,

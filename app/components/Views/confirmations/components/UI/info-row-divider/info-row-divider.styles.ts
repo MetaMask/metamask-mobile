@@ -5,7 +5,7 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    infoRowDivider: {
+    infoRowDivider:{
       height: 1,
       backgroundColor: theme.colors.border.muted,
       marginVertical: 8,
