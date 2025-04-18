@@ -5671,19 +5671,19 @@
     semver "^7.5.4"
     tar-stream "^3.1.7"
 
-"@metamask/snaps-execution-environments@^7.1.0":
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-execution-environments/-/snaps-execution-environments-7.1.0.tgz#17494356f31343b50ac07c11070b5ccf5157e33d"
-  integrity sha512-jbfUPPPtgBNHeRtRT6sjmunTEsQutdzd3w1+fRHS6gt1vuossLKtY3v5PGAY9l/jFgVxdNu9E6fvNgRhUWHTPw==
+"@metamask/snaps-execution-environments@^7.2.1":
+  version "7.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-execution-environments/-/snaps-execution-environments-7.2.1.tgz#629046cf7c9652c36ac35129f3856c80a1ffa4f3"
+  integrity sha512-ica+LZoRvgUjwtHiiyM0uZ5l5pBas7WCN636qIwBlX3NSNBcRgHIHYVdrIquECKcdTKQw5Y/+vq3tBqPVjD2Og==
   dependencies:
     "@metamask/json-rpc-engine" "^10.0.2"
     "@metamask/object-multiplex" "^2.1.0"
     "@metamask/post-message-stream" "^9.0.0"
     "@metamask/providers" "^21.0.0"
     "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/snaps-sdk" "^6.20.0"
-    "@metamask/snaps-utils" "^9.1.0"
-    "@metamask/superstruct" "^3.1.0"
+    "@metamask/snaps-sdk" "^6.22.0"
+    "@metamask/snaps-utils" "^9.2.0"
+    "@metamask/superstruct" "^3.2.1"
     "@metamask/utils" "^11.2.0"
     nanoid "^3.3.10"
     readable-stream "^3.6.2"
@@ -5823,10 +5823,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.18.0":
-  version "1.18.0"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.18.0.tgz#289b751f37d9f7641a4975c1fc017cf7bb1c4794"
-  integrity sha512-v6LX6fVtUInKgbCkTpl3orhyaKCuq/s2MjOsRiv1zexzZDrJSp+8Np7f3RsQxK32MhwT9Xoef8PkEvEUgxNE4g==
+"@metamask/solana-wallet-snap@^1.22.0":
+  version "1.22.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.22.0.tgz#a7faf4907561be1ed47223edd72d2eb2344e7cf7"
+  integrity sha512-HdPIn9U6d0w5QRm0bpkUHKpz+4bxj87RXL067CNvjUbV4WE5i9sDi8kzPABE+EkI+POWQDknxellVjWKFrPkXg==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"
