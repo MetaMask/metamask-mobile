@@ -207,6 +207,11 @@ export function selectMultichainAssetsRates(state: RootState) {
     .conversionRates;
 }
 
+export function selectMultichainHistoricalPrices(state: RootState) {
+  return state.engine.backgroundState.MultichainAssetsRatesController
+    .historicalPrices;
+}
+
 export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
   selectMultichainBalances,
   selectMultichainAssets,

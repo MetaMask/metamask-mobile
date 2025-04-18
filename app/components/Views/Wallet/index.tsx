@@ -120,6 +120,8 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
 ///: END:ONLY_INCLUDE_IF
 import {
+  selectMultichainAssetsRates,
+  selectMultichainHistoricalPrices,
   selectNativeEvmAsset,
   selectStakedEvmAsset,
 } from '../../../selectors/multichain';
@@ -362,6 +364,14 @@ const Wallet = ({
   const nativeEvmAsset = useSelector(selectNativeEvmAsset);
   const stakedEvmAsset = useSelector(selectStakedEvmAsset);
 
+  // just for testing
+  const historicalPrices = useSelector(selectMultichainHistoricalPrices);
+  const assetsRates = useSelector(selectMultichainAssetsRates);
+  // eslint-disable-next-line no-console
+  console.log('historicalPrices::::::::::::::::::::::', historicalPrices);
+  // eslint-disable-next-line no-console
+  console.log('assetsRates::::::::::::::::::::::', assetsRates);
+  // end of testing
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
   ) as TokenI[];
