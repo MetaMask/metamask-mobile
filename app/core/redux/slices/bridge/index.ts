@@ -9,6 +9,7 @@ import {
   AllowedBridgeChainIds,
   BridgeFeatureFlagsKey,
   formatChainIdToCaip,
+  isSolanaChainId,
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
 } from '@metamask/bridge-controller';
@@ -233,6 +234,28 @@ export const selectBridgeQuotes = createSelector(
       selectedQuote: null, // TODO for v1 we don't allow user to select alternative quotes, pass in null for now
       featureFlagsKey: BridgeFeatureFlagsKey.MOBILE_CONFIG,
     }),
+);
+
+export const selectIsEvmToSolana = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId && !isSolanaChainId(sourceToken.chainId) &&
+    destToken?.chainId && isSolanaChainId(destToken.chainId)
+);
+
+export const selectIsSolanaToEvm = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId && isSolanaChainId(sourceToken.chainId) &&
+    destToken?.chainId && !isSolanaChainId(destToken.chainId)
+);
+
+export const selectIsEvmSolanaBridge = createSelector(
+  selectIsEvmToSolana,
+  selectIsSolanaToEvm,
+  (isEvmToSolana, isSolanaToEvm) => isEvmToSolana || isSolanaToEvm
 );
 
 // Actions

@@ -30,6 +30,7 @@ import {
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
+  selectIsEvmSolanaBridge,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import {
@@ -49,7 +50,6 @@ import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import DestinationAccountSelector from '../../components/DestinationAccountSelector.tsx';
-import { isSolanaChainId } from '@metamask/bridge-controller';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
@@ -88,6 +88,7 @@ const BridgeView = () => {
     isNoQuotesAvailable,
   } = useBridgeQuoteData();
   const { quoteRequest } = useSelector(selectBridgeControllerState);
+  const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
 
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -99,8 +100,8 @@ const BridgeView = () => {
   useInitialSourceToken();
   useInitialDestToken();
 
-  const hasDestinationPicker =
-    destToken?.chainId && isSolanaChainId(destToken.chainId);
+  const hasDestinationPicker = isEvmSolanaBridge;
+
   const hasQuoteDetails = activeQuote && !isLoading;
 
   const latestSourceBalance = useLatestBalance({
