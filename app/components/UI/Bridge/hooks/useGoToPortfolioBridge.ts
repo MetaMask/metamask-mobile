@@ -17,7 +17,7 @@ import { isBridgeUrl } from '../../../../util/url';
  * @param location location of navigation call – used for analytics.
  * @returns A function that can be used to navigate to the existing Bridges page in the browser. If there isn't an existing bridge page, one is created based on the current chain ID and passed token address (if provided).
  */
-export default function useGoToBridge(location: string) {
+export default function useGoToPortfolioBridge(location: string) {
   const chainId = useSelector(selectEvmChainId);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
