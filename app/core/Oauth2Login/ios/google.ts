@@ -1,5 +1,4 @@
 import { HandleFlowParams } from "../Oauth2loginInterface";
-import { LoginMode } from "../Oauth2loginInterface";
 import { AuthRequest, CodeChallengeMethod, ResponseType } from "expo-auth-session";
 import { IosGoogleRedirectUri } from "../Oauth2loginInterface";
 import { IosGID } from "../Oauth2loginInterface";

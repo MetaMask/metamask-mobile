@@ -1,6 +1,6 @@
 import { CodeChallengeMethod, ResponseType } from "expo-auth-session";
 import { AuthRequest } from "expo-auth-session";
-import { AppRedirectUri, AppleServerRedirectUri, AppleWebClientId, HandleFlowParams, LoginMode } from "../Oauth2loginInterface";
+import { AppRedirectUri, AppleServerRedirectUri, AppleWebClientId, HandleFlowParams } from "../Oauth2loginInterface";
 
 
 
