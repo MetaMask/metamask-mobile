@@ -113,6 +113,9 @@ import { selectContractExchangeRatesByChainId } from '../../../../../selectors/t
 import { isNativeToken } from '../../utils/generic';
 import { selectSendFlowContextualChainId } from '../../../../../selectors/transaction';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { selectAllTokens } from '../../../../../selectors/tokensController';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -514,6 +517,18 @@ class Amount extends PureComponent {
      * Send flow contextual chain id
      */
     sendFlowContextualChainId: PropTypes.string,
+    /**
+     * All tokens
+     */
+    allTokens: PropTypes.object,
+    /**
+     * All token balances
+     */
+    allTokenBalances: PropTypes.object,
+    /**
+     * Accounts by chain id
+     */
+    accountsByChainId: PropTypes.object,
   };
 
   state = {
@@ -553,7 +568,6 @@ class Amount extends PureComponent {
 
   componentDidMount = async () => {
     const {
-      tokens,
       ticker,
       transactionState: { readableValue },
       navigation,
@@ -567,7 +581,12 @@ class Amount extends PureComponent {
     this.updateNavBar();
     navigation.setParams({ providerType, isPaymentRequest });
 
-    this.tokens = [getEther(ticker), ...tokens];
+    const allTokensFilteredByChainId =
+      this.props.allTokens?.[this.props.sendFlowContextualChainId]?.[
+        this.props.selectedAddress?.toLowerCase()
+      ];
+
+    this.tokens = [getEther(ticker), ...allTokensFilteredByChainId];
     this.collectibles = this.processCollectibles();
     // Wait until navigation finishes to focus
     InteractionManager.runAfterInteractions(() =>
@@ -1118,27 +1137,37 @@ class Amount extends PureComponent {
 
   renderToken = (token, index) => {
     const {
-      accounts,
       selectedAddress,
       conversionRate,
       currentCurrency,
       contractBalances,
       contractExchangeRates,
+      accountsByChainId,
+      sendFlowContextualChainId,
     } = this.props;
+
+    const accounts =
+      accountsByChainId?.[this.props.sendFlowContextualChainId]?.[
+        selectedAddress
+      ];
     let balance, balanceFiat;
     const { address, decimals, symbol } = token;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     if (isNativeToken(token)) {
-      balance = renderFromWei(accounts[selectedAddress].balance);
+      balance = renderFromWei(accounts.balance);
       balanceFiat = weiToFiat(
-        hexToBN(accounts[selectedAddress].balance),
+        hexToBN(accounts.balance),
         conversionRate,
         currentCurrency,
       );
     } else {
-      balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
+      const tokenBalances =
+        this.props.allTokenBalances?.[selectedAddress.toLowerCase()]?.[
+          sendFlowContextualChainId
+        ]?.[address];
+      balance = renderFromTokenMinimalUnit(tokenBalances, decimals);
       const exchangeRate = contractExchangeRates
         ? contractExchangeRates[address]?.price
         : undefined;
@@ -1159,8 +1188,10 @@ class Amount extends PureComponent {
       >
         <View style={styles.assetElement}>
           {isNativeToken(token) ? (
+            // TODO: add badge wraper with network image for native token
             <NetworkMainAssetLogo big />
           ) : (
+            // TODO: add badge wraper with network image and erc20 token
             <TokenImage
               asset={token}
               iconStyle={styles.tokenImage}
@@ -1608,14 +1639,18 @@ const mapStateToProps = (state, ownProps) => {
   const transaction = ownProps.transaction || state.transaction;
   const globalChainId = selectChainId(state);
   const globalNetworkClientId = selectNetworkClientId(state);
+  const sendFlowContextualChainId = selectSendFlowContextualChainId(state);
 
+  // TODO: double check all mapped state is used in the component
   return {
     accounts: selectAccounts(state),
+    accountsByChainId: selectAccountsByChainId(state),
     contractExchangeRates: selectContractExchangeRatesByChainId(
       state,
-      globalChainId,
+      sendFlowContextualChainId,
     ),
     contractBalances: selectContractBalances(state),
+    allTokenBalances: selectAllTokenBalances(state),
     collectibles: collectiblesSelector(state),
     collectibleContracts: collectibleContractsSelector(state),
     conversionRate: selectConversionRateByChainId(state, globalChainId),
@@ -1627,6 +1662,7 @@ const mapStateToProps = (state, ownProps) => {
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
     ticker: selectNativeCurrencyByChainId(state, globalChainId),
     tokens: selectTokens(state),
+    allTokens: selectAllTokens(state),
     transactionState: transaction,
     selectedAsset: state.transaction.selectedAsset,
     isPaymentRequest: state.transaction.paymentRequest,
