@@ -11,7 +11,7 @@ export const handleAndroidGoogleLogin = async (): Promise<HandleFlowParams | und
     });
     Logger.log('handleGoogleLogin: result', result);
 
-    if (result.idToken === 'google-signin') {
+    if (result.type === 'google-signin') {
         return {
             provider: 'google',
             idToken: result.idToken,
