@@ -13,6 +13,9 @@ import { decimalToHex } from '../../conversions';
 import { addHexPrefix } from 'ethereumjs-util';
 import { PopularList } from '../../networks/customNetworks';
 import { Hex } from '@metamask/utils';
+import { endTrace, trace, TraceName } from '../../trace';
+import { getTraceTags } from '../../sentry/tags';
+import { store } from '../../../core/Analytics';
 
 export default function useAddToken() {
   const networkConfigurations = useSelector(
@@ -52,21 +55,27 @@ export default function useAddToken() {
       if (!featuredRpc) {
         throw new Error('No featured RPC found');
       }
-      addedDestNetworkConfig = (await Engine.context.NetworkController.addNetwork({
-        chainId: featuredRpc.chainId,
-        name: featuredRpc.nickname,
-        nativeCurrency: featuredRpc.ticker,
-        rpcEndpoints: [
-          {
-            url: featuredRpc.rpcUrl,
-            failoverUrls: featuredRpc.failoverRpcUrls,
-            type: RpcEndpointType.Custom,
-          },
-        ],
-        defaultRpcEndpointIndex: 0,
-        blockExplorerUrls: [featuredRpc.rpcPrefs.blockExplorerUrl],
-        defaultBlockExplorerUrlIndex: 0,
-      })) as NetworkConfiguration;
+      trace({
+        name: TraceName.AddNetwork,
+        tags: getTraceTags(store.getState()),
+      });
+      addedDestNetworkConfig =
+        (await Engine.context.NetworkController.addNetwork({
+          chainId: featuredRpc.chainId,
+          name: featuredRpc.nickname,
+          nativeCurrency: featuredRpc.ticker,
+          rpcEndpoints: [
+            {
+              url: featuredRpc.rpcUrl,
+              failoverUrls: featuredRpc.failoverRpcUrls,
+              type: RpcEndpointType.Custom,
+            },
+          ],
+          defaultRpcEndpointIndex: 0,
+          blockExplorerUrls: [featuredRpc.rpcPrefs.blockExplorerUrl],
+          defaultBlockExplorerUrlIndex: 0,
+        })) as NetworkConfiguration;
+      endTrace({ name: TraceName.AddNetwork });
     }
 
     const destNetworkConfig = foundDestNetworkConfig || addedDestNetworkConfig;

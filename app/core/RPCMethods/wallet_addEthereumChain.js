@@ -17,6 +17,8 @@ import {
 } from './lib/ethereum-chain-utils';
 import { getDecimalChainId } from '../../util/networks';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { endTrace, trace, TraceName } from '../../util/trace';
+import { getTraceTags } from '../../util/sentry/tags';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -218,6 +220,10 @@ const wallet_addEthereumChain = async ({
         defaultBlockExplorerUrlIndex: blockExplorerResult.index,
       };
 
+      trace({
+        name: TraceName.UpdateNetwork,
+        tags: getTraceTags(store.getState()),
+      });
       newNetworkConfiguration = await NetworkController.updateNetwork(
         chainId,
         updatedNetworkConfiguration,
@@ -228,7 +234,12 @@ const wallet_addEthereumChain = async ({
             }
           : undefined,
       );
+      endTrace({ name: TraceName.UpdateNetwork });
     } else {
+      trace({
+        name: TraceName.AddNetwork,
+        tags: getTraceTags(store.getState()),
+      });
       newNetworkConfiguration = NetworkController.addNetwork({
         chainId,
         blockExplorerUrls: [firstValidBlockExplorerUrl],
@@ -245,6 +256,7 @@ const wallet_addEthereumChain = async ({
           },
         ],
       });
+      endTrace({ name: TraceName.AddNetwork });
 
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)

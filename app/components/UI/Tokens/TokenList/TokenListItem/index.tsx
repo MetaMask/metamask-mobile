@@ -55,6 +55,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { CustomNetworkNativeImgMapping } from './CustomNetworkNativeImgMapping';
+import { TraceName, trace } from '../../../../../util/trace';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -253,7 +254,7 @@ export const TokenListItem = React.memo(
     );
 
     const onItemPress = (token: TokenI) => {
-      // Track the event
+      trace({ name: TraceName.AssetDetails });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
           .addProperties({

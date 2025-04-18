@@ -15,7 +15,7 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import UntypedEngine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, store } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
 import Button, {
@@ -37,7 +37,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { TraceName, endTrace } from '../../../util/trace';
+import { TraceName, endTrace, trace } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
 import AddNewHdAccount from '../AddNewHdAccount';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
@@ -74,6 +75,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const _onSelectAccount = useCallback(
     (address: string) => {
+      trace({
+        name: TraceName.SelectAccount,
+        tags: getTraceTags(store.getState()),
+      });
       Engine.setSelectedAddress(address);
       sheetRef.current?.onCloseBottomSheet();
       onSelectAccount?.(address);
@@ -87,6 +92,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           })
           .build(),
       );
+      endTrace({ name: TraceName.SelectAccount });
     },
     [Engine, accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );

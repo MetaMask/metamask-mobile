@@ -17,6 +17,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Logger from '../../../util/Logger';
+import { TraceName, endTrace, trace } from '../../../util/trace';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -196,7 +197,12 @@ const AddCustomCollectible = ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NftController } = Engine.context as any;
+
+    trace({ name: TraceName.ImportNfts });
+
     NftController.addNft(address, tokenId);
+
+    endTrace({ name: TraceName.ImportNfts });
 
     const params = getAnalyticsParams();
     if (params) {
