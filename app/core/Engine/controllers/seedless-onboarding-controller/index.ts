@@ -8,8 +8,9 @@ import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 
 
 const getDefaultSeedlessOnboardingControllerState = () : SeedlessOnboardingControllerState => ({
+  vault: undefined,
   nodeAuthTokens: undefined,
-  hasValidEncryptionKey: false,
+  backupHashes: [],
 });
 
 const encryptor = new Encryptor({
@@ -33,7 +34,7 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
 
   const controller = new SeedlessOnboardingController({
     messenger: controllerMessenger,
-    state: seedlessOnboardingControllerState,
+    state: seedlessOnboardingControllerState as SeedlessOnboardingControllerState,
     encryptor,
   });
 
