@@ -123,7 +123,8 @@ const NetworkConnectMultiSelector = ({
       }
 
       const hexSelectedChainIds = selectedChainIds.map(toHex);
-      addPermittedChains(hostname, hexSelectedChainIds);
+      const removeExistingChainPermissions = true;
+      addPermittedChains(hostname, hexSelectedChainIds, removeExistingChainPermissions);
       onUserAction(USER_INTENT.Confirm);
     }
   }, [

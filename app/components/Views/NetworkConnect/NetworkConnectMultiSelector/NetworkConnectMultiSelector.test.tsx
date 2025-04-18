@@ -168,7 +168,7 @@ describe('NetworkConnectMultiSelector', () => {
 
     expect(addPermittedChains).toHaveBeenCalledWith(defaultProps.hostname, [
       mockNetworkConfigurationId,
-    ]);
+    ], true);
     expect(defaultProps.onUserAction).toHaveBeenCalled();
   });
 

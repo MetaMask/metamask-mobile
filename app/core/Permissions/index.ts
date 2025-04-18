@@ -273,7 +273,11 @@ export const removeAccountsFromPermissions = async (addresses: Hex[]) => {
   }
 };
 
-export const addPermittedChains = (origin: string, chainIds: Hex[]) => {
+export const addPermittedChains = (
+  origin: string,
+  chainIds: Hex[],
+  shouldRemoveExistingChainPermissions = false,
+) => {
   const caip25Caveat = getCaip25Caveat(origin);
   if (!caip25Caveat) {
     throw new Error(
@@ -281,9 +285,13 @@ export const addPermittedChains = (origin: string, chainIds: Hex[]) => {
     );
   }
 
-  const ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
+  const additionalChainIds = shouldRemoveExistingChainPermissions
+    ? []
+    : getPermittedEthChainIds(caip25Caveat.value);
 
-  const updatedEthChainIds = Array.from(new Set([...ethChainIds, ...chainIds]));
+  const updatedEthChainIds = Array.from(
+    new Set([...additionalChainIds, ...chainIds]),
+  );
 
   const caveatValueWithChains = setPermittedEthChainIds(
     caip25Caveat.value,

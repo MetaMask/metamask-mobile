@@ -550,6 +550,61 @@ describe('Permission Utility Functions', () => {
       );
     });
 
+    it('should add chains and remove existing chain permissions if "shouldRemoveExistingChainPermissions" is passed', () => {
+      const mockCaveat = {
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {},
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      };
+
+      const existingChainIds = ['0x1'];
+      const newChainIds: Hex[] = ['0xa'];
+      const ethAccounts = ['0x123'];
+      const shouldRemoveExistingChainPermissions = true;
+
+      mockGetCaveat.mockReturnValue(mockCaveat);
+
+      (getPermittedEthChainIds as jest.Mock).mockReturnValue(existingChainIds);
+
+      (setPermittedEthChainIds as jest.Mock).mockReturnValue({
+        ...mockCaveat.value,
+        // The updated chains would be here in the real implementation
+      });
+
+      (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
+
+      (setEthAccounts as jest.Mock).mockReturnValue({
+        ...mockCaveat.value,
+        // The updated accounts would be here in the real implementation
+      });
+
+      addPermittedChains(
+        'https://example.com',
+        newChainIds,
+        shouldRemoveExistingChainPermissions,
+      );
+
+      expect(getPermittedEthChainIds).not.toHaveBeenCalled();
+      expect(setPermittedEthChainIds).toHaveBeenCalledWith(
+        mockCaveat.value,
+        newChainIds,
+      );
+      expect(getEthAccounts).toHaveBeenCalled();
+      expect(setEthAccounts).toHaveBeenCalled();
+      expect(
+        Engine.context.PermissionController.updateCaveat,
+      ).toHaveBeenCalledWith(
+        'https://example.com',
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
+        expect.anything(),
+      );
+    });
+
     it('should throw error if no permission exists', () => {
       // Mock getCaip25Caveat to return undefined
       mockGetCaveat.mockReturnValue(undefined);
