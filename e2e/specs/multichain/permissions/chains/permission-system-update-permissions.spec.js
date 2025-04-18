@@ -97,10 +97,9 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
 
         // Remove Ethereum Mainnet permission
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
-        await device.disableSynchronization();
-
         await NetworkConnectMultiSelector.tapUpdateButton();
 
+        await device.disableSynchronization();
         // Handle network education modal and close bottom sheet
         await NetworkEducationModal.tapGotItButton();
         await device.enableSynchronization();
