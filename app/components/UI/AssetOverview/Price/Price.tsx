@@ -19,6 +19,9 @@ import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { TokenI } from '../../Tokens/types';
+import { selectNonEvmMarketData } from '../../../../selectors/multichain';
+import { useSelector } from 'react-redux';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 
 interface PriceProps {
   asset: TokenI;
@@ -41,7 +44,10 @@ const Price = ({
   isLoading,
   timePeriod,
 }: PriceProps) => {
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+  const { marketData, metadata } = useSelector(selectNonEvmMarketData);
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
+  console.log('prices', prices);
 
   const distributedPriceData = useMemo(() => {
     if (prices.length > 0) {
@@ -64,8 +70,10 @@ const Price = ({
     '3y': strings('asset_overview.chart_time_period.3y'),
   };
 
-  const price: number =
-    distributedPriceData[activeChartIndex]?.[1] || currentPrice;
+  const price: number = isEvmNetworkSelected
+    ? distributedPriceData[activeChartIndex]?.[1] || currentPrice
+    : metadata.rate;
+
   const date: string | undefined = distributedPriceData[activeChartIndex]?.[0]
     ? toDateFormat(distributedPriceData[activeChartIndex]?.[0])
     : timePeriodTextDict[timePeriod];
@@ -73,6 +81,8 @@ const Price = ({
   const diff: number | undefined = distributedPriceData[activeChartIndex]?.[1]
     ? distributedPriceData[activeChartIndex]?.[1] - comparePrice
     : priceDiff;
+
+  // console.log('DISTRIBUTED PRICE DATA: ', distributedPriceData);
 
   const { styles } = useStyles(styleSheet, { priceDiff: diff });
   const ticker = asset.ticker || asset.symbol;

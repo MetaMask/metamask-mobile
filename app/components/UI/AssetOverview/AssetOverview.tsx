@@ -56,6 +56,7 @@ import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { formatWithThreshold } from '../../../util/assets';
+import useTokenHistoricalPricesV3 from '../../hooks/useTokenHistoricalPricesV3';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -99,12 +100,24 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const currentAddress = asset.address as Hex;
 
-  const { data: prices = [], isLoading } = useTokenHistoricalPrices({
-    address: currentAddress,
-    chainId,
-    timePeriod,
-    vsCurrency: currentCurrency,
-  });
+  const { data: pricesV1 = [], isLoading: isLoadingV1 } =
+    useTokenHistoricalPrices({
+      address: currentAddress,
+      chainId,
+      timePeriod,
+      vsCurrency: currentCurrency,
+    });
+
+  const { data: pricesV3 = [], isLoading: isLoadingV3 } =
+    useTokenHistoricalPricesV3({
+      address: currentAddress,
+      chainId,
+      timePeriod,
+      vsCurrency: currentCurrency,
+    });
+
+  const prices = isEvmSelected ? pricesV1 : pricesV3;
+  const isLoading = isEvmSelected ? isLoadingV1 : isLoadingV3;
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
@@ -385,10 +398,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>
-          {/*  Commented out since we are going to re enable it after curating content */}
-          {/* <View style={styles.aboutWrapper}>
-            // <AboutAsset asset={asset} chainId={chainId} />
-          </View> */}
         </View>
       )}
     </View>
