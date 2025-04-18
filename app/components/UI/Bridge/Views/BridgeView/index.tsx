@@ -65,8 +65,9 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import type { BridgeSourceTokenSelectorRouteParams } from '../../components/BridgeSourceTokenSelector';
 import type { BridgeDestTokenSelectorRouteParams } from '../../components/BridgeDestTokenSelector';
 
-// We get here through handleBridgeNavigation in AssetOverview and WalletActions
 const BridgeView = () => {
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
   // The same as getUseExternalServices in Extension
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -88,7 +89,7 @@ const BridgeView = () => {
     isLoading,
     destTokenAmount,
     quoteFetchError,
-    bestQuote,
+    isNoQuotesAvailable,
   } = useBridgeQuoteData();
   const { quoteRequest } = useSelector(selectBridgeControllerState);
 
@@ -124,82 +125,21 @@ const BridgeView = () => {
 
   const hasInsufficientBalance = quoteRequest?.insufficientBal;
 
-  const [isInputFocused, setIsInputFocused] = useState(false);
-  // isWaitingForInitialQuote tracks our local loading state for the initial quote request
-  // This is separate from isLoading (from useBridgeQuoteData) to prevent race conditions
-  // when multiple quote requests are in flight or when the loading state changes
-  const [isWaitingForInitialQuote, setIsWaitingForInitialQuote] =
-    useState(false);
-  const [isError, setIsError] = useState(false);
+  // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
+  const shouldDisplayKeypad = isInputFocused || !hasValidBridgeInputs;
 
-  // Update error state when relevant states change
-  // We don't show errors while either loading state is true to prevent flashing
-  useEffect(() => {
-    if (isLoading || isWaitingForInitialQuote) {
-      setIsError(false);
-      return;
-    }
-
-    if (quoteFetchError) {
-      setIsError(true);
-      return;
-    }
-
-    setIsError(Boolean(hasValidBridgeInputs && !bestQuote));
-  }, [
-    isLoading,
-    isWaitingForInitialQuote,
-    quoteFetchError,
-    hasValidBridgeInputs,
-    bestQuote,
-  ]);
-
-  // This effect ensures proper coordination between isLoading and isWaitingForInitialQuote
-  // When isLoading becomes false, we know the quote data has been fetched, so we can
-  // safely set isWaitingForInitialQuote to false
-  useEffect(() => {
-    if (!isLoading) {
-      setIsWaitingForInitialQuote(false);
-    }
-  }, [isLoading]);
+  // Compute error state directly from dependencies
+  const isError = isNoQuotesAvailable || quoteFetchError;
 
   // Update quote parameters when relevant state changes
-  // This effect manages the quote request lifecycle and ensures proper state transitions
   useEffect(() => {
     if (hasValidBridgeInputs) {
-      // Set waiting state before starting the quote request
-      setIsWaitingForInitialQuote(true);
-
-      // Add delay before blurring to give users time to type
-      const blurTimeout = setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.blur();
-        }
-      }, 1000);
-
-      const updatePromise = updateQuoteParams();
-      if (updatePromise) {
-        // Clear waiting state after the quote request completes
-        // This ensures we don't show errors prematurely
-        updatePromise.finally(() => {
-          setIsWaitingForInitialQuote(false);
-        });
-      }
-
-      return () => {
-        clearTimeout(blurTimeout);
-        updateQuoteParams.cancel();
-      };
+      updateQuoteParams();
     }
     return () => {
       updateQuoteParams.cancel();
-      // Reset waiting state if component unmounts or inputs become invalid
-      setIsWaitingForInitialQuote(false);
     };
   }, [hasValidBridgeInputs, updateQuoteParams]);
-
-  const shouldDisplayKeypad =
-    !isError || !hasValidBridgeInputs || isInputFocused || isLoading;
 
   // Reset bridge state when component unmounts
   useEffect(
@@ -287,9 +227,14 @@ const BridgeView = () => {
       } as BridgeDestTokenSelectorRouteParams,
     });
 
+  const hasDestinationPickerAndQuoteCard =
+    hasDestinationPicker && hasQuoteDetails && !isInputFocused;
+
+  const hasOnlyQuoteCard = hasQuoteDetails && !isInputFocused;
+
   const renderBottomContent = () => (
     <Box style={styles.buttonContainer}>
-      {!hasValidBridgeInputs || isLoading ? (
+      {!hasValidBridgeInputs || isLoading || !activeQuote ? (
         <Text color={TextColor.Primary}>{strings('bridge.select_amount')}</Text>
       ) : isError ? (
         <BannerAlert
@@ -376,20 +321,19 @@ const BridgeView = () => {
               isLoading={isLoading}
             />
           </Box>
-
           <Box
             style={[
               styles.dynamicContent,
-              shouldDisplayKeypad
-                ? styles.dynamicContentWithKeypad
-                : styles.dynamicContentWithoutKeypad,
+              hasDestinationPickerAndQuoteCard
+                ? styles.dynamicContentWithDestinationPickerAndQuoteCard
+                : hasOnlyQuoteCard
+                ? styles.dynamicContentWithOnlyQuoteCard
+                : styles.dynamicContent,
             ]}
           >
-            {hasDestinationPicker && (
-              <Box style={styles.destinationAccountSelectorContainer}>
-                <DestinationAccountSelector />
-              </Box>
-            )}
+            <Box style={styles.destinationAccountSelectorContainer}>
+              {hasDestinationPicker && <DestinationAccountSelector />}
+            </Box>
 
             {hasQuoteDetails && !isInputFocused ? (
               <Box style={styles.quoteContainer}>
