@@ -22,6 +22,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   const defaultFixture = new FixtureBuilder()
     .withSepoliaNetwork()
     .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
+    .withChainPermissions(['0xaa36a7'])
     .build();
 
   const navigateToTestDApp = async () => {
