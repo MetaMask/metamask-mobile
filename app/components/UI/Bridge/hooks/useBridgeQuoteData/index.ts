@@ -32,8 +32,6 @@ export const useBridgeQuoteData = () => {
 
   const quotes = useSelector(selectBridgeQuotes);
 
-  console.log('quotes', quotes?.sortedQuotes.length);
-
   const {
     quoteFetchError,
     quotesLoadingStatus,
