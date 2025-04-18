@@ -61,7 +61,6 @@ describe('TransactionElement', () => {
               to: '0x0',
               from: '0x1',
               nonce: 1,
-              // chainId: '0x1',
             },
             chainId: '0x1',
             txParams: {
