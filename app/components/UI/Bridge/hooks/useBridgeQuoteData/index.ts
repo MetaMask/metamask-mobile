@@ -98,6 +98,12 @@ export const useBridgeQuoteData = () => {
     };
   }, [activeQuote, sourceToken, destToken, quoteRate, slippage]);
 
+  const isLoading = quotesLoadingStatus === RequestStatus.LOADING;
+
+  const isNoQuotesAvailable = Boolean(
+    !bestQuote && quotesLastFetched && !isLoading,
+  );
+
   return {
     bestQuote,
     quoteFetchError,
@@ -105,5 +111,6 @@ export const useBridgeQuoteData = () => {
     destTokenAmount: formattedDestTokenAmount,
     isLoading: quotesLoadingStatus === RequestStatus.LOADING,
     formattedQuoteData,
+    isNoQuotesAvailable,
   };
 };

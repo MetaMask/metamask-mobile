@@ -101,7 +101,9 @@ export const TokenListItem = React.memo(
 
     const styles = createStyles(colors);
 
-    const itemAddress = safeToChecksumAddress(asset.address);
+    const itemAddress = isEvmNetworkSelected
+      ? safeToChecksumAddress(asset.address)
+      : asset.address;
 
     // Choose values based on multichain or legacy
     const exchangeRates = multiChainMarketData?.[chainId as Hex];
