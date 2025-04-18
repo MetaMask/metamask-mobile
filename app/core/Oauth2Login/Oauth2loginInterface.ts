@@ -4,7 +4,6 @@ import { ACTIONS , PREFIXES } from '../../constants/deeplinks';
 
 // to be get from enviroment variable
 export const ByoaServerUrl = 'https://api-develop-torus-byoa.web3auth.io';
-export const DefaultWeb3AuthNetwork = 'sapphire_devnet';
 export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH2_REDIRECT}`;
 
 export const IosGID = '882363291751-nbbp9n0o307cfil1lup766g1s99k0932.apps.googleusercontent.com';
@@ -18,7 +17,6 @@ export const AppleWebClientId = 'com.web3auth.appleloginextension';
 
 export type HandleOauth2LoginResult = ({type: 'pending'} | {type: AuthSessionResult['type'], existingUser: boolean} | {type: 'error', error: string});
 export type LoginProvider = 'apple' | 'google';
-export type Web3AuthNetwork = 'sapphire_devnet' | 'sapphire_mainnet';
 
 export interface HandleFlowParams {
     provider: LoginProvider;
