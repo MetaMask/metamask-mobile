@@ -282,6 +282,13 @@ const AddAsset = () => {
         <AddCustomCollectible
           navigation={navigation}
           collectibleContract={collectibleContract}
+          selectedNetwork={
+            selectedNetwork
+              ? networkConfigurations?.[selectedNetwork as Hex]?.name
+              : null
+          }
+          setOpenNetworkSelector={setOpenNetworkSelector}
+          chainId={selectedNetwork}
         />
       )}
       {openNetworkFilter ? renderNetworkFilterSelector() : null}
