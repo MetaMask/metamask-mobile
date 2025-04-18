@@ -5,7 +5,7 @@ import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text/Text.types';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { StackActions, useNavigation, useRoute } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions  } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
@@ -16,6 +16,12 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import Icon , { IconName, IconSize } from '../../../component-library/components/Icons/Icon';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { PREVIOUS_SCREEN } from '../../../constants/navigation';
+import { useMetrics } from '../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 
 const account_status_img = require('../../../images/account_status.png'); // eslint-disable-line
 
@@ -36,7 +42,6 @@ const AccountStatus = ({
   const { colors } = useTheme();
 
   const accountName = (route.params as AccountRouteParams)?.accountName;
-  const onContinue = (route.params as AccountRouteParams)?.onContinue;
 
   useLayoutEffect(() => {
     const marginLeft = 16;
@@ -62,6 +67,40 @@ const AccountStatus = ({
     colors,
     false,));
   }, [navigation, colors, route]);
+
+  const { isEnabled } = useMetrics();
+
+  const track = (event: IMetaMetricsEvent) => {
+    trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
+  };
+
+  const metricNavigationWrapper = (targetRoute: string, previousScreen: string, metricEvent: string) => {
+    if (isEnabled()) {
+      navigation.dispatch(
+        StackActions.replace(targetRoute,
+          {
+            [PREVIOUS_SCREEN]: previousScreen,
+          }
+        )
+      );
+      track(metricEvent === 'import' ? MetaMetricsEvents.WALLET_IMPORT_STARTED : MetaMetricsEvents.WALLET_SETUP_STARTED);
+    } else {
+      navigation.dispatch(
+        StackActions.replace('OptinMetrics', {
+          onContinue: () => {
+            navigation.dispatch(
+              StackActions.replace(targetRoute,
+              {
+                [PREVIOUS_SCREEN]: previousScreen,
+              }
+            )
+          );
+            track(metricEvent === 'import' ? MetaMetricsEvents.WALLET_IMPORT_STARTED : MetaMetricsEvents.WALLET_SETUP_STARTED);
+          },
+        }),
+      );
+    }
+  };
 
   return (
     <View style={styles.root}>
@@ -94,11 +133,10 @@ const AccountStatus = ({
         size={ButtonSize.Lg}
         width={ButtonWidthTypes.Full}
         onPress={() => {
-          if (onContinue) {
-            onContinue();
+          if (type === 'found') {
+            metricNavigationWrapper('Login', 'Onboarding', 'import');
           } else {
-            // better handling if no onContinue is provided
-            navigation.navigate('Onboarding');
+            metricNavigationWrapper('ChoosePassword', 'Onboarding', 'create');
           }
         }}
         label={

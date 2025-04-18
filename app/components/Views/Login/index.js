@@ -359,8 +359,8 @@ class Login extends PureComponent {
   }
 
   handleUseOtherMethod = () => {
+    this.props.navigation.navigate('OnboardingRootNav', { screen: 'OnboardingNav', params: { screen: 'Onboarding' } });
     this.props.dispatchOauth2LoginReset();
-    this.props.navigation.navigate('Onboarding');
   };
 
   handleBackPress = async () => {
@@ -710,7 +710,7 @@ class Login extends PureComponent {
                 />
               </View>
 
-              {this.renderSwitch()}
+              {/* {this.renderSwitch()} */}
 
               <View style={styles.helperTextContainer}>
                 {this.state.showHint && (
@@ -803,21 +803,6 @@ class Login extends PureComponent {
                   />
                 </View>
               )}
-              {/* <View style={styles.footer}>
-                <Text
-                  variant={TextVariant.HeadingSMRegular}
-                  style={styles.cant}
-                >
-                  {strings('login.go_back')}
-                </Text>
-                <Button
-                  style={styles.goBack}
-                  variant={ButtonVariants.Link}
-                  onPress={this.toggleWarningModal}
-                  testID={LoginViewSelectors.RESET_WALLET}
-                  label={strings('login.reset_wallet')}
-                />
-              </View> */}
             </View>
           </KeyboardAwareScrollView>
           <FadeOutOverlay />
