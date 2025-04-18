@@ -15,6 +15,7 @@ import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import TestDApp from '../../../../pages/Browser/TestDApp';
 
 describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
@@ -96,11 +97,15 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
 
         // Remove Ethereum Mainnet permission
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
+        await device.disableSynchronization();
+
         await NetworkConnectMultiSelector.tapUpdateButton();
 
         // Handle network education modal and close bottom sheet
         await NetworkEducationModal.tapGotItButton();
+        await device.enableSynchronization();
         await TestHelpers.delay(3000);
+        // await TestDApp.tapMMLogo();
         await PermissionSummaryBottomSheet.swipeToDismissModal();
         await TestHelpers.delay(3000);
 

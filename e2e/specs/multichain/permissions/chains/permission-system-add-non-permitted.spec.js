@@ -48,8 +48,9 @@ describe(
           await WalletView.tapNetworksButtonOnNavBar();
           await NetworkListModal.scrollToBottomOfNetworkList();
           await NetworkListModal.changeNetworkTo(SEPOLIA);
+          await device.disableSynchronization();
           await NetworkEducationModal.tapGotItButton();
-
+          await device.enableSynchronization();
           // Verify bottom sheet appears
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000);
@@ -82,8 +83,9 @@ describe(
           await WalletView.tapNetworksButtonOnNavBar();
           await NetworkListModal.scrollToBottomOfNetworkList();
           await NetworkListModal.changeNetworkTo(SEPOLIA);
+          await device.disableSynchronization();
           await NetworkEducationModal.tapGotItButton();
-
+          await device.enableSynchronization();
           // Verify no bottom sheet appears
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000);
@@ -113,7 +115,9 @@ describe(
           await WalletView.tapNetworksButtonOnNavBar();
           await NetworkListModal.scrollToBottomOfNetworkList();
           await NetworkListModal.changeNetworkTo(SEPOLIA);
+          await device.disableSynchronization();
           await NetworkEducationModal.tapGotItButton();
+          await device.enableSynchronization();
 
           // Add network permission
           await TabBarComponent.tapBrowser();
@@ -200,7 +204,9 @@ describe(
           await WalletView.tapNetworksButtonOnNavBar();
           await NetworkListModal.scrollToBottomOfNetworkList();
           await NetworkListModal.changeNetworkTo(SEPOLIA);
+          await device.disableSynchronization();
           await NetworkEducationModal.tapGotItButton();
+          await device.enableSynchronization();
 
           // Verify bottom sheet appears and navigate to edit permissions
           await TabBarComponent.tapBrowser();
