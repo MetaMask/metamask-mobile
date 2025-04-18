@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - feat(bridge): Handle Solana vs EVM swap and bridge routing ([#14614](https://github.com/MetaMask/metamask-mobile/pull/14614))
 
+### Fixed
+
+- fix(bridge): fix not switching networks when selecting source token ([#14712](https://github.com/MetaMask/metamask-mobile/pull/14712))
+
 ## [7.44.0]
 
 ### Added
