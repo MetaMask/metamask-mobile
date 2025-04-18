@@ -7,7 +7,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import type { ThemeColors } from '@metamask/design-tokens';
+import { type ThemeColors } from '@metamask/design-tokens';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
@@ -72,10 +72,12 @@ const createStyles = (colors: ThemeColors) =>
     },
     title: {
       fontSize: 40,
+      lineHeight: 40,
       marginBottom: 28,
       justifyContent: 'center',
       textAlign: 'center',
       paddingHorizontal: 60,
+      fontFamily: 'MMSans-Regular',
     },
     subtitle: {
       textAlign: 'center',
@@ -300,7 +302,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                       />
                     </View>
                     <Text
-                      variant={TextVariant.DisplayMD}
+                      variant={TextVariant.HeadingSMRegular}
                       style={styles.title}
                       color={onboardingCarouselColors[value].color}
                     >

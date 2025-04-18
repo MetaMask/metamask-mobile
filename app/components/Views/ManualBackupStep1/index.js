@@ -354,7 +354,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     </ActionView>
   );
 
-  const marginTop = marginOffset ? 100 : 50;
+  const marginTop = marginOffset ? 110 : 50;
 
   return ready ? (
     <SafeAreaView style={styles.mainWrapper}>
