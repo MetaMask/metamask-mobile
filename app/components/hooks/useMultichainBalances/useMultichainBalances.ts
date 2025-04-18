@@ -38,7 +38,7 @@ import { selectSelectedNonEvmNetworkChainId } from '../../../selectors/multichai
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import I18n from '../../../../locales/i18n';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 /**
  * Hook to manage portfolio balance data across chains.
@@ -47,6 +47,7 @@ import { useCallback, useMemo } from 'react';
  */
 const useMultichainBalances = (): UseMultichainBalancesHook => {
   // Production selectors (EVM)
+  const renderCountRef = useRef(0);
   const accountsList = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const chainId = useSelector(selectChainId);
@@ -77,6 +78,15 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
     ticker,
     type,
   );
+
+  // Track re-renders
+  useEffect(() => {
+    renderCountRef.current += 1;
+    // eslint-disable-next-line no-console
+    console.log(
+      `useMultichainBalances re-rendered ${renderCountRef.current} times`,
+    );
+  });
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
