@@ -8,10 +8,12 @@ import ReduxService from '../redux';
 import { UserActionType } from '../../actions/user';
 import { handleAndroidAppleLogin } from './android/apple';
 import { handleAndroidGoogleLogin } from './android/google';
-import { ByoaResponse, HandleFlowParams, ByoaServerUrl, HandleOauth2LoginResult, LoginProvider, Web3AuthNetwork, DefaultWeb3AuthNetwork, GroupedAuthConnectionId, AuthConnectionId } from './Oauth2loginInterface';
+import { ByoaResponse, HandleFlowParams, ByoaServerUrl, HandleOauth2LoginResult, LoginProvider, GroupedAuthConnectionId, AuthConnectionId } from './Oauth2loginInterface';
 import { handleIosGoogleLogin } from './ios/google';
 import { handleIosAppleLogin } from './ios/apple';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
+import { TOPRFNetwork } from '../Engine/controllers/seedless-onboarding-controller';
+import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 
 export class Oauth2LoginService {
     public localState: {
@@ -212,4 +214,4 @@ export class Oauth2LoginService {
     };
 }
 
-export default new Oauth2LoginService({web3AuthNetwork: DefaultWeb3AuthNetwork, authConnectionId: AuthConnectionId, groupedAuthConnectionId: GroupedAuthConnectionId});
+export default new Oauth2LoginService({web3AuthNetwork: TOPRFNetwork, authConnectionId: AuthConnectionId, groupedAuthConnectionId: GroupedAuthConnectionId});

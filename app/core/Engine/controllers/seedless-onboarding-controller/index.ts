@@ -2,10 +2,12 @@ import type { ControllerInitFunction } from '../../types';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
+  Web3AuthNetwork,
   type SeedlessOnboardingControllerMessenger,
 } from '@metamask/seedless-onboarding-controller';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 
+export const TOPRFNetwork = Web3AuthNetwork.Devnet;
 
 const getDefaultSeedlessOnboardingControllerState = () : SeedlessOnboardingControllerState => ({
   vault: undefined,
@@ -36,6 +38,7 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     state: seedlessOnboardingControllerState as SeedlessOnboardingControllerState,
     encryptor,
+    network: TOPRFNetwork
   });
 
 
