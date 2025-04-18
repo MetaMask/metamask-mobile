@@ -75,16 +75,19 @@ import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSumma
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import {
+  getCaip25PermissionsResponse,
+  getRequestedCaip25CaveatValue,
+} from './utils';
 import { getPhishingTestResult } from '../../../util/phishingDetection';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import { toHex } from '@metamask/controller-utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -249,49 +252,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     // No need to update selectedChainIds here since it's already initialized with all networks
   }, [networkConfigurations]);
 
-  const handleUpdateNetworkPermissions = useCallback(async () => {
-    let hasPermittedChains = false;
-    let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
-    if (chainId && chainsToPermit.length === 0) {
-      chainsToPermit = [chainId];
-    }
-
-    try {
-      hasPermittedChains = Engine.context.PermissionController.hasCaveat(
-        new URL(hostname).hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-      );
-    } catch {
-      // noop
-    }
-
-    if (hasPermittedChains) {
-      Engine.context.PermissionController.updateCaveat(
-        new URL(hostname).hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-        chainsToPermit,
-      );
-    } else {
-      Engine.context.PermissionController.grantPermissionsIncremental({
-        subject: {
-          origin: new URL(hostname).hostname,
-        },
-        approvedPermissions: {
-          [PermissionKeys.permittedChains]: {
-            caveats: [
-              {
-                type: CaveatTypes.restrictNetworkSwitching,
-                value: chainsToPermit,
-              },
-            ],
-          },
-        },
-      });
-    }
-  }, [selectedChainIds, chainId, hostname]);
-
   const isAllowedOrigin = useCallback((origin: string) => {
     const phishingResult = getPhishingTestResult(origin);
     return !phishingResult?.result;
@@ -437,13 +397,38 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleConnect = useCallback(async () => {
+    const requestedCaip25CaveatValue = getRequestedCaip25CaveatValue(
+      hostInfo.permissions,
+    );
+
+    /**
+     * TODO: This should be removed as part of later UI connection refactor work for Multichain API implementation.
+     * This logic should be removed and the UI should ensure it cannot continue if no chains are selected.
+     * {@link https://github.com/MetaMask/metamask-mobile/pull/13970/files#r2042345624}
+     */
+    let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
+    if (chainId && chainsToPermit.length === 0) {
+      chainsToPermit = [chainId];
+    }
+    const hexSelectedAddresses = selectedAddresses.map((account) =>
+      toHex(account),
+    );
+    const hexChainsToPermit = chainsToPermit.map((chain) => toHex(chain));
+
     const request: PermissionsRequest = {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
         origin: channelIdOrHostname,
       },
-      approvedAccounts: selectedAddresses,
+      permissions: {
+        ...hostInfo.permissions,
+        ...getCaip25PermissionsResponse(
+          requestedCaip25CaveatValue,
+          hexSelectedAddresses,
+          hexChainsToPermit,
+        ),
+      },
     };
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
@@ -499,6 +484,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     trackEvent,
     faviconSource,
     createEventBuilder,
+    selectedChainIds,
+    chainId,
   ]);
 
   const handleCreateAccount = useCallback(
@@ -567,7 +554,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       switch (action) {
         case USER_INTENT.Confirm: {
           handleConnect();
-          handleUpdateNetworkPermissions();
           hideSheet();
           break;
         }
@@ -625,7 +611,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     handleCreateAccount,
     handleConnect,
     trackEvent,
-    handleUpdateNetworkPermissions,
     createEventBuilder,
   ]);
 

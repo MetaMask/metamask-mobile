@@ -21,6 +21,7 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../utils/Assertions';
+import { buildPermissions } from '../../fixtures/utils';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -36,7 +37,7 @@ describe(SmokeConfirmations('Send to contract address'), () => {
     await withFixtures(
       {
         dapp: true,
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: new FixtureBuilder().withGanacheNetwork(buildPermissions(['0x539'])).build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: HST_CONTRACT,

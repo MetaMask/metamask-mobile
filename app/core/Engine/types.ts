@@ -204,7 +204,10 @@ import {
   AccountsControllerEvents,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
-import { getPermissionSpecifications } from '../Permissions/specifications.js';
+import {
+  getPermissionSpecifications,
+  PermissionKeys,
+} from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
@@ -263,6 +266,7 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
+import { CaveatTypes } from '../Permissions/constants';
 
 /**
  * Controllers that area always instantiated
@@ -698,3 +702,18 @@ export type InitModularizedControllersFunction = (request: {
 }) => {
   controllersByName: ControllerByName;
 };
+
+export interface LegacyPermissions {
+  [PermissionKeys.eth_accounts]?: {
+    caveats?: {
+      type: keyof typeof CaveatTypes;
+      value: Hex[];
+    }[];
+  };
+  [PermissionKeys.permittedChains]?: {
+    caveats?: {
+      type: keyof typeof CaveatTypes;
+      value: Hex[];
+    }[];
+  };
+}
