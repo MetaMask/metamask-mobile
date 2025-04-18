@@ -245,7 +245,7 @@ index aba5594..423db4c 100644
 +              }
 +          });
 +          // Wait for all promises to settle
-+          await Promise.all(balancePromises);
++          await Promise.allSettled(balancePromises);
 +          this.update((state) => {
 +              state.accountsByChainId[chainId] = accountsForChain;
 +          });
