@@ -235,7 +235,7 @@ describe('Wallet', () => {
     expect(accountPicker).toBeDefined();
   });
 
-  it.only('Should add tokens to state automatically when there are detected tokens', () => {
+  it('Should add tokens to state automatically when there are detected tokens', () => {
     const mockedAddTokens = jest.mocked(Engine.context.TokensController);
 
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
