@@ -418,9 +418,6 @@ class Onboarding extends PureComponent {
         if (result.existingUser) {
           this.props.navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
-            onContinue: () => {
-              this.metricNavigationWrapper('Login', ONBOARDING, 'create');
-            },
           });
         } else {
           this.metricNavigationWrapper('ChoosePassword', ONBOARDING, 'create');
@@ -431,9 +428,6 @@ class Onboarding extends PureComponent {
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,
-            onContinue: () => {
-              this.metricNavigationWrapper('ChoosePassword', ONBOARDING, 'import');
-            },
           });
         }
       }
@@ -444,7 +438,7 @@ class Onboarding extends PureComponent {
 
   onPressContinueWithApple = async () => {
     const action = async () => {
-      const result = await Oauth2loginService.handleOauth2Login('apple', 'onboarding').catch((e) => {
+      const result = await Oauth2loginService.handleOauth2Login('apple').catch((e) => {
         DevLogger.log(e);
         return {type: 'error', error: e, existingUser: false};
       });
@@ -456,7 +450,7 @@ class Onboarding extends PureComponent {
 
   onPressContinueWithGoogle = async () => {
     const action = async () => {
-      const result = await Oauth2loginService.handleOauth2Login('google', 'onboarding').catch((e) => {
+      const result = await Oauth2loginService.handleOauth2Login('google').catch((e) => {
         DevLogger.log(e);
         return {type: 'error', error: e, existingUser: false};
       });

@@ -359,8 +359,8 @@ class Login extends PureComponent {
   }
 
   handleUseOtherMethod = () => {
+    this.props.navigation.navigate('OnboardingRootNav', { screen: 'OnboardingNav', params: { screen: 'Onboarding' } });
     this.props.dispatchOauth2LoginReset();
-    this.props.navigation.navigate('Onboarding');
   };
 
   handleBackPress = async () => {

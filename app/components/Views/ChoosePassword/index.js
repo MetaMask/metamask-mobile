@@ -345,7 +345,7 @@ class ChoosePassword extends PureComponent {
       authType.oauth2Login = this.props.oauth2LoginSuccess;
       Logger.log('previous_screen', previous_screen);
 
-      if (previous_screen === ONBOARDING) {
+      if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
