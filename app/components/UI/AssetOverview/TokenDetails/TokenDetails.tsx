@@ -1,22 +1,16 @@
 import { zeroAddress } from 'ethereumjs-util';
 import { Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import i18n from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './TokenDetails.styles';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { selectTokenList } from '../../../../selectors/tokenListController';
-import {
-  selectTokenMarketDataByChainId,
-  selectContractExchangeRates,
-} from '../../../../selectors/tokenRatesController';
 import {
   selectConversionRateBySymbol,
   selectCurrentCurrency,
-  selectConversionRate,
 } from '../../../../selectors/currencyRateController';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
@@ -29,7 +23,6 @@ import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
 import StakingEarnings from '../../Stake/components/StakingEarnings';
-import { isPortfolioViewEnabled } from '../../../../util/networks';
 import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
 import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
 import { parseFloatSafe } from '../../Earn/utils';
@@ -60,9 +53,6 @@ interface TokenDetailsProps {
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
-  const tokenExchangeRatesByChainId = useSelector((state: RootState) =>
-    selectTokenMarketDataByChainId(state, asset.chainId as Hex),
-  );
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
@@ -74,7 +64,8 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   // const tokenList = useSelector(selectTokenList);
 
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
-  const nonEvmMarketData = useSelector(selectNonEvmMarketData);
+  const { marketData: nonEvmMarketData, metadata: nonEvmMetadata } =
+    useSelector(selectNonEvmMarketData);
 
   const evmMarketData = useSelector((state: RootState) =>
     selectEvmTokenMarketData(state, {
@@ -83,12 +74,22 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     }),
   );
 
-  const conversionRate = conversionRateBySymbol;
+  const conversionRate = isEvmNetworkSelected
+    ? conversionRateBySymbol
+    : nonEvmMetadata.rate;
+
+  const localizeMarketDetails = useCallback(
+    (value: number | undefined, shouldConvert: boolean): number | undefined => {
+      if (!value || value <= 0) return undefined;
+      return shouldConvert ? value * conversionRate : value;
+    },
+    [conversionRate],
+  );
 
   let tokenMetadata;
   let marketData;
 
-  if (isEvmNetworkSelected) {
+  if (!isEvmNetworkSelected) {
     marketData = nonEvmMarketData;
   } else {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -119,11 +120,17 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const marketDetails: MarketDetails = {
     marketCap:
       marketData?.marketCap > 0
-        ? localizeLargeNumber(i18n, conversionRate * marketData.marketCap)
+        ? localizeLargeNumber(
+            i18n,
+            localizeMarketDetails(marketData.marketCap, isEvmNetworkSelected),
+          )
         : null,
     totalVolume:
       marketData?.totalVolume > 0
-        ? localizeLargeNumber(i18n, conversionRate * marketData.totalVolume)
+        ? localizeLargeNumber(
+            i18n,
+            localizeMarketDetails(marketData.totalVolume, isEvmNetworkSelected),
+          )
         : null,
     volumeToMarketCap:
       marketData?.marketCap > 0
@@ -138,14 +145,14 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     allTimeHigh:
       marketData?.allTimeHigh > 0
         ? formatCurrency(
-            conversionRate * marketData.allTimeHigh,
+            localizeMarketDetails(marketData.allTimeHigh, isEvmNetworkSelected),
             currentCurrency,
           )
         : null,
     allTimeLow:
       marketData?.allTimeLow > 0
         ? formatCurrency(
-            conversionRate * marketData.allTimeLow,
+            localizeMarketDetails(marketData.allTimeLow, isEvmNetworkSelected),
             currentCurrency,
           )
         : null,
@@ -157,8 +164,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   const hasAssetBalance =
     asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
-
-  console.log('marketData', marketData);
 
   return (
     <View style={styles.tokenDetailsContainer}>
