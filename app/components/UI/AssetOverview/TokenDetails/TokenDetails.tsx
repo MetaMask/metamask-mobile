@@ -61,7 +61,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenContractAddress = safeToChecksumAddress(asset.address);
-  // const tokenList = useSelector(selectTokenList);
 
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const { marketData: nonEvmMarketData, metadata: nonEvmMetadata } =

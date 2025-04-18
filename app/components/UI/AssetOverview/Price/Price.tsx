@@ -82,8 +82,6 @@ const Price = ({
     ? distributedPriceData[activeChartIndex]?.[1] - comparePrice
     : priceDiff;
 
-  // console.log('DISTRIBUTED PRICE DATA: ', distributedPriceData);
-
   const { styles } = useStyles(styleSheet, { priceDiff: diff });
   const ticker = asset.ticker || asset.symbol;
   return (

@@ -262,13 +262,6 @@ export const TokenListItem = React.memo(
           .build(),
       );
 
-      // Token details are currently only supported for EVM networks.
-      // This early return prevents navigation to token details for non-EVM networks.
-      // TODO: Remove this when shipping the multichain token details feature, which is slated for 7.45 RC
-      // if (!isEvmNetworkSelected) {
-      //   return;
-      // }
-
       // if the asset is staked, navigate to the native asset details
       if (asset.isStaked) {
         return navigation.navigate('Asset', {
