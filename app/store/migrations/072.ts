@@ -62,7 +62,7 @@ const migration = (state: unknown): unknown => {
       // Regardless if the network already exists, we will overwrite it with our default MegaETH configuration.
       state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
         megaethTestnetChainId
-      ] = megaethTestnetConfiguration
+      ] = megaethTestnetConfiguration;
     }
     return state;
   } catch (error) {
