@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -25,10 +25,11 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   selectIsAllNetworks,
   selectNetworkConfigurations,
+  selectChainId,
 } from '../../../selectors/networkController';
 import {
   selectShowTestNetworks,
@@ -101,6 +102,8 @@ import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
+import { setTransactionSendFlowContextualChainId } from '../../../actions/transaction';
+import { selectSendFlowContextualChainId } from '../../../selectors/transaction';
 
 interface infuraNetwork {
   name: string;
@@ -120,6 +123,7 @@ interface NetworkSelectorRouteParams {
       origin?: string;
     };
   };
+  source?: string;
 }
 
 const NetworkSelector = () => {
@@ -138,6 +142,7 @@ const NetworkSelector = () => {
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const safeAreaInsets = useSafeAreaInsets();
+  const dispatch = useDispatch();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -152,12 +157,27 @@ const NetworkSelector = () => {
     tags: getTraceTags(store.getState()),
     op: TraceOperation.NetworkSwitch,
   });
+
+  // Get both chain IDs
+  const globalChainId = useSelector(selectChainId);
+  const contextualChainId = useSelector(selectSendFlowContextualChainId);
+
   const {
-    chainId: selectedChainId,
+    chainId: perDappChainId,
     rpcUrl: selectedRpcUrl,
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
+
+  const selectedChainId =
+    route.params?.source === 'SendFlow' && contextualChainId
+      ? contextualChainId
+      : perDappChainId;
+  // Use contextual chain ID for SendFlow, otherwise use global
+  const effectiveChainId =
+    route.params?.source === 'SendFlow' && contextualChainId
+      ? contextualChainId
+      : globalChainId;
 
   const KEYBOARD_OFFSET = 120;
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
@@ -222,6 +242,8 @@ const NetworkSelector = () => {
 
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
+  const source = route.params?.source;
+
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
     const { MultichainNetworkController, SelectedNetworkController } =
       Engine.context;
@@ -250,7 +272,11 @@ const NetworkSelector = () => {
       } else {
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
-          await MultichainNetworkController.setActiveNetwork(networkClientId);
+          if (source === 'SendFlow') {
+            dispatch(setTransactionSendFlowContextualChainId(chainId));
+          } else {
+            await MultichainNetworkController.setActiveNetwork(networkClientId);
+          }
         } catch (error) {
           Logger.error(new Error(`Error i setActiveNetwork: ${error}`));
         }
@@ -373,14 +399,19 @@ const NetworkSelector = () => {
     } else {
       const networkConfiguration =
         networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
+      if (source !== 'SendFlow') {
+        const clientId =
+          networkConfiguration?.rpcEndpoints[
+            networkConfiguration.defaultRpcEndpointIndex
+          ].networkClientId ?? type;
 
-      const clientId =
-        networkConfiguration?.rpcEndpoints[
-          networkConfiguration.defaultRpcEndpointIndex
-        ].networkClientId ?? type;
-
-      setTokenNetworkFilter(networkConfiguration.chainId);
-      await MultichainNetworkController.setActiveNetwork(clientId);
+        setTokenNetworkFilter(networkConfiguration.chainId);
+        await MultichainNetworkController.setActiveNetwork(clientId);
+      } else {
+        dispatch(
+          setTransactionSendFlowContextualChainId(networkConfiguration.chainId),
+        );
+      }
 
       closeRpcModal();
       AccountTrackerController.refresh();

@@ -2,6 +2,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { toHex } from '@metamask/controller-utils';
 
 import { strings } from '../../../../locales/i18n';
 import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
@@ -9,6 +10,8 @@ import { BadgeVariant } from '../../../component-library/components/Badges/Badge
 import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
+import { selectNetworkConfigurationByChainId } from '../../../selectors/networkController';
+import { RootState } from '../../../reducers';
 import {
   getLabelTextByAddress,
   renderAccountName,
@@ -17,6 +20,7 @@ import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { getNetworkImageSource } from '../../../util/networks';
 
 interface Asset {
   isETH?: boolean;
@@ -47,16 +51,34 @@ const AddressFrom = ({
   const [accountName, setAccountName] = useState('');
 
   const { styles } = useStyles(stylesheet, {});
-  const { addressBalance } = useAddressBalance(asset, from, dontWatchAsset, chainId);
+  const { addressBalance } = useAddressBalance(
+    asset,
+    from,
+    dontWatchAsset,
+    chainId,
+  );
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
+  const networkConfiguration = useSelector((state: RootState) =>
+    chainId ? selectNetworkConfigurationByChainId(state, toHex(chainId)) : null,
+  );
 
   const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress = toChecksumAddress(from);
 
-  // FIXME: this could be the wrong selector, probably needs to be per dapp (per origin)
-  // console.log('>>> AddressFrom origin', origin);
-  const { networkName, networkImageSource } = useNetworkInfo(origin);
+  let { networkName, networkImageSource } = useNetworkInfo(origin);
+
+  if (networkConfiguration) {
+    networkName = networkConfiguration.name;
+  }
+
+  if (chainId) {
+    // @ts-expect-error The utils/network file is still JS and this function expects a networkType, which should be optional
+    const chainImage = getNetworkImageSource({ chainId: toHex(chainId) });
+    if (chainImage) {
+      networkImageSource = chainImage;
+    }
+  }
 
   const useBlockieIcon = useSelector(
     // TODO: Replace "any" with type
