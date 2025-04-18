@@ -200,7 +200,7 @@ const AddCustomCollectible = ({
 
     trace({ name: TraceName.ImportNfts });
 
-    NftController.addNft(address, tokenId);
+    await NftController.addNft(address, tokenId);
 
     endTrace({ name: TraceName.ImportNfts });
 
