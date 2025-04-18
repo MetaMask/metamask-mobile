@@ -1,20 +1,12 @@
 import React, { useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableWithoutFeedback,
-  Keyboard,
-  InteractionManager,
-  UIManager,
-  LayoutAnimation,
-  Platform,
-} from 'react-native';
+import { View, InteractionManager, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { OutlinedTextField } from 'react-native-material-textfield';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../component-library/components/Icons/Icon';
 import { createStyles } from './styles';
-import ReusableModal, { ReusableModalRef } from '../ReusableModal';
-import WarningExistingUserModal from '../WarningExistingUserModal';
 import { useDeleteWallet } from '../../hooks/DeleteWallet';
 import { strings } from '../../../../locales/i18n';
 import { tlc } from '../../../util/general';
@@ -22,7 +14,6 @@ import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useDispatch, useSelector } from 'react-redux';
@@ -30,6 +21,22 @@ import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
 import { RootState } from '../../../reducers';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
+import TextField, {
+  TextFieldSize,
+} from '../../../component-library/components/Form/TextField';
+import Label from '../../../component-library/components/Form/Label';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 
 const DELETE_KEYWORD = 'delete';
 
@@ -43,9 +50,8 @@ const DeleteWalletModal = () => {
   const { trackEvent, createEventBuilder, isEnabled } = useMetrics();
   const styles = createStyles(colors);
 
-  const modalRef = useRef<ReusableModalRef>(null);
+  const modalRef = useRef<BottomSheetRef>(null);
 
-  const [showConfirm, setShowConfirm] = useState<boolean>(false);
   const [deleteText, setDeleteText] = useState<string>('');
   const [disableButton, setDisableButton] = useState<boolean>(true);
 
@@ -57,11 +63,6 @@ const DeleteWalletModal = () => {
 
   const { signOut } = useSignOut();
 
-  const showConfirmModal = () => {
-    setShowConfirm(true);
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-  };
-
   const isTextDelete = (text: string) => tlc(text) === DELETE_KEYWORD;
 
   const checkDelete = (text: string) => {
@@ -70,7 +71,7 @@ const DeleteWalletModal = () => {
   };
 
   const dismissModal = (cb?: () => void): void =>
-    modalRef?.current?.dismissModal(cb);
+    modalRef?.current?.onCloseBottomSheet(cb);
 
   const triggerClose = (): void => dismissModal();
 
@@ -115,85 +116,84 @@ const DeleteWalletModal = () => {
   };
 
   return (
-    <ReusableModal ref={modalRef}>
-      {showConfirm ? (
-        <WarningExistingUserModal
-          warningModalVisible
-          cancelText={strings('login.delete_my')}
-          cancelTestID={DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON}
-          confirmTestID={DeleteWalletModalSelectorsIDs.DELETE_CANCEL_BUTTON}
-          cancelButtonDisabled={disableButton}
-          onCancelPress={deleteWallet}
-          onRequestClose={triggerClose}
-          onConfirmPress={triggerClose}
+    <BottomSheet ref={modalRef}>
+      <View style={styles.container}>
+        <View
+          style={styles.areYouSure}
+          testID={DeleteWalletModalSelectorsIDs.CONTAINER}
         >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.areYouSure}>
-              <Text style={[styles.heading, styles.delete]}>
-                {strings('login.type_delete', {
-                  [DELETE_KEYWORD]: DELETE_KEYWORD,
-                })}
-              </Text>
-              <OutlinedTextField
-                style={styles.input}
-                {...generateTestId(
-                  Platform,
-                  DeleteWalletModalSelectorsIDs.INPUT,
-                )}
-                autoFocus
-                returnKeyType={'done'}
-                onChangeText={checkDelete}
-                autoCapitalize="none"
-                value={deleteText}
-                baseColor={colors.border.default}
-                tintColor={colors.primary.default}
-                placeholderTextColor={colors.text.muted}
-                keyboardAppearance={themeAppearance}
-              />
-            </View>
-          </TouchableWithoutFeedback>
-        </WarningExistingUserModal>
-      ) : (
-        <WarningExistingUserModal
-          warningModalVisible
-          cancelText={strings('login.i_understand')}
-          onCancelPress={showConfirmModal}
-          onRequestClose={triggerClose}
-          onConfirmPress={triggerClose}
-          cancelTestID={DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON}
-          confirmTestID={DeleteWalletModalSelectorsIDs.CANCEL_BUTTON}
-        >
-          <View
-            style={styles.areYouSure}
-            testID={DeleteWalletModalSelectorsIDs.CONTAINER}
+          {
+            <Icon
+              style={styles.warningIcon}
+              size={IconSize.Xl}
+              color={IconColor.Error}
+              name={IconName.Danger}
+            />
+          }
+          <Text
+            style={styles.heading}
+            variant={TextVariant.HeadingMD}
+            color={TextColor.Default}
           >
-            {
-              <Icon
-                style={styles.warningIcon}
-                size={46}
-                color={colors.error.default}
-                name="exclamation-triangle"
-              />
-            }
-            <Text style={[styles.heading, styles.red]}>
-              {strings('login.are_you_sure')}
+            {strings('login.are_you_sure')}
+          </Text>
+          <View style={styles.warningTextContainer}>
+            <Text
+              style={styles.warningText}
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
+            >
+              {strings('login.your_current_wallet')}{' '}
+              <Text
+                style={styles.warningText}
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+              >
+                {strings('login.removed_from')}
+              </Text>{' '}
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {strings('login.this_action')}
+              </Text>
             </Text>
             <Text style={styles.warningText}>
-              <Text>{strings('login.your_current_wallet')}</Text>
-              <Text style={styles.bold}>{strings('login.removed_from')}</Text>
-              <Text>{strings('login.this_action')}</Text>
-            </Text>
-            <Text style={[styles.warningText]}>
-              <Text>{strings('login.you_can_only')}</Text>
-              <Text style={styles.bold}>
-                {strings('login.recovery_phrase')}
-              </Text>
-              <Text>{strings('login.metamask_does_not')}</Text>
+              {strings('login.you_can_only')}
             </Text>
           </View>
-        </WarningExistingUserModal>
-      )}
-    </ReusableModal>
+          <View style={styles.inputContainer}>
+            <Label variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {strings('login.type_delete', {
+                [DELETE_KEYWORD]: DELETE_KEYWORD,
+              })}
+            </Label>
+            <TextField
+              size={TextFieldSize.Lg}
+              onChangeText={checkDelete}
+              autoCapitalize="none"
+              value={deleteText}
+              keyboardAppearance={themeAppearance}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              onPress={deleteWallet}
+              label={strings('login.delete_my')}
+              width={ButtonWidthTypes.Full}
+              isDanger
+              isDisabled={disableButton}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              onPress={triggerClose}
+              label={strings('login.cancel')}
+              width={ButtonWidthTypes.Full}
+            />
+          </View>
+        </View>
+      </View>
+    </BottomSheet>
   );
 };
 
