@@ -3,7 +3,6 @@ import {
   isValidAddress,
   addHexPrefix,
   isValidChecksumAddress,
-  //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
   isHexPrefixed,
 } from 'ethereumjs-util';
 import punycode from 'punycode/punycode';
@@ -33,15 +32,21 @@ import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
 import Logger from '../../../app/util/Logger';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AddressBookControllerState } from '@metamask/address-book-controller';
-import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
-import { NetworkClientId, NetworkState } from '@metamask/network-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { AddressBookControllerState } from '@metamask/address-book-controller';
+import {
+  type NetworkType,
+  toChecksumHexAddress,
+} from '@metamask/controller-utils';
+import type {
+  NetworkClientId,
+  NetworkState,
+} from '@metamask/network-controller';
 import {
   AccountImportStrategy,
   KeyringTypes,
 } from '@metamask/keyring-controller';
-import { Hex, isHexString } from '@metamask/utils';
+import { type Hex, isHexString } from '@metamask/utils';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 
 const {
