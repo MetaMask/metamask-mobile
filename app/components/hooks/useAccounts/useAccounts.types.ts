@@ -72,6 +72,11 @@ export interface UseAccountsParams {
    * @default false
    */
   isLoading?: boolean;
+  /**
+   * Optional boolean that enables logging of hook re-renders for debugging purposes.
+   * @default false
+   */
+  trackReRenders?: boolean;
 }
 
 /**

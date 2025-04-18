@@ -36,6 +36,7 @@ const useAccounts = ({
   isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
   const isMountedRef = useRef(false);
+  const renderCountRef = useRef(0);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [evmAccounts, setEVMAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
@@ -43,6 +44,24 @@ const useAccounts = ({
   const chainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+
+  // Track re-renders
+  useEffect(() => {
+    renderCountRef.current += 1;
+    console.log(`useAccounts re-rendered ${renderCountRef.current} times`, {
+      timestamp: new Date().toISOString(),
+      chainId,
+      accountsCount: internalAccounts.length,
+      selectedAccount: selectedInternalAccount?.id,
+      // Add dependency array items to track what's causing re-renders
+      dependencyChanges: {
+        chainId,
+        internalAccountsLength: internalAccounts.length,
+        selectedAccountId: selectedInternalAccount?.id,
+        isLoading,
+      },
+    });
+  });
 
   const { multichainBalancesForAllAccounts } = useMultichainBalances();
 
