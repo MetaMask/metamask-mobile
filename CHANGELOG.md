@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- fix(swaps): set default slippage when source or destination token is not stablecoin ([#14730](https://github.com/MetaMask/metamask-mobile/pull/14730))
+
 ### Changed
 
 - fix(multi-srp): display errors only after all the words are have been entered ([#14607](https://github.com/MetaMask/metamask-mobile/pull/14607))
@@ -103,10 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: inherit icon size from text component parent ([#14024](https://github.com/MetaMask/metamask-mobile/pull/14024))
 - fix: animation added for loading state on SnapUILink button ([#13973](https://github.com/MetaMask/metamask-mobile/pull/13973))
 - fix: Revert "chore: upgrade Xcode 16 on bitrise.yml" ([#14012](https://github.com/MetaMask/metamask-mobile/pull/14012))
-
-### Fixed
-
 - fix(bridge): hide staked native assets from token selectors ([#14457](https://github.com/MetaMask/metamask-mobile/pull/14457))
+
 
 ## [7.43.0]
 
