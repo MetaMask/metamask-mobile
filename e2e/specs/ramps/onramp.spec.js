@@ -78,8 +78,6 @@ describe(SmokeTrade('Buy Crypto'), () => {
     } else {
       paymentMethod = 'PayPal';
     }
-    
-    
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
     await BuildQuoteView.tapCurrencySelector();

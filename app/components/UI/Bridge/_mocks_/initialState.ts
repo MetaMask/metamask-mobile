@@ -114,6 +114,11 @@ export const initialState = {
               1559: true,
             },
           },
+          selectedNetworkClientId: {
+            EIPS: {
+              1559: true,
+            },
+          },
         },
         networkConfigurationsByChainId: {
           [ethChainId]: {
@@ -378,9 +383,7 @@ export const initialState = {
       KeyringController: {
         keyrings: [
           {
-            accounts: [
-              evmAccountAddress,
-            ],
+            accounts: [evmAccountAddress],
             type: 'HD Key Tree',
           },
           { accounts: [], type: 'QR Hardware Wallet Device' },

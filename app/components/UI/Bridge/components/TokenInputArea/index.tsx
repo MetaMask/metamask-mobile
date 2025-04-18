@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, ImageSourcePropType } from 'react-native';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import { StyleSheet, ImageSourcePropType, TextInput } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
@@ -23,19 +23,19 @@ import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import Button, { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
+import Button, {
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
+import { selectBridgeControllerState } from '../../../../../core/redux/slices/bridge';
 
 const createStyles = () =>
   StyleSheet.create({
-    container: {
-      paddingHorizontal: 24,
-    },
     content: {
-      padding: 16,
+      paddingVertical: 16,
     },
     row: {
       flexDirection: 'row',
@@ -48,8 +48,8 @@ const createStyles = () =>
     input: {
       fontSize: 40,
       borderWidth: 0,
-      lineHeight: 40,
-      height: 40,
+      lineHeight: 50,
+      height: 50,
     },
   });
 
@@ -109,6 +109,11 @@ export enum TokenInputAreaType {
   Source = 'source',
   Destination = 'destination',
 }
+
+export interface TokenInputAreaRef {
+  blur: () => void;
+}
+
 interface TokenInputAreaProps {
   amount?: string;
   token?: BridgeToken;
@@ -121,115 +126,156 @@ interface TokenInputAreaProps {
   tokenType?: TokenInputAreaType;
   onTokenPress?: () => void;
   isLoading?: boolean;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
-export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
-  amount,
-  token,
-  tokenBalance,
-  networkImageSource,
-  networkName,
-  autoFocus,
-  isReadonly = false,
-  testID,
-  tokenType,
-  onTokenPress,
-  isLoading = false,
-}) => {
-  const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+export const TokenInputArea = forwardRef<
+  TokenInputAreaRef,
+  TokenInputAreaProps
+>(
+  (
+    {
+      amount,
+      token,
+      tokenBalance,
+      networkImageSource,
+      networkName,
+      autoFocus,
+      isReadonly = false,
+      testID,
+      tokenType,
+      onTokenPress,
+      isLoading = false,
+      onFocus,
+      onBlur,
+    },
+    ref,
+  ) => {
+    const inputRef = useRef<TextInput>(null);
 
-  const navigateToDestNetworkSelector = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
-      params: {
-        shouldGoToTokens: true,
-      } as BridgeDestNetworkSelectorRouteParams,
+    useImperativeHandle(ref, () => ({
+      blur: () => {
+        if (inputRef.current) {
+          inputRef.current.blur();
+          onBlur?.();
+        }
+      },
+    }));
+
+    const { styles } = useStyles(createStyles, {});
+    const navigation = useNavigation();
+
+    const navigateToDestNetworkSelector = () => {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
+        params: {
+          shouldGoToTokens: true,
+        } as BridgeDestNetworkSelectorRouteParams,
+      });
+    };
+
+    // Data for fiat value calculation
+    const currentCurrency = useSelector(selectCurrentCurrency);
+    const multiChainMarketData = useSelector(selectTokenMarketData);
+    const multiChainCurrencyRates = useSelector(selectCurrencyRates);
+    const networkConfigurationsByChainId = useSelector(
+      selectNetworkConfigurations,
+    );
+    const { quoteRequest } = useSelector(selectBridgeControllerState);
+    const isInsufficientBalance = quoteRequest?.insufficientBal;
+
+    const fiatValue = getDisplayFiatValue({
+      token,
+      amount,
+      multiChainMarketData,
+      networkConfigurationsByChainId,
+      multiChainCurrencyRates,
+      currentCurrency,
     });
-  };
 
-  // Data for fiat value calculation
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const multiChainMarketData = useSelector(selectTokenMarketData);
-  const multiChainCurrencyRates = useSelector(selectCurrencyRates);
-  const networkConfigurationsByChainId = useSelector(
-    selectNetworkConfigurations,
-  );
+    // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
+    const formattedBalance =
+      token?.symbol && tokenBalance
+        ? `${renderNumber(tokenBalance)} ${token?.symbol}`
+        : undefined;
+    const formattedAddress =
+      token?.address && token.address !== ethers.constants.AddressZero
+        ? formatAddress(token?.address)
+        : undefined;
 
-  const fiatValue = getDisplayFiatValue({
-    token,
-    amount,
-    multiChainMarketData,
-    networkConfigurationsByChainId,
-    multiChainCurrencyRates,
-    currentCurrency,
-  });
+    const subtitle =
+      tokenType === TokenInputAreaType.Source
+        ? formattedBalance
+        : formattedAddress;
 
-  // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
-  const formattedBalance =
-    token?.symbol && tokenBalance
-      ? `${renderNumber(tokenBalance)} ${token?.symbol}`
-      : undefined;
-  const formattedAddress =
-    token?.address && token.address !== ethers.constants.AddressZero
-      ? formatAddress(token?.address)
-      : undefined;
-
-  const subtitle =
-    tokenType === TokenInputAreaType.Source
-      ? formattedBalance
-      : formattedAddress;
-
-  return (
-    <Box style={styles.container}>
-      <Box style={styles.content} gap={4}>
-        <Box style={styles.row}>
-          <Box style={styles.amountContainer}>
-            {isLoading ? (
-              <Skeleton width={100} height={40} style={styles.input} />
+    return (
+      <Box>
+        <Box style={styles.content} gap={4}>
+          <Box style={styles.row}>
+            <Box style={styles.amountContainer}>
+              {isLoading ? (
+                <Skeleton width={100} height={40} style={styles.input} />
+              ) : (
+                <Input
+                  ref={inputRef}
+                  value={amount}
+                  style={styles.input}
+                  isReadonly={isReadonly}
+                  autoFocus={autoFocus}
+                  placeholder="0"
+                  testID={`${testID}-input`}
+                  onFocus={() => {
+                    onFocus?.();
+                  }}
+                  onBlur={() => {
+                    onBlur?.();
+                  }}
+                />
+              )}
+            </Box>
+            {token ? (
+              <TokenButton
+                symbol={token?.symbol}
+                iconUrl={token?.image}
+                networkImageSource={networkImageSource}
+                networkName={networkName}
+                testID={testID}
+                onPress={onTokenPress}
+              />
             ) : (
-              <Input
-                value={amount}
-                style={styles.input}
-                isReadonly={isReadonly}
-                autoFocus={autoFocus}
-                placeholder="0"
-                testID={`${testID}-input`}
+              <Button
+                variant={ButtonVariants.Primary}
+                label={strings('bridge.bridge_to')}
+                onPress={navigateToDestNetworkSelector}
               />
             )}
           </Box>
-          {token ? (
-            <TokenButton
-              symbol={token?.symbol}
-              iconUrl={token?.image}
-              networkImageSource={networkImageSource}
-              networkName={networkName}
-              testID={testID}
-              onPress={onTokenPress}
-            />
-          ) : (
-            <Button
-              variant={ButtonVariants.Primary}
-              label={strings('bridge.bridge_to')}
-              onPress={navigateToDestNetworkSelector}
-            />
-          )}
-        </Box>
-        <Box style={styles.row}>
-          {isLoading ? (
-            <Skeleton width={100} height={10} />
-          ) : (
-            <>
-              {token && fiatValue ? (
-                <Text color={TextColor.Alternative}>{fiatValue}</Text>
-              ) : null}
-              {subtitle ? (
-                <Text color={TextColor.Alternative}>{subtitle}</Text>
-              ) : null}
-            </>
-          )}
+          <Box style={styles.row}>
+            {isLoading ? (
+              <Skeleton width={100} height={10} />
+            ) : (
+              <>
+                {token && fiatValue ? (
+                  <Text color={TextColor.Alternative}>{fiatValue}</Text>
+                ) : null}
+                {subtitle ? (
+                  <Text
+                    color={
+                      tokenType === TokenInputAreaType.Source &&
+                      isInsufficientBalance
+                        ? TextColor.Error
+                        : TextColor.Alternative
+                    }
+                  >
+                    {subtitle}
+                  </Text>
+                ) : null}
+              </>
+            )}
+          </Box>
         </Box>
       </Box>
-    </Box>
-  );
-};
+    );
+  },
+);
