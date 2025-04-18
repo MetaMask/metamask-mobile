@@ -4458,9 +4458,23 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/auth-network-utils@^0.0.0", "@metamask/auth-network-utils@https://github.com/MetaMask/metamask-mobile/raw/3f3c37e803ed5b9ac1561d9d7c260b80d5330eef/auth-network-utils.tgz":
+"@metamask/auth-network-utils@./auth-network-utils.tgz", "@metamask/auth-network-utils@^0.0.0", "@metamask/auth-network-utils@https://github.com/MetaMask/metamask-mobile/raw/3fac88faac9a44d6184a1f635d3a779740c15154/auth-network-utils.tgz":
   version "0.0.0"
-  resolved "https://github.com/MetaMask/metamask-mobile/raw/3f3c37e803ed5b9ac1561d9d7c260b80d5330eef/auth-network-utils.tgz#1d7067597cc391c90e091af7b9170a9e08f98085"
+  resolved "https://github.com/MetaMask/metamask-mobile/raw/3fac88faac9a44d6184a1f635d3a779740c15154/auth-network-utils.tgz#1d7067597cc391c90e091af7b9170a9e08f98085"
+  dependencies:
+    "@noble/curves" "^1.8.1"
+    "@noble/hashes" "^1.7.1"
+    "@toruslabs/bs58" "^1.0.0"
+    "@toruslabs/constants" "^15.0.0"
+    "@toruslabs/eccrypto" "^6.0.2"
+    bn.js "^5.2.1"
+    elliptic "^6.6.1"
+    json-stable-stringify "^1.2.1"
+    loglevel "^1.9.2"
+
+"@metamask/auth-network-utils@https://github.com/MetaMask/metamask-mobile/raw/3ceb622bd4a339d49463cb379f3440fdfa092a81/auth-network-utils.tgz":
+  version "0.0.0"
+  resolved "https://github.com/MetaMask/metamask-mobile/raw/3ceb622bd4a339d49463cb379f3440fdfa092a81/auth-network-utils.tgz#1d7067597cc391c90e091af7b9170a9e08f98085"
   dependencies:
     "@noble/curves" "^1.8.1"
     "@noble/hashes" "^1.7.1"
@@ -5371,16 +5385,17 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@https://github.com/MetaMask/metamask-mobile/raw/3f3c37e803ed5b9ac1561d9d7c260b80d5330eef/seedless-onboarding-controller.tgz":
+"@metamask/seedless-onboarding-controller@https://github.com/MetaMask/metamask-mobile/raw/3fac88faac9a44d6184a1f635d3a779740c15154/seedless-onboarding-controller.tgz":
   version "0.0.0"
-  resolved "https://github.com/MetaMask/metamask-mobile/raw/3f3c37e803ed5b9ac1561d9d7c260b80d5330eef/seedless-onboarding-controller.tgz#f1bd51402d7b72fe2494e791f8efc39073537e07"
+  resolved "https://github.com/MetaMask/metamask-mobile/raw/3fac88faac9a44d6184a1f635d3a779740c15154/seedless-onboarding-controller.tgz#8d43c5a995fc951738f6e12e41053c5ab546739f"
   dependencies:
+    "@metamask/auth-network-utils" "./auth-network-utils.tgz"
     "@metamask/base-controller" "^8.0.0"
     "@metamask/browser-passworder" "^4.3.0"
     "@metamask/toprf-secure-backup" "./toprf-secure-backup.tgz"
     "@metamask/utils" "^11.2.0"
-    "@noble/hashes" "^1.4.0"
     async-mutex "^0.5.0"
+    elliptic "^6.6.1"
 
 "@metamask/selected-network-controller@^21.0.0":
   version "21.0.0"
@@ -5634,9 +5649,9 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.1.0"
 
-"@metamask/toprf-secure-backup@./toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@https://github.com/MetaMask/metamask-mobile/raw/3f3c37e803ed5b9ac1561d9d7c260b80d5330eef/toprf-secure-backup.tgz":
+"@metamask/toprf-secure-backup@./toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@https://github.com/MetaMask/metamask-mobile/raw/3fac88faac9a44d6184a1f635d3a779740c15154/toprf-secure-backup.tgz":
   version "0.0.0"
-  resolved "https://github.com/MetaMask/metamask-mobile/raw/3f3c37e803ed5b9ac1561d9d7c260b80d5330eef/toprf-secure-backup.tgz#c39674559959c317cd3c1e8990e9afa4f0e9443a"
+  resolved "https://github.com/MetaMask/metamask-mobile/raw/3fac88faac9a44d6184a1f635d3a779740c15154/toprf-secure-backup.tgz#c39674559959c317cd3c1e8990e9afa4f0e9443a"
   dependencies:
     "@metamask/auth-network-utils" "^0.0.0"
     "@noble/ciphers" "^1.2.1"
