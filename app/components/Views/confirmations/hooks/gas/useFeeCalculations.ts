@@ -45,19 +45,21 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
         nativeConversionRate as number,
       );
       const locale = I18n.locale;
-      const nativeCurrencyFee = `${formatAmount(
-        locale,
-        new BigNumber(
-          getValueFromWeiHex({
-            value: hexFee,
-            fromCurrency: 'WEI',
-            toCurrency: 'ETH',
-            numberOfDecimals: 4,
-            conversionRate: 1,
-            toDenomination: 'ETH',
-          }) || 0,
-        ),
-      )} ${nativeCurrency}`;
+      const nativeCurrencyFee = `${
+        formatAmount(
+          locale,
+          new BigNumber(
+            getValueFromWeiHex({
+              value: hexFee,
+              fromCurrency: 'WEI',
+              toCurrency: 'ETH',
+              numberOfDecimals: 4,
+              conversionRate: 1,
+              toDenomination: 'ETH',
+            }) || 0
+          )
+        )
+      } ${nativeCurrency}`;
 
       const decimalCurrentCurrencyFee = Number(
         getValueFromWeiHex({

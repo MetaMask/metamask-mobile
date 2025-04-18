@@ -3,14 +3,8 @@ import { TouchableOpacity, View, ViewStyle } from 'react-native';
 import { ThemeColors } from '@metamask/design-tokens';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import Icon, { IconName, IconSize } from '../../../../../../component-library/components/Icons/Icon';
+import Text, { TextColor, TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { IconSizes } from '../../../../../../component-library/components-temp/KeyValueRow';
 import { useTheme } from '../../../../../../util/theme';
 import { Severity } from '../../../types/alerts';
@@ -56,13 +50,7 @@ export default function InlineAlert({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View
-      style={[
-        styles.wrapper,
-        { backgroundColor: getBackgroundColor(severity, colors) },
-        style,
-      ]}
-    >
+    <View style={[styles.wrapper, { backgroundColor: getBackgroundColor(severity, colors) }, style]}>
       <TouchableOpacity
         testID="inline-alert"
         onPress={onClick}
@@ -78,11 +66,7 @@ export default function InlineAlert({
         <Text variant={TextVariant.BodySM} color={getTextColor(severity)}>
           {strings('alert_system.inline_alert_label')}
         </Text>
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSizes.Xs}
-          color={getTextColor(severity)}
-        />
+        <Icon name={IconName.ArrowRight} size={IconSizes.Xs} color={getTextColor(severity)}/>
       </TouchableOpacity>
     </View>
   );

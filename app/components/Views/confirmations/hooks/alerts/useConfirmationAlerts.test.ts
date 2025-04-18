@@ -20,7 +20,7 @@ describe('useConfirmationAlerts', () => {
       message: ALERT_MESSAGE_MOCK,
       severity: Severity.Warning,
       alertDetails: ALERT_DETAILS_MOCK,
-    },
+    }
   ];
   const mockDomainMisMatchAlerts: Alert[] = [
     {
@@ -29,7 +29,7 @@ describe('useConfirmationAlerts', () => {
       message: ALERT_MESSAGE_MOCK,
       severity: Severity.Danger,
       alertDetails: ALERT_DETAILS_MOCK,
-    },
+    }
   ];
 
   const mockInsufficientBalanceAlert: Alert[] = [
@@ -39,7 +39,7 @@ describe('useConfirmationAlerts', () => {
       message: ALERT_MESSAGE_MOCK,
       severity: Severity.Danger,
       alertDetails: ALERT_DETAILS_MOCK,
-    },
+    }
   ];
 
   beforeEach(() => {
@@ -63,9 +63,7 @@ describe('useConfirmationAlerts', () => {
   });
 
   it('returns domain mismatch alerts', () => {
-    (useDomainMismatchAlerts as jest.Mock).mockReturnValue(
-      mockDomainMisMatchAlerts,
-    );
+    (useDomainMismatchAlerts as jest.Mock).mockReturnValue(mockDomainMisMatchAlerts);
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });
@@ -74,12 +72,8 @@ describe('useConfirmationAlerts', () => {
 
   it('returns combined alerts when both blockaid and domain mismatch alerts are present', () => {
     (useBlockaidAlerts as jest.Mock).mockReturnValue(mockBlockaidAlerts);
-    (useDomainMismatchAlerts as jest.Mock).mockReturnValue(
-      mockDomainMisMatchAlerts,
-    );
-    (useInsufficientBalanceAlert as jest.Mock).mockReturnValue(
-      mockInsufficientBalanceAlert,
-    );
+    (useDomainMismatchAlerts as jest.Mock).mockReturnValue(mockDomainMisMatchAlerts);
+    (useInsufficientBalanceAlert as jest.Mock).mockReturnValue(mockInsufficientBalanceAlert);
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });

@@ -8,10 +8,7 @@ import { InfoRowDivider } from '../../../UI/info-row/divider';
 import InfoSection from '../../../UI/info-row/info-section';
 import InfoRowAddress from '../../../UI/info-row/info-value/address';
 import DisplayURL from '../../../UI/info-row/info-value/display-url';
-import {
-  isRecognizedPermit,
-  parseTypedDataMessageFromSignatureRequest,
-} from '../../../../utils/signature';
+import { isRecognizedPermit, parseTypedDataMessageFromSignatureRequest } from '../../../../utils/signature';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import { View } from 'react-native';
@@ -29,8 +26,7 @@ export const InfoSectionOriginAndDetails = () => {
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);
 
-  const parsedMessage =
-    parseTypedDataMessageFromSignatureRequest(signatureRequest);
+  const parsedMessage = parseTypedDataMessageFromSignatureRequest(signatureRequest);
   const spender = parsedMessage?.message?.spender;
   const verifyingContract = parsedMessage?.domain?.verifyingContract;
 
@@ -61,10 +57,13 @@ export const InfoSectionOriginAndDetails = () => {
         <DisplayURL url={origin} />
       </InfoRow>
       {isValidAddress(verifyingContract) && (
-        <InfoRow label={strings('confirm.label.interacting_with')}>
-          <InfoRowAddress address={verifyingContract} chainId={chainId} />
-        </InfoRow>
-      )}
+          <InfoRow label={strings('confirm.label.interacting_with')}>
+            <InfoRowAddress
+              address={verifyingContract}
+              chainId={chainId}
+            />
+          </InfoRow>
+        )}
     </InfoSection>
   );
 };

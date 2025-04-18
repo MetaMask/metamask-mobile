@@ -54,5 +54,5 @@ export const selectConfirmationMetrics = (state: RootState) =>
 
 export const selectConfirmationMetricsById = createSelector(
   [selectConfirmationMetrics, (_: RootState, id: string) => id],
-  (metricsById, id) => metricsById[id],
+  (metricsById, id) => metricsById[id]
 );

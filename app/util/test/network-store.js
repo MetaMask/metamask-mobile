@@ -79,7 +79,7 @@ class ReadOnlyNetworkStore {
     // Browserstack requires that the HOST is bs-local.com instead of localhost.
     const urls = [
       FIXTURE_SERVER_URL,
-      FIXTURE_SERVER_URL.replace(FIXTURE_SERVER_HOST, BROWSERSTACK_LOCALHOST),
+      FIXTURE_SERVER_URL.replace(FIXTURE_SERVER_HOST, BROWSERSTACK_LOCALHOST)
     ];
 
     try {

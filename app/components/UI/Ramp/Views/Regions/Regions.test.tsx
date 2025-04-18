@@ -213,7 +213,9 @@ describe('Regions View', () => {
     };
     render(Regions);
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-    expect(mockNavigate).toHaveBeenCalledWith(...createBuildQuoteNavDetails());
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createBuildQuoteNavDetails(),
+    );
   });
 
   it('navigates and tracks event on cancel button press', async () => {

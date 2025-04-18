@@ -1,7 +1,4 @@
-import {
-  ConfirmationRedesignRemoteFlags,
-  selectConfirmationRedesignFlags,
-} from '.';
+import { ConfirmationRedesignRemoteFlags, selectConfirmationRedesignFlags } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
 
@@ -11,7 +8,7 @@ jest.mock('../../../core/Engine', () => ({
 
 // Mock getFeatureFlagValue function
 jest.mock('../env', () => ({
-  getFeatureFlagValue: jest.fn((_, defaultValue) => defaultValue),
+  getFeatureFlagValue: jest.fn((_, defaultValue) => defaultValue)
 }));
 
 // Mock process.env values
@@ -30,12 +27,11 @@ afterEach(() => {
 });
 
 // Default values from the implementation
-const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags =
-  {
-    signatures: true,
-    staking_confirmations: false,
-    contract_interaction: false,
-  };
+const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = {
+  signatures: true,
+  staking_confirmations: false,
+  contract_interaction: false,
+};
 
 // Define mocked remote values for tests
 const mockedConfirmationRedesignFlags: ConfirmationRedesignRemoteFlags = {
@@ -54,22 +50,22 @@ jest.mock('../mocks', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              confirmation_redesign: mockedConfirmationRedesignFlags,
-            },
-          },
-        },
-      },
-    },
+              confirmation_redesign: mockedConfirmationRedesignFlags
+            }
+          }
+        }
+      }
+    }
   };
 });
 
 describe('confirmationRedesign Feature flag: selectConfirmationRedesignFlags selector', () => {
-  const testFlagValues = (
-    result: unknown,
-    expected: ConfirmationRedesignRemoteFlags,
-  ) => {
-    const { signatures, staking_confirmations, contract_interaction } =
-      result as ConfirmationRedesignRemoteFlags;
+  const testFlagValues = (result: unknown, expected: ConfirmationRedesignRemoteFlags) => {
+    const {
+      signatures,
+      staking_confirmations,
+      contract_interaction,
+    } = result as ConfirmationRedesignRemoteFlags;
 
     const {
       signatures: expectedSignatures,
@@ -85,14 +81,14 @@ describe('confirmationRedesign Feature flag: selectConfirmationRedesignFlags sel
   it('returns default values when empty feature flag state', () => {
     testFlagValues(
       selectConfirmationRedesignFlags(mockedEmptyFlagsState),
-      confirmationRedesignFlagsDefaultValues,
+      confirmationRedesignFlagsDefaultValues
     );
   });
 
   it('returns default values when undefined RemoteFeatureFlagController state', () => {
     testFlagValues(
       selectConfirmationRedesignFlags(mockedUndefinedFlagsState),
-      confirmationRedesignFlagsDefaultValues,
+      confirmationRedesignFlagsDefaultValues
     );
   });
-});
+}); 

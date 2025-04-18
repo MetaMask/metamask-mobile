@@ -226,26 +226,18 @@ export const getPermittedAccounts = async (
  * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
  * @returns An array containing permitted chains for the specified host.
  */
-export const getPermittedChains = async (
-  hostname: string,
-): Promise<string[]> => {
+export const getPermittedChains = async (hostname: string): Promise<string[]> => {
   const { PermissionController } = Engine.context;
   const caveat = PermissionController.getCaveat(
     hostname,
     PermissionKeys.permittedChains,
-    CaveatTypes.restrictNetworkSwitching,
+    CaveatTypes.restrictNetworkSwitching
   );
 
   if (Array.isArray(caveat?.value)) {
     const chains = caveat.value
-      .filter(
-        (item: unknown): item is string =>
-          typeof item === 'string' && !isNaN(parseInt(item)),
-      )
-      .map(
-        (chainId: string) =>
-          `${KnownCaipNamespace.Eip155}:${parseInt(chainId)}`,
-      );
+      .filter((item: unknown): item is string => typeof item === 'string' && !isNaN(parseInt(item)))
+      .map((chainId: string) => `${KnownCaipNamespace.Eip155}:${parseInt(chainId)}`);
 
     return chains;
   }

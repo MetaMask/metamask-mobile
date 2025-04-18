@@ -21,7 +21,10 @@ describe('useConfirmationAlertMetrics', () => {
   const ALERT_FIELD_FROM_MOCK = 'from';
   const mockSetConfirmationMetric = jest.fn();
   const mockUseAlerts = {
-    alerts: [{ key: AlertKeys.Blockaid }, { key: AlertKeys.DomainMismatch }],
+    alerts: [
+      { key: AlertKeys.Blockaid },
+      { key: AlertKeys.DomainMismatch },
+    ],
     isAlertConfirmed: jest.fn(),
     alertKey: AlertKeys.DomainMismatch,
   };
@@ -83,9 +86,7 @@ describe('useConfirmationAlertMetrics', () => {
   });
 
   it('handles confirmed alerts correctly', () => {
-    (mockUseAlerts.isAlertConfirmed as jest.Mock).mockImplementation(
-      (key: string) => key === AlertKeys.Blockaid,
-    );
+    (mockUseAlerts.isAlertConfirmed as jest.Mock).mockImplementation((key: string) => key === AlertKeys.Blockaid);
 
     (useSelector as jest.Mock).mockReturnValue({
       properties: baseAlertProperties,
@@ -107,7 +108,9 @@ describe('useConfirmationAlertMetrics', () => {
   it('uses alertKey when there is no match in ALERTS_NAME_METRICS', () => {
     const UNKNOWN_ALERT_KEY_MOCK = 'unknown_alert';
     const mockUseAlertsWithUnknownKey = {
-      alerts: [{ key: UNKNOWN_ALERT_KEY_MOCK }],
+      alerts: [
+        { key: UNKNOWN_ALERT_KEY_MOCK },
+      ],
       isAlertConfirmed: jest.fn(),
       alertKey: UNKNOWN_ALERT_KEY_MOCK,
     };

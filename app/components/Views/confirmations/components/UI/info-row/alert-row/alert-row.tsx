@@ -6,7 +6,9 @@ import { Severity } from '../../../../types/alerts';
 import { TextColor } from '../../../../../../../component-library/components/Texts/Text';
 import InfoRow, { InfoRowProps } from '../info-row';
 
-function getAlertTextColors(severity?: Severity): TextColor {
+function getAlertTextColors(
+  severity?: Severity,
+): TextColor {
   switch (severity) {
     case Severity.Danger:
       return TextColor.Error;
@@ -23,17 +25,13 @@ export interface AlertRowProps extends InfoRowProps {
   isShownWithAlertsOnly?: boolean;
 }
 
-const AlertRow = ({
-  alertField,
-  isShownWithAlertsOnly,
-  ...props
-}: AlertRowProps) => {
+const AlertRow = ({ alertField, isShownWithAlertsOnly, ...props }: AlertRowProps) => {
   const { fieldAlerts, showAlertModal, setAlertKey } = useAlerts();
   const { trackInlineAlertClicked } = useConfirmationAlertMetrics();
   const alertSelected = fieldAlerts.find((a) => a.field === alertField);
 
   const handleInlineAlertClick = () => {
-    if (!alertSelected) return;
+    if(!alertSelected) return;
     setAlertKey(alertSelected.key);
     showAlertModal();
     trackInlineAlertClicked(alertSelected.field);

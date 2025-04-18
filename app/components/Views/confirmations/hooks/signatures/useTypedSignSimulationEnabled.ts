@@ -6,10 +6,7 @@ import {
   SignatureRequestType,
 } from '@metamask/signature-controller';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
-import {
-  isRecognizedPermit,
-  parseTypedDataMessage,
-} from '../../utils/signature';
+import { isRecognizedPermit, parseTypedDataMessage } from '../../utils/signature';
 import { useSignatureRequest } from './useSignatureRequest';
 
 const NON_PERMIT_SUPPORTED_TYPES_SIGNS = [

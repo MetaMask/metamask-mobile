@@ -109,9 +109,7 @@ describe('confirmationMetrics slice', () => {
         confirmationMetrics: { metricsById },
       } as unknown as RootState;
 
-      expect(selectConfirmationMetricsById(state, 'id-1')).toEqual(
-        metricsById['id-1'],
-      );
+      expect(selectConfirmationMetricsById(state, 'id-1')).toEqual(metricsById['id-1']);
     });
   });
 });

@@ -15,16 +15,13 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesignEnabled';
 import { Confirm } from './confirm-component';
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/confirmations',
-  () => ({
-    selectConfirmationRedesignFlags: () => ({
-      signatures: true,
-      staking_confirmations: true,
-      contract_interaction: true,
-    }),
+jest.mock('../../../../../selectors/featureFlagController/confirmations', () => ({
+  selectConfirmationRedesignFlags: () => ({
+    signatures: true,
+    staking_confirmations: true,
+    contract_interaction: true,
   }),
-);
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -202,8 +199,7 @@ describe('Confirm', () => {
   });
 
   it('renders information for contract interaction', async () => {
-    jest
-      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
+    jest.spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
       .mockReturnValue({ isRedesignedEnabled: true });
 
     const { getByText } = renderWithProvider(<Confirm />, {
@@ -211,9 +207,7 @@ describe('Confirm', () => {
     });
 
     expect(getByText('Transaction request')).toBeDefined();
-    expect(
-      getByText('Review request details before you confirm.'),
-    ).toBeDefined();
+    expect(getByText('Review request details before you confirm.')).toBeDefined();
     expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
   });

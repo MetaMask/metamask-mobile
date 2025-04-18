@@ -77,27 +77,16 @@ const stateChangeOrder = {
 const getStateChangeLabelMap = (
   changeType: string,
   stateChangeType?: StateChangeType,
-) =>
-  ({
-    [DecodingDataChangeType.Transfer]: strings(
-      'confirm.simulation.label_change_type_transfer',
-    ),
+) => ({
+    [DecodingDataChangeType.Transfer]: strings('confirm.simulation.label_change_type_transfer'),
     [DecodingDataChangeType.Receive]:
       stateChangeType === StateChangeType.NFTListingReceive
         ? strings('confirm.simulation.label_change_type_nft_listing')
         : strings('confirm.simulation.label_change_type_receive'),
-    [DecodingDataChangeType.Approve]: strings(
-      'confirm.simulation.label_change_type_permit',
-    ),
-    [DecodingDataChangeType.Revoke]: strings(
-      'confirm.simulation.label_change_type_revoke',
-    ),
-    [DecodingDataChangeType.Bidding]: strings(
-      'confirm.simulation.label_change_type_bidding',
-    ),
-    [DecodingDataChangeType.Listing]: strings(
-      'confirm.simulation.label_change_type_listing',
-    ),
+    [DecodingDataChangeType.Approve]: strings('confirm.simulation.label_change_type_permit'),
+    [DecodingDataChangeType.Revoke]: strings('confirm.simulation.label_change_type_revoke'),
+    [DecodingDataChangeType.Bidding]: strings('confirm.simulation.label_change_type_bidding'),
+    [DecodingDataChangeType.Listing]: strings('confirm.simulation.label_change_type_listing'),
   }[changeType]);
 
 const StateChangeRow = ({
@@ -114,9 +103,7 @@ const StateChangeRow = ({
   const { assetType, changeType, amount, contractAddress, tokenID } =
     stateChange;
   const nftTransactionType = getStateChangeType(stateChangeList, stateChange);
-  const tooltip = shouldDisplayLabel
-    ? getStateChangeToolip(nftTransactionType)
-    : undefined;
+  const tooltip = shouldDisplayLabel ? getStateChangeToolip(nftTransactionType) : undefined;
 
   const canDisplayValueAsUnlimited =
     assetType === TokenStandard.ERC20 &&
@@ -128,7 +115,10 @@ const StateChangeRow = ({
     : '';
 
   return (
-    <InfoRow label={labelChangeType} tooltip={tooltip}>
+    <InfoRow
+      label={labelChangeType}
+      tooltip={tooltip}
+    >
       {(assetType === TokenStandard.ERC20 ||
         assetType === TokenStandard.ERC721 ||
         assetType === TokenStandard.ERC1155) && (
@@ -170,11 +160,10 @@ const DecodedSimulation: React.FC<object> = () => {
   const { decodingLoading, decodingData } = signatureRequest ?? {};
 
   const stateChangeFragment = useMemo(() => {
-    const orderedStateChanges = [...(decodingData?.stateChanges ?? [])].sort(
-      (c1, c2) =>
-        stateChangeOrder[c1.changeType] > stateChangeOrder[c2.changeType]
-          ? 1
-          : -1,
+    const orderedStateChanges = [...(decodingData?.stateChanges ?? [])].sort((c1, c2) =>
+      stateChangeOrder[c1.changeType] > stateChangeOrder[c2.changeType]
+        ? 1
+        : -1,
     );
     const stateChangesGrouped: Record<string, DecodingDataStateChange[]> = (
       orderedStateChanges ?? []

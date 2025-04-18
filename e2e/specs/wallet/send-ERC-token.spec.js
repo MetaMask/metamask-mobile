@@ -25,7 +25,7 @@ describe(SmokeCore('Send ERC Token'), () => {
 
   it('should import wallet and go to the wallet view', async () => {
     await importWalletWithRecoveryPhrase({
-      seedPhrase: process.env.MM_TEST_WALLET_SRP,
+      seedPhrase: process.env.MM_TEST_WALLET_SRP
     });
   });
 

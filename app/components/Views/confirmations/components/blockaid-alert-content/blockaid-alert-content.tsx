@@ -6,26 +6,15 @@ import AppConstants from '../../../../../core/AppConstants';
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
-import {
-  FALSE_POSITIVE_REPORT_BASE_URL,
-  UTM_SOURCE,
-} from '../../../../../constants/urls';
+import { FALSE_POSITIVE_REPORT_BASE_URL, UTM_SOURCE } from '../../../../../constants/urls';
 import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
-import Accordion, {
-  AccordionHeaderHorizontalAlignment,
-} from '../../../../../component-library/components/Accordions/Accordion';
+import Accordion, { AccordionHeaderHorizontalAlignment } from '../../../../../component-library/components/Accordions/Accordion';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 // TODO: Remove legacy import
 import BlockaidBannerLink from '../../legacy/components/BlockaidBanner/BlockaidBannerLink';
-import {
-  FALSE_POSITIVE_REPOST_LINE_TEST_ID,
-  REASON_DESCRIPTION_I18N_KEY_MAP,
-} from '../../legacy/components/BlockaidBanner/BlockaidBanner.constants';
-import {
-  Reason,
-  SecurityAlertResponse,
-} from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID, REASON_DESCRIPTION_I18N_KEY_MAP } from '../../legacy/components/BlockaidBanner/BlockaidBanner.constants';
+import { Reason, SecurityAlertResponse } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './blockaid-alert-content.styles';
 
 interface BlockaidAlertContentProps {
@@ -39,11 +28,7 @@ const getReportUrl = (encodedData: string) =>
     encodedData.toString(),
   )}&utm_source=${UTM_SOURCE}`;
 
-const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
-  alertDetails,
-  securityAlertResponse,
-  onContactUsClicked,
-}) => {
+const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({ alertDetails, securityAlertResponse, onContactUsClicked }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [reportUrl, setReportUrl] = useState<string>('');
   const { styles } = useStyles(styleSheet, {});
@@ -90,11 +75,7 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
   return (
     <>
       <Text variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}>
-        {strings(
-          REASON_DESCRIPTION_I18N_KEY_MAP[
-            securityAlertResponse.reason as Reason
-          ],
-        )}
+        {strings(REASON_DESCRIPTION_I18N_KEY_MAP[securityAlertResponse.reason as Reason])}
       </Text>
       <Accordion
         title={strings('blockaid_banner.see_details')}

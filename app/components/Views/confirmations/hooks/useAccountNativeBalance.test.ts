@@ -4,6 +4,7 @@ import { Hex } from '@metamask/utils';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import { useAccountNativeBalance } from './useAccountNativeBalance';
 
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn().mockImplementation((selector) => selector()),
@@ -37,7 +38,7 @@ describe('useAccountNativeBalance', () => {
 
   it('returns correct balance for valid chainId and address', () => {
     const { result } = renderHook(() =>
-      useAccountNativeBalance(mockChainId, mockAddress),
+      useAccountNativeBalance(mockChainId, mockAddress)
     );
 
     expect(result.current).toEqual({
@@ -47,7 +48,7 @@ describe('useAccountNativeBalance', () => {
 
   it('returns 0x0 balance when chainId is undefined', () => {
     const { result } = renderHook(() =>
-      useAccountNativeBalance(undefined as unknown as Hex, mockAddress),
+      useAccountNativeBalance(undefined as unknown as Hex, mockAddress)
     );
 
     expect(result.current).toEqual({
@@ -57,7 +58,7 @@ describe('useAccountNativeBalance', () => {
 
   it('returns 0x0 balance when address is undefined', () => {
     const { result } = renderHook(() =>
-      useAccountNativeBalance(mockChainId, undefined as unknown as string),
+      useAccountNativeBalance(mockChainId, undefined as unknown as string)
     );
 
     expect(result.current).toEqual({
@@ -68,7 +69,7 @@ describe('useAccountNativeBalance', () => {
   it('handles case-insensitive address matching', () => {
     const upperCaseAddress = mockAddress.toUpperCase();
     const { result } = renderHook(() =>
-      useAccountNativeBalance(mockChainId, upperCaseAddress),
+      useAccountNativeBalance(mockChainId, upperCaseAddress)
     );
 
     expect(result.current).toEqual({
@@ -80,7 +81,7 @@ describe('useAccountNativeBalance', () => {
     (useSelector as jest.Mock).mockReturnValue(undefined);
 
     const { result } = renderHook(() =>
-      useAccountNativeBalance(mockChainId, mockAddress),
+      useAccountNativeBalance(mockChainId, mockAddress)
     );
 
     expect(result.current).toEqual({
@@ -91,7 +92,7 @@ describe('useAccountNativeBalance', () => {
   it('returns 0x0 balance when chain not found', () => {
     const nonExistentChainId = '0x2' as Hex;
     const { result } = renderHook(() =>
-      useAccountNativeBalance(nonExistentChainId, mockAddress),
+      useAccountNativeBalance(nonExistentChainId, mockAddress)
     );
 
     expect(result.current).toEqual({
@@ -102,7 +103,7 @@ describe('useAccountNativeBalance', () => {
   it('returns 0x0 balance when address not found for chain', () => {
     const nonExistentAddress = '0x987654321';
     const { result } = renderHook(() =>
-      useAccountNativeBalance(mockChainId, nonExistentAddress),
+      useAccountNativeBalance(mockChainId, nonExistentAddress)
     );
 
     expect(result.current).toEqual({

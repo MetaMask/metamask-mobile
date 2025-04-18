@@ -67,11 +67,10 @@ export const useSignatureMetrics = () => {
 
   const { chainId, decodingData, decodingLoading, messageParams, type, id } =
     signatureRequest ?? {};
-  const { primaryType } =
-    parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
+  const { primaryType } = parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
 
   const confirmationMetrics = useSelector((state: RootState) =>
-    selectConfirmationMetricsById(state, id ?? ''),
+    selectConfirmationMetricsById(state, id ?? '')
   );
 
   const analyticsParams = useMemo(() => {
@@ -89,17 +88,7 @@ export const useSignatureMetrics = () => {
       primaryType,
       confirmationMetrics?.properties ?? {},
     );
-  }, [
-    chainId,
-    confirmationMetrics,
-    decodingData,
-    decodingLoading,
-    isSimulationEnabled,
-    messageParams,
-    primaryType,
-    securityAlertResponse,
-    type,
-  ]);
+  }, [chainId, confirmationMetrics, decodingData, decodingLoading, isSimulationEnabled, messageParams, primaryType, securityAlertResponse, type]);
 
   const captureSignatureMetrics = useCallback(
     async (

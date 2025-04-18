@@ -10,7 +10,10 @@ import Text from '../../../../../component-library/components/Texts/Text';
 import AnimatedQRCode from '../../../../UI/QRHardware/AnimatedQRCode';
 import AnimatedQRScannerModal from '../../../../UI/QRHardware/AnimatedQRScanner';
 import Alert, { AlertType } from '../../../../Base/Alert';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import styleSheet from './qr-info.styles';

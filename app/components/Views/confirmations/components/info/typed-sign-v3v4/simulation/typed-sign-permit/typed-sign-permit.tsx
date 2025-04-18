@@ -8,10 +8,7 @@ import Engine from '../../../../../../../../core/Engine';
 import { safeToChecksumAddress } from '../../../../../../../../util/address';
 import { PrimaryType } from '../../../../../constants/signatures';
 import { useSignatureRequest } from '../../../../../hooks/signatures/useSignatureRequest';
-import {
-  isPermitDaiRevoke,
-  parseTypedDataMessage,
-} from '../../../../../utils/signature';
+import { isPermitDaiRevoke, parseTypedDataMessage } from '../../../../../utils/signature';
 import InfoRow from '../../../../UI/info-row';
 import InfoSection from '../../../../UI/info-row/info-section';
 import PermitSimulationValueDisplay from '../components/value-display';
@@ -85,7 +82,7 @@ const PermitSimulation = () => {
 
   let labelChangeType = isNFT
     ? strings('confirm.simulation.label_change_type_permit_nft')
-    : strings('confirm.simulation.label_change_type_permit');
+      : strings('confirm.simulation.label_change_type_permit');
 
   const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
   const isRevoke = isDaiRevoke || value === '0';
@@ -111,7 +108,10 @@ const PermitSimulation = () => {
         {Array.isArray(tokenDetails) ? (
           <>
             {tokenDetails.map(
-              ({ allowed: tokenDetailAllowed, token, amount }, i: number) => {
+              (
+                { allowed: tokenDetailAllowed, token, amount },
+                i: number,
+              ) => {
                 const tokenContract = safeToChecksumAddress(token);
 
                 return (

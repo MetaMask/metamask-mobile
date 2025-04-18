@@ -1,5 +1,9 @@
 import React from 'react';
-import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../../component-library/hooks';

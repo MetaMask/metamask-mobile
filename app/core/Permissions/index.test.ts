@@ -40,25 +40,25 @@ describe('Permission Management Functions', () => {
   describe('getPermittedAccounts', () => {
     it('returns accounts from PermissionController for external hostname', async () => {
       const hostname = 'example.com';
-      Engine.context.PermissionController.executeRestrictedMethod.mockResolvedValue(
-        ['0xabc', '0xdef'],
-      );
+      Engine.context.PermissionController.executeRestrictedMethod.mockResolvedValue([
+        '0xabc',
+        '0xdef',
+      ]);
 
       const result = await getPermittedAccounts(hostname);
 
-      expect(
-        Engine.context.PermissionController.executeRestrictedMethod,
-      ).toHaveBeenCalledWith(hostname, RestrictedMethods.eth_accounts);
+      expect(Engine.context.PermissionController.executeRestrictedMethod).toHaveBeenCalledWith(
+        hostname,
+        RestrictedMethods.eth_accounts,
+      );
       expect(result).toEqual(['0xabc', '0xdef']);
     });
 
     it('returns empty array on unauthorized error', async () => {
       const hostname = 'example.com';
-      Engine.context.PermissionController.executeRestrictedMethod.mockRejectedValue(
-        {
-          code: rpcErrorCodes.provider.unauthorized,
-        },
-      );
+      Engine.context.PermissionController.executeRestrictedMethod.mockRejectedValue({
+        code: rpcErrorCodes.provider.unauthorized,
+      });
 
       const result = await getPermittedAccounts(hostname);
 
@@ -68,9 +68,7 @@ describe('Permission Management Functions', () => {
     it('throws on unexpected error', async () => {
       const hostname = 'example.com';
       const error = new Error('Unexpected error');
-      Engine.context.PermissionController.executeRestrictedMethod.mockRejectedValue(
-        error,
-      );
+      Engine.context.PermissionController.executeRestrictedMethod.mockRejectedValue(error);
 
       await expect(getPermittedAccounts(hostname)).rejects.toThrow(error);
     });
@@ -85,9 +83,7 @@ describe('Permission Management Functions', () => {
 
       const result = await getPermittedChains(hostname);
 
-      expect(
-        Engine.context.PermissionController.getCaveat,
-      ).toHaveBeenCalledWith(
+      expect(Engine.context.PermissionController.getCaveat).toHaveBeenCalledWith(
         hostname,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
@@ -126,16 +122,12 @@ describe('Permission Management Functions', () => {
 
       switchActiveAccounts(hostname, accAddress);
 
-      expect(
-        Engine.context.PermissionController.getCaveat,
-      ).toHaveBeenCalledWith(
+      expect(Engine.context.PermissionController.getCaveat).toHaveBeenCalledWith(
         hostname,
         RestrictedMethods.eth_accounts,
         CaveatTypes.restrictReturnedAccounts,
       );
-      expect(
-        Engine.context.PermissionController.updateCaveat,
-      ).toHaveBeenCalledWith(
+      expect(Engine.context.PermissionController.updateCaveat).toHaveBeenCalledWith(
         hostname,
         RestrictedMethods.eth_accounts,
         CaveatTypes.restrictReturnedAccounts,
@@ -164,9 +156,7 @@ describe('Permission Management Functions', () => {
 
       switchActiveAccounts(hostname, accAddress);
 
-      expect(
-        Engine.context.PermissionController.updateCaveat,
-      ).toHaveBeenCalledWith(
+      expect(Engine.context.PermissionController.updateCaveat).toHaveBeenCalledWith(
         hostname,
         RestrictedMethods.eth_accounts,
         CaveatTypes.restrictReturnedAccounts,

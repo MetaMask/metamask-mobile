@@ -1,9 +1,7 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { useAlerts } from '../../../context/alert-system-context';
-import ConfirmAlertModal, {
-  ConfirmAlertModalProps,
-} from './confirm-alert-modal';
+import ConfirmAlertModal, { ConfirmAlertModalProps } from './confirm-alert-modal';
 import { Severity } from '../../../types/alerts';
 import { AlertKeys } from '../../../constants/alerts';
 
@@ -11,10 +9,8 @@ jest.mock('../../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
 }));
 
-const CHECKBOX_LABEL =
-  'I have acknowledged the alert and still want to proceed';
-const CONFIRM_MODAL_MESSAGE_LABEL =
-  'We suggest you reject this request. If you continue, you might put your assets at risk.';
+const CHECKBOX_LABEL = 'I have acknowledged the alert and still want to proceed';
+const CONFIRM_MODAL_MESSAGE_LABEL = 'We suggest you reject this request. If you continue, you might put your assets at risk.';
 const CONFIRM_MODAL_TITLE_LABEL = 'High risk request';
 const CONFIRM_BTN = 'Confirm';
 const CANCEL_BTN = 'Cancel';
@@ -85,9 +81,7 @@ describe('ConfirmAlertModal', () => {
   });
 
   it('calls onConfirm when the Confirm button is pressed and checkbox is checked', async () => {
-    const { getByText, getByTestId } = render(
-      <ConfirmAlertModal {...baseProps} />,
-    );
+    const { getByText, getByTestId } = render(<ConfirmAlertModal {...baseProps} />);
     await act(async () => {
       fireEvent.press(getByTestId('confirm-alert-checkbox'));
     });

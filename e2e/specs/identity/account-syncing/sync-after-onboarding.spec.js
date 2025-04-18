@@ -28,14 +28,12 @@ describe(
     let mockServer;
 
     beforeAll(async () => {
-      const segmentMock = {
-        POST: [mockEvents.POST.segmentTrack],
-      };
+        const segmentMock = {
+          POST: [mockEvents.POST.segmentTrack],
+        };
 
-      mockServer = await startMockServer(
-        segmentMock,
-        TEST_SPECIFIC_MOCK_SERVER_PORT,
-      );
+
+      mockServer = await startMockServer(segmentMock, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -55,10 +53,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: {
-          mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
-          sendMetaMetricsinE2E: true,
-        },
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT), sendMetaMetricsinE2E: true },
       });
     });
 
@@ -81,10 +76,12 @@ describe(
         }),
       );
 
-      await importWalletWithRecoveryPhrase({
-        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-        password: IDENTITY_TEAM_PASSWORD,
-      });
+      await importWalletWithRecoveryPhrase(
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        },
+      );
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
@@ -99,10 +96,13 @@ describe(
       /**
        * TEST SEGMENT/METAMETRICS EVENTS
        */
-      const events = await getEventsPayloads(mockServer, [
-        EVENT_NAME.ACCOUNTS_SYNC_ADDED,
-        EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
-      ]);
+      const events = await getEventsPayloads(
+        mockServer,
+        [
+          EVENT_NAME.ACCOUNTS_SYNC_ADDED,
+          EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
+        ],
+      );
 
       // There should be 3 events:
       // 1 for adding the account (Since every wallet always adds the first account) and 2 for updating the names (from user storage)
@@ -115,11 +115,18 @@ describe(
 
       await Assertions.checkIfValueIsPresent(addedAccountEvent);
 
-      await Assertions.checkIfArrayHasLength(updatedAccountEvents, 2);
+      await Assertions.checkIfArrayHasLength(
+        updatedAccountEvents,
+        2,
+      );
 
       for (const event of events) {
-        await Assertions.checkIfValueIsPresent(event.properties, 'profile_id');
+        await Assertions.checkIfValueIsPresent(
+          event.properties,
+          'profile_id',
+        );
       }
+
     });
   },
 );

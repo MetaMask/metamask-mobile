@@ -123,12 +123,10 @@ describe('AlertModal', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
       hideAlertModal,
-      fieldAlerts: [
-        {
-          ...mockAlerts[0],
-          action: { ...ALERT_ACTION_MOCK, callback: action1Callback },
-        },
-      ],
+      fieldAlerts: [{
+        ...mockAlerts[0],
+        action: { ...ALERT_ACTION_MOCK, callback: action1Callback },
+      }]
     });
 
     const { getByText } = render(<AlertModal />);
@@ -185,12 +183,10 @@ describe('AlertModal', () => {
   it('renders content component correctly', async () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
-      fieldAlerts: [
-        {
-          ...mockAlerts[0],
-          content: <Text>{'Mock content'}</Text>,
-        },
-      ],
+      fieldAlerts: [{
+        ...mockAlerts[0],
+        content: <Text>{'Mock content'}</Text>,
+      }]
     });
     const { getByText } = render(<AlertModal />);
     expect(getByText('Mock content')).toBeDefined();
@@ -199,12 +195,10 @@ describe('AlertModal', () => {
   it('does not render checkbox if is a blocking alert', async () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
-      fieldAlerts: [
-        {
-          ...mockAlerts[0],
-          isBlocking: true,
-        },
-      ],
+      fieldAlerts: [{
+        ...mockAlerts[0],
+        isBlocking: true,
+      }]
     });
     const { queryByText } = render(<AlertModal />);
     expect(queryByText(CHECKBOX_LABEL)).toBeNull();
@@ -212,17 +206,13 @@ describe('AlertModal', () => {
 
   it('renders header accessory when provided', () => {
     const headerAccessory = <Text>Header Accessory</Text>;
-    const { getByText } = render(
-      <AlertModal headerAccessory={headerAccessory} />,
-    );
+    const { getByText } = render(<AlertModal headerAccessory={headerAccessory} />);
     expect(getByText('Header Accessory')).toBeDefined();
   });
 
   it('calls onAcknowledgeClick when modal is closed', async () => {
     const onAcknowledgeClick = jest.fn();
-    const { getByText } = render(
-      <AlertModal onAcknowledgeClick={onAcknowledgeClick} />,
-    );
+    const { getByText } = render(<AlertModal onAcknowledgeClick={onAcknowledgeClick} />);
     await act(async () => {
       fireEvent.press(getByText('Got it'));
     });

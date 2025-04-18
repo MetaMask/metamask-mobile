@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { View } from 'react-native';
 import Text, {
   TextVariant,
-  TextColor,
+  TextColor
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Tooltip from '../Tooltip/Tooltip';
@@ -38,9 +38,7 @@ const InfoRow = ({
     >
       {Boolean(label) && (
         <View style={styles.labelContainer}>
-          <Text variant={TextVariant.BodyMDMedium} color={variant}>
-            {label}
-          </Text>
+          <Text variant={TextVariant.BodyMDMedium} color={variant} >{label}</Text>
           {labelChildren}
           {!labelChildren && tooltip && (
             <Tooltip content={tooltip} onPress={onTooltipPress} title={label} />

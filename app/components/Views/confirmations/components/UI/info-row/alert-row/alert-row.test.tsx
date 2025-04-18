@@ -6,6 +6,7 @@ import { Severity } from '../../../../types/alerts';
 import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
 import { useConfirmationAlertMetrics } from '../../../../hooks/metrics/useConfirmationAlertMetrics';
 
+
 jest.mock('../../../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
 }));
@@ -96,11 +97,7 @@ describe('AlertRow', () => {
   });
 
   it('does not render when isShownWithAlertsOnly is true and no alert is present', () => {
-    const props = {
-      ...baseProps,
-      alertField: 'alert4',
-      isShownWithAlertsOnly: true,
-    };
+    const props = { ...baseProps, alertField: 'alert4', isShownWithAlertsOnly: true };
     const { queryByText } = render(<AlertRow {...props} />);
     expect(queryByText(LABEL_MOCK)).toBeNull();
     expect(queryByText(CHILDREN_MOCK)).toBeNull();
@@ -120,8 +117,6 @@ describe('AlertRow', () => {
     expect(mockSetAlertKey).toHaveBeenCalledWith(ALERT_KEY_DANGER);
     expect(mockShowAlertModal).toHaveBeenCalled();
     expect(mockTrackInlineAlertClicked).toHaveBeenCalled();
-    expect(mockTrackInlineAlertClicked).toHaveBeenCalledWith(
-      ALERT_FIELD_DANGER,
-    );
+    expect(mockTrackInlineAlertClicked).toHaveBeenCalledWith(ALERT_FIELD_DANGER);
   });
 });

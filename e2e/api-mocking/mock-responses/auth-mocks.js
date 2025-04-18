@@ -26,34 +26,31 @@ const AuthMocks = AuthenticationController.Mocks;
 export const getAuthMocks = ({
   nonceResponse,
   loginResponse,
-  accessTokenResponse,
+  accessTokenResponse
 } = {}) => {
-  const authNonceResponse =
-    nonceResponse || AuthMocks.getMockAuthNonceResponse();
-  const authLoginResponse =
-    loginResponse || AuthMocks.getMockAuthLoginResponse();
-  const authAccessTokenResponse =
-    accessTokenResponse || AuthMocks.getMockAuthAccessTokenResponse();
+  const authNonceResponse = nonceResponse || AuthMocks.getMockAuthNonceResponse();
+  const authLoginResponse = loginResponse || AuthMocks.getMockAuthLoginResponse();
+  const authAccessTokenResponse = accessTokenResponse || AuthMocks.getMockAuthAccessTokenResponse();
 
   return {
     GET: [
       {
         urlEndpoint: authNonceResponse.url,
         response: authNonceResponse.response,
-        responseCode: 200,
-      },
+        responseCode: 200
+      }
     ],
     POST: [
       {
         urlEndpoint: authLoginResponse.url,
         response: authLoginResponse.response,
-        responseCode: 200,
+        responseCode: 200
       },
       {
         urlEndpoint: authAccessTokenResponse.url,
         response: authAccessTokenResponse.response,
-        responseCode: 200,
-      },
-    ],
+        responseCode: 200
+      }
+    ]
   };
 };

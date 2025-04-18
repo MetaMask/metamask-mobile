@@ -1,0 +1,4 @@
+app.config.js
+app/core/redux/slices/confirmationMetrics/index.ts
+app/util/test/network-store.js
+e2e/specs/wallet/send-ERC-token.spec.js

@@ -4,6 +4,7 @@ import useDomainMismatchAlerts from './useDomainMismatchAlerts';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { Alert } from '../../types/alerts';
 
+
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
 
@@ -24,7 +25,15 @@ export default function useConfirmationAlerts(): Alert[] {
   const transactionAlerts = useTransactionAlerts();
 
   return useMemo(
-    () => [...blockaidAlerts, ...signatureAlerts, ...transactionAlerts],
-    [blockaidAlerts, signatureAlerts, transactionAlerts],
+    () => [
+      ...blockaidAlerts,
+      ...signatureAlerts,
+      ...transactionAlerts,
+    ],
+    [
+      blockaidAlerts,
+      signatureAlerts,
+      transactionAlerts,
+    ],
   );
 }
