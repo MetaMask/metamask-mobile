@@ -431,7 +431,8 @@
     "txHistory": {}
   },
   "MultichainAssetsRatesController": {
-    "conversionRates": {}
+    "conversionRates": {},
+    "historicalPrices": {}
   },
   "CronjobController": {
     "events": {},
