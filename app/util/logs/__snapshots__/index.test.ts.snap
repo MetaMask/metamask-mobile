@@ -141,6 +141,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "MultichainAssetsRatesController": {
         "conversionRates": {},
+        "historicalPrices": {},
       },
       "MultichainBalancesController": {
         "balances": {},

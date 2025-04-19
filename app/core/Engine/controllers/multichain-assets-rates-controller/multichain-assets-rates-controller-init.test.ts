@@ -48,6 +48,7 @@ describe('multichain assets rates controller init', () => {
             expirationTime: Date.now() + 3600000, // 1 hour from now
           },
         },
+        historicalPrices: {},
       };
 
     // Update mock with initial state
