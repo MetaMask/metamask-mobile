@@ -77,9 +77,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
     balanceChainIds = selectedSourceChainIds;
   } else {
     // Really only for Solana Swap
-    balanceChainIds = selectedSourceToken?.chainId
-      ? [selectedSourceToken?.chainId]
-      : undefined;
+    balanceChainIds = selectedSourceToken?.chainId ? [selectedSourceToken?.chainId] : undefined;
   }
 
   const { tokens: tokensList, pending } = useTokens({
