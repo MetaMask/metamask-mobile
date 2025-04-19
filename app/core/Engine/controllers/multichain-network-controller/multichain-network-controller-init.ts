@@ -3,7 +3,8 @@ import {
   MultichainNetworkControllerMessenger,
   MultichainNetworkControllerState,
 } from '@metamask/multichain-network-controller';
-import { ControllerInitFunction } from '../../types';
+import { ControllerInitFunction, ControllerInitRequest } from '../../types';
+import { MultichainNetworkServiceInit } from './multichain-network-service-init';
 
 /**
  * Initialize the MultichainNetworkController.
@@ -11,18 +12,25 @@ import { ControllerInitFunction } from '../../types';
  * @param request - The request object.
  * @returns The MultichainNetworkController.
  */
-export const multichainNetworkControllerInit: ControllerInitFunction<
-  MultichainNetworkController,
-  MultichainNetworkControllerMessenger
-> = (request) => {
-  const { controllerMessenger, persistedState } = request;
-
+export const multichainNetworkControllerInit = ({
+  controllerMessenger,
+  persistedState,
+}: ControllerInitRequest<MultichainNetworkControllerMessenger> & {
+  fetchFunction: typeof fetch;
+}): ReturnType<
+  ControllerInitFunction<
+    MultichainNetworkController,
+    MultichainNetworkControllerMessenger
+  >
+> => {
+  const networkService = MultichainNetworkServiceInit();
   const multichainNetworkControllerState =
     persistedState.MultichainNetworkController as MultichainNetworkControllerState;
 
   const controller = new MultichainNetworkController({
     messenger: controllerMessenger,
     state: multichainNetworkControllerState,
+    networkService,
   });
 
   return { controller };
