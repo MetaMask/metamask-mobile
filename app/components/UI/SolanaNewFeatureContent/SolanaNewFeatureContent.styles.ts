@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 
 const createStyles = (colors: {
@@ -15,7 +16,7 @@ const createStyles = (colors: {
       backgroundColor: colors.background.default,
       borderRadius: 12,
       padding: 24,
-      paddingBottom: 0,
+      paddingBottom: Device.isAndroid() ? 24 : 0,
       alignItems: 'center',
     },
     title: {
