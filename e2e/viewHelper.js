@@ -124,6 +124,7 @@ export const importWalletWithRecoveryPhrase = async ({
   );
   await ImportWalletView.enterPassword(password ?? validAccount.password);
   await ImportWalletView.reEnterPassword(password ?? validAccount.password);
+  await ImportWalletView.tapImportButton();
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
