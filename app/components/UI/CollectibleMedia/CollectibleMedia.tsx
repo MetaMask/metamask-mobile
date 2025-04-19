@@ -24,6 +24,11 @@ import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks';
 import { getNftImage } from '../../../util/get-nft-image';
 import { useTheme } from '../../../util/theme';
+import Icon from '../../../component-library/components/Icons/Icon/Icon';
+import {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 
 const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   collectible,

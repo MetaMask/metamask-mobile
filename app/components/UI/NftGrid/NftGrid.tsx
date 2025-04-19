@@ -18,9 +18,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import {
-  collectiblesSelector,
   isNftFetchingProgressSelector,
-  multichainCollectibleContractsSelector,
   multichainCollectiblesSelector,
 } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
@@ -37,6 +35,7 @@ import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
   selectPrivacyMode,
+  selectTokenNetworkFilter,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
 import NftGridItem from './NftGridItem';
@@ -44,6 +43,8 @@ import NftGridEmpty from './NftGridEmpty';
 import NftGridFooter from './NftGridFooter';
 import { useNavigation } from '@react-navigation/native';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import { TokenListControlBar } from '../Tokens/TokenListControlBar';
+import { toHex } from '@metamask/controller-utils';
 
 export const RefreshTestId = 'refreshControl';
 export const SpinnerTestId = 'spinner';
@@ -87,12 +88,22 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   const styles = styleSheet(colors);
   const { trackEvent, createEventBuilder } = useMetrics();
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
   const [refreshing, setRefreshing] = useState(false);
 
   const flatMultichainCollectibles = useMemo(
-    () => Object.values(multichainCollectibles).flat() as Nft[],
-    [multichainCollectibles],
+    () =>
+      Object.values(multichainCollectibles)
+        .flat()
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        .filter((nft: Nft) => {
+          const isNftInTokenNetworkFilter =
+            tokenNetworkFilter[toHex(nft.chainId as number)];
+          return isNftInTokenNetworkFilter;
+        }) as Nft[],
+    [multichainCollectibles, tokenNetworkFilter],
   );
 
   const onRefresh = useCallback(async () => {
@@ -238,6 +249,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
 
   return (
     <View testID="collectible-contracts">
+      <TokenListControlBar />
       {!isNftDetectionEnabled && <CollectibleDetectionModal />}
       {/* fetching state */}
       {isNftFetchingProgress && (
