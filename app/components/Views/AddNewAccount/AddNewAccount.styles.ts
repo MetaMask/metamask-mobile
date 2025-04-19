@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 /**
- * Style sheet function for AddNewHdAccount component.
+ * Style sheet function for AddNewAccount component.
  *
  * @returns StyleSheet object.
  */
