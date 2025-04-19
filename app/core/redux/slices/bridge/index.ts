@@ -9,9 +9,15 @@ import {
   AllowedBridgeChainIds,
   BridgeFeatureFlagsKey,
   formatChainIdToCaip,
+  isSolanaChainId,
+  selectBridgeQuotes as selectBridgeQuotesBase,
+  SortOrder,
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
+import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
+import { MetaMetrics } from '../../../Analytics';
+import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -209,6 +215,47 @@ export const selectSlippage = createSelector(
 export const selectDestAddress = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAddress,
+);
+
+const selectControllerFields = (state: RootState) => ({
+  ...state.engine.backgroundState.BridgeController,
+  gasFeeEstimates: selectGasFeeControllerEstimates(state) as GasFeeEstimates,
+  ...state.engine.backgroundState.MultichainAssetsRatesController,
+  ...state.engine.backgroundState.TokenRatesController,
+  ...state.engine.backgroundState.CurrencyRateController,
+  participateInMetaMetrics: MetaMetrics.getInstance().isEnabled(),
+});
+
+export const selectBridgeQuotes = createSelector(
+  selectControllerFields,
+  (requiredControllerFields) =>
+    selectBridgeQuotesBase(requiredControllerFields, {
+      sortOrder: SortOrder.COST_ASC, // TODO for v1 we don't allow user to select alternative quotes, hardcode for now
+      selectedQuote: null, // TODO for v1 we don't allow user to select alternative quotes, pass in null for now
+      featureFlagsKey: BridgeFeatureFlagsKey.MOBILE_CONFIG,
+    }),
+);
+
+export const selectIsEvmToSolana = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId && !isSolanaChainId(sourceToken.chainId) &&
+    destToken?.chainId && isSolanaChainId(destToken.chainId)
+);
+
+export const selectIsSolanaToEvm = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId && isSolanaChainId(sourceToken.chainId) &&
+    destToken?.chainId && !isSolanaChainId(destToken.chainId)
+);
+
+export const selectIsEvmSolanaBridge = createSelector(
+  selectIsEvmToSolana,
+  selectIsSolanaToEvm,
+  (isEvmToSolana, isSolanaToEvm) => isEvmToSolana || isSolanaToEvm
 );
 
 // Actions

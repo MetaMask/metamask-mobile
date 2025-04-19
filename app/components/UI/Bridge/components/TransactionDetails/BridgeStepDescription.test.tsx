@@ -329,7 +329,7 @@ describe('BridgeStepDescription', () => {
         requestId: 'test-request-id',
         srcAsset: {
           name: 'ETH',
-          assetId: 'eip155:1',
+          assetId: 'eip155:1/slip44:614',
           symbol: 'ETH',
           chainId: 1,
           address: '0x0000000000000000000000000000000000000000',
@@ -339,7 +339,7 @@ describe('BridgeStepDescription', () => {
         destChainId: 1,
         destAsset: {
           name: 'ETH',
-          assetId: 'eip155:1',
+          assetId: 'eip155:1/slip44:614',
           symbol: 'ETH',
           chainId: 1,
           address: '0x0000000000000000000000000000000000000000',
@@ -351,7 +351,7 @@ describe('BridgeStepDescription', () => {
             amount: '0.1',
             asset: {
               name: 'ETH',
-              assetId: 'eip155:1',
+              assetId: 'eip155:1/slip44:614',
               symbol: 'ETH',
               chainId: 1,
               address: '0x0000000000000000000000000000000000000000',

@@ -5,6 +5,7 @@ import {
   selectDestToken,
   selectSourceAmount,
   selectSlippage,
+  selectBridgeQuotes,
 } from '../../../../../core/redux/slices/bridge';
 import {
   BridgeFeatureFlagsKey,
@@ -29,11 +30,12 @@ export const useBridgeQuoteData = () => {
   const sourceAmount = useSelector(selectSourceAmount);
   const slippage = useSelector(selectSlippage);
 
+  const quotes = useSelector(selectBridgeQuotes);
+
   const {
     quoteFetchError,
     quotesLoadingStatus,
     quotesLastFetched,
-    quotes,
     quotesRefreshCount,
     bridgeFeatureFlags,
     quoteRequest,
@@ -54,7 +56,7 @@ export const useBridgeQuoteData = () => {
 
   const isExpired = isQuoteExpired(willRefresh, refreshRate, quotesLastFetched);
 
-  const bestQuote = quotes?.[0];
+  const bestQuote = quotes?.recommendedQuote;
 
   const activeQuote = isExpired && !willRefresh ? undefined : bestQuote;
 

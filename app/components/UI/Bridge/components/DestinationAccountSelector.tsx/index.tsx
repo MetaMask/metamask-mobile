@@ -1,13 +1,23 @@
 import React, { useEffect, useMemo, useCallback, useRef } from 'react';
-import { useSelector , useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useAccounts } from '../../../../hooks/useAccounts';
 import AccountSelectorList from '../../../AccountSelectorList';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
-import { selectDestAddress, setDestAddress } from '../../../../../core/redux/slices/bridge';
+import {
+  selectDestAddress,
+  setDestAddress,
+  selectIsEvmToSolana,
+  selectIsSolanaToEvm,
+} from '../../../../../core/redux/slices/bridge';
 import { Box } from '../../../Box/Box';
-import Cell, { CellVariant } from '../../../../../component-library/components/Cells/Cell';
-import { AvatarAccountType, AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
+import Cell, {
+  CellVariant,
+} from '../../../../../component-library/components/Cells/Cell';
+import {
+  AvatarAccountType,
+  AvatarVariant,
+} from '../../../../../component-library/components/Avatars/Avatar';
 import { RootState } from '../../../../../reducers';
 import { formatAddress } from '../../../../../util/address';
 import { View, StyleSheet } from 'react-native';
@@ -27,16 +37,16 @@ const createStyles = ({ colors }: Theme) =>
       borderColor: colors.border.muted,
       borderWidth: 1,
       borderRadius: 8,
-      overflow: 'hidden'
+      overflow: 'hidden',
     },
     closeButtonContainer: {
       flex: 1,
-      justifyContent: 'center'
+      justifyContent: 'center',
     },
     avatarStyle: {
       alignSelf: 'center',
-      marginRight: 10
-    }
+      marginRight: 10,
+    },
   });
 
 const DestinationAccountSelector = () => {
@@ -54,23 +64,36 @@ const DestinationAccountSelector = () => {
       : AvatarAccountType.JazzIcon,
   );
 
-  const filteredAccounts = useMemo(() =>
-    accounts.filter((account) => isSolanaAddress(account.address)),
-    [accounts]
-  );
+  const isEvmToSolana = useSelector(selectIsEvmToSolana);
+  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
 
-  const handleSelectAccount = useCallback((address: string | undefined) => {
-    if (address === undefined || isSolanaAddress(address)) {
-      dispatch(setDestAddress(address));
+  const filteredAccounts = useMemo(() => {
+    if (isEvmToSolana) {
+      return accounts.filter((account) => isSolanaAddress(account.address));
     }
-  }, [dispatch]);
+    if (isSolanaToEvm) {
+      return accounts.filter((account) => !isSolanaAddress(account.address));
+    }
+    return []; // No addresses to pick if EVM <> EVM, or Solana <> Solana, will go to current account
+  }, [accounts, isEvmToSolana, isSolanaToEvm]);
+
+  const handleSelectAccount = useCallback(
+    (address: string | undefined) => {
+      dispatch(setDestAddress(address));
+    },
+    [dispatch],
+  );
 
   const handleClearDestAddress = useCallback(() => {
     handleSelectAccount(undefined);
   }, [handleSelectAccount]);
 
   useEffect(() => {
-    if (!hasInitialized.current && filteredAccounts.length > 0 && !destAddress) {
+    if (
+      !hasInitialized.current &&
+      filteredAccounts.length > 0 &&
+      !destAddress
+    ) {
       handleSelectAccount(filteredAccounts[0].address);
       hasInitialized.current = true;
     }
@@ -90,7 +113,7 @@ const DestinationAccountSelector = () => {
               variant: AvatarVariant.Account,
               type: accountAvatarType,
               accountAddress: destAddress,
-              style: styles.avatarStyle
+              style: styles.avatarStyle,
             }}
           >
             <View style={styles.closeButtonContainer}>

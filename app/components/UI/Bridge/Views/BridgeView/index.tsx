@@ -30,6 +30,7 @@ import {
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
+  selectIsEvmSolanaBridge,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import {
@@ -41,7 +42,6 @@ import { getBridgeNavbar } from '../../../Navbar';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
-import { QuoteResponse } from '../../types';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
@@ -50,10 +50,6 @@ import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import DestinationAccountSelector from '../../components/DestinationAccountSelector.tsx';
-import {
-  isSolanaChainId,
-  type QuoteMetadata,
-} from '@metamask/bridge-controller';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
@@ -92,6 +88,7 @@ const BridgeView = () => {
     isNoQuotesAvailable,
   } = useBridgeQuoteData();
   const { quoteRequest } = useSelector(selectBridgeControllerState);
+  const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
 
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -103,8 +100,8 @@ const BridgeView = () => {
   useInitialSourceToken();
   useInitialDestToken();
 
-  const hasDestinationPicker =
-    destToken?.chainId && isSolanaChainId(destToken.chainId);
+  const hasDestinationPicker = isEvmSolanaBridge;
+
   const hasQuoteDetails = activeQuote && !isLoading;
 
   const latestSourceBalance = useLatestBalance({
@@ -182,18 +179,9 @@ const BridgeView = () => {
   };
 
   const handleContinue = async () => {
-    // TODO: Implement bridge transaction with source and destination amounts
-    // TESTING: Paste a quote from the Bridge API here to test the bridge flow
-    const quoteResponse = {};
-    // TESTING: Paste quote metadata from extension here to test the bridge flow
-    const quoteMetadata = {};
-    if (
-      Object.keys(quoteResponse).length > 0 &&
-      Object.keys(quoteMetadata).length > 0
-    ) {
+    if (activeQuote) {
       await submitBridgeTx({
-        quoteResponse: { ...quoteResponse, ...quoteMetadata } as QuoteResponse &
-          QuoteMetadata,
+        quoteResponse: activeQuote,
       });
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
