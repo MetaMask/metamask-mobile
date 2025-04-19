@@ -1,8 +1,5 @@
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
-import {
-  useStablecoinsDefaultSlippage,
-  handleStablecoinSlippage,
-} from './useStablecoinsDefaultSlippage';
+import { useStablecoinsDefaultSlippage, handleStablecoinSlippage } from './useStablecoinsDefaultSlippage';
 import { Hex } from '@metamask/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import AppConstants from '../../../core/AppConstants';
@@ -168,9 +165,7 @@ describe('handleStablecoinSlippage', () => {
       setSlippage: mockSetSlippage,
     });
 
-    expect(mockSetSlippage).toHaveBeenCalledWith(
-      AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS,
-    );
+    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
   });
 
   it('does not set slippage when source token is not on the list of stablecoins', () => {
@@ -236,9 +231,7 @@ describe('handleStablecoinSlippage', () => {
       prevDestTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
     });
 
-    expect(mockSetSlippage).toHaveBeenCalledWith(
-      AppConstants.SWAPS.DEFAULT_SLIPPAGE,
-    );
+    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
   });
 
   it('does not reset slippage when transitioning from non-stablecoin pair to another non-stablecoin pair', () => {
@@ -264,9 +257,7 @@ describe('handleStablecoinSlippage', () => {
       prevDestTokenAddress: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599', // WBTC
     });
 
-    expect(mockSetSlippage).toHaveBeenCalledWith(
-      AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS,
-    );
+    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
   });
 
   it('handles transition from stablecoin pair to missing token addresses', () => {

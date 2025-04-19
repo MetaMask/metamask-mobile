@@ -16,7 +16,7 @@ describe('useTokenSearch', () => {
       name: 'Ethereum',
       balance: '1.23',
       balanceFiat: '$2000.00',
-      tokenFiatAmount: 2000.0,
+      tokenFiatAmount: 2000.00,
       image: 'https://example.com/eth.png',
       chainId: '0x1',
     },
@@ -38,7 +38,7 @@ describe('useTokenSearch', () => {
       name: 'Dai Stablecoin',
       balance: '0',
       balanceFiat: '$0.00',
-      tokenFiatAmount: 0.0,
+      tokenFiatAmount: 0.00,
       image: 'https://example.com/dai.png',
       chainId: '0x1',
     },
@@ -157,9 +157,7 @@ describe('useTokenSearch', () => {
   });
 
   it('should handle undefined token list', () => {
-    const { result } = renderHook(() =>
-      useTokenSearch({ tokens: undefined as unknown as BridgeToken[] }),
-    );
+    const { result } = renderHook(() => useTokenSearch({ tokens: undefined as unknown as BridgeToken[] }));
 
     act(() => {
       result.current.setSearchString('ETH');
@@ -185,9 +183,7 @@ describe('useTokenSearch', () => {
       chainId: '0x1' as Hex,
     }));
 
-    const { result } = renderHook(() =>
-      useTokenSearch({ tokens: largeTokenList }),
-    );
+    const { result } = renderHook(() => useTokenSearch({ tokens: largeTokenList }));
 
     act(() => {
       result.current.setSearchString('TKN'); // Should match all tokens
