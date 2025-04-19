@@ -14,7 +14,8 @@ export const handleCustomError = (error: Error, isFatal: boolean) => {
   // Check whether the error is from the Ledger native bluetooth errors.
   if (
     error.name === 'EthAppPleaseEnableContractData' ||
-    error.name === 'TransportStatusError'
+    error.name === 'TransportStatusError' ||
+    error.name === 'DisconnectedDevice'
   ) {
     // dont pass the error to react native error handler to prevent app crash
     console.error('Ledger error: ', error.message);
