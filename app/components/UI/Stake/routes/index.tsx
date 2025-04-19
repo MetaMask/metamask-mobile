@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
-import { Confirm } from '../../../Views/confirmations/components/confirm';
+import { Confirm } from '../../../Views/confirmations/components/Confirm';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
 import UnstakeConfirmationView from '../Views/UnstakeConfirmationView/UnstakeConfirmationView';
 import { StakeSDKProvider } from '../sdk/stakeSdkProvider';
