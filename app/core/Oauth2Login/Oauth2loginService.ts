@@ -141,7 +141,8 @@ export class Oauth2LoginService {
                 });
                 Logger.log('handleCodeFlow: result', result);
 
-                const jwtPayload = jwtDecode(data.id_token) as JwtPayload & {email: string};
+                const finalToken = idToken ?? data.id_token;
+                const jwtPayload = jwtDecode(finalToken) as JwtPayload & {email: string};
                 const accountName = jwtPayload.email ?? '';
 
                 return {type: 'success', existingUser: result.hasValidEncKey, accountName};
