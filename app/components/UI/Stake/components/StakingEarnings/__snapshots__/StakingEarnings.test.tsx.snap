@@ -78,6 +78,7 @@ exports[`Staking Earnings should render correctly 1`] = `
         >
           <SvgMock
             color="#9ca1af"
+            fill="currentColor"
             height={16}
             name="Info"
             style={

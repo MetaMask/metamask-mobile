@@ -49,6 +49,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
         >
           <SvgMock
             color="#121314"
+            fill="currentColor"
             height={16}
             name="ArrowLeft"
             style={
@@ -128,6 +129,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
             <SvgMock
               accessibilityLabel="select_all"
               color="#ffffff"
+              fill="currentColor"
               height={20}
               name="MinusBold"
               onPress={[Function]}

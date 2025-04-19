@@ -11,7 +11,7 @@ exports[`Badge should render badge network given the badge network variant 1`] =
 
 exports[`Badge should render badge notifications given the badge notification variant 1`] = `
 <BadgeNotifications
-  iconName="Send2"
+  iconName="Send"
   testID="badge-badgenotifications"
 />
 `;

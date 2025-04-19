@@ -2001,6 +2001,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2076,6 +2077,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2246,6 +2248,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2293,6 +2296,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2463,6 +2467,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2510,6 +2515,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2680,6 +2686,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2727,6 +2734,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2897,6 +2905,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2944,6 +2953,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -3118,6 +3128,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -3165,6 +3176,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={

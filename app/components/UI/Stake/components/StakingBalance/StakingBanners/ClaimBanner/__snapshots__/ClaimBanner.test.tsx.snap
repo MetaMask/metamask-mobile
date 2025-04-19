@@ -25,6 +25,7 @@ exports[`ClaimBanner render matches snapshot 1`] = `
   >
     <SvgMock
       color="#1c7e33"
+      fill="currentColor"
       height={24}
       name="Confirmation"
       style={

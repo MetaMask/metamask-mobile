@@ -316,6 +316,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                 >
                   <SvgMock
                     color="#9ca1af"
+                    fill="currentColor"
                     height={16}
                     name="Question"
                     style={

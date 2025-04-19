@@ -1268,6 +1268,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       >
                                                         <SvgMock
                                                           color="#4459ff"
+                                                          fill="currentColor"
                                                           height={16}
                                                           name="ArrowDown"
                                                           style={

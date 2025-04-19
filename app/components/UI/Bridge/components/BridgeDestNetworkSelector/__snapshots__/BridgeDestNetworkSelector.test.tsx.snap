@@ -526,6 +526,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                       >
                                         <SvgMock
                                           color="#121314"
+                                          fill="currentColor"
                                           height={16}
                                           name="Close"
                                           style={

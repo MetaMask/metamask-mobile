@@ -137,6 +137,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
           >
             <SvgMock
               color="#4459ff"
+              fill="currentColor"
               height={16}
               name="Setting"
               style={

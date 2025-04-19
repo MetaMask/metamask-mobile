@@ -70,6 +70,7 @@ exports[`Step6 should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={16}
               name="Arrow2Left"
               style={
@@ -114,6 +115,7 @@ exports[`Step6 should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={16}
               name="Close"
               style={

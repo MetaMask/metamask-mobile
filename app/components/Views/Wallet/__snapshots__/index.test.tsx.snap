@@ -189,6 +189,7 @@ exports[`Wallet should render correctly 1`] = `
                   </View>
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={12}
                     name="ArrowDown"
                     style={
@@ -432,6 +433,7 @@ exports[`Wallet should render correctly 1`] = `
                     </View>
                     <SvgMock
                       color="#121314"
+                      fill="currentColor"
                       height={12}
                       name="ArrowDown"
                       style={
@@ -524,6 +526,7 @@ exports[`Wallet should render correctly 1`] = `
                       >
                         <SvgMock
                           color="#121314"
+                          fill="currentColor"
                           height={24}
                           name="Copy"
                           style={
@@ -559,6 +562,7 @@ exports[`Wallet should render correctly 1`] = `
                 >
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={24}
                     name="ScanBarcode"
                     style={
@@ -822,6 +826,7 @@ exports[`Wallet should render correctly 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={24}
                               name="Info"
                               style={
@@ -880,6 +885,7 @@ exports[`Wallet should render correctly 1`] = `
                           >
                             <SvgMock
                               color="#9a6300"
+                              fill="currentColor"
                               height={24}
                               name="Danger"
                               style={
@@ -976,6 +982,7 @@ exports[`Wallet should render correctly 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -1336,6 +1343,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                   </View>
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={12}
                     name="ArrowDown"
                     style={
@@ -1579,6 +1587,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                     </View>
                     <SvgMock
                       color="#121314"
+                      fill="currentColor"
                       height={12}
                       name="ArrowDown"
                       style={
@@ -1671,6 +1680,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                       >
                         <SvgMock
                           color="#121314"
+                          fill="currentColor"
                           height={24}
                           name="Copy"
                           style={
@@ -1706,6 +1716,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                 >
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={24}
                     name="ScanBarcode"
                     style={
@@ -1969,6 +1980,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={24}
                               name="Info"
                               style={
@@ -2027,6 +2039,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           >
                             <SvgMock
                               color="#9a6300"
+                              fill="currentColor"
                               height={24}
                               name="Danger"
                               style={
@@ -2123,6 +2136,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -2483,6 +2497,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                   </View>
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={12}
                     name="ArrowDown"
                     style={
@@ -2726,6 +2741,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     </View>
                     <SvgMock
                       color="#121314"
+                      fill="currentColor"
                       height={12}
                       name="ArrowDown"
                       style={
@@ -2818,6 +2834,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                       >
                         <SvgMock
                           color="#121314"
+                          fill="currentColor"
                           height={24}
                           name="Copy"
                           style={
@@ -2853,6 +2870,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                 >
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={24}
                     name="ScanBarcode"
                     style={
@@ -3116,6 +3134,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={24}
                               name="Info"
                               style={
@@ -3174,6 +3193,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           >
                             <SvgMock
                               color="#9a6300"
+                              fill="currentColor"
                               height={24}
                               name="Danger"
                               style={
@@ -3270,6 +3290,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={

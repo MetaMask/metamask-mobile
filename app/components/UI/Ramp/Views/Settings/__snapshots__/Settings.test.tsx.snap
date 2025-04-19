@@ -138,6 +138,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -796,6 +797,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         >
                                           <SvgMock
                                             color="#4459ff"
+                                            fill="currentColor"
                                             height={24}
                                             name="Edit"
                                             style={
@@ -855,6 +857,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         >
                                           <SvgMock
                                             color="#ca3542"
+                                            fill="currentColor"
                                             height={24}
                                             name="Trash"
                                             style={
@@ -1015,6 +1018,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         >
                                           <SvgMock
                                             color="#4459ff"
+                                            fill="currentColor"
                                             height={24}
                                             name="Edit"
                                             style={
@@ -1074,6 +1078,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         >
                                           <SvgMock
                                             color="#ca3542"
+                                            fill="currentColor"
                                             height={24}
                                             name="Trash"
                                             style={
@@ -1298,6 +1303,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -2016,6 +2022,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -2559,6 +2566,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -3140,6 +3148,7 @@ exports[`Settings renders correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -3721,6 +3730,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -4376,6 +4386,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         >
                                           <SvgMock
                                             color="#4459ff"
+                                            fill="currentColor"
                                             height={24}
                                             name="Edit"
                                             style={
@@ -4435,6 +4446,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         >
                                           <SvgMock
                                             color="#ca3542"
+                                            fill="currentColor"
                                             height={24}
                                             name="Trash"
                                             style={
@@ -4595,6 +4607,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         >
                                           <SvgMock
                                             color="#4459ff"
+                                            fill="currentColor"
                                             height={24}
                                             name="Edit"
                                             style={
@@ -4654,6 +4667,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         >
                                           <SvgMock
                                             color="#ca3542"
+                                            fill="currentColor"
                                             height={24}
                                             name="Trash"
                                             style={

@@ -42,6 +42,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
       >
         <SvgMock
           color="#9a6300"
+          fill="currentColor"
           height={24}
           name="Danger"
           style={
@@ -541,6 +542,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={16}
                   name="ArrowDown"
                   style={
@@ -590,6 +592,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={16}
                   name="Search"
                   style={
@@ -665,6 +668,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                 >
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={16}
                     name="Close"
                     style={
@@ -779,6 +783,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
             >
               <SvgMock
                 color="#9a6300"
+                fill="currentColor"
                 height={24}
                 name="Danger"
                 style={
@@ -900,6 +905,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={16}
                   name="ArrowDown"
                   style={

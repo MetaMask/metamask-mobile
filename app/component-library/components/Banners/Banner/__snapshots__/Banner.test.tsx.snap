@@ -25,6 +25,7 @@ exports[`Banner should render correctly 1`] = `
   >
     <SvgMock
       color="#ca3542"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -102,6 +103,7 @@ exports[`Banner should render correctly with a close button 1`] = `
   >
     <SvgMock
       color="#ca3542"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -217,6 +219,7 @@ exports[`Banner should render correctly with a close button 1`] = `
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={16}
         name="Close"
         style={
@@ -337,6 +340,7 @@ exports[`Banner should render correctly with an action button 1`] = `
   >
     <SvgMock
       color="#ca3542"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={

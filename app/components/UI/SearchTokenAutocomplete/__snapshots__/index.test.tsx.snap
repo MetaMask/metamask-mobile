@@ -406,6 +406,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                 >
                                   <SvgMock
                                     color="#121314"
+                                    fill="currentColor"
                                     height={16}
                                     name="ArrowDown"
                                     style={
@@ -455,6 +456,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                 >
                                   <SvgMock
                                     color="#121314"
+                                    fill="currentColor"
                                     height={16}
                                     name="Search"
                                     style={
@@ -530,6 +532,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                   >
                                     <SvgMock
                                       color="#121314"
+                                      fill="currentColor"
                                       height={16}
                                       name="Close"
                                       style={

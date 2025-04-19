@@ -76,6 +76,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       >
         <SvgMock
           color="#ca3542"
+          fill="currentColor"
           height={16}
           name="Danger"
           style={

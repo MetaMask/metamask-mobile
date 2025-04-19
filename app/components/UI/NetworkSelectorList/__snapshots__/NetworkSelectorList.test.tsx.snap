@@ -267,6 +267,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                 >
                   <SvgMock
                     color="#ffffff"
+                    fill="currentColor"
                     height={20}
                     name="CheckBold"
                     onPressIn={[Function]}

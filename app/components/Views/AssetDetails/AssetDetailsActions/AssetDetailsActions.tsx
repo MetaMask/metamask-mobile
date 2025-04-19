@@ -91,7 +91,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       ) : null}
       <View style={styles.buttonWrapper}>
         <WalletAction
-          iconName={IconName.Arrow2Upright}
+          iconName={IconName.Arrow2UpRight}
           onPress={onSend}
           iconStyle={styles.icon}
           containerStyle={styles.containerStyle}

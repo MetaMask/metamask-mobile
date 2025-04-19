@@ -138,6 +138,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -515,6 +516,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -941,6 +943,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
