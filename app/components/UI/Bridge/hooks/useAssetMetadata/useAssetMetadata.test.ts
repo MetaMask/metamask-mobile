@@ -21,8 +21,7 @@ const mockAssetIdEvm = 'eip155:1/erc20:0x123';
 
 const mockChainIdSol = 'solana:101';
 const mockSearchQuerySol = 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm';
-const mockAssetIdSol =
-  'solana:101/token:EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm';
+const mockAssetIdSol = 'solana:101/token:EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm';
 
 describe('useAssetMetadata', () => {
   beforeEach(() => {

@@ -76,7 +76,8 @@ describe('asset-utils', () => {
     });
 
     it('should return correct image URL for non-hex CAIP asset ID', () => {
-      const assetId = `${SolScope.Mainnet}/token:aBCD` as CaipAssetType;
+      const assetId =
+        `${SolScope.Mainnet}/token:aBCD` as CaipAssetType;
       const expectedUrl = `${STATIC_METAMASK_BASE_URL}/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/aBCD.png`;
 
       expect(getAssetImageUrl(assetId, 'eip155:1')).toBe(expectedUrl);
@@ -214,7 +215,9 @@ describe('asset-utils', () => {
     });
 
     it('should return undefined when API call fails', async () => {
-      (handleFetch as jest.Mock).mockRejectedValueOnce(new Error('API Error'));
+      (handleFetch as jest.Mock).mockRejectedValueOnce(
+        new Error('API Error'),
+      );
 
       const result = await fetchAssetMetadata(mockAddress, mockHexChainId);
 
