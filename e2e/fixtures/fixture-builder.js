@@ -8,7 +8,6 @@ import { SolScope } from '@metamask/keyring-api';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
-  getDefaultCaip25CaveatValue,
   setEthAccounts,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
@@ -1149,33 +1148,6 @@ class FixtureBuilder {
       transactions,
     });
     return this;
-  }
-
-  withChainPermissions(chainIds) {
-    const permissions = {
-      [Caip25EndowmentPermissionName]: {
-        caveats: [
-          {
-            type: Caip25CaveatType,
-            value: setPermittedEthChainIds(getDefaultCaip25CaveatValue(), chainIds),
-          },
-        ],
-      },
-    };
-
-    return this.withState({
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-              'localhost:8081': {
-                permissions,
-              },
-            },
-          },
-        },
-      },
-    });
   }
 
   /**
