@@ -16,6 +16,7 @@ import Engine from '../../../core/Engine';
 import CollectibleMedia from '../CollectibleMedia';
 import AssetElement from '../AssetElement';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { toHex } from '@metamask/controller-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -63,6 +64,14 @@ const createStyles = (colors) =>
  */
 export default class Collectibles extends PureComponent {
   static propTypes = {
+    /**
+     * Selected address
+     */
+    selectedAddress: PropTypes.string,
+    /**
+     * Network configurations
+     */
+    networkConfigurations: PropTypes.object,
     /**
      * Navigation object required to push
      * the Asset detail view
@@ -133,10 +142,19 @@ export default class Collectibles extends PureComponent {
 
   refreshMetadata = () => {
     const { NftController } = Engine.context;
+    const { networkConfigurations } = this.props;
+
+    const chainIdHex = toHex(this.longPressedCollectible.current.chainId);
+    const config = networkConfigurations[chainIdHex];
+    const nftNetworkClientId =
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      config?.rpcEndpoints?.[config.defaultRpcEndpointIndex]?.networkClientId;
 
     NftController.addNft(
       this.longPressedCollectible.current.address,
       this.longPressedCollectible.current.tokenId,
+      nftNetworkClientId,
     );
   };
 
@@ -150,9 +168,22 @@ export default class Collectibles extends PureComponent {
 
   removeNft = () => {
     const { NftController } = Engine.context;
+    const { networkConfigurations, selectedAddress } = this.props;
+
+    const chainIdHex = toHex(this.longPressedCollectible.current.chainId);
+    const config = networkConfigurations[chainIdHex];
+    const nftNetworkClientId =
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      config?.rpcEndpoints?.[config.defaultRpcEndpointIndex]?.networkClientId;
+
     NftController.removeAndIgnoreNft(
       this.longPressedCollectible.address,
       this.longPressedCollectible.tokenId,
+      {
+        networkClientId: nftNetworkClientId,
+        userAddress: selectedAddress,
+      },
     );
     Alert.alert(
       strings('wallet.collectible_removed_title'),

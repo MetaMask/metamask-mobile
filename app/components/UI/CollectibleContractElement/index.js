@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Device from '../../../util/device';
@@ -11,7 +11,10 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { useTheme } from '../../../util/theme';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import Icon, {
   IconName,
@@ -23,6 +26,7 @@ import {
   useMetrics,
 } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
+import { toHex } from '@metamask/controller-utils';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -96,6 +100,7 @@ function CollectibleContractElement({
   selectedAddress,
   removeFavoriteCollectible,
 }) {
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const [collectiblesGrid, setCollectiblesGrid] = useState([]);
   const [collectiblesVisible, setCollectiblesVisible] = useState(
     propsCollectiblesVisible,
@@ -129,9 +134,20 @@ function CollectibleContractElement({
       chainId,
       longPressedCollectible.current,
     );
+    const chainIdHex = toHex(longPressedCollectible.current.chainId);
+    const config = networkConfigurations[chainIdHex];
+    const nftNetworkClientId =
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      config?.rpcEndpoints?.[config.defaultRpcEndpointIndex]?.networkClientId;
+
     NftController.removeAndIgnoreNft(
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
+      {
+        networkClientId: nftNetworkClientId,
+        userAddress: selectedAddress,
+      },
     );
     trackEvent(
       createEventBuilder(MetaMetricsEvents.COLLECTIBLE_REMOVED)
