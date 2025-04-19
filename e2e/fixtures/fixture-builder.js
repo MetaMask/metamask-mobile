@@ -851,7 +851,7 @@ class FixtureBuilder {
    * @param {string[]} chainIds - Array of chain IDs to permit (defaults to ['0x1']), other nexts like linea mainnet 0xe708
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withChainPermissions(chainIds = ['0x1']) {
+  withChainPermission(chainIds = ['0x1']) {
     const optionalScopes = chainIds
       .map((id) => ({
         [`eip155:${parseInt(id)}`]: { accounts: [] },
@@ -1149,6 +1149,33 @@ class FixtureBuilder {
       transactions,
     });
     return this;
+  }
+
+  withChainPermissions(chainIds) {
+    const permissions = {
+      [Caip25EndowmentPermissionName]: {
+        caveats: [
+          {
+            type: Caip25CaveatType,
+            value: setPermittedEthChainIds(getDefaultCaip25CaveatValue(), chainIds),
+          },
+        ],
+      },
+    };
+
+    return this.withState({
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              'localhost:8081': {
+                permissions,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   /**
