@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../../../helpers';
-import { SmokeMultiChainPermissions } from '../../../../tags';
+import { SmokeNetworkAbstractions } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
@@ -15,8 +15,9 @@ import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import TestDApp from '../../../../pages/Browser/TestDApp';
 
-describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
+describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -98,9 +99,12 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
         await NetworkConnectMultiSelector.tapUpdateButton();
 
+        await device.disableSynchronization();
         // Handle network education modal and close bottom sheet
         await NetworkEducationModal.tapGotItButton();
+        await device.enableSynchronization();
         await TestHelpers.delay(3000);
+        // await TestDApp.tapMMLogo();
         await PermissionSummaryBottomSheet.swipeToDismissModal();
         await TestHelpers.delay(3000);
 

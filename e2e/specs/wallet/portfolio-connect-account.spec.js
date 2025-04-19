@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
 import {
@@ -18,7 +18,7 @@ import Assertions from '../../utils/Assertions';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 const fixtureServer = new FixtureServer();
 
-describe(SmokeCore('Connect account to Portfolio'), () => {
+describe(SmokeNetworkAbstractions('Connect account to Portfolio'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withKeyringController().build();
