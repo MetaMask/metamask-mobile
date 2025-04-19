@@ -256,7 +256,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
                 }
               }
             >
-              0x881D...300C
+              0x881D4...D300C
             </Text>
             <SvgMock
               color="#121314"
@@ -504,7 +504,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
                 }
               }
             >
-              0x881D...300d
+              0x881D4...d300d
             </Text>
             <SvgMock
               color="#121314"

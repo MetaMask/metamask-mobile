@@ -296,7 +296,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         }
                       }
                     >
-                      0xC495...D272
+                      0xC4955...4D272
                     </Text>
                   </View>
                 </View>
@@ -669,7 +669,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         }
                       }
                     >
-                      0xd018...78E7
+                      0xd0185...a78E7
                     </Text>
                   </View>
                 </View>
@@ -1071,7 +1071,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                         }
                       }
                     >
-                      0xC495...D272
+                      0xC4955...4D272
                     </Text>
                   </View>
                 </View>
@@ -1380,7 +1380,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                         }
                       }
                     >
-                      0xd018...78E7
+                      0xd0185...a78E7
                     </Text>
                   </View>
                 </View>
@@ -1744,7 +1744,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         }
                       }
                     >
-                      0xC495...D272
+                      0xC4955...4D272
                     </Text>
                   </View>
                 </View>
@@ -2117,7 +2117,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         }
                       }
                     >
-                      0xd018...78E7
+                      0xd0185...a78E7
                     </Text>
                   </View>
                 </View>

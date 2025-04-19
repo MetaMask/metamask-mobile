@@ -119,7 +119,7 @@ describe('formatAddress', () => {
 
   describe('with EVM addresses', () => {
     it('returns checksummed address formatted for short type', () => {
-      const expectedValue = '0xC495...D272';
+      const expectedValue = '0xC4955...4D272';
       expect(formatAddress(mockEvmAddress, 'short')).toBe(expectedValue);
     });
 
@@ -136,7 +136,7 @@ describe('formatAddress', () => {
 
   describe('with non-EVM addresses', () => {
     it('returns address formatted for short type without checksumming', () => {
-      const expectedValue = 'bc1qxy...0wlh';
+      const expectedValue = 'bc1qxy2...x0wlh';
       expect(formatAddress(mockBtcAddress, 'short')).toBe(expectedValue);
     });
 
