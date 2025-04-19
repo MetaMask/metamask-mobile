@@ -65,7 +65,7 @@ interface AddCustomCollectibleProps {
   };
   setOpenNetworkSelector: (val: boolean) => void;
   selectedNetwork: string | null;
-  chainId: Hex | null;
+  chainId: string | null;
 }
 
 const AddCustomCollectible = ({
@@ -129,7 +129,7 @@ const AddCustomCollectible = ({
     } else if (!isValidEthAddress) {
       setWarningAddress(strings('collectible.address_must_be_valid'));
       validated = false;
-    } else if (!(await isSmartContractAddress(address, chainId))) {
+    } else if (!(await isSmartContractAddress(address, chainId as string))) {
       setWarningAddress(strings('collectible.address_must_be_smart_contract'));
       validated = false;
     } else {
