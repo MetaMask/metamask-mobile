@@ -34,7 +34,6 @@ const styleSheet = (params: { theme: Theme }) => {
     expandedContentTitle: {
       color: theme.colors.text.default,
       ...fontStyles.bold,
-      fontSize: 14,
       width: '90%',
       textAlign: 'center',
     },

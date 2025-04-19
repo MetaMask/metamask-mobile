@@ -27,7 +27,6 @@ const styleSheet = (params: { theme: Theme }) => {
     value: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
     },
   });
 };

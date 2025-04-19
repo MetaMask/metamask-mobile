@@ -50,7 +50,6 @@ const styleSheet = (params: { theme: Theme }) => {
     modalContentValue: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
     },
   });
 };
