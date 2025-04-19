@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
+  useContext,
 } from 'react';
 import {
   View,
@@ -110,6 +111,7 @@ import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPhishingTestResult } from '../../../util/phishingDetection';
+import { ToastContext } from '../../../component-library/components/Toast';
 
 /**
  * Tab component for the in-app browser
@@ -189,6 +191,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     );
     return permittedAcc;
   }, isEqual);
+  // eslint-disable-next-line no-console
+  console.log('BrowserTab permittedAccountsList', permittedAccountsList);
 
   const favicon = useFavicon(resolvedUrlRef.current);
   const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
@@ -206,6 +210,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const whitelist = useSelector((state: RootState) => state.browser.whitelist);
 
   const isFocused = useIsFocused();
+
+  const { toastRef } = useContext(ToastContext);
 
   /**
    * Checks if a given url or the current url is the homepage
@@ -405,6 +411,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     const connectedAccounts = getPermittedAccountsByHostname(
       permissionsControllerState,
       hostname,
+    );
+
+    // eslint-disable-next-line no-console
+    console.log(
+      'BrowserTab triggerDappViewedEvent connectedAccounts',
+      connectedAccounts,
     );
 
     // Check if there are any connected accounts
@@ -613,6 +625,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       hostname,
     );
 
+    // eslint-disable-next-line no-console
+    console.log(
+      'BrowserTab checkTabPermissions permittedAccounts',
+      permittedAccounts,
+    );
+
     const isConnected = permittedAccounts.length > 0;
 
     if (isConnected) {
@@ -684,12 +702,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         });
 
-      updateTabInfo(
-        tabId,
-        {
-          url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
-        },
-      );
+      updateTabInfo(tabId, {
+        url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
+      });
 
       addToBrowserHistory({
         name: siteInfo.title,
@@ -900,6 +915,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             isWalletConnect: false,
             isMMSDK: false,
             analytics: {},
+            toastRef,
           }),
         isMainFrame,
       });

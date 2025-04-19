@@ -49,6 +49,11 @@ import {
   SignatureController,
 } from '@metamask/signature-controller';
 import { PermissionKeys } from '../Permissions/specifications.js';
+import { ToastVariants } from '../../component-library/components/Toast';
+import { ToastRef } from '../../component-library/components/Toast/Toast.types';
+import { IconName } from '../../component-library/components/Icons/Icon';
+import { selectSelectedInternalAccount } from '../../selectors/accountsController';
+import { isSolanaAccount } from '../Multichain/utils';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -110,6 +115,7 @@ export interface RPCMethodsMiddleParameters {
   isMMSDK: boolean;
   injectHomePageScripts: (bookmarks?: []) => void;
   analytics: { [key: string]: string | boolean };
+  toastRef?: ToastRef;
 }
 
 // Also used by WalletConnect.js.
@@ -151,6 +157,12 @@ export const checkActiveAccountAndChainId = async ({
 
     const origin = isWalletConnect ? hostname : channelId ?? hostname;
     const accounts = await getPermittedAccounts(origin);
+
+    // eslint-disable-next-line no-console
+    console.log(
+      'RpcMethodMiddlware checkActiveAccountAndChainId permitted accounts',
+      accounts,
+    );
 
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
@@ -321,6 +333,8 @@ export const getRpcMethodMiddleware = ({
   injectHomePageScripts,
   // For analytics
   analytics,
+  // For showing toasts
+  toastRef,
 }: RPCMethodsMiddleParameters) => {
   // Make sure to always have the correct origin
   hostname = hostname.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
@@ -338,6 +352,51 @@ export const getRpcMethodMiddleware = ({
       const accounts = await getPermittedAccounts(origin);
       res.result = accounts;
     };
+
+    // eslint-disable-next-line no-console
+    console.log(
+      'RpcMethodMiddlware getRpcMethodMiddleware createAsyncMiddlewares',
+    );
+
+    // Check if the selected account is a Solana account
+    const currenttlySelectedAccount = selectSelectedInternalAccount(
+      store.getState(),
+    );
+
+    // eslint-disable-next-line no-console
+    console.log(
+      'RpcMethodMiddlware eth_requestAccounts currenttlySelectedAccount',
+      currenttlySelectedAccount,
+    );
+
+    // If this is a Solana account, show an informative toast and reject the request
+    if (
+      currenttlySelectedAccount &&
+      isSolanaAccount(currenttlySelectedAccount)
+    ) {
+      Logger.log('Intercepting Solana dapp connection request');
+
+      // Show toast message about Solana dapps not being supported yet
+      if (toastRef) {
+        toastRef.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Info,
+          iconColor: '#0376C9', // MetaMask blue
+          hasNoTimeout: true,
+          labelOptions: [
+            {
+              label: 'testing solana',
+              isBold: true,
+            },
+          ],
+        });
+      }
+
+      // Reject the request with a clear error message
+      throw providerErrors.unsupportedMethod(
+        'Solana dapp connections are not supported yet.',
+      );
+    }
 
     const checkTabActive = () => {
       if (!tabId) return true;
@@ -546,6 +605,12 @@ export const getRpcMethodMiddleware = ({
 
         const permittedAccounts = await getPermittedAccounts(origin);
 
+        // eslint-disable-next-line no-console
+        console.log(
+          'RpcMethodMiddlware eth_requestAccounts permittedAccounts',
+          permittedAccounts,
+        );
+
         if (!params?.force && permittedAccounts.length) {
           res.result = permittedAccounts;
         } else {
@@ -557,6 +622,8 @@ export const getRpcMethodMiddleware = ({
             );
             DevLogger.log(`eth_requestAccounts requestPermissions`);
             const acc = await getPermittedAccounts(origin);
+            // eslint-disable-next-line no-console
+            console.log('RpcMethodMiddlware eth_requestAccounts 2 acc', acc);
             DevLogger.log(`eth_requestAccounts getPermittedAccounts`, acc);
             res.result = acc;
           } catch (error) {
@@ -911,6 +978,11 @@ export const getRpcMethodMiddleware = ({
        */
       metamask_getProviderState: async () => {
         const accounts = await getPermittedAccounts(origin);
+        // eslint-disable-next-line no-console
+        console.log(
+          'RpcMethodMiddlware metamask_getProviderState accounts',
+          accounts,
+        );
         res.result = {
           ...(await getProviderState(origin)),
           accounts,

@@ -53,6 +53,11 @@ const TabThumbnail = ({
     permittedAccountsList,
     tabTitle,
   );
+  // eslint-disable-next-line no-console
+  console.log(
+    'TabThumbnail permittedAccountsByHostname',
+    permittedAccountsByHostname,
+  );
   const activeAddress = permittedAccountsByHostname[0];
   const { evmAccounts: accounts } = useAccounts({});
   const selectedAccount = accounts.find(
