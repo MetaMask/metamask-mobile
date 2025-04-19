@@ -78,3 +78,9 @@ export const selectConversionRateByChainId = createSelector(
     return currencyRates?.[nativeCurrency]?.conversionRate;
   },
 );
+
+export const selectUsdConversionRate = createSelector(
+  selectCurrencyRates,
+  selectCurrentCurrency,
+  (currencyRates, currentCurrency) => currencyRates?.[currentCurrency]?.usdConversionRate,
+);

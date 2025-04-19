@@ -9,15 +9,8 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './TokenDetails.styles';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { selectTokenList } from '../../../../selectors/tokenListController';
-import {
-  selectTokenMarketDataByChainId,
-  selectContractExchangeRates,
-} from '../../../../selectors/tokenRatesController';
-import {
-  selectConversionRateBySymbol,
-  selectCurrentCurrency,
-  selectConversionRate,
-} from '../../../../selectors/currencyRateController';
+import { selectTokenMarketDataByChainId } from '../../../../selectors/tokenRatesController';
+import { selectConversionRateBySymbol, selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
   convertDecimalToPercentage,
@@ -29,7 +22,7 @@ import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
 import StakingEarnings from '../../Stake/components/StakingEarnings';
-import { isPortfolioViewEnabled } from '../../../../util/networks';
+import { isAssetFromSearch, selectTokenDisplayData } from '../../../../selectors/tokenSearchDiscoveryDataController';
 import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
 import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
 import { parseFloatSafe } from '../../Earn/utils';
@@ -63,8 +56,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
-  const tokenExchangeRatesLegacy = useSelector(selectContractExchangeRates);
-  const conversionRateLegacy = useSelector(selectConversionRate);
   const conversionRateBySymbol = useSelector((state: RootState) =>
     selectConversionRateBySymbol(state, nativeCurrency),
   );
@@ -72,17 +63,24 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const tokenContractAddress = safeToChecksumAddress(asset.address);
   const tokenList = useSelector(selectTokenList);
 
-  const conversionRate = isPortfolioViewEnabled()
-    ? conversionRateBySymbol
-    : conversionRateLegacy;
-  const tokenExchangeRates = isPortfolioViewEnabled()
-    ? tokenExchangeRatesByChainId
-    : tokenExchangeRatesLegacy;
+  let conversionRate;
+  if (isAssetFromSearch(asset)) {
+    conversionRate = 1;
+  } else {
+    conversionRate = conversionRateBySymbol;
+  }
+
+  const tokenExchangeRates = tokenExchangeRatesByChainId;
 
   let tokenMetadata;
   let marketData;
 
-  if (asset.isETH) {
+  const tokenResult = useSelector((state: RootState) => selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex));
+
+  if (isAssetFromSearch(asset) && tokenResult?.found && tokenResult.price) {
+    marketData = tokenResult.price;
+    tokenMetadata = tokenResult.token;
+  } else if (asset.isETH) {
     marketData = tokenExchangeRates?.[zeroAddress() as Hex];
   } else if (tokenContractAddress) {
     tokenMetadata = tokenList?.[tokenContractAddress.toLowerCase()];
@@ -106,7 +104,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     : {
         contractAddress: tokenContractAddress || null,
         tokenDecimal: tokenMetadata?.decimals || null,
-        tokenList: tokenMetadata?.aggregators.join(', ') || null,
+        tokenList: tokenMetadata?.aggregators?.join(', ') || null,
       };
 
   const marketDetails: MarketDetails = {

@@ -121,6 +121,8 @@ const Routes = {
   BROWSER: {
     HOME: 'BrowserTabHome',
     VIEW: 'BrowserView',
+    ASSET_LOADER: 'AssetLoader',
+    ASSET_VIEW: 'AssetView',
   },
   WEBVIEW: {
     MAIN: 'Webview',
@@ -139,6 +141,7 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   EDIT_NETWORK: 'EditNetwork',
   SWAPS: 'Swaps',
+  SWAPS_AMOUNT_VIEW: 'SwapsAmountView',
   BRIDGE: {
     ROOT: 'Bridge',
     MODALS: {

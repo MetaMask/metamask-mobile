@@ -15,6 +15,10 @@ import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import isBridgeAllowed from '../../utils/isBridgeAllowed';
 import { ethers } from 'ethers';
+import { isAssetFromSearch } from '../../../../../selectors/tokenSearchDiscoveryDataController';
+import { PopularList } from '../../../../../util/networks/customNetworks';
+import { useAddNetwork } from '../../../../hooks/useAddNetwork';
+import { swapsUtils } from '@metamask/swaps-controller';
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
@@ -95,29 +99,42 @@ export const useSwapBridgeNavigation = ({
     [goToNativeBridge, goToPortfolioBridge],
   );
 
-  // Swaps
-  const handleSwapsNavigation = useCallback(async () => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+  const { addPopularNetwork, networkModal } = useAddNetwork();
 
-    const swapToken = tokenBase ?? {
+  // Swaps
+  const handleSwapsNavigation = useCallback(async (currentToken?: BridgeToken) => {
+    const swapToken = currentToken ?? tokenBase ?? {
       // For EVM chains, default swap token addr is zero address
       // Old Swap UI is EVM only, so we don't need to worry about Solana
       address: ethers.constants.AddressZero,
       chainId: selectedChainId,
     };
 
+    if (!isAssetFromSearch(swapToken)) {
+      navigation.navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
+    }
+
     if (swapToken?.chainId !== selectedChainId) {
       const { NetworkController, MultichainNetworkController } = Engine.context;
-      const networkConfiguration =
+      let networkConfiguration =
         NetworkController.getNetworkConfigurationByChainId(
-          tokenBase?.chainId as Hex,
+          swapToken?.chainId as Hex,
         );
 
+      if (!networkConfiguration && isAssetFromSearch(swapToken)) {
+        const network = PopularList.find((popularNetwork) => popularNetwork.chainId === swapToken.chainId);
+        if (network) {
+          await addPopularNetwork(network);
+          networkConfiguration = NetworkController.getNetworkConfigurationByChainId(
+            swapToken?.chainId as Hex,
+          );
+        }
+      }
       const networkClientId =
         networkConfiguration?.rpcEndpoints?.[
           networkConfiguration.defaultRpcEndpointIndex
@@ -128,17 +145,30 @@ export const useSwapBridgeNavigation = ({
       );
     }
 
-    navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
-      params: {
-        sourceToken: swapToken?.address,
-        chainId: swapToken?.chainId,
-        sourcePage,
-      },
-    });
-  }, [navigation, tokenBase, selectedChainId, sourcePage]);
+    // If the token was found by searching for it, it's more likely we want to swap into it than out of it
+    if (isAssetFromSearch(swapToken)) {
+      navigation.navigate(Routes.SWAPS, {
+        screen: Routes.SWAPS_AMOUNT_VIEW,
+        params: {
+          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          destinationToken: swapToken?.address,
+          chainId: swapToken?.chainId,
+          sourcePage,
+        },
+      });
+    } else {
+      navigation.navigate(Routes.SWAPS, {
+        screen: Routes.SWAPS_AMOUNT_VIEW,
+        params: {
+          sourceToken: swapToken?.address,
+          chainId: swapToken?.chainId,
+          sourcePage,
+        },
+      });
+    }
+  }, [navigation, tokenBase, selectedChainId, sourcePage, addPopularNetwork]);
 
-  const goToSwaps = useCallback(() => {
+  const goToSwaps = useCallback(async (currentToken?: BridgeToken) => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     if (
       tokenBase?.chainId === SolScope.Mainnet ||
@@ -149,7 +179,7 @@ export const useSwapBridgeNavigation = ({
     }
     ///: END:ONLY_INCLUDE_IF
 
-    handleSwapsNavigation();
+    await handleSwapsNavigation(currentToken);
   }, [
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     tokenBase?.chainId,
@@ -162,5 +192,6 @@ export const useSwapBridgeNavigation = ({
   return {
     goToBridge: () => goToBridge(BridgeViewMode.Bridge),
     goToSwaps,
+    networkModal,
   };
 };
