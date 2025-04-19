@@ -5637,10 +5637,10 @@
     fast-json-patch "^3.1.0"
     lodash "^4.17.21"
 
-"@metamask/snaps-controllers@^11.1.0":
-  version "11.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-11.1.0.tgz#a29818c13404d66aebbc63209aa9d70772a4ce58"
-  integrity sha512-epdjIgzhmU2czY9SygHmydiptfCZ4YeF7MGsbF7kbDZnFBeRHWoZOYCF18VDF//UW4cjzKNXvs8Z6lmTY2ENwA==
+"@metamask/snaps-controllers@^11.2.1":
+  version "11.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-11.2.1.tgz#89c402817e7e8e8b333a33e6c1ed0d6985049807"
+  integrity sha512-LzvqQ2SEf75zSmvh55vm6P67eFAat4lmDHGs4XQsFIZ+HWbwk5OfAn2s7sc6y6O8Uci6xK9xgfTz+XRbgC7JEg==
   dependencies:
     "@metamask/approval-controller" "^7.1.3"
     "@metamask/base-controller" "^8.0.0"
@@ -5653,9 +5653,9 @@
     "@metamask/post-message-stream" "^9.0.0"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/snaps-registry" "^3.2.3"
-    "@metamask/snaps-rpc-methods" "^12.0.0"
-    "@metamask/snaps-sdk" "^6.20.0"
-    "@metamask/snaps-utils" "^9.1.0"
+    "@metamask/snaps-rpc-methods" "^12.1.0"
+    "@metamask/snaps-sdk" "^6.22.0"
+    "@metamask/snaps-utils" "^9.2.0"
     "@metamask/utils" "^11.2.0"
     "@xstate/fsm" "^2.0.0"
     async-mutex "^0.5.0"
@@ -5713,7 +5713,22 @@
     "@noble/hashes" "^1.7.1"
     luxon "^3.5.0"
 
-"@metamask/snaps-sdk@^6.17.0", "@metamask/snaps-sdk@^6.17.1", "@metamask/snaps-sdk@^6.19.0", "@metamask/snaps-sdk@^6.20.0", "@metamask/snaps-sdk@^6.21.0":
+"@metamask/snaps-rpc-methods@^12.1.0":
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-12.1.0.tgz#ccaceb6c278a9ee30e094e830bc8cd945e12d712"
+  integrity sha512-cTjYwTQjXRWQgo9eji6cXrmkLYFHSLyUrw/s+VEjfWhyaiNEq8Os3Pm7sHF2JwpAN/Zg8W+UzyK9XxSoynLVDg==
+  dependencies:
+    "@metamask/key-tree" "^10.1.1"
+    "@metamask/permission-controller" "^11.0.6"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/snaps-sdk" "^6.22.0"
+    "@metamask/snaps-utils" "^9.2.0"
+    "@metamask/superstruct" "^3.2.1"
+    "@metamask/utils" "^11.2.0"
+    "@noble/hashes" "^1.7.1"
+    luxon "^3.5.0"
+
+"@metamask/snaps-sdk@^6.17.0", "@metamask/snaps-sdk@^6.17.1", "@metamask/snaps-sdk@^6.19.0", "@metamask/snaps-sdk@^6.20.0":
   version "6.21.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-6.21.0.tgz#e5d3eb22895ef41a8f665ea977bd9e6c10a68da4"
   integrity sha512-2dLzmBjbmOgOy3m4i1LircFxF3cpEjGCko0HsouQovcpDUBFbcQ3xM56eakqtQpR4Zrrd7ADAcoK+MxUJXTW7A==
