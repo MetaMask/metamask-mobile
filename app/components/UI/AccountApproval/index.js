@@ -35,8 +35,7 @@ import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
 import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { getPhishingTestResult } from '../../../util/phishingDetection';
-
+import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 /**
  * Account access approval component
  */
@@ -155,6 +154,8 @@ class AccountApproval extends PureComponent {
   };
 
   componentDidMount = () => {
+    this._isMounted = true;
+
     const { currentPageInformation } = this.props;
 
     const prefixedUrl = prefixUrlWithProtocol(currentPageInformation?.url);
@@ -168,6 +169,10 @@ class AccountApproval extends PureComponent {
         .addProperties(this.getAnalyticsParams())
         .build(),
     );
+  };
+
+  componentWillUnmount = () => {
+    this._isMounted = false;
   };
 
   showWalletConnectNotification = (confirmation = false) => {
@@ -285,11 +290,13 @@ class AccountApproval extends PureComponent {
     });
   };
 
-  checkUrlFlaggedAsPhishing = (hostname) => {
-    const phishingResult = getPhishingTestResult(hostname);
-    this.setState({
-      isUrlFlaggedAsPhishing: phishingResult?.result || false,
-    });
+  checkUrlFlaggedAsPhishing = async (hostname) => {
+    const scanResult = await getPhishingTestResultAsync(hostname);
+    if (this._isMounted) {
+      this.setState({
+        isUrlFlaggedAsPhishing: scanResult.result,
+      });
+    }
   };
 
   render = () => {

@@ -83,8 +83,8 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { getPhishingTestResult } from '../../../util/phishingDetection';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -292,20 +292,22 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [selectedChainIds, chainId, hostname]);
 
-  const isAllowedOrigin = useCallback((origin: string) => {
-    const phishingResult = getPhishingTestResult(origin);
-    return !phishingResult?.result;
-  }, []);
-
   useEffect(() => {
     const url = dappUrl || channelIdOrHostname || '';
-    const isAllowed = isAllowedOrigin(url);
+    let isMounted = true;
 
-    if (!isAllowed) {
-      setBlockedUrl(dappUrl);
-      setShowPhishingModal(true);
-    }
-  }, [isAllowedOrigin, dappUrl, channelIdOrHostname]);
+    const checkOrigin = async () => {
+      const scanResult = await getPhishingTestResultAsync(url);
+      if (scanResult.result && isMounted) {
+        setBlockedUrl(dappUrl);
+        setShowPhishingModal(true);
+      }
+    };
+    checkOrigin();
+    return () => {
+      isMounted = false;
+    };
+  }, [dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
