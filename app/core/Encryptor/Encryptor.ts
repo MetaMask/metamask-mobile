@@ -213,6 +213,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    */
   decrypt = async (password: string, text: string): Promise<unknown> => {
     const payload = JSON.parse(text);
+    const { salt, keyMetadata, lib } = payload;
 
     // NOTE: We use metadata coming from the payload itself as the encryption
     // scheme/parameters could be different:
@@ -222,10 +223,11 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     //   * use a different number of iterations for the KDF
     const key = await this.keyFromPassword(
       password,
-      payload.salt,
+      salt,
       false,
-      payload.keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
-      payload.lib,
+      // If the keyMetadata is not present, we can assume the key was derived using the legacy options
+      keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
+      lib,
     );
 
     return await this.decryptWithKey(key, payload);
@@ -305,6 +307,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       password,
       salt,
       true,
+      // If the keyMetadata is not present, we can assume the key was derived using the legacy options
       keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
       payload.lib,
     );
@@ -353,6 +356,30 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       exportedKeyString,
     };
   };
+
+   /**
+   * Updates the provided vault, re-encrypting
+   * data with a safer algorithm if one is available.
+   *
+   * If the provided vault is already using the latest available encryption method,
+   * it is returned as is.
+   *
+   * @param vault - The vault to update.
+   * @param password - The password to use for encryption.
+   * @param targetDerivationParams - The options to use for key derivation.
+   * @returns A promise resolving to the updated vault.
+   */
+    updateVault = async (
+      vault: string,
+      password: string,
+      targetDerivationParams = this.keyDerivationOptions,
+    ): Promise<string> => {
+      if (this.isVaultUpdated(vault, targetDerivationParams)) {
+        return vault;
+      }
+
+      return this.encrypt(password, await this.decrypt(password, vault) as Json);
+    };
 }
 
 export { Encryptor };
