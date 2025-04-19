@@ -25,6 +25,13 @@ interface KeyringBackupResponse {
 }
 
 /**
+ * removes the vault backup from react-native-keychain
+ */
+export const resetVaultBackup = async (): Promise<void> => {
+  await resetInternetCredentials(VAULT_BACKUP_KEY);
+};
+
+/**
  * places the vault in react-native-keychain for backup
  * @returns Promise<KeyringBackupResponse>
   interface KeyringBackupResponse {
@@ -38,24 +45,34 @@ export async function backupVault(
 ): Promise<KeyringBackupResponse> {
   const keyringVault = keyringState.vault as string;
 
-  // Backup vault
-  const backupResult = await setInternetCredentials(
-    VAULT_BACKUP_KEY,
-    VAULT_BACKUP_KEY,
-    keyringVault,
-    options,
-  );
+  try {
+    // Clear any existing vault backup first to prevent "item already exists" errors
+    await resetVaultBackup();
 
-  // Vault backup failed, throw error
-  if (!backupResult) {
-    throw new Error(VAULT_BACKUP_FAILED);
+    // Backup vault
+    const backupResult = await setInternetCredentials(
+      VAULT_BACKUP_KEY,
+      VAULT_BACKUP_KEY,
+      keyringVault,
+      options,
+    );
+
+    // Vault backup failed, throw error
+    if (!backupResult) {
+      throw new Error(VAULT_BACKUP_FAILED);
+    }
+
+    return {
+      success: true,
+      vault: keyringState.vault,
+    };
+  } catch (error) {
+    Logger.error(error as Error, 'Vault backup failed');
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : VAULT_BACKUP_FAILED,
+    };
   }
-
-  // Vault backup successful, return response
-  return {
-    success: true,
-    vault: keyringState.vault,
-  };
 }
 
 /**
@@ -76,10 +93,3 @@ export async function getVaultFromBackup(): Promise<KeyringBackupResponse> {
   Logger.error(vaultFetchError, VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP);
   return { success: false, error: VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP };
 }
-
-/**
- * removes the vault backup from react-native-keychain
- */
-export const resetVaultBackup = async (): Promise<void> => {
-  await resetInternetCredentials(VAULT_BACKUP_KEY);
-};
