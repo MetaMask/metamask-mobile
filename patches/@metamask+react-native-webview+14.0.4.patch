@@ -24,3 +24,16 @@ index 4aa4617..8098026 100644
  				);
  				LIBRARY_SEARCH_PATHS = "$(inherited)";
  				OTHER_LDFLAGS = "-ObjC";
+diff --git a/node_modules/@metamask/react-native-webview/react-native-webview-mm.podspec b/node_modules/@metamask/react-native-webview/react-native-webview-mm.podspec
+index 3435dfd..a679cd7 100644
+--- a/node_modules/@metamask/react-native-webview/react-native-webview-mm.podspec
++++ b/node_modules/@metamask/react-native-webview/react-native-webview-mm.podspec
+@@ -23,7 +23,7 @@ Pod::Spec.new do |s|
+   if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
+     s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
+     s.pod_target_xcconfig    = {
+-        "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
++        "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"   \"${PODS_ROOT}/Headers/Private/Yoga\"",
+         "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1",
+         "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
+     }
