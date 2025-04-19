@@ -134,7 +134,8 @@ export class Oauth2LoginService {
             const data = await res.json() as ByoaResponse;
             Logger.log('handleCodeFlow: data', data);
             if (data.success) {
-                const jwtPayload = jwtDecode(data.id_token) as JwtPayload & {email: string};
+                const finalToken = idToken ?? data.id_token;
+                const jwtPayload = jwtDecode(finalToken) as JwtPayload & {email: string};
                 const userId = jwtPayload.sub ?? '';
                 this.updateLocalState({
                     userId,
