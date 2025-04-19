@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Kahina-hinalang kahilingan sa pag-sign in",
       "message": "Ang site na humihiling ay hindi ang site kung saan ka nagsa-sign in. Maaaring isa itong pagtatangkang nakawin ang iyong mga kredensyal sa pag-login."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -1117,6 +1122,11 @@
     "snaps": {
       "title": "Mga Snap",
       "description": "I-overview at pamahalaan ang iyong mga snap",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Alisin ang Snap",
         "remove_snap_section_description": "Idi-delete ng aksyong ito ang snap, ang data nito, at ang mga ipinagkaloob na pahintulot nito.",
@@ -1765,6 +1775,7 @@
     "tx_details_not_available": "Hindi available",
     "smart_contract_interaction": "Interaksyon sa smart na kontrata",
     "swaps_transaction": "Transaksyon sa mga swap",
+    "bridge_transaction": "Bridge",
     "approve": "Aprubahan",
     "increase_allowance": "Dagdag na Allowance",
     "set_approval_for_all": "Itakda ang Pag-apruba Para sa Lahat",
@@ -2839,6 +2850,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Makuha ang",
       "best_price": "pinakasulit na presyo",
@@ -3780,19 +3792,22 @@
       "permit": "Kahilingan sa limitasyon sa paggastos",
       "permit_revoke": "Alisin ang pahintulot",
       "permit_NFTs": "Kahilingang mag-withdraw",
-      "signature_siwe": "Kahilingan sa pag-sign in"
+      "signature_siwe": "Kahilingan sa pag-sign in",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",
       "permit_NFTs": "Kailangan ng site na ito ng pahintulot para i-withdraw ang mga NFT mo.",
       "signature": "Suriin ang mga detalye ng kahilingan bago mo kumpirmahin.",
-      "signature_siwe": "Hinihiling ng site na mag-sign in ka para patunayan na ikaw ang may-ari ng account na ito."
+      "signature_siwe": "Hinihiling ng site na mag-sign in ka para patunayan na ikaw ang may-ari ng account na ito.",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "Kahilingan mula sa/kay",
     "staking_from": "Pag-stake mula sa/kay",
     "signing_in_with": "Nagsa-sign in gamit ang",
     "message": "Mensahe",
     "personal_sign_tooltip": "Hinihingi ng site na ito ang iyong pirma",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "Mga detalye",
     "qr_get_sign": "Kumuha ng Lagda",
     "qr_scan_text": "I-scan gamit ang iyong wallet na hardware",
@@ -3868,6 +3883,24 @@
     "time": "Oras",
     "quote_info_content": "Nag-aalok ang quote na ito ng pinakamainam na return mula sa aming paghahanap. Nakabatay ito sa rate ng pag-swap, kabilang ang mga bayad sa pag-bridge at 0.875% na bayad sa MetaMask, ngunit hindi ito mga bayad sa gas. Iba-iba ang mga bayad sa gas depende sa aktibidad ng network at pagiging kumplikado ng transaksyon.",
     "quote_info_title": "Bakit namin inirerekomenda ang quote na ito",
-    "see_other_quotes": "Tingnan ang ibang mga quote"
+    "see_other_quotes": "Tingnan ang ibang mga quote",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "transaction_details": "Transaction Details"
   }
 }

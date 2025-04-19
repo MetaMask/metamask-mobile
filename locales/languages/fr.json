@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Demande de connexion suspecte",
       "message": "Le site à l’origine de la demande n’est pas celui auquel vous essayez de vous connecter. Il peut s’agir d’une tentative de vol de vos identifiants de connexion."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -1117,6 +1122,11 @@
     "snaps": {
       "title": "Snaps",
       "description": "Aperçu et gestion de vos Snaps",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Supprimer ce Snap",
         "remove_snap_section_description": "Cette action supprimera le Snap, ses données et les autorisations qui lui ont été accordées.",
@@ -1765,6 +1775,7 @@
     "tx_details_not_available": "Non disponible",
     "smart_contract_interaction": "Interaction de contrats intelligents",
     "swaps_transaction": "Transaction de swap",
+    "bridge_transaction": "Bridge",
     "approve": "Approuver",
     "increase_allowance": "Augmenter la provision",
     "set_approval_for_all": "Définir l’approbation pour tous",
@@ -2839,6 +2850,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Bénéficiez en permanence",
       "best_price": "du meilleur prix",
@@ -3780,19 +3792,22 @@
       "permit": "Demande de plafonnement des dépenses",
       "permit_revoke": "Supprimer l’autorisation",
       "permit_NFTs": "Demande de retrait",
-      "signature_siwe": "Demande de connexion"
+      "signature_siwe": "Demande de connexion",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",
       "permit_NFTs": "Ce site demande l’autorisation de retirer vos jetons.",
       "signature": "Vérifiez les détails de la demande avant de la confirmer.",
-      "signature_siwe": "Un site vous demande de vous connecter pour prouver que vous êtes le titulaire de ce compte."
+      "signature_siwe": "Un site vous demande de vous connecter pour prouver que vous êtes le titulaire de ce compte.",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "Demande de",
     "staking_from": "Staking à partir de",
     "signing_in_with": "Se connecter avec",
     "message": "Message",
     "personal_sign_tooltip": "Ce site demande votre signature",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "Détails",
     "qr_get_sign": "Obtenir la signature",
     "qr_scan_text": "Scannez avec votre portefeuille matériel",
@@ -3868,6 +3883,24 @@
     "time": "Temps",
     "quote_info_content": "D’après nos recherches, cette cotation offre le meilleur rendement. Elle prend en compte le taux de change, les frais d’établissement d’une passerelle et les frais de MetaMask de 0,875 %, mais pas les frais de gaz. Les frais de gaz varient en fonction de l’activité du réseau et de la complexité de la transaction.",
     "quote_info_title": "Pourquoi nous recommandons cette cotation",
-    "see_other_quotes": "Voir d’autres cotations"
+    "see_other_quotes": "Voir d’autres cotations",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "transaction_details": "Transaction Details"
   }
 }

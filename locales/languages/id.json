@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Permintaan masuk yang mencurigakan",
       "message": "Situs yang mengajukan permintaan tersebut bukanlah situs yang Anda masuki. Ini mungkin merupakan upaya untuk mencuri kredensial masuk Anda."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -1117,6 +1122,11 @@
     "snaps": {
       "title": "Snap",
       "description": "Tinjau dan kelola Snap",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Hapus Snap",
         "remove_snap_section_description": "Tindakan ini akan menghapus Snap, datanya, serta izin yang diberikan.",
@@ -1765,6 +1775,7 @@
     "tx_details_not_available": "Tidak tersedia",
     "smart_contract_interaction": "Interaksi kontrak cerdas",
     "swaps_transaction": "Transaksi swap",
+    "bridge_transaction": "Bridge",
     "approve": "Setujui",
     "increase_allowance": "Tingkatkan Persetujuan",
     "set_approval_for_all": "Atur Persetujuan Untuk Semua",
@@ -2839,6 +2850,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Dapatkan",
       "best_price": "harga terbaik",
@@ -3780,19 +3792,22 @@
       "permit": "Permintaan batas penggunaan",
       "permit_revoke": "Hapus izin",
       "permit_NFTs": "Permintaan penarikan",
-      "signature_siwe": "Permintaan masuk"
+      "signature_siwe": "Permintaan masuk",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",
       "permit_NFTs": "Situs ini meminta izin untuk menarik NFT Anda.",
       "signature": "Tinjau detail permintaan sebelum mengonfirmasi.",
-      "signature_siwe": "Sebuah situs ingin Anda masuk untuk membuktikan bahwa Anda merupakan pemilik akun ini."
+      "signature_siwe": "Sebuah situs ingin Anda masuk untuk membuktikan bahwa Anda merupakan pemilik akun ini.",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "Permintaan dari",
     "staking_from": "Stake dari",
     "signing_in_with": "Masuk dengan",
     "message": "Pesan",
     "personal_sign_tooltip": "Situs ini meminta tanda tangan Anda",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "Detail",
     "qr_get_sign": "Dapatkan Tanda Tangan",
     "qr_scan_text": "Pindai dengan dompet perangkat keras",
@@ -3868,6 +3883,24 @@
     "time": "Waktu",
     "quote_info_content": "Kuotasi ini menawarkan hasil terbaik dari pencarian kami. Kuotasi ini didasarkan pada nilai tukar, termasuk biaya bridge dan biaya MetaMask 0,875%, tetapi tidak termasuk biaya gas. Biaya gas bervariasi tergantung aktivitas jaringan dan kompleksitas transaksi.",
     "quote_info_title": "Alasan kami merekomendasikan kuotasi ini",
-    "see_other_quotes": "Lihat kuotasi lainnya"
+    "see_other_quotes": "Lihat kuotasi lainnya",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "transaction_details": "Transaction Details"
   }
 }
