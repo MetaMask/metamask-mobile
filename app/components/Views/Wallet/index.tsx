@@ -127,6 +127,7 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
+import NftGrid from '../../UI/NftGrid';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -171,6 +172,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
   });
 
+const isNftGridViewEnabled = () => process.env.NFT_GRID_VIEW === 'true';
 interface WalletProps {
   navigation: NavigationProp<ParamListBase>;
   storePrivacyPolicyShownDate: () => void;
@@ -719,11 +721,23 @@ const Wallet = ({
     [navigation],
   );
 
+  const nftTabProps = useMemo(
+    () => ({
+      key: 'nfts-tab',
+      tabLabel: strings('wallet.collectibles'),
+      chainId,
+      selectedAddress: selectedAddress ?? '',
+    }),
+    [chainId, selectedAddress],
+  );
+
   function renderTokensContent() {
     return (
       <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
         <Tokens {...tokensTabProps} />
-        {isEvmSelected && (
+        {isEvmSelected && isNftGridViewEnabled() ? (
+          <NftGrid {...nftTabProps} />
+        ) : (
           <CollectibleContracts {...collectibleContractsTabProps} />
         )}
       </ScrollableTabView>
