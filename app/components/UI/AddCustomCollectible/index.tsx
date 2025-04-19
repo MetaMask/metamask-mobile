@@ -12,11 +12,12 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
 import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportNFTView.selectors';
-import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Logger from '../../../util/Logger';
+import { NetworkSelectorDropdown } from '../AddCustomToken/NetworkSelectorDropdown';
+import { Hex } from '@metamask/utils';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,11 +63,17 @@ interface AddCustomCollectibleProps {
   collectibleContract?: {
     address: string;
   };
+  setOpenNetworkSelector: (val: boolean) => void;
+  selectedNetwork: string | null;
+  chainId: string | null;
 }
 
 const AddCustomCollectible = ({
   navigation,
   collectibleContract,
+  setOpenNetworkSelector,
+  selectedNetwork,
+  chainId,
 }: AddCustomCollectibleProps) => {
   const [mounted, setMounted] = useState<boolean>(true);
   const [address, setAddress] = useState<string>('');
@@ -87,7 +94,6 @@ const AddCustomCollectible = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const chainId = useSelector(selectChainId);
 
   useEffect(() => {
     setMounted(true);
@@ -123,7 +129,7 @@ const AddCustomCollectible = ({
     } else if (!isValidEthAddress) {
       setWarningAddress(strings('collectible.address_must_be_valid'));
       validated = false;
-    } else if (!(await isSmartContractAddress(address, chainId))) {
+    } else if (!(await isSmartContractAddress(address, chainId as string))) {
       setWarningAddress(strings('collectible.address_must_be_smart_contract'));
       validated = false;
     } else {
@@ -196,7 +202,7 @@ const AddCustomCollectible = ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NftController } = Engine.context as any;
-    NftController.addNft(address, tokenId);
+    NftController.addNft(address, tokenId, chainId);
 
     const params = getAnalyticsParams();
     if (params) {
@@ -238,6 +244,13 @@ const AddCustomCollectible = ({
         loading={loading}
       >
         <View>
+          <View style={styles.rowWrapper}>
+            <NetworkSelectorDropdown
+              setOpenNetworkSelector={setOpenNetworkSelector}
+              selectedNetwork={selectedNetwork ?? ''}
+              chainId={chainId as Hex}
+            />
+          </View>
           <View style={styles.rowWrapper}>
             <Text style={styles.rowTitleText}>
               {strings('collectible.collectible_address')}

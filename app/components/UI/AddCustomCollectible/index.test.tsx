@@ -18,7 +18,11 @@ describe('AddCustomCollectible', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        <AddCustomCollectible />
+        <AddCustomCollectible
+          setOpenNetworkSelector={jest.fn()}
+          selectedNetwork={'mainnet'}
+          chainId={'0x1'}
+        />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();

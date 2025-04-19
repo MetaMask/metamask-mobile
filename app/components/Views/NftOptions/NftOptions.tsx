@@ -8,7 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './NftOptions.styles';
 import Text, {
@@ -26,11 +26,12 @@ import {
   MetaMetricsEvents,
 } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
+import { toHex } from '@metamask/controller-utils';
 
 interface Props {
   route: {
     params: {
-      collectible: Collectible;
+      collectible: Collectible & { chainId: string };
     };
   };
 }
@@ -41,11 +42,18 @@ const NftOptions = (props: Props) => {
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
-  const chainId = useSelector(selectChainId);
   const { trackEvent, createEventBuilder } = useMetrics();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const chainIdHex = toHex(collectible.chainId); // only if collectible.chainId is number
+  const config = networkConfigurations[chainIdHex];
+  const nftNetworkClientId =
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    config?.rpcEndpoints?.[config.defaultRpcEndpointIndex]?.networkClientId;
 
   const goToWalletPage = () => {
     navigation.navigate(Routes.WALLET.HOME, {
@@ -68,7 +76,7 @@ const NftOptions = (props: Props) => {
   };
 
   const getOpenSeaLink = () => {
-    switch (chainId) {
+    switch (collectible.chainId) {
       case CHAIN_IDS.MAINNET:
         return `https://opensea.io/assets/ethereum/${collectible.address}/${collectible.tokenId}`;
       case CHAIN_IDS.POLYGON:
@@ -91,15 +99,23 @@ const NftOptions = (props: Props) => {
 
   const removeNft = () => {
     const { NftController } = Engine.context;
-    removeFavoriteCollectible(selectedAddress, chainId, collectible);
+    removeFavoriteCollectible(
+      selectedAddress,
+      collectible.chainId,
+      collectible,
+    );
     NftController.removeAndIgnoreNft(
       collectible.address,
       collectible.tokenId.toString(),
+      {
+        networkClientId: nftNetworkClientId,
+        userAddress: selectedAddress,
+      },
     );
     trackEvent(
       createEventBuilder(MetaMetricsEvents.COLLECTIBLE_REMOVED)
         .addProperties({
-          chain_id: getDecimalChainId(chainId),
+          chain_id: getDecimalChainId(collectible.chainId),
         })
         .build(),
     );

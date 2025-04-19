@@ -6,7 +6,6 @@ import {
   StyleSheet,
   InteractionManager,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
@@ -26,7 +25,6 @@ import { regex } from '../../../../app/util/regex';
 import {
   getBlockExplorerAddressUrl,
   getDecimalChainId,
-  getNetworkImageSource,
 } from '../../../util/networks';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { formatIconUrlWithProxy } from '@metamask/assets-controllers';
@@ -35,7 +33,6 @@ import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import Icon, {
-  IconColor,
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
@@ -45,11 +42,7 @@ import Banner, {
 } from '../../../component-library/components/Banners/Banner';
 import CLText from '../../../component-library/components/Texts/Text/Text';
 import Logger from '../../../util/Logger';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { NetworkSelectorDropdown } from './NetworkSelectorDropdown';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -599,39 +592,11 @@ class AddCustomToken extends PureComponent {
         <ScrollView>
           {this.renderBanner()}
           <View style={styles.addressWrapper}>
-            <TouchableOpacity
-              style={styles.networkSelectorContainer}
-              onPress={() => this.props.setOpenNetworkSelector(true)}
-              onLongPress={() => this.props.setOpenNetworkSelector(true)}
-            >
-              <Text style={styles.networkSelectorText}>
-                {this.props.selectedNetwork ||
-                  strings('networks.select_network')}
-              </Text>
-              <View style={styles.overlappingAvatarsContainer}>
-                {this.props.selectedNetwork ? (
-                  <Avatar
-                    variant={AvatarVariant.Network}
-                    size={AvatarSize.Sm}
-                    name={this.props.selectedNetwork}
-                    imageSource={getNetworkImageSource({
-                      networkType: 'evm',
-                      chainId: this.props.chainId,
-                    })}
-                    testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
-                  />
-                ) : null}
-
-                <ButtonIcon
-                  iconName={IconName.ArrowDown}
-                  iconColor={IconColor.Default}
-                  testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
-                  onPress={() => this.props.setOpenNetworkSelector(true)}
-                  accessibilityRole="button"
-                  style={styles.buttonIcon}
-                />
-              </View>
-            </TouchableOpacity>
+            <NetworkSelectorDropdown
+              setOpenNetworkSelector={this.props.setOpenNetworkSelector}
+              selectedNetwork={this.props.selectedNetwork}
+              chainId={this.props.chainId}
+            />
             <Text style={styles.inputLabel}>
               {strings('asset_details.address')}
             </Text>
