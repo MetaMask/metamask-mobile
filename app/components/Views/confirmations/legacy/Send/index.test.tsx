@@ -37,11 +37,6 @@ const initialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS_2]: {
-            balance: '0x0',
-          },
-        },
         accountsByChainId: {
           64: {
             [MOCK_ADDRESS_2]: {
@@ -62,7 +57,9 @@ const initialState: DeepPartial<RootState> = {
         tokenBalances: {},
       },
       TokenListController: {
-        tokenList: { '0x1': {} },
+        tokensChainsCache: {
+          '0x1': {},
+        },
       },
       PreferencesController: {
         featureFlags: {},

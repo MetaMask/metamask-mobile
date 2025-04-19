@@ -44,7 +44,6 @@ const initialState = {
             },
           },
         },
-        tokens: [],
         allTokens: {
           '0x1': {
             '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272': [],
@@ -71,17 +70,19 @@ const initialState = {
         },
       },
       TokenListController: {
-        tokenList: {
+        tokensChainsCache: {
           '0x1': {
-            '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc': {
-              address: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
-              symbol: 'BAT',
-              decimals: 18,
-              name: 'Basic Attention Token',
-              iconUrl:
-                'https://assets.coingecko.com/coins/images/677/thumb/basic-attention-token.png?1547034427',
-              type: 'erc20',
-            },
+            data: [
+              {
+                address: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
+                symbol: 'BAT',
+                decimals: 18,
+                name: 'Basic Attention Token',
+                iconUrl:
+                  'https://assets.coingecko.com/coins/images/677/thumb/basic-attention-token.png?1547034427',
+                type: 'erc20',
+              },
+            ],
           },
         },
       },
@@ -179,8 +180,7 @@ describe('PaymentRequest', () => {
   });
 
   it('displays an error when an invalid amount is entered', async () => {
-    const { getByText, getByPlaceholderText, queryByText } =
-      renderComponent();
+    const { getByText, getByPlaceholderText, queryByText } = renderComponent();
 
     (React.useState as jest.Mock).mockImplementation(() => [
       mockShowError,

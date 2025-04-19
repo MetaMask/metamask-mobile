@@ -110,9 +110,11 @@ const mockState = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS_1]: {
-            balance: '0x2',
+        accountsByChainId: {
+          '0x1': {
+            [MOCK_ADDRESS_1]: {
+              balance: '0x2',
+            },
           },
         },
       },
@@ -292,9 +294,11 @@ describe('TransactionReview', () => {
           ...mockState.engine.backgroundState,
           AccountTrackerController: {
             ...mockState.engine.backgroundState.AccountTrackerController,
-            accounts: {
-              '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
-                balance: '0x0',
+            accountsByChainId: {
+              '0x1': {
+                '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+                  balance: '0x0',
+                },
               },
             },
           },

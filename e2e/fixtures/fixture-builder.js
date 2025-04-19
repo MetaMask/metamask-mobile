@@ -70,11 +70,6 @@ class FixtureBuilder {
         engine: {
           backgroundState: {
             AccountTrackerController: {
-              accounts: {
-                [DEFAULT_FIXTURE_ACCOUNT]: {
-                  balance: '0x0',
-                },
-              },
               accountsByChainId: {
                 64: {
                   [DEFAULT_FIXTURE_ACCOUNT]: {
@@ -100,35 +95,40 @@ class FixtureBuilder {
               ignoredNfts: [],
             },
             TokenListController: {
-              tokenList: {
-                '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f': {
-                  address: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
-                  symbol: 'SNX',
-                  decimals: 18,
-                  name: 'Synthetix Network Token',
-                  iconUrl:
-                    'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
-                  type: 'erc20',
-                  aggregators: [
-                    'Aave',
-                    'Bancor',
-                    'CMC',
-                    'Crypto.com',
-                    'CoinGecko',
-                    '1inch',
-                    'PMM',
-                    'Synthetix',
-                    'Zerion',
-                    'Lifi',
+              tokensChainsCache: {
+                '0x1': {
+                  data: [
+                    {
+                      '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f': {
+                        address: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
+                        symbol: 'SNX',
+                        decimals: 18,
+                        name: 'Synthetix Network Token',
+                        iconUrl:
+                          'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
+                        type: 'erc20',
+                        aggregators: [
+                          'Aave',
+                          'Bancor',
+                          'CMC',
+                          'Crypto.com',
+                          'CoinGecko',
+                          '1inch',
+                          'PMM',
+                          'Synthetix',
+                          'Zerion',
+                          'Lifi',
+                        ],
+                        occurrences: 10,
+                        fees: {
+                          '0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f': 0,
+                          '0xda4ef8520b1a57d7d63f1e249606d1a459698876': 0,
+                        },
+                      },
+                    },
                   ],
-                  occurrences: 10,
-                  fees: {
-                    '0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f': 0,
-                    '0xda4ef8520b1a57d7d63f1e249606d1a459698876': 0,
-                  },
                 },
               },
-              tokensChainsCache: {},
               preventPollingOnNetworkRestart: false,
             },
             CurrencyRateController: {

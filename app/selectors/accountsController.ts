@@ -106,7 +106,8 @@ export const selectLastSelectedEvmAccount = createSelector(
  */
 export const selectLastSelectedSolanaAccount = createSelector(
   selectOrderedInternalAccountsByLastSelected,
-  (accounts) => accounts.find((account) => account.type === 'solana:data-account'),
+  (accounts) =>
+    accounts.find((account) => account.type === 'solana:data-account'),
 );
 
 /**

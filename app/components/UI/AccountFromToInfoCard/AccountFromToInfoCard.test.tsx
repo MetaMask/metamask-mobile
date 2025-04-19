@@ -13,6 +13,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
 import { AssetsContractController } from '@metamask/assets-controllers';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
@@ -28,12 +29,14 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS_1]: {
-            balance: '200',
-          },
-          [MOCK_ADDRESS_2]: {
-            balance: '200',
+        accountsByChainId: {
+          [CHAIN_IDS.MAINNET]: {
+            [MOCK_ADDRESS_1]: {
+              balance: '200',
+            },
+            [MOCK_ADDRESS_2]: {
+              balance: '200',
+            },
           },
         },
       },

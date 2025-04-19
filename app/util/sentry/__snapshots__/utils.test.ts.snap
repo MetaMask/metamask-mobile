@@ -28,7 +28,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
-        "accounts": "object",
         "accountsByChainId": "object",
       },
       "AccountsController": {

@@ -42,9 +42,11 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS_1]: {
-            balance: '0x2',
+        accountsByChainId: {
+          '0xaa36a7': {
+            [MOCK_ADDRESS_1]: {
+              balance: '0x2',
+            },
           },
         },
       },

@@ -54,7 +54,7 @@ index 0f15eb6..179932b 100644
 +_NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new WeakMap(), _NftController_chainId = new WeakMap(), _NftController_ipfsGateway = new WeakMap(), _NftController_displayNftMedia = new WeakMap(), _NftController_useIpfsSubdomains = new WeakMap(), _NftController_isIpfsGatewayEnabled = new WeakMap(), _NftController_onNftAdded = new WeakMap(), _NftController_instances = new WeakSet(), _NftController_onNetworkControllerNetworkDidChange = function _NftController_onNetworkControllerNetworkDidChange({ selectedNetworkClientId, }) {
      const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
      __classPrivateFieldSet(this, _NftController_chainId, chainId, "f");
- }, _NftController_onPreferencesControllerStateChange = 
+ }, _NftController_onPreferencesControllerStateChange =
 @@ -605,20 +605,20 @@ _NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new Wea
   * Handles the state change of the preference controller.
   * @param preferencesState - The new state of the preference controller.
@@ -166,29 +166,94 @@ index 4384784..e35e71c 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
-diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
-index 419956e..c656f1c 100644
---- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
-+++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
-@@ -165,7 +165,7 @@ class TokenRatesController extends (0, polling_controller_1.StaticIntervalPollin
-             return;
-         }
-         const tokenAddresses = __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_getTokenAddresses).call(this, chainId);
--        const updateKey = `${chainId}:${nativeCurrency}`;
-+        const updateKey = `${chainId}:${nativeCurrency}:${tokenAddresses.length}`;
-         if (updateKey in __classPrivateFieldGet(this, _TokenRatesController_inProcessExchangeRateUpdates, "f")) {
-             // This prevents redundant updates
-             // This promise is resolved after the in-progress update has finished,
-diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs
-index 9ade79f..49f6d17 100644
---- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs
-+++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs
-@@ -162,7 +162,7 @@ export class TokenRatesController extends StaticIntervalPollingController() {
-             return;
-         }
-         const tokenAddresses = __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_getTokenAddresses).call(this, chainId);
--        const updateKey = `${chainId}:${nativeCurrency}`;
-+        const updateKey = `${chainId}:${nativeCurrency}:${tokenAddresses.length}`;
-         if (updateKey in __classPrivateFieldGet(this, _TokenRatesController_inProcessExchangeRateUpdates, "f")) {
-             // This prevents redundant updates
-             // This promise is resolved after the in-progress update has finished,
+diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
+index aba5594..423db4c 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
+@@ -125,42 +125,50 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
+      * @param networkClientId - Optional networkClientId to fetch a network client with
+      */
+     async refresh(networkClientId) {
+-        const selectedAccount = this.messagingSystem.call('AccountsController:getSelectedAccount');
+-        const releaseLock = await __classPrivateFieldGet(this, _AccountTrackerController_refreshMutex, "f").acquire();
+-        try {
+-            const { chainId, ethQuery } = __classPrivateFieldGet(this, _AccountTrackerController_instances, "m", _AccountTrackerController_getCorrectNetworkClient).call(this, networkClientId);
+-            this.syncAccounts(chainId);
+-            const { accountsByChainId } = this.state;
+-            const { isMultiAccountBalancesEnabled } = this.messagingSystem.call('PreferencesController:getState');
+-            const accountsToUpdate = isMultiAccountBalancesEnabled
+-                ? Object.keys(accountsByChainId[chainId])
+-                : [(0, controller_utils_1.toChecksumHexAddress)(selectedAccount.address)];
+-            const accountsForChain = { ...accountsByChainId[chainId] };
+-            for (const address of accountsToUpdate) {
+-                const balance = await __classPrivateFieldGet(this, _AccountTrackerController_instances, "m", _AccountTrackerController_getBalanceFromChain).call(this, address, ethQuery);
+-                if (balance) {
+-                    accountsForChain[address] = {
+-                        balance,
+-                    };
+-                }
+-                if (__classPrivateFieldGet(this, _AccountTrackerController_includeStakedAssets, "f")) {
+-                    const stakedBalance = await __classPrivateFieldGet(this, _AccountTrackerController_getStakedBalanceForChain, "f").call(this, address, networkClientId);
+-                    if (stakedBalance) {
+-                        accountsForChain[address] = {
+-                            ...accountsForChain[address],
+-                            stakedBalance,
+-                        };
+-                    }
+-                }
+-            }
+-            this.update((state) => {
+-                state.accountsByChainId[chainId] = accountsForChain;
+-            });
+-        }
+-        finally {
+-            releaseLock();
+-        }
+-    }
++      const selectedAccount = this.messagingSystem.call('AccountsController:getSelectedAccount');
++      const releaseLock = await __classPrivateFieldGet(this, _AccountTrackerController_refreshMutex, "f").acquire();
++      try {
++          const { chainId, ethQuery } = __classPrivateFieldGet(this, _AccountTrackerController_instances, "m", _AccountTrackerController_getCorrectNetworkClient).call(this, networkClientId);
++          this.syncAccounts(chainId);
++          const { accountsByChainId } = this.state;
++          const { isMultiAccountBalancesEnabled } = this.messagingSystem.call('PreferencesController:getState');
++          const accountsToUpdate = isMultiAccountBalancesEnabled
++              ? Object.keys(accountsByChainId[chainId])
++              : [(0, controller_utils_1.toChecksumHexAddress)(selectedAccount.address)];
++          const accountsForChain = { ...accountsByChainId[chainId] };
++          // Use Promise.allSettled to handle multiple asynchronous operations concurrently
++          const balancePromises = accountsToUpdate.map(async (address) => {
++              const balancePromise = __classPrivateFieldGet(this, _AccountTrackerController_instances, "m", _AccountTrackerController_getBalanceFromChain).call(this, address, ethQuery);
++              const stakedBalancePromise = __classPrivateFieldGet(this, _AccountTrackerController_includeStakedAssets, "f")
++                  ? __classPrivateFieldGet(this, _AccountTrackerController_getStakedBalanceForChain, "f").call(this, address, networkClientId)
++                  : Promise.resolve(null);
++              const [balanceResult, stakedBalanceResult] = await Promise.allSettled([
++                  balancePromise,
++                  stakedBalancePromise,
++              ]);
++              if (balanceResult.status === 'fulfilled' && balanceResult.value) {
++                  accountsForChain[address] = {
++                      balance: balanceResult.value,
++                  };
++              }
++              if (stakedBalanceResult.status === 'fulfilled' &&
++                  stakedBalanceResult.value) {
++                  accountsForChain[address] = {
++                      ...accountsForChain[address],
++                      stakedBalance: stakedBalanceResult.value,
++                  };
++              }
++          });
++          // Wait for all promises to settle
++          await Promise.allSettled(balancePromises);
++          this.update((state) => {
++              state.accountsByChainId[chainId] = accountsForChain;
++          });
++      }
++      finally {
++          releaseLock();
++      }
++  }
+     /**
+      * Sync accounts balances with some additional addresses.
+      *

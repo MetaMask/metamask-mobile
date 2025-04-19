@@ -108,9 +108,11 @@ const initialState = {
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
-        accounts: {
-          [BUSINESS_ACCOUNT]: { balance: '0xDE0B6B3A7640000' },
-          [PERSONAL_ACCOUNT]: { balance: '0x1BC16D674EC80000' },
+        accountsByChainId: {
+          '0x1': {
+            [BUSINESS_ACCOUNT]: { balance: '0xDE0B6B3A7640000' },
+            [PERSONAL_ACCOUNT]: { balance: '0x1BC16D674EC80000' },
+          },
         },
       },
       PreferencesController: {

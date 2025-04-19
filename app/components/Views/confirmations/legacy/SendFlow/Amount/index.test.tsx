@@ -139,7 +139,13 @@ const initialState = {
         },
       },
       AccountTrackerController: {
-        accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+        accountsByChainId: {
+          '0xaa36a7': {
+            [CURRENT_ACCOUNT]: {
+              balance: '0',
+            },
+          },
+        },
       },
       AccountsController: {
         internalAccounts: {
@@ -240,9 +246,11 @@ describe('Amount', () => {
             },
           },
           AccountTrackerController: {
-            accounts: {
-              [CURRENT_ACCOUNT]: {
-                balance: 'DE0B6B3A7640000',
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: 'DE0B6B3A7640000',
+                },
               },
             },
           },
@@ -305,9 +313,11 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           AccountTrackerController: {
-            accounts: {
-              [CURRENT_ACCOUNT]: {
-                balance: '4563918244F40000', // 5 ETH in hex
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000', // 5 ETH in hex
+                },
               },
             },
           },
@@ -350,7 +360,9 @@ describe('Amount', () => {
     });
 
     // The conversion should happen and update the input
-    const amountInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
+    const amountInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
     expect(amountInput.props.value).toBeDefined();
     expect(typeof amountInput.props.value).toBe('string');
     expect(amountInput.props.value).toBe('5000'); // $5000 from 5 ETH at $1000/ETH
@@ -372,9 +384,11 @@ describe('Amount', () => {
             },
           },
           AccountTrackerController: {
-            accounts: {
-              [CURRENT_ACCOUNT]: {
-                balance: '4563918244F40000',
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
               },
             },
           },
@@ -483,9 +497,11 @@ describe('Amount', () => {
             },
           },
           AccountTrackerController: {
-            accounts: {
-              [CURRENT_ACCOUNT]: {
-                balance: '4563918244F40000',
+            accountsByChainId: {
+              '0xa86a': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
               },
             },
           },
@@ -566,9 +582,11 @@ describe('Amount', () => {
             },
           },
           AccountTrackerController: {
-            accounts: {
-              [CURRENT_ACCOUNT]: {
-                balance: '0x0',
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '0x0',
+                },
               },
             },
           },
@@ -919,8 +937,8 @@ describe('Amount', () => {
       },
       settings: {
         ...initialState.settings,
-        primaryCurrency: 'Fiat'
-      }
+        primaryCurrency: 'Fiat',
+      },
     });
 
     const textInput = getByTestId(

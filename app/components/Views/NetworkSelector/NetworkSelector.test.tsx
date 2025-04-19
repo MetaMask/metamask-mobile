@@ -111,11 +111,11 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          '0x': {
-            name: 'account 1',
-            address: '0x',
-            balance: 0,
+        accountsByChainId: {
+          '0x1': {
+            '0x': {
+              balance: 0,
+            },
           },
         },
       },

@@ -623,8 +623,11 @@ function decodeConfirmTx(args) {
 
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
+  const chainId = txChainId;
 
-  const tokenList = Engine.context.TokenListController.state.tokenList;
+  const tokenList =
+    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
+      ?.data || [];
   let symbol;
   if (renderTo in tokenList) {
     symbol = tokenList[renderTo].symbol;
