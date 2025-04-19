@@ -170,9 +170,7 @@ export const BridgeTokenSelectorBase: React.FC<
     () => (
       <Box style={styles.emptyList}>
         <Text color={TextColor.Alternative}>
-          {strings('swaps.no_tokens_result', {
-            searchString: debouncedSearchString,
-          })}
+          {strings('swaps.no_tokens_result', { searchString: debouncedSearchString })}
         </Text>
       </Box>
     ),
