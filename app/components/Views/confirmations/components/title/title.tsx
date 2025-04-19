@@ -11,7 +11,12 @@ import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { useSignatureRequest } from '../../hooks/signatures/useSignatureRequest';
 import { useStandaloneConfirmation } from '../../hooks/ui/useStandaloneConfirmation';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import { isPermitDaiRevoke, isRecognizedPermit, isSIWESignatureRequest, parseTypedDataMessageFromSignatureRequest } from '../../utils/signature';
+import {
+  isPermitDaiRevoke,
+  isRecognizedPermit,
+  isSIWESignatureRequest,
+  parseAndNormalizeSignTypedDataFromSignatureRequest,
+} from '../../utils/signature';
 import styleSheet from './title.styles';
 import { ApprovalType } from '@metamask/controller-utils';
 
@@ -39,9 +44,10 @@ const getTitleAndSubTitle = (
       const isPermit = isRecognizedPermit(signatureRequest);
 
       if (isPermit) {
-        const parsedMessage = parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
-        const { allowed, tokenId, value } = parsedMessage?.message ?? {};
-        const { verifyingContract } = parsedMessage?.domain ?? {};
+        const parsedData =
+          parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
+        const { allowed, tokenId, value } = parsedData.message ?? {};
+        const { verifyingContract } = parsedData.domain ?? {};
 
         const isERC721Permit = tokenId !== undefined;
         if (isERC721Permit) {
