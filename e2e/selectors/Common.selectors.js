@@ -18,6 +18,7 @@ export const CommonSelectorsIDs = {
   TEXTFIELD_ENDACCESSORY_TEST_ID:'textfield-endacccessory',
   TEXTFIELD_STARTACCESSORY_TEST_ID:'textfield-startacccessory',
   TEXTFIELD_INPUT_TEST_ID:'textfield-input',
+  SNAP_UI_CARD_TEST_ID: 'snaps-ui-card',
 };
 
 export const CommonSelectorsText = {

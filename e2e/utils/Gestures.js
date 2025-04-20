@@ -17,6 +17,17 @@ class Gestures {
   }
 
   /**
+   * Tap an element at the center of the element.
+   *
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
+   * @param {Object} coordinates - Coordinates { x, y } where the element will be tapped
+   */
+  static async tapAtElementCenter(elementID, coordinates = {x: 0.5, y: 0.5}) {
+    const element = await elementID;
+    await element.tap(coordinates);
+  }
+
+  /**
    * Tap an element at a specific point.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
@@ -70,6 +81,30 @@ class Gestures {
     const element = (await elementID).atIndex(index);
     await waitFor(element).toBeVisible().withTimeout(timeout);
     await element.tap();
+  }
+
+  /**
+   * Type text into a field at a specific index.
+   *
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to type into
+   * @param {number} index - Index of the element to type into
+   * @param {string} text - Text to type into the element
+   * @param {boolean} hideKeyboard - Whether to hide keyboard after typing (default: false)
+   * @param {number} timeout - Timeout for waiting (default: 15000ms)
+   */
+  static async typeTextAtIndex(elementID, index, text, hideKeyboard = false, timeout = 15000) {
+    const element = (await elementID).atIndex(index);
+    await waitFor(element).toBeVisible().withTimeout(timeout);
+    
+    // Clear the field first
+    await element.replaceText('');
+    
+    // Type the text
+    if (hideKeyboard) {
+      await element.typeText(text + '\n');
+    } else {
+      await element.typeText(text);
+    }
   }
 
   /**

@@ -4,7 +4,7 @@ import Matchers from '../../utils/Matchers';
 import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
 import {AddAddressModalSelectorsIDs} from '../../selectors/SendFlow/AddAddressModal.selectors';
 import Assertions from '../../utils/Assertions';
-
+import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
 class SendView {
   get cancelButton() {
@@ -42,6 +42,15 @@ class SendView {
   get removeAddressButton() {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON);
   }
+
+  get removeSolanaAddressButton() {
+    return Matchers.getElementByID(CommonSelectorsIDs.TEXTFIELD_ENDACCESSORY_TEST_ID);
+  }
+
+  get solanaSnapUICard() {
+    return Matchers.getElementByID(CommonSelectorsIDs.SNAP_UI_CARD_TEST_ID);
+  }
+
   get contractWarning() {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_ERROR);
   }
@@ -87,6 +96,10 @@ class SendView {
     await Gestures.replaceTextInField(this.solanaAddressInputField, address);
   }
 
+  async tapRemoveSolanaAddress() {
+    await Gestures.waitAndTap(this.removeSolanaAddressButton);
+  }
+
   async tapAddAddressToAddressBook() {
     await Gestures.waitAndTap(this.addAddressButton);
   }
@@ -99,6 +112,10 @@ class SendView {
   async splitAddressText(){
     const attributes = await (await this.sendAddressConfirmation).getAttributes();
     return await attributes.label.split(' ');
+  }
+
+  async inputSolanaAmount(amount) {
+    await Gestures.typeTextAtIndex(this.solanaAddressInputField, 1, amount);
   }
 }
 export default new SendView();

@@ -11,6 +11,7 @@ import {
   JustifyContent,
   AlignItems,
 } from '../../UI/Box/box.types';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 interface SnapUICardProps {
   image?: string | undefined;
@@ -28,7 +29,7 @@ export const SnapUICard: FunctionComponent<SnapUICardProps> = ({
   extra,
 }) => (
   <Box
-    testID="snaps-ui-card"
+    testID={CommonSelectorsIDs.SNAP_UI_CARD_TEST_ID}
     flexDirection={FlexDirection.Row}
     justifyContent={JustifyContent.spaceBetween}
     alignItems={AlignItems.center}
