@@ -2235,13 +2235,13 @@ app:
       VERSION_NAME: 7.45.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1714
+      VERSION_NUMBER: 1715
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.45.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1714
+      FLASK_VERSION_NUMBER: 1715
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
