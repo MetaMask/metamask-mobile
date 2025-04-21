@@ -408,6 +408,7 @@
     "assetsMetadata": {}
   },
   "BridgeController": {
+    "assetExchangeRates": {},
     "bridgeFeatureFlags": {
       "extensionConfig": {
         "chains": {},
