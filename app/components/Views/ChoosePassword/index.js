@@ -34,7 +34,10 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
-import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
+import {
+  ONBOARDING,
+  PREVIOUS_SCREEN,
+} from '../../../constants/navigation';
 import {
   EXISTING_USER,
   TRUE,
@@ -72,6 +75,7 @@ import Button, {
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -197,6 +201,10 @@ class ChoosePassword extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * The flag to check if the oauth2 login was successful
+     */
+    oauth2LoginSuccess: PropTypes.bool,
   };
 
   state = {
@@ -212,6 +220,7 @@ class ChoosePassword extends PureComponent {
     inputWidth: { width: '99%' },
     showPasswordIndex: [0, 1],
     passwordInputContainerFocusedIndex: -1,
+    oauth2LoginSuccess: false,
   };
 
   mounted = true;
@@ -333,6 +342,8 @@ class ChoosePassword extends PureComponent {
         this.state.biometryChoice,
         this.state.rememberMe,
       );
+      authType.oauth2Login = this.props.oauth2LoginSuccess;
+      Logger.log('previous_screen', previous_screen);
 
       if (previous_screen === ONBOARDING) {
         try {
@@ -349,7 +360,15 @@ class ChoosePassword extends PureComponent {
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
-      this.props.navigation.replace('AccountBackupStep1');
+
+      if (authType.oauth2Login) {
+        this.props.navigation.reset({
+          index: 1,
+          routes: [{ name: Routes.ONBOARDING.SUCCESS }],
+        });
+      } else {
+        this.props.navigation.replace('AccountBackupStep1');
+      }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
       });
@@ -394,6 +413,7 @@ class ChoosePassword extends PureComponent {
       false,
       false,
     );
+    newAuthData.oauth2Login = this.props.oauth2LoginSuccess;
     try {
       await Authentication.newWalletAndKeychain(
         this.state.password,
@@ -792,4 +812,8 @@ const mapDispatchToProps = (dispatch) => ({
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
 });
 
-export default connect(null, mapDispatchToProps)(ChoosePassword);
+const mapStateToProps = (state) => ({
+  oauth2LoginSuccess: state.user.oauth2LoginSuccess,
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ChoosePassword);

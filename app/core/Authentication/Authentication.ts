@@ -13,6 +13,7 @@ import {
   logIn,
   logOut,
   passwordSet,
+  UserActionType,
 } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -31,6 +32,12 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
+import { getSeedPhrase } from '../Vault';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import Logger from '../../util/Logger';
+import Oauth2LoginService  from '../Oauth2Login/Oauth2loginService';
+import { resetVaultBackup } from '../BackupVault/backupVault';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -38,6 +45,7 @@ import ReduxService from '../redux';
 export interface AuthData {
   currentAuthType: AUTHENTICATION_TYPE; //Enum used to show type for authentication
   availableBiometryType?: BIOMETRY_TYPE;
+  oauth2Login?: boolean;
 }
 
 class AuthenticationService {
@@ -53,6 +61,12 @@ class AuthenticationService {
 
   private dispatchLogout(): void {
     ReduxService.store.dispatch(logOut());
+  }
+
+  private dispatchOauth2Reset(): void {
+    ReduxService.store.dispatch({
+      type: UserActionType.OAUTH2_LOGIN_RESET,
+    });
   }
 
   /**
@@ -304,10 +318,17 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      await this.createWalletVaultAndKeychain(password);
+      // check for oauth2 login
+      if (authData.oauth2Login) {
+        await this.createAndBackupSeedPhrase(password);
+      } else {
+        await this.createWalletVaultAndKeychain(password);
+      }
+
       await this.storePassword(password, authData?.currentAuthType);
       await StorageWrapper.setItem(EXISTING_USER, TRUE);
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
+
       this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type
@@ -457,6 +478,67 @@ class AuthenticationService {
 
   getType = async (): Promise<AuthData> =>
     await this.checkAuthenticationMethod();
+
+  createAndBackupSeedPhrase = async(
+    password: string,
+  ): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    // rollback on fail ( reset wallet )
+    await this.createWalletVaultAndKeychain(password);
+    try {
+      const seedPhrase =  await getSeedPhrase(password);
+
+      Logger.log('SeedlessOnboardingController state', SeedlessOnboardingController.state);
+
+      await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
+        password,
+        seedPhrase,
+      );
+    } catch(error) {
+        await this.newWalletAndKeychain(`${Date.now()}`, {
+          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+        });
+        await resetVaultBackup();
+        throw error;
+    } finally {
+      this.dispatchOauth2Reset();
+    }
+
+    Logger.log('SeedlessOnboardingController state', SeedlessOnboardingController.state);
+  };
+
+  rehydrateSeedPhrase = async(
+    password: string,
+    authData: AuthData,
+  ): Promise<void> => {
+    try {
+      const { SeedlessOnboardingController } = Engine.context;
+
+      const result = await SeedlessOnboardingController.fetchAllSeedPhrases(password);
+
+      if (result !== null && result.length > 0) {
+        const seedPhrase = uint8ArrayToMnemonic(result.at(-1) ?? new Uint8Array(), wordlist);
+        await this.newWalletAndRestore(password, authData, seedPhrase, false);
+        // add in more srps
+        if (result.length > 1) {
+          // for (const item of result.slice(0, -1)) {
+            // vault add new seedphrase
+            // const { KeyringController } = Engine.context;
+            // await KeyringController.addSRP(item, password);
+          // }
+        }
+      } else {
+        throw new Error('No account data found');
+      }
+    } catch(error) {
+      Logger.error(error as Error, {
+        message: 'rehydrateSeedPhrase',
+      });
+      throw error;
+    } finally {
+      this.dispatchOauth2Reset();
+    }
+  };
 }
 
 export const Authentication = new AuthenticationService();

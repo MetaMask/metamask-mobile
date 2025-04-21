@@ -27,6 +27,7 @@ export enum ACTIONS {
   SELL = 'sell',
   SELL_CRYPTO = 'sell-crypto',
   EMPTY = '',
+  OAUTH2_REDIRECT = 'oauth2-redirect',
 }
 
 export const PREFIXES = {
@@ -43,5 +44,6 @@ export const PREFIXES = {
   [ACTIONS.SELL]: '',
   [ACTIONS.BUY_CRYPTO]: '',
   [ACTIONS.SELL_CRYPTO]: '',
+  [ACTIONS.OAUTH2_REDIRECT]: '',
   METAMASK: 'metamask://',
 };

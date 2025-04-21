@@ -1,0 +1,12 @@
+diff --git a/node_modules/expo-apple-authentication/ios/AppleAuthenticationExceptions.swift b/node_modules/expo-apple-authentication/ios/AppleAuthenticationExceptions.swift
+index 6eb50b1..24ac10a 100644
+--- a/node_modules/expo-apple-authentication/ios/AppleAuthenticationExceptions.swift
++++ b/node_modules/expo-apple-authentication/ios/AppleAuthenticationExceptions.swift
+@@ -63,5 +63,7 @@ func exceptionForAuthorizationError(_ error: ASAuthorizationError) -> Exception
+     return RequestFailedException()
+   case .notInteractive:
+     return RequestNotInteractiveException()
++  default:
++    return RequestUnknownException()
+   }
+ }

@@ -32,7 +32,7 @@ import {
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
-import { loadingSet, loadingUnset } from '../../../actions/user';
+import { loadingSet, loadingUnset, UserActionType } from '../../../actions/user';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
@@ -59,6 +59,9 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import ErrorSheet from '../ErrorSheet';
+import Oauth2LoginComponent from '../../Oauth2Login/Oauth2LoginComponent';
+import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     scroll: {
@@ -206,6 +209,10 @@ class Onboarding extends PureComponent {
      */
     unsetLoading: PropTypes.func,
     /**
+     * oauth2LoginReset
+     */
+    oauth2LoginReset: PropTypes.func,
+    /**
      * loadings msg
      */
     loadingMsg: PropTypes.string,
@@ -213,8 +220,11 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * oauth2LoginError
+     */
+    oauth2LoginError: PropTypes.string,
   };
-
   notificationAnimated = new Animated.Value(100);
   detailsYAnimated = new Animated.Value(0);
   actionXAnimated = new Animated.Value(0);
@@ -330,6 +340,7 @@ class Onboarding extends PureComponent {
 
   onPressCreate = () => {
     this.setState({ bottomSheetVisible: false });
+    this.props.oauth2LoginReset();
     const action = () => {
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -342,6 +353,7 @@ class Onboarding extends PureComponent {
 
   onPressImport = () => {
     this.setState({ bottomSheetVisible: false });
+    this.props.oauth2LoginReset();
     const action = async () => {
       this.props.navigation.push(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
@@ -630,6 +642,11 @@ const mapStateToProps = (state) => ({
   passwordSet: state.user.passwordSet,
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,
+
+  oauth2LoginInProgress: state.user.oauth2LoginInProgress,
+  oauth2LoginError: state.user.oauth2LoginError,
+  oauth2LoginSuccess: state.user.oauth2LoginSuccess,
+  oauth2LoginExistingUser: state.user.oauth2LoginExistingUser,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -637,6 +654,7 @@ const mapDispatchToProps = (dispatch) => ({
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
+  oauth2LoginReset: () => dispatch({ type: UserActionType.OAUTH2_LOGIN_RESET }),
 });
 
 export default connect(

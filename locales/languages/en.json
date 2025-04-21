@@ -297,7 +297,10 @@
     "vault_error": "Error: Cannot unlock without a previous vault.",
     "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "security_alert_title": "Security Alert",
-    "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
+    "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
+    
+    "apple_button": "Sign in with Apple",
+    "google_button": "Sign in with Google"
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",

@@ -17,4 +17,7 @@ export interface UserState {
   appTheme: AppThemeKey;
   ambiguousAddressEntries: Record<string, unknown>;
   appServicesReady: boolean;
+  oauth2LoginError: string | null;
+  oauth2LoginSuccess: boolean;
+  oauth2LoginExistingUser: boolean;
 }

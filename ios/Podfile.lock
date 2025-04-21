@@ -79,6 +79,10 @@ PODS:
     - expo-dev-menu/SafeAreaView
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
+  - ExpoAppleAuthentication (6.1.2):
+    - ExpoModulesCore
+  - ExpoCrypto (12.4.1):
+    - ExpoModulesCore
   - ExpoKeepAwake (12.3.0):
     - ExpoModulesCore
   - ExpoModulesCore (1.5.13):
@@ -87,6 +91,8 @@ PODS:
     - React-NativeModulesApple
     - React-RCTAppDelegate
     - ReactCommon/turbomodule/core
+  - ExpoWebBrowser (12.3.2):
+    - ExpoModulesCore
   - EXUpdatesInterface (0.12.0)
   - FBLazyVector (0.72.15)
   - FBReactNativeSpec (0.72.15):
@@ -206,6 +212,9 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (6.2.1)
   - glog (0.3.5)
+  - GoogleAcm (0.1.0):
+    - RCT-Folly (= 2021.07.22.00)
+    - React-Core
   - GoogleAppMeasurement (10.29.0):
     - GoogleAppMeasurement/AdIdSupport (= 10.29.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 7.11)
@@ -888,8 +897,11 @@ DEPENDENCIES:
   - expo-dev-launcher (from `../node_modules/expo-dev-launcher`)
   - expo-dev-menu (from `../node_modules/expo-dev-menu`)
   - expo-dev-menu-interface (from `../node_modules/expo-dev-menu-interface/ios`)
+  - ExpoAppleAuthentication (from `../node_modules/expo-apple-authentication/ios`)
+  - ExpoCrypto (from `../node_modules/expo-crypto/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoWebBrowser (from `../node_modules/expo-web-browser/ios`)
   - EXUpdatesInterface (from `../node_modules/expo-updates-interface/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
@@ -917,6 +929,7 @@ DEPENDENCIES:
   - FlipperKit/FlipperKitUserDefaultsPlugin (= 0.182.0)
   - FlipperKit/SKIOSNetworkPlugin (= 0.182.0)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - GoogleAcm (from `../node_modules/react-native-google-acm`)
   - GoogleUtilities
   - GzipSwift
   - lottie-ios (from `../node_modules/lottie-ios`)
@@ -1086,10 +1099,16 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-dev-menu"
   expo-dev-menu-interface:
     :path: "../node_modules/expo-dev-menu-interface/ios"
+  ExpoAppleAuthentication:
+    :path: "../node_modules/expo-apple-authentication/ios"
+  ExpoCrypto:
+    :path: "../node_modules/expo-crypto/ios"
   ExpoKeepAwake:
     :path: "../node_modules/expo-keep-awake/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
+  ExpoWebBrowser:
+    :path: "../node_modules/expo-web-browser/ios"
   EXUpdatesInterface:
     :path: "../node_modules/expo-updates-interface/ios"
   FBLazyVector:
@@ -1098,6 +1117,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/React/FBReactNativeSpec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
+  GoogleAcm:
+    :path: "../node_modules/react-native-google-acm"
   lottie-ios:
     :path: "../node_modules/lottie-ios"
   lottie-react-native:
@@ -1308,8 +1329,11 @@ SPEC CHECKSUMS:
   expo-dev-launcher: ada23ef0663a5a64be9af560507408add783844f
   expo-dev-menu: 6eb7fcd6d21151f4c2c2d679628d72879e3a5d2d
   expo-dev-menu-interface: 9eb98037fb7d9c500ad5734261b43911f06afe0d
+  ExpoAppleAuthentication: 944b1e3a31b4068fbae09f030323a468a71a2319
+  ExpoCrypto: e0714ca676dc875ee772802cf20bcea6ec75c3e7
   ExpoKeepAwake: 8ab1087501f5ccb91146447756b787575b13f13e
   ExpoModulesCore: 3312621274fbba06fe382a37d8218a43cd522823
+  ExpoWebBrowser: 025c51f93c6a04beb169388877918de64ccae171
   EXUpdatesInterface: 1f9cdd9e1e1026de7488ac537e9c40bc6b6fb872
   FBLazyVector: 25cbffbaec517695d376ab4bc428948cd0f08088
   FBReactNativeSpec: e03b22fbf7017a6f76641ea4472e73c915dcdda7
@@ -1330,6 +1354,7 @@ SPEC CHECKSUMS:
   FlipperKit: 2efad7007d6745a3f95e4034d547be637f89d3f6
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
+  GoogleAcm: c34f3645441b02e92bd6a1ff3d85358169a3331d
   GoogleAppMeasurement: f9de05ee17401e3355f68e8fc8b5064d429f5918
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
