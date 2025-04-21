@@ -238,6 +238,20 @@ export const initialState = {
           },
         },
       },
+      SmartTransactionsController: {
+        smartTransactionsState: {
+          liveness: true,
+        },
+      },
+      GasFeeController: {
+        gasFeeEstimatesByChainId: {
+          [ethChainId]: {
+            gasFeeEstimates: undefined,
+            estimatedGasFeeTimeBounds: undefined,
+            gasEstimateType: 'eth_gasPrice' as const,
+          },
+        },
+      },
       CurrencyRateController: {
         currentCurrency: 'USD',
         currencyRates: {
@@ -340,17 +354,21 @@ export const initialState = {
         },
       },
       KeyringController: {
+        vault: '',
+        isUnlocked: true,
         keyrings: [
           {
             accounts: [evmAccountAddress],
             type: 'HD Key Tree',
           },
-          { accounts: [], type: 'QR Hardware Wallet Device' },
           {
             accounts: [solanaAccountAddress],
             type: 'Snap Keyring',
           },
         ],
+        keyringsMetadata: [],
+        encryptionKey: '',
+        encryptionSalt: '',
       },
     },
   },
