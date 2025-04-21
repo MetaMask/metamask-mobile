@@ -31,7 +31,7 @@ const Engine = ImportedEngine as any;
  * @param [internalAccounts] - The list of evm accounts the wallet knows about.
  * @param [accounts] - The list of evm accounts addresses that should exist.
  */
-const captureKeyringTypesWithMissingIdentities = (
+export const captureKeyringTypesWithMissingIdentities = (
   internalAccounts: InternalAccount[] = [],
   accounts: Hex[] = [],
 ) => {

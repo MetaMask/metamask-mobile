@@ -9,6 +9,15 @@ import BTC from '../../images/bitcoin-logo.png';
 import SOL from '../../images/solana-logo.png';
 import { MultichainBlockExplorerFormatUrls } from './networks';
 
+export enum MultichainNetworks {
+  BITCOIN = 'bip122:000000000019d6689c085ae165831e93',
+  BITCOIN_TESTNET = 'bip122:000000000933ea01ad0ee984209779ba',
+
+  SOLANA = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  SOLANA_DEVNET = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+  SOLANA_TESTNET = 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
+}
+
 // Image imports for React Native rendering
 export const MULTICHAIN_TOKEN_IMAGES = {
   [BtcScope.Mainnet]: BTC,

@@ -37,6 +37,7 @@ import {
   walletGetSession,
   walletInvokeMethod,
   walletRevokeSession,
+  MultichainApiNotifications,
 } from '@metamask/multichain-api-middleware';
 
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
@@ -48,7 +49,10 @@ const pump = require('pump');
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import { getPermittedAccounts } from '../Permissions';
+import {
+  captureKeyringTypesWithMissingIdentities,
+  getPermittedAccounts,
+} from '../Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
@@ -58,13 +62,42 @@ import createTracingMiddleware, {
 } from '../createTracingMiddleware';
 import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193MethodMiddleware';
 import {
+  Caip25CaveatMutators,
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  getEthAccounts,
+  getPermittedAccountsForScopes,
   getSessionScopes,
+  KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
-import { makeMethodMiddlewareMaker, UNSUPPORTED_RPC_METHODS } from '../RPCMethods/utils';
+import {
+  makeMethodMiddlewareMaker,
+  UNSUPPORTED_RPC_METHODS,
+} from '../RPCMethods/utils';
 import { ERC1155, ERC20, ERC721 } from '@metamask/controller-utils';
 import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
+import { MultichainNetworks } from '../Multichain/constants';
+import {
+  diffMap,
+  getChangedAuthorizations,
+  getRemovedAuthorizations,
+} from '../../util/permissions';
+import {
+  getAuthorizedScopesByOrigin,
+  getOriginsWithSessionProperty,
+  getPermittedAccountsByOrigin,
+  getPermittedAccountsForScopesByOrigin,
+  getPermittedChainsByOrigin,
+} from '../../selectors/permissions';
+import { previousValueComparator } from '../../util/validators';
+import { uniq } from 'lodash';
+import {
+  hexToBigInt,
+  parseCaipAccountId,
+  toCaipChainId,
+} from '@metamask/utils';
+import { SolAccountType } from '@metamask/keyring-api';
+import { TransactionController } from '@metamask/transaction-controller';
 
 // Types of APIs
 const API_TYPE = {
@@ -195,6 +228,9 @@ export class BackgroundBridge extends EventEmitter {
       this.multichainMiddlewareManager = new MultichainMiddlewareManager();
     }
 
+    // TODO: [ffmcgee] invoking this will probably now break unit test for this class. Address it.
+    this.setupControllerEventSubscriptions();
+
     try {
       const pc = Engine.context.PermissionController;
       const controllerMessenger = Engine.controllerMessenger;
@@ -314,6 +350,369 @@ export class BackgroundBridge extends EventEmitter {
       method: NOTIFICATION_NAMES.chainChanged,
       params: params ?? (await this.getProviderNetworkState(this.hostname)),
     });
+  }
+
+  /**
+   * Sets up BaseController V2 event subscriptions. Currently, this includes
+   * the subscriptions necessary to notify permission subjects of account
+   * changes.
+   *
+   * Some of the subscriptions in this method are Messenger selector
+   * event subscriptions. See the relevant documentation for
+   * `@metamask/base-controller` for more information.
+   *
+   * Note that account-related notifications emitted when the extension
+   * becomes unlocked are handled in MetaMaskController._onUnlock.
+   */
+  setupControllerEventSubscriptions() {
+    let lastSelectedAddress;
+    let lastSelectedSolanaAccountAddress;
+
+    if (AppConstants.MULTICHAIN_API) {
+      // this throws if there is no solana account... perhaps we should handle this better at the controller level
+      try {
+        lastSelectedSolanaAccountAddress =
+          this.accountsController.getSelectedMultichainAccount(
+            MultichainNetworks.SOLANA,
+          )?.address;
+      } catch {
+        // noop
+      }
+    }
+
+    const { controllerMessenger } = Engine;
+    const {
+      SelectedNetworkController,
+      NetworkController,
+      PreferencesController,
+      AccountsController,
+      PermissionController,
+      SnapController,
+    } = Engine.context;
+
+    controllerMessenger.subscribe(
+      'PreferencesController:stateChange',
+      previousValueComparator(async (prevState, currState) => {
+        // const { currentLocale } = currState;
+        this.#restartSmartTransactionPoller();
+
+        // TODO: [ffmcgee] invoke function to update current locale here..Do we have one already ?
+        // await updateCurrentLocale(currentLocale);
+        this.#checkTokenListPolling(currState, prevState);
+      }, PreferencesController.state),
+    );
+
+    this.controllerMessenger.subscribe(
+      `${AccountsController.name}:selectedAccountChange`,
+      async (account) => {
+        if (account.address && account.address !== lastSelectedAddress) {
+          lastSelectedAddress = account.address;
+          await this._onAccountChange(account.address);
+        }
+      },
+    );
+
+    // This handles account changes every time relevant permission state
+    // changes, for any reason.
+    controllerMessenger.subscribe(
+      `${PermissionController.name}:stateChange`,
+      async (currentValue, previousValue) => {
+        const changedAccounts = diffMap(currentValue, previousValue);
+
+        for (const [origin, accounts] of changedAccounts.entries()) {
+          this._notifyAccountsChange(origin, accounts);
+        }
+      },
+      getPermittedAccountsByOrigin,
+    );
+
+    // This handles CAIP-25 authorization changes every time relevant permission state
+    // changes, for any reason.
+    if (process.env.MULTICHAIN_API) {
+      // wallet_sessionChanged and eth_subscription setup/teardown
+      controllerMessenger.subscribe(
+        `${PermissionController.name}:stateChange`,
+        async (currentValue, previousValue) => {
+          const changedAuthorizations = getChangedAuthorizations(
+            currentValue,
+            previousValue,
+          );
+
+          const removedAuthorizations = getRemovedAuthorizations(
+            currentValue,
+            previousValue,
+          );
+
+          // remove any existing notification subscriptions for removed authorizations
+          for (const [
+            origin,
+            authorization,
+          ] of removedAuthorizations.entries()) {
+            const sessionScopes = getSessionScopes(authorization, {
+              // TODO: [ffmcgee] DRY this one
+              getNonEvmSupportedMethods: (scope) =>
+                Engine.controllerMessenger.call(
+                  'MultichainRouter:getSupportedMethods',
+                  scope,
+                ),
+            });
+            // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
+            // then remove middleware and unsubscribe
+            Object.entries(sessionScopes).forEach(([scope, scopeObject]) => {
+              if (
+                scopeObject.notifications.includes('eth_subscription') &&
+                scopeObject.methods.includes('eth_subscribe')
+              ) {
+                this.removeMultichainApiEthSubscriptionMiddleware({
+                  scope,
+                  origin,
+                });
+              }
+            });
+          }
+
+          // add new notification subscriptions for added/changed authorizations
+          for (const [
+            origin,
+            authorization,
+          ] of changedAuthorizations.entries()) {
+            const sessionScopes = getSessionScopes(authorization, {
+              // TODO: [ffmcgee] DRY this one
+              getNonEvmSupportedMethods: (scope) =>
+                controllerMessenger.call(
+                  'MultichainRouter:getSupportedMethods',
+                  scope,
+                ),
+            });
+
+            // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
+            // then get the subscriptionManager going for that scope
+            Object.entries(sessionScopes).forEach(([scope, scopeObject]) => {
+              if (
+                scopeObject.notifications.includes('eth_subscription') &&
+                scopeObject.methods.includes('eth_subscribe')
+              ) {
+                // for each tabId
+                Object.values(this.connections[origin]).forEach(({ tabId }) => {
+                  this.addMultichainApiEthSubscriptionMiddleware({
+                    scope,
+                    origin,
+                    tabId,
+                  });
+                });
+              } else {
+                this.removeMultichainApiEthSubscriptionMiddleware({
+                  scope,
+                  origin,
+                });
+              }
+            });
+            this._notifyAuthorizationChange(origin, authorization);
+          }
+        },
+        getAuthorizedScopesByOrigin,
+      );
+
+      // wallet_notify for solana accountChanged when permission changes
+      controllerMessenger.subscribe(
+        `${this.permissionController.name}:stateChange`,
+        async (currentValue, previousValue) => {
+          const origins = uniq([
+            ...previousValue.keys(),
+            ...currentValue.keys(),
+          ]);
+          origins.forEach((origin) => {
+            const previousCaveatValue = previousValue.get(origin);
+            const currentCaveatValue = currentValue.get(origin);
+
+            const previousSolanaAccountChangedNotificationsEnabled = Boolean(
+              previousCaveatValue?.sessionProperties?.[
+                KnownSessionProperties.SolanaAccountChangedNotifications
+              ],
+            );
+            const currentSolanaAccountChangedNotificationsEnabled = Boolean(
+              currentCaveatValue?.sessionProperties?.[
+                KnownSessionProperties.SolanaAccountChangedNotifications
+              ],
+            );
+
+            if (
+              !previousSolanaAccountChangedNotificationsEnabled &&
+              !currentSolanaAccountChangedNotificationsEnabled
+            ) {
+              return;
+            }
+
+            const previousSolanaCaipAccountIds = previousCaveatValue
+              ? getPermittedAccountsForScopes(previousCaveatValue, [
+                  MultichainNetworks.SOLANA,
+                  MultichainNetworks.SOLANA_DEVNET,
+                  MultichainNetworks.SOLANA_TESTNET,
+                ])
+              : [];
+            const previousNonUniqueSolanaHexAccountAddresses =
+              previousSolanaCaipAccountIds.map((caipAccountId) => {
+                const { address } = parseCaipAccountId(caipAccountId);
+                return address;
+              });
+            const previousSolanaHexAccountAddresses = uniq(
+              previousNonUniqueSolanaHexAccountAddresses,
+            );
+            const [previousSelectedSolanaAccountAddress] =
+              this.sortMultichainAccountsByLastSelected(
+                previousSolanaHexAccountAddresses,
+              );
+
+            const currentSolanaCaipAccountIds = currentCaveatValue
+              ? getPermittedAccountsForScopes(currentCaveatValue, [
+                  MultichainNetworks.SOLANA,
+                  MultichainNetworks.SOLANA_DEVNET,
+                  MultichainNetworks.SOLANA_TESTNET,
+                ])
+              : [];
+            const currentNonUniqueSolanaHexAccountAddresses =
+              currentSolanaCaipAccountIds.map((caipAccountId) => {
+                const { address } = parseCaipAccountId(caipAccountId);
+                return address;
+              });
+            const currentSolanaHexAccountAddresses = uniq(
+              currentNonUniqueSolanaHexAccountAddresses,
+            );
+            const [currentSelectedSolanaAccountAddress] =
+              this.sortMultichainAccountsByLastSelected(
+                currentSolanaHexAccountAddresses,
+              );
+
+            if (
+              previousSelectedSolanaAccountAddress !==
+              currentSelectedSolanaAccountAddress
+            ) {
+              // TODO: [ffmcgee] implement notifySolanaAccountChange ?
+              // this._notifySolanaAccountChange(
+              //   origin,
+              //   currentSelectedSolanaAccountAddress
+              //     ? [currentSelectedSolanaAccountAddress]
+              //     : [],
+              // );
+            }
+          });
+        },
+        getAuthorizedScopesByOrigin,
+      );
+
+      // wallet_notify for solana accountChanged when selected account changes
+      controllerMessenger.subscribe(
+        `${AccountsController.name}:selectedAccountChange`,
+        async (account) => {
+          if (
+            account.type === SolAccountType.DataAccount &&
+            account.address !== lastSelectedSolanaAccountAddress
+          ) {
+            lastSelectedSolanaAccountAddress = account.address;
+
+            const originsWithSolanaAccountChangedNotifications =
+              getOriginsWithSessionProperty(
+                PermissionController.state,
+                KnownSessionProperties.SolanaAccountChangedNotifications,
+              );
+
+            // returns a map of origins to permitted solana accounts
+            const solanaAccounts = getPermittedAccountsForScopesByOrigin(
+              PermissionController.state,
+              [
+                MultichainNetworks.SOLANA,
+                MultichainNetworks.SOLANA_DEVNET,
+                MultichainNetworks.SOLANA_TESTNET,
+              ],
+            );
+
+            if (solanaAccounts.size > 0) {
+              for (const [origin, accounts] of solanaAccounts.entries()) {
+                const parsedSolanaAddresses = accounts.map((caipAccountId) => {
+                  const { address } = parseCaipAccountId(caipAccountId);
+                  return address;
+                });
+
+                if (
+                  parsedSolanaAddresses.includes(account.address) &&
+                  originsWithSolanaAccountChangedNotifications[origin]
+                ) {
+                  // TODO: [ffmcgee] implement notifySolanaAccountChange ?
+                  // this._notifySolanaAccountChange(origin, [account.address]);
+                }
+              }
+            }
+          }
+        },
+      );
+    }
+
+    controllerMessenger.subscribe(
+      `${PermissionController.name}:stateChange`,
+      async (currentValue, previousValue) => {
+        const changedChains = diffMap(currentValue, previousValue);
+
+        // This operates under the assumption that there will be at maximum
+        // one origin permittedChains value change per event handler call
+        for (const [origin, chains] of changedChains.entries()) {
+          const currentNetworkClientIdForOrigin =
+            SelectedNetworkController.getNetworkClientIdForDomain(origin);
+          const { chainId: currentChainIdForOrigin } =
+            NetworkController.getNetworkConfigurationByNetworkClientId(
+              currentNetworkClientIdForOrigin,
+            );
+          // if(chains.length === 0) {
+          // TODO: [migrated from extension?] This particular case should also occur at the same time
+          // that eth_accounts is revoked. When eth_accounts is revoked,
+          // the networkClientId for that origin should be reset to track
+          // the globally selected network.
+          // }
+          if (chains.length > 0 && !chains.includes(currentChainIdForOrigin)) {
+            const networkClientId =
+              NetworkController.findNetworkClientIdByChainId(chains[0]);
+            // setActiveNetwork should be called before setNetworkClientIdForDomain
+            // to ensure that the isConnected value can be accurately inferred from
+            // NetworkController.state.networksMetadata in return value of
+            // `metamask_getProviderState` requests and `metamask_chainChanged` events.
+            NetworkController.setActiveNetwork(networkClientId);
+            SelectedNetworkController.setNetworkClientIdForDomain(
+              origin,
+              networkClientId,
+            );
+          }
+        }
+      },
+      getPermittedChainsByOrigin,
+    );
+
+    controllerMessenger.subscribe(
+      'NetworkController:networkRemoved',
+      ({ chainId }) => {
+        const scopeString = toCaipChainId(
+          'eip155',
+          hexToBigInt(chainId).toString(10),
+        );
+        PermissionController.updatePermissionsByCaveat(
+          Caip25CaveatType,
+          (existingScopes) =>
+            Caip25CaveatMutators[Caip25CaveatType].removeScope(
+              existingScopes,
+              scopeString,
+            ),
+        );
+      },
+    );
+
+    controllerMessenger.subscribe(
+      'NetworkController:networkDidChange',
+      async () => {
+        if (PreferencesController.state.useExternalServices) {
+          TransactionController.stopIncomingTransactionPolling();
+          await TransactionController.updateIncomingTransactions();
+          TransactionController.startIncomingTransactionPolling();
+        }
+      },
+    );
   }
 
   async notifySelectedAddressChanged(selectedAddress) {
@@ -816,6 +1215,7 @@ export class BackgroundBridge extends EventEmitter {
 
       // add new notification subscriptions for changed authorizations
       const sessionScopes = getSessionScopes(caip25Caveat.value, {
+        // TODO: [ffmcgee] DRY this one
         getNonEvmSupportedMethods: (scope) =>
           Engine.controllerMessenger.call(
             'MultichainRouter:getSupportedMethods',
@@ -889,6 +1289,214 @@ export class BackgroundBridge extends EventEmitter {
       network: legacyNetworkId(),
       selectedAddress,
     };
+  }
+
+  /**
+   * Sorts a list of multichain account addresses by most recently selected by using
+   * the lastSelected value for the matching InternalAccount object stored in state.
+   *
+   * @param {string[]} [addresses] - The list of addresses (not full CAIP-10 Account IDs) to sort.
+   * @returns {string[]} The sorted accounts addresses.
+   */
+  sortMultichainAccountsByLastSelected(addresses) {
+    const internalAccounts =
+      Engine.context.AccountsController.listMultichainAccounts();
+    return this.sortAddressesWithInternalAccounts(addresses, internalAccounts);
+  }
+
+  /**
+   * Sorts a list of addresses by most recently selected by using the lastSelected value for
+   * the matching InternalAccount object from the list of internalAccounts provided.
+   *
+   * @param {string[]} [addresses] - The list of caip accounts addresses to sort.
+   * @param {InternalAccount[]} [internalAccounts] - The list of InternalAccounts to determine lastSelected from.
+   * @returns {string[]} The sorted accounts addresses.
+   */
+  sortAddressesWithInternalAccounts(addresses, internalAccounts) {
+    return addresses.sort((firstAddress, secondAddress) => {
+      const firstAccount = internalAccounts.find(
+        (internalAccount) =>
+          internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
+      );
+
+      const secondAccount = internalAccounts.find(
+        (internalAccount) =>
+          internalAccount.address.toLowerCase() === secondAddress.toLowerCase(),
+      );
+
+      if (!firstAccount) {
+        captureKeyringTypesWithMissingIdentities(internalAccounts, addresses);
+        throw new Error(`Missing identity for address: "${firstAddress}".`);
+      } else if (!secondAccount) {
+        captureKeyringTypesWithMissingIdentities(internalAccounts, addresses);
+        throw new Error(`Missing identity for address: "${secondAddress}".`);
+      } else if (
+        firstAccount.metadata.lastSelected ===
+        secondAccount.metadata.lastSelected
+      ) {
+        return 0;
+      } else if (firstAccount.metadata.lastSelected === undefined) {
+        return 1;
+      } else if (secondAccount.metadata.lastSelected === undefined) {
+        return -1;
+      }
+
+      return (
+        secondAccount.metadata.lastSelected - firstAccount.metadata.lastSelected
+      );
+    });
+  }
+
+  /**
+   * If it does not already exist, creates and inserts middleware to handle eth
+   * subscriptions for a particular evm scope on a specific Multichain API
+   * JSON-RPC pipeline by origin and tabId.
+   *
+   * @param {object} options - The options object.
+   * @param {string} options.scope - The evm scope to handle eth susbcriptions for.
+   * @param {string} options.origin - The origin to handle eth subscriptions for.
+   * @param {string} options.tabId - The tabId to handle eth subscriptions for.
+   */
+  addMultichainApiEthSubscriptionMiddleware({ scope, origin, tabId }) {
+    const subscriptionManager = this.multichainSubscriptionManager.subscribe({
+      scope,
+      origin,
+      tabId,
+    });
+    this.multichainMiddlewareManager.addMiddleware({
+      scope,
+      origin,
+      tabId,
+      middleware: subscriptionManager.middleware,
+    });
+  }
+
+  /**
+   * If it does exist, removes all middleware that were handling eth
+   * subscriptions for a particular evm scope for all Multichain API
+   * JSON-RPC pipelines for an origin.
+   *
+   * @param {object} options - The options object.
+   * @param {string} options.scope - The evm scope to handle eth susbcriptions for.
+   * @param {string} options.origin - The origin to handle eth subscriptions for.
+   */
+  removeMultichainApiEthSubscriptionMiddleware({ scope, origin }) {
+    this.multichainMiddlewareManager.removeMiddlewareByScopeAndOrigin(
+      scope,
+      origin,
+    );
+    this.multichainSubscriptionManager.unsubscribeByScopeAndOrigin(
+      scope,
+      origin,
+    );
+  }
+
+  async _onAccountChange(newAddress) {
+    const permittedAccountsMap = getPermittedAccountsByOrigin(
+      Engine.context.PermissionController.state,
+    );
+
+    for (const [origin, accounts] of permittedAccountsMap.entries()) {
+      if (accounts.includes(newAddress)) {
+        this._notifyAccountsChange(origin, accounts);
+      }
+    }
+
+    await Engine.context.TransactionController.updateIncomingTransactions();
+  }
+
+  _notifyAccountsChange(origin, newAccounts) {
+    this.notifyConnections(
+      origin,
+      {
+        method: NOTIFICATION_NAMES.accountsChanged,
+        // This should be the same as the return value of `eth_accounts`,
+        // namely an array of the current / most recently selected Ethereum
+        // account.
+        params:
+          newAccounts.length < 2
+            ? // If the length is 1 or 0, the accounts are sorted by definition.
+              newAccounts
+            : // If the length is 2 or greater, we have to execute
+              // `eth_accounts` vi this method.
+              this.getPermittedAccounts(origin),
+      },
+      API_TYPE.EIP1193,
+    );
+
+    Engine.context.PermissionLogController.updateAccountsHistory(
+      origin,
+      newAccounts,
+    );
+  }
+
+  /**
+   * Gets the sorted permitted accounts for the specified origin. Returns an empty
+   * array if no accounts are permitted or the wallet is locked. Returns any permitted
+   * accounts if the wallet is locked and `ignoreLock` is true. This lock bypass is needed
+   * for the `eth_requestAccounts` & `wallet_getPermission` handlers both of which
+   * return permissioned accounts to the dapp when the wallet is locked.
+   *
+   * @param {string} origin - The origin whose exposed accounts to retrieve.
+   * @param {object} [options] - The options object
+   * @param {boolean} [options.ignoreLock] - If accounts should be returned even if the wallet is locked.
+   * @returns {Promise<string[]>} The origin's permitted accounts, or an empty
+   * array.
+   */
+  getPermittedAccounts(origin, { ignoreLock } = {}) {
+    let caveat;
+    try {
+      caveat = this.permissionController.getCaveat(
+        origin,
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
+      );
+    } catch (err) {
+      if (err instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+        return [];
+      }
+      throw err;
+    }
+
+    if (!this.isUnlocked() && !ignoreLock) {
+      return [];
+    }
+
+    const ethAccounts = getEthAccounts(caveat.value);
+    return this.sortEvmAccountsByLastSelected(ethAccounts);
+  }
+
+  #restartSmartTransactionPoller() {
+    if (
+      Engine.context.PreferencesController.state.useExternalServices === true
+    ) {
+      Engine.context.TransactionController.stopIncomingTransactionPolling();
+      Engine.context.TransactionController.startIncomingTransactionPolling();
+    }
+  }
+
+  #checkTokenListPolling(currentState, previousState) {
+    const previousEnabled = this.#isTokenListPollingRequired(previousState);
+    const newEnabled = this.#isTokenListPollingRequired(currentState);
+
+    if (previousEnabled === newEnabled) {
+      return;
+    }
+
+    Engine.context.TokenListController.updatePreventPollingOnNetworkRestart(
+      !newEnabled,
+    );
+  }
+
+  #isTokenListPollingRequired(preferencesControllerState) {
+    const { useTokenDetection, useTransactionSimulations, preferences } =
+      preferencesControllerState ?? {};
+
+    const { petnamesEnabled } = preferences ?? {};
+
+    return useTokenDetection || petnamesEnabled || useTransactionSimulations;
   }
 }
 
