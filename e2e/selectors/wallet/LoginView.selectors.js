@@ -7,4 +7,13 @@ export const LoginViewSelectors = {
   REMEMBER_ME_SWITCH: 'login-with-remember-me-switch',
   PASSWORD_INPUT: 'login-password-input',
   SHOW_HINT_BUTTON: 'show-hint-button',
+  BIOMETRY_BUTTON: 'biometry-button',
+  IOS_TOUCH_ID_ICON: 'ios-touch-id-icon',
+  IOS_PASSCODE_ICON: 'ios-passcode-icon',
+  IOS_FACE_ID_ICON: 'ios-face-id-icon',
+  ANDROID_FINGERPRINT_ICON: 'android-fingerprint-icon',
+  ANDROID_FACE_ID_ICON: 'android-face-id-icon',
+  ANDROID_IRIS_ICON: 'android-iris-icon',
+  ANDROID_PASSCODE_ICON: 'android-passcode-icon',
+  FALLBACK_FINGERPRINT_ICON: 'fallback-fingerprint-icon',
 };

@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
-
 /**
  * Starts the mock server and sets up mock events.
  *
@@ -67,12 +66,13 @@ export const startMockServer = async (events, port) => {
     },
   });
 
+
   return mockServer;
 };
 
 /**
  * Stops the mock server.
- *
+ * @param {import('mockttp').Mockttp} mockServer
  */
 export const stopMockServer = async (mockServer) => {
   await mockServer.stop();

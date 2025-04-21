@@ -3,12 +3,12 @@ import SheetHeader from '../../../component-library/components/Sheet/SheetHeader
 import Text from '../../../component-library/components/Texts/Text';
 import Icon from '../../../component-library/components/Icons/Icon';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import SmartTransactionStatus from '../../Views/SmartTransactionStatus/SmartTransactionStatus';
+import SmartTransactionStatus from '../../Views/transactions/SmartTransactionStatus/SmartTransactionStatus';
 import { View, Text as RNText, ScrollView } from 'react-native';
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import { SnapUIImage } from '../../Snaps/SnapUIImage/SnapUIImage';
 import { SnapAvatar } from '../../Snaps/SnapAvatar/SnapAvatar';
-import AddressElement from '../../../components/Views/confirmations/SendFlow/AddressElement';
+import AddressElement from '../../../components/Views/confirmations/legacy/SendFlow/AddressElement';
 import { Box } from '../Box/Box';
 import { SnapUICard } from '../../Snaps/SnapUICard/SnapUICard';
 import { SnapUILink } from '../../Snaps/SnapUILink/SnapUILink';
@@ -23,9 +23,11 @@ import { SnapUICheckbox } from '../../Snaps/SnapUICheckbox/SnapUICheckbox';
 import { SnapUIAddress } from '../../Snaps/SnapUIAddress/SnapUIAddress';
 import { SnapUIAvatar } from '../../Snaps/SnapUIAvatar/SnapUIAvatar';
 import { SnapUISelector } from '../../Snaps/SnapUISelector/SnapUISelector';
-import InfoRow from '../../Views/confirmations/components/UI/InfoRow';
+import InfoRow from '../../Views/confirmations/components/UI/info-row';
 import { SnapUISpinner } from '../../Snaps/SnapUISpinner/SnapUISpinner';
 import { SnapUITooltip } from '../../Snaps/SnapUITooltip/SnapUITooltip';
+import { Skeleton } from '../../../component-library/components/Skeleton';
+import { SnapUIAddressInput } from '../../Snaps/SnapUIAddressInput/SnapUIAddressInput';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -43,6 +45,7 @@ export const safeComponentList = {
   AddressElement,
   Box,
   SnapUIInput,
+  SnapUIAddressInput,
   SnapIcon,
   SnapUIIcon,
   SnapUIFooterButton,
@@ -58,6 +61,7 @@ export const safeComponentList = {
   RNText,
   ScrollView,
   SnapUITooltip,
+  Skeleton,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;

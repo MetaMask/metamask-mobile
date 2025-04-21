@@ -11,8 +11,9 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 
 import { useRampSDK } from '../../sdk';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -40,7 +41,6 @@ import Keypad from '../../components/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 import TokenIcon from '../../../Swaps/components/TokenIcon';
-import CustomActionButton from '../../containers/CustomActionButton';
 import TokenSelectModal from '../../components/TokenSelectModal';
 import PaymentMethodModal from '../../components/PaymentMethodModal';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
@@ -62,6 +62,7 @@ import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../component-library/hooks';
+import { selectTicker } from '../../../../../selectors/networkController';
 
 import styleSheet from './BuildQuote.styles';
 import {
@@ -70,6 +71,7 @@ import {
 } from '../../../../../util/number';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
+import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
@@ -86,7 +88,6 @@ import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/Build
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
 
-const TRANSFER_GAS_LIMIT = 21000;
 interface BuildQuoteParams {
   showBack?: boolean;
 }
@@ -105,7 +106,7 @@ const BuildQuote = () => {
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
-  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN>();
+  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN4>();
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
@@ -129,6 +130,8 @@ const BuildQuote = () => {
   ] = useModalHandler(false);
   const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] =
     useModalHandler(false);
+
+  const nativeSymbol = useSelector(selectTicker);
 
   /**
    * Grab the current state of the SDK via the context.
@@ -212,9 +215,18 @@ const BuildQuote = () => {
     currentFiatCurrency,
   );
 
+  const gasLimitEstimation = useERC20GasLimitEstimation({
+    tokenAddress: selectedAsset?.address,
+    fromAddress: selectedAddress,
+    chainId: selectedChainId,
+    amount,
+    decimals: selectedAsset?.decimals ?? 18, // Default ERC20 decimals
+    isNativeToken: selectedAsset?.address === NATIVE_ADDRESS,
+  });
+
   const gasPriceEstimation = useGasPriceEstimation({
     // 0 is set when buying since there's no transaction involved
-    gasLimit: isBuy ? 0 : TRANSFER_GAS_LIMIT,
+    gasLimit: isBuy ? 0 : gasLimitEstimation,
     estimateRange: 'high',
   });
 
@@ -235,21 +247,42 @@ const BuildQuote = () => {
   const { addressBalance } = useAddressBalance(
     assetForBalance as Asset,
     selectedAddress,
+    true,
   );
 
-  const { balanceFiat, balanceBN } = useBalance(
+  const { balanceFiat, balanceBN, balance } = useBalance(
     selectedAsset
       ? {
+          chainId: selectedAsset.network.chainId,
+          assetId: selectedAsset.assetId,
           address: selectedAsset.address,
           decimals: selectedAsset.decimals,
         }
       : undefined,
   );
 
-  const maxSellAmount =
-    balanceBN && gasPriceEstimation
-      ? balanceBN?.sub(gasPriceEstimation.estimatedGasFee)
-      : null;
+  const { balanceBN: nativeTokenBalanceBN } = useBalance(
+    isBuy || !selectedAsset || selectedAsset.address === NATIVE_ADDRESS
+      ? undefined
+      : {
+          address: NATIVE_ADDRESS,
+          decimals: 18,
+        },
+  );
+
+  let maxSellAmount = null;
+  if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
+    maxSellAmount =
+      balanceBN && gasPriceEstimation
+        ? balanceBN?.sub(gasPriceEstimation.estimatedGasFee)
+        : null;
+  } else if (
+    selectedAsset &&
+    selectedAsset.address !== NATIVE_ADDRESS &&
+    balanceBN
+  ) {
+    maxSellAmount = balanceBN;
+  }
 
   const amountIsBelowMinimum = useMemo(
     () => isAmountBelowMinimum(amountNumber),
@@ -279,6 +312,18 @@ const BuildQuote = () => {
     }
     return balanceBN.lt(amountBNMinimalUnit);
   }, [balanceBN, amountBNMinimalUnit]);
+
+  const hasInsufficientNativeBalanceForGas = useMemo(() => {
+    if (isBuy || (selectedAsset && selectedAsset.address === NATIVE_ADDRESS)) {
+      return false;
+    }
+
+    if (!nativeTokenBalanceBN || !gasPriceEstimation) {
+      return false;
+    }
+
+    return nativeTokenBalanceBN.lt(gasPriceEstimation.estimatedGasFee);
+  }, [gasPriceEstimation, isBuy, nativeTokenBalanceBN, selectedAsset]);
 
   const isFetching =
     isFetchingCryptoCurrencies ||
@@ -357,7 +402,7 @@ const BuildQuote = () => {
       setAmountNumber(valueAsNumber);
       if (isSell) {
         setAmountBNMinimalUnit(
-          toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN,
+          toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN4,
         );
       }
     },
@@ -372,8 +417,8 @@ const BuildQuote = () => {
       } else {
         const percentage = value * 100;
         const amountPercentage = balanceBN
-          ?.mul(new BN(percentage))
-          .div(new BN(100));
+          ?.mul(new BN4(percentage))
+          .div(new BN4(100));
 
         if (!amountPercentage) {
           return;
@@ -432,7 +477,7 @@ const BuildQuote = () => {
          */
         const newRegionCurrency = await queryDefaultFiatCurrency(
           region.id,
-          selectedPaymentMethodId,
+          selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
         );
         setSelectedFiatCurrencyId(newRegionCurrency?.id);
       }
@@ -741,7 +786,11 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else if (balanceBN && !balanceBN.isZero() && maxSellAmount?.gt(new BN(0))) {
+  } else if (
+    balanceBN &&
+    !balanceBN.isZero() &&
+    maxSellAmount?.gt(new BN4(0))
+  ) {
     quickAmounts = [
       { value: 0.25, label: '25%' },
       { value: 0.5, label: '50%' },
@@ -813,7 +862,7 @@ const BuildQuote = () => {
                   color={TextColor.Alternative}
                 >
                   {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
-                  {addressBalance}
+                  {selectedAsset?.assetId && balance ? balance : addressBalance}
                   {balanceFiat ? ` ≈ ${balanceFiat}` : null}
                 </Text>
               </Row>
@@ -851,6 +900,16 @@ const BuildQuote = () => {
                   testID={BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR}
                 >
                   {strings('fiat_on_ramp_aggregator.insufficient_balance')}
+                </Text>
+              </Row>
+            )}
+            {!hasInsufficientBalance && hasInsufficientNativeBalanceForGas && (
+              <Row>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  {strings(
+                    'fiat_on_ramp_aggregator.insufficient_native_balance',
+                    { currency: nativeSymbol },
+                  )}
                 </Text>
               </Row>
             )}
@@ -918,24 +977,15 @@ const BuildQuote = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <Row style={styles.cta}>
-            {currentPaymentMethod?.customAction ? (
-              <CustomActionButton
-                customAction={currentPaymentMethod.customAction}
-                amount={amountNumber}
-                disabled={!amountIsValid || amountNumber <= 0}
-                fiatSymbol={currentFiatCurrency?.symbol}
-              />
-            ) : (
-              <StyledButton
-                type="confirm"
-                onPress={handleGetQuotePress}
-                accessibilityRole="button"
-                accessible
-                disabled={amountNumber <= 0}
-              >
-                {strings('fiat_on_ramp_aggregator.get_quotes')}
-              </StyledButton>
-            )}
+            <StyledButton
+              type="confirm"
+              onPress={handleGetQuotePress}
+              accessibilityRole="button"
+              accessible
+              disabled={amountNumber <= 0}
+            >
+              {strings('fiat_on_ramp_aggregator.get_quotes')}
+            </StyledButton>
           </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

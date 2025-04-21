@@ -1,0 +1,145 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EmptyStateCta renders correctly 1`] = `
+<View
+  collapsable={false}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#f3f5f9",
+      "borderRadius": 12,
+      "padding": 16,
+    }
+  }
+>
+  <View
+    collapsable={false}
+    style={
+      {
+        "paddingBottom": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1c7e331a",
+          "borderRadius": 100,
+          "height": 36,
+          "justifyContent": "center",
+          "overflow": "hidden",
+          "width": 36,
+        }
+      }
+    >
+      <SvgMock
+        color="#1c7e33"
+        height={20}
+        name="Plant"
+        style={
+          {
+            "height": 20,
+            "width": 20,
+          }
+        }
+        width={20}
+      />
+    </View>
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
+        "fontSize": 18,
+        "fontWeight": "700",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "paddingBottom": 8,
+      }
+    }
+  >
+    Lend USDC and earn
+  </Text>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "paddingBottom": 16,
+        "textAlign": "center",
+      }
+    }
+  >
+    You could earn up to
+     
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 16,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      $5
+       (
+      4.5
+      % 
+      APR
+      )
+    </Text>
+     
+    per year by lending your USDC.
+  </Text>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "stretch",
+        "backgroundColor": "transparent",
+        "borderColor": "#4459ff",
+        "borderRadius": 24,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "height": 48,
+        "justifyContent": "center",
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#4459ff",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Start earning
+    </Text>
+  </TouchableOpacity>
+</View>
+`;

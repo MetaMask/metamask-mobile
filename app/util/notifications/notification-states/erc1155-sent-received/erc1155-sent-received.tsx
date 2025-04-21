@@ -13,7 +13,6 @@ import {
 } from '../types/NotificationState';
 import {
   getNativeTokenDetailsByChainId,
-  getNetworkFees,
   getNotificationBadge,
 } from '../../methods/common';
 import { ModalField } from '../types/NotificationModalDetails';
@@ -107,10 +106,6 @@ const state: NotificationState<ERC1155Notification> = {
           type: ModalFieldType.NETWORK,
           iconUrl: nativeTokenDetails?.image,
           name: nativeTokenDetails?.name,
-        },
-        {
-          type: ModalFieldType.NETWORK_FEE,
-          getNetworkFees: () => getNetworkFees(notification),
         },
       ],
       footer: {

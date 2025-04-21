@@ -1,6 +1,8 @@
 // Third party dependencies.
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, TextStyle } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
+import { getFontFamily, TextVariant } from '../../Texts/Text';
+import { typography } from '@metamask/design-tokens';
 
 const screenHeight = Dimensions.get('window').height;
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
@@ -32,6 +34,12 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+    },
+    headerText: {
+      color: colors.text.default,
+      ...(typography.sHeadingMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.HeadingMD),
+      textAlign: 'center',
       marginBottom: 16,
     },
     headerEmpty: {
@@ -45,6 +53,13 @@ const styleSheet = (params: { theme: Theme }) => {
       columnGap: 8,
       marginRight: 16,
       width: '90%',
+    },
+    checkboxText: {
+      marginLeft: 8,
+      flex: 1,
+      color: colors.text.default,
+      ...(typography.sBodyMDBold as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMDBold),
     },
     confirmButton: {
       marginTop: 16,
@@ -66,6 +81,9 @@ const styleSheet = (params: { theme: Theme }) => {
     footerHelpText: {
       marginTop: 16,
       textAlign: 'center',
+      color: colors.text.alternative,
+      ...(typography.sBodySM as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodySM),
     },
   });
 };

@@ -55,12 +55,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 3,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                     "textAlign": "center",
                   }
                 }
@@ -69,12 +69,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#6a737d",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "color": "#686e7d",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -98,7 +98,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
               onPressOut={[Function]}
               style={
                 {
-                  "backgroundColor": "#f2f4f6",
+                  "backgroundColor": "#f3f5f9",
                   "borderRadius": 32,
                   "paddingHorizontal": 14,
                   "paddingVertical": 7,
@@ -110,12 +110,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 3,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                     "textAlign": "center",
                   }
                 }
@@ -124,12 +124,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#6a737d",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "color": "#686e7d",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -165,12 +165,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 3,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                     "textAlign": "center",
                   }
                 }
@@ -179,12 +179,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#6a737d",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "color": "#686e7d",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -214,8 +214,8 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c8234",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#1c7e33",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 24,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -231,12 +231,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
@@ -491,9 +491,9 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                           gradient={
                             [
                               0,
-                              1868340,
+                              1867315,
                               1,
-                              438075956,
+                              438074931,
                             ]
                           }
                           gradientTransform={null}
@@ -520,7 +520,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -546,7 +546,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -572,7 +572,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -598,7 +598,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -624,7 +624,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -650,7 +650,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -676,7 +676,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -702,7 +702,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -728,7 +728,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -754,7 +754,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -780,7 +780,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -806,7 +806,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -837,12 +837,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontSize": 14,
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 16,
                 "fontWeight": "700",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -862,12 +862,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
                 testID="label"
@@ -902,12 +902,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Medium",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Medium",
+                      "fontSize": 16,
                       "fontWeight": "500",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                   testID="label"
@@ -936,12 +936,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#1c8234",
-                        "fontFamily": "EuclidCircularB-Medium",
-                        "fontSize": 14,
+                        "color": "#1c7e33",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 16,
                         "fontWeight": "500",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                     testID="label"
@@ -957,12 +957,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >

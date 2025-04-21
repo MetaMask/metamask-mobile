@@ -35,7 +35,6 @@ import {
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
-import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -568,7 +567,7 @@ const ImportFromSecretRecoveryPhrase = ({
         //   index: 1,
         //   routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
         // });
-        await importAdditionalAccounts();
+        // await importAdditionalAccounts();
         await enableProfileSyncing();
       } catch (error) {
         // Should we force people to enable passcode / biometrics?

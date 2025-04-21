@@ -20,7 +20,7 @@ jobs:
 
   create-release-pr:
     needs: generate-build-version
-    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@e79e0af6dc5d258222f6122eaa2ef41154058e41
+    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@3e0b0204e41b576263b9060945de3b3b9b8c5448
     with:
       platform: mobile
       base-branch: ${{ inputs.base-branch }}

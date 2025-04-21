@@ -97,7 +97,6 @@ import {
   TransactionControllerActions,
   TransactionControllerEvents,
   TransactionControllerState,
-  TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -145,6 +144,7 @@ import {
   SnapController,
   AllowedActions as SnapsAllowedActions,
   AllowedEvents as SnapsAllowedEvents,
+  ExecutionService,
   PersistedSnapControllerState,
   SnapControllerEvents,
   SnapControllerActions,
@@ -257,6 +257,12 @@ import { Hex } from '@metamask/utils';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
 import type { RootState } from '../../reducers';
+import {
+  AppMetadataController,
+  AppMetadataControllerActions,
+  AppMetadataControllerEvents,
+  AppMetadataControllerState,
+} from '@metamask/app-metadata-controller';
 
 /**
  * Controllers that area always instantiated
@@ -340,7 +346,8 @@ type GlobalActions =
   | MultichainNetworkControllerActions
   | BridgeControllerActions
   | BridgeStatusControllerActions
-  | EarnControllerActions;
+  | EarnControllerActions
+  | AppMetadataControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -389,14 +396,8 @@ type GlobalEvents =
   | MultichainNetworkControllerEvents
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
-  | EarnControllerEvents;
-
-// TODO: Abstract this into controller utils for TransactionController
-export interface TransactionEventPayload {
-  transactionMeta: TransactionMeta;
-  actionId?: string;
-  error?: string;
-}
+  | EarnControllerEvents
+  | AppMetadataControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -417,6 +418,7 @@ export type Controllers = {
   AccountsController: AccountsController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
+  AppMetadataController: AppMetadataController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   CurrencyRateController: CurrencyRateController;
@@ -445,6 +447,7 @@ export type Controllers = {
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ExecutionService: ExecutionService;
   SnapController: SnapController;
   SnapsRegistry: SnapsRegistry;
   SubjectMetadataController: SubjectMetadataController;
@@ -483,6 +486,7 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
+  AppMetadataController: AppMetadataControllerState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
@@ -560,6 +564,13 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 export type ControllersToInitialize =
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'CronjobController'
+  | 'ExecutionService'
+  | 'SnapController'
+  | 'SnapInterfaceController'
+  | 'SnapsRegistry'
+  | 'NotificationServicesController'
+  | 'NotificationServicesPushController'
+  | 'AppMetadataController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
@@ -570,7 +581,9 @@ export type ControllersToInitialize =
   | 'CurrencyRateController'
   | 'AccountsController'
   | 'MultichainNetworkController'
-  | 'TransactionController';
+  | 'TransactionController'
+  | 'GasFeeController'
+  | 'SignatureController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -667,7 +680,6 @@ export type ControllerInitFunction<
 export type ControllerInitFunctionByControllerName = {
   [Name in ControllersToInitialize]: ControllerInitFunction<
     ControllerByName[Name],
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
   >;

@@ -36,6 +36,8 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
+import { setCompletedOnboarding } from '../../../actions/onboarding';
 
 const DELETE_KEYWORD = 'delete';
 
@@ -59,6 +61,13 @@ const DeleteWalletModal = () => {
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
+
+  const { signOut } = useSignOut();
+
+  // const showConfirmModal = () => {
+  //   setShowConfirm(true);
+  //   LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  // };
 
   const isTextDelete = (text: string) => tlc(text) === DELETE_KEYWORD;
 
@@ -97,6 +106,8 @@ const DeleteWalletModal = () => {
     await dispatch(
       clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
     );
+    signOut();
+    await dispatch(setCompletedOnboarding(false));
     await CookieManager.clearAll(true);
     triggerClose();
     await resetWalletState();

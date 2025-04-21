@@ -32,6 +32,7 @@ import {
 import { useTheme } from '../../../util/theme';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
+import { useDispatch } from 'react-redux';
 import Icon, {
   IconName,
   IconColor,
@@ -39,7 +40,6 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../core/AppConstants';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
-import createStyles from './index.styles';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
 import TextField, {
@@ -47,6 +47,9 @@ import TextField, {
 } from '../../../component-library/components/Form/TextField';
 
 const wallet_ready_image = require('../../../images/wallet-ready.png'); // eslint-disable-line
+import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
+import { setCompletedOnboarding } from '../../../actions/onboarding';
+import createStyles from './index.styles';
 
 interface OnboardingSuccessProps {
   onDone: () => void;
@@ -63,6 +66,7 @@ const OnboardingSuccess = ({
   const route = useRoute();
   const { toastRef } = useContext(ToastContext);
 
+  const dispatch = useDispatch();
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
   const [savedHint, setSavedHint] = useState('');
@@ -133,6 +137,15 @@ const OnboardingSuccess = ({
       setSavedHint('');
     }
   };
+
+  const handleOnDone = useCallback(() => {
+    const onOnboardingSuccess = async () => {
+      await importAdditionalAccounts();
+      await dispatch(setCompletedOnboarding(true));
+    };
+    onOnboardingSuccess();
+    onDone();
+  }, [onDone, dispatch]);
 
   const saveHint = async () => {
     if (!hintText) return;
@@ -351,7 +364,7 @@ const OnboardingSuccess = ({
               testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
               label={strings('onboarding_success.done')}
               variant={ButtonVariants.Primary}
-              onPress={onDone}
+              onPress={handleOnDone}
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
             />

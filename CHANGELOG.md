@@ -1,10 +1,289 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Fixed
+
+- fix(swaps): set default slippage when source or destination token is not stablecoin ([#14730](https://github.com/MetaMask/metamask-mobile/pull/14730))
+
+### Changed
+
+- fix(multi-srp): display errors only after all the words are have been entered ([#14607](https://github.com/MetaMask/metamask-mobile/pull/14607))
+
+### Added
+
+- feat(bridge): add solana chain support and improve bridge state management ([#14713](https://github.com/MetaMask/metamask-mobile/pull/14713))
+- feat(bridge): add error handling and input management for bridge quotes ([#14693](https://github.com/MetaMask/metamask-mobile/pull/14693))
+- feat(multi-srp): enable multi-srp in main and beta ([#14558](https://github.com/MetaMask/metamask-mobile/pull/14558))
+- feat(ramp): Update ramp data flow to fetch cryptos before payment methods ([#14437](https://github.com/MetaMask/metamask-mobile/pull/14437))
+- feat(bridge): add destination account picker ([#14656](https://github.com/MetaMask/metamask-mobile/pull/14656))
+- feat(bridge): add Solana assets to bridge token pickers ([#14365](https://github.com/MetaMask/metamask-mobile/pull/14365))
+- feat: add AppMetadataController controller ([#14513](https://github.com/MetaMask/metamask-mobile/pull/14513))
+- feat(bridge): implement bridge quote fetching ([#14413](https://github.com/MetaMask/metamask-mobile/pull/14413))
+- feat(multi-srp): add e2e tests ([#14583](https://github.com/MetaMask/metamask-mobile/pull/14583))
+- feat(bridge): fetch token metadata for Bridge token pickers if not already available ([#14699](https://github.com/MetaMask/metamask-mobile/pull/14699))
+
+### Changed
+
+- feat(bridge): Handle Solana vs EVM swap and bridge routing ([#14614](https://github.com/MetaMask/metamask-mobile/pull/14614))
+
+### Fixed
+
+- fix(bridge): fix not switching networks when selecting source token ([#14712](https://github.com/MetaMask/metamask-mobile/pull/14712))
+
+## [7.44.0]
+
+### Added
+
+- feat(ramp): add backpress handler to expanded quotes view ([#14210](https://github.com/MetaMask/metamask-mobile/pull/14210))
+- feat(4213-3): network badge positioning ([#14071](https://github.com/MetaMask/metamask-mobile/pull/14071))
+- feat(4213-1): rounded square network icons ([#14065](https://github.com/MetaMask/metamask-mobile/pull/14065))
+- feat(4213-2) update network icons ([#14069](https://github.com/MetaMask/metamask-mobile/pull/14069))
+- feat(ramp): add non evm balance ([#13948](https://github.com/MetaMask/metamask-mobile/pull/13948))
+- feat: add quote info modal component ([#14263](https://github.com/MetaMask/metamask-mobile/pull/14263))
+- feat: SPL TokenList v2 ([#14126](https://github.com/MetaMask/metamask-mobile/pull/14126))
+- feat: Bridge dest token ([#14135](https://github.com/MetaMask/metamask-mobile/pull/14135))
+- feat: Adding BSC to STX Supported Chains Array (prod) ([#14230](https://github.com/MetaMask/metamask-mobile/pull/14230))
+- feat: add wallet_revokePermissions rpc call ([#14091](https://github.com/MetaMask/metamask-mobile/pull/14091))
+- feat: Add `getPreferences` hook ([#14062](https://github.com/MetaMask/metamask-mobile/pull/14062))
+- feat: Enforce 3-minute idle time for BrowserTabs before unmounting them ([#14175](https://github.com/MetaMask/metamask-mobile/pull/14175))
+- feat: Add Linea to Smart Transaction supported chains ([#14018](https://github.com/MetaMask/metamask-mobile/pull/14018))
+- feat: import srp ([#13768](https://github.com/MetaMask/metamask-mobile/pull/13768))
+- feat: add inline alert (origin mismatch) to SIWE ([#13773](https://github.com/MetaMask/metamask-mobile/pull/13773))
+- feat: Add BSC to Smart Transaction supported chains ([#13964](https://github.com/MetaMask/metamask-mobile/pull/13964))
+- feat: STAKE-902: build lending empty state component ([#14107](https://github.com/MetaMask/metamask-mobile/pull/14107))
+- feat: use new identity hooks ([#14081](https://github.com/MetaMask/metamask-mobile/pull/14081))
+- feat: add bridge slippage modal component using segmented control ([#14070](https://github.com/MetaMask/metamask-mobile/pull/14070))
+- feat: add carousel component ([#13010](https://github.com/MetaMask/metamask-mobile/pull/13010))
+- feat: STAKE-958 - added migration 070 to remove unused staking state ([#14089](https://github.com/MetaMask/metamask-mobile/pull/14089))
+- feat: Implement claim rewards confirmation ([#14049](https://github.com/MetaMask/metamask-mobile/pull/14049))
+- feat: Implement Segment sampling for expected errors ([#13874](https://github.com/MetaMask/metamask-mobile/pull/13874))
+- feat: Rename `transactionMetrics` to `confirmationMetrics` ([#14080](https://github.com/MetaMask/metamask-mobile/pull/14080))
+- feat: Add `TransactionController` metric handlers ([#14020](https://github.com/MetaMask/metamask-mobile/pull/14020))
+- feat: e2e gate ([#13696](https://github.com/MetaMask/metamask-mobile/pull/13696))
+- feat: add segmented control component ([#14066](https://github.com/MetaMask/metamask-mobile/pull/14066))
+- feat: Implement MaxBrowserTabModal at 5 browser tabs ([#14033](https://github.com/MetaMask/metamask-mobile/pull/14033))
+- feat: add button toggle component ([#14064](https://github.com/MetaMask/metamask-mobile/pull/14064))
+- feat: bridge source token selector ([#13915](https://github.com/MetaMask/metamask-mobile/pull/13915))
+- feat: add new identity hooks ([#14045](https://github.com/MetaMask/metamask-mobile/pull/14045))
+- feat: bridge tx submission ([#13577](https://github.com/MetaMask/metamask-mobile/pull/13577))
+- feat: integrate blockaid alert into the Alert System ([#13744](https://github.com/MetaMask/metamask-mobile/pull/13744))
+
+### Fixed
+
+- fix: reduce tests worker for only performance tests ([#14051](https://github.com/MetaMask/metamask-mobile/pull/14051))
+- fix: scroll for the confirmation screen ([#14269](https://github.com/MetaMask/metamask-mobile/pull/14269))
+- fix: STAKE-964: bumped @metamask/earn-controller dependency to resolve pooled-staking geo-block for fresh installs ([#14257](https://github.com/MetaMask/metamask-mobile/pull/14257))
+- fix(snaps): Update snap footer buttons ([#13953](https://github.com/MetaMask/metamask-mobile/pull/13953))
+- fix: default open links turn true with attaching the protocol per intent filter ([#14222](https://github.com/MetaMask/metamask-mobile/pull/14222))
+- fix: waitAndTap on ad carousel banner ([#14198](https://github.com/MetaMask/metamask-mobile/pull/14198))
+- fix: bump `@metamask/keyring-controller` to `^19.2.2` ([#14229](https://github.com/MetaMask/metamask-mobile/pull/14229))
+- fix: return the same track event reference ([#14205](https://github.com/MetaMask/metamask-mobile/pull/14205))
+- fix: Fix mobile redesigned transaction metrics ([#14219](https://github.com/MetaMask/metamask-mobile/pull/14219))
+- fix: Display correct snap name when connecting ([#14204](https://github.com/MetaMask/metamask-mobile/pull/14204))
+- fix: Add staking claim event location ([#14203](https://github.com/MetaMask/metamask-mobile/pull/14203))
+- fix: ramps: change token to tap and confirm ([#14197](https://github.com/MetaMask/metamask-mobile/pull/14197))
+- fix: Fix a number of rendering problems with `AvatarFavicon` ([#14191](https://github.com/MetaMask/metamask-mobile/pull/14191))
+- fix: Disable Snaps APIs when using WalletConnect or SDK ([#14187](https://github.com/MetaMask/metamask-mobile/pull/14187))
+- fix: yarn setup bitrise ([#14174](https://github.com/MetaMask/metamask-mobile/pull/14174))
+- fix: Address final design adjustments for redesigned confirmations ([#14113](https://github.com/MetaMask/metamask-mobile/pull/14113))
+- fix: Add support for swipe navigation on android for staking confirma… ([#14125](https://github.com/MetaMask/metamask-mobile/pull/14125))
+- fix: Snap account actions ([#14013](https://github.com/MetaMask/metamask-mobile/pull/14013))
+- fix: toggle to display the correct balance ([#13916](https://github.com/MetaMask/metamask-mobile/pull/13916))
+- fix: Xcode 16 bitcode upload issue ([#14124](https://github.com/MetaMask/metamask-mobile/pull/14124))
+- fix: change function in `interfaceController.ts` to a memorised function to imporve performance ([#14090](https://github.com/MetaMask/metamask-mobile/pull/14090))
+- fix: Not report invalid URL errors to sentry ([#14115](https://github.com/MetaMask/metamask-mobile/pull/14115))
+- fix: Loading state bug ([#14096](https://github.com/MetaMask/metamask-mobile/pull/14096))
+- fix: android BottomSheet missing padding bottom ([#13993](https://github.com/MetaMask/metamask-mobile/pull/13993))
+- fix: prevent unintentional remote feature flag override ([#14086](https://github.com/MetaMask/metamask-mobile/pull/14086))
+- fix: when cancelling signature by swiping modal out it should not navigate back ([#14085](https://github.com/MetaMask/metamask-mobile/pull/14085))
+- fix: fix cannot read length property ([#14046](https://github.com/MetaMask/metamask-mobile/pull/14046))
+- fix: account name / label overflow on re-designed confirmation pages ([#14044](https://github.com/MetaMask/metamask-mobile/pull/14044))
+- fix: moved xcode 16 as default and applied xcode 15 only to testflight builds ([#14032](https://github.com/MetaMask/metamask-mobile/pull/14032))
+- fix: inherit icon size from text component parent ([#14024](https://github.com/MetaMask/metamask-mobile/pull/14024))
+- fix: animation added for loading state on SnapUILink button ([#13973](https://github.com/MetaMask/metamask-mobile/pull/13973))
+- fix: Revert "chore: upgrade Xcode 16 on bitrise.yml" ([#14012](https://github.com/MetaMask/metamask-mobile/pull/14012))
+- fix(bridge): hide staked native assets from token selectors ([#14457](https://github.com/MetaMask/metamask-mobile/pull/14457))
+
+
+## [7.43.0]
+
+### Added
+
+- feat(ramp): estimate gasLimit for ERC20 transfers (sell feature) ([#12467](https://github.com/MetaMask/metamask-mobile/pull/12467))
+- feat(snaps): Add Snap UI Skeleton component integration and mapping ([#13966](https://github.com/MetaMask/metamask-mobile/pull/13966))
+- feat(snaps): Add icon next to SnapUILink ([#13878](https://github.com/MetaMask/metamask-mobile/pull/13878))
+- feat(snaps): Add Snap UI Spinner component ([#13832](https://github.com/MetaMask/metamask-mobile/pull/13832))
+- feat(ramp): payment method selector UI update ([#13722](https://github.com/MetaMask/metamask-mobile/pull/13722))
+- feat(snaps): Add support for full border radius for SnapUIImage ([#13816](https://github.com/MetaMask/metamask-mobile/pull/13816))
+- feat(ramp): enable non-evm support for Ramp, buy only ([#13718](https://github.com/MetaMask/metamask-mobile/pull/13718))
+- feat: Add confirmation UI metrics infra and some redesigned staking deposit events ([#13919](https://github.com/MetaMask/metamask-mobile/pull/13919))
+- feat: Add gas included swaps ([#13972](https://github.com/MetaMask/metamask-mobile/pull/13972))
+- feat: Add Base to Smart Transaction supported chains ([#13920](https://github.com/MetaMask/metamask-mobile/pull/13920))
+- feat: Add token list item pressed event ([#13808](https://github.com/MetaMask/metamask-mobile/pull/13808))
+- feat: STAKE-934 update staking hooks to consume earn controller selectors ([#13939](https://github.com/MetaMask/metamask-mobile/pull/13939))
+- feat: adding skeleton component ([#13780](https://github.com/MetaMask/metamask-mobile/pull/13780))
+- feat: Implement unstaking confirmation ([#13921](https://github.com/MetaMask/metamask-mobile/pull/13921))
+- feat: revisit currencies list ([#13879](https://github.com/MetaMask/metamask-mobile/pull/13879))
+- feat: bridge input screen ([#13847](https://github.com/MetaMask/metamask-mobile/pull/13847))
+- feat: Implement tooltip component on mobile ([#13860](https://github.com/MetaMask/metamask-mobile/pull/13860))
+- feat: support DAI while it's being deprecated ([#13666](https://github.com/MetaMask/metamask-mobile/pull/13666))
+- feat: Implement redesigned staking withdrawals component ([#13826](https://github.com/MetaMask/metamask-mobile/pull/13826))
+- feat: bump profile-sync-controller and migrate to the controller init pattern ([#13859](https://github.com/MetaMask/metamask-mobile/pull/13859))
+- feat: Multi chain send flow ([#13854](https://github.com/MetaMask/metamask-mobile/pull/13854))
+- feat: STAKE-934: added earn-controller pooled staking selectors ([#13875](https://github.com/MetaMask/metamask-mobile/pull/13875))
+- feat: STAKE-934 add earn controller to engine ([#13778](https://github.com/MetaMask/metamask-mobile/pull/13778))
+- feat: bump @metamask/notification-services-controller to 2.0.0 ([#13857](https://github.com/MetaMask/metamask-mobile/pull/13857))
+- feat: add bridge controllers to Engine ([#13750](https://github.com/MetaMask/metamask-mobile/pull/13750))
+- feat: add InlineAlert component ([#13709](https://github.com/MetaMask/metamask-mobile/pull/13709))
+- feat: add MultipleAlertModal component ([#13683](https://github.com/MetaMask/metamask-mobile/pull/13683))
+- feat: Add Snaps UI `Selector` component ([#13747](https://github.com/MetaMask/metamask-mobile/pull/13747))
+- feat: added **/**mocks**/** to sonar.coverage.exclusions ([#13787](https://github.com/MetaMask/metamask-mobile/pull/13787))
+- feat: add `GeneralAlertBanner` component ([#13627](https://github.com/MetaMask/metamask-mobile/pull/13627))
+
+### Fixed
+
+- fix(close bug report action): target branch name has been renamed stable ([#13755](https://github.com/MetaMask/metamask-mobile/pull/13755))
+- fix(sentry sampling): reduce by 25% our sentry trace sample rate to avoid exceeding our quota ([#13745](https://github.com/MetaMask/metamask-mobile/pull/13745))
+- fix(deps): unpin ethereumjs-abi@0.6,x ethereumjs-util@6.x ([#11972](https://github.com/MetaMask/metamask-mobile/pull/11972))
+- fix: Uppercase currency code ([#13967](https://github.com/MetaMask/metamask-mobile/pull/13967))
+- fix: Max balance for dApp erc20 approval ([#13881](https://github.com/MetaMask/metamask-mobile/pull/13881))
+- fix: fix network filter on switch network from dapp ([#13987](https://github.com/MetaMask/metamask-mobile/pull/13987))
+- fix: Move the SnapExecutionService render up in the stack ([#13998](https://github.com/MetaMask/metamask-mobile/pull/13998))
+- fix: Manage order for app services initialization ([#13912](https://github.com/MetaMask/metamask-mobile/pull/13912))
+- fix: use correct updating text when toggling notifications ([#13943](https://github.com/MetaMask/metamask-mobile/pull/13943))
+- fix: cp-7.42.0 fix history transactions loading ([#13959](https://github.com/MetaMask/metamask-mobile/pull/13959))
+- fix: error when asset chain is not available in account controller state ([#13951](https://github.com/MetaMask/metamask-mobile/pull/13951))
+- fix: margin incrementally applied to icon when bottom sheet opened ([#13946](https://github.com/MetaMask/metamask-mobile/pull/13946))
+- fix: STX swap failures when needing to approve erc20 ([#13653](https://github.com/MetaMask/metamask-mobile/pull/13653))
+- fix: cp-7.42.0 Move AssetsPollingProvider down a level to persist tab label ([#13962](https://github.com/MetaMask/metamask-mobile/pull/13962))
+- fix: MMASSETS-626-new-rpc-no-confirmation ([#13883](https://github.com/MetaMask/metamask-mobile/pull/13883))
+- fix: Use proper implementation for `getUnlockPromise` ([#13947](https://github.com/MetaMask/metamask-mobile/pull/13947))
+- fix: Migration of `TransactionController` to modularised controller init ([#13817](https://github.com/MetaMask/metamask-mobile/pull/13817))
+- fix: cp-7.42.0`Tokens` screen performance degradation ([#13907](https://github.com/MetaMask/metamask-mobile/pull/13907))
+- fix: Confirm ScrollView and readd drag down and backdrop click to close ([#13913](https://github.com/MetaMask/metamask-mobile/pull/13913))
+- fix: Persist scrypt derived storage keys to Keychain/Keystore on iOS/Android ([#13899](https://github.com/MetaMask/metamask-mobile/pull/13899))
+- fix: cp-7.42.0 enable notifications UI ([#13877](https://github.com/MetaMask/metamask-mobile/pull/13877))
+- fix: main balance formatting ([#13818](https://github.com/MetaMask/metamask-mobile/pull/13818))
+- fix: cp-7.42.0 Display account label in re-designs confirmation page account info section ([#13853](https://github.com/MetaMask/metamask-mobile/pull/13853))
+- fix: add autoscroll in RPC URL form when virtual keyboard blocks content ([#13831](https://github.com/MetaMask/metamask-mobile/pull/13831))
+- fix: Missing POL percentage trend ([#13812](https://github.com/MetaMask/metamask-mobile/pull/13812))
+- fix: cp-7.42.0 Disable signature re-designs for ledger account ([#13858](https://github.com/MetaMask/metamask-mobile/pull/13858))
+- fix: prevent network selector modal from going behind IOS keyboard ([#13810](https://github.com/MetaMask/metamask-mobile/pull/13810))
+- fix: Permit Simulation vertical overflow, title padding, and collapsed message alignment ([#13830](https://github.com/MetaMask/metamask-mobile/pull/13830))
+- fix: Deal with a couple of crashes when rendering Snaps UI ([#13828](https://github.com/MetaMask/metamask-mobile/pull/13828))
+- fix: Multichain balances ([#13742](https://github.com/MetaMask/metamask-mobile/pull/13742))
+- fix: tsdoc multi rpc for non evm networks ([#13688](https://github.com/MetaMask/metamask-mobile/pull/13688))
+- fix: Improve Snaps UI spacing rules ([#13797](https://github.com/MetaMask/metamask-mobile/pull/13797))
+- fix: cp-7.42.0 improve performance of notifications loading when opening the app ([#13803](https://github.com/MetaMask/metamask-mobile/pull/13803))
+- fix: Redesign Confirmation bold font weight text ([#13706](https://github.com/MetaMask/metamask-mobile/pull/13706))
+- fix: receive network name in receive asset screen ([#13746](https://github.com/MetaMask/metamask-mobile/pull/13746))
+- fix: fix setup files ([#13799](https://github.com/MetaMask/metamask-mobile/pull/13799))
+- fix: fix balance display in account info signature request ([#13740](https://github.com/MetaMask/metamask-mobile/pull/13740))
+- fix: Remove `transactionMetrics` from persisted storage ([#13793](https://github.com/MetaMask/metamask-mobile/pull/13793))
+- fix: cp-7.42.0 push notification settings bugs ([#13772](https://github.com/MetaMask/metamask-mobile/pull/13772))
+- fix: bitrise missing signature elements following BottomModal → BottomSheet refactor ([#13783](https://github.com/MetaMask/metamask-mobile/pull/13783))
+- fix: permit simulation overflow ([#13769](https://github.com/MetaMask/metamask-mobile/pull/13769))
+- fix: Improve redesigned staking deposit confirmation navigation ([#13743](https://github.com/MetaMask/metamask-mobile/pull/13743))
+- fix: fixes ramp quote selection test ([#13756](https://github.com/MetaMask/metamask-mobile/pull/13756))
+
+## [7.42.1]
+
+### Fixed
+
+- fix: Manage order for app services initialization ([#13912](https://github.com/MetaMask/metamask-mobile/pull/13912))
+- fix: #9487 Remove false vault back up failure log ([#14038](https://github.com/MetaMask/metamask-mobile/pull/14038))
+
+## [7.42.0]
+
+### Added
+
+- feat(snaps): Add Snap UI Banner component ([#13735](https://github.com/MetaMask/metamask-mobile/pull/13735))
+- feat(ramps): adds some properties to ramp quote analytics events ([#13754](https://github.com/MetaMask/metamask-mobile/pull/13754))
+- feat(ramps): adds most reliable tag to ramp quotes ([#13495](https://github.com/MetaMask/metamask-mobile/pull/13495))
+- feat: Make Snaps UI footers properly sticky ([#13736](https://github.com/MetaMask/metamask-mobile/pull/13736))
+- feat: Add token hero rounded amount tooltip ([#13685](https://github.com/MetaMask/metamask-mobile/pull/13685))
+- feat: make Snap account creation flow async + displayAccountNameSuggestion flag ([#13703](https://github.com/MetaMask/metamask-mobile/pull/13703))
+- feat: bump notifications services controller to v1.0.0 ([#13716](https://github.com/MetaMask/metamask-mobile/pull/13716))
+- feat: add `ConfirmAlertModal` component ([#13604](https://github.com/MetaMask/metamask-mobile/pull/13604))
+- feat: Implement Snaps address UI components ([#13712](https://github.com/MetaMask/metamask-mobile/pull/13712))
+- feat: add `AlertModal` component ([#13483](https://github.com/MetaMask/metamask-mobile/pull/13483))
+- feat: More Snaps UI components ([#13668](https://github.com/MetaMask/metamask-mobile/pull/13668))
+- feat: Support standalone confirmation for re-redesigned confirmations ([#13550](https://github.com/MetaMask/metamask-mobile/pull/13550))
+- feat: Non evm network global selector ([#13307](https://github.com/MetaMask/metamask-mobile/pull/13307))
+- feat: publish slack release testing status ([#13468](https://github.com/MetaMask/metamask-mobile/pull/13468))
+- feat: Limit Segment tracked events to only random 1% of users ([#13534](https://github.com/MetaMask/metamask-mobile/pull/13534))
+- feat: snaps dynamic UI ([#12429](https://github.com/MetaMask/metamask-mobile/pull/12429))
+- feat: refactor cleanup notification hooks and UI ([#13647](https://github.com/MetaMask/metamask-mobile/pull/13647))
+- feat: Implement `GasFeeDetails` ([#13634](https://github.com/MetaMask/metamask-mobile/pull/13634))
+- feat: Add support for ledger wallet in new signature designs ([#13402](https://github.com/MetaMask/metamask-mobile/pull/13402))
+- feat: Migrate tooltips to use BottomModal components ([#13631](https://github.com/MetaMask/metamask-mobile/pull/13631))
+- feat: Refactor/12873 modular controller init ([#13065](https://github.com/MetaMask/metamask-mobile/pull/13065))
+- feat: add initial structure for Alert System ([#13382](https://github.com/MetaMask/metamask-mobile/pull/13382))
+- feat: add better default style support for android push notifications ([#13271](https://github.com/MetaMask/metamask-mobile/pull/13271))
+- feat: add EarnTokenSelector component for stablecoin lending ([#13595](https://github.com/MetaMask/metamask-mobile/pull/13595))
+- feat: adds best rate quote tag to ramp quotes ([#13486](https://github.com/MetaMask/metamask-mobile/pull/13486))
+- feat: Implement staking advanced details ([#13551](https://github.com/MetaMask/metamask-mobile/pull/13551))
+- feat: Implement staking terms and disclosure footer ([#13588](https://github.com/MetaMask/metamask-mobile/pull/13588))
+- feat: add tokens search discovery controller ([#13111](https://github.com/MetaMask/metamask-mobile/pull/13111))
+- feat: bridge feature routing skeleton ([#13404](https://github.com/MetaMask/metamask-mobile/pull/13404))
+- feat: bump notification services controller ([#13529](https://github.com/MetaMask/metamask-mobile/pull/13529))
+- feat: Adding scroll button to confirmation pages ([#13552](https://github.com/MetaMask/metamask-mobile/pull/13552))
+- feat: Port first party staking contracts from extension to mobile ([#13555](https://github.com/MetaMask/metamask-mobile/pull/13555))
+- feat: STAKE-898: build select token component for earn products ([#13258](https://github.com/MetaMask/metamask-mobile/pull/13258))
+- feat: Add Redesign Permit support; fix: InfoRow padding and alignment ([#13369](https://github.com/MetaMask/metamask-mobile/pull/13369))
+- feat: Implement staking details section ([#13475](https://github.com/MetaMask/metamask-mobile/pull/13475))
+- feat: update FCM and Notification Services to better support push impl ([#13441](https://github.com/MetaMask/metamask-mobile/pull/13441))
+- feat: adding navigation to confirmation pages ([#13461](https://github.com/MetaMask/metamask-mobile/pull/13461))
+- feat: enable STX by default with migration and notification ([#12857](https://github.com/MetaMask/metamask-mobile/pull/12857))
+
+### Fixed
+
+- fix(action): Improve bug report creation ([#13562](https://github.com/MetaMask/metamask-mobile/pull/13562))
+- fix(action): revert recent change, due to impossibility to indicate working directory for reusable workflows from github-tools repo ([#13629](https://github.com/MetaMask/metamask-mobile/pull/13629))
+- fix(13492): background shapes animation stories and centering fix ([#13503](https://github.com/MetaMask/metamask-mobile/pull/13503))
+- fix: Adhere to locale settings for Annual Rewards in ETH and in Fiat ([#13660](https://github.com/MetaMask/metamask-mobile/pull/13660))
+- fix: Analytics issue where anonymousId and userId are not properly defined on first sent event ([#13405](https://github.com/MetaMask/metamask-mobile/pull/13405))
+- fix: app store icon ([#13724](https://github.com/MetaMask/metamask-mobile/pull/13724))
+- fix: cp-7.41.0 13708 fix the submitQRSignature scope issue ([#13714](https://github.com/MetaMask/metamask-mobile/pull/13714))
+- fix: network of the asset when pressed in popular list view ([#13713](https://github.com/MetaMask/metamask-mobile/pull/13713))
+- fix: Revert native HMACSHA512 usage ([#13711](https://github.com/MetaMask/metamask-mobile/pull/13711))
+- fix: Remove scroll button from confirmation page ([#13680](https://github.com/MetaMask/metamask-mobile/pull/13680))
+- fix: cp-7.41.0 support NFT collectibles that have multiple images ([#13689](https://github.com/MetaMask/metamask-mobile/pull/13689))
+- fix: cp-7.41.0 implement transparent app icons for improved dark/light mode handling ([#13597](https://github.com/MetaMask/metamask-mobile/pull/13597))
+- fix: `@metamask/transaction-controller` version to exact `45.0.0` ([#13690](https://github.com/MetaMask/metamask-mobile/pull/13690))
+- fix: hide simulation button pill value if no value loaded ([#13663](https://github.com/MetaMask/metamask-mobile/pull/13663))
+- fix: TypedSignDecoded revoke state changes should show "Revoke" not "Spending cap" ([#13665](https://github.com/MetaMask/metamask-mobile/pull/13665))
+- fix: cp-7.41.0 Handle better errors by getting tags in pre-init ([#13598](https://github.com/MetaMask/metamask-mobile/pull/13598))
+- fix: mobile crash issue during revoke with low gas ([#13655](https://github.com/MetaMask/metamask-mobile/pull/13655))
+- fix: origin url displayed for signatures ([#13681](https://github.com/MetaMask/metamask-mobile/pull/13681))
+- fix: swaps using hardware wallets or QR scan wallets are broken ([#13657](https://github.com/MetaMask/metamask-mobile/pull/13657))
+- fix: cp-7.41.0 Temporarily revert gas included swaps ([#13639](https://github.com/MetaMask/metamask-mobile/pull/13639))
+- fix: cp-7.41.0 Prevent flickering on `RetryModal` ([#13637](https://github.com/MetaMask/metamask-mobile/pull/13637))
+- fix: rm duplicate locale entry ([#13635](https://github.com/MetaMask/metamask-mobile/pull/13635))
+- fix: Disabling sentry capturing temporarily till we address issue with url missing protocol ([#13636](https://github.com/MetaMask/metamask-mobile/pull/13636))
+- fix: Confirm button should not be disabled for user to scroll to the bottom of confirmation page ([#13628](https://github.com/MetaMask/metamask-mobile/pull/13628))
+- fix: accessibility issue with footer buttons ([#13626](https://github.com/MetaMask/metamask-mobile/pull/13626))
+- fix: error thrown from DisplayURL component ([#13624](https://github.com/MetaMask/metamask-mobile/pull/13624))
+- fix: STAKE-946: fix inconsistent pooled staking reward rate ([#13594](https://github.com/MetaMask/metamask-mobile/pull/13594))
+- fix: confirm scroll icon color and add scrollEventThrottle prop ([#13600](https://github.com/MetaMask/metamask-mobile/pull/13600))
+- fix: Fix `undefined` `chainId` or `networkClientId` on fetchEstimatedMultiLayer params ([#13606](https://github.com/MetaMask/metamask-mobile/pull/13606))
+- fix: Disable staking deposit for hw wallets ([#13517](https://github.com/MetaMask/metamask-mobile/pull/13517))
+- fix: update toLocaleString locale to undefined ([#13589](https://github.com/MetaMask/metamask-mobile/pull/13589))
+- fix: tooltip display for text should have label ([#13572](https://github.com/MetaMask/metamask-mobile/pull/13572))
+- fix: Reject transaction as user closes modal by swiping out ([#13573](https://github.com/MetaMask/metamask-mobile/pull/13573))
+- fix: remove supported chains check ([#13047](https://github.com/MetaMask/metamask-mobile/pull/13047))
+- fix: additional app icons and remove tint fields ([#13544](https://github.com/MetaMask/metamask-mobile/pull/13544))
+- fix: update plist to include CFBundleIconName for app icons ([#13530](https://github.com/MetaMask/metamask-mobile/pull/13530))
+- fix: cp-7.41.0 fix main aggregated account balance ([#13513](https://github.com/MetaMask/metamask-mobile/pull/13513))
+- fix: cp-7.41.0 fix account selector balance ([#13484](https://github.com/MetaMask/metamask-mobile/pull/13484))
+- fix: account tracker polling called twice ([#13473](https://github.com/MetaMask/metamask-mobile/pull/13473))
+- fix: IPFS gateway down in settings ([#13357](https://github.com/MetaMask/metamask-mobile/pull/13357))
 
 ## [7.41.0]
 
@@ -59,7 +338,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: fix sort feature ([#13277](https://github.com/MetaMask/metamask-mobile/pull/13277))
 - fix: metrics call during onboarding ([#13226](https://github.com/MetaMask/metamask-mobile/pull/13226))
 
-
 ## [7.40.0]
 
 ### Added
@@ -71,7 +349,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#13195](https://github.com/MetaMask/metamask-mobile/pull/13195): feat: Adding date field type in typed sign data tree (#13195)
 - [#13135](https://github.com/MetaMask/metamask-mobile/pull/13135): feat: hide primary type displayed in collapsed message section if simulation is enabled (#13135)
 - [#13041](https://github.com/MetaMask/metamask-mobile/pull/13041): feat: Decoding Simulation Metrics (#13041)
-- [#12627](https://github.com/MetaMask/metamask-mobile/pull/12627): feat: Enable feature Flag Values with Scope Based on ""threshold""  (#12627)
+- [#12627](https://github.com/MetaMask/metamask-mobile/pull/12627): feat: Enable feature Flag Values with Scope Based on ""threshold"" (#12627)
 - [#13018](https://github.com/MetaMask/metamask-mobile/pull/13018): feat: add earn button to wallet actions (#13018)
 - [#13154](https://github.com/MetaMask/metamask-mobile/pull/13154): feat: STAKE-929 build token list item component (#13154)
 - [#13108](https://github.com/MetaMask/metamask-mobile/pull/13108): feat: STAKE-927 build upsell banner component (#13108)
@@ -104,7 +382,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#13185](https://github.com/MetaMask/metamask-mobile/pull/13185): test: fix edit account regression test (#13185)
 - [#13082](https://github.com/MetaMask/metamask-mobile/pull/13082): chore: add fiat value to token and sort desc by fiat (#13082)
 - [#13221](https://github.com/MetaMask/metamask-mobile/pull/13221): refactor(navigation): unify dapp redirect logic to prevent premature navigation (#13221)
-- [#13157](https://github.com/MetaMask/metamask-mobile/pull/13157): chore: upgrading to  design tokens v5.0.0 (#13157)
+- [#13157](https://github.com/MetaMask/metamask-mobile/pull/13157): chore: upgrading to design tokens v5.0.0 (#13157)
 
 ### Fixed
 
@@ -115,7 +393,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#13218](https://github.com/MetaMask/metamask-mobile/pull/13218): fix: fix send flow on token detail page (#13218)
 - [#13200](https://github.com/MetaMask/metamask-mobile/pull/13200): fix: fix edit network and delete network with tokenNetworkFilter (#13… (#13200)
 - [#13228](https://github.com/MetaMask/metamask-mobile/pull/13228): fix: fix balance after swap (#13228)
-- [#13199](https://github.com/MetaMask/metamask-mobile/pull/13199): fix: failure to  convert undefined value to hex object (#13199)
+- [#13199](https://github.com/MetaMask/metamask-mobile/pull/13199): fix: failure to convert undefined value to hex object (#13199)
 - [#13141](https://github.com/MetaMask/metamask-mobile/pull/13141): fix: fix edit network and delete network with tokenNetworkFilter (#13141)
 - [#13177](https://github.com/MetaMask/metamask-mobile/pull/13177): fix: token details network name (#13162) (#13177)
 - [#12843](https://github.com/MetaMask/metamask-mobile/pull/12843): fix: improve assets perfs + fix blurred balances and prices (#12843)
@@ -147,7 +425,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#13119](https://github.com/MetaMask/metamask-mobile/pull/13119): fix: Fix Samsung freeze by reverting reanimated version and bump expo-dev-client (#13119)
 
 ## [7.39.0]
+
 ### Added
+
 - [#13030](https://github.com/MetaMask/metamask-mobile/pull/13030): feat: ""Unlimited"" value Decoding Simulation and account and message modal UI/UX updates (#13030)
 - [#12994](https://github.com/MetaMask/metamask-mobile/pull/12994): feat: Redesign Signature Decoding Simulation (#12994)
 - [#12606](https://github.com/MetaMask/metamask-mobile/pull/12606): feat: Create Permit Simulation (#12606)
@@ -165,6 +445,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12811](https://github.com/MetaMask/metamask-mobile/pull/12811): feat: add detected tokens automatically (#12811)
 
 ### Changed
+
 - [#12984](https://github.com/MetaMask/metamask-mobile/pull/12984): chore: Update assets and accounts packages (#12984)
 - [#12822](https://github.com/MetaMask/metamask-mobile/pull/12822): chore: Improve Keyring/Accounts error handling and logs (#12822)
 - [#13026](https://github.com/MetaMask/metamask-mobile/pull/13026): test: Redesign Signature Decoding Simulation (#13026)
@@ -191,7 +472,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12830](https://github.com/MetaMask/metamask-mobile/pull/12830): test(3615): E2E to check the labels displaying the default account and chain (#12830)
 - [#12915](https://github.com/MetaMask/metamask-mobile/pull/12915): chore: remove dead code that had been added for multichain permission early in the project but not used anymore (#12915)
 - [#12762](https://github.com/MetaMask/metamask-mobile/pull/12762): test(3615): add ability to check if chain permission is checked (#12762)
-- [#12809](https://github.com/MetaMask/metamask-mobile/pull/12809): refactor: rename multichain e2e pipeline  (#12809)
+- [#12809](https://github.com/MetaMask/metamask-mobile/pull/12809): refactor: rename multichain e2e pipeline (#12809)
 - [#12807](https://github.com/MetaMask/metamask-mobile/pull/12807): chore(tests): move multichain assets test so it runs as part of the assets bitrise workflow (#12807)
 - [#12791](https://github.com/MetaMask/metamask-mobile/pull/12791): chore: update js.env.example to include examples of chain permissions to true (#12791)
 - [#12714](https://github.com/MetaMask/metamask-mobile/pull/12714): refactor(tests): move multichain test files to a new folder structure (#12714)
@@ -212,6 +493,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12643](https://github.com/MetaMask/metamask-mobile/pull/12643): chore(ramp): upgrade sdk to 1.28.8 (#12643)
 
 ### Fixed
+
 - [#13027](https://github.com/MetaMask/metamask-mobile/pull/13027): fix: Fix disappearing security alert response (#13027)
 - [#12694](https://github.com/MetaMask/metamask-mobile/pull/12694): fix: small refactoring of the latest migration script + add a new migration case (#12694)
 - [#12929](https://github.com/MetaMask/metamask-mobile/pull/12929): fix: Keep latest 50 history instead of first 50 (#12929)
@@ -262,11 +544,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12853](https://github.com/MetaMask/metamask-mobile/pull/12853): fix(12849): alert toast blocking tab navigation (#12853)
 
 ## [7.38.1]
+
 ### Fixed
+
 - [#13067](https://github.com/MetaMask/metamask-mobile/pull/13067)fix: remove expo changes (#13067)
 
 ## [7.38.0]
+
 ### Added
+
 - [#12427](https://github.com/MetaMask/metamask-mobile/pull/12427): feat: implement remote feature flag controller (#12427)
 - [#12507](https://github.com/MetaMask/metamask-mobile/pull/12507): feat: activate portfolio view (#12507)
 - [#12540](https://github.com/MetaMask/metamask-mobile/pull/12540): feat: migrate Base network RPC from https://mainnet.base.org to base-… (#12540)
@@ -283,20 +569,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12431](https://github.com/MetaMask/metamask-mobile/pull/12431): feat: multi chain asset list (#12431)
 
 ### Changed
+
 - [#12623](https://github.com/MetaMask/metamask-mobile/pull/12623): chore: update bug template to include feature branches (#12623)
 - [#12538](https://github.com/MetaMask/metamask-mobile/pull/12538): chore: Chore/12435 mvp handle engine does not exist (#12538)
 - [#12617](https://github.com/MetaMask/metamask-mobile/pull/12617): docs: Update README.md with new expo instructions (#12617)
 - [#12559](https://github.com/MetaMask/metamask-mobile/pull/12559): test: move remaining modal pages and selectors to their respective folders (#12559)
 - [#12556](https://github.com/MetaMask/metamask-mobile/pull/12556): test: remove redundent tests in quarantine folder (#12556)
-- [#12558](https://github.com/MetaMask/metamask-mobile/pull/12558): test: Create e2e tag for multi chain  (#12558)
+- [#12558](https://github.com/MetaMask/metamask-mobile/pull/12558): test: Create e2e tag for multi chain (#12558)
 - [#12531](https://github.com/MetaMask/metamask-mobile/pull/12531): test: Move files to Wallet folder (#12531)
 - [#12511](https://github.com/MetaMask/metamask-mobile/pull/12511): test: Move files to Onboarding folder (#12511)
 - [#12512](https://github.com/MetaMask/metamask-mobile/pull/12512): test: address regression pipeline slow down (#12512)
 - [#12513](https://github.com/MetaMask/metamask-mobile/pull/12513): ci: disable security e2e tests (#12513)
 - [#12602](https://github.com/MetaMask/metamask-mobile/pull/12602): chore: Additional e2e test to support `PortfolioView` (#12602)
-- [#12321](https://github.com/MetaMask/metamask-mobile/pull/12321): refactor: remove global network from transaction controller  (#12321)
+- [#12321](https://github.com/MetaMask/metamask-mobile/pull/12321): refactor: remove global network from transaction controller (#12321)
 - [#12536](https://github.com/MetaMask/metamask-mobile/pull/12536): test: fix mock server (#12536)
-- [#12288](https://github.com/MetaMask/metamask-mobile/pull/12288): test: add e2e test for security alert api  (#12288)
+- [#12288](https://github.com/MetaMask/metamask-mobile/pull/12288): test: add e2e test for security alert api (#12288)
 - [#12597](https://github.com/MetaMask/metamask-mobile/pull/12597): test(3615): additional e2e scenarios editing permissions and non permitted networks (#12597)
 - [#12488](https://github.com/MetaMask/metamask-mobile/pull/12488): test(3615): add new e2e test for initial dapp connection and non permitted flow (#12488)
 - [#12532](https://github.com/MetaMask/metamask-mobile/pull/12532): refactor: de-anonymize insensitive properties of swaps events (#12532)
@@ -314,6 +601,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12551](https://github.com/MetaMask/metamask-mobile/pull/12551): chore: Bump Snaps packages (#12551)
 
 ### Fixed
+
 - [#12650](https://github.com/MetaMask/metamask-mobile/pull/12650): fix: fix swaps button on asset overview page for multichain feature (#12650)
 - [#12659](https://github.com/MetaMask/metamask-mobile/pull/12659): fix: fix token details navigation (#12659)
 - [#12624](https://github.com/MetaMask/metamask-mobile/pull/12624): fix: add new translations (#12624)
@@ -337,18 +625,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12630](https://github.com/MetaMask/metamask-mobile/pull/12630): fix: hide tokens without balance for multichain (#12630)
 
 ## [7.37.1]
+
 ### Fixed
+
 - [#12577](https://github.com/MetaMask/metamask-mobile/pull/12577): chore: bump {gas-fee,network,selected-network,notification-services,profile-sync,signature}-controller (#12577)
 - [#12694](https://github.com/MetaMask/metamask-mobile/pull/12694): fix: small refactoring of the latest migration script + add a new migration case (#12694)
 - [#12664](https://github.com/MetaMask/metamask-mobile/pull/12664): fix: mark transactions as failed for cancelled / unknown smart transactions (#12664)
 
 ## [7.37.0]
+
 ### Added
+
 - [#12091](https://github.com/MetaMask/metamask-mobile/pull/12091): feat: 2020 Add a performance test for iOS in Bitrise (#12091)
 - [#12148](https://github.com/MetaMask/metamask-mobile/pull/12148): feat: Enable smart transactions for new users (#12148)
 - [#12442](https://github.com/MetaMask/metamask-mobile/pull/12442): test: add a new unit test to cover for multichain feature flags ON (#12442)
 - [#12420](https://github.com/MetaMask/metamask-mobile/pull/12420): feat(3598): non permitted chain flow small improvements (#12420)
-- [#12198](https://github.com/MetaMask/metamask-mobile/pull/12198): feat: custom names for snap accounts  (Flask only) (#12198)
+- [#12198](https://github.com/MetaMask/metamask-mobile/pull/12198): feat: custom names for snap accounts (Flask only) (#12198)
 - [#12396](https://github.com/MetaMask/metamask-mobile/pull/12396): feat(ramp): enable buy button in asset overview (#12396)
 - [#11613](https://github.com/MetaMask/metamask-mobile/pull/11613): feat(ramp): improve amount editing formatting (#11613)
 - [#12393](https://github.com/MetaMask/metamask-mobile/pull/12393): feat: Creating data tree for signed type V1 signatures (#12393)
@@ -364,6 +656,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12452](https://github.com/MetaMask/metamask-mobile/pull/12452): feat: updated staking events to use withMetaMetrics helper (#12337) (#12452)
 
 ### Changed
+
 - [#12356](https://github.com/MetaMask/metamask-mobile/pull/12356): chore: Remove unnecessary event prop (#12356)
 - [#12425](https://github.com/MetaMask/metamask-mobile/pull/12425): ci: create ci workflow for multichain flow (#12425)
 - [#12350](https://github.com/MetaMask/metamask-mobile/pull/12350): chore: Bump Snaps packages (#12350)
@@ -378,15 +671,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12238](https://github.com/MetaMask/metamask-mobile/pull/12238): chore: update codeowners (#12238)
 - [#12416](https://github.com/MetaMask/metamask-mobile/pull/12416): chore: Chore/update accounts controller messenger code owner (#12416)
 - [#12366](https://github.com/MetaMask/metamask-mobile/pull/12366): chore: #12184 MVP split engine file (#12366)
-- [#12362](https://github.com/MetaMask/metamask-mobile/pull/12362): chore: Unit tests for tags approval controller undefined  (#12362)
+- [#12362](https://github.com/MetaMask/metamask-mobile/pull/12362): chore: Unit tests for tags approval controller undefined (#12362)
 - [#12332](https://github.com/MetaMask/metamask-mobile/pull/12332): chore: do not show staked eth balance when balance is zero on homepage or asset detail (#12332)
 - [#12413](https://github.com/MetaMask/metamask-mobile/pull/12413): chore: simplify cicd rls script (#12413)
 - [#12334](https://github.com/MetaMask/metamask-mobile/pull/12334): chore: updating filter icon (#12334)
 
 ### Fixed
+
 - [#12313](https://github.com/MetaMask/metamask-mobile/pull/12313): fix: Remove run all tests section (#12313)
 - [#12489](https://github.com/MetaMask/metamask-mobile/pull/12489): fix: replace end of navigation init and UIStartup span (#12489)
-- [#12331](https://github.com/MetaMask/metamask-mobile/pull/12331): fix: tags pending approvals receiving undefined  (#12331)
+- [#12331](https://github.com/MetaMask/metamask-mobile/pull/12331): fix: tags pending approvals receiving undefined (#12331)
 - [#10486](https://github.com/MetaMask/metamask-mobile/pull/10486): fix: limit ReactNativeWebview message size (#10486)
 - [#12478](https://github.com/MetaMask/metamask-mobile/pull/12478): fix: incorrect event source in analytics and connection (#12478)
 - [#10786](https://github.com/MetaMask/metamask-mobile/pull/10786): fix: added icon to walletconnect metadata (#10786)
@@ -403,7 +697,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12375](https://github.com/MetaMask/metamask-mobile/pull/12375): fix: breaking selector due to missing controller state (#12375)
 
 ## [7.36.0]
+
 ### Added
+
 - [#12015](https://github.com/MetaMask/metamask-mobile/pull/12015): feat: 1957 crash screen redesign (#12015)
 - [#12110](https://github.com/MetaMask/metamask-mobile/pull/12110): feat: display staking transaction methods (#12110)
 - [#12290](https://github.com/MetaMask/metamask-mobile/pull/12290): feat: STAKE-827: track additional pooled staking events (#12290)
@@ -426,6 +722,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11836](https://github.com/MetaMask/metamask-mobile/pull/11836): feat: upgrade @metamask/eth-ledger-bridge-keyring (#11836)
 
 ### Changed
+
 - [#11898](https://github.com/MetaMask/metamask-mobile/pull/11898): chore: New Crowdin translations by Github Action (#11898)
 - [#12292](https://github.com/MetaMask/metamask-mobile/pull/12292): chore: Allow for higher versions of ruby (#12292)
 - [#12291](https://github.com/MetaMask/metamask-mobile/pull/12291): chore: Remove notifications logic from wallet view (#12276) (#12291)
@@ -450,6 +747,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12225](https://github.com/MetaMask/metamask-mobile/pull/12225): chore: bump `@metamask/ppom-validator` to `0.35.1` (#12225)
 
 ### Fixed
+
 - [#12166](https://github.com/MetaMask/metamask-mobile/pull/12166): fix: remove SmokeNotifications tests for android on smoke tests pipeline (#12166)
 - [#12217](https://github.com/MetaMask/metamask-mobile/pull/12217): fix: e2e: use different wallet SRP for non accounts tests (#12217)
 - [#12197](https://github.com/MetaMask/metamask-mobile/pull/12197): fix: E2E: quarantine import-wallet-account tests (#12197)
@@ -470,15 +768,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12282](https://github.com/MetaMask/metamask-mobile/pull/12282): fix: Lock ruby version to 3.1.6 and bump pod to 1.16.2 (#12282)
 
 ## [7.35.1]
+
 ### Fixed
+
 - [#12331](https://github.com/MetaMask/metamask-mobile/pull/12331): fix: tags pending approvals receiving undefined (#12331)
 
 ## [7.35.0]
+
 ### Added
+
 - [#12107](https://github.com/MetaMask/metamask-mobile/pull/12107): feat: Add re-simulation feature (#12107)
 - [#11770](https://github.com/MetaMask/metamask-mobile/pull/11770): feat: enable Security Alerts API (#11770)
 - [#11812](https://github.com/MetaMask/metamask-mobile/pull/11812): feat: network value component for re-designed confirmation pages (#11812)
-- [#11608](https://github.com/MetaMask/metamask-mobile/pull/11608): feat: enable sentry performance reporting on local development builds  (#11608)
+- [#11608](https://github.com/MetaMask/metamask-mobile/pull/11608): feat: enable sentry performance reporting on local development builds (#11608)
 - [#11190](https://github.com/MetaMask/metamask-mobile/pull/11190): feat(NOTIFY-1096): add account syncing (#11190)
 - [#12138](https://github.com/MetaMask/metamask-mobile/pull/12138): feat: update staking eligibility and unstaking time details (#12138)
 - [#12084](https://github.com/MetaMask/metamask-mobile/pull/12084): feat: enable mobile native pooled staking experience for users (#12084)
@@ -488,7 +790,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11611](https://github.com/MetaMask/metamask-mobile/pull/11611): feat: STAKE-841 build unstake review confirmation screen (#11611)
 - [#11891](https://github.com/MetaMask/metamask-mobile/pull/11891): feat: add live staking data with geo-blocking support (#11891)
 - [#11845](https://github.com/MetaMask/metamask-mobile/pull/11845): feat: STAKE-805 integrate stake method (#11845)
-- [#11668](https://github.com/MetaMask/metamask-mobile/pull/11668): feat: Add StakeSdkProvider with stake-sdk  (#11668)
+- [#11668](https://github.com/MetaMask/metamask-mobile/pull/11668): feat: Add StakeSdkProvider with stake-sdk (#11668)
 - [#11963](https://github.com/MetaMask/metamask-mobile/pull/11963): feat(2808): edit network permissions (#11963)
 - [#12060](https://github.com/MetaMask/metamask-mobile/pull/12060): feat: add favorites to browser menu (#12060)
 - [#11965](https://github.com/MetaMask/metamask-mobile/pull/11965): feat(3417): sensitive text component (#11965)
@@ -501,6 +803,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11451](https://github.com/MetaMask/metamask-mobile/pull/11451): feat: Remove Account Snap Warning (Flask) (#11451)
 
 ### Changed
+
 - [#11911](https://github.com/MetaMask/metamask-mobile/pull/11911): chore: upgrade signature controller to remove message managers (#11911)
 - [#12150](https://github.com/MetaMask/metamask-mobile/pull/12150): chore: upgrade nodejs to v20.17 (#12150)
 - [#12135](https://github.com/MetaMask/metamask-mobile/pull/12135): test: Move files to Settings folder (#12135)
@@ -547,8 +850,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11983](https://github.com/MetaMask/metamask-mobile/pull/11983): test: Refactor EditAccountNameView.js & EnableSecurityChecksView.js files to follow page object model (#11983)
 
 ### Fixed
+
 - [#11768](https://github.com/MetaMask/metamask-mobile/pull/11768): fix: fix non regression tests (#11768)
-- [#11947](https://github.com/MetaMask/metamask-mobile/pull/11947): fix: Fiat value displayed only for the native token in simulations  (#11947)
+- [#11947](https://github.com/MetaMask/metamask-mobile/pull/11947): fix: Fiat value displayed only for the native token in simulations (#11947)
 - [#12126](https://github.com/MetaMask/metamask-mobile/pull/12126): fix: Reuse main logic for migration52 (#12126)
 - [#12125](https://github.com/MetaMask/metamask-mobile/pull/12125): fix: revert the nvm update (#12125)
 - [#12112](https://github.com/MetaMask/metamask-mobile/pull/12112): fix: Update TransactionProtectionModal import (#12112)
@@ -581,13 +885,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11769](https://github.com/MetaMask/metamask-mobile/pull/11769): fix: Fix the mobile crash due to ledger bluetooth relative exception (#11769)
 
 ## [7.34.1]
+
 ### Fixed
+
 - [#12205](https://github.com/MetaMask/metamask-mobile/pull/12205): fix: add contractBalances as dependency
 - [#12236](https://github.com/MetaMask/metamask-mobile/pull/12236): fix: Add migration to fix NotificationServicesController bug (#12236)
 - [#12228](https://github.com/MetaMask/metamask-mobile/pull/12228): fix: Update transaction-controller version
 
 ## [7.34.0]
+
 ### Added
+
 - [#11578](https://github.com/MetaMask/metamask-mobile/pull/11578): feat: 1653 first feature flag poc (#11578)
 - [#11705](https://github.com/MetaMask/metamask-mobile/pull/11705): feat: Transition from Multiple Networks with Same ChainID to Unique Networks with Distinct ChainIDs and Multiple RPC URLs (#11705)
 - [#11685](https://github.com/MetaMask/metamask-mobile/pull/11685): feat: multi rpc modal (#11685)
@@ -612,6 +920,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11127](https://github.com/MetaMask/metamask-mobile/pull/11127): feat(1702): enhanced onboarding settings config (#11127)
 
 ### Changed
+
 - [#11852](https://github.com/MetaMask/metamask-mobile/pull/11852): chore: readd date time picker (#11852)
 - [#11831](https://github.com/MetaMask/metamask-mobile/pull/11831): chore: Add conditional for api specification test (#11831)
 - [#11838](https://github.com/MetaMask/metamask-mobile/pull/11838): chore: revert tags commit (#11838)
@@ -648,11 +957,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11525](https://github.com/MetaMask/metamask-mobile/pull/11525): chore(js-ts): Convert app/components/UI/StyledButton/styledButtonStyles.js to TypeScript (#11525)
 - [#11385](https://github.com/MetaMask/metamask-mobile/pull/11385): refactor(1702-5): incoming transactions and network details settings into reusable components (#11385)
 - [#11381](https://github.com/MetaMask/metamask-mobile/pull/11381): refactor(1702-4): ipfs gateway settings and display nft media settings components (#11381)
-- [#11614](https://github.com/MetaMask/metamask-mobile/pull/11614): chore: Update UX CodeOwners responsibilities  (#11614)
+- [#11614](https://github.com/MetaMask/metamask-mobile/pull/11614): chore: Update UX CodeOwners responsibilities (#11614)
 - [#11709](https://github.com/MetaMask/metamask-mobile/pull/11709): chore: updating codeowners to remove mobile-devs from component library (#11709)
 - [#11617](https://github.com/MetaMask/metamask-mobile/pull/11617): chore: chore/7.33.0-Changelog (#11617)
 
 ### Fixed
+
 - [#11787](https://github.com/MetaMask/metamask-mobile/pull/11787): fix: non deterministic date in test (#11787)
 - [#11762](https://github.com/MetaMask/metamask-mobile/pull/11762): fix: snapshot of test to enable ci (#11762)
 - [#11632](https://github.com/MetaMask/metamask-mobile/pull/11632): fix: add custom and add popular network detox test (#11632)
@@ -672,7 +982,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11603](https://github.com/MetaMask/metamask-mobile/pull/11603): fix: await for detect origin before logging analytics (#11603)
 - [#11595](https://github.com/MetaMask/metamask-mobile/pull/11595): fix: fix signature requested analytics (#11595)
 - [#11592](https://github.com/MetaMask/metamask-mobile/pull/11592): fix: fix walletconnect source validation (#11592)
-- [#11802](https://github.com/MetaMask/metamask-mobile/pull/11802): fix: persist token and phishing list  (#11802)
+- [#11802](https://github.com/MetaMask/metamask-mobile/pull/11802): fix: persist token and phishing list (#11802)
 - [#11729](https://github.com/MetaMask/metamask-mobile/pull/11729): fix: support for batch of signature requests (#11729)
 - [#11771](https://github.com/MetaMask/metamask-mobile/pull/11771): fix: Add `preferContractSymbol` to Name components (#11771)
 - [#11730](https://github.com/MetaMask/metamask-mobile/pull/11730): fix: Use domain for origin pill component (#11730)
@@ -682,15 +992,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11431](https://github.com/MetaMask/metamask-mobile/pull/11431): fix: refactor notifications unit tests (#11431)
 
 ## [7.33.2]
+
 ### Fixed
+
 - [#10952](https://github.com/MetaMask/metamask-mobile/pull/10952): refactor(ramp): update ramp copy (#10952)
 
 ## [7.33.1]
+
 ### Fixed
+
 - [#12073](https://github.com/MetaMask/metamask-mobile/pull/12073): feat: Simulation re-trigger (#12073)
 
 ## [7.33.0]
+
 ### Added
+
 - [#11507](https://github.com/MetaMask/metamask-mobile/pull/11507): feat: 10550 Re-introduce test for measuring cold app start + JS bundle load time (#11507)
 - [#11318](https://github.com/MetaMask/metamask-mobile/pull/11318): feat: app event manager and attribution id parameters (#11318)
 - [#11445](https://github.com/MetaMask/metamask-mobile/pull/11445): feat: add the abilty to hide the disconnect all button as well as showing and hiding the accounts row when necessary (#11445)
@@ -716,6 +1032,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11069](https://github.com/MetaMask/metamask-mobile/pull/11069): feat: react native fast crypto for notifications (#11069)
 
 ### Changed
+
 - [#11379](https://github.com/MetaMask/metamask-mobile/pull/11379): refactor: rename the feature flag since it had a typo (#11379)
 - [#11615](https://github.com/MetaMask/metamask-mobile/pull/11615): chore: exclude temporarily sentry SDK advisory (#11615)
 - [#11577](https://github.com/MetaMask/metamask-mobile/pull/11577): ci: disable swaps e2e workflow (#11577)
@@ -771,6 +1088,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11352](https://github.com/MetaMask/metamask-mobile/pull/11352): chore(deps): Bump `@metamask/accounts-controller` to `^18.2.1`
 
 ### Fixed
+
 - [#11512](https://github.com/MetaMask/metamask-mobile/pull/11512): fix: android firebase docs template (#11512)
 - [#11430](https://github.com/MetaMask/metamask-mobile/pull/11430): fix: refactor Logger usage (#11430)
 - [#11250](https://github.com/MetaMask/metamask-mobile/pull/11250): fix: push notifications (#11250)
@@ -778,7 +1096,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11467](https://github.com/MetaMask/metamask-mobile/pull/11467): fix: Reorder prep_environment (#11467)
 - [#11367](https://github.com/MetaMask/metamask-mobile/pull/11367): fix: Update steps of the methods that are no longer valid (#11367)
 - [#11400](https://github.com/MetaMask/metamask-mobile/pull/11400): fix: Stop crowdin action from creating branches (#11400)
-- [#11348](https://github.com/MetaMask/metamask-mobile/pull/11348): fix: splash screen image on android  (#11348)
+- [#11348](https://github.com/MetaMask/metamask-mobile/pull/11348): fix: splash screen image on android (#11348)
 - [#11346](https://github.com/MetaMask/metamask-mobile/pull/11346): fix: splash screen image on android (#11346)
 - [#11554](https://github.com/MetaMask/metamask-mobile/pull/11554): fix: Fix/use portfolio home page (#11554)
 - [#11443](https://github.com/MetaMask/metamask-mobile/pull/11443): fix: react native quick crypto ios build bug (#11443)
@@ -794,7 +1112,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11518](https://github.com/MetaMask/metamask-mobile/pull/11518): fix(11482): incorrect QR code error (#11518)
 
 ## [7.32.0]
+
 ### Added
+
 - [#10294](https://github.com/MetaMask/metamask-mobile/pull/10294): feat: create redux slice for featureFlags (#10294)
 - [#11314](https://github.com/MetaMask/metamask-mobile/pull/11314): feat: reject connection properly (#11314)
 - [#11132](https://github.com/MetaMask/metamask-mobile/pull/11132): feat: Add performance tracing infrastructure (#11132)
@@ -811,7 +1131,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11175](https://github.com/MetaMask/metamask-mobile/pull/11175): feat: add product announcements toggle (#11175)
 
 ### Changed
-- [#11148](https://github.com/MetaMask/metamask-mobile/pull/11148): chore: remove animation and add new splash screen  (#11148)
+
+- [#11148](https://github.com/MetaMask/metamask-mobile/pull/11148): chore: remove animation and add new splash screen (#11148)
 - [#11306](https://github.com/MetaMask/metamask-mobile/pull/11306): chore: update @sentry/react-native to version 5.33.0 (#11306)
 - [#11144](https://github.com/MetaMask/metamask-mobile/pull/11144): test: E2E Mocking Setup For Detox Tests (#11144)
 - [#11212](https://github.com/MetaMask/metamask-mobile/pull/11212): chore: Update CI workflow triggers to support release branches (#11212)
@@ -837,13 +1158,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11235](https://github.com/MetaMask/metamask-mobile/pull/11235): ci: avoid running release pipeline on every commit to the release branch (#11235)
 - [#11094](https://github.com/MetaMask/metamask-mobile/pull/11094): chore: chore/7.31.0-Changelog (#11094)
 - [#10788](https://github.com/MetaMask/metamask-mobile/pull/10788): chore: Add `@metamask/selected-network-controller` & integrate (#10788)
-- [#11122](https://github.com/MetaMask/metamask-mobile/pull/11122): test: e2e for auto-lock  (#11122)
+- [#11122](https://github.com/MetaMask/metamask-mobile/pull/11122): test: e2e for auto-lock (#11122)
 - [#11143](https://github.com/MetaMask/metamask-mobile/pull/11143): chore: bump react native webview to 14.0.3 version (#11143)
 - [#11284](https://github.com/MetaMask/metamask-mobile/pull/11284): chore: add notifications state awareness inapp badge (#11284)
 - [#11082](https://github.com/MetaMask/metamask-mobile/pull/11082): chore: bump network controller 20.0.0 (#11082)
 - [#10821](https://github.com/MetaMask/metamask-mobile/pull/10821): chore(deps): bump `accounts-controller` to v18.1.0 and `keyring-api` to v8.1.0 (#10821)
 
 ### Fixed
+
 - [#11117](https://github.com/MetaMask/metamask-mobile/pull/11117): fix: add feat flag (#11117)
 - [#11084](https://github.com/MetaMask/metamask-mobile/pull/11084): fix: locks api spec version for api spec tests (#11084)
 - [#11310](https://github.com/MetaMask/metamask-mobile/pull/11310): fix: quick fix on feature flag & notification state (#11310)
@@ -876,11 +1198,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11098](https://github.com/MetaMask/metamask-mobile/pull/11098): fix: badge count and ui polishing (#11098)
 
 ## [7.31.1]
+
 ### Fixed
+
 - [#11631](https://github.com/MetaMask/metamask-mobile/pull/11631): fix: Fixes UI issue in token details (#11631)
 
 ## [7.31.0]
+
 ### Added
+
 - [#10747](https://github.com/MetaMask/metamask-mobile/pull/10747): feat: 2805 grant permission to network with missmatching rpc url (#10747)
 - [#10715](https://github.com/MetaMask/metamask-mobile/pull/10715): feat: 2795 disconnect all account permission multichain edit account screen (#10715)
 - [#10347](https://github.com/MetaMask/metamask-mobile/pull/10347): feat: refactor WalletConnect v2 and add unit tests (#10347)
@@ -888,11 +1214,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10562](https://github.com/MetaMask/metamask-mobile/pull/10562): feat: New token detail view (#10562)
 - [#10876](https://github.com/MetaMask/metamask-mobile/pull/10876): feat: js bundle size ci gate (#10876)
 - [#10847](https://github.com/MetaMask/metamask-mobile/pull/10847): feat: add pooled staking feature flag (#10847)
-- [#2796](https://github.com/MetaMask/metamask-mobile/pull/2796):   feat(2796):  permission settings for multichain
+- [#2796](https://github.com/MetaMask/metamask-mobile/pull/2796): feat(2796): permission settings for multichain
 - [#10727](https://github.com/MetaMask/metamask-mobile/pull/10727): feat: add ledger live deviation path support (#10727)
-  
 
 ### Changed
+
 - [#10749](https://github.com/MetaMask/metamask-mobile/pull/10749): chore(deps): bump rexml from 3.3.3 to 3.3.6 in the bundler group across 1 directory (#10749)
 - [#10794](https://github.com/MetaMask/metamask-mobile/pull/10794): Release-update-BS-URL (#10794)
 - [#11088](https://github.com/MetaMask/metamask-mobile/pull/11088): chore: add new track events for enabling/disabling basic functionality (#11088)
@@ -928,7 +1254,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10325](https://github.com/MetaMask/metamask-mobile/pull/10325): chore: updated avatargroup to take in all avatars (#10325)
 - [#10616](https://github.com/MetaMask/metamask-mobile/pull/10616): chore: upgrade network controller to version 19.0.0 (#10616)
 - [#11001](https://github.com/MetaMask/metamask-mobile/pull/11001): test: Fix swap smoke tests (#11001)
-- [#10953](https://github.com/MetaMask/metamask-mobile/pull/10953): test: replaced TestHelpers function call with equivalent from Assertions  (#10953)
+- [#10953](https://github.com/MetaMask/metamask-mobile/pull/10953): test: replaced TestHelpers function call with equivalent from Assertions (#10953)
 - [#10897](https://github.com/MetaMask/metamask-mobile/pull/10897): test: Fix Swap e2e test failure (#10897)
 - [#10874](https://github.com/MetaMask/metamask-mobile/pull/10874): chore: add new `keyring-snaps` code fence (#10874)
 - [#10913](https://github.com/MetaMask/metamask-mobile/pull/10913): test: e2e srp reveal regression update (#10913)
@@ -938,6 +1264,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10714](https://github.com/MetaMask/metamask-mobile/pull/10714): test: Refactor AccountListView Page object (#10714)
 
 ### Fixed
+
 - [#10518](https://github.com/MetaMask/metamask-mobile/pull/10518): fix: refactor blockaid utils sync functions to async (#10518)
 - [#11020](https://github.com/MetaMask/metamask-mobile/pull/11020): fix: Fix broken unit test in `Sendflow` tests (#11020)
 - [#10385](https://github.com/MetaMask/metamask-mobile/pull/10385): fix: no insufficient funds warning (#10385)
@@ -979,7 +1306,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10792](https://github.com/MetaMask/metamask-mobile/pull/10792): fix: refactor notifications utils (#10792)
 
 ## [7.30.0]
+
 ### Added
+
 - [#10748](https://github.com/MetaMask/metamask-mobile/pull/10748): feat: Add yarn flipper script (#10748)
 - [#10739](https://github.com/MetaMask/metamask-mobile/pull/10739): feat: Feat/add redux debugger (#10739)
 - [#10589](https://github.com/MetaMask/metamask-mobile/pull/10589): feat: Feat/10521 react-native-performance mvp for measuring app start + JS bundle load times (#10589)
@@ -995,6 +1324,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9950](https://github.com/MetaMask/metamask-mobile/pull/9950): feat: QR-based add NGRAVE ZERO Hardware (#9950)
 
 ### Changed
+
 - [#10746](https://github.com/MetaMask/metamask-mobile/pull/10746): chore: fix another batch of TS errors (#10746)
 - [#10735](https://github.com/MetaMask/metamask-mobile/pull/10735): chore: Add E2E folders to sonar exclusion list (#10735)
 - [#10697](https://github.com/MetaMask/metamask-mobile/pull/10697): chore: Add more typescript fixes (#10697)
@@ -1050,6 +1380,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10539](https://github.com/MetaMask/metamask-mobile/pull/10539): chore: enhance Source Detection Logic in Analytics Parameters (#10539)
 
 ### Fixed
+
 - [#10649](https://github.com/MetaMask/metamask-mobile/pull/10649): fix: Update test dapp favorite selector (#10649)
 - [#10641](https://github.com/MetaMask/metamask-mobile/pull/10641): fix: Add missing pod lock changes (#10641)
 - [#10613](https://github.com/MetaMask/metamask-mobile/pull/10613): fix: useBlockExplorer hook (#10613)
@@ -1075,16 +1406,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10693](https://github.com/MetaMask/metamask-mobile/pull/10693): fix: notification second round fixes (#10693)
 
 ## [7.29.2]
+
 ### Fixed
+
 - [#10965](https://github.com/MetaMask/metamask-mobile/pull/10965): fix: gas never loading during send + high gas fee after deep link (#10965)
 - [#11005](https://github.com/MetaMask/metamask-mobile/pull/11005): fix: Add missing allowedAction NetworkController:findNetworkClientIdByChainId to transactionController (#11005)
 
 ## [7.29.1]
+
 ### Fixed
+
 - [#10831](https://github.com/MetaMask/metamask-mobile/pull/10831): feat: Update Polygon from MATIC to POL (#10831)
 
 ## [7.29.0]
+
 ### Added
+
 - [#9578](https://github.com/MetaMask/metamask-mobile/pull/9578): feat: type `renderHookWithProvider` (#9578)
 - [#10277](https://github.com/MetaMask/metamask-mobile/pull/10277): feat: New nft details page (#10277)
 - [#9469](https://github.com/MetaMask/metamask-mobile/pull/9469): feat: nft + swap metrics (#9469)
@@ -1100,8 +1437,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10363](https://github.com/MetaMask/metamask-mobile/pull/10363): feat: add notifications UI components to be used by Views (#10363)
 
 ### Changed
+
 - [#10531](https://github.com/MetaMask/metamask-mobile/pull/10531): chore: fix release action (#10531)
-- [#10471](https://github.com/MetaMask/metamask-mobile/pull/10471): chore: Typescript type coverage util  lib folders (#10471)
+- [#10471](https://github.com/MetaMask/metamask-mobile/pull/10471): chore: Typescript type coverage util lib folders (#10471)
 - [#10507](https://github.com/MetaMask/metamask-mobile/pull/10507): chore: core related files selectors refactor (#10507)
 - [#10508](https://github.com/MetaMask/metamask-mobile/pull/10508): chore: abort on fail smoke e2e pipeline (#10508)
 - [#10417](https://github.com/MetaMask/metamask-mobile/pull/10417): chore: Dapp protocol qr code scanning (#10417)
@@ -1129,6 +1467,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9589](https://github.com/MetaMask/metamask-mobile/pull/9589): test(ramp): add `useApplePay` tests (#9589)
 
 ### Fixed
+
 - [#9744](https://github.com/MetaMask/metamask-mobile/pull/9744): fix: fix/9350 Use consistent commit hash on Bitrise e2e smoke tests (#9744)
 - [#10511](https://github.com/MetaMask/metamask-mobile/pull/10511): fix: crash on reload fix by patch (#10511)
 - [#10481](https://github.com/MetaMask/metamask-mobile/pull/10481): fix: Added parse errors to be caught on vault corruption flow (#10481)
@@ -1147,12 +1486,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10303](https://github.com/MetaMask/metamask-mobile/pull/10303): fix: page navigation during QR accounts selection (#10303)
 
 ## [7.28.1]
+
 ### Fixed
+
 - [#10637](https://github.com/MetaMask/metamask-mobile/pull/10637): fix: swap button blocked by SwapsController polling issue (#10637)
 - [#10654](https://github.com/MetaMask/metamask-mobile/pull/10654): fix: hot fix for ledger account select screen to provide disclaimer copy information. (#10654)
 
 ## [7.28.0]
+
 ### Added
+
 - [#10252](https://github.com/MetaMask/metamask-mobile/pull/10252): feat: regression label (#10252)
 - [#10214](https://github.com/MetaMask/metamask-mobile/pull/10214): feat: Partially local WebView for Snaps (#10214)
 - [#10103](https://github.com/MetaMask/metamask-mobile/pull/10103): feat: update walletconnect se-sdk (#10103)
@@ -1162,10 +1505,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10109](https://github.com/MetaMask/metamask-mobile/pull/10109): feat: multiple accounts support in ledger (#10109)
 
 ### Changed
+
 - [#10278](https://github.com/MetaMask/metamask-mobile/pull/10278): chore: disable snaps feat from main temporarily (#10278)
 - [#10329](https://github.com/MetaMask/metamask-mobile/pull/10329): test: Disable bitrise slack notification step (#10329)
 - [#10172](https://github.com/MetaMask/metamask-mobile/pull/10172): chore: changelog release automation (#10172)
-- [#10282](https://github.com/MetaMask/metamask-mobile/pull/10282): chore: update Android SDK to API Level 34  (#10282)
+- [#10282](https://github.com/MetaMask/metamask-mobile/pull/10282): chore: update Android SDK to API Level 34 (#10282)
 - [#10241](https://github.com/MetaMask/metamask-mobile/pull/10241): chore: add Sentry snapshot with masked data (#10241)
 - [#10289](https://github.com/MetaMask/metamask-mobile/pull/10289): chore: Download state logs on login screen (#10289)
 - [#10291](https://github.com/MetaMask/metamask-mobile/pull/10291): chore: Update webview to v 14.0.2 (#10291)
@@ -1185,6 +1529,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10274](https://github.com/MetaMask/metamask-mobile/pull/10274): chore: New Crowdin translations by Github Action (#10274)
 
 ### Fixed
+
 - [#10308](https://github.com/MetaMask/metamask-mobile/pull/10308): fix: correctly get current PR number in bitrise e2e workflow (#10308)
 - [#10232](https://github.com/MetaMask/metamask-mobile/pull/10232): fix: fixes missing analytics data for non-web dapps that don't have a url (no… (#10232)
 - [#10264](https://github.com/MetaMask/metamask-mobile/pull/10264): fix: skip blockaid validations for users internal accounts (#10264)
@@ -1192,11 +1537,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10279](https://github.com/MetaMask/metamask-mobile/pull/10279): fix: use ACTIONS_WRITE_TOKEN in attributions workflow (#10279)
 
 ## [7.27.1]
+
 ### Fixed
+
 - [#10438](https://github.com/MetaMask/metamask-mobile/pull/10438): cherry-pick: update @blockaid/ppom_release package to version 1.5.1 (#10435) #10438
 
 ## [7.27.0]
+
 ### Added
+
 - [#7759](https://github.com/MetaMask/metamask-mobile/pull/7759): feat: upgrade react-native-webview (#7759)
 - [#10000](https://github.com/MetaMask/metamask-mobile/pull/10000): feat: support security alerts API (#10000)
 - [#10039](https://github.com/MetaMask/metamask-mobile/pull/10039): feat: enable transaction simulations (#10039)
@@ -1208,11 +1557,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10121](https://github.com/MetaMask/metamask-mobile/pull/10121): feat: enables snaps feature flag on mobile (#10121)
 - [#10040](https://github.com/MetaMask/metamask-mobile/pull/10040): feat: edit networks UI redesign (#10040)
 - [#10120](https://github.com/MetaMask/metamask-mobile/pull/10120): feat: add i18n to for the add/edit network ui re-design (#10120)
-- [#9961](https://github.com/MetaMask/metamask-mobile/pull/9961): feat: adding search to the network bottomsheet as part of the networks management UI redesign  (#9961)
+- [#9961](https://github.com/MetaMask/metamask-mobile/pull/9961): feat: adding search to the network bottomsheet as part of the networks management UI redesign (#9961)
 - [#10112](https://github.com/MetaMask/metamask-mobile/pull/10112): feat: Add the ""is_smart_transaction"" prop for the ""Swap Started"" event (#10112)
 - [#10086](https://github.com/MetaMask/metamask-mobile/pull/10086): feat: Add team label to pr (#10086)
 
 ### Changed
+
 - [#10153](https://github.com/MetaMask/metamask-mobile/pull/10153): chore: Migrate AsyncStorage to mmkv (#10153)
 - [#10071](https://github.com/MetaMask/metamask-mobile/pull/10071): chore: New Crowdin translations by Github Action (#10071)
 - [#9441](https://github.com/MetaMask/metamask-mobile/pull/9441): chore: Convert initial background state to typed background state (#9441)
@@ -1238,6 +1588,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10063](https://github.com/MetaMask/metamask-mobile/pull/10063): chore: Refactor Snaps integration (#10063)
 
 ### Fixed
+
 - [#10168](https://github.com/MetaMask/metamask-mobile/pull/10168): fix: convert Sentry messages to log (#10168)
 - [#9918](https://github.com/MetaMask/metamask-mobile/pull/9918): fix: hide amount in simulations for testnets if its opt out (#9918)
 - [#10164](https://github.com/MetaMask/metamask-mobile/pull/10164): fix: Stop running fencing logic on `node_modules` (#10164)
@@ -1264,11 +1615,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10064](https://github.com/MetaMask/metamask-mobile/pull/10064): fix: Always mark the STX Opt In modal as seen (#10064)
 
 ## [7.26.1]
+
 ### Fixed
+
 - [#9724](https://github.com/MetaMask/metamask-mobile/pull/9724): feat: remove selectIdentities in favour of selectInternalAccounts
 
 ## [7.26.0]
+
 ### Added
+
 - [#9937](https://github.com/MetaMask/metamask-mobile/pull/9937): feat: modification of the network bottom sheet to use the new UI redesign by adding the popular network section as additional network (#9937)
 - [#9856](https://github.com/MetaMask/metamask-mobile/pull/9856): feat: new attribution github workflow (#9856)
 - [#9768](https://github.com/MetaMask/metamask-mobile/pull/9768): feat: add MetaMetrics delete on Wallet delete (#9768)
@@ -1288,6 +1643,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9473](https://github.com/MetaMask/metamask-mobile/pull/9473): feat: notifications details screen (#9473)
 
 ### Changed
+
 - [#9884](https://github.com/MetaMask/metamask-mobile/pull/9884): chore(pr template + readme): add link to contributor docs (#9884)
 - [#9863](https://github.com/MetaMask/metamask-mobile/pull/9863): chore: Revert ""fix: swaps quote nan to bnjs (#9848)"" (#9863)
 - [#9915](https://github.com/MetaMask/metamask-mobile/pull/9915): test: 1454 refactor modal pages batch 4 (#9915)
@@ -1326,6 +1682,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9234](https://github.com/MetaMask/metamask-mobile/pull/9234): chore: update the 'CODEOWNERS' file to include directories relevant to the 'sdk-devs' team (#9234)
 
 ### Fixed
+
 - [#9903](https://github.com/MetaMask/metamask-mobile/pull/9903): fix: upgrade test failure fix for 7.24.0 release branch (#9903)
 - [#9844](https://github.com/MetaMask/metamask-mobile/pull/9844): fix: confirmations failing ci tests (#9844)
 - [#9831](https://github.com/MetaMask/metamask-mobile/pull/9831): fix: Fix audit ci (#9831)
@@ -1350,7 +1707,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9934](https://github.com/MetaMask/metamask-mobile/pull/9934): fix: flakey CI asdf node version (#9934)
 - [#9584](https://github.com/MetaMask/metamask-mobile/pull/9584): fix: @metamask/swaps-controller v6 -> v9 (#9584)
 - [#9867](https://github.com/MetaMask/metamask-mobile/pull/9867): fix: only remove SES from exception if exception exists (#9867)
-- [#9870](https://github.com/MetaMask/metamask-mobile/pull/9870): fix: yarn deduplicate release/7.24.0 to fix dupe in #9864  (#9870)
+- [#9870](https://github.com/MetaMask/metamask-mobile/pull/9870): fix: yarn deduplicate release/7.24.0 to fix dupe in #9864 (#9870)
 - [#9842](https://github.com/MetaMask/metamask-mobile/pull/9842): fix: error validating wallet connect signature with security provider (#9842)
 - [#9999](https://github.com/MetaMask/metamask-mobile/pull/9999): fix: new locales (#9999)
 - [#9826](https://github.com/MetaMask/metamask-mobile/pull/9826): fix: add migration for linea goerli (#9826)
@@ -1359,39 +1716,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9746](https://github.com/MetaMask/metamask-mobile/pull/9746): fix: render images of networks removed from popularNetwork list (#9746)
 - [#9970](https://github.com/MetaMask/metamask-mobile/pull/9970): fix: error 'Invalid character in NaN' while gas editing (#9970)
 - [#9902](https://github.com/MetaMask/metamask-mobile/pull/9902): fix: Update PPOM controller to fix handling of HTTP status codes (#9902)
-- [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: Duplicate accounts  (#9943)
+- [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: Duplicate accounts (#9943)
 - [#9974](https://github.com/MetaMask/metamask-mobile/pull/9974): fix(ramp): memoize asset before passing it to balance hook (#9968) (#9974)
 - [#9882](https://github.com/MetaMask/metamask-mobile/pull/9882): fix: edit account name screen display incorrect account name (#9882)
 - [#9891](https://github.com/MetaMask/metamask-mobile/pull/9891): fix: bug report template - remove reference to recordit (#9891)
 - [#9755](https://github.com/MetaMask/metamask-mobile/pull/9755): fix: display the DApp URL in connect screen for MetaMask IOS-SDK (#9755)
 
 ## [7.24.4]
+
 ### Fixed
+
 - [10064](https://github.com/MetaMask/metamask-mobile/pull/10064) fix: Always mark the STX Opt In modal as seen
 - [10088](https://github.com/MetaMask/metamask-mobile/pull/10088) fix: Swap with unapproved token
 - [10099](https://github.com/MetaMask/metamask-mobile/pull/10099) fix: stx on ramps missing origin
 
 ## [7.24.3]
+
 ### Fixed
+
 - [#10045](https://github.com/MetaMask/metamask-mobile/pull/10045): fix: Update ppom package to 1.4.8 (#10041)
 
 ## [7.24.2]
+
 ### Added
+
 - [#9687](https://github.com/MetaMask/metamask-mobile/pull/9687): feat: adds "data collection for marketing" toggles
 
 ### Fixed
+
 - [#9905](https://github.com/MetaMask/metamask-mobile/pull/9905): fix: remove metametrics redundant calls and improve compliance
 
 ## [7.24.1]
+
 ### Fixed
+
 - [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: Remove duplicate accounts (#9943)
 - [#10006](https://github.com/MetaMask/metamask-mobile/pull/10006): fix: Fix order of accounts (#10006)
 - [#10004](https://github.com/MetaMask/metamask-mobile/pull/10004): fix: Synchronize account names (#10004)
 - [#9974](https://github.com/MetaMask/metamask-mobile/pull/9974): fix: Fix freeze on buy and sell flow (#9974)
-- [#9980](https://github.com/MetaMask/metamask-mobile/pull/9980): fix: Fix initialization crash / login error "Engine does not exist (#9980) 
+- [#9980](https://github.com/MetaMask/metamask-mobile/pull/9980): fix: Fix initialization crash / login error "Engine does not exist (#9980)
 
 ## [7.24.0]
+
 ### Added
+
 - [#9767](https://github.com/MetaMask/metamask-mobile/pull/9767): feat: push Privacy policy date to 2024 Jun 18 12:00 UTC (#9767)
 - [#9707](https://github.com/MetaMask/metamask-mobile/pull/9707): feat: adds strings for the opt in toggles (#9707)
 - [#9661](https://github.com/MetaMask/metamask-mobile/pull/9661): feat: smart-tx opt in modal 2 (#9661)
@@ -1399,7 +1767,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9442](https://github.com/MetaMask/metamask-mobile/pull/9442): feat: smart-tx-small-logic (#9442)
 - [#9204](https://github.com/MetaMask/metamask-mobile/pull/9204): feat: Add new privacy policy alert toast (#9204)
 - [#9651](https://github.com/MetaMask/metamask-mobile/pull/9651): feat: Upgrade signature Controller to v14 (#9651)
-- [#9394](https://github.com/MetaMask/metamask-mobile/pull/9394): feat:  Network & Gas & Assets & Utils controllers update (#9394)
+- [#9394](https://github.com/MetaMask/metamask-mobile/pull/9394): feat: Network & Gas & Assets & Utils controllers update (#9394)
 - [#9625](https://github.com/MetaMask/metamask-mobile/pull/9625): feat: Update signature controller v13 (#9625)
 - [#9129](https://github.com/MetaMask/metamask-mobile/pull/9129): feat: setting to show fiat values on testnets (#9129)
 - [#9740](https://github.com/MetaMask/metamask-mobile/pull/9740): feat: Update checkbox to be able to override checkbox style (#9740)
@@ -1407,6 +1775,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9572](https://github.com/MetaMask/metamask-mobile/pull/9572): feat: notifications onboarding wizard - [8 of 10] (#9572)
 
 ### Changed
+
 - [#9612](https://github.com/MetaMask/metamask-mobile/pull/9612): revert: feat(swaps): enable Base for swaps (#9286) (#9612)
 - [#9735](https://github.com/MetaMask/metamask-mobile/pull/9735): chore: add swaps team to swaps domain folder (#9735)
 - [#9683](https://github.com/MetaMask/metamask-mobile/pull/9683): refactor: the network name and image utils into selectors (#9683)
@@ -1426,10 +1795,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9609](https://github.com/MetaMask/metamask-mobile/pull/9609): chore: add deprecated tag to the websiteicon component (#9609)
 - [#9619](https://github.com/MetaMask/metamask-mobile/pull/9619): chore(deps): remove unused react-native-v8 (#9619)
 - [#9599](https://github.com/MetaMask/metamask-mobile/pull/9599): chore: update Encryptor CODEOWNER to Accounts Team (#9599)
-- [#9734](https://github.com/MetaMask/metamask-mobile/pull/9734): test: Added swap ERC20->ETH  test case (#9734)
+- [#9734](https://github.com/MetaMask/metamask-mobile/pull/9734): test: Added swap ERC20->ETH test case (#9734)
 - [#9712](https://github.com/MetaMask/metamask-mobile/pull/9712): chore: remove unnecessary patch imports and change the patch branch name (#9712)
 
 ### Fixed
+
 - [#9301](https://github.com/MetaMask/metamask-mobile/pull/9301): fix: flaky tests issues template skip 2 (#9301)
 - [#9774](https://github.com/MetaMask/metamask-mobile/pull/9774): fix: unit tests (#9774)
 - [#9706](https://github.com/MetaMask/metamask-mobile/pull/9706): fix: QR scanner crash when user dismisses camera view in web view (#9706)
@@ -1456,7 +1826,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9616](https://github.com/MetaMask/metamask-mobile/pull/9616): fix: fix the issue 9560 which QR code accounts has been reappeared aftter user `remove wallets` (#9616)
 
 ## [7.23.0]
+
 ### Added
+
 - [#9595](https://github.com/MetaMask/metamask-mobile/pull/9595): feat: Upgrade to react-native-svg to 15.2.0 (#9595)
 - [#9305](https://github.com/MetaMask/metamask-mobile/pull/9305): feat: Update SignatureController v6.1.3 + LoggingController v2.0.0 (#9305)
 - [#9546](https://github.com/MetaMask/metamask-mobile/pull/9546): feat: fix logs for 1709 (#9546)
@@ -1465,7 +1837,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9286](https://github.com/MetaMask/metamask-mobile/pull/9286): feat(swaps): enable Base for swaps (#9286)
 - [#9495](https://github.com/MetaMask/metamask-mobile/pull/9495): feat: url bar no longer shown in the tab thumnail list view (#9495)
 - [#9474](https://github.com/MetaMask/metamask-mobile/pull/9474): feat: add localizations for the browser tab (#9474)
-- [#9435](https://github.com/MetaMask/metamask-mobile/pull/9435): feat: sdk async persistence  and protocol upgrade (#9435)
+- [#9435](https://github.com/MetaMask/metamask-mobile/pull/9435): feat: sdk async persistence and protocol upgrade (#9435)
 - [#9119](https://github.com/MetaMask/metamask-mobile/pull/9119): feat(ramp): add activation keys labels and DS components (#9119)
 - [#9372](https://github.com/MetaMask/metamask-mobile/pull/9372): feat: Add `useTokenListName` hook for `Name` component (#9372)
 - [#9407](https://github.com/MetaMask/metamask-mobile/pull/9407): feat: Add `useFirstPartyContractName` hook (#9407)
@@ -1479,8 +1851,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9401](https://github.com/MetaMask/metamask-mobile/pull/9401): feat: updated styling in badgenetwork (#9401)
 
 ### Changed
-- [#9571](https://github.com/MetaMask/metamask-mobile/pull/9571): chore: revert  feat: notifications onboarding wizard (#9392) (#9571)
-- [#9610](https://github.com/MetaMask/metamask-mobile/pull/9610): test: Fix flakiness caused by the notification permission dialog which caused confirmation test flakiness  (#9610)
+
+- [#9571](https://github.com/MetaMask/metamask-mobile/pull/9571): chore: revert feat: notifications onboarding wizard (#9392) (#9571)
+- [#9610](https://github.com/MetaMask/metamask-mobile/pull/9610): test: Fix flakiness caused by the notification permission dialog which caused confirmation test flakiness (#9610)
 - [#9577](https://github.com/MetaMask/metamask-mobile/pull/9577): chore: Chore/1742 remove vault recreation log in (#9577)
 - [#9576](https://github.com/MetaMask/metamask-mobile/pull/9576): chore: Update migrations with Fatal Errors (#9576)
 - [#9529](https://github.com/MetaMask/metamask-mobile/pull/9529): test: Refactor browser and testdapp page objects (#9529)
@@ -1503,11 +1876,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9484](https://github.com/MetaMask/metamask-mobile/pull/9484): chore(devDeps): @actions/github@^5.1.1->^6.0.0 (#9484)
 - [#9454](https://github.com/MetaMask/metamask-mobile/pull/9454): chore: Update Jest to v29 (#9454)
 - [#9475](https://github.com/MetaMask/metamask-mobile/pull/9475): chore: Fix handling of generated ppom files (#9475)
-- [#9388](https://github.com/MetaMask/metamask-mobile/pull/9388): chore: initial *.metafi and *.metaswap URL migrations (#9388)
+- [#9388](https://github.com/MetaMask/metamask-mobile/pull/9388): chore: initial _.metafi and _.metaswap URL migrations (#9388)
 - [#9455](https://github.com/MetaMask/metamask-mobile/pull/9455): chore(iyarc): remove resolved audit advisory (#9455)
 - [#8557](https://github.com/MetaMask/metamask-mobile/pull/8557): chore: remove unused @metamask/oss-attribution-generator (#8557)
 
 ### Fixed
+
 - [#9525](https://github.com/MetaMask/metamask-mobile/pull/9525): fix: fix regression tests (#9525)
 - [#9411](https://github.com/MetaMask/metamask-mobile/pull/9411): fix: refactor mechanism for sending analytics events (#9411)
 - [#9575](https://github.com/MetaMask/metamask-mobile/pull/9575): fix: Add missing wallet_addEthereumChain to unrestricted list (#9575)
@@ -1537,7 +1911,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9143](https://github.com/MetaMask/metamask-mobile/pull/9143): fix: Yarn 1.22.22 (#9143)
 
 ## [7.22.0]
+
 ### Added
+
 - [#9329](https://github.com/MetaMask/metamask-mobile/pull/9329): feat: Added log to capture failing exception for getItem (#9329)
 - [#9271](https://github.com/MetaMask/metamask-mobile/pull/9271): feat: update phishing controller v8.0.0 (#9271)
 - [#9254](https://github.com/MetaMask/metamask-mobile/pull/9254): feat: Update Gas fee controller v10 (#9254)
@@ -1561,6 +1937,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9030](https://github.com/MetaMask/metamask-mobile/pull/9030): feat: Extend blockaid validations to base network (#9030)
 
 ### Changed
+
 - [#9393](https://github.com/MetaMask/metamask-mobile/pull/9393): test: Fix failing regression test basic fun feat (#9393)
 - [#9386](https://github.com/MetaMask/metamask-mobile/pull/9386): chore: Revert #9263 feat: add notifications onboarding wizard (#9386)
 - [#8909](https://github.com/MetaMask/metamask-mobile/pull/8909): test: 1453 refactor modal pages batch 3 (#8909)
@@ -1579,6 +1956,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9093](https://github.com/MetaMask/metamask-mobile/pull/9093): refactor: migrate Encryptor to TypeScript and increase PBKDF2 iterations number (#9093)
 
 ### Fixed
+
 - [#9302](https://github.com/MetaMask/metamask-mobile/pull/9302): fix: e2e test permission problem (#9302)
 - [#9395](https://github.com/MetaMask/metamask-mobile/pull/9395): fix(translations): Fix hard coded repo name left from testing in diff repo (#9395)
 - [#9337](https://github.com/MetaMask/metamask-mobile/pull/9337): fix: show banner alert if account balance is insufficient (#9337)
@@ -1612,7 +1990,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9283](https://github.com/MetaMask/metamask-mobile/pull/9283): fix: missing walletConnect prop (#9283)
 
 ## [7.21.0]
+
 ### Added
+
 - [#9065](https://github.com/MetaMask/metamask-mobile/pull/9065): feat: Update network controller to version 13.0.1 (#9065)
 - [#9166](https://github.com/MetaMask/metamask-mobile/pull/9166): feat: signature controller update to v6.0.0 (#9166)
 - [#9194](https://github.com/MetaMask/metamask-mobile/pull/9194): feat: 7.19.1 (#9194)
@@ -1628,6 +2008,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8701](https://github.com/MetaMask/metamask-mobile/pull/8701): feat: notifications (#8701)
 
 ### Changed
+
 - [#9199](https://github.com/MetaMask/metamask-mobile/pull/9199): chore: Chore/resolve xcode changes (#9199)
 - [#9197](https://github.com/MetaMask/metamask-mobile/pull/9197): test: Change instances of messages to enContent while importing from locales (#9197)
 - [#9181](https://github.com/MetaMask/metamask-mobile/pull/9181): test: fix rpc test on Ci for Android (#9181)
@@ -1650,11 +2031,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5093](https://github.com/MetaMask/metamask-mobile/pull/5093): chore: Bump pify from 4.0.1 to 6.1.0 (#5093)
 
 ### Fixed
+
 - [#8958](https://github.com/MetaMask/metamask-mobile/pull/8958): fix: unit test metametrics at app startup (#8958)
 - [#9206](https://github.com/MetaMask/metamask-mobile/pull/9206): fix: fix nfts displayed on account and refactor collectibles component (#9206)
 - [#9174](https://github.com/MetaMask/metamask-mobile/pull/9174): fix: change CUSTOM_TOKEN_IMPORTED tracking mode (#9174)
 - [#9148](https://github.com/MetaMask/metamask-mobile/pull/9148): fix: Tokens disappearing when updating (#9148)
-- [#9123](https://github.com/MetaMask/metamask-mobile/pull/9123): fix: Revert  Update controller utils to 5.0.2 (#9123)
+- [#9123](https://github.com/MetaMask/metamask-mobile/pull/9123): fix: Revert Update controller utils to 5.0.2 (#9123)
 - [#8603](https://github.com/MetaMask/metamask-mobile/pull/8603): fix: nft detection running too many times (#8603)
 - [#9125](https://github.com/MetaMask/metamask-mobile/pull/9125): fix: add display warning for mumbai (#9125)
 - [#9150](https://github.com/MetaMask/metamask-mobile/pull/9150): fix: wc connections and permissions system network improvement (#9150)
@@ -1664,11 +2046,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9075](https://github.com/MetaMask/metamask-mobile/pull/9075): fix: Send ppom metrics when transaction is cancelled. (#9075)
 
 ## [7.20.1]
+
 ### Fixed
+
 - [#9092](https://github.com/MetaMask/metamask-mobile/pull/9092): fix: check HD keyring
 
 ## [7.20.0]
+
 ### Added
+
 - [#8982](https://github.com/MetaMask/metamask-mobile/pull/8982): feat: Update gas fee controller to version 6.1.2
 - [#9079](https://github.com/MetaMask/metamask-mobile/pull/9079): feat: Update controller utils to 5.0.2
 - [#9036](https://github.com/MetaMask/metamask-mobile/pull/9036): feat: Adding blockaid validations for sepolia network
@@ -1684,6 +2070,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8986](https://github.com/MetaMask/metamask-mobile/pull/8986): feat: Updated Assets Controllers to v11.1.0
 
 ### Changed
+
 - [#8967](https://github.com/MetaMask/metamask-mobile/pull/8967): chore: Handle async migrations & add migration tests
 - [#8826](https://github.com/MetaMask/metamask-mobile/pull/8826): refactor: update Ledger connection instructions
 - [#9038](https://github.com/MetaMask/metamask-mobile/pull/9038): chore: Consolidate and simplify isTest condition
@@ -1702,6 +2089,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8959](https://github.com/MetaMask/metamask-mobile/pull/8959): chore: Migrate another (3/3) batch of unit tests away from enzyme
 
 ### Fixed
+
 - [#9000](https://github.com/MetaMask/metamask-mobile/pull/9000): fix: Revert "test: [android] run tests on the first emulator in your list …
 - [#8998](https://github.com/MetaMask/metamask-mobile/pull/8998): fix: Revert "fix: hardcode emulator name to fix failing android tests on C…
 - [#8995](https://github.com/MetaMask/metamask-mobile/pull/8995): fix: hardcode emulator name to fix failing android tests on CI
@@ -1724,11 +2112,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8932](https://github.com/MetaMask/metamask-mobile/pull/8932): fix: breaking change from `@metamask/transaction-controller` regarding Ledger transactions
 
 ## [7.19.1]
+
 ### Fixed
+
 - [#9193](https://github.com/MetaMask/metamask-mobile/pull/9193): fix(ramp): default networks state to array
 
 ## [7.19.0]
+
 ### Added
+
 - [#8935](https://github.com/MetaMask/metamask-mobile/pull/8935): feat: Remove powered by blockaid line
 - [#8908](https://github.com/MetaMask/metamask-mobile/pull/8908): feat: add linea sepolia network and deprecate Linea Goerli network
 - [#8881](https://github.com/MetaMask/metamask-mobile/pull/8881): feat: patch for assets controller v11.0.1
@@ -1744,6 +2136,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8768](https://github.com/MetaMask/metamask-mobile/pull/8768): feat: state logs in the exported file with app version and build number
 
 ### Changed
+
 - [#8789](https://github.com/MetaMask/metamask-mobile/pull/8789): ci: 8253 - Add fitness function action for enzyme imports
 - [#8919](https://github.com/MetaMask/metamask-mobile/pull/8919): chore: Include env variable copying into yarn setup command
 - [#8964](https://github.com/MetaMask/metamask-mobile/pull/8964): chore: added platform team as codeowner to component-lib, patches, bitrise.yml
@@ -1779,6 +2172,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8802](https://github.com/MetaMask/metamask-mobile/pull/8802): chore: Remove `glob` resolution
 
 ### Fixed
+
 - [#8774](https://github.com/MetaMask/metamask-mobile/pull/8774): fix: normalize transaction parameters before PPOM validation
 - [#8838](https://github.com/MetaMask/metamask-mobile/pull/8838): fix: Rename DAPP_VISITED to DAPP_VIEWED
 - [#8784](https://github.com/MetaMask/metamask-mobile/pull/8784): fix: update usage of OP goerli to OP Sepolia
@@ -1807,7 +2201,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8496](https://github.com/MetaMask/metamask-mobile/pull/8496): fix: redirection issue after chain switch on sign request
 
 ## [7.18.0]
+
 ### Added
+
 - [#8729](https://github.com/MetaMask/metamask-mobile/pull/8729): feat(ramp): add event when user expands quotes
 - [#8787](https://github.com/MetaMask/metamask-mobile/pull/8787): feat: add MetaMetrics custom flush vars and log
 - [#8680](https://github.com/MetaMask/metamask-mobile/pull/8680): feat(ramp): add previously used tag
@@ -1841,6 +2237,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8673](https://github.com/MetaMask/metamask-mobile/pull/8673): feat: new trackErrorAsAnalytics for segment
 
 ### Changed
+
 - [#8803](https://github.com/MetaMask/metamask-mobile/pull/8803): chore: Remove unnecessary resolutions
 - [#8792](https://github.com/MetaMask/metamask-mobile/pull/8792): test: Fix tag in regression test
 - [#8791](https://github.com/MetaMask/metamask-mobile/pull/8791): test: add contact us e2e
@@ -1857,6 +2254,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8644](https://github.com/MetaMask/metamask-mobile/pull/8644): test: Refactor settings page object
 
 ### Fixed
+
 - [#8801](https://github.com/MetaMask/metamask-mobile/pull/8801): fix(ramp): undefined payment method
 - [#8798](https://github.com/MetaMask/metamask-mobile/pull/8798): fix: remove unnecessary post message stream patch
 - [#8572](https://github.com/MetaMask/metamask-mobile/pull/8572): fix: fake native tokens need better UX error handling
@@ -1882,12 +2280,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8615](https://github.com/MetaMask/metamask-mobile/pull/8615): fix: Fix add custom rpc detox test script
 
 ## [7.17.1]
+
 ### Fixed
+
 - [#8870](https://github.com/MetaMask/metamask-mobile/pull/8870): fix: update PPOM to v1.4.4
 - [#8892](https://github.com/MetaMask/metamask-mobile/pull/8892): fix: Tokens disappearing
 
 ## [7.17.0]
+
 ### Added
+
 - [#8520](https://github.com/MetaMask/metamask-mobile/pull/8520): feat: Feature/1300 dapp visit event
 - [#8354](https://github.com/MetaMask/metamask-mobile/pull/8354): feat(ramp): add Terms of Service provider link to quotes
 - [#8579](https://github.com/MetaMask/metamask-mobile/pull/8579): feat: translate fake native tokens need better UX error handling
@@ -1909,6 +2311,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8413](https://github.com/MetaMask/metamask-mobile/pull/8413): feat: Update SES lockdown options
 
 ### Changed
+
 - [#8457](https://github.com/MetaMask/metamask-mobile/pull/8457): refactor(ramp): add routes folder
 - [#8510](https://github.com/MetaMask/metamask-mobile/pull/8510): chore: upgrading design tokens package and typescript conventions
 - [#8478](https://github.com/MetaMask/metamask-mobile/pull/8478): chore: bumping code coverage thresholds
@@ -1921,6 +2324,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8514](https://github.com/MetaMask/metamask-mobile/pull/8514): chore(ramp): upgrade sdk to 1.26.2
 
 ### Fixed
+
 - [#8348](https://github.com/MetaMask/metamask-mobile/pull/8348): fix: update nft metadata on page refresh
 - [#8556](https://github.com/MetaMask/metamask-mobile/pull/8556): fix: improve native balance fetch logic on the UX
 - [#8605](https://github.com/MetaMask/metamask-mobile/pull/8605): fix: Update ppom_release to fix fail ppom security validation check
@@ -1954,7 +2358,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8476](https://github.com/MetaMask/metamask-mobile/pull/8476): fix: Fix title color type in settings drawer
 
 ## [7.16.0]
+
 ### Added
+
 - [#8093](https://github.com/MetaMask/metamask-mobile/pull/8093): feat: decouple account selector from qr code connector
 - [#8383](https://github.com/MetaMask/metamask-mobile/pull/8383): feat: add translation for privacy toggle
 - [#8412](https://github.com/MetaMask/metamask-mobile/pull/8412): feat: Blockaid experimental settings should be visible on all networks
@@ -1971,6 +2377,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8030](https://github.com/MetaMask/metamask-mobile/pull/8030): feat: New Crowdin translations by Github Action
 
 ### Changed
+
 - [#8452](https://github.com/MetaMask/metamask-mobile/pull/8452): refactor: Replace SheetBottom with BottomSheet in WalletActions
 - [#8451](https://github.com/MetaMask/metamask-mobile/pull/8451): refactor: Replace SheetBottom with BottomSheet in ShowIpfsGatewaySheet
 - [#8450](https://github.com/MetaMask/metamask-mobile/pull/8450): refactor: Replace SheetBottom with BottomSheet in ShowDisplayNFTMediaSheet
@@ -2016,6 +2423,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8272](https://github.com/MetaMask/metamask-mobile/pull/8272): chore: adds snapController selector and initial state
 
 ### Fixed
+
 - [#8460](https://github.com/MetaMask/metamask-mobile/pull/8460): fix: typos in en.json
 - [#8453](https://github.com/MetaMask/metamask-mobile/pull/8453): fix: show only blockaid multichain on whats new
 - [#8421](https://github.com/MetaMask/metamask-mobile/pull/8421): fix: patch handling of missing token price
@@ -2044,9 +2452,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8278](https://github.com/MetaMask/metamask-mobile/pull/8278): fix: scanning dapp QR code does not open in-app browser and navigate to dapp #8277
 - [#8247](https://github.com/MetaMask/metamask-mobile/pull/8247): fix: fix inconsistency in the popular tab
 
-
 ## [7.15.0]
+
 ### Added
+
 - [#8080](https://github.com/MetaMask/metamask-mobile/pull/8080): feat(ramp): add sell quick amounts with gas estimations
 - [#8204](https://github.com/MetaMask/metamask-mobile/pull/8204): feat: update blockaid dependency to latest version
 - [#8215](https://github.com/MetaMask/metamask-mobile/pull/8215): feat: Android sdk dapp icon support
@@ -2061,6 +2470,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8097](https://github.com/MetaMask/metamask-mobile/pull/8097): feat(ramp): keep region always up to date
 
 ### Changed
+
 - [#8231](https://github.com/MetaMask/metamask-mobile/pull/8231): test: 1328 refactor modals page batch 1
 - [#8229](https://github.com/MetaMask/metamask-mobile/pull/8229): refactor(ramp): update callback url for dev/staging
 - [#8217](https://github.com/MetaMask/metamask-mobile/pull/8217): test: fixed Swap smoke and regression test failures
@@ -2101,6 +2511,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8044](https://github.com/MetaMask/metamask-mobile/pull/8044): refactor: Updated navigational Navbar Headers with DS components
 
 ### Fixed
+
 - [#8230](https://github.com/MetaMask/metamask-mobile/pull/8230): fix: refresh ownership status for nfts
 - [#8248](https://github.com/MetaMask/metamask-mobile/pull/8248): fix: update PPOM validator version to fix validation after network change
 - [#8233](https://github.com/MetaMask/metamask-mobile/pull/8233): fix: enabling blockaid should be possible only if user is on mainnet
@@ -2127,7 +2538,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8029](https://github.com/MetaMask/metamask-mobile/pull/8029): fix: blockaid analytics code typos
 
 ## [7.14.0]
+
 ### Added
+
 - [#8016](https://github.com/MetaMask/metamask-mobile/pull/8016): feat(ramp): add sell deeplink
 - [#7962](https://github.com/MetaMask/metamask-mobile/pull/7962): feat(ramp): add sell notification texts
 - [#8047](https://github.com/MetaMask/metamask-mobile/pull/8047): feat: Added RadioButton to DS
@@ -2150,7 +2563,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7861](https://github.com/MetaMask/metamask-mobile/pull/7861): feat: enable Blockaid on iOS
 - [#7864](https://github.com/MetaMask/metamask-mobile/pull/7864): feat(ramp): sell what's new modal content
 
- ### Changed
+### Changed
+
 - [#7908](https://github.com/MetaMask/metamask-mobile/pull/7908): chore: tranfer the DeeplinkManager file from JS to TS
 - [#7972](https://github.com/MetaMask/metamask-mobile/pull/7972): chore: Replace local code fence transform with `@metamask/build-utils`
 - [#7925](https://github.com/MetaMask/metamask-mobile/pull/7925): chore: refactor the DeeplinkManager into smaller parts and add unit tests
@@ -2173,7 +2587,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7689](https://github.com/MetaMask/metamask-mobile/pull/7689): refactor: generate nonces using nonce tracker
 - [#7896](https://github.com/MetaMask/metamask-mobile/pull/7896): test: Remove duplicate methods on Gesture class
 
- ### Fixed
+### Fixed
+
 - [#7953](https://github.com/MetaMask/metamask-mobile/pull/7953): fix: correct proptypes array in WebsiteIcon component
 - [#7886](https://github.com/MetaMask/metamask-mobile/pull/7886): fix: Fix `eth_signTypedData` signatures containing `0x`
 - [#7935](https://github.com/MetaMask/metamask-mobile/pull/7935): fix: bitrise cocoapods issue in bitrise
@@ -2196,26 +2611,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7976](https://github.com/MetaMask/metamask-mobile/pull/7976): fix: blockaid mobile performance improvements
 
 ## [7.12.5]
+
 ### Added
+
 - [#8156](https://github.com/MetaMask/metamask-mobile/pull/8156): feat: migrate to latest Token rates controller
 
 ### Fixed
+
 - [#8155](https://github.com/MetaMask/metamask-mobile/pull/8155): fix: OpenSea V1 -> V2 patch
 
 ## [7.12.3]
+
 ### Fixed
+
 - [#8102](https://github.com/MetaMask/metamask-mobile/pull/8102): fix: prevent bad svg urls in react-native-svg
 
 ## [7.12.2]
+
 ### Fixed
-- [#8057](https://github.com/MetaMask/metamask-mobile/pull/8057): fix: Disable SES on iOS 
+
+- [#8057](https://github.com/MetaMask/metamask-mobile/pull/8057): fix: Disable SES on iOS
 
 ## [7.12.1]
+
 ### Fixed
+
 - [#7991](https://github.com/MetaMask/metamask-mobile/pull/7991): fix: patch for token rates controller with coin gecko endpoint
 
 ## [7.12.0]
+
 ### Added
+
 - [#7037](https://github.com/MetaMask/metamask-mobile/pull/7037): feat(off-ramp): add off-ramp feature
 - [#7734](https://github.com/MetaMask/metamask-mobile/pull/7734): feat: enable code fence capabilities on mobile app.
 - [#7754](https://github.com/MetaMask/metamask-mobile/pull/7754): feat: add a return to app modal only for ios 17 when an sdk operation is done
@@ -2237,6 +2663,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7708](https://github.com/MetaMask/metamask-mobile/pull/7708): feat: configure metro listener port
 
 ### Changed
+
 - [#7860](https://github.com/MetaMask/metamask-mobile/pull/7860): refactor: Updated Toast story
 - [#7391](https://github.com/MetaMask/metamask-mobile/pull/7391): refactor: Convert Button stories to csf format
 - [#7393](https://github.com/MetaMask/metamask-mobile/pull/7393): refactor: Convert Badge stories to csf format
@@ -2263,6 +2690,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7704](https://github.com/MetaMask/metamask-mobile/pull/7704): refactor: logger.js to typescript and optimize for dev
 
 ### Fixed
+
 - [#7859](https://github.com/MetaMask/metamask-mobile/pull/7859): fix: microphone and camera on webview
 - [#7776](https://github.com/MetaMask/metamask-mobile/pull/7776): fix: WalletConnect requests should show loading banner for blockaid
 - [#7838](https://github.com/MetaMask/metamask-mobile/pull/7838): fix: remove unused .tools-versions to prioritize nvm
@@ -2300,7 +2728,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7642](https://github.com/MetaMask/metamask-mobile/pull/7642): fix: action view btn not able translate
 
 ## [7.11.0]
+
 ### Added
+
 - [#7251](https://github.com/MetaMask/metamask-mobile/pull/7251): feat: #999 - RTK consolidate reducers
 - [#7628](https://github.com/MetaMask/metamask-mobile/pull/7628): feat: sdk batch rpc calls
 - [#7655](https://github.com/MetaMask/metamask-mobile/pull/7655): feat: node to version 18.17.1
@@ -2313,6 +2743,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7419](https://github.com/MetaMask/metamask-mobile/pull/7419): feat: Add metrics for provider calls coming from ppom on mobile
 
 ### Changed
+
 - [#7349](https://github.com/MetaMask/metamask-mobile/pull/7349): refactor: Convert Form stories
 - [#7414](https://github.com/MetaMask/metamask-mobile/pull/7414): refactor: Convert List stories to csf format
 - [#7468](https://github.com/MetaMask/metamask-mobile/pull/7468): refactor: Convert Text stories to csf format
@@ -2350,6 +2781,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7574](https://github.com/MetaMask/metamask-mobile/pull/7574): chore: minor bump on react native dev tools to address audit issue
 
 ### Fixed
+
 - [#7692](https://github.com/MetaMask/metamask-mobile/pull/7692): fix: sdk and deeplink init process
 - [#7687](https://github.com/MetaMask/metamask-mobile/pull/7687): fix: refactor selectors and fix request token test
 - [#7491](https://github.com/MetaMask/metamask-mobile/pull/7491): fix: Warn users when connecting to a website on the eth-phishing-detect list on mobile
@@ -2370,13 +2802,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7540](https://github.com/MetaMask/metamask-mobile/pull/7540): fix: token decimals fetched from the chain
 - [#7546](https://github.com/MetaMask/metamask-mobile/pull/7546): fix link to testnet faucets
 - [#7557](https://github.com/MetaMask/metamask-mobile/pull/7557): fix(issue template): encourage recordings
-- [#7813](https://github.com/MetaMask/metamask-mobile/pull/7813): fix: Add microphone permissions to iOS 
+- [#7813](https://github.com/MetaMask/metamask-mobile/pull/7813): fix: Add microphone permissions to iOS
 - [#7737](https://github.com/MetaMask/metamask-mobile/pull/7737): fix: Use custom controls for iOS video
 - [#7811](https://github.com/MetaMask/metamask-mobile/pull/7811): fix: Lock yarn to 1.22.19
-- [#7733](https://github.com/MetaMask/metamask-mobile/pull/7733): fix: silence PollingBlockTracker Sentry 
+- [#7733](https://github.com/MetaMask/metamask-mobile/pull/7733): fix: silence PollingBlockTracker Sentry
 
 ## [7.10.0]
+
 ### Added
+
 - [#7154](https://github.com/MetaMask/metamask-mobile/pull/7154): feat: incoming transactions by network
 - [#7541](https://github.com/MetaMask/metamask-mobile/pull/7541): feat: Add EIP-6963 Provider
 - [#7256](https://github.com/MetaMask/metamask-mobile/pull/7256): feat: Enable zkSync Era in Swaps
@@ -2388,6 +2822,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7584](https://github.com/MetaMask/metamask-mobile/pull/7584): feat: re-create connect_sign feature
 
 ### Changed
+
 - [#7574](https://github.com/MetaMask/metamask-mobile/pull/7574): chore: minor bump on react native dev tools to address audit issue
 - [#7354](https://github.com/MetaMask/metamask-mobile/pull/7354): chore: New Crowdin translations by Github Action
 - [#7542](https://github.com/MetaMask/metamask-mobile/pull/7542): chore: @metamask/test-dapp@^7.1.0->^7.2.0
@@ -2421,11 +2856,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7372](https://github.com/MetaMask/metamask-mobile/pull/7372): test: reorg signatures tests to maximize efficiency
 - [#7356](https://github.com/MetaMask/metamask-mobile/pull/7356): test: Add dynamic allocation port for ganache, fixtures and test dapp
 - [#7130](https://github.com/MetaMask/metamask-mobile/pull/7130): chore(deps): dedupe semver
-- [#7128](https://github.com/MetaMask/metamask-mobile/pull/7128): deps: Dedupe `ethers`@5.*
+- [#7128](https://github.com/MetaMask/metamask-mobile/pull/7128): deps: Dedupe `ethers`@5.\*
 - [#7366](https://github.com/MetaMask/metamask-mobile/pull/7366): ci(bitrise): trigger smoke test on every merge to main
 - [#7364](https://github.com/MetaMask/metamask-mobile/pull/7364): chore: bump Node to v16.20
 
 ### Fixed
+
 - [#7540](https://github.com/MetaMask/metamask-mobile/pull/7540): fix: token decimals fetched from the chain
 - [#7531](https://github.com/MetaMask/metamask-mobile/pull/7531): fix: depcheck@^1.4.5->^1.4.7
 - [#7483](https://github.com/MetaMask/metamask-mobile/pull/7483): fix: android os connection issue
@@ -2450,11 +2886,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7362](https://github.com/MetaMask/metamask-mobile/pull/7362): fix(action): update fetch-depth parameter to fetch only the last commit
 
 ## [7.9.1]
+
 ### Fixed
+
 - [#7653](https://github.com/MetaMask/metamask-mobile/pull/7653): fix: revert nonce logic in transaction controller
 
 ## [7.9.0]
+
 ### Added
+
 - [#7341](https://github.com/MetaMask/metamask-mobile/pull/7341): feat(ramp): add webview debug by env vars
 - [#7345](https://github.com/MetaMask/metamask-mobile/pull/7345): feat: remove unused react-native-webrtc package
 - [#7212](https://github.com/MetaMask/metamask-mobile/pull/7212): feat: extend the time we resume the session without showing OTP
@@ -2464,6 +2904,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7052](https://github.com/MetaMask/metamask-mobile/pull/7052): feat: Ipfs implementation (#6968)
 
 ### Changed
+
 - [#7028](https://github.com/MetaMask/metamask-mobile/pull/7028): chore: New Crowdin translations by Github Action
 - [#7159](https://github.com/MetaMask/metamask-mobile/pull/7159): refactor: custom network component
 - [#7277](https://github.com/MetaMask/metamask-mobile/pull/7277): chore: 5.8.1 Sentry SDK Upgrade
@@ -2480,6 +2921,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7225](https://github.com/MetaMask/metamask-mobile/pull/7225): test: Signatures refactor with fixtures
 
 ### Fixed
+
 - [#7309](https://github.com/MetaMask/metamask-mobile/pull/7309): fix: Fix Podfile.lock versions
 - [#7308](https://github.com/MetaMask/metamask-mobile/pull/7308): fix: Fix e2e smoke tests caused by failed pod install step
 - [#7197](https://github.com/MetaMask/metamask-mobile/pull/7197): fix: Key the address book by chain ID instead of network ID
@@ -2493,9 +2935,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7276](https://github.com/MetaMask/metamask-mobile/pull/7276): fix: handle overlapping add network requests
 - [#7278](https://github.com/MetaMask/metamask-mobile/pull/7278): fix: Fix console errors upon switching networks
 
-
 ## [7.8.0]
+
 ### Added
+
 - [#7068](https://github.com/MetaMask/metamask-mobile/pull/7068): feat: Adding blockaid banner to confirmation pages
 - [#7186](https://github.com/MetaMask/metamask-mobile/pull/7186): feat: translation ipfs banner
 - [#7038](https://github.com/MetaMask/metamask-mobile/pull/7038): feat: Blockaid preference
@@ -2503,6 +2946,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7107](https://github.com/MetaMask/metamask-mobile/pull/7107): feat: update README XCode and python instructions
 
 ### Changed
+
 - [#7213](https://github.com/MetaMask/metamask-mobile/pull/7213): chore: Normalize transaction controller patch
 - [#7226](https://github.com/MetaMask/metamask-mobile/pull/7226): chore: add script to patch transaction controller
 - [#7140](https://github.com/MetaMask/metamask-mobile/pull/7140): chore: Update confirmation page layout for Blockaid alerts
@@ -2514,7 +2958,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7182](https://github.com/MetaMask/metamask-mobile/pull/7182): refactor: Fix documented return type of `handleNetworkSwitch`
 - [#7168](https://github.com/MetaMask/metamask-mobile/pull/7168): test: Screenshots on failure should only be done on the last retry for ios
 - [#7179](https://github.com/MetaMask/metamask-mobile/pull/7179): refactor: Add tests for `checkAddress` and fix types
-- [#7118](https://github.com/MetaMask/metamask-mobile/pull/7118): deps: dedupe @babel/*, babel-*
+- [#7118](https://github.com/MetaMask/metamask-mobile/pull/7118): deps: dedupe @babel/_, babel-_
 - [#7032](https://github.com/MetaMask/metamask-mobile/pull/7032): devDeps: @lavamoat/allow-scripts@1.0.6->2.3.1
 - [#7124](https://github.com/MetaMask/metamask-mobile/pull/7124): ci: Add depcheck test
 - [#7156](https://github.com/MetaMask/metamask-mobile/pull/7156): refactor: Refactor `isTestNet` to accept chain ID
@@ -2530,6 +2974,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7100](https://github.com/MetaMask/metamask-mobile/pull/7100): ci: Add type check lint to CI
 
 ### Fixed
+
 - [#7187](https://github.com/MetaMask/metamask-mobile/pull/7187): fix: sonar coverage path
 - [#7106](https://github.com/MetaMask/metamask-mobile/pull/7106): fix: rename signature events and fix failing unit test
 - [#7077](https://github.com/MetaMask/metamask-mobile/pull/7077): fix: Warning when rejecting an approval request with id XYZ not found
@@ -2549,7 +2994,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7096](https://github.com/MetaMask/metamask-mobile/pull/7096): fix: Fix Engine `controllerMessenger` type errors
 
 ## [7.7.0]
+
 ### Added
+
 - [#7090](https://github.com/MetaMask/metamask-mobile/pull/7090): feat: add translations for new contextual sheet display nft media
 - [#6727](https://github.com/MetaMask/metamask-mobile/pull/6727): style: Update Button's pressed and disabled states
 - [#7075](https://github.com/MetaMask/metamask-mobile/pull/7075): feat: incoming transactions translations
@@ -2559,6 +3006,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6983](https://github.com/MetaMask/metamask-mobile/pull/6983): feat: 940 e2e migrate senderc721 test to detox
 
 ### Changed
+
 - [#6998](https://github.com/MetaMask/metamask-mobile/pull/6998): refactor: use block tracker to poll incoming transactions
 - [#6872](https://github.com/MetaMask/metamask-mobile/pull/6872): refactor: Update controller packages to v44
 - [#7091](https://github.com/MetaMask/metamask-mobile/pull/7091): refactor: Simplify Engine constructor
@@ -2577,6 +3025,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6898](https://github.com/MetaMask/metamask-mobile/pull/6898): refactor: Update `@metamask/assets-controllers` patch
 
 ### Fixed
+
 - [#7050](https://github.com/MetaMask/metamask-mobile/pull/7050): fix: Update terms of use header to match new copy
 - [#7086](https://github.com/MetaMask/metamask-mobile/pull/7086): fix: ext contributor SonarCloud
 - [#7029](https://github.com/MetaMask/metamask-mobile/pull/7029): fix: crowdin action upload
@@ -2589,7 +3038,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7024](https://github.com/MetaMask/metamask-mobile/pull/7024): fix(action): octokit not supported on MetaMask repos
 
 ## [7.6.0]
+
 ### Added
+
 - [#6938](https://github.com/MetaMask/metamask-mobile/pull/6938): feat(release): 7.5.0
 - [#7026](https://github.com/MetaMask/metamask-mobile/pull/7026): feat: new translations for nft media
 - [#6779](https://github.com/MetaMask/metamask-mobile/pull/6779): feat: Add security alerts settings to experimental tab
@@ -2601,6 +3052,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6832](https://github.com/MetaMask/metamask-mobile/pull/6832): feat: add support for template and header on result pages
 
 ### Changed
+
 - [#6913](https://github.com/MetaMask/metamask-mobile/pull/6913): chore: remove unused Jest preprocessor
 - [#6840](https://github.com/MetaMask/metamask-mobile/pull/6840): chore(deps): bump word-wrap from 1.2.3 to 1.2.4
 - [#6930](https://github.com/MetaMask/metamask-mobile/pull/6930): docs: Update QA section in PR template
@@ -2614,6 +3066,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6936](https://github.com/MetaMask/metamask-mobile/pull/6936): chore: remove onBackdropPress for signatures
 
 ### Fixed
+
 - [#6653](https://github.com/MetaMask/metamask-mobile/pull/6653): fix: #893 fix immediate lock timer
 - [#6910](https://github.com/MetaMask/metamask-mobile/pull/6910): fix: remove translations files being pushed up to crowdin
 - [#6947](https://github.com/MetaMask/metamask-mobile/pull/6947): fix: Fix TS errors in `component-library` directory
@@ -2631,7 +3084,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6864](https://github.com/MetaMask/metamask-mobile/pull/6864): fix: custom position logic for badgeWrapper
 
 ## [7.5.0]
+
 ### Added
+
 - [#6865](https://github.com/MetaMask/metamask-mobile/pull/6865): feat: Create a performance E2E test for warm starts
 - [#6187](https://github.com/MetaMask/metamask-mobile/pull/6187): feat: Add guidelines for contributors
 - [#6732](https://github.com/MetaMask/metamask-mobile/pull/6732): feat: add missing `wallet_requestPermissions` and `wallet_getPermissions` to the mobile API.
@@ -2647,6 +3102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6755](https://github.com/MetaMask/metamask-mobile/pull/6755): feat: sdk protocol update
 
 ### Changed
+
 - [#6884](https://github.com/MetaMask/metamask-mobile/pull/6884): chore: Update `@metamask/controller-utils` to v3.4
 - [#6876](https://github.com/MetaMask/metamask-mobile/pull/6876): chore: Update Jest to v28
 - [#6784](https://github.com/MetaMask/metamask-mobile/pull/6784): refactor: Use selectors for token list controller state access
@@ -2654,9 +3110,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6752](https://github.com/MetaMask/metamask-mobile/pull/6752): refactor: Use selectors for currency rate controller state access
 - [#6687](https://github.com/MetaMask/metamask-mobile/pull/6687): refactor: split approvals into separate files
 - [#6848](https://github.com/MetaMask/metamask-mobile/pull/6848): refactor: Use Redux network controller state
-- [#6775](https://github.com/MetaMask/metamask-mobile/pull/6775): refactor: Use selectors for preferences controller state 
+- [#6775](https://github.com/MetaMask/metamask-mobile/pull/6775): refactor: Use selectors for preferences controller state
 - [#6808](https://github.com/MetaMask/metamask-mobile/pull/6808): refactor: Updated constants structure for button to remove
-access
+  access
 - [#6814](https://github.com/MetaMask/metamask-mobile/pull/6814): refactor(ramp): rename fiat aggregator folder to ramp
 - [#6804](https://github.com/MetaMask/metamask-mobile/pull/6804): refactor(on-ramp): refactor quotes screen
 - [#6820](https://github.com/MetaMask/metamask-mobile/pull/6820): refactor: Use selectors for nft controller state access
@@ -2671,6 +3127,7 @@ access
 - [#6080](https://github.com/MetaMask/metamask-mobile/pull/6080): refactor: TypeScript ~4.8.4 and ESLint deps upgrades and initial type fixes
 
 ### Fixed
+
 - [#6863](https://github.com/MetaMask/metamask-mobile/pull/6863): fix: misalignment issue for multiselect cells
 - [#6600](https://github.com/MetaMask/metamask-mobile/pull/6600): refactor: accept SignController approval request from frontend
 - [#6844](https://github.com/MetaMask/metamask-mobile/pull/6844): fix: Android filename validation when downloading from browser
@@ -2686,7 +3143,9 @@ access
 - [#6903](https://github.com/MetaMask/metamask-mobile/pull/6903): fix: Fix crash when switching to Linea
 
 ## [7.4.0]
+
 ### Added
+
 - [#6805](https://github.com/MetaMask/metamask-mobile/pull/6805): feat(on-ramp): upgrade on-ramp SDK with apple pay support
 - [#6679](https://github.com/MetaMask/metamask-mobile/pull/6679): feat(on-ramp): upgrade on-ramp-sdk to v1.22.0 with abort controller support
 - [#6799](https://github.com/MetaMask/metamask-mobile/pull/6799): feat: prioritize resume over deeplink to accelerate reconnection flow
@@ -2697,6 +3156,7 @@ access
 - [#6755](https://github.com/MetaMask/metamask-mobile/pull/6755): feat: sdk protocol update
 
 ### Changed
+
 - [#6804](https://github.com/MetaMask/metamask-mobile/pull/6804): refactor(on-ramp): refactor quotes screen
 - [#6784](https://github.com/MetaMask/metamask-mobile/pull/6784): refactor: Use selectors for token list controller state access
 - [#6758](https://github.com/MetaMask/metamask-mobile/pull/6758): refactor: Use selectors for tokens controller state access
@@ -2705,6 +3165,7 @@ access
 - [#6752](https://github.com/MetaMask/metamask-mobile/pull/6752): refactor: Use selectors for currency rate controller state access
 
 ### Fixed
+
 - [#6754](https://github.com/MetaMask/metamask-mobile/pull/6754): fix: sending an ERC20 token with an amount with more decimals than the token decimal, results in nothing
 - [#6790](https://github.com/MetaMask/metamask-mobile/pull/6790): fix: update snapshot for linea mainnet
 - [#6587](https://github.com/MetaMask/metamask-mobile/pull/6587): fix: Improves handling of missing WCv2 Project ID
@@ -2713,11 +3174,15 @@ access
 - [#6753](https://github.com/MetaMask/metamask-mobile/pull/6753): fix: Delete collectible media reproductor
 
 ## [7.3.1]
+
 ### Fixed
+
 - [#6833](https://github.com/MetaMask/metamask-mobile/pull/6833): fix: invalid transaction data used for approve transaction
 
 ## [7.3.0]
+
 ### Added
+
 - [#6220](https://github.com/MetaMask/metamask-mobile/pull/6220): feat: Upgrade React Native to 0.71.6
 - [#6596](https://github.com/MetaMask/metamask-mobile/pull/6596): feat: Memoise token balance controler hook
 - [#6639](https://github.com/MetaMask/metamask-mobile/pull/6639): feat: approval flow for add & switch network
@@ -2730,6 +3195,7 @@ access
 - [#6499](https://github.com/MetaMask/metamask-mobile/pull/6499): feat: `eth_accounts` return all permitted accounts
 
 ### Changed
+
 - [#6662](https://github.com/MetaMask/metamask-mobile/pull/6662): refactor: Remove dead network controller code
 - [#6664](https://github.com/MetaMask/metamask-mobile/pull/6664): refactor: Simplify `isMainnet` utility function
 - [#6723](https://github.com/MetaMask/metamask-mobile/pull/6723): refactor: Updated checkbox style and icon
@@ -2741,6 +3207,7 @@ access
 - [#6641](https://github.com/MetaMask/metamask-mobile/pull/6641): refactor: approve and reject transactions using approval controller
 
 ### Fixed
+
 - [#6741](https://github.com/MetaMask/metamask-mobile/pull/6741): fix: onPress prop added to SelectItem component
 - [#6722](https://github.com/MetaMask/metamask-mobile/pull/6722): fix: WC2 error management and SDK 'authorized' event
 - [#6729](https://github.com/MetaMask/metamask-mobile/pull/6729): fix: update multi select snapshot
@@ -2750,7 +3217,9 @@ access
 - [#6637](https://github.com/MetaMask/metamask-mobile/pull/6637): fix: Support Decimal Comma for Token Custom Spend Cap
 
 ## [7.2.0]
+
 ### Added
+
 - [#6632](https://github.com/MetaMask/metamask-mobile/pull/6632): feat: add linea mainnet alert message
 - [#6496](https://github.com/MetaMask/metamask-mobile/pull/6496): feat(551): add Linea Mainnet
 - [#6494](https://github.com/MetaMask/metamask-mobile/pull/6494): feat: Update banner component to show/hide details section
@@ -2767,6 +3236,7 @@ access
 - [#6486](https://github.com/MetaMask/metamask-mobile/pull/6486): feat: Add disabled prop on base button
 
 ### Changed
+
 - [#6612](https://github.com/MetaMask/metamask-mobile/pull/6612): chore: approve txn when gas estimation ready
 - [#6054](https://github.com/MetaMask/metamask-mobile/pull/6054): chore: Improve TagURL
 - [#6520](https://github.com/MetaMask/metamask-mobile/pull/6520): chore: improve variable name
@@ -2783,6 +3253,7 @@ access
 - [#6357](https://github.com/MetaMask/metamask-mobile/pull/6357): refactor: use approval controller for watch asset confirmation
 
 ### Fixed
+
 - [#6549](https://github.com/MetaMask/metamask-mobile/pull/6549): fix: Networks text alignement
 - [#6634](https://github.com/MetaMask/metamask-mobile/pull/6634): fix: disable next button if custom input is invalid
 - [#6491](https://github.com/MetaMask/metamask-mobile/pull/6491): fix: refactor linea testnet implementation
@@ -2795,11 +3266,13 @@ access
 - [#6473](https://github.com/MetaMask/metamask-mobile/pull/6473): fix: fix for swaps button displaying on unsupported networks
 - [#6464](https://github.com/MetaMask/metamask-mobile/pull/6464): fix: bug domain not shown on signature
 - [#6517](https://github.com/MetaMask/metamask-mobile/pull/6517): fix: remove duplicate ganache steps definitions
-- [#6299](https://github.com/MetaMask/metamask-mobile/pull/6299): fix: for from address balance shown for ERC20 transfers 
+- [#6299](https://github.com/MetaMask/metamask-mobile/pull/6299): fix: for from address balance shown for ERC20 transfers
 - [#6471](https://github.com/MetaMask/metamask-mobile/pull/6471): fix: Approve default ERC20
 
 ## [7.1.0]
+
 ### Added
+
 - [#6351](https://github.com/MetaMask/metamask-mobile/pull/6351): feat: use thunk to handle processed order side effects
 - [#5829](https://github.com/MetaMask/metamask-mobile/pull/5829): feat: order of browser page load events
 - [#6230](https://github.com/MetaMask/metamask-mobile/pull/6230): feat: Asset Overview / Token Detail view redesign
@@ -2818,6 +3291,7 @@ access
 - [#6334](https://github.com/MetaMask/metamask-mobile/pull/6334): feat: Aurora Token Detection
 
 ### Changed
+
 - [#6406](https://github.com/MetaMask/metamask-mobile/pull/6406): chore: Use core signature controller
 - [#6427](https://github.com/MetaMask/metamask-mobile/pull/6427): refactor: Refactor unit tests for React Native 0.71.6 upgrade
 - [#6192](https://github.com/MetaMask/metamask-mobile/pull/6192): chore: Show account balance in signature screen
@@ -2835,6 +3309,7 @@ access
 - [#6345](https://github.com/MetaMask/metamask-mobile/pull/6345): chore: es.js file
 
 ### Fixed
+
 - [#6439](https://github.com/MetaMask/metamask-mobile/pull/6439): fix: remove invalid accessibilityRole value
 - [#6442](https://github.com/MetaMask/metamask-mobile/pull/6442): fix(ci): Remove `restore-build` steps
 - [#6311](https://github.com/MetaMask/metamask-mobile/pull/6311): fix: token balance displayed in approval pages
@@ -2842,15 +3317,21 @@ access
 - [#6350](https://github.com/MetaMask/metamask-mobile/pull/6350): fix: ENS name displayed on confirm send page
 
 ## [7.0.1]
+
 ### Changed
+
 - [#6558](https://github.com/MetaMask/metamask-mobile/pull/6558): refactor(whats-new-modal): remove onramp content
 
 ## [7.0.0]
+
 ### Added
+
 - [#6536](https://github.com/MetaMask/metamask-mobile/pull/6380): [FEATURE] WalletConnect v2 Integration (#6380)
 
 ## [6.6.0]
+
 ### Added
+
 - [#6325](https://github.com/MetaMask/metamask-mobile/pull/6325): [FEATURE] Add development environment to onramp-sdk
 - [#6165](https://github.com/MetaMask/metamask-mobile/pull/6165): [FEATURE] Edit account name view
 - [#6093](https://github.com/MetaMask/metamask-mobile/pull/6093): [FEATURE] Account actions on wallet view
@@ -2858,12 +3339,14 @@ access
 - [#6085](https://github.com/MetaMask/metamask-mobile/pull/6085): [FEATURE] Update account section with card
 
 ### Changed
+
 - [#6228](https://github.com/MetaMask/metamask-mobile/pull/6228): [UPDATE] Checkbox component
 - [#6226](https://github.com/MetaMask/metamask-mobile/pull/6226): [UPDATE] Button's icon props and button org
 - [#6255](https://github.com/MetaMask/metamask-mobile/pull/6255): [UPDATE] Onboarding translation updated
 - [#6210](https://github.com/MetaMask/metamask-mobile/pull/6210): [UPDATE] Extend the readme documentation to cover E2E testing in more detail.
 
 ### Fixed
+
 - [#6249](https://github.com/MetaMask/metamask-mobile/pull/6249): [FIX] Terms of Use checkbox test id
 - [#5866](https://github.com/MetaMask/metamask-mobile/pull/5866): [FIX] sturdier check
 - [#6340](https://github.com/MetaMask/metamask-mobile/pull/6340): [FIX] Missing network name onramp
@@ -2872,10 +3355,10 @@ access
 - [#6246](https://github.com/MetaMask/metamask-mobile/pull/6246): [FIX] Wrong to account information on confirmation page
 - [#6253](https://github.com/MetaMask/metamask-mobile/pull/6253): [FIX] Confirm button should be disabled if account has no balance
 
-
-
 ## [6.5.0]
+
 ### Added
+
 - [#5743](https://github.com/MetaMask/metamask-mobile/pull/5743): [FEATURE] On-ramp: Add buy-crypto deeplink
 - [#6166](https://github.com/MetaMask/metamask-mobile/pull/6166): [FEATURE] trigger walletconnect modal using approval controller
 - [#6223](https://github.com/MetaMask/metamask-mobile/pull/6223): [IMPROVEMENT] Update to Node.js v16
@@ -2896,19 +3379,22 @@ access
 - [#6056](https://github.com/MetaMask/metamask-mobile/pull/6056): [IMPROVEMENT] Show Identicon for unknown token and if token icon is unknown
 
 ### Changed
+
 - [#6157](https://github.com/MetaMask/metamask-mobile/pull/6157): [REFACTOR] Change Password setting
 - [#6173](https://github.com/MetaMask/metamask-mobile/pull/6173): [REFACTOR] Auto Lock section
 
 ### Fixed
+
 - [#6201](https://github.com/MetaMask/metamask-mobile/pull/6201): [FIX] [SDK] Missing redirect breaking backward compatibility
 - [#6232](https://github.com/MetaMask/metamask-mobile/pull/6232): [FIX] bottom margin for detecting end of the page
 - [#6185](https://github.com/MetaMask/metamask-mobile/pull/6185): [FIX] remove pubnub package and associated sync with extension code
 - [#5718](https://github.com/MetaMask/metamask-mobile/pull/5718): [FIX] Nonce Too Low for Approve Transaction
 - [#6076](https://github.com/MetaMask/metamask-mobile/pull/6076): [BUGFIX] Fixes WalletConnect deep links (wc:// schema) not working properly
 
-
 ## [6.4.0]
+
 ### Added
+
 - [#6144](https://github.com/MetaMask/metamask-mobile/pull/6144): [FEATURE] New Crowdin translations by Github Action
 - [#6143](https://github.com/MetaMask/metamask-mobile/pull/6143): [UPDATE] Crowdin token to use METAMASKBOT_CROWDIN_TOKEN
 - [#5627](https://github.com/MetaMask/metamask-mobile/pull/5627): [IMPROVEMENT] Refactor remaining `web3-provider-engine` methods
@@ -2927,6 +3413,7 @@ access
 - [#6060](https://github.com/MetaMask/metamask-mobile/pull/6060): [IMPROVEMENT] Refactor send transaction v2
 
 ### Changed
+
 - [#6134](https://github.com/MetaMask/metamask-mobile/pull/6134): [REFACTOR] Reveal Private Key section
 
 - [#6015](https://github.com/MetaMask/metamask-mobile/pull/6015): [UPDATE] sentry version and enable performance metrics
@@ -2934,12 +3421,15 @@ access
 - [#6006](https://github.com/MetaMask/metamask-mobile/pull/6006): [UPDATE] Upgrade xcode version
 
 ### Fixed
+
 - [#6109](https://github.com/MetaMask/metamask-mobile/pull/6109): [FIX] linea network order in dropdown + remove feature toggle for linea (#6072)
 - [#6058](https://github.com/MetaMask/metamask-mobile/pull/6058): [FIX] broken erc721 approve token link
 - [#6122](https://github.com/MetaMask/metamask-mobile/pull/6122): [FIX] TypeError: undefined is not an object (evaluating 'n.find')
 
 ## [6.3.0]
+
 ### Added
+
 - [#6039](https://github.com/MetaMask/metamask-mobile/pull/6039): [ENHANCEMENT] Improve Android setup instructions
 - [#5996](https://github.com/MetaMask/metamask-mobile/pull/5996): [ENHANCEMENT] Add document to refactor signature request code
 - [#5958](https://github.com/MetaMask/metamask-mobile/pull/5958): [FEATURE] add consensys zkevm (Linea) support
@@ -2957,10 +3447,12 @@ access
 - [#5327](https://github.com/MetaMask/metamask-mobile/pull/5327): [FEATURE] Verify Contract Details
 
 ### Changed
+
 - [#5669](https://github.com/MetaMask/metamask-mobile/pull/5669): [UPDATE] http-cache-semantics from 4.1.0 to 4.1.1
 - [#5959](https://github.com/MetaMask/metamask-mobile/pull/5959): [UPDATE] @xmldom/xmldom from 0.8.3 to 0.8.6
 
 ### Fixed
+
 - [#5962](https://github.com/MetaMask/metamask-mobile/pull/5962): [FIX] Remove select address as a prop on App index.js
 - [#5941](https://github.com/MetaMask/metamask-mobile/pull/5941): [FIX] bundle video in app to prevent crash when not available
 - [#5839](https://github.com/MetaMask/metamask-mobile/pull/5839): [FIX] Clear Hex data when Token Transfer reverts ETH
@@ -2970,7 +3462,9 @@ access
 - [#6025](https://github.com/MetaMask/metamask-mobile/pull/6025): [FIX] Add url-parse lib to our MainNavigator
 
 ## [6.2.0]
+
 ### Added
+
 - [#5807](https://github.com/MetaMask/metamask-mobile/pull/5807): [IMPROVEMENT] "preview build" support to Bitrise
 - [#5870](https://github.com/MetaMask/metamask-mobile/pull/5870): [IMPROVEMENT] On-ramp: Add buy crypto home button
 - [#5529](https://github.com/MetaMask/metamask-mobile/pull/5529): [IMPROVEMENT] Network Controller refactor to use the same selector
@@ -2984,6 +3478,7 @@ access
 - [#5374](https://github.com/MetaMask/metamask-mobile/pull/5374): [IMPROVEMENT] Authentication refactor
 
 ### Changed
+
 - [#5924](https://github.com/MetaMask/metamask-mobile/pull/5924): [UPDATE] the README setup steps
 - [#5775](https://github.com/MetaMask/metamask-mobile/pull/5775): [UPDATE] Security Privacy Remember me feature
 - [#5803](https://github.com/MetaMask/metamask-mobile/pull/5803): [UPDATE] Sentry: remove DSN value from codebase
@@ -2993,21 +3488,27 @@ access
 - [#5901](https://github.com/MetaMask/metamask-mobile/pull/5901): [UPDATE] assets-controllers patch
 
 ### Fixed
+
 - [#5890](https://github.com/MetaMask/metamask-mobile/pull/5890): [FIX] Swap with wallet connect
 - [#5750](https://github.com/MetaMask/metamask-mobile/pull/5750): [FIX] Enable clipboard for private credentials
 
-
 ## [6.1.2]
+
 ### Fixed
+
 - [#5925](https://github.com/MetaMask/metamask-mobile/pull/5925): [FIX] handle all ios biometric errors and create wallet
 - [#5906](https://github.com/MetaMask/metamask-mobile/pull/5906): [FIX] Add try-catch to recreateVault
 
 ## [6.1.1]
+
 ### Fixed
+
 - [#5848](https://github.com/MetaMask/metamask-mobile/pull/5848): [FIX] Remove default eth sign
 
 ## [6.1.0]
+
 ### Added
+
 - [#5461](https://github.com/MetaMask/metamask-mobile/pull/5461): [IMPROVEMENT] On-ramp: Refactor Payment Methods view to componentization
 - [#5813](https://github.com/MetaMask/metamask-mobile/pull/5813): [FEATURE] Add copy for portfolio button for translations
 - [#5797](https://github.com/MetaMask/metamask-mobile/pull/5797): [IMPROVEMENT] Remove phishing list update engine removal
@@ -3033,9 +3534,11 @@ access
 - [#5218](https://github.com/MetaMask/metamask-mobile/pull/5218): [IMPROVEMENT] Improve deeplinks experience
 
 ### Changed
+
 - [#5768](https://github.com/MetaMask/metamask-mobile/pull/5768): [UPGRADE] Segment Analytics 2.13.0
 
 ### Fixed
+
 - [#5657](https://github.com/MetaMask/metamask-mobile/pull/5657): [FIX] fix the RequestTokenFlow E2E test
 - [#5675](https://github.com/MetaMask/metamask-mobile/pull/5675): [FIX] Fix eslint commit hook
 - [#5608](https://github.com/MetaMask/metamask-mobile/pull/5608): [FIX] SRP recover when an error is thrown
@@ -3062,11 +3565,15 @@ access
 - [#5729](https://github.com/MetaMask/metamask-mobile/pull/5729): [FIX] Bump react-native-reanimated to 2.14.0
 
 ## [6.0.1]
+
 ### Fixed
+
 - [#5799](https://github.com/MetaMask/metamask-mobile/pull/5799): [FIX] Browser: handle unsupported URLs
 
 ## [6.0.0]
+
 ### Added
+
 - [#5062](https://github.com/MetaMask/metamask-mobile/pull/5062): [FEATURE] Implement Permission System
 - [#5659](https://github.com/MetaMask/metamask-mobile/pull/5659): [IMPROVEMENT] E2E fix tapReminder step
 - [#5641](https://github.com/MetaMask/metamask-mobile/pull/5641): [IMPROVEMENT] Use Set when filtering blocklist
@@ -3082,12 +3589,14 @@ access
 - [#5559](https://github.com/MetaMask/metamask-mobile/pull/5559): [ANALYTICS] Add analytics events for SRP reveal
 
 ### Changed
+
 - [#5594](https://github.com/MetaMask/metamask-mobile/pull/5594): [UPGRADE] bumped ua-parser-js to 0.7.33
 - [#5580](https://github.com/MetaMask/metamask-mobile/pull/5580): [UPGRADE] Bump cookiejar from 2.1.2 to 2.1.4
 - [#5471](https://github.com/MetaMask/metamask-mobile/pull/5471): [UPGRADE] Bump luxon from 3.1.1 to 3.2.1
 - [#5450](https://github.com/MetaMask/metamask-mobile/pull/5450): [UPGRADE] Bump json5 from 1.0.1 to 1.0.2
 
 ### Fixed
+
 - [#5626](https://github.com/MetaMask/metamask-mobile/pull/5626): [FIX] SRP Quiz content and translations
 - [#5612](https://github.com/MetaMask/metamask-mobile/pull/5612): [FIX] Make Prettier work in wdio directory
 - [#5605](https://github.com/MetaMask/metamask-mobile/pull/5605): [FIX] Handle ENS Address Error
@@ -3097,9 +3606,10 @@ access
 - [#5714](https://github.com/MetaMask/metamask-mobile/pull/5714): [FIX] Importing private key via QR code redirects to browser
 - [#5709](https://github.com/MetaMask/metamask-mobile/pull/5709): [FIX] Settings networks icons were missing
 
-
 ## [5.14.0]
+
 ### Added
+
 - [#5535](https://github.com/MetaMask/metamask-mobile/pull/5535): [IMPROVEMENT] Add content for "Add friction to revealing SRP"
 - [#5506](https://github.com/MetaMask/metamask-mobile/pull/5506): [IMPROVEMENT] On-ramp: Add NavBar tests to GetStarted and Regions Views
 - [#5495](https://github.com/MetaMask/metamask-mobile/pull/5495): [IMPROVEMENT] Copy update for metamask fee on swaps
@@ -3140,9 +3650,11 @@ access
 - [#5430](https://github.com/MetaMask/metamask-mobile/pull/5430): [IMPROVEMENT] Remove Text as any occurrences
 
 ### Changed
+
 - [#5496](https://github.com/MetaMask/metamask-mobile/pull/5496): [REVERT] Onramp - Remove Text as any ocurrences
 
 ### Fixed
+
 - [#5219](https://github.com/MetaMask/metamask-mobile/pull/5219): [FIX] Update selected network when delete network manually inserted
 - [#5440](https://github.com/MetaMask/metamask-mobile/pull/5440): [FIX] Approval error when insufficient balance
 - [#5468](https://github.com/MetaMask/metamask-mobile/pull/5468): [FIX] Screenshot deterrent analytics
@@ -3159,7 +3671,9 @@ access
 - [#5444](https://github.com/MetaMask/metamask-mobile/pull/5444): [FIX] Fix unecessary executions of useEffect
 
 ## [5.13.0]
+
 ### Added
+
 - [#5424](https://github.com/MetaMask/metamask-mobile/pull/5424): [IMPROVEMENT] Add Screenshot Warning to ImportPrivateKey
 - [#4670](https://github.com/MetaMask/metamask-mobile/pull/4670): [FEAT] Screenshot Warning
 - [#5376](https://github.com/MetaMask/metamask-mobile/pull/5376): [IMPROVEMENT] Include L1 fee in the Send flow and on the tx detail page for Optimism
@@ -3168,6 +3682,7 @@ access
 - [#5083](https://github.com/MetaMask/metamask-mobile/pull/5083): [IMPROVEMENT] Component: Custom Spending Cap
 
 ### Changed
+
 - [#5381](https://github.com/MetaMask/metamask-mobile/pull/5381): [UPDATE] Bumped contract-metadata to 2.1.0
 - [#5422](https://github.com/MetaMask/metamask-mobile/pull/5422): [UPDATE] Add custom network and Import custom token
 - [#5200](https://github.com/MetaMask/metamask-mobile/pull/5200): [UPDATE] Update Controllers to version 33.0.0
@@ -3176,28 +3691,36 @@ access
 - [#5351](https://github.com/MetaMask/metamask-mobile/pull/5351): [REMOVE] On-ramp: remove old on-ramp experience
 
 ### Fixed
+
 - [#5400](https://github.com/MetaMask/metamask-mobile/pull/5400): [FIX] jest expect type
 - [#5115](https://github.com/MetaMask/metamask-mobile/pull/5115): [FIX] cancelling transaction when user does not give dapp permission to transfer funds
 
-
 ## [5.12.3]
+
 ### Changed
+
 - Hotfix version bump for iOS only release, no code changes
 
 ## [5.12.1]
+
 ### Added
+
 - [#5307](https://github.com/MetaMask/metamask-mobile/pull/5307): [IMPROVEMENT] Remove RPC URL, Block Explorer URL, Network Name from metrics
-- [#5355](https://github.com/MetaMask/metamask-mobile/pull/5355): [IMPROVEMENT] Sanitize privacy settings before sending to Sentry 
+- [#5355](https://github.com/MetaMask/metamask-mobile/pull/5355): [IMPROVEMENT] Sanitize privacy settings before sending to Sentry
 
 ### Changed
+
 - [#5362](https://github.com/MetaMask/metamask-mobile/pull/5362): [UPDATE] Copy for Opt in metrics screen and enable custom mainnet RPC
 - [#5366](https://github.com/MetaMask/metamask-mobile/pull/5366): [UPDATE] On-ramp Refactor wyre authentication URL approach
 
 ### Fixed
+
 - [#5360](https://github.com/MetaMask/metamask-mobile/pull/5360): [FIX] Onboarding wizard automatic update modal
 
 ## [5.12.0]
+
 ### Added
+
 - [#5335](https://github.com/MetaMask/metamask-mobile/pull/5335): [IMPROVEMENT] On-ramp: Add useRegions hook and fix availablePaymentMethods
 - [#5333](https://github.com/MetaMask/metamask-mobile/pull/5333): [IMPROVEMENT] Only fetch minimum versions if permissions enabled
 - [#5238](https://github.com/MetaMask/metamask-mobile/pull/5238): [IMPROVEMENT] Browser experience
@@ -3212,6 +3735,7 @@ access
 - [#5194](https://github.com/MetaMask/metamask-mobile/pull/5194): [FEATURE] Add more granular killswitches for swaps
 
 ### Changed
+
 - [#5237](https://github.com/MetaMask/metamask-mobile/pull/5237): [DEPENDENCIES] Update Segment dependencies
 - [#5220](https://github.com/MetaMask/metamask-mobile/pull/5220): [UPDATE] On-ramp-sdk@1.3.1: Wyre Apple Pay auth support and inAppBrowser hook
 - [#5266](https://github.com/MetaMask/metamask-mobile/pull/5266): [REMOVE] On-ramp: Remove disabled button in amount to buy screen
@@ -3220,6 +3744,7 @@ access
 - [#5331](https://github.com/MetaMask/metamask-mobile/pull/5331): [UPDATE] Bump @metamask/swaps-controller
 
 ### Fixed
+
 - [#5264](https://github.com/MetaMask/metamask-mobile/pull/5264): [FIX] Date msBetweenDates test
 - [#5268](https://github.com/MetaMask/metamask-mobile/pull/5268): [FIX] On-Ramp: Fix typos from payment method icon and contact support
 - [#5269](https://github.com/MetaMask/metamask-mobile/pull/5269): [FIX] On-Ramp: Fix 1.3.1 creating undefined custom order ids
@@ -3231,9 +3756,10 @@ access
 - [#5169](https://github.com/MetaMask/metamask-mobile/pull/5169): [FIX] Miscalculation on toWei func when passing valid numbers in scientific notation
 - [#5337](https://github.com/MetaMask/metamask-mobile/pull/5337): [FIX] Send ERC-20 tokens on legacy networks
 
-
 ## [5.11.0]
+
 ### Added
+
 - [#5088](https://github.com/MetaMask/metamask-mobile/pull/5088): [IMPROVEMENT] Add no payment methods screen
 - [#5223](https://github.com/MetaMask/metamask-mobile/pull/5223): [IMPROVEMENT] Add payment method icons support
 - [#5198](https://github.com/MetaMask/metamask-mobile/pull/5198): [IMPROVEMENT] Improve loading experience
@@ -3242,7 +3768,9 @@ access
 - [#5188](https://github.com/MetaMask/metamask-mobile/pull/5188): [IMPROVEMENT] Networks-flow appium feature file
 
 ## [5.10.0]
+
 ### Added
+
 - [#5202](https://github.com/MetaMask/metamask-mobile/pull/5202): [FEAT] On-Ramp: allow Harmony ONE
 - [#5195](https://github.com/MetaMask/metamask-mobile/pull/5195): [FEAT] Onramp: Add exclude from purchases to onramp aggregator orders
 - [#5158](https://github.com/MetaMask/metamask-mobile/pull/5158): [FEAT] On-Ramp: Provider payment method custom action and custom order ids
@@ -3252,6 +3780,7 @@ access
 - [#4888](https://github.com/MetaMask/metamask-mobile/pull/4888): [FEAT] Extend popular network list
 
 ### Changed
+
 - [#5096](https://github.com/MetaMask/metamask-mobile/pull/5096): [UPDATE] Update audit list
 - [#4835](https://github.com/MetaMask/metamask-mobile/pull/4835): [UPDATE] Refactor SendTransaction Component
 - [#5113](https://github.com/MetaMask/metamask-mobile/pull/5113): [UPDATE] avoid using Rinkeby in wallet & import network test
@@ -3260,6 +3789,7 @@ access
 - [#5064](https://github.com/MetaMask/metamask-mobile/pull/5064): [UPDATE] Refactor Approve Component
 
 ### Fixed
+
 - [#5142](https://github.com/MetaMask/metamask-mobile/pull/5142): [FIX] Fix high severity audit issues
 - [#4235](https://github.com/MetaMask/metamask-mobile/pull/4235): [FIX] Delete contact on android fixed
 - [#5116](https://github.com/MetaMask/metamask-mobile/pull/5116): [FIX] Updated EditLegacy Component
@@ -3270,11 +3800,15 @@ access
 - [#5217](https://github.com/MetaMask/metamask-mobile/pull/5217): [FIX] Send to the wrong address
 
 ## [5.9.1]
+
 ### Fixed
+
 - [#5172](https://github.com/MetaMask/metamask-mobile/pull/5172): [FIX] ENS name being resolved correctly
 
 ## [5.9.0]
+
 ### Added
+
 - [#5077](https://github.com/MetaMask/metamask-mobile/pull/5077): [FEATURE] translations for permission system
 - [#5040](https://github.com/MetaMask/metamask-mobile/pull/5040): [ADD] Component/4721-card
 - [#5065](https://github.com/MetaMask/metamask-mobile/pull/5065): [ENHANCEMENT] added shadows to useAppTheme
@@ -3286,14 +3820,16 @@ access
 - [#5025](https://github.com/MetaMask/metamask-mobile/pull/5025): [ENHANCEMENT] Remove all "Ooops" copies
 
 ### Changed
+
 - [#5024](https://github.com/MetaMask/metamask-mobile/pull/5024): [UPDATE] app name for release-to-store step
 - [#5006](https://github.com/MetaMask/metamask-mobile/pull/5006): [UPDATE] Bump @keystonehq/ur-decoder from 0.3.0 to 0.6.1
 - [#5033](https://github.com/MetaMask/metamask-mobile/pull/5033): [UPDATE] default iOS simulator
 - [#5058](https://github.com/MetaMask/metamask-mobile/pull/5058): [UPDATE] patch vm2 via resolution
-- [#5039](https://github.com/MetaMask/metamask-mobile/pull/5039): [UPDATE]  update shadow tokens
+- [#5039](https://github.com/MetaMask/metamask-mobile/pull/5039): [UPDATE] update shadow tokens
 - [#4804](https://github.com/MetaMask/metamask-mobile/pull/4804): [UPDATE] GasPolling refactor UpdateEIP1559Transaction Component
 
 ### Fixed
+
 - [#5035](https://github.com/MetaMask/metamask-mobile/pull/5035): [FIX] On-Ramp: Fix autolock dispatch for apple pay
 - [#5079](https://github.com/MetaMask/metamask-mobile/pull/5079): [FIX] Network switch during QR scan in Send Flow
 - [#5034](https://github.com/MetaMask/metamask-mobile/pull/5034): [FIX] Wallet Connect PR#4934 and PR#4861
@@ -3302,11 +3838,15 @@ access
 - [#5044](https://github.com/MetaMask/metamask-mobile/pull/5044): [FIX] evaluating ‘transaction.status’
 
 ## [5.8.1]
+
 ### Added
+
 - [#4286](https://github.com/MetaMask/metamask-mobile/pull/4286): [ENHANCEMENT] Integrates MetaMask SDK support
 
 ## [5.8.0]
+
 ### Added
+
 - [#4833](https://github.com/MetaMask/metamask-mobile/pull/4833): [ENHANCEMENT] Implement new QA builds for both Android and iOS
 - [#4993](https://github.com/MetaMask/metamask-mobile/pull/4993): [ENHANCEMENT] On-Ramp: Add scrolling to payment methods and make logo property optional
 - [#4997](https://github.com/MetaMask/metamask-mobile/pull/4997): [ENHANCEMENT] SRP Reveal Timestamp
@@ -3320,6 +3860,7 @@ access
 - [#4938](https://github.com/MetaMask/metamask-mobile/pull/4938): [ENHANCEMENT] Bump git-clone version to 6 in Bitrise machines
 
 ### Changed
+
 - [#4755](https://github.com/MetaMask/metamask-mobile/pull/4755): [UPDATE] - New template fields added to reflect newer requirements for PRs
 - [#4782](https://github.com/MetaMask/metamask-mobile/pull/4782): [DEPENDENCIES] Detox version bump from 19.6.5 to 19.7.1
 - [#4941](https://github.com/MetaMask/metamask-mobile/pull/4941): [DEPENDENCIES] Replace "@react-native-community/async-storage" for "@react-native-async-storage/async-storage"
@@ -3327,6 +3868,7 @@ access
 - [#3438](https://github.com/MetaMask/metamask-mobile/pull/3438): [DEPENDENCIES] Bump metro from 0.59.0 to 0.66.2
 
 ### Fixed
+
 - [#5018](https://github.com/MetaMask/metamask-mobile/pull/5018): [FIX] Vault corruption error log
 - [#4972](https://github.com/MetaMask/metamask-mobile/pull/4972): [FIX] Unable to Speedup/Cancel legacy transactions
 - [#4430](https://github.com/MetaMask/metamask-mobile/pull/4430): [FIX] Keystone: Pagination and missing addresses
@@ -3335,7 +3877,9 @@ access
 - [#4958](https://github.com/MetaMask/metamask-mobile/pull/4958): [FIX] WebView Origin Allowlist
 
 ## [5.7.0]
+
 ### Added
+
 - [#4897](https://github.com/MetaMask/metamask-mobile/pull/4897): [IMPROVEMENT] Automatic security checks settings
 - [#4902](https://github.com/MetaMask/metamask-mobile/pull/4902): [IMPROVEMENT] Deprecated networks Alert border fixed
 - [#4885](https://github.com/MetaMask/metamask-mobile/pull/4885): [IMPROVEMENT] Implement warning for deprecated test networks, kovan, ropsten and rinkeby
@@ -3350,12 +3894,14 @@ access
 - [#4809](https://github.com/MetaMask/metamask-mobile/pull/4809): [IMPROVEMENT] Component/4779 Audit
 
 ### Changed
+
 - [#4839](https://github.com/MetaMask/metamask-mobile/pull/4839): [DEPENDENCIES] Introduce @testing-library/react-hooks dependency
 - [#4595](https://github.com/MetaMask/metamask-mobile/pull/4595): [DEPENDENCIES] Upgrade react-native-device-info to 9.0.2
 - [#4748](https://github.com/MetaMask/metamask-mobile/pull/4748): [UPGRADE] Patch bump for SoLoader version on Android
 - [#4896](https://github.com/MetaMask/metamask-mobile/pull/4896): [DEPENDENCIES] Upgrade on-ramp-sdk to 1.2.0
 
 ### Fixed
+
 - [#4905](https://github.com/MetaMask/metamask-mobile/pull/4905): [FIX] Update send flow
 - [#4407](https://github.com/MetaMask/metamask-mobile/pull/4407): [FIX] Add browser cookies support on Android
 - [#4898](https://github.com/MetaMask/metamask-mobile/pull/4898): [FIX] Test sanitizeUrlInput error
@@ -3371,12 +3917,16 @@ access
 - [#4799](https://github.com/MetaMask/metamask-mobile/pull/4799): [FIX] Reveal SRP or Private Key wrong password error
 
 ## [5.6.1]
+
 ### Uncategorized
+
 - [#4966](https://github.com/MetaMask/metamask-mobile/pull/4966): [FIX] Add http and https protocol to webview origin whitelist
 - [#4967](https://github.com/MetaMask/metamask-mobile/pull/4967): [FIX] Correct url parse
 
 ## [5.6.0]
+
 ### Uncategorized
+
 - [#4821](https://github.com/MetaMask/metamask-mobile/pull/4821): [FIX] Staging env redirection url for onramp
 - [#4742](https://github.com/MetaMask/metamask-mobile/pull/4742): [ADD] On-Ramp generic error view event
 - [#4743](https://github.com/MetaMask/metamask-mobile/pull/4743): [ADD] Payment Method logos
@@ -3396,11 +3946,15 @@ access
 - [#4636](https://github.com/MetaMask/metamask-mobile/pull/4636): [FIX] NFT transfer with big token id
 
 ## [5.5.1]
+
 ### Changed
+
 - [UPDATE](https://github.com/MetaMask/dapps/pull/137): [UPDATE] Disable iOS explore links
 
 ## [5.5.0]
+
 ### Uncategorized
+
 - [#4475](https://github.com/MetaMask/metamask-mobile/pull/4475): [IMPROVEMENT] Swaps support for hardware wallet
 - [#4627](https://github.com/MetaMask/metamask-mobile/pull/4627): [IMPROVEMENT] Add typing support for payment methods to be used instead of payment IDs
 - [#4625](https://github.com/MetaMask/metamask-mobile/pull/4625): [FIX] Handle SecureKeychain failed access while passcode enabled
@@ -3418,7 +3972,9 @@ access
 - [#4612](https://github.com/MetaMask/metamask-mobile/pull/4612): [IMPROVEMENT] Componentize Token Avatar
 
 ## [5.4.0]
+
 ### Uncategorized
+
 - [#4604](https://github.com/MetaMask/metamask-mobile/pull/4604): [IMPROVEMENT] Change quotes error to individual events
 - [#4497](https://github.com/MetaMask/metamask-mobile/pull/4497): [IMPROVEMENT] Add amount to onramp analytics events
 - [#4496](https://github.com/MetaMask/metamask-mobile/pull/4496): [IMPROVEMENT] Add currency destination symbol to purchase submitted
@@ -3457,7 +4013,9 @@ access
 - [#4531](https://github.com/MetaMask/metamask-mobile/pull/4531): [IMPROVEMENT] Add delete wallet step spec
 
 ## [5.3.0]
+
 ### Uncategorized
+
 - [#4506](https://github.com/MetaMask/metamask-mobile/pull/4506): [IMPROVEMENT] Add OnRamp aggregator translations
 - [#4389](https://github.com/MetaMask/metamask-mobile/pull/4389): [FEAT] Easy delete data
 - [#4510](https://github.com/MetaMask/metamask-mobile/pull/4510): [IMPROVEMENT] Update RPC URL for xDai
@@ -3487,7 +4045,9 @@ access
 - [#4367](https://github.com/MetaMask/metamask-mobile/pull/4367): [IMPROVEMENT] Make text hex data selectable
 
 ## [5.2.0]
+
 ### Uncategorized
+
 - [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): [FIX] Subtitle mapping
 - [#4344](https://github.com/MetaMask/metamask-mobile/pull/4344): [FIX] Fix homepage scripts and env import
 - [#4345](https://github.com/MetaMask/metamask-mobile/pull/4345): [FIX] Fix check for empty tokens list
@@ -3507,7 +4067,9 @@ access
 - [#4183](https://github.com/MetaMask/metamask-mobile/pull/4183): [FIX] excluded audit because no available patch
 
 ## [5.1.0]
+
 ### Uncategorized
+
 - [#3929](https://github.com/MetaMask/metamask-mobile/pull/3929): [IMPROVEMENT] Defaults to current network if chain id not specified in QR codes
 - [#4159](https://github.com/MetaMask/metamask-mobile/pull/4159): [IMPROVEMENT] - iCloud Backup Restriction
 - [#4035](https://github.com/MetaMask/metamask-mobile/pull/4035): [FIX] Issue #207
@@ -3525,14 +4087,18 @@ access
 - [#4113](https://github.com/MetaMask/metamask-mobile/pull/4113): [FIX] Add ticker to SelectQRAccounts
 - [#3980](https://github.com/MetaMask/metamask-mobile/pull/3980): [FIX] Patch network specific asset modal (Token detection)
 - [#4154](https://github.com/MetaMask/metamask-mobile/pull/4154): [FIX] Update react-native-webview+11.13.0.patch
-- [#4135](https://github.com/MetaMask/metamask-mobile/pull/4135): [IMPROVEMENT]browser improvement 
+- [#4135](https://github.com/MetaMask/metamask-mobile/pull/4135): [IMPROVEMENT]browser improvement
 
 ## [5.0.1]
+
 ### Fixed
+
 - [FIX] iOS Hotfix - Add LinkPresentation library
 
 ## [5.0.0]
+
 ### Uncategorized
+
 - [#3971](https://github.com/MetaMask/metamask-mobile/pull/3971): [FIX] Fix issues releated to deep/universal links
 - [#3925](https://github.com/MetaMask/metamask-mobile/pull/3925): [FEAT] Allow ApplePay in Transak webview.
 - [#4047](https://github.com/MetaMask/metamask-mobile/pull/4047): [FIX] Fix attribution url
@@ -3543,7 +4109,9 @@ access
 - [#3948](https://github.com/MetaMask/metamask-mobile/pull/3948): [FIX] Update button on WebviewError
 
 ## [4.4.0]
+
 ### Uncategorized
+
 - [#3910](https://github.com/MetaMask/metamask-mobile/pull/3910): [IMPROVEMENT] Network Specific Asset Education
 - [#3877](https://github.com/MetaMask/metamask-mobile/pull/3877): [IMPROVEMENT] Add OSS attribution
 - [#3731](https://github.com/MetaMask/metamask-mobile/pull/3731): [FIX] Fix formatting of gas price for all conversion currencies
@@ -3553,13 +4121,17 @@ access
 - [#3969](https://github.com/MetaMask/metamask-mobile/pull/3969): [FIX] Fix typo in network modal
 
 ## [4.3.1]
+
 ### Fixed
+
 - [#3946](https://github.com/MetaMask/metamask-mobile/pull/3946): [FIX] Fix error boundary SRP
 - [#3947](https://github.com/MetaMask/metamask-mobile/pull/3947): [FIX] Fix gas carousel price estimate
 - [#3940](https://github.com/MetaMask/metamask-mobile/pull/3940): [FIX] Fix browser crash
 
 ## [4.3.0]
+
 ### Uncategorized
+
 - [#3916](https://github.com/MetaMask/metamask-mobile/pull/3916): [FIX] Patch Android clipboard crasher
 - [#3776](https://github.com/MetaMask/metamask-mobile/pull/3776): [IMPROVEMENT] Enable dark mode
 - [#3899](https://github.com/MetaMask/metamask-mobile/pull/3899): [IMPROVEMENT] Improve WalletConnect checks
@@ -3584,7 +4156,9 @@ access
 - [#3638](https://github.com/MetaMask/metamask-mobile/pull/3638): [IMPROVEMENT] Upgrade controllers to 25.1.0
 
 ## [4.2.2]
+
 ### Uncategorized
+
 - [#3841](https://github.com/MetaMask/metamask-mobile/pull/3841): [FIX] Fix custom network icons on Wallet Overview
 - [#3839](https://github.com/MetaMask/metamask-mobile/pull/3839): [FIX] Update en.json
 - [#3838](https://github.com/MetaMask/metamask-mobile/pull/3838): [FIX] Fix onramp BUSD address. Add wc_description string
@@ -3610,11 +4184,15 @@ access
 - [#3690](https://github.com/MetaMask/metamask-mobile/pull/3690): [FIX] Revert svg crash
 
 ## [4.1.1]
+
 ### Uncategorized
+
 - [3810](https://github.com/MetaMask/metamask-mobile/pull/3810) [FIX] Avalanche token crash
 
 ## [4.1.0]
+
 ### Uncategorized
+
 - [#3741](https://github.com/MetaMask/metamask-mobile/pull/3741): [FIX] Potential error message from missing transactions details
 - [#3738](https://github.com/MetaMask/metamask-mobile/pull/3738): [FIX] Error message for missing chain ID in deeplink
 - [#3725](https://github.com/MetaMask/metamask-mobile/pull/3725): [FIX] Login decrypt bug
@@ -3640,18 +4218,24 @@ access
 - [#3672](https://github.com/MetaMask/metamask-mobile/pull/3672): [IMPROVEMENT] Bump simple-get from 2.8.1 to 4.0.1
 
 ## [4.0.1]
+
 ### Fixed
+
 - [#3658](https://github.com/MetaMask/metamask-mobile/pull/3658): [HOTFIX] 4.0.1 - BN crash and NFT Improvement
 
 ## [4.0.0]
+
 ### Uncategorized
+
 - [#3509](https://github.com/MetaMask/metamask-mobile/pull/3509): [IMPROVEMENT] Upgrade to React Native 0.66.3
 - [#3623](https://github.com/MetaMask/metamask-mobile/pull/3623): [FIX] Fix swaps slider button re-rendering
 - [#3481](https://github.com/MetaMask/metamask-mobile/pull/3481): [FIX] Fix confirm button disabled on txn confirmation
 - [#3495](https://github.com/MetaMask/metamask-mobile/pull/3495): [IMPROVEMENT] Reduce png file image weight using TinyPng cli tool
 
 ## [3.8.0]
+
 ### Uncategorized
+
 - [#3457](https://github.com/MetaMask/metamask-mobile/pull/3457): [FEAT] User review prompt
 - [#3465](https://github.com/MetaMask/metamask-mobile/pull/3465): [FIX] 3464 fix login bug
 - [#3430](https://github.com/MetaMask/metamask-mobile/pull/3430): [IMPROVEMENT] Add better initial state for swaps loading tokens
@@ -3663,7 +4247,9 @@ access
 - [#3443](https://github.com/MetaMask/metamask-mobile/pull/3443): [UPDATE] Disable Sync with Extension
 
 ## [3.7.0]
+
 ### Uncategorized
+
 - [#3405](https://github.com/MetaMask/metamask-mobile/pull/3405): [FIX] Remove Metric Opt In event
 - [#3412](https://github.com/MetaMask/metamask-mobile/pull/3412): [UPGRADE] Android SDK and dependencies to support SDK 30
 - [#3371](https://github.com/MetaMask/metamask-mobile/pull/3371): [FIX] iOS FaceID Deny Handler
@@ -3679,7 +4265,9 @@ access
 - [#3357](https://github.com/MetaMask/metamask-mobile/pull/3357): [FIX] 404 dead links in readme
 
 ## [3.6.0]
+
 ### Uncategorized
+
 - [#3301](https://github.com/MetaMask/metamask-mobile/pull/3301): [FEATURE] ERC-1155 and custom network support
 - [#3343](https://github.com/MetaMask/metamask-mobile/pull/3343): [IMPROVEMENT] Add IPFS support for NFTs
 - [#3352](https://github.com/MetaMask/metamask-mobile/pull/3352): [FIX] Fix rendering issue when viewing data on transaction review screen
@@ -3687,7 +4275,9 @@ access
 - [#3290](https://github.com/MetaMask/metamask-mobile/pull/3290): [FIX] Fix lost data when using wallet connect for ERC20 token transaction
 
 ## [3.5.0]
+
 ### Uncategorized
+
 - [#3340](https://github.com/MetaMask/metamask-mobile/pull/3340): [IMPROVEMENT] Reduce persisted data
 - [#3330](https://github.com/MetaMask/metamask-mobile/pull/3330): [IMPROVEMENT] Refactor EngineService
 - [#3325](https://github.com/MetaMask/metamask-mobile/pull/3325): [IMPROVEMENT] Isolate persisted data
@@ -3706,7 +4296,9 @@ access
 - [#3271](https://github.com/MetaMask/metamask-mobile/pull/3271): [FIX] Update React Native dependecy links in README.md
 
 ## [3.4.1]
+
 ### Uncategorized
+
 - [#3260](https://github.com/MetaMask/metamask-mobile/pull/3260): [FIX] Turn off token detection by default
 - [#3261](https://github.com/MetaMask/metamask-mobile/pull/3261): [FIX] Fix blank screen on fresh start
 - [#3254](https://github.com/MetaMask/metamask-mobile/pull/3254): [IMPROVEMENT] Isolate LICENSE file
@@ -3736,7 +4328,9 @@ access
 - [#3115](https://github.com/MetaMask/metamask-mobile/pull/3115): [IMPROVEMENT] Update README.md
 
 ## [3.3.0]
+
 ### Uncategorized
+
 - [#3099](https://github.com/MetaMask/metamask-mobile/pull/3099): [FEATURE] Transaction state improvement
 - [UPGRADE] react-native-webview 11.0.2 -> 11.13.0
 - [#3101](https://github.com/MetaMask/metamask-mobile/pull/3101): [UPDATE] update swaps-controller and send clientId on fetchSwapsFeatureLiveness
@@ -3758,7 +4352,9 @@ access
 - [#3057](https://github.com/MetaMask/metamask-mobile/pull/3057): [UPDATE] Remove SwapsLiveness checks for non supported networks
 
 ## [3.2.0]
+
 ### Uncategorized
+
 - [#3046](https://github.com/MetaMask/metamask-mobile/pull/3046): [FIX] Token Transfer to address
 - [#2878](https://github.com/MetaMask/metamask-mobile/pull/2878): [2783] Change default account name for ENS reversed-resolved name
 - [#3029](https://github.com/MetaMask/metamask-mobile/pull/3029): [FIX] Video Subtitles Not Loading Properly
@@ -3767,7 +4363,9 @@ access
 - [#2718](https://github.com/MetaMask/metamask-mobile/pull/2718): Switched to sslip.io instead of xip.io
 
 ## [3.1.0]
+
 ### Uncategorized
+
 - [#3026](https://github.com/MetaMask/metamask-mobile/pull/3026): [FIX] Fix edit button
 - [#2981](https://github.com/MetaMask/metamask-mobile/pull/2981): [FIX] Delete Message
 - [#3017](https://github.com/MetaMask/metamask-mobile/pull/3017): [FIX] Fix deep links bug related to branch updates
@@ -3785,11 +4383,15 @@ access
 - [#2973](https://github.com/MetaMask/metamask-mobile/pull/2973): [FEATURE] On-Ramp: Add on-ramp analytics
 
 ## [3.0.1]
+
 ### Uncategorized
+
 - Patch to fix Wyre and Transak
 
 ## [3.0.0]
+
 ### Uncategorized
+
 - [#2959](https://github.com/MetaMask/metamask-mobile/pull/2959): UI fixes
 - [#2957](https://github.com/MetaMask/metamask-mobile/pull/2957): Fix gas information info modal on swaps
 - [#2955](https://github.com/MetaMask/metamask-mobile/pull/2955): [EIP1559] Improve time estimates
@@ -3806,7 +4408,9 @@ access
 - [#2890](https://github.com/MetaMask/metamask-mobile/pull/2890): Bump addressable from 2.7.0 to 2.8.0 in /ios
 
 ## [2.6.0]
+
 ### Uncategorized
+
 - [#2865](https://github.com/MetaMask/metamask-mobile/pull/2865): Added support for custom network gas estimates
 - [#2854](https://github.com/MetaMask/metamask-mobile/pull/2854): Fix time formatting on transactions
 - [#2883](https://github.com/MetaMask/metamask-mobile/pull/2883): Swaps: Fix isZero undefined error
@@ -3814,7 +4418,9 @@ access
 - [#2709](https://github.com/MetaMask/metamask-mobile/pull/2709): Remove Picker deprecation warning
 
 ## [2.5.0]
+
 ### Uncategorized
+
 - [#2809](https://github.com/MetaMask/metamask-mobile/pull/2809): Optional chaining dollarBalance
 - [#2776](https://github.com/MetaMask/metamask-mobile/pull/2776): Fix: empty state when using fiat on non-mainnet transactions
 - [#2777](https://github.com/MetaMask/metamask-mobile/pull/2777): Add isInteraction: false
@@ -3840,7 +4446,9 @@ access
 - [#2727](https://github.com/MetaMask/metamask-mobile/pull/2727): Add missing required prop in tests
 
 ## [2.4.0]
+
 ### Uncategorized
+
 - [#2618](https://github.com/MetaMask/metamask-mobile/pull/2618): Collectibles experience
 - [#2698](https://github.com/MetaMask/metamask-mobile/pull/2698): bugfix: navigation routeName is null
 - [#2692](https://github.com/MetaMask/metamask-mobile/pull/2692): Fix custom gas crash
@@ -3855,7 +4463,9 @@ access
 - [#2628](https://github.com/MetaMask/metamask-mobile/pull/2628): Feature/use toLowerCaseCompare
 
 ## [2.3.0]
+
 ### Uncategorized
+
 - [#2674](https://github.com/MetaMask/metamask-mobile/pull/2674): Fix deploy contract and create token testnets
 - [#2669](https://github.com/MetaMask/metamask-mobile/pull/2669): Key off accounts
 - [#2670](https://github.com/MetaMask/metamask-mobile/pull/2670): Bump hosted-git-info from 2.8.8 to 2.8.9
@@ -3898,7 +4508,9 @@ access
 - [#2568](https://github.com/MetaMask/metamask-mobile/pull/2568): resolve isENS without case sensitivity (#2545)
 
 ## [2.2.0]
+
 ### Uncategorized
+
 - [#2547](https://github.com/MetaMask/metamask-mobile/pull/2547): Include decimalsToShow in balanceToFiatNumber
 - [#2554](https://github.com/MetaMask/metamask-mobile/pull/2554): Bug fix/sync import time
 - [#2546](https://github.com/MetaMask/metamask-mobile/pull/2546): Fix analytics try catch
@@ -3925,19 +4537,27 @@ access
 - [#2381](https://github.com/MetaMask/metamask-mobile/pull/2381): Display correct number of decimals for 'usd' fiat
 
 ## [2.1.3]
+
 ### Uncategorized
+
 - [#2548](https://github.com/MetaMask/metamask-mobile/pull/2548): Hotfix analytics try catch
 
 ## [2.1.2]
+
 ### Uncategorized
+
 - [#2538](https://github.com/MetaMask/metamask-mobile/pull/2538): fix/connection change handler
 
 ## [2.1.1]
+
 ### Uncategorized
+
 - [#2520](https://github.com/MetaMask/metamask-mobile/pull/2520): Check provider status
 
 ## [2.1.0]
+
 ### Uncategorized
+
 - [#2487](https://github.com/MetaMask/metamask-mobile/pull/2487): Fix/analytics v1 priority1
 - [#2456](https://github.com/MetaMask/metamask-mobile/pull/2456): Analytics v2 (priority 1)
 - [#2408](https://github.com/MetaMask/metamask-mobile/pull/2408): Fix/gas estimations
@@ -3959,7 +4579,9 @@ access
 - [#2431](https://github.com/MetaMask/metamask-mobile/pull/2431): Update BN import
 
 ## [2.0.1]
+
 ### Uncategorized
+
 - [#2430](https://github.com/MetaMask/metamask-mobile/pull/2430): Fix/send to style
 - [#2426](https://github.com/MetaMask/metamask-mobile/pull/2426): bugfix/allow seedphrases when locked
 - [#2422](https://github.com/MetaMask/metamask-mobile/pull/2422): bugfix/delete wallet with random password
@@ -3968,7 +4590,9 @@ access
 - [#2156](https://github.com/MetaMask/metamask-mobile/pull/2156): Translations with update script
 
 ## [2.0.0]
+
 ### Uncategorized
+
 - [#2383](https://github.com/MetaMask/metamask-mobile/pull/2383): swaps/received destination amount
 - [#2379](https://github.com/MetaMask/metamask-mobile/pull/2379): Swaps/fix decode tx render amounts
 - [#2377](https://github.com/MetaMask/metamask-mobile/pull/2377): bugfix/dont modify local transactions
@@ -3989,7 +4613,9 @@ access
 - [#2265](https://github.com/MetaMask/metamask-mobile/pull/2265): Fix input state
 
 ## [1.0.11]
+
 ### Uncategorized
+
 - [#2257](https://github.com/MetaMask/metamask-mobile/pull/2257): bugfix/use bignumber for transfer deeplinks
 - [#2256](https://github.com/MetaMask/metamask-mobile/pull/2256): Fix account list scroll
 - [#2243](https://github.com/MetaMask/metamask-mobile/pull/2243): TransactionController from controllers
@@ -4016,12 +4642,16 @@ access
 - [#2142](https://github.com/MetaMask/metamask-mobile/pull/2142): Display boolean values when signing typed data
 
 ## [1.0.10]
+
 ### Uncategorized
+
 - [#2164](https://github.com/MetaMask/metamask-mobile/pull/2164): Initialize NetworkController.provider with chainId (#2164)
 - [#2161](https://github.com/MetaMask/metamask-mobile/pull/2161): chainid migration (#2161)
 
 ## [1.0.9]
+
 ### Uncategorized
+
 - [#2149](https://github.com/MetaMask/metamask-mobile/pull/2149): update tests for new logic
 - [#2145](https://github.com/MetaMask/metamask-mobile/pull/2145): Add missing brew installation steps
 - [#2146](https://github.com/MetaMask/metamask-mobile/pull/2146): @metamask/mobile-provider@2.0.1
@@ -4051,7 +4681,9 @@ access
 - [#1994](https://github.com/MetaMask/metamask-mobile/pull/1994): Feature: Initial Swaps amount view (#1994)
 
 ## [1.0.8]
+
 ### Uncategorized
+
 - [#2040](https://github.com/MetaMask/metamask-mobile/pull/2040): Update vault error message (#2040)
 - [#2034](https://github.com/MetaMask/metamask-mobile/pull/2034): Fix asyncstorage limit (#2034)
 - [#2038](https://github.com/MetaMask/metamask-mobile/pull/2038): metamask wc deeplink (#2038)
@@ -4060,7 +4692,9 @@ access
 - [#2008](https://github.com/MetaMask/metamask-mobile/pull/2008): Add Apple Pay correct label (#2008)
 
 ## [1.0.7]
+
 ### Uncategorized
+
 - [#2005](https://github.com/MetaMask/metamask-mobile/pull/2005): Fix activeTabUrl (#2005)
 - [#2003](https://github.com/MetaMask/metamask-mobile/pull/2003): Bugfix/android choose password (#2003)
 - [#1992](https://github.com/MetaMask/metamask-mobile/pull/1992): Android api level (#1992)
@@ -4069,9 +4703,10 @@ access
 - [#1968](https://github.com/MetaMask/metamask-mobile/pull/1968): Add MetaSwaps feature flag and initial nav stack (#1968)
 - [#1967](https://github.com/MetaMask/metamask-mobile/pull/1967): Add Keypad component (#1967)
 
-
 ## [1.0.6]
+
 ### Uncategorized
+
 - [#1990](https://github.com/MetaMask/metamask-mobile/pull/1990): Fixed importing accounts when reseting password (#1990)
 - [#1988](https://github.com/MetaMask/metamask-mobile/pull/1988): bugfix/protect wallet modal (#1988)
 - [#1985](https://github.com/MetaMask/metamask-mobile/pull/1985): Fix seedphrase handling in QRScanner (#1985)
@@ -4111,15 +4746,21 @@ access
 - [#1861](https://github.com/MetaMask/metamask-mobile/pull/1861): Get e2e working for seedphrase and login (#1861)
 
 ## [1.0.5]
+
 ### Uncategorized
+
 - [#1889](https://github.com/MetaMask/metamask-mobile/pull/1889): Fix scientific notation string not convertable to BN (#1889)
 
 ## [1.0.4]
+
 ### Uncategorized
+
 - [#1882](https://github.com/MetaMask/metamask-mobile/pull/1882): Error boundary (#1882)
 
 ## [1.0.3]
+
 ### Uncategorized
+
 - [#1865](https://github.com/MetaMask/metamask-mobile/pull/1865): bugfix/login (#1865)
 - [#1863](https://github.com/MetaMask/metamask-mobile/pull/1863): transak countries update (#1863)
 - [#1829](https://github.com/MetaMask/metamask-mobile/pull/1829): Improvement/browser refactor (#1829)
@@ -4151,16 +4792,22 @@ access
 - [#1787](https://github.com/MetaMask/metamask-mobile/pull/1787): Add missing currency conversions (#1787)
 
 ## [1.0.2]
+
 ### Uncategorized
+
 - [#1812](https://github.com/MetaMask/metamask-mobile/pull/1812): Add logger on login (#1812)
 
 ## [1.0.1]
+
 ### Uncategorized
+
 - [#1795](https://github.com/MetaMask/metamask-mobile/pull/1795): Update react native aes crypto forked (#1795)
 - [#1796](https://github.com/MetaMask/metamask-mobile/pull/1796): bugfix/mixpanel android in app notifications (#1796)
 
 ## [1.0.0]
+
 ### Uncategorized
+
 - [#1790](https://github.com/MetaMask/metamask-mobile/pull/1790): Bugfix/payment request and wallet connect origin on tx (#1790)
 - [#1791](https://github.com/MetaMask/metamask-mobile/pull/1791): Fix send receive buttons style (#1791)
 - [#1785](https://github.com/MetaMask/metamask-mobile/pull/1785): Use @metamask/controllers@2.0.5 (#1785)
@@ -4188,7 +4835,9 @@ access
 - [#1727](https://github.com/MetaMask/metamask-mobile/pull/1727): Bump json from 2.2.0 to 2.3.1 in /ios (#1727)
 
 ## [0.2.20]
+
 ### Uncategorized
+
 - [#1751](https://github.com/MetaMask/metamask-mobile/pull/1751): bugfix/payment requests & deeplinks (#1751)
 - [#1732](https://github.com/MetaMask/metamask-mobile/pull/1732): Copy edits (#1732)
 - [#1750](https://github.com/MetaMask/metamask-mobile/pull/1750): Don't allow for zero in custom gas price (#1750)
@@ -4240,18 +4889,24 @@ access
 - [#1640](https://github.com/MetaMask/metamask-mobile/pull/1640): enable-apple-pay (#1640)
 
 ## [0.2.19]
+
 ### Uncategorized
+
 - [#1661](https://github.com/MetaMask/metamask-mobile/pull/1661): bugfix/Use eth gas API
 - [#1653](https://github.com/MetaMask/metamask-mobile/pull/1653): Add ETH_GAS_STATION_API_KEY (#1653)
 
 ## [0.2.18]
+
 ### Uncategorized
+
 - [#1636](https://github.com/MetaMask/metamask-mobile/pull/1636): Add padding to CustomGas back button (#1636)
 - [#1637](https://github.com/MetaMask/metamask-mobile/pull/1637): Bugfix/incoming notifications (#1637)
 - [#1628](https://github.com/MetaMask/metamask-mobile/pull/1628): Fix network color indicator on transactionHeader for connect screens (#1628)
 
 ## [0.2.17]
+
 ### Uncategorized
+
 - [#1629](https://github.com/MetaMask/metamask-mobile/pull/1629): bugfix/custom gas modal (#1629)
 - [#1625](https://github.com/MetaMask/metamask-mobile/pull/1625): Bugfix/wc connect on app closed (#1625)
 - [#1624](https://github.com/MetaMask/metamask-mobile/pull/1624): Wallet connect update + Support for simple notifications (#1624)
@@ -4288,7 +4943,9 @@ access
 - [#1584](https://github.com/MetaMask/metamask-mobile/pull/1584): make sign tests great again (#1584)
 
 ## [0.2.16]
+
 ### Uncategorized
+
 - [#1582](https://github.com/MetaMask/metamask-mobile/pull/1582): Instapay deposit navbar cancel (#1582)
 - [#1570](https://github.com/MetaMask/metamask-mobile/pull/1570): Disable confirm screen edit button when no tokens of a payment request (#1570)
 - [#1574](https://github.com/MetaMask/metamask-mobile/pull/1574): Ensure collectibles that use 'transfer' method show a fee in tx history list (#1574)
@@ -4313,7 +4970,9 @@ access
 - [#1524](https://github.com/MetaMask/metamask-mobile/pull/1524): Loosen nvmrc (#1524)
 
 ## [0.2.15]
+
 ### Uncategorized
+
 - [#1529](https://github.com/MetaMask/metamask-mobile/pull/1529): sentry android production (#1529)
 - [#1528](https://github.com/MetaMask/metamask-mobile/pull/1528): Bugfix/sentry in circle ci (#1528)
 - [#1527](https://github.com/MetaMask/metamask-mobile/pull/1527): env to production (#1527)
@@ -4343,7 +5002,7 @@ access
 - [#1449](https://github.com/MetaMask/metamask-mobile/pull/1449): Use setTimeout hack to get paste context back (#1449)
 - [#1450](https://github.com/MetaMask/metamask-mobile/pull/1450): Fix remove bookmark functionality, closes #1396 (#1450)
 - [#1376](https://github.com/MetaMask/metamask-mobile/pull/1376): Replace Fabric Crashlytics with Sentry (#1376)
-- [#1441](https://github.com/MetaMask/metamask-mobile/pull/1441): Detox: Address Book Tests  (#1441)
+- [#1441](https://github.com/MetaMask/metamask-mobile/pull/1441): Detox: Address Book Tests (#1441)
 - [#1447](https://github.com/MetaMask/metamask-mobile/pull/1447): ci: Update CircleCI config version (#1447)
 - [#1439](https://github.com/MetaMask/metamask-mobile/pull/1439): Update README.md (#1439)
 - [#1436](https://github.com/MetaMask/metamask-mobile/pull/1436): Update mkdirp and minimist (#1436)
@@ -4357,7 +5016,9 @@ access
 - [#1425](https://github.com/MetaMask/metamask-mobile/pull/1425): Detox: Upate dapp-initated-txn tests (#1425)
 
 ## [0.2.14]
+
 ### Uncategorized
+
 - [#1413](https://github.com/MetaMask/metamask-mobile/pull/1413): Fix accountsChanged notification (#1413)
 - [#1411](https://github.com/MetaMask/metamask-mobile/pull/1411): bugfix: payment request (#1411)
 - [#1410](https://github.com/MetaMask/metamask-mobile/pull/1410): bugfix: ios close icon (#1410)
@@ -4410,29 +5071,37 @@ access
 - [#1252](https://github.com/MetaMask/metamask-mobile/pull/1252): Bugfix: cancel and speedup insufficient funds (#1252)
 
 ## [0.2.13]
+
 ### Uncategorized
+
 - [#1250](https://github.com/MetaMask/metamask-mobile/pull/1250): Bump excon from 0.64.0 to 0.71.0 in /ios (#1250)
 - [#1246](https://github.com/MetaMask/metamask-mobile/pull/1246): bugfix: wizard back (#1246)
 - [#1235](https://github.com/MetaMask/metamask-mobile/pull/1235): Detox: Request token flow (#1235)
 - [#1234](https://github.com/MetaMask/metamask-mobile/pull/1234): bump migration version (#1234)
 
 ## [0.2.12]
+
 ### Uncategorized
+
 - [#1224](https://github.com/MetaMask/metamask-mobile/pull/1224): Bugfix: asset ens tx (#1224)
 - [#1225](https://github.com/MetaMask/metamask-mobile/pull/1225): update bug report link (#1225)
 - [#1215](https://github.com/MetaMask/metamask-mobile/pull/1215): Detox: Fix Android e2e Tests (#1215)
 - [#1223](https://github.com/MetaMask/metamask-mobile/pull/1223): Bugfix: contract deployments (#1223)
 - [#1222](https://github.com/MetaMask/metamask-mobile/pull/1222): bugfix: android show hex input instapay send (#1222)
-- [#1214](https://github.com/MetaMask/metamask-mobile/pull/1214): pass  metametrics context to homepage (#1214)
+- [#1214](https://github.com/MetaMask/metamask-mobile/pull/1214): pass metametrics context to homepage (#1214)
 
 ## [0.2.11]
+
 ### Uncategorized
+
 - [#1212](https://github.com/MetaMask/metamask-mobile/pull/1212): Provider missing properties (#1212)
 - [#1207](https://github.com/MetaMask/metamask-mobile/pull/1207): Fix typo on Import Account screen (#1207)
 - [#1198](https://github.com/MetaMask/metamask-mobile/pull/1198): Migrate to SAI (#1198)
 
 ## [0.2.10]
+
 ### Uncategorized
+
 - [#1205](https://github.com/MetaMask/metamask-mobile/pull/1205): Disable speedup instapay (#1205)
 - [#1204](https://github.com/MetaMask/metamask-mobile/pull/1204): Fix injection on Android (#1204)
 - [#1203](https://github.com/MetaMask/metamask-mobile/pull/1203): Update support email (#1203)
@@ -4467,19 +5136,27 @@ access
 - [#1146](https://github.com/MetaMask/metamask-mobile/pull/1146): fix instapay logs app version (#1146)
 
 ## [0.2.8]
+
 ### Uncategorized
+
 - [#1145](https://github.com/MetaMask/metamask-mobile/pull/1145): Support URLs on QR code scanner (#1145)
 
 ## [0.2.7]
+
 ### Uncategorized
+
 - [#1143](https://github.com/MetaMask/metamask-mobile/pull/1143): Minor bugfixes (#1143)
 
 ## [0.2.6]
+
 ### Uncategorized
+
 - [#1139](https://github.com/MetaMask/metamask-mobile/pull/1139): Fix onboarding carousel dimensions (#1139)
 
 ## [0.2.5]
+
 ### Uncategorized
+
 - [#1136](https://github.com/MetaMask/metamask-mobile/pull/1136): Select correct profiles (#1136)
 - [#1135](https://github.com/MetaMask/metamask-mobile/pull/1135): Fix fastlane config (#1135)
 - [#1134](https://github.com/MetaMask/metamask-mobile/pull/1134): renew certs if needed (#1134)
@@ -4545,9 +5222,11 @@ access
 - [#1044](https://github.com/MetaMask/metamask-mobile/pull/1044): remove uiwebview ocurrences (#1044)
 
 ## [0.2.4]
+
 ### Uncategorized
+
 - [#1038](https://github.com/MetaMask/metamask-mobile/pull/1038): Fix Approval (#1038)
-: [#1037](https://github.com/MetaMask/metamask-mobile/pull/1037): Fix walletconnect :#1037)
+  : [#1037](https://github.com/MetaMask/metamask-mobile/pull/1037): Fix walletconnect :#1037)
 - [#1036](https://github.com/MetaMask/metamask-mobile/pull/1036): Bugfix: browser crash (#1036)
 - [#1034](https://github.com/MetaMask/metamask-mobile/pull/1034): Bump 0.2.4 (#1034)
 - [#1027](https://github.com/MetaMask/metamask-mobile/pull/1027): Improvement: approval token transfer data (#1027)
@@ -4565,7 +5244,9 @@ access
 - [#1008](https://github.com/MetaMask/metamask-mobile/pull/1008): bump walletconnect (#1008)
 
 ## [0.2.3]
+
 ### Uncategorized
+
 - [#972](https://github.com/MetaMask/metamask-mobile/pull/972): bump version (#972)
 - [#989](https://github.com/MetaMask/metamask-mobile/pull/989): Bugfix: Fix mobile sync & Security options (#989)
 - [#1000](https://github.com/MetaMask/metamask-mobile/pull/1000): bugfix: tx edit dropdowns in small devices (#1000)
@@ -4596,10 +5277,16 @@ access
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/metamask/metamask-mobile/compare/v7.38.2...HEAD
-[7.38.2]: https://github.com/metamask/metamask-mobile/compare/v7.38.1...v7.38.2
-[7.38.1]: https://github.com/metamask/metamask-mobile/compare/v7.38.0...v7.38.1
-[7.38.0]: https://github.com/metamask/metamask-mobile/compare/v7.37.1...v7.38.0
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.44.0...HEAD
+[7.44.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.43.0...v7.44.0
+[7.43.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.42.1...v7.43.0
+[7.42.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.42.0...v7.42.1
+[7.42.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.41.0...v7.42.0
+[7.41.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.40.0...v7.41.0
+[7.40.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.39.0...v7.40.0
+[7.39.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.38.1...v7.39.0
+[7.38.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.38.0...v7.38.1
+[7.38.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.37.1...v7.38.0
 [7.37.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.37.0...v7.37.1
 [7.37.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.36.0...v7.37.0
 [7.36.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.35.1...v7.36.0

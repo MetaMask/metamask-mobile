@@ -1,5 +1,6 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { TransactionType } from '@metamask/transaction-controller';
+import { SmokeWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
@@ -65,7 +66,7 @@ const RESPONSE_OUTGOING_TRANSACTION_MOCK = {
 
 function mockAccountsApi(transactions) {
   return {
-    urlEndpoint: `https://accounts.api.cx.metamask.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions?networks=0x1&sortDirection=ASC`,
+    urlEndpoint: `https://accounts.api.cx.metamask.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions?networks=0x1,0x89,0x38,0xe708,0x2105,0xa,0xa4b1,0x82750&sortDirection=ASC`,
     response: {
       data: transactions ?? [RESPONSE_STANDARD_MOCK, RESPONSE_STANDARD_2_MOCK],
       pageInfo: {
@@ -77,7 +78,7 @@ function mockAccountsApi(transactions) {
   };
 }
 
-describe(SmokeCore('Incoming Transactions'), () => {
+describe(SmokeWalletPlatform('Incoming Transactions'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -180,6 +181,7 @@ describe(SmokeCore('Incoming Transactions'), () => {
               txParams: {
                 from: RESPONSE_STANDARD_MOCK.from,
               },
+              type: TransactionType.incoming,
             },
           ])
           .build(),

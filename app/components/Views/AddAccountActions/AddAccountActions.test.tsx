@@ -3,7 +3,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AddAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import AddAccountActions from './AddAccountActions';
-import Engine from '../../../core/Engine';
+import { addNewHdAccount } from '../../../actions/multiSrp';
 import {
   createMockInternalAccount,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -37,13 +37,8 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      addNewAccount: jest.fn(),
-    },
-  },
-  setSelectedAddress: jest.fn(),
+jest.mock('../../../actions/multiSrp', () => ({
+  addNewHdAccount: jest.fn(),
 }));
 
 // Mock Logger
@@ -58,15 +53,11 @@ const mockInitialState = {
       KeyringController: MOCK_KEYRING_CONTROLLER,
     },
   },
-  multichainSettings: {
-    bitcoinSupportEnabled: true,
-    bitcoinTestnetSupportEnabled: true,
-    solanaSupportEnabled: true,
-  },
 };
 
 const mockProps = {
   onBack: jest.fn(),
+  onAddHdAccount: jest.fn(),
 };
 
 describe('AddAccountActions', () => {
@@ -109,18 +100,14 @@ describe('AddAccountActions', () => {
     ).toBeDefined();
 
     // Check for multichain options
-    expect(screen.getByText('Add a new Solana Account (Beta)')).toBeDefined();
-    expect(screen.getByText('Add a new Bitcoin Account (Beta)')).toBeDefined();
-    expect(
-      screen.getByText('Add a new Bitcoin Account (Testnet)'),
-    ).toBeDefined();
+    expect(screen.getByText('Solana account')).toBeDefined();
+    expect(screen.getByText('Bitcoin account')).toBeDefined();
+    expect(screen.getByText('Bitcoin testnet account ')).toBeDefined();
   });
 
   it('creates new ETH account when clicking add new account', async () => {
     const mockNewAddress = '0x123';
-    (
-      Engine.context.KeyringController.addNewAccount as jest.Mock
-    ).mockResolvedValueOnce(mockNewAddress);
+    (addNewHdAccount as jest.Mock).mockResolvedValueOnce(mockNewAddress);
 
     renderScreen(
       () => <AddAccountActions {...mockProps} />,
@@ -138,17 +125,14 @@ describe('AddAccountActions', () => {
     fireEvent.press(addButton);
 
     await waitFor(() => {
-      expect(Engine.context.KeyringController.addNewAccount).toHaveBeenCalled();
-      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(mockNewAddress);
+      expect(addNewHdAccount).toHaveBeenCalled();
       expect(mockProps.onBack).toHaveBeenCalled();
     });
   });
 
   it('handles error when creating new ETH account fails', async () => {
     const mockError = new Error('Failed to create account');
-    (
-      Engine.context.KeyringController.addNewAccount as jest.Mock
-    ).mockRejectedValueOnce(mockError);
+    (addNewHdAccount as jest.Mock).mockRejectedValueOnce(mockError);
 
     renderScreen(
       () => <AddAccountActions {...mockProps} />,
@@ -210,7 +194,7 @@ describe('AddAccountActions', () => {
     );
 
     expect(hardwareWalletButton.findByType(Text).props.children).toBe(
-      'Add hardware wallet',
+      'Hardware wallet',
     );
     fireEvent.press(hardwareWalletButton);
 
@@ -271,9 +255,7 @@ describe('AddAccountActions', () => {
       const solButton = screen.getByTestId(
         AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
       );
-      expect(solButton.findByType(Text).props.children).toBe(
-        'Add a new Solana Account (Beta)',
-      );
+      expect(solButton.findByType(Text).props.children).toBe('Solana account');
       expect(solButton.props.disabled).toBe(false);
     });
 
@@ -311,9 +293,7 @@ describe('AddAccountActions', () => {
       const btcButton = screen.getByTestId(
         AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON,
       );
-      expect(btcButton.findByType(Text).props.children).toBe(
-        'Add a new Bitcoin Account (Beta)',
-      );
+      expect(btcButton.findByType(Text).props.children).toBe('Bitcoin account');
       expect(btcButton.props.disabled).toBe(true);
     });
 
@@ -403,6 +383,71 @@ describe('AddAccountActions', () => {
           AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON,
         ).props.disabled,
       ).toBe(true);
+    });
+  });
+
+  describe('Multisrp', () => {
+    const mockAccountInSecondKeyring = createMockInternalAccount(
+      '0x67B2fAf7959fB61eb9746571041476Bbd0672569',
+      'Account in second hd keyring',
+    );
+    const mockSecondHdKeyring = {
+      type: KeyringTypes.hd,
+      accounts: [],
+    };
+    const mockSecondHdKeyringMetadata = {
+      id: '',
+      name: '',
+    };
+
+    const stateWithMultipleHdKeyrings = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          AccountsController: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+            internalAccounts: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+              accounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                [mockAccountInSecondKeyring.id]: mockAccountInSecondKeyring,
+              },
+            },
+          },
+          KeyringController: {
+            ...MOCK_KEYRING_CONTROLLER,
+            keyrings: [
+              ...MOCK_KEYRING_CONTROLLER.keyrings,
+              mockSecondHdKeyring,
+            ],
+            keyringsMetadata: [
+              ...MOCK_KEYRING_CONTROLLER.keyringsMetadata,
+              mockSecondHdKeyringMetadata,
+            ],
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    it('calls onAddHdAccount when there are multiple srps', async () => {
+      renderScreen(
+        () => <AddAccountActions {...mockProps} />,
+        {
+          name: 'AddAccountActions',
+        },
+        {
+          state: stateWithMultipleHdKeyrings,
+        },
+      );
+
+      const addAccountButton = screen.getByTestId(
+        AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
+      );
+      await fireEvent.press(addAccountButton);
+
+      expect(mockProps.onAddHdAccount).toHaveBeenCalled();
     });
   });
 });

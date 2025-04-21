@@ -1,4 +1,34 @@
 {
+  "alert_system": {
+    "alert_modal": {
+      "title": "Оповещение",
+      "checkbox_label": "Я осознал(-а) риск и все еще хочу продолжить",
+      "got_it_btn": "Понятно",
+      "alert_details": "Сведения об оповещении"
+    },
+    "confirm_modal": {
+      "title": "Высокорисковый запрос",
+      "checkbox_label": "Я подтверждаю получение оповещения и все еще хочу продолжить",
+      "review_alerts": "Просмотр всех оповещений",
+      "message": "Мы предлагаем вам отклонить этот запрос. Если вы продолжите, вы можете подвергнуть свои активы риску.",
+      "title_blockaid": "Ваши активы могут быть под угрозой",
+      "blockaid": {
+        "message": "Если вы подтвердите этот запрос, вы можете потерять свои активы. Рекомендуем отменить его.",
+        "message1": "Если вы подтвердите этот запрос, вы позволите мошеннику снять и потратить ваши активы. Вы их не получите обратно.",
+        "message2": "Вы отправляете свои активы мошеннику. Если вы продолжите, вы потеряете эти активы.",
+        "message3": "Если вы продолжите, все активы, которые вы разместили на OpenSea, могут оказаться под угрозой.",
+        "message4": "Если вы продолжите, все активы, которые вы разместили на Blur, могут оказаться под угрозой.",
+        "message5": "Вы взаимодействуете с вредоносным сайтом. Если вы продолжите, вы потеряете свои активы."
+      }
+    },
+    "inline_alert_label": "Оповещение",
+    "review_alerts": "Просмотр оповещений",
+    "review_alert": "Просмотр оповещения",
+    "domain_mismatch": {
+      "title": "Подозрительный запрос на вход",
+      "message": "Сайт, делающий запрос, не является тем сайтом, на который вы входите. Это может быть попыткой украсть ваши учетные данные для входа."
+    }
+  },
   "blockaid_banner": {
     "approval_farming_description": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, может похитить все ваши активы.",
     "blur_farming_description": "Если вы одобрите этот запрос, кто-то может украсть ваши активы, зарегистрированные в Blur.",
@@ -382,32 +412,35 @@
     "description": "Теперь мы поддерживаем несколько RPC для одной сети. Ваш последний RPC был выбран в качестве RPC по умолчанию для разрешения проблемы с противоречивой информацией",
     "accept": "Согласиться"
   },
-  "nft_details": {
-    "bought_for": "Куплено за",
-    "highest_floor_price": "Самая высокая минимальная цена",
-    "data_unavailable": "данные недоступны",
-    "price_unavailable": "цена недоступна",
-    "rank": "Рейтинг",
-    "contract_address": "Адрес контракта",
-    "token_id": "ID токена",
-    "token_symbol": "Символ токена",
-    "token_standard": "Стандарт токена",
-    "date_created": "Дата создания",
-    "unique_token_holders": "Уникальные держатели токенов",
-    "tokens_in_collection": "Токены в коллекции",
-    "creator_address": "Адрес создателя",
-    "last_sold": "Последняя продажа",
-    "highest_current_bid": "Самое высокое текущее предложение",
-    "options": {
-      "view_on_os": "Смотреть на OpenSea",
-      "remove_nft": "Удалить NFT"
-    },
-    "attributes": "Атрибуты",
-    "disclaimer": "Отказ от ответственности: MetaMask извлекает медиафайл из исходного URL. Этот URL иногда изменяется торговой площадкой, на которой был выполнен минтинг NFT."
-  },
   "qr_tab_switcher": {
     "scanner_tab": "Сканировать QR-код",
     "receive_tab": "Ваш QR-код"
+  },
+  "banner": {
+    "bridge": {
+      "title": "Готовы создать мост?",
+      "subtitle": "Перемещайтесь по 9 блокчейнам, все из которых доступны в вашем кошельке"
+    },
+    "card": {
+      "title": "Карта MetaMask",
+      "subtitle": "Доступна в некоторых регионах"
+    },
+    "fund": {
+      "title": "Пополните свой кошелек",
+      "subtitle": "Добавьте или переведите токены, чтобы начать"
+    },
+    "cashout": {
+      "title": "Обналичивание с MetaMask",
+      "subtitle": "Продавайте криптовалюту за наличные"
+    },
+    "aggregated": {
+      "title": "Ваш баланс суммируется",
+      "subtitle": "Управляйте просмотром баланса в настройках"
+    },
+    "multisrp": {
+      "title": "Add multiple Secret Recovery Phrases",
+      "subtitle": "Import and use multiple wallets in MetaMask"
+    }
   },
   "wallet": {
     "title": "Кошелек",
@@ -524,6 +557,29 @@
       "token_details": "Описание токена",
       "remove_token": "Удалить токен"
     }
+  },
+  "nft_details": {
+    "bought_for": "Куплено за",
+    "highest_floor_price": "Самая высокая минимальная цена",
+    "data_unavailable": "данные недоступны",
+    "price_unavailable": "цена недоступна",
+    "rank": "Рейтинг",
+    "contract_address": "Адрес контракта",
+    "token_id": "ID токена",
+    "token_symbol": "Символ токена",
+    "token_standard": "Стандарт токена",
+    "date_created": "Дата создания",
+    "unique_token_holders": "Уникальные держатели токенов",
+    "tokens_in_collection": "Токены в коллекции",
+    "creator_address": "Адрес создателя",
+    "last_sold": "Последняя продажа",
+    "highest_current_bid": "Самое высокое текущее предложение",
+    "options": {
+      "view_on_os": "Смотреть на OpenSea",
+      "remove_nft": "Удалить NFT"
+    },
+    "attributes": "Атрибуты",
+    "disclaimer": "Отказ от ответственности: MetaMask извлекает медиафайл из исходного URL. Этот URL иногда изменяется торговой площадкой, на которой был выполнен минтинг NFT."
   },
   "activity_view": {
     "title": "Активность"
@@ -693,6 +749,7 @@
     "select_accounts_description": "Выберите счета(-а) для использования на этом сайте:",
     "connect_multiple_accounts": "Подключить нескольких счетов",
     "connect_more_accounts": "Подключите еще счета",
+    "add": "Добавить",
     "cancel": "Отмена",
     "connect": "Подключиться",
     "connect_with_count": "Подключить {{countLabel}}",
@@ -720,7 +777,15 @@
     "potential_threat": "Потенциальные угрозы включают",
     "fake_metamask": "Поддельные версии MetaMask",
     "srp_theft": "Секретная фраза для восстановления или кража пароля",
-    "malicious_transactions": "Вредоносные транзакции, приводящие к краже активов"
+    "malicious_transactions": "Вредоносные транзакции, приводящие к краже активов",
+    "secret_recovery_phrase": "Секретная фраза для восстановления",
+    "account_name": "Имя счета",
+    "select_secret_recovery_phrase": "Выберите секретную фразу для восстановления",
+    "reveal_secret_recovery_phrase": "Показать секретную фразу для восстановления",
+    "add_new_hd_account_helper_text": "Секретная фраза для восстановления, на основе которой будет сгенерирован ваш счет",
+    "accounts": "счета",
+    "show_accounts": "Показать",
+    "hide_accounts": "Скрыть"
   },
   "toast": {
     "connected_and_active": "подключен и активен.",
@@ -773,7 +838,8 @@
   },
   "app_settings": {
     "enabling_notifications": "Включение уведомлений...",
-    "disabling_notifications": "Отключение уведомлений...",
+    "updating_notifications": "Обновление уведомлений...",
+    "updating_account_settings": "Обновление настроек счета…",
     "reset_notifications_title": "Сбросить уведомления",
     "reset_notifications_description": "Сброс уведомлений приведет к удалению ключей хранения уведомлений и сбросу всей истории уведомлений. Уверены, что хотите это сделать?",
     "reset_notifications": "Сбросить уведомления",
@@ -864,6 +930,7 @@
     "notifications_title": "Уведомления",
     "notifications_desc": "Управляйте своими уведомлениями",
     "allow_notifications": "Разрешить уведомления",
+    "enable_push_notifications": "Включить push-уведомления",
     "allow_notifications_desc": "Будьте в курсе того, что происходит в вашем кошельке, с помощью уведомлений. Чтобы использовать уведомления, мы используем профиль для синхронизации некоторых настроек на ваших устройствах.",
     "notifications_opts": {
       "customize_session_title": "Настройте свои уведомления",
@@ -899,9 +966,11 @@
     "networks_desc": "Добавляйте и редактируйте пользовательские сети RPC",
     "network_name_label": "Имя сети",
     "network_name_placeholder": "Имя сети (необязательно)",
-    "network_rpc_url_label": "URL RPC",
+    "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "Имя RPC",
     "network_rpc_placeholder": "Новая сеть RPC",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "ID блокчейна",
     "network_chain_id_placeholder": "ID блокчейна",
     "network_symbol_label": "Символ",
@@ -918,6 +987,7 @@
     "remove_network": "Удалить",
     "cancel_remove_network": "Отмена",
     "info_title": "О MetaMask",
+    "info_title_beta": "О бета-версии MetaMask",
     "info_title_flask": "О MetaMask Flask",
     "experimental_title": "Экспериментальный",
     "experimental_desc": "WalletConnect и многое другое...",
@@ -1118,7 +1188,7 @@
     "security_alerts": "Оповещения безопасности",
     "security_alerts_desc": "Эта функция предупреждает вас о вредоносной активности, проверяя запросы транзакций и подписей локально. Всегда проводите комплексную проверку перед утверждением каких-либо запросов. Нет никакой гарантии, что эта функция обнаружит всю вредоносную активность. Включая эту функцию, вы соглашаетесь с условиями использования поставщика.",
     "smart_transactions_opt_in_heading": "Умные транзакции",
-    "smart_transactions_opt_in_desc": "Включите функцию «Умные транзакции» для более надежного и безопасного выполнения транзакций в Мейн-нете Ethereum.",
+    "smart_transactions_opt_in_desc_supported_networks": "Включите функцию «Умные транзакции» для более надежных и безопасных транзакций в поддерживаемых сетях.",
     "smart_transactions_learn_more": "Узнайте подробнее.",
     "simulation_details": "Спрогнозировать изменения баланса",
     "simulation_details_description": "Включите эту опцию, чтобы спрогнозировать изменения баланса транзакций перед их подтверждением. Это не гарантирует окончательный результат ваших транзакций. ",
@@ -1281,8 +1351,8 @@
       "swap": "Этот счет не поддерживает обмен",
       "bridge": "Этот счет не поддерживает создание моста",
       "send": "Этот счет не поддерживает отправку",
-      "earn": "Зарабатывание не поддерживается для этого счета",
-      "action": "Этот счет не поддерживает создание данное действие"
+      "action": "Этот счет не поддерживает создание данное действие",
+      "earn": "Зарабатывание не поддерживается для этого счета"
     },
     "description": "Описание",
     "totalSupply": "Общий объем предложения",
@@ -1618,6 +1688,9 @@
     "tabs_done": "Готово",
     "no_tabs_title": "Нет открытых вкладок",
     "no_tabs_desc": "Для просмотра децентрализованной сети добавьте новую вкладку",
+    "got_it": "Понятно",
+    "max_tabs_title": "Достигнут максимум вкладок",
+    "max_tabs_desc": "Сейчас мы поддерживаем только 5 одновременно открытых вкладок. Закройте текущие вкладки перед добавлением новых.",
     "failed_to_resolve_ens_name": "Нам не удалось получить это имя ENS.",
     "remove_bookmark_title": "Удалить из Избранного",
     "remove_bookmark_msg": "Уверены, что хотите удалить этот сайт из черного списка?",
@@ -1683,6 +1756,9 @@
     "sent_collectible": "Отправлен коллекционный актив",
     "sent": "Отправлено",
     "received": "Получено",
+    "receive": "Получить",
+    "swap": "Своп",
+    "send": "Отправить",
     "contract_deploy": "Развертывание контракта",
     "to_contract": "Новый контракт",
     "tx_details_free": "Бесплатно",
@@ -1706,6 +1782,7 @@
     "gas_price": "Цена газа (Гвей)",
     "base_fee": "Базовая комиссия (GWEI)",
     "priority_fee": "Плата за приоритет (GWEI)",
+    "multichain_priority_fee": "Плата за приоритет",
     "max_fee": "Макс. плата за газ",
     "total": "Итого",
     "view_on": "ПОСМОТРЕТЬ НА",
@@ -1729,7 +1806,9 @@
     "sign_description_1": "Подтвердите с помощью аппаратного кошелька",
     "sign_description_2": "нажмите «Получить подпись»",
     "sign_get_signature": "Получить подпись",
-    "network_fee": "Комиссия сети"
+    "transaction_id": "ID транзакции",
+    "network_fee": "Комиссия сети",
+    "network_fee_tooltip": "Сумма, уплачиваемая за обработку транзакции в сети."
   },
   "smart_transactions": {
     "status_submitting_header": "Ваша транзакция отправляется",
@@ -1841,6 +1920,7 @@
     "you_can": "Или вы можете",
     "add_network": "добавить другие сети вручную.",
     "add_specific_network": "Добавить {{network_name}}",
+    "update_network": "Обновить {{network_name}}",
     "select_network": "Выбрать сеть",
     "enabled_networks": "Включенные сети",
     "additional_networks": "Дополнительные сети",
@@ -1876,7 +1956,8 @@
     "this_site_cant": "Этот сайт нельзя использовать в вашей текущей сети. Добавьте сетевые разрешения или выберите уже разрешенную сеть.",
     "non_permitted_network_description": "Этот сайт нельзя использовать в вашей текущей сети. Добавьте сетевые разрешения или выберите уже разрешенную сеть.",
     "edit_permissions": "Изменить разрешения",
-    "permitted_networks_info_sheet_description": "Это список сетей, которым вы ранее предоставили разрешения на использование на этом сайте. Выберите один из списка или измените сетевые разрешения для этого сайта."
+    "permitted_networks_info_sheet_description": "Это список сетей, которым вы ранее предоставили разрешения на использование на этом сайте. Выберите один из списка или измените сетевые разрешения для этого сайта.",
+    "connect_an_account": "Подключить счет"
   },
   "select": {
     "cancel": "Отмена",
@@ -1967,6 +2048,31 @@
     "title": "Счет успешно импортирован!",
     "description_one": "Теперь вы сможете просматривать свой счет в MetaMask."
   },
+  "import_new_secret_recovery_phrase": {
+    "title": "Импорт секретной фразы для восстановления",
+    "description": "Введите секретную фразу для восстановления своего кошелька. Вы можете импортировать любую секретную фразу для восстановления Ethereum, Solana или Биткойн.",
+    "subtitle": "Вставьте свою секретную фразу для восстановления",
+    "cta_text": "Продолжить",
+    "paste": "Вставить",
+    "clear": "Очистить все",
+    "srp_number_of_words_option_title": "Количество слов",
+    "12_word_option": "У меня есть фраза из 12 слов",
+    "24_word_option": "У меня есть фраза из 24 слов",
+    "error_title": "Что-то пошло не так",
+    "error_message": "Мы не смогли импортировать эту секретную фразу для восстановления. Убедитесь, что вы ввели ее правильно.",
+    "error_empty_message": "Вам необходимо ввести свою секретную фразу для восстановления.",
+    "error_number_of_words_error_message": "Секретные фразы для восстановления содержат 12 слов и 24 слова",
+    "error_srp_is_case_sensitive": "Введены неверные данные! Секретная фраза для восстановления чувствительна к регистру.",
+    "error_srp_word_error_1": "Слово ",
+    "error_srp_word_error_2": " неверное или содержит орфографические ошибки.",
+    "error_multiple_srp_word_error_1": "Слово ",
+    "error_multiple_srp_word_error_2": " и ",
+    "error_multiple_srp_word_error_3": " неверные или содержат орфографические ошибки.",
+    "error_invalid_srp": "Неверная секретная фраза для восстановления",
+    "error_duplicate_srp": "Эта секретная фраза для восстановления уже импортирована.",
+    "success_1": "Секретная фраза для восстановления",
+    "success_2": "импортирована"
+  },
   "first_incoming_transaction": {
     "title": "{{asset}} было зачислено на ваш счет",
     "amount": "Сумма:",
@@ -1983,7 +2089,8 @@
     "info_text_1": "Уделите несколько минут завершению настройки кошелька MetaMask.",
     "info_text_2": "Это гарантирует, что только вы сможете получить доступ к своим средствам, и позволит вам восстановить кошелек, если вы потеряете устройство.",
     "cta_text": "Создать пароль",
-    "creating_password": "Создание пароля..."
+    "creating_password": "Создание пароля...",
+    "srp_list_selection": "Select Secret Recovery Phrase"
   },
   "account_backup_step_1": {
     "remind_me_later": "Напомнить мне позже",
@@ -2137,7 +2244,15 @@
     "continue_on_your_own": "продолжив взаимодействие на свой страх и риск.",
     "file_an_issue_intro": "Если вы считаете, что домен неправильно помечен в качестве опасного или заблокированный законный сайт решил свои проблемы с безопасностью,",
     "file_an_issue": "сообщите о проблеме.",
-    "back_to_safety": "Назад в безопасное место"
+    "back_to_safety": "Назад в безопасное место",
+    "site_might_be_harmful": "Этот веб-сайт может быть вредоносным",
+    "metamask_flagged_site": "MetaMask пометил сайт, который вы пытаетесь посетить, как потенциально мошеннический. Злоумышленники могут обманом заставить вас сделать что-то опасное.",
+    "you_may_proceed_anyway": "Вы также можете",
+    "proceed_anyway": "все равно продолжить",
+    "but_please_do_so_at_your_own_risk": "но, пожалуйста, делайте это на свой страх и риск.",
+    "report_detection_problem": "Сообщить о проблеме обнаружения",
+    "share_on_twitter": "Если вы сочли это полезным, поделитесь на X!",
+    "share_text": "MetaMask защитил меня от посещения потенциально опасного сайта: {{url}}. Берегите себя!"
   },
   "notifications": {
     "timeout": "Время истекло",
@@ -2228,7 +2343,7 @@
     "lido_stake_completed_title": "Стейкинг завершен",
     "lido_withdrawal_requested_title": "Запрошен вывод средств",
     "lido_withdrawal_completed_title": "Вывод средств завершен",
-    "lido_stake_ready_to_be_withdrawn_title": "Стейкинг готов к выводу ",
+    "lido_stake_ready_to_be_withdrawn_title": "Стейкинг готов к выводу",
     "erc721_sent_title": "NFT отправлен",
     "erc721_received_title": "NFT получен",
     "erc1155_sent_title": "NFT отправлен",
@@ -2262,36 +2377,30 @@
     "lido_withdrawal_completed_message": "Отмена стейкинга завершена",
     "lido_stake_ready_to_be_withdrawn_message": "Запрошен вывод средств",
     "push_notification_content": {
+      "funds_sent_title": "Средства отправлены",
+      "funds_sent_description": "Вы успешно отправили {{amount}} {{symbol}}",
+      "funds_sent_default_description": "Вы успешно отправили токены",
+      "funds_received_title": "Средства получены",
+      "funds_received_description": "Вы получили {{amount}} {{symbol}}",
+      "funds_received_default_description": "Вы получили токены",
       "metamask_swap_completed_title": "Своп выполнен",
       "metamask_swap_completed_description": "Ваш своп MetaMask успешно выполнен",
-      "erc20_sent_title": "Средства отправлены",
-      "erc20_sent_description": "Вы успешно отправили {{amount}} {{token}}",
-      "erc20_received_title": "Средства получены",
-      "erc20_received_description": "Вы получили {{amount}} {{token}}",
-      "eth_sent_title": "Средства отправлены",
-      "eth_sent_description": "Вы успешно отправили {{amount}} ETH",
-      "eth_received_title": "Средства получены",
-      "eth_received_description": "Вы получили {{amount}} {{token}}",
+      "nft_sent_title": "NFT отправлен",
+      "nft_sent_description": "Вы успешно отправили NFT",
+      "nft_received_title": "NFT получен",
+      "nft_received_description": "Вы получили новый NFT",
       "rocketpool_stake_completed_title": "Стейкинг завершен",
       "rocketpool_stake_completed_description": "Ваш стейкинг RocketPool успешно выполнен",
       "rocketpool_unstake_completed_title": "Отмена стейкинга завершена",
       "rocketpool_unstake_completed_description": "Ваш стейкинг RocketPool успешно отменен",
       "lido_stake_completed_title": "Стейкинг завершен",
       "lido_stake_completed_description": "Ваш стейкинг Lido успешно выполнен",
+      "lido_stake_ready_to_be_withdrawn_title": "Стейкинг готов к выводу",
+      "lido_stake_ready_to_be_withdrawn_description": "Ваш стейкинг Lido готов к выводу",
       "lido_withdrawal_requested_title": "Запрошен вывод средств",
       "lido_withdrawal_requested_description": "Ваш запрос на вывод средств из Lido отправлен",
       "lido_withdrawal_completed_title": "Вывод средств завершен",
-      "lido_withdrawal_completed_description": "Ваш вывод средств из Lido успешно выполнен",
-      "lido_stake_ready_to_be_withdrawn_title": "Стейкинг готов к выводу ",
-      "lido_stake_ready_to_be_withdrawn_description": "Ваш стейкинг Lido готов к выводу",
-      "erc721_sent_title": "NFT отправлен",
-      "erc721_sent_description": "Вы успешно отправили NFT",
-      "erc721_received_title": "NFT получен",
-      "erc721_received_description": "Вы получили новый NFT",
-      "erc1155_sent_title": "NFT отправлен",
-      "erc1155_sent_description": "Вы успешно отправили NFT",
-      "erc1155_received_title": "NFT получен",
-      "erc1155_received_description": "Вы получили новый NFT"
+      "lido_withdrawal_completed_description": "Ваш вывод средств из Lido успешно выполнен"
     },
     "prompt_title": "Получать push-уведомления",
     "notifications_enabled_error_title": "Что-то пошло не так",
@@ -2589,6 +2698,8 @@
     "one_more_option": "Еще 1 вариант",
     "more_options": "Еще {{count}} варианта(-ов)",
     "previously_used": "Ранее использовались",
+    "best_rate": "Лучший курс",
+    "most_reliable": "Самый надежный",
     "quotes_timeout": "Таймаут котировок",
     "request_new_quotes": "Запросите новые котировки, чтобы получить последний лучший курс.",
     "terms_of_service": "Условия обслуживания",
@@ -2603,6 +2714,7 @@
     "done": "Готово",
     "fetching_quotes": "Получение котировок...",
     "select_a_quote": "Выбрать котировку",
+    "recommended_quote": "Рекомендуемая котировка",
     "select_a_cryptocurrency": "Выбрать криптовалюту",
     "select_a_cryptocurrency_description": "Выберите из списка токенов, доступных в {{network}}.",
     "search_by_cryptocurrency": "Поиск по криптовалюте",
@@ -2619,6 +2731,7 @@
     "minimum": "Минимальный депозит равен",
     "maximum": "Максимальный депозит равен",
     "insufficient_balance": "Эта сумма превышает ваш баланс",
+    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
     "enter_larger_amount": "Введите большую сумму, чтобы продолжить",
     "enter_smaller_amount": "Введите меньшую сумму, чтобы продолжить",
     "enter_lower_gas_fees": "Введите меньшую сумму для оплаты газа",
@@ -2765,7 +2878,7 @@
     "token_to_verify": "чтобы проверить, тот ли этот токен, который вы ищете.",
     "continue": "Продолжить",
     "select_a_token": "Выбрать токен",
-    "search_token": "Поиск токена",
+    "search_token": "Введите название токена или вставьте адрес",
     "no_tokens_result": "Нет совпадений токенов «{{searchString}}»",
     "find_token_address": "Найти адрес токена",
     "cant_find_token": "Не удается найти токен?",
@@ -2817,9 +2930,12 @@
     "n_quotes": "{{numberOfQuotes}} котировки(-ок)",
     "view_details": "Просмотр подробностей",
     "estimated_gas_fee": "Примерная плата за газ",
+    "gas_fee": "Плата за газ",
+    "included": "включена",
     "max_gas_fee": "Макс. плата за газ",
     "edit": "Изменить",
     "quotes_include_fee": "Котировки включают комиссию MetaMask в размере {{fee}}%",
+    "quotes_include_gas_and_metamask_fee": "В стоимость включен газ и комиссия MetaMask {{fee}}%",
     "tap_to_swap": "Нажмите для свопа",
     "swipe_to_swap": "Проведите для свопа",
     "swipe_to": "Проведите, чтобы",
@@ -2889,6 +3005,8 @@
     "high_recommendation": "Обычно время — важный фактор в операциях свопа. Настройка «Высокая» поможет избежать возможных потерь из-за изменения конъюнктуры рынка.",
     "recommended": "Рекомендуется",
     "recommended_gas": "Рекомендуемая плата за газ",
+    "gas_included_tooltip_explanation": "Эта котировка включает в себя плату за газ путем корректировки суммы отправленных или полученных токенов. Вы можете получить ETH в отдельной транзакции в вашем списке активности.",
+    "gas_included_tooltip_explanation_link_text": "Подробнее о плате за газ",
     "gas_education_title": "Примерная плата за газ",
     "gas_education_1": "Плата за газ выплачивается криптомайнерам, которые обрабатывают транзакции в ",
     "gas_education_2_ethereum": "сети Ethereum.",
@@ -2977,6 +3095,8 @@
     "title_new_network": "Добавлена новая сеть",
     "switch_warning": "В результате этого сеть, выбранная в MetaMask, будет изменена на ранее добавленную:",
     "add_network_and_give_dapp_permission_warning": "Вы добавляете эту сеть в MetaMask и даете разрешение {{dapp_origin}} на ее использование.",
+    "update_network_and_give_dapp_permission_warning": "Вы обновляете эту сеть в MetaMask и предоставляете {{dapp_origin}} разрешение на ее использование.",
+    "request_update_network_url": "{{dapp_origin}} запрашивает обновление вашего сетевого URL по умолчанию. Вы можете редактировать настройки по умолчанию и информацию о сети в любое время.",
     "available": "теперь доступно в селекторе сети.",
     "cancel": "Отмена",
     "switch": "Сменить сеть"
@@ -3139,7 +3259,9 @@
     "enable_token_detection": "Включить автоопределение токенов",
     "token_detection_mainnet_title": "Определение токенов включено, поэтому многие токены автоматически появятся в вашем кошельке.",
     "token_detection_mainnet_link": "Вы также можете добавлять токены вручную.",
-    "or": "или"
+    "or": "или",
+    "non_evm_first_description": "Собственный актив этой сети — {{ticker}}. Он используется для оплаты комиссий за транзакции.",
+    "non_evm_second_description": "Вы потеряете свои активы, если попытаетесь отправить их из другой сети или в другую сеть."
   },
   "download_files": {
     "error": "Не удалось загрузить вложение.",
@@ -3357,13 +3479,17 @@
   "account_actions": {
     "edit_name": "Изменить имя счета",
     "add_account_or_hardware_wallet": "Добавить счет или аппаратный кошелек",
-    "add_account": "Добавить счет",
-    "add_new_account": "Добавить новый счет",
-    "add_hardware_wallet": "Добавить аппаратный кошелек",
-    "import_account": "Импорт счета",
-    "add_bitcoin_account_testnet": "Добавить новый счет Биткойн (тестнет)",
-    "add_bitcoin_account_mainnet": "Добавить новый счет Биткойн (бета-версия)",
-    "add_solana_account": "Добавить новый счет Solana (бета-версия)"
+    "connect_hardware_wallet": "Подключить счет",
+    "import_wallet_or_account": "Импортировать кошелек или счет",
+    "add_account": "Создать новый счет",
+    "create_an_account": "Создать новый счет",
+    "add_new_account": "Счет Ethereum",
+    "import_srp": "Секретная фраза для восстановления",
+    "add_hardware_wallet": "Аппаратный кошелек",
+    "import_account": "Закрытый ключ",
+    "add_bitcoin_account_testnet": "Счет тестнета Биткойна",
+    "add_bitcoin_account_mainnet": "Счет Биткойн",
+    "add_solana_account": "Счет Solana"
   },
   "show_nft": {
     "show_nft_title": "Показать NFT",
@@ -3381,6 +3507,18 @@
     "show_display_nft_media_content_3": "Отображение носителей и данных NFT раскрывает ваш IP-адрес OpenSea или другим третьим сторонам. Автоопределение NFT основано на этой функции и не будет доступно, когда она отключена.",
     "show_display_nft_media_content_4": "Вы можете отключить функцию «Показать носитель NFT» в",
     "show_display_nft_media_content_5": "Настройки > Безопасность и конфиденциальность."
+  },
+  "solana_new_feature_content": {
+    "title": "Solana на MetaMask",
+    "create_solana_account": "Создать счет Solana",
+    "not_now": "Не сейчас",
+    "got_it": "Понятно",
+    "feature_1_title": "Отправляйте, получайте и обменивайте токены",
+    "feature_1_description": "Выполняйте переводы и совершайте транзакции с помощью токенов, таких как SOL, USDC и другие.",
+    "feature_2_title": "Импортировать счета Solana",
+    "feature_2_description": "Импортируйте секретную фразу для восстановления, чтобы перенести свой счет Solana из другого кошелька.",
+    "feature_3_title": "Скоро появятся новые функции",
+    "feature_3_description": "Скоро появятся dapps Solana, NFT, поддержка аппаратного кошелька и многое другое."
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Шлюз IPFS",
@@ -3408,6 +3546,14 @@
     "error_title": "Ошибка установки",
     "error_description": "Не удалось установить {{snap}}."
   },
+  "earn": {
+    "empty_state_cta": {
+      "heading": "Давайте взаймы {{tokenSymbol}} и зарабатывайте",
+      "body_prefix": "Вы могли бы заработать до",
+      "body_suffix": "в год, дав взаймы свои {{tokenSymbol}}.",
+      "start_earning": "Начать зарабатывать"
+    }
+  },
   "stake": {
     "stake": "Выполнить стейкинг",
     "earn": "Заработать",
@@ -3426,17 +3572,23 @@
       "stake_annual_rate_tooltip": "Подсказка по годовой ставке"
     },
     "estimated_annual_rewards": "Предполагаемые вознаграждения за год",
+    "estimated_annual_reward": "Прим. вознаграждение за год",
+    "reward_frequency": "Частота вознаграждений",
+    "reward_frequency_tooltip": "Ваш баланс стейкинга обновляется каждые {{frequency}} часа(-ов) для учета новых вознаграждений.",
+    "withdrawal_time": "Время вывода средств",
     "metamask_pool": "Пул MetaMask",
     "enter_amount": "Укажите сумму",
     "review": "Проверить",
     "not_enough_eth": "Недостаточно ETH",
+    "not_enough_token": "Недостаточно {{ticker}}",
     "balance": "Баланс",
     "stake_eth_and_earn": "Выполняйте стейкинг ETH и зарабатывайте",
-    "stake_any_amount_of_eth": "Выполняйте стейкинг любой суммы ETH",
+    "how_it_works": "Как это работает",
+    "stake_any_amount_of_eth": "Выполняйте стейкинг любой суммы ETH.",
     "no_minimum_required": "Минимум не установлен.",
-    "earn_eth_rewards": "Зарабатывайте вознаграждения в ETH",
+    "earn_eth_rewards": "Зарабатывайте вознаграждения в ETH.",
     "earn_eth_rewards_description": "Начните зарабатывать сразу же после начала стейкинга. Вознаграждения суммируются автоматически.",
-    "flexible_unstaking": "Гибкая отмена стейкинга",
+    "flexible_unstaking": "Гибкая отмена стейкинга.",
     "flexible_unstaking_description": "Отменяйте стейкинг в любое время. Обычно обработка занимает менее 3 дней, но может занять до 11 дней.",
     "disclaimer": "Стейкинг не гарантирует вознаграждение и сопряжен с рисками, включая потерю средств.",
     "learn_more": "Подробнее",
@@ -3476,6 +3628,8 @@
     "unstake_input_banner_description": "В среднем выведенный из стейкинга ETH становится доступным менее чем через 3 дня, но может потребоваться и до 11 дней.",
     "max": "Максимум",
     "staking_from": "Стейкинг от",
+    "advanced_details": "Дополнительные сведения",
+    "ethereum_mainnet": "Мейн-нет Ethereum",
     "interacting_with": "Взаимодействие с",
     "12_hours": "12 часов",
     "terms_of_service": "Условия обслуживания",
@@ -3487,15 +3641,40 @@
     "you_receive": "Вы получаете",
     "up_to_n": "До {{count}}",
     "unstaking_to": "Отмена стейкинга в",
+    "claiming_to": "Зачисление на",
     "max_modal": {
       "title": "Максимум",
-      "description": "«Максимум» — это общая сумма ETH, которая у вас есть, за вычетом комиссии за газ, необходимой для стейкинга. Рекомендуется сохранить немного ETH в своем кошельке для будущих транзакций."
+      "eth": {
+        "description": "«Максимум» — это общая сумма ETH, которая у вас есть, за вычетом комиссии за газ, необходимой для стейкинга. Рекомендуется сохранить немного ETH в своем кошельке для будущих транзакций."
+      }
     },
     "use_max": "Использовать максимум",
     "estimated_unstaking_time": "от 1 до 11 дней",
     "proceed_anyway": "Все равно продолжить",
     "gas_cost_impact": "Влияние стоимости газа",
-    "gas_cost_impact_warning": "Внимание: стоимость газа за транзакцию составит более 30% от вашего депозита."
+    "select_a_token": "Выберите токен",
+    "you_could_earn": "Вы могли заработать",
+    "per_year_on_your_tokens": "в год за свои токены",
+    "deposit": "Депозит",
+    "gas_cost_impact_warning": "Внимание: стоимость газа за транзакцию составит более {{percentOverDeposit}}% от вашего депозита.",
+    "view_earnings_history": "Посмотреть историю доходов",
+    "earnings_history_title": "Доходы {{ticker}}",
+    "earnings_history_list_title": "История выплат",
+    "apr": "Год. проц. ставка",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7 Д",
+        "1M": "1 М",
+        "3M": "3 М",
+        "6M": "6 М"
+      }
+    },
+    "today": "Сегодня",
+    "one_week_average": "Среднее за 1 неделю",
+    "one_month_average": "Среднее за 1 месяц",
+    "three_month_average": "Среднее за 3 месяца",
+    "six_month_average": "Среднее за 6 месяцев",
+    "one_year_average": "Среднее за 1 год"
   },
   "default_settings": {
     "title": "Ваш кошелек готов",
@@ -3577,26 +3756,63 @@
     }
   },
   "confirm": {
-    "reject": "Отклонить",
+    "cancel": "Отмена",
     "confirm": "Подтвердить",
+    "staking_footer": {
+      "part1": "Продолжая, вы соглашаетесь с нашими ",
+      "terms_of_use": "Условиями использования",
+      "part2": " и",
+      "risk_disclosure": "Заявлением о риске",
+      "part3": "."
+    },
+    "label": {
+      "account": "Счет",
+      "balance": "Баланс",
+      "interacting_with": "Взаимодействие с",
+      "network": "Сеть",
+      "primary_type": "Первичный тип",
+      "request_from": "Запрос от",
+      "signing_in_with": "Вход через",
+      "spender": "Кто осуществляет расходы"
+    },
     "title": {
-      "signature": "Запрос подписи"
+      "signature": "Запрос подписи",
+      "permit": "Запрос на ограничение расходов",
+      "permit_revoke": "Удалить разрешение",
+      "permit_NFTs": "Запрос на вывод средств",
+      "signature_siwe": "Запрос на вход"
     },
     "sub_title": {
-      "signature": "Прежде чем подтвердить запрос, просмотрите детали запроса."
+      "permit": "Этот сайт запрашивает разрешение на трату ваших токенов.",
+      "permit_NFTs": "Этот сайт запрашивает разрешение на вывод ваших NFT.",
+      "signature": "Прежде чем подтвердить запрос, просмотрите детали запроса.",
+      "signature_siwe": "Сайт хочет, чтобы вы вошли в систему, чтобы доказать, что вы являетесь владельцем этого счета."
     },
     "request_from": "Запрос от",
+    "staking_from": "Стейкинг от",
+    "signing_in_with": "Вход через",
     "message": "Сообщение",
-    "primary_type": "Первичный тип",
     "personal_sign_tooltip": "Этот сайт запрашивает вашу подпись",
     "details": "Подробности",
-    "account": "Счет",
-    "balance": "Баланс",
-    "network": "Сеть",
+    "qr_get_sign": "Получить подпись",
+    "qr_scan_text": "Отсканируйте с помощью вашего аппаратного кошелька",
+    "sign_with_ledger": "Подписать с помощью Ledger",
+    "siwe_message": {
+      "url": "URL",
+      "network": "Сеть",
+      "account": "Счет",
+      "version": "Версия",
+      "chain_id": "ID блокчейна",
+      "nonce": "Одноразовый код",
+      "issued": "Выпущено",
+      "requestId": "ID запроса",
+      "resources": "Ресурсы"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "NFT отобразится в вашем кошельке, когда ставка будет принята.",
       "decoded_tooltip_list_nft": "Ожидайте изменений, только если кто-то купит ваши NFT.",
       "info_permit": "Вы даете отправителю разрешение потратить такое количество токенов с вашего счета.",
+      "info_revoke": "Вы лишаете кого-то права тратить токены с вашего счета.",
       "label_change_type_bidding": "Вы ставите",
       "label_change_type_listing": "Вы размещаете для продажи",
       "label_change_type_nft_listing": "Цена выставления на продажу",
@@ -3611,7 +3827,7 @@
       "unavailable": "Недоступно"
     },
     "unlimited": "Неограничено",
-    "none": "None"
+    "none": "Нет"
   },
   "change_in_simulation_modal": {
     "title": "Результаты изменились",
@@ -3624,5 +3840,34 @@
     "input_title": "Имя счета",
     "add_account_button": "Добавить счет",
     "name_taken_message": "Имя этого счета уже существует"
+  },
+  "smart_transactions_migration": {
+    "title": "Транзакции только что стали еще умнее",
+    "link": "Более высокие показатели успеха",
+    "description": " и защита MEV. Теперь по умолчанию."
+  },
+  "bridge": {
+    "continue": "Продолжить",
+    "terms_and_conditions": "Положения и условия",
+    "select_token": "Выберите токен",
+    "select_network": "Выбрать сеть",
+    "all_networks": "Все сети",
+    "num_networks": "{{numNetworks}} сети(-ей)",
+    "one_network": "1 сеть",
+    "select_all_networks": "Выбрать все",
+    "deselect_all_networks": "Выбрать все",
+    "see_all": "Смотреть все",
+    "apply": "Применить",
+    "slippage": "Проскальзывание",
+    "slippage_info": "Если цена меняется между моментом размещения и подтверждения вашего ордера, это называется «проскальзывание». Ваш своп будет автоматически отменен, если проскальзывание превысит значение, которое вы установили здесь .",
+    "network_fee": "Комиссия сети",
+    "estimated_time": "Примерное время",
+    "quote": "Котировка",
+    "quote_details": "Сведения о котировке",
+    "price_impact": "Влияние на цену",
+    "time": "Время",
+    "quote_info_content": "Эта котировка самая выгодная из найденных нами вариантов. Она основана на ставке свопа, включая комиссию за создание моста и комиссию MetaMask в размере 0,875%, но не на плату за газ. Размер платы за газ зависят от активности сети и сложности транзакции.",
+    "quote_info_title": "Почему мы рекомендуем эту котировку",
+    "see_other_quotes": "Смотреть другие котировки"
   }
 }

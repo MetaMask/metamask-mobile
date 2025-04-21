@@ -1,5 +1,6 @@
 import {
   TransactionController,
+  TransactionType,
   type TransactionControllerMessenger,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
@@ -10,6 +11,7 @@ import { NetworkController } from '@metamask/network-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 
+import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/hooks/useConfirmationRedesignEnabled';
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Logger from '../../../../util/Logger';
@@ -18,16 +20,24 @@ import {
   submitSmartTransactionHook,
   type SubmitSmartTransactionRequest,
 } from '../../../../util/smart-transactions/smart-publish-hook';
+import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
   ControllerInitFunction,
   ControllerInitRequest,
 } from '../../types';
-import type { RootState } from '../../../../reducers';
+import type { TransactionEventHandlerRequest } from './types';
+import {
+  handleTransactionApprovedEventForMetrics,
+  handleTransactionRejectedEventForMetrics,
+  handleTransactionSubmittedEventForMetrics,
+  handleTransactionAddedEventForMetrics,
+  handleTransactionFinalizedEventForMetrics,
+} from './event-handlers/metrics';
+import { handleShowNotification } from './event-handlers/notification';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
-  // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
   TransactionControllerMessenger,
   TransactionControllerInitMessenger
 > = (request) => {
@@ -51,6 +61,8 @@ export const TransactionControllerInit: ControllerInitFunction<
   try {
     const transactionController: TransactionController =
       new TransactionController({
+        isAutomaticGasFeeUpdateEnabled: ({ type }) =>
+          REDESIGNED_TRANSACTION_TYPES.includes(type as TransactionType),
         disableHistory: true,
         disableSendFlowHistory: true,
         disableSwaps: true,
@@ -94,10 +106,17 @@ export const TransactionControllerInit: ControllerInitFunction<
         pendingTransactions: {
           isResubmitEnabled: () => false,
         },
-        // @ts-expect-error - Keyring controller expects TxData returned but TransactionController expects TypedTransaction
+        // @ts-expect-error - TransactionMeta mismatch type with TypedTransaction from '@ethereumjs/tx'
         sign: (...args) => keyringController.signTransaction(...args),
         state: persistedState.TransactionController,
       });
+
+    addTransactionControllerListeners({
+      initMessenger,
+      getState,
+      smartTransactionsController,
+    });
+
     return { controller: transactionController };
   } catch (error) {
     Logger.error(error as Error, 'Failed to initialize TransactionController');
@@ -155,7 +174,6 @@ function isIncomingTransactionsEnabled(
 
 function getControllers(
   request: ControllerInitRequest<
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,
@@ -170,4 +188,87 @@ function getControllers(
       'SmartTransactionsController',
     ),
   };
+}
+
+function addTransactionControllerListeners(
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
+) {
+  const { initMessenger } = transactionEventHandlerRequest;
+
+  initMessenger.subscribe(
+    'TransactionController:transactionApproved',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleShowNotification(transactionMeta);
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:transactionApproved',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleTransactionApprovedEventForMetrics(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:transactionConfirmed',
+    (transactionMeta: TransactionMeta) => {
+      handleTransactionFinalizedEventForMetrics(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:transactionDropped',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleTransactionFinalizedEventForMetrics(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:transactionFailed',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleTransactionFinalizedEventForMetrics(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:transactionRejected',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleTransactionRejectedEventForMetrics(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:transactionSubmitted',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleTransactionSubmittedEventForMetrics(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:unapprovedTransactionAdded',
+    (transactionMeta: TransactionMeta) => {
+      handleTransactionAddedEventForMetrics(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
 }
