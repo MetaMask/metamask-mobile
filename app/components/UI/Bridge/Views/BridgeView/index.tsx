@@ -63,7 +63,7 @@ import type { BridgeDestTokenSelectorRouteParams } from '../../components/Bridge
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
-
+  const [isSubmittingTx, setIsSubmittingTx] = useState(false);
   // The same as getUseExternalServices in Extension
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -182,6 +182,7 @@ const BridgeView = () => {
 
   const handleContinue = async () => {
     if (activeQuote) {
+      setIsSubmittingTx(true);
       await submitBridgeTx({
         quoteResponse: activeQuote,
       });
@@ -222,7 +223,15 @@ const BridgeView = () => {
 
   const hasOnlyQuoteCard = hasQuoteDetails && !isInputFocused;
 
-  const renderBottomContent = () => (
+  const renderBottomContent = () => {
+    let buttonLabel = strings('bridge.continue');
+    if (hasInsufficientBalance) {
+      buttonLabel = strings('bridge.insufficient_funds');
+    } else if (isSubmittingTx) {
+      buttonLabel = strings('bridge.submitting_transaction');
+    }
+
+    return (
     <Box style={styles.buttonContainer}>
       {!hasValidBridgeInputs || isLoading || !activeQuote ? (
         <Text color={TextColor.Primary}>{strings('bridge.select_amount')}</Text>
@@ -235,14 +244,10 @@ const BridgeView = () => {
         <>
           <Button
             variant={ButtonVariants.Primary}
-            label={
-              hasInsufficientBalance
-                ? strings('bridge.insufficient_funds')
-                : strings('bridge.continue')
-            }
+            label={buttonLabel}
             onPress={handleContinue}
             style={styles.button}
-            isDisabled={hasInsufficientBalance}
+            isDisabled={hasInsufficientBalance || isSubmittingTx}
           />
           <Button
             variant={ButtonVariants.Link}
@@ -256,7 +261,7 @@ const BridgeView = () => {
         </>
       )}
     </Box>
-  );
+  )};
 
   return (
     // Need this to be full height of screen
