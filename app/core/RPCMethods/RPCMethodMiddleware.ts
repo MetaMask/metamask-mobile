@@ -654,31 +654,24 @@ export const getRpcMethodMiddleware = ({
 
       personal_sign: async () => {
         const firstParam = req.params[0];
-
-        // Add security alerts validation
-        await PPOMUtil.validateRequest({
-          method: 'personal_sign',
-          params: req.params,
-          origin: hostname,
-        });
-
+        const secondParam = req.params[1];
         const params = {
           data: firstParam,
-          from: req.params[1],
+          from: secondParam,
           requestId: req.id,
         };
 
-        if (resemblesAddress(firstParam) && !resemblesAddress(req.params[1])) {
-          params.data = req.params[1];
+        if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
+          params.data = secondParam;
           params.from = firstParam;
         }
 
         const pageMeta = {
           meta: {
             url: url.current,
+            channelId,
             title: title.current,
             icon: icon.current,
-            channelId,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -696,6 +689,8 @@ export const getRpcMethodMiddleware = ({
           address: params.from,
           isWalletConnect,
         });
+
+        DevLogger.log(`personal_sign`, params, pageMeta, hostname);
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
@@ -757,13 +752,6 @@ export const getRpcMethodMiddleware = ({
           channelId,
           address: req.params[1],
           isWalletConnect,
-        });
-
-        // Add security alerts validation
-        await PPOMUtil.validateRequest({
-          method: 'eth_signTypedData',
-          params: req.params,
-          origin: hostname,
         });
 
         trace(
