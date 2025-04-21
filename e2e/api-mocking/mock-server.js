@@ -57,19 +57,10 @@ export const startMockServer = async (events, port) => {
   await mockServer.forUnmatchedRequest().thenPassThrough({
     beforeRequest: async ({ url, method }) => {
       const returnUrl = new URL(url).searchParams.get('url') || url;
-      
-      // Handle security alert and permission-related requests
-      if (returnUrl.includes('security-alerts.api.cx.metamask.io') || 
-          returnUrl.includes('permissions') || 
-          returnUrl.includes('eth_accounts')) {
-        console.log(`Handling security/permission request: ${returnUrl}`);
-        return { url: returnUrl };
-      }
-      
-      // Transform other URLs for Android
-      const updatedUrl = device.getPlatform() === 'android'
-        ? returnUrl.replace('localhost', '127.0.0.1')
-        : returnUrl;
+      const updatedUrl =
+        device.getPlatform() === 'android'
+          ? returnUrl.replace('localhost', '127.0.0.1')
+          : returnUrl;
       console.log(`Mock proxy forwarding request to: ${updatedUrl}`);
       return { url: updatedUrl };
     },
