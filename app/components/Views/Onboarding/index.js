@@ -57,9 +57,9 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
+import Oauth2loginService from '../../../core/Oauth2Login/Oauth2loginService';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import ErrorSheet from '../ErrorSheet';
-import Oauth2LoginComponent from '../../Oauth2Login/Oauth2LoginComponent';
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 
 const createStyles = (colors) =>
@@ -363,6 +363,80 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
+
+  metricNavigationWrapper = (targetRoute, previousScreen, metricEvent) => {
+    const { metrics } = this.props;
+    if (metrics.isEnabled()) {
+      this.props.navigation.push(
+        targetRoute,
+        {
+          [PREVIOUS_SCREEN]: previousScreen,
+        }
+      );
+      this.track(metricEvent === 'import' ? MetaMetricsEvents.WALLET_IMPORT_STARTED : MetaMetricsEvents.WALLET_SETUP_STARTED);
+    } else {
+      this.props.navigation.navigate('OptinMetrics', {
+        onContinue: () => {
+          this.props.navigation.replace(
+            targetRoute,
+            {
+              [PREVIOUS_SCREEN]: previousScreen,
+            }
+          );
+          this.track(metricEvent === 'import' ? MetaMetricsEvents.WALLET_IMPORT_STARTED : MetaMetricsEvents.WALLET_SETUP_STARTED);
+        },
+      });
+    }
+  };
+
+  handlePostSocialLogin = (result) => {
+    if (result.type === 'success') {
+      if (this.state.createWallet) {
+        if (result.existingUser) {
+          this.props.navigation.navigate('AccountAlreadyExists', {
+            accountName: result.accountName,
+          });
+        } else {
+          this.metricNavigationWrapper('ChoosePassword', ONBOARDING, 'create');
+        }
+      } else if (!this.state.createWallet) {
+        if (result.existingUser) {
+          this.metricNavigationWrapper('Login', ONBOARDING, 'import');
+        } else {
+          this.props.navigation.navigate('AccountNotFound', {
+            accountName: result.accountName,
+          });
+        }
+      }
+    } else {
+      // handle error: show error message in the UI
+    }
+  };
+
+  onPressContinueWithApple = async () => {
+    const action = async () => {
+      const result = await Oauth2loginService.handleOauth2Login('apple').catch((e) => {
+        DevLogger.log(e);
+        return {type: 'error', error: e, existingUser: false};
+      });
+
+      this.handlePostSocialLogin(result);
+    };
+    this.handleExistingUser(action);
+  };
+
+  onPressContinueWithGoogle = async () => {
+    const action = async () => {
+      const result = await Oauth2loginService.handleOauth2Login('google').catch((e) => {
+        DevLogger.log(e);
+        return {type: 'error', error: e, existingUser: false};
+      });
+
+      this.handlePostSocialLogin(result);
+    };
+    this.handleExistingUser(action);
+  };
+
   track = (event) => {
     trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
   };
@@ -524,7 +598,7 @@ class Onboarding extends PureComponent {
           onConfirmPress={this.toggleWarningModal}
         /> */}
 
-        {this.state.bottomSheetVisible && (
+        {this.state.bottomSheetVisible && !loading && (
           <BottomSheet
             shouldNavigateBack={false}
             onClose={() =>
@@ -542,7 +616,7 @@ class Onboarding extends PureComponent {
               <View style={styles.buttonWrapper}>
                 <Button
                   variant={ButtonVariants.Secondary}
-                  onPress={this.onPressCreate}
+                  onPress={this.onPressContinueWithGoogle}
                   testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
                   label={
                     <View style={styles.buttonLabel}>
@@ -567,7 +641,7 @@ class Onboarding extends PureComponent {
                 />
                 <Button
                   variant={ButtonVariants.Secondary}
-                  onPress={this.onPressImport}
+                  onPress={this.onPressContinueWithApple}
                   testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
                   label={
                     <View style={styles.buttonLabel}>

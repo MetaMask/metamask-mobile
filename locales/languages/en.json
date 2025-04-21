@@ -300,7 +300,8 @@
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     
     "apple_button": "Sign in with Apple",
-    "google_button": "Sign in with Google"
+    "google_button": "Sign in with Google",
+    "other_methods": "Use another method"
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",

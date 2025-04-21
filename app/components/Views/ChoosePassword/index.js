@@ -72,6 +72,7 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
+import Routes from '../../../constants/navigation/Routes';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
@@ -345,7 +346,7 @@ class ChoosePassword extends PureComponent {
       authType.oauth2Login = this.props.oauth2LoginSuccess;
       Logger.log('previous_screen', previous_screen);
 
-      if (previous_screen === ONBOARDING) {
+      if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
@@ -363,8 +364,8 @@ class ChoosePassword extends PureComponent {
 
       if (authType.oauth2Login) {
         this.props.navigation.reset({
-          index: 1,
-          routes: [{ name: Routes.ONBOARDING.SUCCESS }],
+          index: 0,
+          routes: [{ name: Routes.ONBOARDING.SUCCESS, params: { showPasswordHint: true } }],
         });
       } else {
         this.props.navigation.replace('AccountBackupStep1');

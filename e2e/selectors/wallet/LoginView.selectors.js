@@ -16,4 +16,5 @@ export const LoginViewSelectors = {
   ANDROID_IRIS_ICON: 'android-iris-icon',
   ANDROID_PASSCODE_ICON: 'android-passcode-icon',
   FALLBACK_FINGERPRINT_ICON: 'fallback-fingerprint-icon',
+  OTHER_METHODS_BUTTON: 'other-methods-button',
 };

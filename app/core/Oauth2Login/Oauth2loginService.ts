@@ -38,6 +38,9 @@ export class Oauth2LoginService {
         this.config = {
             web3AuthNetwork,
         };
+        this.config = {
+            web3AuthNetwork: config.web3AuthNetwork,
+        };
     }
 
     #dispatchLogin = () =>{
