@@ -65,7 +65,8 @@ const TransactionAsset = ({
   //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
   const networkImageSource = getNetworkImageSource({ chainId });
 
-  // Solana native SOL will also be the zero address
+  // Solana native SOL will also be the zero address for quote data from Bridge API only!
+  // Other formats might look like solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
   const isNative = token.address === ethers.constants.AddressZero;
 
   return (
