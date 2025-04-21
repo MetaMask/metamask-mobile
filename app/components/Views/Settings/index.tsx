@@ -20,6 +20,7 @@ import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import Logger from '../../../util/Logger';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -166,6 +167,7 @@ const Settings = () => {
   };
 
   const onPressLock = async () => {
+    Logger.log('logout onPressLock');
     await Authentication.lockApp({ locked: true });
   };
 

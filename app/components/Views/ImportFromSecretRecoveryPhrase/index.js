@@ -63,7 +63,6 @@ import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { useProfileSyncing } from '../../../util/identity/hooks/useProfileSyncing';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
 import Checkbox from '../../../component-library/components/Checkbox';
@@ -108,8 +107,6 @@ const ImportFromSecretRecoveryPhrase = ({
   setOnboardingWizardStep,
   route,
 }) => {
-  const { enableProfileSyncing } = useProfileSyncing();
-
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
@@ -568,7 +565,6 @@ const ImportFromSecretRecoveryPhrase = ({
         //   routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
         // });
         // await importAdditionalAccounts();
-        await enableProfileSyncing();
       } catch (error) {
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {

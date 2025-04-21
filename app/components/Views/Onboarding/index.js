@@ -213,10 +213,6 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
   };
 
   notificationAnimated = new Animated.Value(100);
@@ -335,22 +331,10 @@ class Onboarding extends PureComponent {
   onPressCreate = () => {
     this.setState({ bottomSheetVisible: false });
     const action = () => {
-      const { metrics } = this.props;
-      if (metrics.isEnabled()) {
-        this.props.navigation.navigate('ChoosePassword', {
-          [PREVIOUS_SCREEN]: ONBOARDING,
-        });
-        this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
-      } else {
-        this.props.navigation.navigate('OptinMetrics', {
-          onContinue: () => {
-            this.props.navigation.replace('ChoosePassword', {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-            });
-            this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
-          },
-        });
-      }
+      this.props.navigation.navigate('ChoosePassword', {
+        [PREVIOUS_SCREEN]: ONBOARDING,
+      });
+      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
     };
 
     this.handleExistingUser(action);
@@ -359,22 +343,10 @@ class Onboarding extends PureComponent {
   onPressImport = () => {
     this.setState({ bottomSheetVisible: false });
     const action = async () => {
-      const { metrics } = this.props;
-      if (metrics.isEnabled()) {
-        this.props.navigation.push(
-          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        );
-        this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
-      } else {
-        this.props.navigation.navigate('OptinMetrics', {
-          onContinue: () => {
-            this.props.navigation.replace(
-              Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-            );
-            this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
-          },
-        });
-      }
+      this.props.navigation.push(
+        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+      );
+      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
     };
     this.handleExistingUser(action);
   };
