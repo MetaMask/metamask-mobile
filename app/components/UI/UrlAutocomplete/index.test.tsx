@@ -20,7 +20,10 @@ const defaultState = {
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
-      }
+      },
+      MultichainNetworkController: {
+        isEvmSelected: true,
+      },
     },
   }
 };
