@@ -162,7 +162,7 @@ describe('AccountFromToInfoCard', () => {
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(await findByText('0x519d...9CC7')).toBeDefined();
+    expect(await findByText('0x519d2...c9CC7')).toBeDefined();
   });
 
   it('should render correct to address for NFT send', async () => {
@@ -189,7 +189,7 @@ describe('AccountFromToInfoCard', () => {
       <AccountFromToInfoCard transactionState={NFTTransaction} />,
       { state: mockInitialState },
     );
-    expect(await findByText('0xF4e8...287B')).toBeDefined();
+    expect(await findByText('0xF4e82...e287B')).toBeDefined();
   });
 
   it('should display ens name', async () => {
