@@ -25,7 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -93,6 +93,9 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
+import Oauth2loginService from '../../../core/Oauth2Login/Oauth2loginService';
+import { UserActionType } from '../../../actions/user';
+import { selectOauth2LoginSuccess } from '../../../selectors/oauthServices';
 
 /**
  * View where returning users can authenticate
@@ -137,6 +140,8 @@ const Login: React.FC = () => {
     Authentication.lockApp();
     return false;
   };
+
+  const oauth2LoginSuccess = useSelector(selectOauth2LoginSuccess);
 
   useEffect(() => {
     trace({
@@ -248,6 +253,11 @@ const Login: React.FC = () => {
     setBiometryChoice(newBiometryChoice);
   };
 
+  const handleUseOtherMethod = () => {
+    navigation.navigate('OnboardingRootNav', { screen: 'OnboardingNav', params: { screen: 'Onboarding' } });
+    dispatch({type: UserActionType.OAUTH2_LOGIN_RESET});
+  };
+
   const onLogin = async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
@@ -266,16 +276,23 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
-      await trace(
-        {
-          name: TraceName.AuthenticateUser,
-          op: TraceOperation.Login,
-          parentContext: parentSpanRef.current,
-        },
-        async () => {
-          await Authentication.userEntryAuth(password, authType);
-        },
-      );
+      const oauth2Login = Oauth2loginService.localState.loginSuccess;
+
+      if (oauth2Login) {
+        await Authentication.rehydrateSeedPhrase(password, authType);
+
+      } else {
+        await trace(
+          {
+            name: TraceName.AuthenticateUser,
+            op: TraceOperation.Login,
+            parentContext: parentSpanRef.current,
+          },
+          async () => {
+            await Authentication.userEntryAuth(password, authType);
+          },
+        );
+      }
       Keyboard.dismiss();
 
       // Get onboarding wizard state
@@ -551,15 +568,28 @@ const Login: React.FC = () => {
                 isDisabled={password.length === 0}
               />
 
-              <Button
-                style={styles.goBack}
-                variant={ButtonVariants.Link}
-                onPress={toggleWarningModal}
-                testID={LoginViewSelectors.RESET_WALLET}
-                label={strings('login.reset_wallet')}
-              />
+              { !oauth2LoginSuccess && (
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={toggleWarningModal}
+                  testID={LoginViewSelectors.RESET_WALLET}
+                  label={strings('login.reset_wallet')}
+                />
+              )}
             </View>
 
+            { oauth2LoginSuccess && (
+                <View style={styles.footer}>
+                  <Button
+                    style={styles.goBack}
+                    variant={ButtonVariants.Link}
+                    onPress={handleUseOtherMethod}
+                    testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+                    label={strings('login.other_methods')}
+                  />
+                </View>
+              )}
             {/* <View style={styles.footer}>
               <Text variant={TextVariant.HeadingSMRegular} style={styles.cant}>
                 {strings('login.go_back')}

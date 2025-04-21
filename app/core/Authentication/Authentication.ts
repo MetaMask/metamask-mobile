@@ -494,14 +494,13 @@ class AuthenticationService {
         password,
         seedPhrase,
       );
+      this.dispatchOauth2Reset();
     } catch(error) {
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
         });
         await resetVaultBackup();
         throw error;
-    } finally {
-      this.dispatchOauth2Reset();
     }
 
     Logger.log('SeedlessOnboardingController state', SeedlessOnboardingController.state);
