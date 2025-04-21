@@ -55,8 +55,12 @@ import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDet
 import { isAssetFromSearch, selectTokenDisplayData } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { formatWithThreshold } from '../../../util/assets';
-import { useSwapBridgeNavigation, SwapBridgeNavigationLocation } from '../Bridge/hooks/useSwapBridgeNavigation';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../Bridge/hooks/useSwapBridgeNavigation';
 import { swapsUtils } from '@metamask/swaps-controller';
+import { TraceName, endTrace } from '../../../util/trace';
 interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
@@ -124,6 +128,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    endTrace({ name: TraceName.AssetDetails });
+  }, []);
 
   useEffect(() => {
     const { SwapsController } = Engine.context;

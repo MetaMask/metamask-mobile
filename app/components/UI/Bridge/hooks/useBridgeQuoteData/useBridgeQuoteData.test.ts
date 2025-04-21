@@ -46,13 +46,15 @@ describe('useBridgeQuoteData', () => {
       },
       isLoading: false,
       quoteFetchError: null,
+      isNoQuotesAvailable: false,
     });
   });
 
   it('should handle no available quotes', () => {
     const bridgeControllerOverrides = {
       quotes: [],
-      quotesLoadingStatus: null,
+      quotesLoadingStatus: RequestStatus.FETCHED,
+      quotesLastFetched: 123,
       quoteFetchError: null,
     };
 
@@ -66,10 +68,12 @@ describe('useBridgeQuoteData', () => {
 
     expect(result.current).toEqual({
       activeQuote: undefined,
+      bestQuote: undefined,
       destTokenAmount: undefined,
       formattedQuoteData: undefined,
       isLoading: false,
       quoteFetchError: null,
+      isNoQuotesAvailable: true,
     });
   });
 
@@ -97,6 +101,7 @@ describe('useBridgeQuoteData', () => {
       formattedQuoteData: undefined,
       isLoading: false,
       quoteFetchError: null,
+      isNoQuotesAvailable: false,
     });
   });
 
@@ -121,6 +126,7 @@ describe('useBridgeQuoteData', () => {
       formattedQuoteData: undefined,
       isLoading: true,
       quoteFetchError: null,
+      isNoQuotesAvailable: false,
     });
   });
 
@@ -146,6 +152,7 @@ describe('useBridgeQuoteData', () => {
       formattedQuoteData: undefined,
       isLoading: false,
       quoteFetchError: error,
+      isNoQuotesAvailable: false,
     });
   });
 });
