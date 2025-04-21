@@ -1,5 +1,5 @@
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   setDestToken,
@@ -21,6 +21,23 @@ jest.mock('../../../../../core/Engine', () => ({
       fetchAggregatorMetadataWithCache: jest.fn(),
       fetchTopAssetsWithCache: jest.fn(),
       fetchTokenWithCache: jest.fn(),
+    },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x1234567890123456789012345678901234567890'],
+            type: 'HD Key Tree',
+          },
+        ],
+      },
+    },
+    BridgeStatusController: {
+      submitTx: jest.fn().mockResolvedValue({ success: true }),
+    },
+    BridgeController: {
+      resetState: jest.fn(),
+      setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -88,6 +105,12 @@ describe('BridgeView', () => {
       },
       { state: initialState },
     );
+    
+    // Wait for any async operations to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    
     expect(toJSON()).toMatchSnapshot();
   });
 

@@ -142,8 +142,10 @@ const BridgeView = () => {
   useEffect(
     () => () => {
       dispatch(resetBridgeState());
-      // Clear bridge controller state
-      Engine.context.BridgeController.resetState();
+      // Clear bridge controller state if available
+      if (Engine.context.BridgeController?.resetState) {
+        Engine.context.BridgeController.resetState();
+      }
     },
     [dispatch],
   );
@@ -155,7 +157,7 @@ const BridgeView = () => {
   useEffect(() => {
     const setBridgeFeatureFlags = async () => {
       try {
-        if (isBasicFunctionalityEnabled) {
+        if (isBasicFunctionalityEnabled && Engine.context.BridgeController?.setBridgeFeatureFlags) {
           await Engine.context.BridgeController.setBridgeFeatureFlags();
         }
       } catch (error) {
