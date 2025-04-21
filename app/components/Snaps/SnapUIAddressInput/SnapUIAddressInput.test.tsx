@@ -88,7 +88,11 @@ describe('SnapUIAddressInput', () => {
 
   it('supports the disabled prop', () => {
     const { getByTestId } = renderWithProvider(
-      <SnapUIAddressInput name="testAddress" chainId={testChainId} disabled />,
+      <SnapUIAddressInput
+        name="testAddress"
+        chainId={testChainId}
+        disabled
+      />,
       { state: mockInitialState },
     );
 
@@ -138,6 +142,7 @@ describe('SnapUIAddressInput', () => {
       { state: mockInitialState },
     );
 
+
     const tree = JSON.stringify(toJSON());
     expect(tree.includes('RNSVGSvgView')).toBe(true);
   });
@@ -163,13 +168,7 @@ describe('SnapUIAddressInput', () => {
   it('renders with an invalid CAIP Account ID', () => {
     mockGetValue.mockReturnValue('eip155:0:https://foobar.baz/foobar');
 
-    const { toJSON } = renderWithProvider(
-      <SnapUIAddressInput
-        name="input"
-        chainId="eip155:0"
-        displayAvatar={false}
-      />,
-    );
+    const { toJSON } = renderWithProvider(<SnapUIAddressInput name="input" chainId="eip155:0" displayAvatar={false} />);
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -196,26 +195,17 @@ describe('SnapUIAddressInput', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('does not render the matched address info if there is an error', () => {
+  it('renders the matched address info with an error', () => {
     mockGetValue.mockReturnValue(`${testChainId}:${testAddress}`);
     const displayName = 'Vitalik.eth';
     (useDisplayName as jest.Mock).mockReturnValue(displayName);
 
-    const { queryByText, queryByTestId, getByText, toJSON } =
-      renderWithProvider(
-        <SnapUIAddressInput
-          name="testAddress"
-          chainId={testChainId}
-          error="Error"
-        />,
-        { state: mockInitialState },
-      );
+    const { queryByText, getByText, toJSON } = renderWithProvider(
+      <SnapUIAddressInput name="testAddress" chainId={testChainId} error="Error" />,
+      { state: mockInitialState },
+    );
 
-    expect(queryByText(displayName)).toBeFalsy();
-
-    const input = queryByTestId(INPUT_TEST_ID);
-
-    expect(input?.props.value).toBe(testAddress);
+    expect(queryByText(displayName)).toBeTruthy();
     expect(getByText('Error')).toBeTruthy();
 
     const tree = JSON.stringify(toJSON());

@@ -8,11 +8,11 @@ import {
   fromWei,
 } from '../../../../../../util/number';
 import { BN } from 'ethereumjs-util';
-import { TimePeriodGroupInfo } from './StakingEarningsHistory.types';
+import type { TimePeriodGroupInfo } from './StakingEarningsHistory.types';
 import { DateRange } from './StakingEarningsTimePeriod/StakingEarningsTimePeriod.types';
 import BigNumber from 'bignumber.js';
-import { EarningHistory } from '../../../hooks/useStakingEarningsHistory';
-import { TokenI } from '../../../../Tokens/types';
+import type { EarningHistory } from '../../../hooks/useStakingEarningsHistory';
+import type { TokenI } from '../../../../Tokens/types';
 
 /**
  * Formats the date string into a time period group info object
@@ -119,8 +119,8 @@ export const formatRewardsWei = (
   if (!isRemoveSpecialCharacters) {
     // return a string with possible special characters in display formatting
     return asset.isETH
-      ? renderFromWei(rewardsValue)
-      : renderFromTokenMinimalUnit(rewardsValue, asset.decimals);
+      ? renderFromWei(rewardsValue.toString())
+      : renderFromTokenMinimalUnit(rewardsValue.toString(), asset.decimals);
   }
   // return a string without special characters
   return asset.isETH
@@ -165,11 +165,14 @@ export const formatRewardsFiat = (
   exchangeRate: number = 0,
 ): string => {
   if (asset.isETH) {
-    const weiFiatNumber = weiToFiatNumber(new BN(rewardsValue), conversionRate);
+    const weiFiatNumber = weiToFiatNumber(
+      rewardsValue.toString(),
+      conversionRate,
+    );
     return renderFiat(weiFiatNumber, currency, 2);
   }
   const balanceFiatNumber = balanceToFiatNumber(
-    renderFromTokenMinimalUnit(rewardsValue, asset.decimals),
+    renderFromTokenMinimalUnit(rewardsValue.toString(), asset.decimals),
     conversionRate,
     exchangeRate,
   );

@@ -2,17 +2,13 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-} from '../../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
   AllowedBridgeChainIds,
   BridgeFeatureFlagsKey,
   formatChainIdToCaip,
-  getNativeAssetForChainId,
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
@@ -173,27 +169,7 @@ export const selectEnabledDestChains = createSelector(
 // Combined selectors for related state
 export const selectSourceToken = createSelector(
   selectBridgeState,
-  selectChainId,
-  (bridgeState, currentChainId) => {
-    // If we have a selected source token in the bridge state, use that
-    if (bridgeState.sourceToken) {
-      return bridgeState.sourceToken;
-    }
-
-    // Otherwise, fall back to the native token of current chain
-    const sourceToken = getNativeAssetForChainId(currentChainId);
-
-    const sourceTokenFormatted: BridgeToken = {
-      address: sourceToken.address,
-      name: sourceToken.name ?? '',
-      symbol: sourceToken.symbol,
-      image: 'iconUrl' in sourceToken ? sourceToken.iconUrl : '',
-      decimals: sourceToken.decimals,
-      chainId: currentChainId as Hex,
-    };
-
-    return sourceTokenFormatted;
-  },
+  (bridgeState) => bridgeState.sourceToken,
 );
 
 export const selectDestToken = createSelector(

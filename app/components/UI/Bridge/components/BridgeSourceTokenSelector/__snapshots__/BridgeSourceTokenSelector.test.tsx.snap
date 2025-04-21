@@ -1964,22 +1964,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           "flexDirection": "row",
                                         },
                                         {
-                                          "backgroundColor": "#4459ff1a",
+                                          "backgroundColor": "#ffffff",
                                           "padding": 4,
                                         },
                                       ]
                                     }
                                   >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 8,
-                                          "height": "100%",
-                                          "width": 4,
-                                        }
-                                      }
-                                    />
                                     <TouchableOpacity
                                       onPress={[Function]}
                                       style={

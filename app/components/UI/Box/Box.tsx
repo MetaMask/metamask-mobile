@@ -44,7 +44,7 @@ const getBoxStyles = (props: {
 };
 
 export interface BoxProps extends ViewProps {
-  children: string | React.ReactNode;
+  children?: string | React.ReactNode;
   display?: Display;
   flexDirection?: FlexDirection;
   justifyContent?: JustifyContent;
