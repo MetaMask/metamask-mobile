@@ -277,11 +277,12 @@ describe('Engine', () => {
     });
   });
 
-  describe('getTotalFiatAccountBalance', () => {
+  describe('getTotalEvmFiatAccountBalance', () => {
     let engine: EngineClass;
     afterEach(() => engine?.destroyEngineInstance());
 
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
+    const selectedAccountId = 'test-account-id';
     const chainId: Hex = '0x1';
     const ticker = 'ETH';
     const ethConversionRate = 4000; // $4,000 / ETH
@@ -289,10 +290,21 @@ describe('Engine', () => {
     const stakedEthBalance = 1;
 
     const state: Partial<EngineState> = {
-      AccountsController: createMockAccountsControllerState(
-        [selectedAddress],
-        selectedAddress,
-      ),
+      AccountsController: {
+        ...createMockAccountsControllerState(
+          [selectedAddress],
+          selectedAddress,
+        ),
+        internalAccounts: {
+          accounts: {
+            [selectedAccountId]: createMockInternalAccount(
+              selectedAddress,
+              'Test Account',
+            ),
+          },
+          selectedAccount: selectedAccountId,
+        },
+      },
       AccountTrackerController: {
         accountsByChainId: {
           [chainId]: {
@@ -323,12 +335,14 @@ describe('Engine', () => {
 
     it('calculates when theres no balances', () => {
       engine = Engine.init(state);
-      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+      const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
         ethFiat1dAgo: 0,
         tokenFiat: 0,
         tokenFiat1dAgo: 0,
+        ticker: '',
+        totalNativeTokenBalance: '0',
       });
     });
 
@@ -342,13 +356,13 @@ describe('Engine', () => {
             [chainId]: {
               [zeroAddress()]: {
                 pricePercentChange1d: ethPricePercentChange1d,
-              } as MarketDataDetails,
+              } as Partial<MarketDataDetails> as MarketDataDetails,
             },
           },
         },
       });
 
-      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+      const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
       const ethFiat = ethBalance * ethConversionRate;
       expect(totalFiatBalance).toStrictEqual({
@@ -356,64 +370,92 @@ describe('Engine', () => {
         ethFiat1dAgo: ethFiat / (1 + ethPricePercentChange1d / 100),
         tokenFiat: 0,
         tokenFiat1dAgo: 0,
+        ticker: 'ETH',
+        totalNativeTokenBalance: '1',
       });
     });
 
     it('calculates when there are ETH and tokens', () => {
       const ethPricePercentChange1d = 5;
 
+      const token1Address = '0x0001' as Hex;
+      const token2Address = '0x0002' as Hex;
+
       const tokens = [
         {
-          address: '0x001',
+          address: token1Address,
           balance: 1,
-          price: '1',
+          price: 1,
           pricePercentChange1d: -1,
+          decimals: 18,
+          symbol: 'TEST1',
         },
         {
-          address: '0x002',
+          address: token2Address,
           balance: 2,
-          price: '2',
+          price: 2,
           pricePercentChange1d: 2,
+          decimals: 18,
+          symbol: 'TEST2',
         },
       ];
 
       engine = Engine.init({
         ...state,
         TokensController: {
-          tokens: tokens.map((token) => ({
-            address: token.address,
-            balance: token.balance,
-            decimals: 18,
-            symbol: 'TEST',
+          tokens: tokens.map(({ address, balance, decimals, symbol }) => ({
+            address,
+            balance,
+            decimals,
+            symbol,
           })),
           ignoredTokens: [],
           detectedTokens: [],
-          allTokens: {},
+          allTokens: {
+            [chainId]: {
+              [selectedAddress]: tokens.map(
+                ({ address, balance, decimals, symbol }) => ({
+                  address,
+                  balance,
+                  decimals,
+                  symbol,
+                }),
+              ),
+            },
+          },
           allIgnoredTokens: {},
           allDetectedTokens: {},
+        },
+        TokenBalancesController: {
+          tokenBalances: {
+            [selectedAddress as Hex]: {
+              [chainId]: {
+                [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
+                [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+              },
+            },
+          },
         },
         TokenRatesController: {
           marketData: {
             [chainId]: {
               [zeroAddress()]: {
                 pricePercentChange1d: ethPricePercentChange1d,
-              },
-              ...tokens.reduce(
-                (acc, token) => ({
-                  ...acc,
-                  [token.address]: {
-                    price: token.price,
-                    pricePercentChange1d: token.pricePercentChange1d,
-                  },
-                }),
-                {},
-              ),
+              } as unknown as MarketDataDetails,
+              [token1Address]: {
+                price: tokens[0].price,
+                pricePercentChange1d: tokens[0].pricePercentChange1d,
+              } as unknown as MarketDataDetails,
+              [token2Address]: {
+                price: tokens[1].price,
+                pricePercentChange1d: tokens[1].pricePercentChange1d,
+              } as unknown as MarketDataDetails,
             },
           },
         },
       });
 
-      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+      const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
       const ethFiat = ethBalance * ethConversionRate;
       const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
@@ -432,24 +474,33 @@ describe('Engine', () => {
         ethFiat1dAgo: ethFiat / (1 + ethPricePercentChange1d / 100),
         tokenFiat,
         tokenFiat1dAgo,
+        ticker: 'ETH',
+        totalNativeTokenBalance: '1',
       });
     });
 
     it('calculates when there is ETH and staked ETH and tokens', () => {
       const ethPricePercentChange1d = 5;
 
+      const token1Address = '0x0001' as Hex;
+      const token2Address = '0x0002' as Hex;
+
       const tokens = [
         {
-          address: '0x001',
+          address: token1Address,
           balance: 1,
-          price: '1',
+          price: 1,
           pricePercentChange1d: -1,
+          decimals: 18,
+          symbol: 'TEST1',
         },
         {
-          address: '0x002',
+          address: token2Address,
           balance: 2,
-          price: '2',
+          price: 2,
           pricePercentChange1d: 2,
+          decimals: 18,
+          symbol: 'TEST2',
         },
       ];
 
@@ -472,40 +523,59 @@ describe('Engine', () => {
           },
         },
         TokensController: {
-          tokens: tokens.map((token) => ({
-            address: token.address,
-            balance: token.balance,
-            decimals: 18,
-            symbol: 'TEST',
+          tokens: tokens.map(({ address, balance, decimals, symbol }) => ({
+            address,
+            balance,
+            decimals,
+            symbol,
           })),
           ignoredTokens: [],
           detectedTokens: [],
-          allTokens: {},
+          allTokens: {
+            [chainId]: {
+              [selectedAddress]: tokens.map(
+                ({ address, balance, decimals, symbol }) => ({
+                  address,
+                  balance,
+                  decimals,
+                  symbol,
+                }),
+              ),
+            },
+          },
           allIgnoredTokens: {},
           allDetectedTokens: {},
+        },
+        TokenBalancesController: {
+          tokenBalances: {
+            [selectedAddress as Hex]: {
+              [chainId]: {
+                [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
+                [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+              },
+            },
+          },
         },
         TokenRatesController: {
           marketData: {
             [chainId]: {
               [zeroAddress()]: {
                 pricePercentChange1d: ethPricePercentChange1d,
-              },
-              ...tokens.reduce(
-                (acc, token) => ({
-                  ...acc,
-                  [token.address]: {
-                    price: token.price,
-                    pricePercentChange1d: token.pricePercentChange1d,
-                  },
-                }),
-                {},
-              ),
+              } as unknown as MarketDataDetails,
+              [token1Address]: {
+                price: tokens[0].price,
+                pricePercentChange1d: tokens[0].pricePercentChange1d,
+              } as unknown as MarketDataDetails,
+              [token2Address]: {
+                price: tokens[1].price,
+                pricePercentChange1d: tokens[1].pricePercentChange1d,
+              } as unknown as MarketDataDetails,
             },
           },
         },
       });
 
-      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+      const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       const ethFiat = (ethBalance + stakedEthBalance) * ethConversionRate;
       const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
         ([fiat, fiat1d], token) => {
@@ -523,6 +593,8 @@ describe('Engine', () => {
         ethFiat1dAgo: ethFiat / (1 + ethPricePercentChange1d / 100),
         tokenFiat,
         tokenFiat1dAgo,
+        ticker: 'ETH',
+        totalNativeTokenBalance: '1',
       });
     });
   });

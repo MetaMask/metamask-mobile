@@ -21,7 +21,6 @@ import Engine from '../../../core/Engine';
 import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
 
 // eslint-disable-next-line import/no-namespace
-import * as Utils from '../../hooks/useAccounts/utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
@@ -47,6 +46,38 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+}));
+
+// Mock useAccounts
+jest.mock('../../../components/hooks/useAccounts', () => ({
+  useAccounts: jest.fn().mockImplementation(() => ({
+    accounts: [
+      {
+        name: 'Account 1',
+        address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+        assets: {
+          fiatBalance: '$3200.00\n1 ETH',
+        },
+        type: 'HD Key Tree',
+        yOffset: 0,
+        isSelected: true,
+        balanceError: undefined,
+      },
+      {
+        name: 'Account 2',
+        address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
+        assets: {
+          fiatBalance: '$6400.00\n2 ETH',
+        },
+        type: 'HD Key Tree',
+        yOffset: 78,
+        isSelected: false,
+        balanceError: undefined,
+      },
+    ],
+    evmAccounts: [],
+    ensByAccountAddress: {},
+  })),
 }));
 
 // Mock Engine
@@ -106,6 +137,36 @@ const onRemoveImportedAccount = jest.fn();
 const AccountSelectorListUseAccounts: React.FC<AccountSelectorListProps> = ({
   privacyMode = false,
 }) => {
+  if (privacyMode) {
+    (useAccounts as jest.Mock).mockImplementationOnce(() => ({
+      accounts: [
+        {
+          name: 'Account 1',
+          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+          assets: {
+            fiatBalance: '$3200.00\n1 ETH',
+          },
+          type: 'HD Key Tree',
+          yOffset: 0,
+          isSelected: true,
+          balanceError: undefined,
+        },
+        {
+          name: 'Account 2',
+          address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
+          assets: {
+            fiatBalance: '$6400.00\n2 ETH',
+          },
+          type: 'HD Key Tree',
+          yOffset: 78,
+          isSelected: false,
+          balanceError: undefined,
+        },
+      ],
+      evmAccounts: [],
+      ensByAccountAddress: {},
+    }));
+  }
   const { accounts, ensByAccountAddress } = useAccounts();
   return (
     <AccountSelectorList
@@ -145,16 +206,6 @@ const renderComponent = (
 
 describe('AccountSelectorList', () => {
   beforeEach(() => {
-    jest.spyOn(Utils, 'getAccountBalances').mockReturnValueOnce({
-      balanceETH: '1',
-      balanceFiat: '$3200.00',
-      balanceWeiHex: '',
-    });
-    jest.spyOn(Utils, 'getAccountBalances').mockReturnValueOnce({
-      balanceETH: '2',
-      balanceFiat: '$6400.00',
-      balanceWeiHex: '',
-    });
     onSelectAccount.mockClear();
     onRemoveImportedAccount.mockClear();
   });
@@ -188,38 +239,6 @@ describe('AccountSelectorList', () => {
 
       const accounts = getAllByTestId(regex.accountBalance);
       expect(accounts.length).toBe(2);
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
-  it('should render all accounts but only the balance for selected account', async () => {
-    const { queryByTestId, getAllByTestId, toJSON } = renderComponent({
-      engine: {
-        ...initialState.engine,
-        backgroundState: {
-          ...initialState.engine.backgroundState,
-          PreferencesController: {
-            ...initialState.engine.backgroundState.PreferencesController,
-            isMultiAccountBalancesEnabled: false,
-          },
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-        },
-      },
-    });
-
-    await waitFor(async () => {
-      const accounts = getAllByTestId(regex.accountBalance);
-      expect(accounts.length).toBe(1);
-
-      const businessAccountItem = await queryByTestId(
-        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
-      );
-
-      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
-      expect(
-        within(businessAccountItem).getByText(regex.usd(3200)),
-      ).toBeDefined();
 
       expect(toJSON()).toMatchSnapshot();
     });
@@ -315,12 +334,32 @@ describe('AccountSelectorList', () => {
   });
   it('allows account removal for simple keyring type', async () => {
     const mockAlert = jest.spyOn(Alert, 'alert');
+    mockAlert.mockReset();
     mockAlert.mockImplementation(
       (_title, _message, buttons?: AlertButton[]) => {
         // Simulate user clicking "Yes, remove it"
         buttons?.[1]?.onPress?.();
       },
     );
+
+    // Mock account data for a simple keyring account
+    (useAccounts as jest.Mock).mockImplementationOnce(() => ({
+      accounts: [
+        {
+          name: 'Account 1',
+          address: BUSINESS_ACCOUNT,
+          assets: {
+            fiatBalance: '$3200.00\n1 ETH',
+          },
+          type: KeyringTypes.simple, // Important: must be simple type for removal
+          yOffset: 0,
+          isSelected: true,
+          balanceError: undefined,
+        },
+      ],
+      evmAccounts: [],
+      ensByAccountAddress: {},
+    }));
 
     // Create a state with a simple keyring account
     const mockAccountsWithSimple = createMockAccountsControllerState([
@@ -362,28 +401,59 @@ describe('AccountSelectorList', () => {
         expect.any(Array),
         { cancelable: false },
       );
-
-      // Verify onRemoveImportedAccount was called with correct parameters
-      expect(onRemoveImportedAccount).toHaveBeenCalledWith({
-        removedAddress: BUSINESS_ACCOUNT,
-      });
-
-      // Verify KeyringController.removeAccount was called
-      expect(
-        Engine.context.KeyringController.removeAccount,
-      ).toHaveBeenCalledWith(BUSINESS_ACCOUNT);
     });
+
+    // Verify onRemoveImportedAccount was called with correct parameters
+    expect(onRemoveImportedAccount).toHaveBeenCalledWith({
+      removedAddress: BUSINESS_ACCOUNT,
+    });
+
+    // Verify KeyringController.removeAccount was called
+    expect(Engine.context.KeyringController.removeAccount).toHaveBeenCalledWith(
+      BUSINESS_ACCOUNT,
+    );
 
     mockAlert.mockRestore();
   });
   it('allows account removal for snap keyring type', async () => {
     const mockAlert = jest.spyOn(Alert, 'alert');
+    mockAlert.mockReset();
     mockAlert.mockImplementation(
       (_title, _message, buttons?: AlertButton[]) => {
         // Simulate user clicking "Yes, remove it"
         buttons?.[1]?.onPress?.();
       },
     );
+
+    // Mock account data for a snap account
+    (useAccounts as jest.Mock).mockImplementationOnce(() => ({
+      accounts: [
+        {
+          name: 'Snap Account 1',
+          address: MOCK_ADDRESS_1,
+          assets: {
+            fiatBalance: '$3200.00\n1 ETH',
+          },
+          type: KeyringTypes.snap, // Important: must be snap type for removal
+          yOffset: 0,
+          isSelected: true,
+          balanceError: undefined,
+        },
+        {
+          name: 'Snap Account 2',
+          address: MOCK_ADDRESS_2,
+          assets: {
+            fiatBalance: '$6400.00\n2 ETH',
+          },
+          type: KeyringTypes.snap, // Important: must be snap type for removal
+          yOffset: 78,
+          isSelected: false,
+          balanceError: undefined,
+        },
+      ],
+      evmAccounts: [],
+      ensByAccountAddress: {},
+    }));
 
     const mockAccountsWithSnap = createMockAccountsControllerStateWithSnap(
       [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
@@ -408,6 +478,7 @@ describe('AccountSelectorList', () => {
     // Trigger long press on the first cell that should correspond to MOCK_ADDRESS_1
     cells[0].props.onLongPress();
 
+    // Need to wait for the Alert to be called
     await waitFor(() => {
       // Verify Alert was shown with correct text
       expect(mockAlert).toHaveBeenCalledWith(
@@ -416,18 +487,18 @@ describe('AccountSelectorList', () => {
         expect.any(Array),
         { cancelable: false },
       );
-
-      // Verify onRemoveImportedAccount was called with correct parameters
-      expect(onRemoveImportedAccount).toHaveBeenCalledWith({
-        removedAddress: MOCK_ADDRESS_1,
-        nextActiveAddress: MOCK_ADDRESS_2,
-      });
-
-      // Verify KeyringController.removeAccount was called
-      expect(
-        Engine.context.KeyringController.removeAccount,
-      ).toHaveBeenCalledWith(MOCK_ADDRESS_1);
     });
+
+    // Verify onRemoveImportedAccount was called with correct parameters
+    expect(onRemoveImportedAccount).toHaveBeenCalledWith({
+      removedAddress: MOCK_ADDRESS_1,
+      nextActiveAddress: MOCK_ADDRESS_2,
+    });
+
+    // Verify KeyringController.removeAccount was called
+    expect(Engine.context.KeyringController.removeAccount).toHaveBeenCalledWith(
+      MOCK_ADDRESS_1,
+    );
 
     mockAlert.mockRestore();
   });

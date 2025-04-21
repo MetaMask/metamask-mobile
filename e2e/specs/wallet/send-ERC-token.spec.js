@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
@@ -17,14 +17,16 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 const TOKEN_ADDRESS = '0x779877A7B0D9E8603169DdbD7836e478b4624789';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
-describe(SmokeCore('Send ERC Token'), () => {
+describe(Regression('Send ERC Token'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase(process.env.MM_TEST_WALLET_SRP);
+    await importWalletWithRecoveryPhrase({
+      seedPhrase: process.env.MM_TEST_WALLET_SRP
+    });
   });
 
   it('should add Sepolia testnet to my networks list', async () => {
