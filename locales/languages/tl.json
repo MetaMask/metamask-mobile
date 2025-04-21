@@ -1,4 +1,34 @@
 {
+  "alert_system": {
+    "alert_modal": {
+      "title": "Alerto",
+      "checkbox_label": "Kinikilala ko ang panganib at gusto ko pa ring magpatuloy",
+      "got_it_btn": "Nakuha ko",
+      "alert_details": "Mga Detalye ng Alerto"
+    },
+    "confirm_modal": {
+      "title": "Kahilingang may mataas ang panganib",
+      "checkbox_label": "Kinikilala ko ang alerto at gusto ko pa ring magpatuloy",
+      "review_alerts": "Suriin ang lahat ng alerto",
+      "message": "Iminumungkahi namin na tanggihan mo ang kahilingang ito. Kapag nagpatuloy ka, maaari mong mailagay sa panganib ang mga asset mo.",
+      "title_blockaid": "Maaaring nasa panganib ang mga asset mo",
+      "blockaid": {
+        "message": "Kapag kinumpirma mo ang kahilingang ito, maaaring mawala sa iyo ang mga asset mo. Inirerekomenda namin na kanselahin mo ang kahilingang ito.",
+        "message1": "Kapag kinumpirma mo ang kahilingang ito, pinapayagan mo ang scammer na i-withdraw at gastusin ang mga asset mo. Hindi mo na mababawi ang mga iyon.",
+        "message2": "Ipapadala mo ang iyong mga asset sa scammer. Kapag nagpatuloy ka, mawawala sa iyo ang mga asset na iyon.",
+        "message3": "Kung magpapatuloy ka, maaaring mailagay sa panganib ang lahat ng asset na ini-list mo sa OpenSea.",
+        "message4": "Kung magpapatuloy ka, maaaring mailagay sa panganib ang lahat ng asset na ini-list mo sa Blur.",
+        "message5": "Nakikipag-ugnayan ka sa isang site na may masamang hangarin. Kapag nagpatuloy ka, mawawala sa iyo ang mga asset mo."
+      }
+    },
+    "inline_alert_label": "Alerto",
+    "review_alerts": "Suriin ang mga alerto",
+    "review_alert": "Suriin ang alerto",
+    "domain_mismatch": {
+      "title": "Kahina-hinalang kahilingan sa pag-sign in",
+      "message": "Ang site na humihiling ay hindi ang site kung saan ka nagsa-sign in. Maaaring isa itong pagtatangkang nakawin ang iyong mga kredensyal sa pag-login."
+    }
+  },
   "blockaid_banner": {
     "approval_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng kunin ng third party na kilala sa mga panloloko ang lahat ng asset mo.",
     "blur_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng nakawin ng ibang tao ang mga asset mo na nakalista sa Blur.",
@@ -382,32 +412,35 @@
     "description": "Sinusuportahan na namin ngayon ang maramihang RPC para sa isang network. Pinili ang pinakabago mong RPC bilang ang default para lutasin ang magkakasalungat na impormasyon",
     "accept": "Tanggapin"
   },
-  "nft_details": {
-    "bought_for": "Binili para sa/kay",
-    "highest_floor_price": "Pinakamataas na floor price",
-    "data_unavailable": "hindi available ang data",
-    "price_unavailable": "hindi available ang presyo",
-    "rank": "Rank",
-    "contract_address": "Address ng kontrata",
-    "token_id": "ID ng Token",
-    "token_symbol": "Simbolo ng token",
-    "token_standard": "Pamantayan ng token",
-    "date_created": "Petsa ng paggawa",
-    "unique_token_holders": "Natatanging mga holder ng token",
-    "tokens_in_collection": "Mga token sa koleksyon",
-    "creator_address": "Address ng creator",
-    "last_sold": "Huling naibenta",
-    "highest_current_bid": "Pinakamataas na kasalukuyang bid",
-    "options": {
-      "view_on_os": "Tingnan sa OpenSea",
-      "remove_nft": "Alisin ang NFT"
-    },
-    "attributes": "Mga Attribute",
-    "disclaimer": "Disclaimer: Kinukuha ng MetaMask ang media file mula sa pinagmulang URL. Ang URL na ito kung minsan ay pinapalitan ng marketplace kung saan nai-mint ang NFT."
-  },
   "qr_tab_switcher": {
     "scanner_tab": "Mag-scan ng QR code",
     "receive_tab": "Iyong QR code"
+  },
+  "banner": {
+    "bridge": {
+      "title": "Handa nang mag-bridge?",
+      "subtitle": "Magpalipat-lipat sa 9 na chain, lahat sa loob ng wallet mo"
+    },
+    "card": {
+      "title": "MetaMask Card",
+      "subtitle": "Available sa mga piling rehiyon"
+    },
+    "fund": {
+      "title": "Pondohan ang wallet mo",
+      "subtitle": "Magdagdag o maglipat ng mga token para makapagsimula"
+    },
+    "cashout": {
+      "title": "Mag-cash out gamit ang MetaMask",
+      "subtitle": "Ibenta ang crypto mo para maging cash"
+    },
+    "aggregated": {
+      "title": "Pinagsama-sama ang balanse mo",
+      "subtitle": "Kontrolin kung paano ipapakita ang balanse mo sa mga setting"
+    },
+    "multisrp": {
+      "title": "Add multiple Secret Recovery Phrases",
+      "subtitle": "Import and use multiple wallets in MetaMask"
+    }
   },
   "wallet": {
     "title": "Wallet",
@@ -524,6 +557,29 @@
       "token_details": "Mga detalye ng token",
       "remove_token": "Alisin ang token"
     }
+  },
+  "nft_details": {
+    "bought_for": "Binili para sa/kay",
+    "highest_floor_price": "Pinakamataas na floor price",
+    "data_unavailable": "hindi available ang data",
+    "price_unavailable": "hindi available ang presyo",
+    "rank": "Rank",
+    "contract_address": "Address ng kontrata",
+    "token_id": "ID ng Token",
+    "token_symbol": "Simbolo ng token",
+    "token_standard": "Pamantayan ng token",
+    "date_created": "Petsa ng paggawa",
+    "unique_token_holders": "Natatanging mga holder ng token",
+    "tokens_in_collection": "Mga token sa koleksyon",
+    "creator_address": "Address ng creator",
+    "last_sold": "Huling naibenta",
+    "highest_current_bid": "Pinakamataas na kasalukuyang bid",
+    "options": {
+      "view_on_os": "Tingnan sa OpenSea",
+      "remove_nft": "Alisin ang NFT"
+    },
+    "attributes": "Mga Attribute",
+    "disclaimer": "Disclaimer: Kinukuha ng MetaMask ang media file mula sa pinagmulang URL. Ang URL na ito kung minsan ay pinapalitan ng marketplace kung saan nai-mint ang NFT."
   },
   "activity_view": {
     "title": "Aktibidad"
@@ -693,6 +749,7 @@
     "select_accounts_description": "Pumili ng (mga) account na gagamitin sa site na ito:",
     "connect_multiple_accounts": "Ikonekta ang maraming account",
     "connect_more_accounts": "Ikonekta ang higit pang mga account",
+    "add": "Magdagdag",
     "cancel": "Kanselahin",
     "connect": "Kumonekta",
     "connect_with_count": "Kumonekta{{countLabel}}",
@@ -720,7 +777,15 @@
     "potential_threat": "Kabilang sa potensyal na panganib ay",
     "fake_metamask": "Pekeng bersyon ng MetaMask",
     "srp_theft": "Pagnanakaw ng password o secret recovery phrase",
-    "malicious_transactions": "Mga mapanganib na transaskyon na magreresulta sa ninakaw na pag-aari"
+    "malicious_transactions": "Mga mapanganib na transaskyon na magreresulta sa ninakaw na pag-aari",
+    "secret_recovery_phrase": "Lihim na Parirala sa Pagbawi",
+    "account_name": "Pangalan ng account",
+    "select_secret_recovery_phrase": "Piliin ang Lihim na Parirala sa Pagbawi",
+    "reveal_secret_recovery_phrase": "Ihayag ang Lihim na Parirala sa Pagbawi",
+    "add_new_hd_account_helper_text": "Ang iyong bagong account mula sa kung saan bubuuin ang Lihim na Parirala sa Pagbawi",
+    "accounts": "mga account",
+    "show_accounts": "Ipakita",
+    "hide_accounts": "Itago"
   },
   "toast": {
     "connected_and_active": "konektado at aktibo.",
@@ -773,7 +838,8 @@
   },
   "app_settings": {
     "enabling_notifications": "Pinapagana ang mga notipikasyon...",
-    "disabling_notifications": "Hindi pinapagana ang mga notipikasyon...",
+    "updating_notifications": "Ina-update ang mga notipikasyon...",
+    "updating_account_settings": "Ina-update ang mga setting ng account...",
     "reset_notifications_title": "I-reset ang mga notipikasyon",
     "reset_notifications_description": "Ang pag-reset sa mga notipikasyon, ay nangangahulungan na tinatanggal mo ang iyong mga storage key ng mga notipikasyon at inire-reset ang lahat ng iyong kasaysayan ng notipikasyon. Sigurado ka ba na gusto mo itong gawin?",
     "reset_notifications": "I-reset ang mga notipikasyon",
@@ -864,6 +930,7 @@
     "notifications_title": "Mga notipikasyon",
     "notifications_desc": "Pamahalaan ang mga notipikasyon mo",
     "allow_notifications": "Payagan ang mga notipikasyon",
+    "enable_push_notifications": "Paganahin ang mga push na notipikasyon",
     "allow_notifications_desc": "Manatiling may-alam sa nangyayari sa iyong wallet gamit ang mga notification. Para gamitin ang mga notification, gumagamit kami ng profile para i-sync ang ilang mga setting sa lahat ng iyong mga device.",
     "notifications_opts": {
       "customize_session_title": "I-customize ang mga notipikasyon mo",
@@ -899,9 +966,11 @@
     "networks_desc": "Magdagdag at mag-edit ng mga custom na RPC network",
     "network_name_label": "Pangalan ng Network",
     "network_name_placeholder": "Pangalan ng Network (opsyonal)",
-    "network_rpc_url_label": "URL ng RPC",
+    "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "Pangalan ng RPC",
     "network_rpc_placeholder": "Bagong RPC Network",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "ID ng Chain",
     "network_chain_id_placeholder": "ID ng Chain",
     "network_symbol_label": "Simbolo",
@@ -918,6 +987,7 @@
     "remove_network": "Alisin",
     "cancel_remove_network": "Kanselahin",
     "info_title": "Tungkol sa MetaMask",
+    "info_title_beta": "Tungkol sa MetaMask Beta",
     "info_title_flask": "Tungkol sa MetaMask Flask",
     "experimental_title": "Eksperimental",
     "experimental_desc": "WalletConnect at higit pa...",
@@ -1118,6 +1188,7 @@
     "security_alerts": "Mga alerto sa seguridad",
     "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider.",
     "smart_transactions_opt_in_heading": "Mga Smart Transaction",
+    "smart_transactions_opt_in_desc_supported_networks": "I-on ang mga Smart na Transaksyon para sa mas maaasahan at ligtas na mga transaksyon sa mga suportadong network.",
     "smart_transactions_learn_more": "Matuto pa.",
     "simulation_details": "Tinatayang mga pagbabago sa balanse",
     "simulation_details_description": "I-on ito para gumawa ng pagtataya sa mga pagbabago sa balanse ng mga transaksyon bago mo kumpirmahin ang mga ito. Hindi nito iginagarantiya ang panghuling resulta ng iyong mga transaksyon. ",
@@ -1280,8 +1351,8 @@
       "swap": "Hindi sinusuportahan ang pag-swap para sa account na ito",
       "bridge": "Hindi sinusuportahan ang pag-bridge para sa account na ito",
       "send": "Hindi sinusuportahan ang pagpapadala para sa account na ito",
-      "earn": "Hindi sinusuportahan na kumita para sa account na ito",
-      "action": "Hindi sinusuportahan ang aksyong ito para sa account na ito"
+      "action": "Hindi sinusuportahan ang aksyong ito para sa account na ito",
+      "earn": "Hindi sinusuportahan na kumita para sa account na ito"
     },
     "description": "Deskripsyon",
     "totalSupply": "Kabuuang Supply",
@@ -1616,6 +1687,9 @@
     "tabs_done": "Tapos na",
     "no_tabs_title": "Walang Nakabukas na Tab",
     "no_tabs_desc": "Para i-browse ang desentralisadong web, magdagdag ng bagong tab",
+    "got_it": "Nakuha ko",
+    "max_tabs_title": "Naabot na ang maximum na dami ng tab",
+    "max_tabs_desc": "Sa kasalukuyan, 5 bukas na tab lang ang nasusuportahan namin sa isang pagkakataon. Isara ang mga ginagamit na tab bago magdagdag ng bago.",
     "failed_to_resolve_ens_name": "Hindi namin maresolba ang ENS name na iyon",
     "remove_bookmark_title": "Alisin ang paborito",
     "remove_bookmark_msg": "Gusto mo ba talagang alisin ang site na ito sa mga paborito mo?",
@@ -1681,6 +1755,9 @@
     "sent_collectible": "Nagpadala ng Collectible",
     "sent": "Nagpadala",
     "received": "Nakatanggap",
+    "receive": "Tumanggap",
+    "swap": "I-swap",
+    "send": "Ipadala",
     "contract_deploy": "Deployment ng Kontrata",
     "to_contract": "Bagong Kontrata",
     "tx_details_free": "Libre",
@@ -1704,6 +1781,7 @@
     "gas_price": "Presyo ng Gas (GWEI)",
     "base_fee": "Base Fee (GWEI)",
     "priority_fee": "Priority Fee (GWEI)",
+    "multichain_priority_fee": "Bayad sa Priyoridad",
     "max_fee": "Max na Bayad Bawat Gas",
     "total": "Kabuuan",
     "view_on": "TINGNAN SA",
@@ -1727,7 +1805,9 @@
     "sign_description_1": "Pagkatapos mong pumirma gamit ang iyong wallet na hardware,",
     "sign_description_2": "i-tap ang Kumuha ng Lagda",
     "sign_get_signature": "Kumuha ng Lagda",
-    "network_fee": "Bayad sa Network"
+    "transaction_id": "ID ng Transaksyon",
+    "network_fee": "Bayad sa Network",
+    "network_fee_tooltip": "Halagang binayaran para maproseso ang transaksyon sa network."
   },
   "smart_transactions": {
     "status_submitting_header": "Isinusumite ang iyong transaksyon",
@@ -1839,6 +1919,7 @@
     "you_can": "O maaari kang",
     "add_network": "magdagdag pa ng mga network nang manu-mano.",
     "add_specific_network": "Idagdag ang {{network_name}}",
+    "update_network": "I-update ang {{network_name}}",
     "select_network": "Pumili ng network",
     "enabled_networks": "Naka-enable na mga network",
     "additional_networks": "Mga karagdagang network",
@@ -1874,7 +1955,8 @@
     "this_site_cant": "Hindi magagamit ang site na ito sa kasalukuyan mong network. Magdagdag ng mga pahintulot sa network o pumili ng dati nang pinahihintulutang network.",
     "non_permitted_network_description": "Hindi magagamit ang site na ito sa kasalukuyan mong network. Magdagdag ng mga pahintulot sa network o pumili ng dati nang pinahihintulutang network.",
     "edit_permissions": "Mag-edit ng mga pahintulot",
-    "permitted_networks_info_sheet_description": "Isa itong listahan ng mga network na binigyan mo ng mga pahintulot na gamitin sa site na ito. Pumili ng isa mula sa listahan o i-edit ang mga pahintulot sa network para sa site na ito."
+    "permitted_networks_info_sheet_description": "Isa itong listahan ng mga network na binigyan mo ng mga pahintulot na gamitin sa site na ito. Pumili ng isa mula sa listahan o i-edit ang mga pahintulot sa network para sa site na ito.",
+    "connect_an_account": "Magkonekta ng account"
   },
   "select": {
     "cancel": "Kanselahin",
@@ -1965,6 +2047,31 @@
     "title": "Matagumpay na na-import ang account!",
     "description_one": "Makikita mo na ngayon ang iyong account sa MetaMask."
   },
+  "import_new_secret_recovery_phrase": {
+    "title": "I-import ang Lihim na Parirala sa Pagbawi",
+    "description": "Ilagay ang lihim na parirala sa pagbawi ng wallet mo. Maaari kang mag-import ng anumang lihim na parirala sa pagbawi ng Ethereum, Solana, o Bitcoin.",
+    "subtitle": "I-paste ang lihim na parirala sa pagbawi mo",
+    "cta_text": "Magpatuloy",
+    "paste": "I-paste",
+    "clear": "I-clear lahat",
+    "srp_number_of_words_option_title": "Bilang ng mga salita",
+    "12_word_option": "Mayroon akong pariralang may 12 salita",
+    "24_word_option": "Mayroon akong pariralang may 24 na salita",
+    "error_title": "Nagkaproblema",
+    "error_message": "Hindi namin ma-import ang lihim na parirala sa pagbawi na iyon. Tiyaking nailagay mo ito nang tama.",
+    "error_empty_message": "Kailangan mong ilagay ang iyong lihim na parirala sa pagbawi.",
+    "error_number_of_words_error_message": "Naglalaman ang mga Lihim na Parirala sa Pagbawi ng 12 o 24 na salita",
+    "error_srp_is_case_sensitive": "Di-wastong input! Case sensitive ang Lihim na Parirala sa Pagbawi.",
+    "error_srp_word_error_1": "Ang salita ",
+    "error_srp_word_error_2": " ay hindi tama o mali ang baybay nito.",
+    "error_multiple_srp_word_error_1": "Ang salita ",
+    "error_multiple_srp_word_error_2": " at ",
+    "error_multiple_srp_word_error_3": " ay hindi tama o mali ang baybay ng mga ito.",
+    "error_invalid_srp": "Di-wastong Lihim na Parirala sa Pagbawi",
+    "error_duplicate_srp": "Na-import na ang Lihim na Parirala sa Pagbawi na ito.",
+    "success_1": "Lihim na Parirala sa Pagbawi",
+    "success_2": "na-import"
+  },
   "first_incoming_transaction": {
     "title": "Nagdeposito ng {{asset}} sa iyong account",
     "amount": "Halaga:",
@@ -1981,7 +2088,8 @@
     "info_text_1": "Maglaan nang ilang sandali para tapusin ang pag-set up ng iyong MetaMask wallet.",
     "info_text_2": "Matitiyak nitong ikaw lang ang makaka-access sa iyong mga pondo at na mare-recover mo ang iyong wallet kung maiwawala mo ang iyong device",
     "cta_text": "Gumawa ng Password",
-    "creating_password": "Gumagawa ng password..."
+    "creating_password": "Gumagawa ng password...",
+    "srp_list_selection": "Select Secret Recovery Phrase"
   },
   "account_backup_step_1": {
     "remind_me_later": "Paalalahanan ako mamaya",
@@ -2135,7 +2243,15 @@
     "continue_on_your_own": "pagpapatuloy.",
     "file_an_issue_intro": "Kung sa tingin mo ay hindi dapat na-flag ang domain na ito o kung naresolba ng na-block na lehitimong website ang mga isyu nito sa seguridad, ",
     "file_an_issue": "maghain ng isyu.",
-    "back_to_safety": "Bumalik sa ligtas"
+    "back_to_safety": "Bumalik sa ligtas",
+    "site_might_be_harmful": "Maaaring mapaminsala ang website na ito",
+    "metamask_flagged_site": "Na-flag ng MetaMask ang site na sinusubukan mong bisitahin bilang posibleng mapanlinlang. Maaari kang linlangin ng mga umaatake para gumawa ng mapanganib na bagay.",
+    "you_may_proceed_anyway": "Maaari ka ring",
+    "proceed_anyway": "magpatuloy pa rin",
+    "but_please_do_so_at_your_own_risk": "ngunit gawin iyon nang may sariling pag-iingat.",
+    "report_detection_problem": "Iulat ang problemang natuklasan",
+    "share_on_twitter": "Kung sa tingin mo ay nakakatulong ito, i-share sa X!",
+    "share_text": "Prinotektahan ako ng MetaMask sa pagbisita sa isang potensyal na mapaminsalang site: {{url}}. Ingat lagi!"
   },
   "notifications": {
     "timeout": "Timeout",
@@ -2226,7 +2342,7 @@
     "lido_stake_completed_title": "Nakumpleto ang pag-stake",
     "lido_withdrawal_requested_title": "Hiniling ang pag-withdraw",
     "lido_withdrawal_completed_title": "Nakumpleto ang pag-withdraw",
-    "lido_stake_ready_to_be_withdrawn_title": "Handa nang i-withdraw ang stake ",
+    "lido_stake_ready_to_be_withdrawn_title": "Handa nang i-withdraw ang stake",
     "erc721_sent_title": "Naipadala ang NFT",
     "erc721_received_title": "Natanggap ang NFT",
     "erc1155_sent_title": "Naipadala ang NFT",
@@ -2260,36 +2376,30 @@
     "lido_withdrawal_completed_message": "Nakumpleto ang pag-unstake",
     "lido_stake_ready_to_be_withdrawn_message": "Hiniling ang pag-withdraw",
     "push_notification_content": {
+      "funds_sent_title": "Naipadala ang pondo",
+      "funds_sent_description": "Matagumpay mong naipadala ang {{amount}} {{symbol}}",
+      "funds_sent_default_description": "Matagumpay mong naipadala ang ilang token",
+      "funds_received_title": "Natanggap ang pondo",
+      "funds_received_description": "Nakatanggap ka ng {{amount}} {{symbol}}",
+      "funds_received_default_description": "Nakatanggap ka ng ilang token",
       "metamask_swap_completed_title": "Nakumpleto ang pag-swap",
       "metamask_swap_completed_description": "Matagumpay ang Pag-swap mo sa MetaMask",
-      "erc20_sent_title": "Naipadala ang pondo",
-      "erc20_sent_description": "Matagumpay mong naipadala ang {{amount}} {{token}}",
-      "erc20_received_title": "Natanggap ang pondo",
-      "erc20_received_description": "Nakatanggap ka ng {{amount}} {{token}}",
-      "eth_sent_title": "Naipadala ang pondo",
-      "eth_sent_description": "Matagumpay mong naipadala ang {{amount}} ETH",
-      "eth_received_title": "Natanggap ang pondo",
-      "eth_received_description": "Nakatanggap ka ng {{amount}} {{token}}",
+      "nft_sent_title": "Naipadala ang NFT",
+      "nft_sent_description": "Matagumpay mong naipadala ang NFT",
+      "nft_received_title": "Natanggap ang NFT",
+      "nft_received_description": "Nakatanggap ka ng mga bagong NFT",
       "rocketpool_stake_completed_title": "Nakumpleto ang pag-stake",
       "rocketpool_stake_completed_description": "Matagumpay ang pag-stake mo sa RocketPool",
       "rocketpool_unstake_completed_title": "Nakumpleto ang pag-unstake",
       "rocketpool_unstake_completed_description": "Matagumpay ang pag-unstake mo sa RocketPool",
       "lido_stake_completed_title": "Nakumpleto ang pag-stake",
       "lido_stake_completed_description": "Matagumpay ang pag-stake mo sa Lido",
+      "lido_stake_ready_to_be_withdrawn_title": "Handa nang i-withdraw ang stake",
+      "lido_stake_ready_to_be_withdrawn_description": "Ang stake mo sa Lido ay handa ng i-withdraw ngayon",
       "lido_withdrawal_requested_title": "Hiniling ang pag-withdraw",
       "lido_withdrawal_requested_description": "Naisumite ang hiling mo na pag-withdraw sa Lido.",
       "lido_withdrawal_completed_title": "Nakumpleto ang pag-withdraw",
-      "lido_withdrawal_completed_description": "Matagumpay ang pag-withdraw mo sa Lido",
-      "lido_stake_ready_to_be_withdrawn_title": "Handa ng i-withdraw ang stake ",
-      "lido_stake_ready_to_be_withdrawn_description": "Ang stake mo sa Lido ay handa ng i-withdraw ngayon",
-      "erc721_sent_title": "Naipadala ang NFT",
-      "erc721_sent_description": "Matagumpay mong naipadala ang NFT",
-      "erc721_received_title": "Natanggap ang NFT",
-      "erc721_received_description": "Nakatanggap ka ng bagong NFT",
-      "erc1155_sent_title": "Naipadala ang NFT",
-      "erc1155_sent_description": "Matagumpay kang nagpadala ng NFT",
-      "erc1155_received_title": "Natanggap ang NFT",
-      "erc1155_received_description": "Nakatanggap ka ng bagong NFT"
+      "lido_withdrawal_completed_description": "Matagumpay ang pag-withdraw mo sa Lido"
     },
     "prompt_title": "Tumanggap ng mga Push Notification",
     "notifications_enabled_error_title": "Nagkaproblema",
@@ -2587,6 +2697,8 @@
     "one_more_option": "1 pang opsyon",
     "more_options": "{{count}} pa na mga opsyon",
     "previously_used": "Dating ginamit",
+    "best_rate": "Pinakasulit na rate",
+    "most_reliable": "Pinakamaasahan",
     "quotes_timeout": "Natapos na ang quote",
     "request_new_quotes": "Mangyaring humiling ng mga bagong quote para makuha ng pinakabagong pinakamahusay na rate.",
     "terms_of_service": "Mga Tuntunin ng Serbisyo",
@@ -2601,6 +2713,7 @@
     "done": "Tapos na",
     "fetching_quotes": "Pagkuha ng mga quote",
     "select_a_quote": "Pumili ng Quote",
+    "recommended_quote": "Inirerekomendang quote",
     "select_a_cryptocurrency": "Pumili ng cryptocurrency",
     "select_a_cryptocurrency_description": "Pumili mula sa listahan ng mga token na available sa {{network}}.",
     "search_by_cryptocurrency": "Maghanap ayon sa cryptocurrency",
@@ -2617,6 +2730,7 @@
     "minimum": "Ang pinakamababang deposito ay",
     "maximum": "Ang pinakamataas na deposito ay",
     "insufficient_balance": "Ang halagang ito ay mas mataas sa iyong balanse",
+    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
     "enter_larger_amount": "Maglagay ng mas malaking halaga para magpatuloy",
     "enter_smaller_amount": "Maglagay ng mas maliit na halaga para magpatuloy",
     "enter_lower_gas_fees": "Maglagay ng mas mababang halaga para bayaran ang gas fees",
@@ -2763,7 +2877,7 @@
     "token_to_verify": "para ma-verify na ito ang token na hinahanap mo.",
     "continue": "Magpatuloy",
     "select_a_token": "Pumili ng token",
-    "search_token": "Maghanap ng token",
+    "search_token": "Ilagay ang pangalan ng token o i-paste ang address",
     "no_tokens_result": "Walang token na tumutugma sa “{{searchString}}”",
     "find_token_address": "Maghanap ng token address",
     "cant_find_token": "Hindi makahanap ng token?",
@@ -2815,12 +2929,12 @@
     "n_quotes": "{{numberOfQuotes}} (na) quote",
     "view_details": "Tingnan ang mga detalye",
     "estimated_gas_fee": "Tinantyang bayad sa gas",
-    "gas_fee": "Gas fee",
-    "included": "included",
+    "gas_fee": "Bayad sa gas",
+    "included": "kasama na",
     "max_gas_fee": "Pinakamataas na bayad sa gas",
     "edit": "I-edit",
     "quotes_include_fee": "Kasama sa quote ang {{fee}}% na bayarin sa MetaMask",
-    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
+    "quotes_include_gas_and_metamask_fee": "Kasama na sa quote ang bayad sa gas at {{fee}}% bayad sa MetaMask",
     "tap_to_swap": "I-tap para I-swap",
     "swipe_to_swap": "I-swipe para i-swap",
     "swipe_to": "I-swipe para",
@@ -2890,8 +3004,8 @@
     "high_recommendation": "Ang mga pag-swap ay kadalasang sensitibo sa oras. Ang “Mataas” ay makakatulong na maiwasan ang mga potensyal na pagkalugi dahil sa mga pagbabago sa mga kondisyon ng merkado.",
     "recommended": "Inirerekomenda",
     "recommended_gas": "Inirerekomendang bayad sa gas",
-    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
-    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
+    "gas_included_tooltip_explanation": "Isinasama sa quote na ito ang mga bayad sa gas sa pamamagitan ng pagsasaayos sa halaga ng token na ipinapadala o natatanggap. Maaari mong matanggap ang ETH sa hiwalay na transaksyon sa iyong listahan ng aktibidad.",
+    "gas_included_tooltip_explanation_link_text": "Matuto pa tungkol sa mga bayad sa gas",
     "gas_education_title": "Mga tinantyang bayad sa gas",
     "gas_education_1": "Binabayaran ang mga bayad sa gas sa mga minero ng crypto na nagpoproseso ng mga transaksyon sa ",
     "gas_education_2_ethereum": "Network ng Ethereum.",
@@ -2980,6 +3094,8 @@
     "title_new_network": "Nagdagdag ng bagong network",
     "switch_warning": "Ililipat nito ang napiling network sa loob ng MetaMask sa dating idinagdag na network:",
     "add_network_and_give_dapp_permission_warning": "Idinagdagdag mo ang network na ito sa MetaMask at binibigyan ng pahintulot ang {{dapp_origin}} na gamitin ito.",
+    "update_network_and_give_dapp_permission_warning": "Ina-update mo ang network na ito sa MetaMask at ibinibigay sa {{dapp_origin}} ang pahintulot na gamitin ito.",
+    "request_update_network_url": "Hinihiling ng {{dapp_origin}} na i-update ang iyong default network URL. Maaari mong i-edit ang mga default at impormasyon ng network anumang oras.",
     "available": "ay available na ngayon sa network selector.",
     "cancel": "Kanselahin",
     "switch": "Lumipat ng Network"
@@ -3142,7 +3258,9 @@
     "enable_token_detection": "Paganahin ang awtomatikong pagtuklas ng token",
     "token_detection_mainnet_title": "Pinagana ang pagtuklas ng token kaya maraming mga token ang awtomatikong lalabas sa iyong wallet.",
     "token_detection_mainnet_link": "Maaari ka ring magdagdag ng mga token ng manu-mano.",
-    "or": "o"
+    "or": "o",
+    "non_evm_first_description": "Ang native asset sa network na ito ay {{ticker}}. Ginagamit ito para sa mga bayad sa transaksyon.",
+    "non_evm_second_description": "Mawawala ang mga asset mo kapag sinubukan mong ipadala ang mga ito mula sa o papunta sa ibang network."
   },
   "download_files": {
     "error": "Nabigong i-download ang attachment.",
@@ -3360,13 +3478,17 @@
   "account_actions": {
     "edit_name": "I-edit ang pangalan ng account",
     "add_account_or_hardware_wallet": "Magdagdag ng account o wallet na hardware",
-    "add_account": "Magdagdag ng account",
-    "add_new_account": "Magdagdag ng bagong account",
-    "add_hardware_wallet": "Magdagdag ng wallet na hardware",
-    "import_account": "Mag-import ng account",
-    "add_bitcoin_account_testnet": "Magdagdag ng bagong Bitcoin Account (Testnet)",
-    "add_bitcoin_account_mainnet": "Magdagdag ng bagong Bitcoin Account (Beta)",
-    "add_solana_account": "Magdagdag ng bagong Solana Account (Beta)"
+    "connect_hardware_wallet": "Magkonekta ng account",
+    "import_wallet_or_account": "Mag-import ng wallet o account",
+    "add_account": "Gumawa ng bagong account",
+    "create_an_account": "Gumawa ng bagong account",
+    "add_new_account": "Ethereum account",
+    "import_srp": "Lihim na Parirala sa Pagbawi",
+    "add_hardware_wallet": "Hardware wallet",
+    "import_account": "Pribadong key",
+    "add_bitcoin_account_testnet": "Bitcoin testnet account",
+    "add_bitcoin_account_mainnet": "Bitcoin account",
+    "add_solana_account": "Solana account"
   },
   "show_nft": {
     "show_nft_title": "Ipakita ang NFT",
@@ -3384,6 +3506,18 @@
     "show_display_nft_media_content_3": "Ang pagpapakita ng NFT media at datos ay naglalantad sa iyong IP address sa OpenSea o sa ibang mga third party. Ang awtomatikong pagtuklas ng NFT ay nakasalalay sa tampok na ito, at hindi magiging available kapag ito ay naka-off.",
     "show_display_nft_media_content_4": "Maaari mong i-off ang I-display ang NFT media sa",
     "show_display_nft_media_content_5": "Settings > Seguridad at pagkapribado."
+  },
+  "solana_new_feature_content": {
+    "title": "Solana sa MetaMask",
+    "create_solana_account": "Gumawa ng Solana account",
+    "not_now": "Hindi sa ngayon",
+    "got_it": "Nakuha ko",
+    "feature_1_title": "Magpadala, tumanggap, at mag-swap ng mga token",
+    "feature_1_description": "Maglipat at gumamit ng token gaya ng SOL, USDC, at marami pang iba sa mga transaksyon.",
+    "feature_2_title": "Mag-import ng mga Solana account",
+    "feature_2_description": "Mag-import ng Lihim na Parirala sa Pagbawi para i-migrate ang iyong Solana account mula sa ibang wallet.",
+    "feature_3_title": "Marami pang parating na feature",
+    "feature_3_description": "Parating na ang mga Solana dapp, NFT, suporta sa hardware wallet, at marami pang iba."
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
@@ -3411,6 +3545,14 @@
     "error_title": "Nabigo ang pag-install",
     "error_description": "Nabigo ang pag-install ng {{snap}}."
   },
+  "earn": {
+    "empty_state_cta": {
+      "heading": "Magpahiram ng {{tokenSymbol}} at kumita ng",
+      "body_prefix": "Maaari kang kumita ng hanggang",
+      "body_suffix": "kada taon sa pagpapahiram ng iyong {{tokenSymbol}}.",
+      "start_earning": "Magsimulang kumita"
+    }
+  },
   "stake": {
     "stake": "Mag-stake",
     "earn": "Kumita",
@@ -3429,12 +3571,18 @@
       "stake_annual_rate_tooltip": "Taunang tooltip ng rate"
     },
     "estimated_annual_rewards": "Mga tinatayang taunang reward",
+    "estimated_annual_reward": "Tinatayang taunang reward",
+    "reward_frequency": "Dalas ng reward",
+    "reward_frequency_tooltip": "Naa-update ang naka-stake mong balanse tuwing {{frequency}} para kwentahin ang mga bagong reward.",
+    "withdrawal_time": "Oras ng pag-withdraw",
     "metamask_pool": "MetaMask Pool",
     "enter_amount": "Ilagay ang halaga",
     "review": "Suriin",
     "not_enough_eth": "Hindi sapat ang ETH",
+    "not_enough_token": "Hindi sapat ang {{ticker}}",
     "balance": "Balanse",
     "stake_eth_and_earn": "Mag-stake ng ETH at kumita",
+    "how_it_works": "Paano ito gumagana",
     "stake_any_amount_of_eth": "Mag-stake ng anumang halaga ng ETH.",
     "no_minimum_required": "Walang minimum na hinihingi.",
     "earn_eth_rewards": "Kumita ng mga ETH reward.",
@@ -3479,6 +3627,8 @@
     "unstake_input_banner_description": "Sa karaniwan, wala pang 3 araw para i-claim ang na-unstake na ETH, ngunit maaaring tumagal nang hanggang 11 araw.",
     "max": "Max",
     "staking_from": "Pag-stake mula sa",
+    "advanced_details": "Advanced na mga detalye",
+    "ethereum_mainnet": "Ethereum Mainnet",
     "interacting_with": "Nakikipag-ugnayan sa",
     "12_hours": "12 oras",
     "terms_of_service": "Mga Tuntunin ng serbisyo",
@@ -3490,14 +3640,21 @@
     "you_receive": "Nakatanggap ka ng",
     "up_to_n": "Hanggang {{count}}",
     "unstaking_to": "Pag-unstake sa",
+    "claiming_to": "Ikini-claim sa",
     "max_modal": {
       "title": "Max",
-      "description": "Ang max ay ang kabuuang halaga ng ETH na mayroon ka, na babawasan ng bayad sa gas na kailangan para mag-stake. Mainam na magtabi ng ilang ekstrang ETH sa wallet mo para sa mga transaksyon sa hinaharap."
+      "eth": {
+        "description": "Max ang kabuuang halaga ng ETH na mayroon ka, na babawasan ng bayad sa gas na kinakailangan para mag-stake. Mainam na mag-iwan ng ilang ekstrang ETH sa wallet mo para sa mga transaksyon sa hinaharap."
+      }
     },
     "use_max": "Gamitin ang max",
     "estimated_unstaking_time": "1 hanggang 11 araw",
     "proceed_anyway": "Magpatuloy pa rin",
     "gas_cost_impact": "Epekto ng gastos sa gas",
+    "select_a_token": "Pumili ng token",
+    "you_could_earn": "Maaari kang kumita",
+    "per_year_on_your_tokens": "kada taon sa iyong mga token",
+    "deposit": "Magdeposito",
     "gas_cost_impact_warning": "Babala: aabot sa higit sa {{percentOverDeposit}}% ng deposito mo ang bayad sa gas ng transaksyon.",
     "view_earnings_history": "Tingnan ang talaan ng mga kinita",
     "earnings_history_title": "{{ticker}} ang kinita",
@@ -3512,11 +3669,11 @@
       }
     },
     "today": "Ngayong araw",
-    "one_week_average": "Karaniwan sa 1 linggo",
-    "one_month_average": "Karaniwan sa 1 buwan",
-    "three_month_average": "Karaniwan sa 3 buwan",
-    "six_month_average": "Karaniwan sa 6 na buwan",
-    "one_year_average": "Karaniwan sa 1 taon"
+    "one_week_average": "Average sa 1 linggo",
+    "one_month_average": "Average sa 1 buwan",
+    "three_month_average": "Average sa 3 buwan",
+    "six_month_average": "Average sa 6 na buwan",
+    "one_year_average": "Average sa 1 taon"
   },
   "default_settings": {
     "title": "Handa na ang iyong Wallet",
@@ -3598,27 +3755,47 @@
     }
   },
   "confirm": {
-    "reject": "Tanggihan",
+    "cancel": "Kanselahin",
     "confirm": "Kumpirmahin",
+    "staking_footer": {
+      "part1": "Sa pagpapatuloy, sumasang-ayon ka sa aming ",
+      "terms_of_use": "Mga Tuntunin ng Paggamit",
+      "part2": " at ",
+      "risk_disclosure": "Pagpapahayag ng Panganib",
+      "part3": "."
+    },
+    "label": {
+      "account": "Account",
+      "balance": "Balanse",
+      "interacting_with": "Nakikipag-ugnayan sa",
+      "network": "Network",
+      "primary_type": "Pangunahing uri",
+      "request_from": "Kahilingan mula sa/kay",
+      "signing_in_with": "Nagsa-sign in gamit ang",
+      "spender": "Gumagastos"
+    },
     "title": {
       "signature": "Kahilingan sa paglagda",
+      "permit": "Kahilingan sa limitasyon sa paggastos",
+      "permit_revoke": "Alisin ang pahintulot",
+      "permit_NFTs": "Kahilingang mag-withdraw",
       "signature_siwe": "Kahilingan sa pag-sign in"
     },
     "sub_title": {
+      "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",
+      "permit_NFTs": "Kailangan ng site na ito ng pahintulot para i-withdraw ang mga NFT mo.",
       "signature": "Suriin ang mga detalye ng kahilingan bago mo kumpirmahin.",
-      "signature_siwe": "Nais ng site na mag-sign in ka para patunayan na ikaw ang may-ari ng account na ito."
+      "signature_siwe": "Hinihiling ng site na mag-sign in ka para patunayan na ikaw ang may-ari ng account na ito."
     },
-    "request_from": "Hiling mula sa/kay",
+    "request_from": "Kahilingan mula sa/kay",
+    "staking_from": "Pag-stake mula sa/kay",
     "signing_in_with": "Nagsa-sign in gamit ang",
     "message": "Mensahe",
-    "primary_type": "Pangunahing uri",
     "personal_sign_tooltip": "Hinihingi ng site na ito ang iyong pirma",
     "details": "Mga detalye",
-    "account": "Account",
-    "balance": "Balanse",
-    "network": "Network",
     "qr_get_sign": "Kumuha ng Lagda",
     "qr_scan_text": "I-scan gamit ang iyong wallet na hardware",
+    "sign_with_ledger": "Pumirma gamit ang Ledger",
     "siwe_message": {
       "url": "URL",
       "network": "Network",
@@ -3628,12 +3805,13 @@
       "nonce": "Nonce",
       "issued": "Inisyu",
       "requestId": "Humiling ng ID",
-      "resources": "Mga Resource"
+      "resources": "Mga Mapagkukunan"
     },
     "simulation": {
       "decoded_tooltip_bid_nft": "Makikita ang NFT sa wallet mo, kapag tinanggap ang bid.",
       "decoded_tooltip_list_nft": "Asahan lang ang mga pagbabago kapag may bumili sa mga NFT mo.",
       "info_permit": "Binibigyan mo ng pahintulot ang gumagastos na gastusin ang ganito karaming token mula sa account mo.",
+      "info_revoke": "Inaalis mo ang pahintulot ng ibang tao na gastusin ang mga token mula sa iyong account.",
       "label_change_type_bidding": "Nag-bid ka ng",
       "label_change_type_listing": "Nag-list ka ng",
       "label_change_type_nft_listing": "Presyo ng listing",
@@ -3661,5 +3839,34 @@
     "input_title": "Pangalan ng account",
     "add_account_button": "Magdagdag ng account",
     "name_taken_message": "May ganito nang pangalan ng account"
+  },
+  "smart_transactions_migration": {
+    "title": "Naging mas matalino ang mga transaksyon",
+    "link": "Mas mataas na rate ng tagumpay",
+    "description": " at proteksyon ng MEV. Ngayon ay naka-on na bilang default."
+  },
+  "bridge": {
+    "continue": "Magpatuloy",
+    "terms_and_conditions": "Mga Tuntunin at Kundisyon",
+    "select_token": "Pumili ng token",
+    "select_network": "Pumili ng network",
+    "all_networks": "Lahat ng network",
+    "num_networks": "{{numNetworks}} (na) network",
+    "one_network": "1 network",
+    "select_all_networks": "Piliin lahat",
+    "deselect_all_networks": "Alisin ang pagkakapili sa lahat",
+    "see_all": "Tingnan lahat",
+    "apply": "Ilapat",
+    "slippage": "Slippage",
+    "slippage_info": "Kung magbabago ang presyo sa pagitan ng oras ng paglalagay mo ng order at sa oras na nakumpirma ito, tinatawag itong “slippage”. Awtomatikong makakansela ang iyong pag-swap kung lalampas ang slippage sa katanggap-tanggap na itinakda mo rito.",
+    "network_fee": "Bayad sa Network",
+    "estimated_time": "Tinatayang Oras",
+    "quote": "Quote",
+    "quote_details": "Mga Detalye ng Quote",
+    "price_impact": "Epekto ng Presyo",
+    "time": "Oras",
+    "quote_info_content": "Nag-aalok ang quote na ito ng pinakamainam na return mula sa aming paghahanap. Nakabatay ito sa rate ng pag-swap, kabilang ang mga bayad sa pag-bridge at 0.875% na bayad sa MetaMask, ngunit hindi ito mga bayad sa gas. Iba-iba ang mga bayad sa gas depende sa aktibidad ng network at pagiging kumplikado ng transaksyon.",
+    "quote_info_title": "Bakit namin inirerekomenda ang quote na ito",
+    "see_other_quotes": "Tingnan ang ibang mga quote"
   }
 }

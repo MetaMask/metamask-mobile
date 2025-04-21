@@ -86,7 +86,7 @@ exports[`Login should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 35,
               "fontWeight": "600",
               "justifyContent": "center",
@@ -153,7 +153,6 @@ exports[`Login should render correctly 1`] = `
               <TextInput
                 autoCapitalize="none"
                 autoFocus={false}
-                baseColor="#b7bbc8"
                 editable={true}
                 keyboardAppearance="light"
                 onBlur={[Function]}
@@ -170,8 +169,8 @@ exports[`Login should render correctly 1`] = `
                     "borderColor": "transparent",
                     "borderWidth": 1,
                     "color": "#121314",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 14,
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "height": 24,
                     "letterSpacing": 0,
@@ -180,7 +179,6 @@ exports[`Login should render correctly 1`] = `
                   }
                 }
                 testID="login-password-input"
-                tintColor="#4459ff"
                 value=""
               />
             </View>
@@ -228,10 +226,10 @@ exports[`Login should render correctly 1`] = `
                 {
                   "color": "#ffffff",
                   "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -277,10 +275,10 @@ exports[`Login should render correctly 1`] = `
                 "backgroundColor": "transparent",
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginVertical": 14,
               }
             }
@@ -293,10 +291,10 @@ exports[`Login should render correctly 1`] = `
                 {
                   "color": "#4459ff",
                   "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >

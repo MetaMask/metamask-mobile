@@ -145,10 +145,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -169,10 +169,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -211,7 +211,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -459,7 +459,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -570,7 +570,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -578,7 +578,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontWeight": "600",
                                           },
                                           undefined,
@@ -621,7 +621,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -720,7 +720,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -728,7 +728,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontWeight": "600",
                                           },
                                           undefined,
@@ -771,7 +771,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -1083,10 +1083,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                         "color": "#121314",
                                                         "flexShrink": 1,
                                                         "fontFamily": "CentraNo1-Book",
-                                                        "fontSize": 14,
+                                                        "fontSize": 16,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
-                                                        "lineHeight": 22,
+                                                        "lineHeight": 24,
                                                         "marginHorizontal": 8,
                                                       }
                                                     }
@@ -1101,10 +1101,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     {
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
-                                                      "fontSize": 14,
+                                                      "fontSize": 16,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
-                                                      "lineHeight": 22,
+                                                      "lineHeight": 24,
                                                       "textAlign": "center",
                                                     }
                                                   }
@@ -1118,10 +1118,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       {
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
-                                                        "fontSize": 14,
+                                                        "fontSize": 16,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
-                                                        "lineHeight": 22,
+                                                        "lineHeight": 24,
                                                       }
                                                     }
                                                   >
@@ -1154,10 +1154,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                         {
                                                           "color": "#121314",
                                                           "fontFamily": "CentraNo1-Medium",
-                                                          "fontSize": 14,
+                                                          "fontSize": 16,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
-                                                          "lineHeight": 22,
+                                                          "lineHeight": 24,
                                                         }
                                                       }
                                                     >
@@ -1169,10 +1169,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                         {
                                                           "color": "#121314",
                                                           "fontFamily": "CentraNo1-Book",
-                                                          "fontSize": 14,
+                                                          "fontSize": 16,
                                                           "fontWeight": "400",
                                                           "letterSpacing": 0,
-                                                          "lineHeight": 22,
+                                                          "lineHeight": 24,
                                                           "marginBottom": 8,
                                                         }
                                                       }
@@ -1194,10 +1194,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                           {
                                                             "color": "#121314",
                                                             "fontFamily": "CentraNo1-Medium",
-                                                            "fontSize": 14,
+                                                            "fontSize": 16,
                                                             "fontWeight": "500",
                                                             "letterSpacing": 0,
-                                                            "lineHeight": 22,
+                                                            "lineHeight": 24,
                                                           }
                                                         }
                                                       >
@@ -1210,10 +1210,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                         {
                                                           "color": "#121314",
                                                           "fontFamily": "CentraNo1-Book",
-                                                          "fontSize": 14,
+                                                          "fontSize": 16,
                                                           "fontWeight": "400",
                                                           "letterSpacing": 0,
-                                                          "lineHeight": 22,
+                                                          "lineHeight": 24,
                                                           "marginBottom": 8,
                                                         }
                                                       }
@@ -1239,10 +1239,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                           {
                                                             "color": "#4459ff",
                                                             "fontFamily": "CentraNo1-Book",
-                                                            "fontSize": 14,
+                                                            "fontSize": 16,
                                                             "fontWeight": "400",
                                                             "letterSpacing": 0,
-                                                            "lineHeight": 22,
+                                                            "lineHeight": 24,
                                                           }
                                                         }
                                                         testID="accordionheader-title"
@@ -1326,10 +1326,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     {
                                                       "color": "#4459ff",
                                                       "fontFamily": "CentraNo1-Medium",
-                                                      "fontSize": 14,
+                                                      "fontSize": 16,
                                                       "fontWeight": "500",
                                                       "letterSpacing": 0,
-                                                      "lineHeight": 22,
+                                                      "lineHeight": 24,
                                                     }
                                                   }
                                                 >
@@ -1366,10 +1366,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     {
                                                       "color": "#ffffff",
                                                       "fontFamily": "CentraNo1-Medium",
-                                                      "fontSize": 14,
+                                                      "fontSize": 16,
                                                       "fontWeight": "500",
                                                       "letterSpacing": 0,
-                                                      "lineHeight": 22,
+                                                      "lineHeight": 24,
                                                     }
                                                   }
                                                 >
@@ -1448,7 +1448,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -1496,7 +1496,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -1595,7 +1595,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -1643,7 +1643,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -1844,10 +1844,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -1868,10 +1868,10 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1910,7 +1910,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -2158,7 +2158,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -2269,7 +2269,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -2277,7 +2277,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontWeight": "600",
                                           },
                                           undefined,
@@ -2320,7 +2320,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -2419,7 +2419,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -2427,7 +2427,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontWeight": "600",
                                           },
                                           undefined,
@@ -2470,7 +2470,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -2573,7 +2573,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -2621,7 +2621,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -2720,7 +2720,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -2768,7 +2768,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -2969,10 +2969,10 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -2993,10 +2993,10 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -3035,7 +3035,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -3283,7 +3283,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -3394,7 +3394,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -3402,7 +3402,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontWeight": "600",
                                           },
                                           undefined,
@@ -3445,7 +3445,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -3544,7 +3544,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -3552,7 +3552,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontWeight": "600",
                                           },
                                           undefined,
@@ -3595,7 +3595,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -3698,7 +3698,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -3746,7 +3746,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -3845,7 +3845,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -3893,7 +3893,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -4094,10 +4094,10 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -4118,10 +4118,10 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -4160,7 +4160,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -4408,7 +4408,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -4519,7 +4519,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -4527,7 +4527,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontWeight": "600",
                                           },
                                           undefined,
@@ -4570,7 +4570,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -4669,7 +4669,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -4677,7 +4677,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontWeight": "600",
                                           },
                                           undefined,
@@ -4720,7 +4720,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -4823,7 +4823,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -4871,7 +4871,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -4970,7 +4970,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -5018,7 +5018,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -5219,10 +5219,10 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -5243,10 +5243,10 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -5285,7 +5285,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -5533,7 +5533,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -6546,10 +6546,10 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -6570,10 +6570,10 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -6612,7 +6612,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -6860,7 +6860,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -7873,10 +7873,10 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -7897,10 +7897,10 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -7939,7 +7939,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -8220,11 +8220,11 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -8245,7 +8245,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -8326,7 +8326,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
@@ -8506,10 +8506,10 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -8530,10 +8530,10 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -8572,7 +8572,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -8853,11 +8853,11 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -8878,7 +8878,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -8959,7 +8959,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
@@ -9139,10 +9139,10 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -9163,10 +9163,10 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -9205,7 +9205,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -9486,11 +9486,11 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -9511,7 +9511,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -9592,7 +9592,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",

@@ -3,6 +3,7 @@ import {
   TransactionControllerMessenger,
   TransactionControllerOptions,
   TransactionMeta,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { NetworkController } from '@metamask/network-controller';
@@ -17,19 +18,19 @@ import { TransactionControllerInitMessenger } from '../../messengers/transaction
 import { ControllerInitRequest } from '../../types';
 import { TransactionControllerInit } from './transaction-controller-init';
 import {
-  handleTransactionAdded,
-  handleTransactionApproved,
-  handleTransactionFinalized,
-  handleTransactionRejected,
-  handleTransactionSubmitted,
-} from './transaction-event-handlers';
+  handleTransactionAddedEventForMetrics,
+  handleTransactionApprovedEventForMetrics,
+  handleTransactionFinalizedEventForMetrics,
+  handleTransactionRejectedEventForMetrics,
+  handleTransactionSubmittedEventForMetrics,
+} from './event-handlers/metrics';
 
 jest.mock('@metamask/transaction-controller');
 jest.mock('../../../../reducers/swaps');
 jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
-jest.mock('./transaction-event-handlers');
+jest.mock('./event-handlers/metrics');
 
 /**
  * Build a mock NetworkController.
@@ -54,7 +55,6 @@ function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<
   ControllerInitRequest<
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >
@@ -89,15 +89,21 @@ describe('Transaction Controller Init', () => {
     selectSwapsChainFeatureFlags,
   );
   const getGlobalChainIdMock = jest.mocked(getGlobalChainId);
-  const handleTransactionApprovedMock = jest.mocked(handleTransactionApproved);
-  const handleTransactionFinalizedMock = jest.mocked(
-    handleTransactionFinalized,
+  const handleTransactionApprovedEventForMetricsMock = jest.mocked(
+    handleTransactionApprovedEventForMetrics,
   );
-  const handleTransactionRejectedMock = jest.mocked(handleTransactionRejected);
-  const handleTransactionSubmittedMock = jest.mocked(
-    handleTransactionSubmitted,
+  const handleTransactionFinalizedEventForMetricsMock = jest.mocked(
+    handleTransactionFinalizedEventForMetrics,
   );
-  const handleTransactionAddedMock = jest.mocked(handleTransactionAdded);
+  const handleTransactionRejectedEventForMetricsMock = jest.mocked(
+    handleTransactionRejectedEventForMetrics,
+  );
+  const handleTransactionSubmittedEventForMetricsMock = jest.mocked(
+    handleTransactionSubmittedEventForMetrics,
+  );
+  const handleTransactionAddedEventForMetricsMock = jest.mocked(
+    handleTransactionAddedEventForMetrics,
+  );
 
   /**
    * Extract a constructor option passed to the controller.
@@ -279,6 +285,22 @@ describe('Transaction Controller Init', () => {
     expect(updateTransactionsProp).toBe(true);
   });
 
+  it('determines if automatic gas fee update is enabled based on transaction type', () => {
+    const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');
+    const isEnabledFn = option as ({ type }: { type: string }) => boolean;
+
+    // Redesigned transaction types
+    expect(isEnabledFn({ type: TransactionType.stakingDeposit })).toBe(true);
+    expect(isEnabledFn({ type: TransactionType.stakingUnstake })).toBe(true);
+    expect(isEnabledFn({ type: TransactionType.stakingClaim })).toBe(true);
+    expect(isEnabledFn({ type: TransactionType.contractInteraction })).toBe(
+      true,
+    );
+
+    // Non-redesigned transaction types
+    expect(isEnabledFn({ type: TransactionType.simpleSend })).toBe(false);
+  });
+
   it('gets network state from network controller on option getNetworkState', () => {
     const MOCK_NETWORK_STATE = {
       chainId: '0x1',
@@ -323,38 +345,45 @@ describe('Transaction Controller Init', () => {
     const eventHandlerMap = [
       {
         event: 'TransactionController:transactionApproved',
-        handler: handleTransactionApprovedMock,
+        handler: handleTransactionApprovedEventForMetricsMock,
         payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:transactionConfirmed',
-        handler: handleTransactionFinalizedMock,
+        handler: handleTransactionFinalizedEventForMetricsMock,
         payload: mockTransactionMeta,
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:transactionDropped',
-        handler: handleTransactionFinalizedMock,
+        handler: handleTransactionFinalizedEventForMetricsMock,
         payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:transactionFailed',
-        handler: handleTransactionFinalizedMock,
+        handler: handleTransactionFinalizedEventForMetricsMock,
         payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:transactionRejected',
-        handler: handleTransactionRejectedMock,
+        handler: handleTransactionRejectedEventForMetricsMock,
         payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:transactionSubmitted',
-        handler: handleTransactionSubmittedMock,
+        handler: handleTransactionSubmittedEventForMetricsMock,
         payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:unapprovedTransactionAdded',
-        handler: handleTransactionAddedMock,
+        handler: handleTransactionAddedEventForMetricsMock,
         payload: mockTransactionMeta,
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
     ];
 
@@ -362,9 +391,9 @@ describe('Transaction Controller Init', () => {
     expect(Object.keys(subscribeCallbacks).length).toBe(eventHandlerMap.length);
 
     // Test each event handler
-    eventHandlerMap.forEach(({ event, handler, payload }) => {
+    eventHandlerMap.forEach(({ event, handler, payload, expectedArgs }) => {
       subscribeCallbacks[event](payload);
-      expect(handler).toHaveBeenCalledWith(mockTransactionMeta, handlerContext);
+      expect(handler).toHaveBeenCalledWith(...expectedArgs);
     });
   });
 });
