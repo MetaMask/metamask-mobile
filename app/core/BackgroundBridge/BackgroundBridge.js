@@ -794,7 +794,14 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   async getProviderState(origin) {
+    const metadata = {};
+    if (AppConstants.MULTICHAIN_API) {
+      // TODO: [ffmcgee] get extensionId ?
+      // const { chrome } = globalThis;
+      // metadata.extensionId = chrome?.runtime?.id;
+    }
     return {
+      ...metadata,
       isUnlocked: this.isUnlocked(),
       ...(await this.getProviderNetworkState(origin)),
     };
