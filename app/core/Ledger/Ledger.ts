@@ -38,7 +38,6 @@ export const withLedgerKeyring = async <CallbackResult = void>(
   const keyringController = Engine.context.KeyringController;
   return await keyringController.withKeyring(
     { type: ExtendedKeyringTypes.ledger },
-    // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
     operation,
     // TODO: Refactor this to stop creating the keyring on-demand
     // Instead create it only in response to an explicit user action, and do

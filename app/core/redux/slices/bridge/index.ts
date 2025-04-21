@@ -1,15 +1,8 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { Hex, isCaipChainId } from '@metamask/utils';
-import { ethers } from 'ethers';
+import { Hex, CaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
-import { selectTokens } from '../../../../selectors/tokensController';
-import { getNativeSwapsToken } from '@metamask/swaps-controller/dist/swapsUtil';
-import {
-  selectEvmChainId,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
@@ -28,8 +21,9 @@ export interface BridgeState {
   destAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
-  selectedSourceChainIds: undefined | string[];
-  selectedDestChainId: SupportedCaipChainId | Hex | undefined;
+  destAddress: string | undefined;
+  selectedSourceChainIds: (Hex | CaipChainId)[] | undefined;
+  selectedDestChainId: Hex | CaipChainId | undefined;
   slippage: string;
 }
 
@@ -38,6 +32,7 @@ export const initialState: BridgeState = {
   destAmount: undefined,
   sourceToken: undefined,
   destToken: undefined,
+  destAddress: undefined,
   selectedSourceChainIds: undefined,
   selectedDestChainId: undefined,
   slippage: '0.5',
@@ -55,12 +50,15 @@ const slice = createSlice({
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
     },
-    setSelectedSourceChainIds: (state, action: PayloadAction<string[]>) => {
+    setSelectedSourceChainIds: (
+      state,
+      action: PayloadAction<(Hex | CaipChainId)[]>,
+    ) => {
       state.selectedSourceChainIds = action.payload;
     },
     setSelectedDestChainId: (
       state,
-      action: PayloadAction<SupportedCaipChainId | Hex | undefined>,
+      action: PayloadAction<Hex | CaipChainId | undefined>,
     ) => {
       state.selectedDestChainId = action.payload;
     },
@@ -70,6 +68,9 @@ const slice = createSlice({
     },
     setDestToken: (state, action: PayloadAction<BridgeToken>) => {
       state.destToken = action.payload;
+    },
+    setDestAddress: (state, action: PayloadAction<string | undefined>) => {
+      state.destAddress = action.payload;
     },
     setSlippage: (state, action: PayloadAction<string>) => {
       state.slippage = action.payload;
@@ -83,7 +84,6 @@ export default reducer;
 
 // Base selectors
 const selectBridgeState = (state: RootState) => state[name];
-const selectTokensList = selectTokens;
 
 // Derived selectors using createSelector
 export const selectSourceAmount = createSelector(
@@ -101,7 +101,7 @@ export const selectDestAmount = createSelector(
  * Will include them regardless of feature flag enabled or not.
  */
 export const selectAllBridgeableNetworks = createSelector(
-  selectEvmNetworkConfigurationsByChainId,
+  selectNetworkConfigurations,
   (networkConfigurations) => {
     const networks = uniqBy(
       Object.values(networkConfigurations),
@@ -117,6 +117,17 @@ export const selectAllBridgeableNetworks = createSelector(
 export const selectBridgeFeatureFlags = createSelector(
   selectBridgeControllerState,
   (bridgeControllerState) => bridgeControllerState.bridgeFeatureFlags,
+);
+
+export const selectTopAssetsFromFeatureFlags = createSelector(
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
+  (bridgeFeatureFlags, chainId) =>
+    chainId
+      ? bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[
+          formatChainIdToCaip(chainId)
+        ].topAssets
+      : undefined,
 );
 
 export const selectEnabledSourceChains = createSelector(
@@ -158,32 +169,7 @@ export const selectEnabledDestChains = createSelector(
 // Combined selectors for related state
 export const selectSourceToken = createSelector(
   selectBridgeState,
-  selectTokensList,
-  selectEvmChainId,
-  (bridgeState, tokens, currentChainId) => {
-    // If we have a selected source token in the bridge state, use that
-    if (bridgeState.sourceToken) {
-      return bridgeState.sourceToken;
-    }
-
-    // Otherwise, fall back to the native token of current chain
-    const sourceToken = !isCaipChainId(currentChainId)
-      ? getNativeSwapsToken(currentChainId)
-      : tokens.find((token) => token.address === ethers.constants.AddressZero);
-
-    if (!sourceToken) return undefined;
-
-    const sourceTokenFormatted: BridgeToken = {
-      address: sourceToken.address,
-      name: sourceToken.name ?? '',
-      symbol: sourceToken.symbol,
-      image: 'iconUrl' in sourceToken ? sourceToken.iconUrl : '',
-      decimals: sourceToken.decimals,
-      chainId: currentChainId as Hex,
-    };
-
-    return sourceTokenFormatted;
-  },
+  (bridgeState) => bridgeState.sourceToken,
 );
 
 export const selectDestToken = createSelector(
@@ -220,6 +206,11 @@ export const selectSlippage = createSelector(
   (bridgeState) => bridgeState.slippage,
 );
 
+export const selectDestAddress = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.destAddress,
+);
+
 // Actions
 export const {
   setSourceAmount,
@@ -230,4 +221,5 @@ export const {
   setSelectedSourceChainIds,
   setSelectedDestChainId,
   setSlippage,
+  setDestAddress,
 } = actions;
