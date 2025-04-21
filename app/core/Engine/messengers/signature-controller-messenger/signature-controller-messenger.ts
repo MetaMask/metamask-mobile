@@ -22,6 +22,7 @@ type MessengerActions =
 
 type MessengerEvents = never;
 
+
 export function getSignatureControllerMessenger(
   messenger: Messenger<MessengerActions, MessengerEvents>,
 ): SignatureControllerMessenger {

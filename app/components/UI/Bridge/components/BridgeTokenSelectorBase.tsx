@@ -21,6 +21,8 @@ import { useTokenSearch } from '../hooks/useTokenSearch';
 import TextFieldSearch from '../../../../component-library/components/Form/TextFieldSearch';
 import { BridgeToken } from '../types';
 import { Skeleton } from '../../../../component-library/components/Skeleton';
+import { useAssetMetadata } from '../hooks/useAssetMetadata';
+import { CaipChainId, Hex } from '@metamask/utils';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -109,19 +111,48 @@ interface BridgeTokenSelectorBaseProps {
   renderTokenItem: ({ item }: { item: BridgeToken }) => React.JSX.Element;
   tokensList: BridgeToken[];
   pending?: boolean;
+  chainIdToFetchMetadata?: Hex | CaipChainId;
 }
 
 export const BridgeTokenSelectorBase: React.FC<
   BridgeTokenSelectorBaseProps
-> = ({ networksBar, renderTokenItem, tokensList, pending }) => {
+> = ({
+  networksBar,
+  renderTokenItem,
+  tokensList,
+  pending,
+  chainIdToFetchMetadata: chainId,
+}) => {
   const { styles, theme } = useStyles(createStyles, {});
-  const { searchString, setSearchString, searchResults } = useTokenSearch({
+  const {
+    searchString,
+    setSearchString,
+    searchResults,
+    debouncedSearchString,
+  } = useTokenSearch({
     tokens: tokensList || [],
   });
-  const tokensToRender = useMemo(
-    () => (searchString ? searchResults : tokensList),
-    [searchString, searchResults, tokensList],
+
+  const {
+    assetMetadata: unlistedAssetMetadata,
+    pending: unlistedAssetMetadataPending,
+  } = useAssetMetadata(
+    debouncedSearchString,
+    Boolean(debouncedSearchString && searchResults.length === 0),
+    chainId,
   );
+
+  const tokensToRender = useMemo(() => {
+    if (!searchString) {
+      return tokensList;
+    }
+
+    if (searchResults.length > 0) {
+      return searchResults;
+    }
+
+    return unlistedAssetMetadata ? [unlistedAssetMetadata] : [];
+  }, [searchString, searchResults, tokensList, unlistedAssetMetadata]);
 
   const keyExtractor = useCallback(
     (token: BridgeToken) => `${token.chainId}-${token.address}`,
@@ -139,17 +170,22 @@ export const BridgeTokenSelectorBase: React.FC<
     () => (
       <Box style={styles.emptyList}>
         <Text color={TextColor.Alternative}>
-          {strings('swaps.no_tokens_result', { searchString })}
+          {strings('swaps.no_tokens_result', { searchString: debouncedSearchString })}
         </Text>
       </Box>
     ),
-    [searchString, styles],
+    [debouncedSearchString, styles],
   );
 
   const modalRef = useRef<BottomSheetRef>(null);
   const dismissModal = (): void => {
     modalRef.current?.onCloseBottomSheet();
   };
+
+  const shouldRenderLoading = useMemo(
+    () => pending || unlistedAssetMetadataPending,
+    [pending, unlistedAssetMetadataPending],
+  );
 
   return (
     <BottomSheet isFullscreen ref={modalRef}>
@@ -192,10 +228,14 @@ export const BridgeTokenSelectorBase: React.FC<
         </Box>
 
         <FlatList
-          data={pending ? [] : tokensToRender}
+          data={shouldRenderLoading ? [] : tokensToRender}
           renderItem={renderTokenItem}
           keyExtractor={keyExtractor}
-          ListEmptyComponent={searchString ? renderEmptyList : LoadingSkeleton}
+          ListEmptyComponent={
+            debouncedSearchString && !shouldRenderLoading
+              ? renderEmptyList
+              : LoadingSkeleton
+          }
         />
       </Box>
     </BottomSheet>
