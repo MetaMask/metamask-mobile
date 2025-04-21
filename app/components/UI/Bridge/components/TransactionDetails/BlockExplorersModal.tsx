@@ -16,26 +16,15 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
-import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
-import { decimalToPrefixedHex } from '../../../../../util/conversions';
-import {
-  createProviderConfig,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../../../selectors/networkController';
-import useBlockExplorer from '../../../Swaps/utils/useBlockExplorer';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import { NetworkConfiguration } from '@metamask/network-controller';
-import { getNetworkImageSource } from '../../../../../util/networks';
 import { Theme } from '../../../../../util/theme/models';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-
-const useEvmBlockExplorer = useBlockExplorer;
+import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -57,14 +46,6 @@ const styleSheet = (params: { theme: Theme }) =>
     },
   });
 
-const getProviderConfigForNetwork = (networkConfig: NetworkConfiguration) => {
-  const rpcEndpoint =
-    networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex];
-  const providerConfig = createProviderConfig(networkConfig, rpcEndpoint);
-
-  return providerConfig;
-};
-
 interface BlockExplorersModalProps {
   route: {
     params: {
@@ -80,50 +61,27 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
     txMeta: props.route.params.tx,
   });
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
 
   // Get source chain explorer data
-  const srcChainIdHex = decimalToPrefixedHex(
-    bridgeTxHistoryItem.quote.srcChainId,
-  );
-  const srcNetworkConfig = networkConfigurations[srcChainIdHex as Hex];
-  const srcProviderConfig = useMemo(
-    () => getProviderConfigForNetwork(srcNetworkConfig),
-    [srcNetworkConfig],
-  );
-  const srcExplorer = useEvmBlockExplorer(
-    networkConfigurations,
-    srcProviderConfig,
-  );
-  const srcExplorerTxUrl = props.route.params.tx.hash
-    ? srcExplorer.tx(props.route.params.tx.hash)
-    : undefined;
-  //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-  const srcNetworkImageSource = getNetworkImageSource({
-    chainId: srcChainIdHex,
+  const {
+    explorerTxUrl: srcExplorerTxUrl,
+    explorerName: srcExplorerName,
+    networkImageSource: srcNetworkImageSource,
+    chainName: srcChainName,
+  } = useMultichainBlockExplorerTxUrl({
+    chainId: bridgeTxHistoryItem.quote.srcChainId,
+    txHash: props.route.params.tx.hash,
   });
 
   // Get destination chain explorer data
-  const destChainIdHex = decimalToPrefixedHex(
-    bridgeTxHistoryItem.quote.destChainId,
-  );
-  const destNetworkConfig = networkConfigurations[destChainIdHex as Hex];
-  const destProviderConfig = useMemo(
-    () => getProviderConfigForNetwork(destNetworkConfig),
-    [destNetworkConfig],
-  );
-  const destExplorer = useEvmBlockExplorer(
-    networkConfigurations,
-    destProviderConfig,
-  );
-  const destExplorerTxUrl = bridgeTxHistoryItem?.status.destChain?.txHash
-    ? destExplorer.tx(bridgeTxHistoryItem.status.destChain.txHash)
-    : undefined;
-  //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-  const destNetworkImageSource = getNetworkImageSource({
-    chainId: destChainIdHex,
+  const {
+    explorerTxUrl: destExplorerTxUrl,
+    explorerName: destExplorerName,
+    networkImageSource: destNetworkImageSource,
+    chainName: destChainName,
+  } = useMultichainBlockExplorerTxUrl({
+    chainId: bridgeTxHistoryItem.quote.destChainId,
+    txHash: bridgeTxHistoryItem?.status.destChain?.txHash,
   });
 
   return (
@@ -146,12 +104,12 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
               <>
                 <Badge
                   variant={BadgeVariant.Network}
-                  name={srcNetworkConfig.name}
+                  name={srcChainName}
                   imageSource={srcNetworkImageSource}
                   style={styles.badge}
                 />
                 <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
-                  {srcExplorer.name}
+                  {srcExplorerName}
                 </Text>
               </>
             }
@@ -175,12 +133,12 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
               <>
                 <Badge
                   variant={BadgeVariant.Network}
-                  name={destNetworkConfig.name}
+                  name={destChainName}
                   imageSource={destNetworkImageSource}
                   style={styles.badge}
                 />
                 <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
-                  {destExplorer.name}
+                  {destExplorerName}
                 </Text>
               </>
             }
