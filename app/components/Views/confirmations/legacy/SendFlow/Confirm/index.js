@@ -926,13 +926,11 @@ class Confirm extends PureComponent {
     assetType,
     gaParams,
   ) => {
-    const { TransactionController } = Engine.context;
+
     const { navigation } = this.props;
     // Manual cancel from UI or rejected from ledger device.
     try {
-      if (!approve) {
-        TransactionController.cancelTransaction(transactionMeta.id);
-      } else {
+      if (approve) {
         await new Promise((resolve) => resolve(result));
 
         if (transactionMeta.error) {

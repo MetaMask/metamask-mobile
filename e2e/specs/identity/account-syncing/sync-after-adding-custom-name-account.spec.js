@@ -17,11 +17,11 @@ import Assertions from '../../../utils/Assertions';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeIdentity } from '../../../tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
 describe(
-  SmokeIdentity(
+  SmokeWalletPlatform(
     'Account syncing - syncs and retrieves accounts after adding a custom name account',
   ),
   () => {
