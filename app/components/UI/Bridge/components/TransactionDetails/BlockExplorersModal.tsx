@@ -35,6 +35,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 
+const useEvmBlockExplorer = useBlockExplorer;
+
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
@@ -91,7 +93,7 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
     () => getProviderConfigForNetwork(srcNetworkConfig),
     [srcNetworkConfig],
   );
-  const srcExplorer = useBlockExplorer(
+  const srcExplorer = useEvmBlockExplorer(
     networkConfigurations,
     srcProviderConfig,
   );
@@ -112,7 +114,7 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
     () => getProviderConfigForNetwork(destNetworkConfig),
     [destNetworkConfig],
   );
-  const destExplorer = useBlockExplorer(
+  const destExplorer = useEvmBlockExplorer(
     networkConfigurations,
     destProviderConfig,
   );
