@@ -1,5 +1,6 @@
 import { SolScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { CaipChainId, Hex } from '@metamask/utils';
 
 // TODO read from feature flags
 export const ALLOWED_BRIDGE_CHAIN_IDS = [
@@ -20,7 +21,7 @@ export type AllowedBridgeChainIds = (typeof ALLOWED_BRIDGE_CHAIN_IDS)[number];
 export const ETH_USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 
 export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
-  AllowedBridgeChainIds,
+  Hex | CaipChainId,
   string
 > = {
   [CHAIN_IDS.MAINNET]: 'Ethereum',

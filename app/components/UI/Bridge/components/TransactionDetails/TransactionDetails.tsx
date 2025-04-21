@@ -13,7 +13,6 @@ import {
 import { getBridgeTransactionDetailsNavbar } from '../../../Navbar';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { useSelector } from 'react-redux';
 import Icon, {
   IconColor,
   IconName,
@@ -26,7 +25,6 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
@@ -103,9 +101,6 @@ export const BridgeTransactionDetails = (
     txMeta: props.route.params.tx,
   });
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
-  const networkConfigurationsByChainId = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
 
   useEffect(() => {
     navigation.setOptions(getBridgeTransactionDetailsNavbar(navigation));
@@ -247,7 +242,6 @@ export const BridgeTransactionDetails = (
             <BridgeStepList
               bridgeHistoryItem={bridgeTxHistoryItem}
               srcChainTxMeta={props.route.params.tx}
-              networkConfigurationsByChainId={networkConfigurationsByChainId}
             />
           </Box>
         )}
