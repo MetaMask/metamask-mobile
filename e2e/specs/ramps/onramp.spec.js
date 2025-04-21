@@ -11,7 +11,7 @@ import {
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeRamps } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
@@ -22,7 +22,7 @@ import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
 import SelectCurrencyView from '../../pages/Ramps/SelectCurrencyView';
 const fixtureServer = new FixtureServer();
 
-describe(SmokeRamps('Buy Crypto'), () => {
+describe(SmokeTrade('Buy Crypto'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
@@ -66,9 +66,18 @@ describe(SmokeRamps('Buy Crypto'), () => {
   });
 
   it('should change parameters and select a quote', async () => {
-    const paymentMethod =
-      device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
-
+    const platform = device.getPlatform();
+    
+    let paymentMethod;
+    if (platform === 'ios') {
+      const applePayVisible = await Assertions.checkIfTextIsDisplayed('Apple Pay');
+      paymentMethod = applePayVisible ? 'Apple Pay' : 'PayPal';
+    } else if (platform === 'android') {
+      const googlePayVisible = await Assertions.checkIfTextIsDisplayed('Google Pay');
+      paymentMethod = googlePayVisible ? 'Google Pay' : 'PayPal';
+    } else {
+      paymentMethod = 'PayPal';
+    }
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
     await BuildQuoteView.tapCurrencySelector();
