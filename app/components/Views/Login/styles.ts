@@ -17,14 +17,21 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     wrapper: {
       flex: 1,
-      paddingHorizontal: 32,
+      paddingHorizontal: 16,
+    },
+    container: {
+      flex: 1,
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      flexDirection: 'column',
+      width: '100%',
     },
     foxWrapper: {
       justifyContent: 'center',
       alignSelf: 'center',
       width: Device.isIos() ? 130 : 100,
       height: Device.isIos() ? 130 : 100,
-      marginTop: 100,
+      marginTop: 48,
     },
     image: {
       alignSelf: 'center',
@@ -32,25 +39,25 @@ const styleSheet = (params: { theme: Theme }) => {
       height: Device.isIos() ? 130 : 100,
     },
     title: {
-      fontSize: Device.isAndroid() ? 30 : 35,
-      lineHeight: Device.isAndroid() ? 35 : 40,
-      marginTop: 20,
-      marginBottom: 20,
-      color: colors.text.default,
-      justifyContent: 'center',
       textAlign: 'center',
-      ...fontStyles.bold,
+      marginVertical: 24,
     },
     field: {
-      flex: 1,
       marginBottom: Device.isAndroid() ? 0 : 10,
       flexDirection: 'column',
+      width: '100%',
+      rowGap: 2,
+      justifyContent: 'flex-start',
     },
     label: {
       marginBottom: 12,
     },
     ctaWrapper: {
-      marginTop: 20,
+      width: '100%',
+      flexDirection: 'column',
+      alignItems: 'center',
+      rowGap: 24,
+      marginTop: 24,
     },
     footer: {
       marginVertical: 40,
@@ -123,6 +130,29 @@ const styleSheet = (params: { theme: Theme }) => {
       lineHeight: 20,
       marginTop: 10,
       color: colors.error.default,
+    },
+    metamaskName: {
+      width: 80,
+      height: 40,
+      marginTop: 10,
+    },
+    input: {
+      width: '100%',
+    },
+    labelContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    hintText: {
+      textAlign: 'left',
+    },
+    helperTextContainer: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      rowGap: 2,
+      alignSelf: 'flex-start',
     },
   });
 };

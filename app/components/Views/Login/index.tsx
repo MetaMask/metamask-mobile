@@ -11,6 +11,7 @@ import {
   TextInput,
 } from 'react-native';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -36,6 +37,7 @@ import {
   ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
+  SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -89,6 +91,8 @@ import ReduxService from '../../../core/redux';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import FOX_LOGO from '../../../images/branding/fox.png';
+import METAMASK_NAME from '../../../images/branding/metamask-name.png';
+import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
 
 /**
  * View where returning users can authenticate
@@ -113,6 +117,8 @@ const Login: React.FC = () => {
   const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [hintText, setHintText] = useState('');
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route =
     useRoute<RouteProp<{ params: { locked: boolean } }, 'params'>>();
@@ -403,6 +409,17 @@ const Login: React.FC = () => {
     hasBiometricCredentials
   );
 
+  const getHint = async () => {
+    const hint = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
+    const parsedHints = await JSON.parse(hint);
+    setHintText(parsedHints?.manualBackup || 'mom’s home');
+  };
+
+  const toggleHint = () => {
+    setShowHint(!showHint);
+    getHint();
+  };
+
   return (
     <ErrorBoundary navigation={navigation} view="Login">
       <SafeAreaView style={styles.mainWrapper}>
@@ -412,6 +429,12 @@ const Login: React.FC = () => {
           style={styles.wrapper}
         >
           <View testID={LoginViewSelectors.CONTAINER}>
+            <Image
+              source={METAMASK_NAME}
+              style={styles.metamaskName}
+              resizeMethod={'auto'}
+            />
+
             <TouchableOpacity
               style={styles.foxWrapper}
               delayLongPress={10 * 1000} // 10 seconds
@@ -425,16 +448,34 @@ const Login: React.FC = () => {
               />
             </TouchableOpacity>
 
-            <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
+            <Text
+              variant={TextVariant.DisplayMD}
+              color={TextColor.Default}
+              style={styles.title}
+              testID={LoginViewSelectors.TITLE_ID}
+            >
               {strings('login.title')}
             </Text>
+
             <View style={styles.field}>
-              <Label
-                variant={TextVariant.HeadingSMRegular}
-                style={styles.label}
-              >
-                {strings('login.password')}
-              </Label>
+              <View style={styles.labelContainer}>
+                <Label
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                >
+                  {strings('login.password')}
+                </Label>
+                <Button
+                  variant={ButtonVariants.Link}
+                  onPress={toggleHint}
+                  testID={LoginViewSelectors.SHOW_HINT_BUTTON}
+                  label={
+                    showHint
+                      ? strings('login.hide_hint')
+                      : strings('login.show_hint')
+                  }
+                />
+              </View>
               <TextField
                 size={TextFieldSize.Lg}
                 placeholder={strings('login.password')}
@@ -460,19 +501,38 @@ const Login: React.FC = () => {
 
             {renderSwitch()}
 
-            {!!error && (
-              <HelpText
-                severity={HelpTextSeverity.Error}
-                variant={TextVariant.BodyMD}
-                testID={LoginViewSelectors.PASSWORD_ERROR}
-              >
-                {error}
-              </HelpText>
-            )}
+            <View style={styles.helperTextContainer}>
+              {showHint && (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  style={styles.hintText}
+                >
+                  {strings('login.hint', { hint: hintText })}
+                </Text>
+              )}
+
+              {!!error && (
+                <HelpText
+                  severity={HelpTextSeverity.Error}
+                  variant={TextVariant.BodyMD}
+                  testID={LoginViewSelectors.PASSWORD_ERROR}
+                >
+                  {error}
+                </HelpText>
+              )}
+            </View>
+
             <View
               style={styles.ctaWrapper}
               testID={LoginViewSelectors.LOGIN_BUTTON_ID}
             >
+              <SecurityOptionToggle
+                title={strings('import_from_seed.unlock_with_face_id')}
+                value={biometryChoice}
+                onOptionUpdated={updateBiometryChoice}
+              />
+
               <Button
                 variant={ButtonVariants.Primary}
                 width={ButtonWidthTypes.Full}
@@ -488,10 +548,19 @@ const Login: React.FC = () => {
                     strings('login.unlock_button')
                   )
                 }
+                isDisabled={password.length === 0}
+              />
+
+              <Button
+                style={styles.goBack}
+                variant={ButtonVariants.Link}
+                onPress={toggleWarningModal}
+                testID={LoginViewSelectors.RESET_WALLET}
+                label={strings('login.reset_wallet')}
               />
             </View>
 
-            <View style={styles.footer}>
+            {/* <View style={styles.footer}>
               <Text variant={TextVariant.HeadingSMRegular} style={styles.cant}>
                 {strings('login.go_back')}
               </Text>
@@ -502,7 +571,7 @@ const Login: React.FC = () => {
                 testID={LoginViewSelectors.RESET_WALLET}
                 label={strings('login.reset_wallet')}
               />
-            </View>
+            </View> */}
           </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
