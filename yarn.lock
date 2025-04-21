@@ -4753,24 +4753,9 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/auth-network-utils@./auth-network-utils.tgz":
+"@metamask/auth-network-utils@./auth-network-utils.tgz", "@metamask/auth-network-utils@^0.0.0", "@metamask/auth-network-utils@https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/auth-network-utils.tgz":
   version "0.0.0"
-  uid daf330dd5d37cd709ca4a63d4df48d50ee9609ce
-  resolved "./auth-network-utils.tgz#daf330dd5d37cd709ca4a63d4df48d50ee9609ce"
-  dependencies:
-    "@noble/curves" "^1.8.1"
-    "@noble/hashes" "^1.7.1"
-    "@toruslabs/bs58" "^1.0.0"
-    "@toruslabs/constants" "^15.0.0"
-    "@toruslabs/eccrypto" "^6.0.2"
-    bn.js "^5.2.1"
-    elliptic "^6.6.1"
-    json-stable-stringify "^1.2.1"
-    loglevel "^1.9.2"
-
-"@metamask/auth-network-utils@^0.0.0", "@metamask/auth-network-utils@file:./auth-network-utils.tgz":
-  version "0.0.0"
-  resolved "file:./auth-network-utils.tgz#daf330dd5d37cd709ca4a63d4df48d50ee9609ce"
+  resolved "https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/auth-network-utils.tgz#1d7067597cc391c90e091af7b9170a9e08f98085"
   dependencies:
     "@noble/curves" "^1.8.1"
     "@noble/hashes" "^1.7.1"
@@ -5202,26 +5187,6 @@
     "@metamask/utils" "^11.1.0"
     bech32 "^2.0.0"
 
-"@metamask/keyring-controller@^21.0.0":
-  version "21.0.3"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.3.tgz#9d1108f31da69d4207e020c63cf450bf7f87e966"
-  integrity sha512-z/Y2ztBOy81o3J+m/dPKQ1utQjSWySwxOrex4BQI4HyoXkY99Enk3U+4GOlVIDH7fn0Z/XR38AEHwn5BPoCC7A==
-  dependencies:
-    "@ethereumjs/util" "^9.1.0"
-    "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/eth-hd-keyring" "^12.0.0"
-    "@metamask/eth-sig-util" "^8.2.0"
-    "@metamask/eth-simple-keyring" "^10.0.0"
-    "@metamask/keyring-api" "^17.4.0"
-    "@metamask/keyring-internal-api" "^6.0.1"
-    "@metamask/utils" "^11.2.0"
-    async-mutex "^0.5.0"
-    ethereumjs-wallet "^1.0.1"
-    immer "^9.0.6"
-    ulid "^2.3.0"
-
 "@metamask/keyring-controller@^21.0.1":
   version "21.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.1.tgz#19cf28006e20fb165553a349adc10a5cc1967141"
@@ -5640,31 +5605,16 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@file:./package-seedless.tgz":
-  version "0.0.1"
-  resolved "file:./package-seedless.tgz#94b5a6babb86d84e35a795902545668d05cdc630"
+"@metamask/seedless-onboarding-controller@https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/seedless-onboarding-controller.tgz":
+  version "0.0.0"
+  resolved "https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/seedless-onboarding-controller.tgz#c8fb57d471b0f07bf9b42e12c07f8992a56d82a2"
   dependencies:
+    "@metamask/auth-network-utils" "./auth-network-utils.tgz"
     "@metamask/base-controller" "^8.0.0"
     "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/keyring-controller" "^21.0.0"
-    "@metamask/toprf-secure-backup" "file:../../../Library/Caches/Yarn/v6/.tmp/cf2b3ab9814dbdb69995d9396542a2f7/toprf-secure-backup.tgz"
+    "@metamask/toprf-secure-backup" "./toprf-secure-backup.tgz"
     "@metamask/utils" "^11.2.0"
-    "@noble/hashes" "^1.4.0"
     async-mutex "^0.5.0"
-    loglevel "^1.8.1"
-
-"@metamask/seedless-onboarding-controller@file:./seedless-onboarding-controller.tgz":
-  version "0.0.1"
-  resolved "file:./seedless-onboarding-controller.tgz#1663636a0aee299b8532c9a50d442c96f502a26e"
-  dependencies:
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/keyring-controller" "^21.0.0"
-    "@metamask/toprf-secure-backup" "file:../../../Library/Caches/Yarn/v6/.tmp/bed4a21ccbd12946dee10cd7fb53148c/toprf-secure-backup.tgz"
-    "@metamask/utils" "^11.2.0"
-    "@noble/hashes" "^1.4.0"
-    async-mutex "^0.5.0"
-    loglevel "^1.8.1"
 
 "@metamask/selected-network-controller@^22.0.0":
   version "22.0.0"
@@ -5906,9 +5856,9 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.1.0"
 
-"@metamask/toprf-secure-backup@file:../../../Library/Caches/Yarn/v6/.tmp/bed4a21ccbd12946dee10cd7fb53148c/toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@file:../../../Library/Caches/Yarn/v6/.tmp/cf2b3ab9814dbdb69995d9396542a2f7/toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@file:./toprf-secure-backup.tgz":
+"@metamask/toprf-secure-backup@./toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/toprf-secure-backup.tgz":
   version "0.0.0"
-  resolved "file:./toprf-secure-backup.tgz#65be9bb22084abce031dabfa35195228ae7cc988"
+  resolved "https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/toprf-secure-backup.tgz#c39674559959c317cd3c1e8990e9afa4f0e9443a"
   dependencies:
     "@metamask/auth-network-utils" "^0.0.0"
     "@noble/ciphers" "^1.2.1"

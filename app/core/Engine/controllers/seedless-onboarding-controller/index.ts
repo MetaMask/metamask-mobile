@@ -11,7 +11,8 @@ export const TOPRFNetwork = Web3AuthNetwork.Devnet;
 
 const getDefaultSeedlessOnboardingControllerState = () : SeedlessOnboardingControllerState => ({
   nodeAuthTokens: undefined,
-  hasValidEncryptionKey: false,
+  vault: undefined,
+  isNewUser: false,
 });
 
 const encryptor = new Encryptor({

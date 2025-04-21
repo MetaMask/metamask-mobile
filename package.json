@@ -149,9 +149,9 @@
     "@metamask/keyring-controller/@ethereumjs/tx": "npm:@ethereumjs/tx@5.4.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "metro/image-size": "^1.2.1",
-    "@metamask/auth-network-utils": "file:./auth-network-utils.tgz",
-    "@metamask/toprf-secure-backup": "file:./toprf-secure-backup.tgz",
-    "@metamask/seedless-onboarding-controller": "file:./seedless-onboarding-controller.tgz"
+    "@metamask/auth-network-utils": "https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/auth-network-utils.tgz",
+    "@metamask/toprf-secure-backup": "https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/toprf-secure-backup.tgz",
+    "@metamask/seedless-onboarding-controller": "https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/seedless-onboarding-controller.tgz"
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
@@ -165,7 +165,7 @@
     "@metamask/app-metadata-controller": "^1.0.0",
     "@metamask/approval-controller": "^7.1.3",
     "@metamask/assets-controllers": "^55.0.1",
-    "@metamask/auth-network-utils": "./auth-network-utils.tgz",
+    "@metamask/auth-network-utils": "https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/auth-network-utils.tgz",
     "@metamask/base-controller": "^8.0.0",
     "@metamask/bitcoin-wallet-snap": "^0.9.0",
     "@metamask/bridge-controller": "^11.0.0",
@@ -217,7 +217,7 @@
     "@metamask/sdk-communication-layer": "0.29.0-wallet",
     "@metamask/selected-network-controller": "^22.0.0",
     "@metamask/signature-controller": "^27.1.0",
-    "@metamask/seedless-onboarding-controller": "file:./package-seedless.tgz",
+    "@metamask/seedless-onboarding-controller": "https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/seedless-onboarding-controller.tgz",
     "@metamask/slip44": "^4.1.0",
     "@metamask/smart-transactions-controller": "^16.2.0",
     "@metamask/snaps-controllers": "^11.1.0",
