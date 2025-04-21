@@ -7,7 +7,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
-        "accounts": {},
         "accountsByChainId": {
           "0x1": {},
         },
@@ -459,7 +458,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "TokenListController": {
         "preventPollingOnNetworkRestart": false,
-        "tokenList": {},
         "tokensChainsCache": {},
       },
       "TokenRatesController": {

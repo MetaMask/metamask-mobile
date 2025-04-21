@@ -800,7 +800,9 @@ export class Engine {
           'AccountsController:selectedAccountChange',
         ],
       }),
-      state: initialState.AccountTrackerController ?? { accounts: {} },
+      state: initialState.AccountTrackerController ?? {
+        accountsByChainId: {},
+      },
       getStakedBalanceForChain:
         assetsContractController.getStakedBalanceForChain.bind(
           assetsContractController,
@@ -856,7 +858,9 @@ export class Engine {
             const internalAccountCount = internalAccounts.length;
 
             const accountTrackerCount = Object.keys(
-              accountTrackerController.state.accounts || {},
+              accountTrackerController.state.accountsByChainId[
+                currentChainId
+              ] || {},
             ).length;
 
             captureException(

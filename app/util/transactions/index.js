@@ -385,7 +385,7 @@ export async function isSmartContractAddress(
   // If in contract map we don't need to cache it
   if (
     isMainnetByChainId(chainId) &&
-    Engine.context.TokenListController.state.tokenList[address]
+    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]?.data?.[address]
   ) {
     return Promise.resolve(true);
   }
