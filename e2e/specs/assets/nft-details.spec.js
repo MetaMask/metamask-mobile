@@ -51,6 +51,9 @@ describe(SmokeNetworkAbstractions('NFT Details page'), () => {
         await Assertions.checkIfVisible(ImportNFTView.addressWarningMessage);
         //await ImportNFTView.tapBackButton();
 
+        await ImportNFTView.pressNetworkDropdown();
+        await ImportNFTView.selectNetworkByNetworkName();
+
         await ImportNFTView.typeInNFTAddress(nftsAddress);
         await ImportNFTView.typeInNFTIdentifier('1');
 

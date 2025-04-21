@@ -16,6 +16,7 @@ import { fontStyles } from '../../../styles/common';
 import { Theme } from '@metamask/design-tokens';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
+import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportNFTView.selectors';
 
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
@@ -61,6 +62,7 @@ export const NetworkSelectorDropdown = ({
       style={styles.networkSelectorContainer}
       onPress={() => setOpenNetworkSelector(true)}
       onLongPress={() => setOpenNetworkSelector(true)}
+      testID={NFTImportScreenSelectorsIDs.NETWORK_SELECTOR_DROPDOWN}
     >
       <Text style={styles.networkSelectorText}>
         {selectedNetwork || strings('networks.select_network')}
