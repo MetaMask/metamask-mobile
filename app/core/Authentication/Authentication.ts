@@ -36,7 +36,6 @@ import { getSeedPhrase } from '../Vault';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
-import Oauth2LoginService  from '../Oauth2Login/Oauth2loginService';
 import { resetVaultBackup } from '../BackupVault/backupVault';
 
 /**
@@ -526,6 +525,7 @@ class AuthenticationService {
             // await KeyringController.addSRP(item, password);
           // }
         }
+        this.dispatchOauth2Reset();
       } else {
         throw new Error('No account data found');
       }
@@ -534,8 +534,6 @@ class AuthenticationService {
         message: 'rehydrateSeedPhrase',
       });
       throw error;
-    } finally {
-      this.dispatchOauth2Reset();
     }
   };
 }

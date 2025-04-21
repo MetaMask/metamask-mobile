@@ -93,7 +93,6 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
-import Oauth2loginService from '../../../core/Oauth2Login/Oauth2loginService';
 import { UserActionType } from '../../../actions/user';
 import { selectOauth2LoginSuccess } from '../../../selectors/oauthServices';
 
@@ -276,9 +275,7 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
-      const oauth2Login = Oauth2loginService.localState.loginSuccess;
-
-      if (oauth2Login) {
+      if (oauth2LoginSuccess) {
         await Authentication.rehydrateSeedPhrase(password, authType);
 
       } else {
