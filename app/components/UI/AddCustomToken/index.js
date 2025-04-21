@@ -43,6 +43,7 @@ import Banner, {
 import CLText from '../../../component-library/components/Texts/Text/Text';
 import Logger from '../../../util/Logger';
 import { NetworkSelectorDropdown } from './NetworkSelectorDropdown';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -225,6 +226,8 @@ class AddCustomToken extends PureComponent {
     const { address, symbol, decimals, name } = this.state;
     const { chainId } = this.props;
     const networkClientId = this.props.networkClientId;
+
+    trace({ name: TraceName.ImportTokens });
     await TokensController.addToken({
       address,
       symbol,
@@ -233,6 +236,7 @@ class AddCustomToken extends PureComponent {
       chainId,
       networkClientId,
     });
+    endTrace({ name: TraceName.ImportTokens });
 
     const analyticsParams = this.getTokenAddedAnalyticsParams();
 

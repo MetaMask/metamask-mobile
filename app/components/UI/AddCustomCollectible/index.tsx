@@ -18,6 +18,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import Logger from '../../../util/Logger';
 import { NetworkSelectorDropdown } from '../AddCustomToken/NetworkSelectorDropdown';
 import { Hex } from '@metamask/utils';
+import { TraceName, endTrace, trace } from '../../../util/trace';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -203,6 +204,12 @@ const AddCustomCollectible = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NftController } = Engine.context as any;
     NftController.addNft(address, tokenId, chainId);
+
+    trace({ name: TraceName.ImportNfts });
+
+    await NftController.addNft(address, tokenId);
+
+    endTrace({ name: TraceName.ImportNfts });
 
     const params = getAnalyticsParams();
     if (params) {
