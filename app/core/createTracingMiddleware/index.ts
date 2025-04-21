@@ -16,6 +16,10 @@ export const MESSAGE_TYPE = {
   SWITCH_ETHEREUM_CHAIN: 'wallet_switchEthereumChain',
   WATCH_ASSET: 'wallet_watchAsset',
   ETH_REQUEST_ACCOUNTS: 'eth_requestAccounts',
+  WALLET_CREATE_SESSION: 'wallet_createSession',
+  WALLET_INVOKE_METHOD: 'wallet_invokeMethod',
+  WALLET_GET_SESSION: 'wallet_getSession',
+  WALLET_REVOKE_SESSION: 'wallet_revokeSession',
 };
 
 const METHOD_TYPE_TO_TRACE_NAME: Record<string, TraceName> = {
