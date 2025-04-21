@@ -3795,5 +3795,15 @@
     "account_not_found": "Account not found",
     "account_not_found_description": "No existing wallet found for {{accountName}}. Want to create one now with this social login?",
     "create_new_wallet": "Yes, create a new wallet"
+  },
+  "error_sheet": {
+    "still_there_title": "Still there?",
+    "still_there_description": "Your login timed out due to inactivity. Try again when you’re ready.",
+    "unable_to_login_title": "Unable to connect",
+    "unable_to_login_description": "Your internet connection is unstable. Check your connection and try again.",
+    "something_went_wrong_title": "Something went wrong",
+    "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
+    "support_button": "MetaMask Support.",
+    "error_button": "Try again"
   }
 }

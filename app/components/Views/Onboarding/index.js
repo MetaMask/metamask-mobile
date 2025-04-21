@@ -58,7 +58,7 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
-
+import ErrorSheet from '../ErrorSheet';
 const createStyles = (colors) =>
   StyleSheet.create({
     scroll: {
@@ -99,8 +99,8 @@ const createStyles = (colors) =>
       paddingHorizontal: 20,
     },
     footer: {
-      marginTop: -20,
-      marginBottom: 20,
+      marginTop: -40,
+      marginBottom: 40,
     },
     login: {
       fontSize: 18,
@@ -240,6 +240,7 @@ class Onboarding extends PureComponent {
     createWallet: false,
     existingWallet: false,
     bottomSheetVisible: false,
+    errorSheetVisible: false,
   };
 
   seedwords = null;
@@ -514,13 +515,18 @@ class Onboarding extends PureComponent {
             )}
             {loading ? this.renderLoader() : this.renderContent()}
           </View>
-          {/* {existingUser && !loading && (
+
+          {existingUser && !loading && (
             <View style={styles.footer}>
-              <ButtonRN style={styles.login} onPress={this.onLogin}>
-                {strings('onboarding.unlock')}
-              </ButtonRN>
+              <Button
+                variant={ButtonVariants.Link}
+                onPress={this.onLogin}
+                label={strings('onboarding.unlock')}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+              />
             </View>
-          )} */}
+          )}
         </ScrollView>
 
         <FadeOutOverlay />
@@ -632,6 +638,14 @@ class Onboarding extends PureComponent {
             </View>
           </BottomSheet>
         )}
+
+        <ErrorSheet
+          open={this.state.errorSheetVisible}
+          onClose={() => this.setState({ errorSheetVisible: false })}
+          onNext={() => this.setState({ errorSheetVisible: false })}
+          errorTitle={strings('error_sheet.still_there_title')}
+          errorDescription={strings('error_sheet.still_there_description')}
+        />
       </View>
     );
   }

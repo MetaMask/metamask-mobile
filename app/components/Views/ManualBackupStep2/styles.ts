@@ -127,6 +127,11 @@ const createStyles = (colors: any) =>
     statusButton: {
       width: '100%',
     },
+    statusDescription: {
+      textAlign: 'left',
+      alignSelf: 'flex-start',
+      width: '100%',
+    },
   });
 
 export default createStyles;

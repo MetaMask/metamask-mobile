@@ -352,7 +352,11 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
                 ? strings('manual_backup_step_2.success-title')
                 : strings('manual_backup_step_2.error-title')}
             </Text>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
+              style={styles.statusDescription}
+            >
               {validateWords()
                 ? strings('manual_backup_step_2.success-description')
                 : strings('manual_backup_step_2.error-description')}
@@ -364,7 +368,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
                   ? strings('manual_backup_step_2.success-button')
                   : strings('manual_backup_step_2.error-button')
               }
-              widthType={ButtonWidthTypes.Full}
+              width={ButtonWidthTypes.Full}
               style={styles.statusButton}
               onPress={() => {
                 setShowStatusBottomSheet(false);
