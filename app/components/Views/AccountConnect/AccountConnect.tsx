@@ -211,6 +211,11 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { chainId } = useNetworkInfo(urlWithProtocol);
 
+  const {
+    hostname: hostnameFromUrlObj,
+    protocol: protocolFromUrlObj
+  } = getUrlObj(urlWithProtocol);
+
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>(() => {
     // Get all enabled network chain IDs from networkConfigurations
     const enabledChainIds = Object.values(networkConfigurations).map(
@@ -252,7 +257,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     try {
       hasPermittedChains = Engine.context.PermissionController.hasCaveat(
-        getUrlObj(urlWithProtocol).hostname,
+        hostnameFromUrlObj,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
       );
@@ -262,7 +267,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     if (hasPermittedChains) {
       Engine.context.PermissionController.updateCaveat(
-        getUrlObj(urlWithProtocol).hostname,
+        hostnameFromUrlObj,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
         chainsToPermit,
@@ -270,7 +275,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     } else {
       Engine.context.PermissionController.grantPermissionsIncremental({
         subject: {
-          origin: getUrlObj(urlWithProtocol).hostname,
+          origin: hostnameFromUrlObj,
         },
         approvedPermissions: {
           [PermissionKeys.permittedChains]: {
@@ -326,7 +331,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const secureIcon = useMemo(
     () =>
-      getUrlObj(urlWithProtocol).protocol === 'https:'
+      protocolFromUrlObj === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
     [urlWithProtocol],
@@ -426,7 +431,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const triggerDappViewedEvent = useCallback(
     (numberOfConnectedAccounts: number) =>
       // Track dapp viewed event
-      trackDappViewedEvent({ hostname: getUrlObj(urlWithProtocol).hostname, numberOfConnectedAccounts }),
+      trackDappViewedEvent({ hostname: hostnameFromUrlObj, numberOfConnectedAccounts }),
     [urlWithProtocol],
   );
 
@@ -741,7 +746,7 @@ const AccountConnect = (props: AccountConnectProps) => {
           setScreen(AccountConnectScreens.SingleConnect);
         }}
         connection={sdkConnection}
-        hostname={getUrlObj(urlWithProtocol).hostname}
+        hostname={hostnameFromUrlObj}
         onPrimaryActionButtonPress={() => {
           setConfirmedAddresses(selectedAddresses);
           setScreen(AccountConnectScreens.SingleConnect);
@@ -769,7 +774,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         isLoading={isLoading}
         onUserAction={setUserIntent}
         urlWithProtocol={urlWithProtocol}
-        hostname={getUrlObj(urlWithProtocol).hostname}
+        hostname={hostnameFromUrlObj}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
         onNetworksSelected={handleNetworksSelected}
         initialChainId={chainId}
