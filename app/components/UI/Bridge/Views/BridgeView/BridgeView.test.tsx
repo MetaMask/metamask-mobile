@@ -105,12 +105,12 @@ describe('BridgeView', () => {
       },
       { state: initialState },
     );
-    
+
     // Wait for any async operations to complete
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
-    
+
     expect(toJSON()).toMatchSnapshot();
   });
 
