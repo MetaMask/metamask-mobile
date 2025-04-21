@@ -484,33 +484,26 @@ class AuthenticationService {
     password: string,
   ): Promise<void> => {
     const { SeedlessOnboardingController } = Engine.context;
-    const { authConnectionId, groupedAuthConnectionId, userId } = Oauth2LoginService.getVerifierDetails();
-    if (!authConnectionId || !groupedAuthConnectionId || !userId) {
-      this.dispatchOauth2Reset();
-      throw new Error('Verifier details not found');
-    }
     // rollback on fail ( reset wallet )
     await this.createWalletVaultAndKeychain(password);
-    const seedPhrase =  await getSeedPhrase(password);
+    try {
+      const seedPhrase =  await getSeedPhrase(password);
 
-    Logger.log('SeedlessOnboardingController state', SeedlessOnboardingController.state);
+      Logger.log('SeedlessOnboardingController state', SeedlessOnboardingController.state);
 
-    await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase({
-      password, 
-      seedPhrase,
-      authConnectionId,
-      groupedAuthConnectionId,
-      userId 
-    })
-      .catch(async (error) => {
+      await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
+        password,
+        seedPhrase,
+      );
+    } catch(error) {
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
         });
         await resetVaultBackup();
         throw error;
-      }).finally(() => {
-        this.dispatchOauth2Reset();
-      });
+    } finally {
+      this.dispatchOauth2Reset();
+    }
 
     Logger.log('SeedlessOnboardingController state', SeedlessOnboardingController.state);
   };
@@ -519,38 +512,33 @@ class AuthenticationService {
     password: string,
     authData: AuthData,
   ): Promise<void> => {
-    const { SeedlessOnboardingController } = Engine.context;
-    const { authConnectionId, groupedAuthConnectionId, userId } = Oauth2LoginService.getVerifierDetails();
-    if (!authConnectionId || !groupedAuthConnectionId || !userId) {
-      this.dispatchOauth2Reset();
-      throw new Error('Verifier details not found');
-    }
+    try {
+      const { SeedlessOnboardingController } = Engine.context;
 
-    const result = await SeedlessOnboardingController.fetchAllSeedPhrases({
-      authConnectionId,
-      groupedAuthConnectionId,
-      userId,
-      password,
-    });
+      const result = await SeedlessOnboardingController.fetchAllSeedPhrases(password);
 
-    if (result !== null && result.length > 0) {
-      const seedPhrase = uint8ArrayToMnemonic(result.at(-1) ?? new Uint8Array(), wordlist);
-      await this.newWalletAndRestore(password, authData, seedPhrase, false);
-      // add in more srps
-      if (result.length > 1) {
-        for (const item of result.slice(0, -1)) {
-          // vault add new seedphrase
-          // const { KeyringController } = Engine.context;
-          // await KeyringController.addSRP(item, password);
+      if (result !== null && result.length > 0) {
+        const seedPhrase = uint8ArrayToMnemonic(result.at(-1) ?? new Uint8Array(), wordlist);
+        await this.newWalletAndRestore(password, authData, seedPhrase, false);
+        // add in more srps
+        if (result.length > 1) {
+          // for (const item of result.slice(0, -1)) {
+            // vault add new seedphrase
+            // const { KeyringController } = Engine.context;
+            // await KeyringController.addSRP(item, password);
+          // }
         }
+      } else {
+        throw new Error('No account data found');
       }
-      this.dispatchPasswordSet();
-    } else {
+    } catch(error) {
+      Logger.error(error as Error, {
+        message: 'rehydrateSeedPhrase',
+      });
+      throw error;
+    } finally {
       this.dispatchOauth2Reset();
-      throw new Error('No account data found');
     }
-    this.dispatchOauth2Reset();
-    // throw error if no secret data
   };
 }
 

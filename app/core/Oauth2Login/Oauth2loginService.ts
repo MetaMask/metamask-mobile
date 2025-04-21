@@ -135,7 +135,10 @@ export class Oauth2LoginService {
             Logger.log('handleCodeFlow: data', data);
             if (data.success) {
                 const finalToken = idToken ?? data.id_token;
-                const jwtPayload = jwtDecode(finalToken) as JwtPayload & {email: string};
+                const tokenPayload = jwtDecode(finalToken) as JwtPayload & {email: string};
+                const accountName = tokenPayload.email ?? '';
+
+                const jwtPayload = jwtDecode(data.jwt_tokens.metamask) as JwtPayload & {email: string};
                 const userId = jwtPayload.sub ?? '';
                 this.updateLocalState({
                     userId,
@@ -148,9 +151,6 @@ export class Oauth2LoginService {
                     userId,
                 });
                 Logger.log('handleCodeFlow: result', result);
-
-                const accountName = jwtPayload.email ?? '';
-
                 return {type: 'success', existingUser: !result.isNewUser, accountName};
             }
             throw new Error('Failed to authenticate OAuth user : ' + data.message);
