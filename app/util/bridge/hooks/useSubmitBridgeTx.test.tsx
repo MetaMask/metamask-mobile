@@ -9,7 +9,6 @@ import {
   DummyQuotesWithApproval,
 } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
-import Engine from '../../../core/Engine';
 import { QuoteMetadata } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
@@ -20,9 +19,6 @@ jest.mock('../../../core/Engine', () => {
   mockSubmitTx = jest.fn<Promise<TransactionMeta>, [QuoteResponse & QuoteMetadata, boolean]>();
   return {
     context: {
-      TokensController: {
-        addToken: jest.fn(),
-      },
       BridgeStatusController: {
         startPollingForBridgeTxStatus: jest.fn(),
         submitTx: mockSubmitTx,
@@ -184,13 +180,6 @@ describe('useSubmitBridgeTx', () => {
     expect(mockSubmitTx).toHaveBeenCalledWith(
       mockQuoteResponse,
       expect.any(Boolean)
-    );
-    expect(Engine.context.TokensController.addToken).toHaveBeenCalledWith(
-      expect.objectContaining({
-        address: mockQuoteResponse.quote.srcAsset.address,
-        symbol: mockQuoteResponse.quote.srcAsset.symbol,
-        decimals: mockQuoteResponse.quote.srcAsset.decimals,
-      }),
     );
     expect(txResult).toEqual({
       chainId: '0x1',
