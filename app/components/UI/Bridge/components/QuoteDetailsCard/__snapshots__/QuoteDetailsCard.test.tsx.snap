@@ -412,15 +412,15 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
-                              Ethereum
+                              Ethereum Mainnet
                             </Text>
                           </View>
                           <SvgMock
@@ -496,15 +496,15 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
-                              Linea
+                              Optimism
                             </Text>
                           </View>
                         </View>
@@ -595,11 +595,11 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                                 testID="label"
@@ -639,16 +639,16 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                                 testID="label"
                               >
-                                $0.01
+                                0.01
                               </Text>
                             </View>
                           </View>
@@ -699,11 +699,11 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                                 testID="label"
@@ -743,11 +743,11 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                                 testID="label"
@@ -811,11 +811,11 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                   testID="label"
@@ -888,16 +888,16 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                   testID="label"
                                 >
-                                  1 ETH = 0.0 USDC
+                                  1 ETH = 24.4 USDC
                                 </Text>
                               </View>
                             </View>
@@ -960,11 +960,11 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                   testID="label"
@@ -1004,11 +1004,11 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                   testID="label"
@@ -1079,11 +1079,11 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 14,
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                       }
                                     }
                                   >
@@ -1141,11 +1141,11 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                   testID="label"
@@ -1582,15 +1582,15 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
-                              Ethereum
+                              Ethereum Mainnet
                             </Text>
                           </View>
                           <SvgMock
@@ -1666,15 +1666,15 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
-                              Linea
+                              Optimism
                             </Text>
                           </View>
                         </View>
@@ -1765,11 +1765,11 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                                 testID="label"
@@ -1809,16 +1809,16 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                                 testID="label"
                               >
-                                $0.01
+                                0.01
                               </Text>
                             </View>
                           </View>
@@ -1869,11 +1869,11 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                                 testID="label"
@@ -1913,11 +1913,11 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                                 testID="label"
@@ -1981,11 +1981,11 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                   testID="label"
@@ -2058,16 +2058,16 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                   testID="label"
                                 >
-                                  1 ETH = 0.0 USDC
+                                  1 ETH = 24.4 USDC
                                 </Text>
                               </View>
                             </View>

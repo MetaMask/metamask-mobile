@@ -19,7 +19,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -60,7 +60,7 @@ const EarnInputView = () => {
     selectConfirmationRedesignFlags,
   );
   const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_transactions;
+    confirmationRedesignFlags?.staking_confirmations;
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>

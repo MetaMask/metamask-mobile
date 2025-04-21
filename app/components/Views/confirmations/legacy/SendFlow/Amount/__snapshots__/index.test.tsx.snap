@@ -363,7 +363,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontWeight": "400",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
@@ -374,7 +374,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "paddingVertical": 2,
@@ -433,7 +433,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#686e7d",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "textTransform": "uppercase",
@@ -470,7 +470,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "textAlign": "center",
@@ -516,7 +516,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "textTransform": "uppercase",
@@ -573,7 +573,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "lineHeight": 16,
@@ -653,7 +653,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -1079,7 +1079,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontWeight": "400",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
@@ -1090,7 +1090,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "paddingVertical": 2,
@@ -1149,7 +1149,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#686e7d",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "textTransform": "uppercase",
@@ -1186,7 +1186,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "textAlign": "center",
@@ -1232,7 +1232,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "textTransform": "uppercase",
@@ -1289,7 +1289,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "lineHeight": 16,
@@ -1369,7 +1369,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -1795,7 +1795,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontWeight": "400",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
@@ -1806,7 +1806,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "paddingVertical": 2,
@@ -1865,7 +1865,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#686e7d",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "textTransform": "uppercase",
@@ -1898,7 +1898,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                       {
                                         "alignItems": "center",
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "justifyContent": "center",
@@ -1919,7 +1919,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "textAlign": "center",
@@ -1965,7 +1965,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "textTransform": "uppercase",
@@ -2022,7 +2022,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "lineHeight": 16,
@@ -2102,7 +2102,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -2528,7 +2528,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontWeight": "400",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
@@ -2539,7 +2539,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "paddingVertical": 2,
@@ -2598,7 +2598,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#686e7d",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "textTransform": "uppercase",
@@ -2631,7 +2631,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                       {
                                         "alignItems": "center",
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "justifyContent": "center",
@@ -2652,7 +2652,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "textAlign": "center",
@@ -2698,7 +2698,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "textTransform": "uppercase",
@@ -2755,7 +2755,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "lineHeight": 16,
@@ -2835,7 +2835,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -3261,7 +3261,7 @@ exports[`Amount should display correct balance 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontWeight": "400",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
@@ -3272,7 +3272,7 @@ exports[`Amount should display correct balance 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "paddingVertical": 2,
@@ -3331,7 +3331,7 @@ exports[`Amount should display correct balance 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#686e7d",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "textTransform": "uppercase",
@@ -3368,7 +3368,7 @@ exports[`Amount should display correct balance 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "textAlign": "center",
@@ -3413,7 +3413,7 @@ exports[`Amount should display correct balance 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "textTransform": "uppercase",
@@ -3470,7 +3470,7 @@ exports[`Amount should display correct balance 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "lineHeight": 16,
@@ -3550,7 +3550,7 @@ exports[`Amount should display correct balance 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -3976,7 +3976,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontWeight": "400",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
@@ -3987,7 +3987,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "paddingVertical": 2,
@@ -4046,7 +4046,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#686e7d",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "textTransform": "uppercase",
@@ -4083,7 +4083,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "textAlign": "center",
@@ -4128,7 +4128,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "textTransform": "uppercase",
@@ -4185,7 +4185,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "lineHeight": 16,
@@ -4265,7 +4265,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                   },
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -4691,7 +4691,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontWeight": "400",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
@@ -4702,7 +4702,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "paddingVertical": 2,
@@ -4802,7 +4802,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -4855,7 +4855,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 32,
                                       "fontWeight": "400",
                                       "textAlign": "center",
@@ -4866,7 +4866,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "marginTop": 8,
@@ -4947,7 +4947,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -5373,7 +5373,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontWeight": "400",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
@@ -5384,7 +5384,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "paddingVertical": 2,
@@ -5443,7 +5443,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#686e7d",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "textTransform": "uppercase",
@@ -5480,7 +5480,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "textAlign": "center",
@@ -5526,7 +5526,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "textTransform": "uppercase",
@@ -5583,7 +5583,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "lineHeight": 16,
@@ -5660,7 +5660,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                   null,
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -6084,7 +6084,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontWeight": "400",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
@@ -6095,7 +6095,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "paddingVertical": 2,
@@ -6154,7 +6154,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#686e7d",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "textTransform": "uppercase",
@@ -6191,7 +6191,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "textAlign": "center",
@@ -6237,7 +6237,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "textTransform": "uppercase",
@@ -6294,7 +6294,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "lineHeight": 16,
@@ -6371,7 +6371,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                   null,
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -6870,7 +6870,7 @@ exports[`Amount should render correctly 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontWeight": "400",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
@@ -6881,7 +6881,7 @@ exports[`Amount should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "paddingVertical": 2,
@@ -6940,7 +6940,7 @@ exports[`Amount should render correctly 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#686e7d",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "textTransform": "uppercase",
@@ -6977,7 +6977,7 @@ exports[`Amount should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "textAlign": "center",
@@ -6999,7 +6999,7 @@ exports[`Amount should render correctly 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "lineHeight": 16,
@@ -7079,7 +7079,7 @@ exports[`Amount should render correctly 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -7580,7 +7580,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontWeight": "400",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
@@ -7591,7 +7591,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "paddingVertical": 2,
@@ -7650,7 +7650,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#686e7d",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "textTransform": "uppercase",
@@ -7687,7 +7687,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "textAlign": "center",
@@ -7709,7 +7709,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "lineHeight": 16,
@@ -7789,7 +7789,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                   },
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -8215,7 +8215,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontWeight": "400",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
@@ -8226,7 +8226,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "paddingVertical": 2,
@@ -8285,7 +8285,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#686e7d",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "textTransform": "uppercase",
@@ -8322,7 +8322,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 44,
                                         "fontWeight": "300",
                                         "textAlign": "center",
@@ -8368,7 +8368,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "textTransform": "uppercase",
@@ -8425,7 +8425,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "lineHeight": 16,
@@ -8464,7 +8464,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "lineHeight": 16,
@@ -8543,7 +8543,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                   null,
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",

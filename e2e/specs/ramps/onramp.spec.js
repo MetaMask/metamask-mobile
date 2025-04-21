@@ -11,7 +11,7 @@ import {
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeRamps } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
@@ -22,7 +22,7 @@ import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
 import SelectCurrencyView from '../../pages/Ramps/SelectCurrencyView';
 const fixtureServer = new FixtureServer();
 
-describe(SmokeRamps('Buy Crypto'), () => {
+describe(SmokeTrade('Buy Crypto'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
@@ -43,7 +43,7 @@ describe(SmokeRamps('Buy Crypto'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should select Region and Payment Method to see the Build Buy Quote screen', async () => {
+  it('should select Region to see the Build Buy Quote screen', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
@@ -52,8 +52,6 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await SelectRegionView.tapRegionOption('United States of America');
     await SelectRegionView.tapRegionOption('California');
     await SelectRegionView.tapContinueButton();
-    await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
-    await SelectPaymentMethodView.tapContinueButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
     await BuildQuoteView.tapCancelButton();
@@ -68,8 +66,18 @@ describe(SmokeRamps('Buy Crypto'), () => {
   });
 
   it('should change parameters and select a quote', async () => {
-    const paymentMethod = device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
-
+    const platform = device.getPlatform();
+    
+    let paymentMethod;
+    if (platform === 'ios') {
+      const applePayVisible = await Assertions.checkIfTextIsDisplayed('Apple Pay');
+      paymentMethod = applePayVisible ? 'Apple Pay' : 'PayPal';
+    } else if (platform === 'android') {
+      const googlePayVisible = await Assertions.checkIfTextIsDisplayed('Google Pay');
+      paymentMethod = googlePayVisible ? 'Google Pay' : 'PayPal';
+    } else {
+      paymentMethod = 'PayPal';
+    }
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
     await BuildQuoteView.tapCurrencySelector();
@@ -78,14 +86,14 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await TokenSelectBottomSheet.tapTokenByName('DAI');
     await BuildQuoteView.tapRegionSelector();
     await SelectRegionView.tapRegionOption('France');
-    await BuildQuoteView.tapPaymentMethodDropdown('Debit or Credit');
-    await SelectPaymentMethodView.tapPaymentMethodOption(paymentMethod);
+    await BuildQuoteView.tapPaymentMethodDropdown(paymentMethod);
+    await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
     await Assertions.checkIfTextIsDisplayed('€0');
     await Assertions.checkIfTextIsNotDisplayed('$0');
-    await Assertions.checkIfTextIsDisplayed('Dai');
+    await Assertions.checkIfTextIsDisplayed('Dai Stablecoin');
     await Assertions.checkIfTextIsNotDisplayed('Ethereum');
-    await Assertions.checkIfTextIsNotDisplayed('Debit or Credit');
-    await Assertions.checkIfTextIsDisplayed(paymentMethod);
+    await Assertions.checkIfTextIsNotDisplayed(paymentMethod);
+    await Assertions.checkIfTextIsDisplayed('Debit or Credit');
     await Assertions.checkIfTextIsNotDisplayed('🇺🇸');
     await Assertions.checkIfTextIsDisplayed('🇫🇷');
     await BuildQuoteView.enterAmount('100');
@@ -94,5 +102,4 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await QuotesView.closeQuotesSection();
     await BuildQuoteView.tapCancelButton();
   });
-
 });

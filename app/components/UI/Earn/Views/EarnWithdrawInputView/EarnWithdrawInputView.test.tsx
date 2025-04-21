@@ -1,17 +1,18 @@
-import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import EarnWithdrawInputView from './EarnWithdrawInputView';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import BN4 from 'bnjs4';
+import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
+import { ConfirmationRedesignRemoteFlags, selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_MAINNET_ASSET,
 } from '../../../Stake/__mocks__/mockData';
+import EarnWithdrawInputView from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
-import BN4 from 'bnjs4';
 
 jest.mock('../../../../../selectors/multichain', () => ({
   selectAccountTokensAcrossChains: jest.fn(() => ({
@@ -129,15 +130,17 @@ jest.mock('../../../Stake/hooks/usePoolStakedUnstake', () => ({
   }),
 }));
 
-jest.mock('../../../../../selectors/featureFlagController', () => ({
-  selectConfirmationRedesignFlags: jest.fn(() => ({
-    staking_transactions: false,
-  })),
-}));
+jest.mock('../../../../../selectors/featureFlagController/confirmations');
 
 describe('UnstakeInputView', () => {
+  const selectConfirmationRedesignFlagsMock = jest.mocked(selectConfirmationRedesignFlags)
+
   beforeEach(() => {
     jest.useFakeTimers();
+
+    selectConfirmationRedesignFlagsMock.mockReturnValue({
+      staking_confirmations: false,
+    } as unknown as ConfirmationRedesignRemoteFlags) ;
   });
 
   it('render matches snapshot', () => {
@@ -199,7 +202,7 @@ describe('UnstakeInputView', () => {
     });
   });
 
-  describe('when staking_transactions feature flag is enabled', () => {
+  describe('when staking_confirmations feature flag is enabled', () => {
     let originalMock: jest.Mock;
     let mockAttemptUnstakeTransaction: jest.Mock;
 
@@ -211,7 +214,7 @@ describe('UnstakeInputView', () => {
       jest.requireMock(
         '../../../../../selectors/featureFlagController',
       ).selectConfirmationRedesignFlags = jest.fn(() => ({
-        staking_transactions: true,
+        staking_confirmations: true,
       }));
 
       mockAttemptUnstakeTransaction = jest.fn().mockResolvedValue(undefined);
@@ -219,6 +222,10 @@ describe('UnstakeInputView', () => {
         () => ({
           attemptUnstakeTransaction: mockAttemptUnstakeTransaction,
         });
+
+      selectConfirmationRedesignFlagsMock.mockReturnValue({
+        staking_confirmations: true,
+      } as unknown as ConfirmationRedesignRemoteFlags) ;
     });
 
     afterEach(() => {

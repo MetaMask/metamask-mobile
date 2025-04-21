@@ -19,16 +19,18 @@ const availableFeatures = new Set([
   'beta',
   'keyring-snaps',
   'multi-srp',
+  'bitcoin',
 ]);
 
-const mainFeatureSet = new Set(['preinstalled-snaps']);
-const betaFeatureSet = new Set(['beta', 'preinstalled-snaps', 'keyring-snaps']);
+const mainFeatureSet = new Set(['preinstalled-snaps', 'multi-srp']);
+const betaFeatureSet = new Set(['beta', 'preinstalled-snaps', 'keyring-snaps', 'multi-srp']);
 const flaskFeatureSet = new Set([
   'flask',
   'preinstalled-snaps',
   'external-snaps',
   'keyring-snaps',
   'multi-srp',
+  'bitcoin',
 ]);
 
 /**

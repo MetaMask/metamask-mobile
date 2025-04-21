@@ -1,8 +1,9 @@
+import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
 import {
   performSignIn,
   performSignOut,
-  disableProfileSyncing,
-  enableProfileSyncing,
+  setIsBackupAndSyncFeatureEnabled,
+  syncInternalAccountsWithUserStorage,
 } from '.';
 import Engine from '../../core/Engine';
 
@@ -14,8 +15,8 @@ jest.mock('../../core/Engine', () => ({
       performSignOut: jest.fn(),
     },
     UserStorageController: {
-      enableProfileSyncing: jest.fn(),
-      disableProfileSyncing: jest.fn(),
+      setIsBackupAndSyncFeatureEnabled: jest.fn(),
+      syncInternalAccountsWithUserStorage: jest.fn(),
     },
   },
 }));
@@ -50,28 +51,50 @@ describe('Identity actions', () => {
     expect(result).toBeUndefined();
   });
 
-  it('enables profile syncing successfully', async () => {
+  it('enables backup and sync features successfuly', async () => {
     (
-      Engine.context.UserStorageController.enableProfileSyncing as jest.Mock
+      Engine.context.UserStorageController
+        .setIsBackupAndSyncFeatureEnabled as jest.Mock
     ).mockResolvedValue(undefined);
 
-    const result = await enableProfileSyncing();
+    const result = await setIsBackupAndSyncFeatureEnabled(
+      BACKUPANDSYNC_FEATURES.main,
+      true,
+    );
 
     expect(
-      Engine.context.UserStorageController.enableProfileSyncing,
-    ).toHaveBeenCalled();
+      Engine.context.UserStorageController.setIsBackupAndSyncFeatureEnabled,
+    ).toHaveBeenCalledWith(BACKUPANDSYNC_FEATURES.main, true);
     expect(result).toBeUndefined();
   });
 
-  it('disables profile syncing successfully', async () => {
+  it('disables backup and sync features successfuly', async () => {
     (
-      Engine.context.UserStorageController.disableProfileSyncing as jest.Mock
+      Engine.context.UserStorageController
+        .setIsBackupAndSyncFeatureEnabled as jest.Mock
     ).mockResolvedValue(undefined);
 
-    const result = await disableProfileSyncing();
+    const result = await setIsBackupAndSyncFeatureEnabled(
+      BACKUPANDSYNC_FEATURES.main,
+      false,
+    );
 
     expect(
-      Engine.context.UserStorageController.disableProfileSyncing,
+      Engine.context.UserStorageController.setIsBackupAndSyncFeatureEnabled,
+    ).toHaveBeenCalledWith(BACKUPANDSYNC_FEATURES.main, false);
+    expect(result).toBeUndefined();
+  });
+
+  it('syncs internal accounts with user storage', async () => {
+    (
+      Engine.context.UserStorageController
+        .syncInternalAccountsWithUserStorage as jest.Mock
+    ).mockResolvedValue(undefined);
+
+    const result = await syncInternalAccountsWithUserStorage();
+
+    expect(
+      Engine.context.UserStorageController.syncInternalAccountsWithUserStorage,
     ).toHaveBeenCalled();
     expect(result).toBeUndefined();
   });

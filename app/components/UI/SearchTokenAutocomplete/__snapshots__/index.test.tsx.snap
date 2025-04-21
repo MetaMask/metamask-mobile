@@ -315,6 +315,110 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                       >
                         <View>
                           <View>
+                            <TouchableOpacity
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "borderColor": "#b7bbc8",
+                                  "borderRadius": 2,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "gap": 10,
+                                  "justifyContent": "space-between",
+                                  "marginHorizontal": 16,
+                                  "marginTop": 16,
+                                }
+                              }
+                              testID="filter-controls-button"
+                            >
+                              <TouchableOpacity
+                                disabled={false}
+                                style={
+                                  {
+                                    "padding": 16,
+                                  }
+                                }
+                              >
+                                <Text
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                    }
+                                  }
+                                >
+                                  Ethereum Main Network
+                                </Text>
+                              </TouchableOpacity>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "paddingRight": 16,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "height": 24,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "width": 24,
+                                    }
+                                  }
+                                  testID="network-avatar-picker"
+                                >
+                                  <Image
+                                    onError={[Function]}
+                                    resizeMode="contain"
+                                    source={1}
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    testID="network-avatar-image"
+                                  />
+                                </View>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={false}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "borderRadius": 8,
+                                      "height": 24,
+                                      "justifyContent": "center",
+                                      "opacity": 1,
+                                      "width": 24,
+                                    }
+                                  }
+                                  testID="button-icon-test-id"
+                                >
+                                  <SvgMock
+                                    color="#121314"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
+                                </TouchableOpacity>
+                              </View>
+                            </TouchableOpacity>
                             <View
                               style={
                                 {
@@ -384,7 +488,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontWeight": "400",
                                         },
                                         {
@@ -422,6 +526,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                         "width": 24,
                                       }
                                     }
+                                    testID="clear-search-bar"
                                   >
                                     <SvgMock
                                       color="#121314"
@@ -484,11 +589,11 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                             style={
                               {
                                 "color": "#ffffff",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 14,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                               }
                             }
                           >

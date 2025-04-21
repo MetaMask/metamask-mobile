@@ -145,7 +145,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                 [
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 30,
                     "fontWeight": "400",
                     "marginVertical": 2,
@@ -216,11 +216,11 @@ exports[`CollectibleModal should render correctly 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
@@ -301,7 +301,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 30,
                       "fontWeight": "400",
                       "marginVertical": 2,
@@ -309,7 +309,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontWeight": "600",
                     },
                     undefined,
@@ -350,7 +350,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 30,
                       "fontWeight": "400",
                       "marginVertical": 2,
@@ -445,7 +445,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
@@ -527,7 +527,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 30,
                       "fontWeight": "400",
                       "marginVertical": 2,
@@ -535,7 +535,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontWeight": "600",
                     },
                     undefined,
@@ -582,7 +582,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 30,
                       "fontWeight": "400",
                       "marginVertical": 2,

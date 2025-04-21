@@ -2,12 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { SDK } from '../sdk';
 
 import Logger from '../../../../util/Logger';
-import { Network } from '../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 
 function useRampNetworksDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error>();
-  const [networksDetails, setNetworksDetails] = useState<Network[]>([]);
+  const [networksDetails, setNetworksDetails] = useState<
+    Awaited<ReturnType<(typeof SDK)['getNetworkDetails']>>
+  >([]);
   const getNetworksDetail = useCallback(async () => {
     try {
       setError(undefined);

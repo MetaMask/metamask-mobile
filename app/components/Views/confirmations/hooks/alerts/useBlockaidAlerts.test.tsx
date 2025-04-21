@@ -1,13 +1,14 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { Reason, SecurityAlertResponse } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
-import { RowAlertKey } from '../../components/UI/InfoRow/AlertRow/constants';
+import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { useMetrics } from '../../../../hooks/useMetrics';
-import { useSecurityAlertResponse } from '../useSecurityAlertResponse';
-import { useSignatureRequest } from '../useSignatureRequest';
+import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';
+import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
 import useBlockaidAlerts from './useBlockaidAlerts';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('../../../../../util/confirmation/signatureUtils', () => ({
   getAnalyticsParams: jest.fn(),
@@ -15,15 +16,15 @@ jest.mock('../../../../../util/confirmation/signatureUtils', () => ({
 
 jest.mock('../../../../hooks/useMetrics');
 
-jest.mock('../useSecurityAlertResponse', () => ({
+jest.mock('./useSecurityAlertResponse', () => ({
   useSecurityAlertResponse: jest.fn(),
 }));
 
-jest.mock('../useSignatureRequest', () => ({
+jest.mock('../signatures/useSignatureRequest', () => ({
   useSignatureRequest: jest.fn(),
 }));
 
-jest.mock('../../components/Confirm/BlockaidAlertContent/BlockaidAlertContent', () => 'BlockaidAlertContent');
+jest.mock('../../components/blockaid-alert-content/blockaid-alert-content', () => 'BlockaidAlertContent');
 
 describe('useBlockaidAlerts', () => {
   const mockSignatureRequest = {
@@ -83,26 +84,47 @@ describe('useBlockaidAlerts', () => {
     expect(result.current).toEqual([]);
   });
 
-  it.each`
-    resultType                    | expectedSeverity     | description
-    ${BlockaidResultType.Malicious} | ${Severity.Danger}    | ${'Malicious result type'}
-    ${BlockaidResultType.Warning}   | ${Severity.Warning}   | ${'Warning result type'}
-    ${'unknown'}                    | ${Severity.Info}      | ${'default result type'}
-  `('returns an alert when there is a valid security alert response with $description', ({ resultType, expectedSeverity }) => {
-    (useSecurityAlertResponse as jest.Mock).mockReturnValue({
-      securityAlertResponse: { ...mockSecurityAlertResponse, result_type: resultType },
-    });
+  const EXPECTED_MESSAGE_BLOCKAID_ALERT = 'If you confirm this request, you could lose your assets. We recommend that you cancel this request.';
+  const testCases = [
+    {
+      resultType: BlockaidResultType.Malicious,
+      expectedSeverity: Severity.Danger,
+      expectedMessage: EXPECTED_MESSAGE_BLOCKAID_ALERT,
+      description: 'Malicious result type',
+    },
+    {
+      resultType: BlockaidResultType.Warning,
+      expectedSeverity: Severity.Warning,
+      expectedMessage: EXPECTED_MESSAGE_BLOCKAID_ALERT,
+      description: 'Warning result type',
+    },
+    {
+      resultType: 'unknown',
+      expectedSeverity: Severity.Info,
+      expectedMessage: EXPECTED_MESSAGE_BLOCKAID_ALERT,
+      description: 'default result type',
+    },
+  ];
 
-    const { result } = renderHook(() => useBlockaidAlerts());
+  it.each(testCases)(
+    'returns an alert when there is a valid security alert response with $description',
+    ({ resultType, expectedSeverity, expectedMessage }) => {
+      (useSecurityAlertResponse as jest.Mock).mockReturnValue({
+        securityAlertResponse: { ...mockSecurityAlertResponse, result_type: resultType },
+      });
 
-    expect(result.current).toHaveLength(1);
-    expect(result.current[0]).toEqual({
-      key: RowAlertKey.Blockaid,
-      content: expect.any(Object),
-      title: 'This is a deceptive request',
-      severity: expectedSeverity,
-    });
-  });
+      const { result } = renderHook(() => useBlockaidAlerts());
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0]).toEqual({
+        key: RowAlertKey.Blockaid,
+        content: expect.any(Object),
+        title: 'This is a deceptive request',
+        message: expectedMessage,
+        severity: expectedSeverity,
+      });
+    },
+  );
 
   it('calls onContactUsClicked when the report link is clicked', () => {
     const { result } = renderHook(() => useBlockaidAlerts());
@@ -120,5 +142,30 @@ describe('useBlockaidAlerts', () => {
       saveDataRecording: true,
       sensitiveProperties: {},
     });
+  });
+
+  it.each`
+  reason                          | expectedMessageKey
+  ${Reason.rawSignatureFarming}   | ${'alert_system.confirm_modal.blockaid.message'}
+  ${Reason.approvalFarming}       | ${'alert_system.confirm_modal.blockaid.message1'}
+  ${Reason.permitFarming}         | ${'alert_system.confirm_modal.blockaid.message1'}
+  ${Reason.transferFarming}       | ${'alert_system.confirm_modal.blockaid.message2'}
+  ${Reason.transferFromFarming}   | ${'alert_system.confirm_modal.blockaid.message2'}
+  ${Reason.rawNativeTokenTransfer}| ${'alert_system.confirm_modal.blockaid.message2'}
+  ${Reason.seaportFarming}        | ${'alert_system.confirm_modal.blockaid.message3'}
+  ${Reason.blurFarming}           | ${'alert_system.confirm_modal.blockaid.message4'}
+  ${Reason.maliciousDomain}       | ${'alert_system.confirm_modal.blockaid.message5'}
+  ${Reason.tradeOrderFarming}     | ${'alert_system.confirm_modal.blockaid.message'}
+  ${Reason.other}                 | ${'alert_system.confirm_modal.blockaid.message'}
+`('returns the correct description for $reason', ({ reason, expectedMessageKey }) => {
+    (useSecurityAlertResponse as jest.Mock).mockReturnValue({
+      securityAlertResponse: { ...mockSecurityAlertResponse, reason },
+    });
+
+    const { result } = renderHook(() => useBlockaidAlerts());
+
+    expect(result.current).toHaveLength(1);
+    const expectedMessage = strings(expectedMessageKey);
+    expect(result.current[0].message).toBe(expectedMessage);
   });
 });

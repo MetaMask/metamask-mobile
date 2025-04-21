@@ -78,11 +78,16 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
+  getFontFamily,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
@@ -108,15 +113,20 @@ import {
 } from '../../../selectors/preferencesController';
 import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
-import { Token } from '@metamask/assets-controllers';
+import { Nft, Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
+///: END:ONLY_INCLUDE_IF
 import {
   selectNativeEvmAsset,
   selectStakedEvmAsset,
 } from '../../../selectors/multichain';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
+import { cloneDeep } from 'lodash';
+import { prepareNftDetectionEvents } from '../../../util/assets';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -142,6 +152,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       fontWeight: '500',
     },
     loader: {
@@ -237,6 +248,9 @@ const Wallet = ({
   const chainId = useSelector(selectChainId);
 
   const prevChainId = usePrevious(chainId);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
 
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
@@ -613,30 +627,71 @@ const Wallet = ({
     [styles, colors],
   );
 
+  const getNftDetectionAnalyticsParams = useCallback((nft: Nft) => {
+    try {
+      return {
+        chain_id: getDecimalChainId(nft.chainId),
+        source: 'detected' as const,
+      };
+    } catch (error) {
+      Logger.error(error as Error, 'Wallet.getNftDetectionAnalyticsParams');
+      return undefined;
+    }
+  }, []);
+
   const onChangeTab = useCallback(
     async (obj) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {
+        // Return early if no address selected
+        if (!selectedAddress) return;
+
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
         );
         // Call detect nfts
-        const { NftDetectionController } = Engine.context;
+        const { NftDetectionController, NftController } = Engine.context;
+        const previousNfts = cloneDeep(
+          NftController.state.allNfts[selectedAddress.toLowerCase()],
+        );
+
         try {
           showNftFetchingLoadingIndicator();
           await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
         } finally {
           hideNftFetchingLoadingIndicator();
         }
+
+        const newNfts = cloneDeep(
+          NftController.state.allNfts[selectedAddress.toLowerCase()],
+        );
+
+        const eventParams = prepareNftDetectionEvents(
+          previousNfts,
+          newNfts,
+          getNftDetectionAnalyticsParams,
+        );
+        eventParams.forEach((params) => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+              .addProperties({
+                chain_id: params.chain_id,
+                source: params.source,
+              })
+              .build(),
+          );
+        });
       }
     },
     [
       trackEvent,
-      hideNftFetchingLoadingIndicator,
-      showNftFetchingLoadingIndicator,
       createEventBuilder,
+      selectedAddress,
+      showNftFetchingLoadingIndicator,
       chainIdsToDetectNftsFor,
+      hideNftFetchingLoadingIndicator,
+      getNftDetectionAnalyticsParams,
     ],
   );
 
@@ -708,6 +763,11 @@ const Wallet = ({
           <PortfolioBalance />
           <Carousel style={styles.carouselContainer} />
           {renderTokensContent()}
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+            <SolanaNewFeatureContent />
+            ///: END:ONLY_INCLUDE_IF
+          }
         </>
       </View>
     );

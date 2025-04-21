@@ -32,7 +32,6 @@ import { StakeNavigationParamsList } from '../../../Stake/types';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import UnstakeInputViewBanner from './UnstakeBanner';
 import styleSheet from './EarnWithdrawInputView.styles';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import { RootState } from '../../../../../reducers';
@@ -41,6 +40,7 @@ import { Hex } from '@metamask/utils';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -174,7 +174,7 @@ const EarnWithdrawInputView = () => {
 
   const handleUnstakePress = useCallback(async () => {
     const isStakingDepositRedesignedEnabled =
-      confirmationRedesignFlags?.staking_transactions;
+      confirmationRedesignFlags?.staking_confirmations;
 
     const unstakeButtonClickEventProperties = {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
@@ -240,7 +240,7 @@ const EarnWithdrawInputView = () => {
     trackEvent,
     attemptUnstakeTransaction,
     activeAccount?.address,
-    confirmationRedesignFlags?.staking_transactions,
+    confirmationRedesignFlags?.staking_confirmations,
   ]);
 
   return (

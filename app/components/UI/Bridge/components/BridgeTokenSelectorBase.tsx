@@ -1,19 +1,28 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { Box } from '../../Box/Box';
-import Text, { TextVariant, TextColor } from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheet, { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { TokenI } from '../../Tokens/types';
-import Icon, { IconName } from '../../../../component-library/components/Icons/Icon';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
+import Icon, {
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../../component-library/components/Icons/Icon/Icon.types';
-import { TokenIWithFiatAmount } from '../hooks/useTokensWithBalance';
 import { strings } from '../../../../../locales/i18n';
 import { FlexDirection, AlignItems, JustifyContent } from '../../Box/box.types';
 import { useTokenSearch } from '../hooks/useTokenSearch';
 import TextFieldSearch from '../../../../component-library/components/Form/TextFieldSearch';
+import { BridgeToken } from '../types';
+import { Skeleton } from '../../../../component-library/components/Skeleton';
+import { useAssetMetadata } from '../hooks/useAssetMetadata';
+import { CaipChainId, Hex } from '@metamask/utils';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -44,44 +53,128 @@ const createStyles = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingVertical: 12,
     },
+    loadingSkeleton: {
+      padding: 16,
+    },
+    skeletonCircle: {
+      borderRadius: 15,
+    },
+    // Need the flex 1 to make sure this doesn't disappear when FlexDirection.Row is used
+    skeletonItem: {
+      flex: 1,
+    },
   });
+};
+
+const SkeletonItem = () => {
+  const { styles } = useStyles(createStyles, {});
+
+  return (
+    <Box
+      gap={16}
+      flexDirection={FlexDirection.Row}
+      alignItems={AlignItems.center}
+    >
+      <Skeleton height={30} width={30} style={styles.skeletonCircle} />
+
+      <Box gap={4} style={styles.skeletonItem}>
+        <Skeleton height={24} width={'96%'} />
+        <Skeleton height={24} width={'37%'} />
+      </Box>
+
+      <Icon name={IconName.Info} />
+    </Box>
+  );
+};
+
+const LoadingSkeleton = () => {
+  const { styles } = useStyles(createStyles, {});
+
+  return (
+    <Box style={styles.loadingSkeleton} gap={20}>
+      <SkeletonItem />
+      <SkeletonItem />
+      <SkeletonItem />
+      <SkeletonItem />
+      <SkeletonItem />
+      <SkeletonItem />
+      <SkeletonItem />
+      <SkeletonItem />
+      <SkeletonItem />
+      <SkeletonItem />
+    </Box>
+  );
 };
 
 interface BridgeTokenSelectorBaseProps {
   networksBar: React.ReactNode;
-  renderTokenItem: ({ item }: { item: TokenIWithFiatAmount }) => React.JSX.Element;
-  tokensList: TokenIWithFiatAmount[];
+  renderTokenItem: ({ item }: { item: BridgeToken }) => React.JSX.Element;
+  tokensList: BridgeToken[];
+  pending?: boolean;
+  chainIdToFetchMetadata?: Hex | CaipChainId;
 }
 
-export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> = ({
+export const BridgeTokenSelectorBase: React.FC<
+  BridgeTokenSelectorBaseProps
+> = ({
   networksBar,
   renderTokenItem,
   tokensList,
+  pending,
+  chainIdToFetchMetadata: chainId,
 }) => {
   const { styles, theme } = useStyles(createStyles, {});
-  const { searchString, setSearchString, searchResults } = useTokenSearch({
+  const {
+    searchString,
+    setSearchString,
+    searchResults,
+    debouncedSearchString,
+  } = useTokenSearch({
     tokens: tokensList || [],
   });
-  const tokensToRender = useMemo(() =>
-    searchString ? searchResults : tokensList,
-    [searchString, searchResults, tokensList]
+
+  const {
+    assetMetadata: unlistedAssetMetadata,
+    pending: unlistedAssetMetadataPending,
+  } = useAssetMetadata(
+    debouncedSearchString,
+    Boolean(debouncedSearchString && searchResults.length === 0),
+    chainId,
   );
 
-  const keyExtractor = useCallback((token: TokenI) => `${token.chainId}-${token.address}`, []);
+  const tokensToRender = useMemo(() => {
+    if (!searchString) {
+      return tokensList;
+    }
 
-  const handleSearchTextChange = useCallback((text: string) => {
-    setSearchString(text);
-  }, [setSearchString]);
+    if (searchResults.length > 0) {
+      return searchResults;
+    }
+
+    return unlistedAssetMetadata ? [unlistedAssetMetadata] : [];
+  }, [searchString, searchResults, tokensList, unlistedAssetMetadata]);
+
+  const keyExtractor = useCallback(
+    (token: BridgeToken) => `${token.chainId}-${token.address}`,
+    [],
+  );
+
+  const handleSearchTextChange = useCallback(
+    (text: string) => {
+      setSearchString(text);
+    },
+    [setSearchString],
+  );
 
   const renderEmptyList = useMemo(
     () => (
       <Box style={styles.emptyList}>
         <Text color={TextColor.Alternative}>
-          {strings('swaps.no_tokens_result', { searchString })}
+          {strings('swaps.no_tokens_result', { searchString: debouncedSearchString })}
         </Text>
       </Box>
     ),
-    [searchString, styles],
+    [debouncedSearchString, styles],
   );
 
   const modalRef = useRef<BottomSheetRef>(null);
@@ -89,11 +182,13 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> = (
     modalRef.current?.onCloseBottomSheet();
   };
 
+  const shouldRenderLoading = useMemo(
+    () => pending || unlistedAssetMetadataPending,
+    [pending, unlistedAssetMetadataPending],
+  );
+
   return (
-    <BottomSheet
-      isFullscreen
-      ref={modalRef}
-    >
+    <BottomSheet isFullscreen ref={modalRef}>
       <Box style={styles.content}>
         <Box gap={4}>
           <BottomSheetHeader>
@@ -129,14 +224,18 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> = (
             onChangeText={handleSearchTextChange}
             placeholder={strings('swaps.search_token')}
             testID="bridge-token-search-input"
-            />
+          />
         </Box>
 
         <FlatList
-          data={tokensToRender}
+          data={shouldRenderLoading ? [] : tokensToRender}
           renderItem={renderTokenItem}
           keyExtractor={keyExtractor}
-          ListEmptyComponent={renderEmptyList}
+          ListEmptyComponent={
+            debouncedSearchString && !shouldRenderLoading
+              ? renderEmptyList
+              : LoadingSkeleton
+          }
         />
       </Box>
     </BottomSheet>

@@ -21,7 +21,7 @@ import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.js'
 import TestHelpers from '../../helpers.js';
 import FixtureServer from '../../fixtures/fixture-server.js';
 import { getFixturesServerPort } from '../../fixtures/utils.js';
-import { SmokeSwaps } from '../../tags.js';
+import { SmokeTrade } from '../../tags.js';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView.js';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView.js';
 import Assertions from '../../utils/Assertions.js';
@@ -33,7 +33,7 @@ import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 const fixtureServer = new FixtureServer();
 const firstElement = 0;
 
-describe(SmokeSwaps('Swap from Actions'), () => {
+describe(SmokeTrade('Swap from Actions'), () => {
   const FIRST_ROW = 0;
   const SECOND_ROW = 1;
   let currentNetwork = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
@@ -118,7 +118,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(sourceTokenSymbol);
         await TestHelpers.delay(2000);
-        await QuoteView.selectToken(sourceTokenSymbol, 2);
+        await QuoteView.selectToken(sourceTokenSymbol, 1);
       }
       await QuoteView.enterSwapAmount(quantity);
 
@@ -128,7 +128,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(destTokenSymbol);
         await TestHelpers.delay(2000);
-        await QuoteView.selectToken(destTokenSymbol, 2);
+        await QuoteView.selectToken(destTokenSymbol, 1);
       } else await QuoteView.selectToken(destTokenSymbol, firstElement);
 
       //Make sure slippage is zero for wrapped tokens

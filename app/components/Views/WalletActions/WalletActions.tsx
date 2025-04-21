@@ -1,7 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View } from 'react-native';
-import { swapsUtils } from '@metamask/swaps-controller';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
@@ -17,7 +16,6 @@ import {
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
-import useGoToBridge from '../../UI/Bridge/hooks/useGoToBridge';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -51,6 +49,7 @@ import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 ///: END:ONLY_INCLUDE_IF
+import { useSwapBridgeNavigation, SwapBridgeNavigationLocation } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -68,6 +67,10 @@ const WalletActions = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TabBar,
+    sourcePage: 'MainView',
+  });
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -233,13 +236,7 @@ const WalletActions = () => {
 
   const goToSwaps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-          sourcePage: 'MainView',
-        },
-      });
+      goToSwapsBase();
     });
 
     trackEvent(
@@ -254,25 +251,19 @@ const WalletActions = () => {
     );
   }, [
     closeBottomSheetAndNavigate,
-    navigate,
+    goToSwapsBase,
     trackEvent,
     chainId,
     createEventBuilder,
   ]);
 
-  const handleBridgeNavigation = useCallback(() => {
+  const goToBridge = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-          sourcePage: 'MainView',
-        },
-      });
+      goToBridgeBase();
     });
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.BRIDGE_BUTTON_CLICKED)
         .addProperties({
           text: 'Bridge',
           tokenSymbol: '',
@@ -283,18 +274,11 @@ const WalletActions = () => {
     );
   }, [
     closeBottomSheetAndNavigate,
-    navigate,
+    goToBridgeBase,
     trackEvent,
     chainId,
     createEventBuilder,
   ]);
-
-  const goToPortfolioBridge = useGoToBridge('TabBar');
-
-  const goToBridge =
-    process.env.MM_BRIDGE_UI_ENABLED === 'true'
-      ? handleBridgeNavigation
-      : goToPortfolioBridge;
 
   const sendIconStyle = useMemo(
     () => ({
