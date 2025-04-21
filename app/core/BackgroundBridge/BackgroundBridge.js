@@ -30,6 +30,7 @@ import {
 ///: END:ONLY_INCLUDE_IF
 
 import {
+  multichainMethodCallValidatorMiddleware,
   MultichainSubscriptionManager,
   MultichainMiddlewareManager,
   walletCreateSession,
@@ -61,8 +62,9 @@ import {
   Caip25EndowmentPermissionName,
   getSessionScopes,
 } from '@metamask/chain-agnostic-permission';
-import { UNSUPPORTED_RPC_METHODS } from '../RPCMethods/utils';
+import { makeMethodMiddlewareMaker, UNSUPPORTED_RPC_METHODS } from '../RPCMethods/utils';
 import { ERC1155, ERC20, ERC721 } from '@metamask/controller-utils';
+import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
 
 // Types of APIs
 const API_TYPE = {
@@ -619,6 +621,7 @@ export class BackgroundBridge extends EventEmitter {
     const origin = this.hostname;
 
     const {
+      ApprovalController,
       NetworkController,
       SubjectMetadataController,
       AccountsController,
@@ -830,7 +833,6 @@ export class BackgroundBridge extends EventEmitter {
           this.addMultichainApiEthSubscriptionMiddleware({
             scope,
             origin,
-            tabId,
           });
         }
       });
