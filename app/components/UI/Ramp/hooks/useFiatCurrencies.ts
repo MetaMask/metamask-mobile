@@ -21,7 +21,7 @@ export default function useFiatCurrencies() {
   ] = useSDKMethod(
     isBuy ? 'getDefaultFiatCurrency' : 'getDefaultSellFiatCurrency',
     selectedRegion?.id,
-    selectedPaymentMethodId,
+    [],
   );
 
   const [
@@ -34,7 +34,7 @@ export default function useFiatCurrencies() {
   ] = useSDKMethod(
     isBuy ? 'getFiatCurrencies' : 'getSellFiatCurrencies',
     selectedRegion?.id,
-    selectedPaymentMethodId,
+    selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
   );
 
   /**

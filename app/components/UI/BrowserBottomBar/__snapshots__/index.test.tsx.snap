@@ -198,7 +198,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
             "alignSelf": "center",
             "color": "#686e7d",
             "flex": 0,
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 15,
             "fontWeight": "400",
             "textAlign": "center",

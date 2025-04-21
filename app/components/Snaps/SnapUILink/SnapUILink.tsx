@@ -1,14 +1,24 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { LinkChildren } from '@metamask/snaps-sdk/jsx';
 import React from 'react';
-import { Linking, View } from 'react-native';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { TextColor } from '../../../component-library/components/Texts/Text';
+import { Text, StyleSheet, Linking, View } from 'react-native';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../locales/i18n';
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+  },
+  spacer: {
+    width: 4,
+  },
+});
 
 export interface SnapUILinkProps {
   children: LinkChildren;
@@ -27,38 +37,18 @@ const onPress = (href: string) => {
 };
 
 // TODO: This component should show a modal for links when not using preinstalled Snaps
-export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => {
-  const label = (
-    <>
-      {children}
-      <View
-        /* eslint-disable-next-line react-native/no-inline-styles */
-        style={{
-          width: 4,
-        }}
-      />
-      <Icon
-        name={IconName.Export}
-        color={IconColor.Primary}
-        size={IconSize.Sm}
-        /* eslint-disable-next-line react-native/no-inline-styles */
-        style={{
-          justifyContent: 'center',
-          alignItems: 'center',
-          alignSelf: 'center',
-        }}
-      />
-    </>
-  );
+export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => (
+  <Text
+    testID="snaps-ui-link"
+    style={styles.container}
+    onPress={() => onPress(href)}
+    accessibilityRole="link"
+    accessibilityHint={strings('snaps.snap_ui.link.accessibilityHint')}
+  >
+    {children}
+    <View style={styles.spacer} />
+    <Icon name={IconName.Export} color={IconColor.Primary} size={IconSize.Sm} />
+  </Text>
+);
 
-  return (
-    <ButtonLink
-      testID="snaps-ui-link"
-      // @ts-expect-error This prop is not part of the type but it works.
-      color={TextColor.Info}
-      onPress={() => onPress(href)}
-      label={label}
-    />
-  );
-};
 ///: END:ONLY_INCLUDE_IF

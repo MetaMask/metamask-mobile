@@ -30,6 +30,7 @@ import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
 import { RootState } from '../../../reducers';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
+import { setCompletedOnboarding } from '../../../actions/onboarding';
 
 const DELETE_KEYWORD = 'delete';
 
@@ -100,6 +101,7 @@ const DeleteWalletModal = () => {
       clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
     );
     signOut();
+    await dispatch(setCompletedOnboarding(false));
     await CookieManager.clearAll(true);
     triggerClose();
     await resetWalletState();

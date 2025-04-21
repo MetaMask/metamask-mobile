@@ -4,7 +4,11 @@ import { BridgeDestNetworkSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSelectedDestChainId } from '../../../../../core/redux/slices/bridge';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import {
+  BridgeFeatureFlagsKey,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
+import { initialState } from '../../_mocks_/initialState';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -30,47 +34,6 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
 describe('BridgeDestNetworkSelector', () => {
   const mockChainId = '0x1' as Hex;
   const optimismChainId = '0xa' as Hex;
-  const baseChainId = '0x2105' as Hex;
-
-  const initialState = {
-    engine: {
-      backgroundState: {
-        BridgeController: {
-          bridgeFeatureFlags: {
-            [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
-              chains: {
-                '0x1': { isActiveSrc: true, isActiveDest: true },
-                '0xa': { isActiveSrc: true, isActiveDest: true },
-                '0x2105': { isActiveSrc: false, isActiveDest: true },
-              },
-            },
-          },
-        },
-        NetworkController: {
-          networkConfigurationsByChainId: {
-            [mockChainId]: {
-              chainId: mockChainId,
-              nickname: 'Ethereum Mainnet',
-              name: 'Ethereum Mainnet',
-            },
-            [optimismChainId]: {
-              chainId: optimismChainId,
-              nickname: 'Optimism',
-              name: 'Optimism',
-            },
-            [baseChainId]: {
-              chainId: baseChainId,
-              nickname: 'Base',
-              name: 'Base',
-            },
-          },
-        },
-      },
-    },
-    bridge: {
-      selectedDestChainId: undefined,
-    },
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -82,16 +45,14 @@ describe('BridgeDestNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     // Header should be visible
     expect(getByText('Select network')).toBeTruthy();
 
     // Networks should be visible
-    expect(getByText('Ethereum Mainnet')).toBeTruthy();
     expect(getByText('Optimism')).toBeTruthy();
-    expect(getByText('Base')).toBeTruthy();
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -102,7 +63,7 @@ describe('BridgeDestNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     // Click on Optimism network
@@ -122,7 +83,7 @@ describe('BridgeDestNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     const closeButton = getByTestId('bridge-network-selector-close-button');
@@ -143,9 +104,14 @@ describe('BridgeDestNetworkSelector', () => {
             bridgeFeatureFlags: {
               [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
                 chains: {
-                  '0x1': { isActiveSrc: true, isActiveDest: false }, // Set Ethereum to inactive as dest
-                  '0xa': { isActiveSrc: true, isActiveDest: true },
-                  '0x2105': { isActiveSrc: false, isActiveDest: true },
+                  [formatChainIdToCaip(mockChainId)]: {
+                    isActiveSrc: true,
+                    isActiveDest: false,
+                  }, // Set Ethereum to inactive as dest
+                  [formatChainIdToCaip(optimismChainId)]: {
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                  },
                 },
               },
             },
@@ -159,7 +125,7 @@ describe('BridgeDestNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
       },
-      { state: stateWithInactiveDest }
+      { state: stateWithInactiveDest },
     );
 
     // Ethereum should not be visible as it's not active as a destination
@@ -167,6 +133,5 @@ describe('BridgeDestNetworkSelector', () => {
 
     // Optimism and Base should be visible
     expect(queryByText('Optimism')).toBeTruthy();
-    expect(queryByText('Base')).toBeTruthy();
   });
 });

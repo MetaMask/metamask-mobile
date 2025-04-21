@@ -19,7 +19,7 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
 import { selectSelectedInternalAccount } from '../../../../../../../selectors/accountsController';
-import { selectConfirmationRedesignFlags } from '../../../../../../../selectors/featureFlagController';
+import { selectConfirmationRedesignFlags } from '../../../../../../../selectors/featureFlagController/confirmations';
 import { selectEvmChainId } from '../../../../../../../selectors/networkController';
 import {
   MetaMetricsEvents,
@@ -47,10 +47,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const [shouldAttemptClaim, setShouldAttemptClaim] = useState(false);
   const { attemptPoolStakedClaimTransaction } = usePoolStakedClaim();
   const { stakingContract } = useStakeContext();
-  const {
-    pooledStakesData,
-    refreshPooledStakes
-  } = usePooledStakes();
+  const { pooledStakesData } = usePooledStakes();
 
   const chainId = useSelector(selectEvmChainId);
   const { isStakingSupportedChain } = useStakingChain();
@@ -58,13 +55,13 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
     selectConfirmationRedesignFlags,
   );
   const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_transactions;
+    confirmationRedesignFlags?.staking_confirmations;
   const navigation = useNavigation();
 
   useFocusEffect(
     useCallback(() => {
       setIsSubmittingClaimTransaction(false);
-    }, [])
+    }, []),
   );
 
   const attemptClaim = useCallback(async () => {
@@ -109,7 +106,6 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionConfirmed',
         () => {
-          refreshPooledStakes();
           setIsSubmittingClaimTransaction(false);
         },
         (transactionMeta) => transactionMeta.id === transactionId,
@@ -139,7 +135,6 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
     attemptPoolStakedClaimTransaction,
     createEventBuilder,
     trackEvent,
-    refreshPooledStakes,
     claimableAmount,
     isStakingDepositRedesignedEnabled,
     navigation,
@@ -176,7 +171,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
     [claimableAmount],
   );
 
-  const isLoadingOnClaim = shouldAttemptClaim || isSubmittingClaimTransaction
+  const isLoadingOnClaim = shouldAttemptClaim || isSubmittingClaimTransaction;
 
   return (
     <Banner

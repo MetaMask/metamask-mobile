@@ -65,6 +65,7 @@ import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain
 
 ///: END:ONLY_INCLUDE_IF
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
+import { BridgeViewMode } from '../Bridge/types';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -143,6 +144,9 @@ const styles = StyleSheet.create({
   },
   addressCopyWrapper: {
     marginHorizontal: 4,
+  },
+  iconButton: {
+    marginHorizontal: 24,
   },
 });
 
@@ -1733,7 +1737,13 @@ export function getBridgeNavbar(navigation, route, themeColors) {
       elevation: 0,
     },
   });
-  const title = route.params?.title ?? 'Swap/Bridge';
+
+  let title = `${strings('swaps.title')}/${strings('bridge.title')}`;
+  if (route.params?.bridgeViewMode === BridgeViewMode.Bridge) {
+    title = strings('bridge.title');
+  } else if (route.params?.bridgeViewMode === BridgeViewMode.Swap) {
+    title = strings('swaps.title');
+  }
 
   const leftAction = () => navigation.pop();
 
@@ -1763,6 +1773,26 @@ export function getBridgeNavbar(navigation, route, themeColors) {
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,
+  };
+}
+
+export function getBridgeTransactionDetailsNavbar(navigation) {
+  const leftAction = () => navigation.pop();
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        title={strings('bridge_transaction_details.transaction_details')}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Icon name={IconName.ArrowLeft} />
+      </TouchableOpacity>
+    ),
   };
 }
 
@@ -1900,8 +1930,8 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
  * @param {String} title - Navbar Title.
  * @param {NavigationProp<ParamListBase>} navigation Navigation object returned from useNavigation hook.
  * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
- * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [navBarOptions] - Optional navbar options.
- * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>} }} [metricsOptions] - Optional metrics options.
+ * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean, hasIconButton?: boolean, handleIconPress?: () => void }} [navBarOptions] - Optional navbar options.
+ * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>}, iconButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> } }} [metricsOptions] - Optional metrics options.
  * @returns Staking Navbar Component.
  */
 export function getStakingNavbar(
@@ -1911,7 +1941,12 @@ export function getStakingNavbar(
   navBarOptions,
   metricsOptions,
 ) {
-  const { hasBackButton = true, hasCancelButton = true } = navBarOptions ?? {};
+  const {
+    hasBackButton = true,
+    hasCancelButton = true,
+    hasIconButton = false,
+    handleIconPress,
+  } = navBarOptions ?? {};
 
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -1958,6 +1993,18 @@ export function getStakingNavbar(
     }
   }
 
+  function handleIconPressWrapper() {
+    if (!handleIconPress) return;
+    if (metricsOptions?.iconButtonEvent) {
+      withMetaMetrics(handleIconPress, {
+        event: metricsOptions.iconButtonEvent.event,
+        properties: metricsOptions.iconButtonEvent.properties,
+      })();
+    } else {
+      handleIconPress();
+    }
+  }
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -1985,6 +2032,13 @@ export function getStakingNavbar(
           <Text style={innerStyles.headerButtonText}>
             {strings('navigation.cancel')}
           </Text>
+        </TouchableOpacity>
+      ) : hasIconButton ? (
+        <TouchableOpacity
+          onPress={handleIconPressWrapper}
+          style={styles.iconButton}
+        >
+          <Icon name={IconName.Question} />
         </TouchableOpacity>
       ) : (
         <></>

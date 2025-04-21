@@ -5,11 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  CommonActions,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
@@ -136,6 +132,7 @@ import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
+import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
 
@@ -306,7 +303,18 @@ const DetectedTokensFlow = () => (
   </Stack.Navigator>
 );
 
-const RootModalFlow = () => (
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+interface RootModalFlowProps {
+  route: {
+    params: Record<string, unknown>;
+  };
+}
+///: END:ONLY_INCLUDE_IF(multi-srp)
+const RootModalFlow = (
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  props: RootModalFlowProps,
+  ///: END:ONLY_INCLUDE_IF
+) => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -418,7 +426,21 @@ const RootModalFlow = () => (
       name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
       component={EnableAutomaticSecurityChecksModal}
     />
-    <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+    {
+      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+      <Stack.Screen
+        name={Routes.SHEET.SELECT_SRP}
+        component={SelectSRPBottomSheet}
+      />
+      ///: END:ONLY_INCLUDE_IF
+    }
+    <Stack.Screen
+      name={Routes.MODAL.SRP_REVEAL_QUIZ}
+      component={SRPQuiz}
+      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+      initialParams={{ ...props.route.params }}
+      ///: END:ONLY_INCLUDE_IF
+    />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_ACTIONS}
       component={AccountActions}
@@ -483,7 +505,10 @@ const ImportSRPView = () => (
       headerShown: false,
     }}
   >
-    <Stack.Screen name="ImportSRP" component={ImportNewSecretRecoveryPhrase} />
+    <Stack.Screen
+      name={Routes.MULTI_SRP.IMPORT}
+      component={ImportNewSecretRecoveryPhrase}
+    />
   </Stack.Navigator>
 );
 ///: END:ONLY_INCLUDE_IF
@@ -727,15 +752,10 @@ const App: React.FC = () => {
       } catch (error) {
         const errorMessage = (error as Error).message;
         // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
-        if (errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS) {
-          navigation.dispatch(
-            CommonActions.setParams({
-              locked: true,
-            }),
-          );
-        }
+        const locked =
+          errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
 
-        await Authentication.lockApp({ reset: false });
+        await Authentication.lockApp({ reset: false, locked });
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
           errorMessage,
@@ -896,6 +916,7 @@ const App: React.FC = () => {
               rpcEndpoints: [
                 {
                   url: network.rpcUrl,
+                  failoverUrls: network.failoverRpcUrls,
                   name: network.nickname,
                   type: RpcEndpointType.Custom,
                 },

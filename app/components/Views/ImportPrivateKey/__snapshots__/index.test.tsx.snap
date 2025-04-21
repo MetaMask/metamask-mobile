@@ -440,7 +440,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 32,
                                     "fontWeight": "400",
                                     "justifyContent": "center",
@@ -463,7 +463,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "textAlign": "left",
@@ -485,7 +485,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "textAlign": "left",
@@ -509,7 +509,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontSize": 18,
                                     "fontWeight": "600",
                                   }
@@ -519,7 +519,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                     }
@@ -547,7 +547,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                       "borderRadius": 4,
                                       "borderWidth": 0.5,
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 15,
                                       "fontWeight": "400",
                                       "height": 120,
@@ -638,7 +638,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                     null,
                                     [
                                       {
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 14,
                                         "fontWeight": "600",
                                         "textAlign": "center",

@@ -360,7 +360,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "EuclidCircularB-Bold",
+                              "fontFamily": "CentraNo1-Bold",
                               "fontSize": 18,
                               "fontWeight": "700",
                               "letterSpacing": 0,
@@ -385,11 +385,12 @@ exports[`AddAccountActions renders correctly 1`] = `
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "EuclidCircularB-Medium",
-                              "fontSize": 12,
+                              "fontFamily": "CentraNo1-Medium",
+                              "fontSize": 14,
                               "fontWeight": "500",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
+                              "marginVertical": 16,
                               "paddingHorizontal": 16,
                             }
                           }
@@ -403,7 +404,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -428,8 +429,8 @@ exports[`AddAccountActions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -446,7 +447,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -471,8 +472,8 @@ exports[`AddAccountActions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -489,7 +490,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -514,8 +515,8 @@ exports[`AddAccountActions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -532,7 +533,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -557,8 +558,8 @@ exports[`AddAccountActions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -573,11 +574,12 @@ exports[`AddAccountActions renders correctly 1`] = `
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "EuclidCircularB-Medium",
-                              "fontSize": 12,
+                              "fontFamily": "CentraNo1-Medium",
+                              "fontSize": 14,
                               "fontWeight": "500",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
+                              "marginVertical": 16,
                               "paddingHorizontal": 16,
                             }
                           }
@@ -591,7 +593,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -616,8 +618,8 @@ exports[`AddAccountActions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -634,7 +636,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -659,8 +661,8 @@ exports[`AddAccountActions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -675,11 +677,12 @@ exports[`AddAccountActions renders correctly 1`] = `
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "EuclidCircularB-Medium",
-                              "fontSize": 12,
+                              "fontFamily": "CentraNo1-Medium",
+                              "fontSize": 14,
                               "fontWeight": "500",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
+                              "marginVertical": 16,
                               "paddingHorizontal": 16,
                             }
                           }
@@ -693,7 +696,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -718,8 +721,8 @@ exports[`AddAccountActions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,

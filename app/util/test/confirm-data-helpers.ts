@@ -9,18 +9,20 @@ import {
 import {
   TransactionControllerState,
   TransactionEnvelopeType,
+  TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-
-import { backgroundState } from './initial-root-state';
 import { merge } from 'lodash';
+import { backgroundState } from './initial-root-state';
+import { ApprovalRequest } from '@metamask/approval-controller';
 
 export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {
     confirmation_redesign: {
       signatures: true,
-      staking_transactions: true,
+      staking_confirmations: true,
     },
   },
 };
@@ -621,16 +623,20 @@ const stakingConfirmationBaseState = {
             rpcEndpoints: [
               {
                 networkClientId: 'mainnet',
+                url: 'https://mainnet.infura.io/v3/1234567890',
               },
             ],
+            defaultRpcEndpointIndex: 0,
           },
           '0xaa36a7': {
             nativeCurrency: 'ETH',
             rpcEndpoints: [
               {
                 networkClientId: 'sepolia',
+                url: 'https://sepolia.infura.io/v3/1234567890',
               },
             ],
+            defaultRpcEndpointIndex: 0,
           },
         },
         selectedNetworkClientId: 'mainnet',
@@ -874,3 +880,63 @@ export function generateStateSignTypedData(mockType: SignTypedDataMockType) {
   };
 }
 
+const mockTxId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
+
+const mockApprovalRequest = {
+  id: mockTxId,
+  origin: 'metamask.github.io',
+  type: 'transaction',
+  time: 1731850822653,
+  requestData: {
+    txId: mockTxId,
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    origin: 'metamask.github.io'
+  },
+  requestState: null,
+  expectsResult: true,
+} as unknown as ApprovalRequest<TransactionMeta>;
+
+const mockTransaction = {
+  id: mockTxId,
+  type: TransactionType.contractInteraction,
+  txParams: {
+    data: '0x123456',
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    to: '0x1234567890123456789012345678901234567890',
+    value: '0x0',
+  },
+  chainId: '0x1' as `0x${string}`,
+  networkClientId: 'mainnet',
+  status: TransactionStatus.unapproved,
+  time: Date.now(),
+  origin: 'https://metamask.github.io',
+} as unknown as TransactionMeta;
+
+const contractInteractionBaseState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: { transactions: [mockTransaction] },
+      },
+    },
+  }
+);
+
+export const generateContractInteractionState = {
+  ...contractInteractionBaseState,
+  engine: {
+    ...contractInteractionBaseState.engine,
+    backgroundState: {
+      ...contractInteractionBaseState.engine.backgroundState,
+      // Set a completely new ApprovalController to reject the approval in
+      // stakingConfirmationBaseState
+      ApprovalController: {
+        pendingApprovals: { [mockTxId]: mockApprovalRequest },
+        pendingApprovalCount: 1,
+        approvalFlows: [],
+      },
+    },
+  },
+};

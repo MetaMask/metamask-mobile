@@ -5,6 +5,7 @@ import {
   InteractionManager,
   Text,
   LayoutAnimation,
+  TouchableOpacity,
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AssetSearch from '../AssetSearch';
@@ -34,6 +35,9 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import Logger from '../../../util/Logger';
+import { Hex } from '@metamask/utils';
+import NetworkImageComponent from '../NetworkImages';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,6 +45,9 @@ const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
       height: '85%',
+    },
+    base: {
+      padding: 16,
     },
     tokenDetectionBanner: {
       marginHorizontal: 20,
@@ -63,6 +70,32 @@ const createStyles = (colors: any) =>
     searchInput: {
       paddingBottom: 16,
     },
+    networkCell: {
+      alignItems: 'center',
+    },
+    networkSelectorContainer: {
+      marginHorizontal: 16,
+      borderWidth: 1,
+      marginTop: 16,
+      borderColor: colors.border.default,
+      borderRadius: 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 10,
+    },
+    buttonIconContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    container: {
+      backgroundColor: colors.background.default,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    title: {
+      color: colors.text.default,
+    },
   });
 
 interface Props {
@@ -73,18 +106,26 @@ interface Props {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   tabLabel: string;
+  onPress: () => void;
+  isAllNetworksEnabled: boolean;
+  allNetworksEnabled: { [key: string]: boolean };
 }
 
 /**
  * Component that provides ability to add searched assets with metadata.
  */
-const SearchTokenAutocomplete = ({ navigation }: Props) => {
+const SearchTokenAutocomplete = ({
+  navigation,
+  onPress,
+  isAllNetworksEnabled,
+  allNetworksEnabled,
+}: Props) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [selectedAsset, setSelectedAsset] = useState<any[]>([]);
+  const [selectedAssets, setSelectedAssets] = useState<any[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const { colors } = useTheme();
@@ -102,18 +143,25 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     [setIsSearchFocused],
   );
 
-  const getAnalyticsParams = useCallback(() => {
-    try {
-      return selectedAsset.map((asset) => ({
-        token_address: asset.address,
-        token_symbol: asset.symbol,
-        chain_id: getDecimalChainId(chainId),
-        source: 'Add token dropdown',
-      }));
-    } catch (error) {
-      return {};
-    }
-  }, [selectedAsset, chainId]);
+  const getTokenAddedAnalyticsParams = useCallback(
+    ({ address, symbol }: { address: Hex; symbol: string }) => {
+      try {
+        return {
+          token_address: address,
+          token_symbol: symbol,
+          chain_id: getDecimalChainId(chainId),
+          source: 'Add token dropdown',
+        };
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'SearchTokenAutocomplete.getTokenAddedAnalyticsParams',
+        );
+        return undefined;
+      }
+    },
+    [chainId],
+  );
 
   const handleSearch = useCallback(
     // TODO: Replace "any" with type
@@ -129,7 +177,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     (asset) => {
       const assetAddressLower = asset.address.toLowerCase();
 
-      const newSelectedAsset = selectedAsset.reduce(
+      const newSelectedAsset = selectedAssets.reduce(
         (filteredAssets, currentAsset) => {
           const currentAssetAddressLower = currentAsset.address.toLowerCase();
           if (currentAssetAddressLower === assetAddressLower) {
@@ -141,17 +189,40 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
         [],
       );
 
-      if (newSelectedAsset.length === selectedAsset.length) {
+      if (newSelectedAsset.length === selectedAssets.length) {
         newSelectedAsset.push(asset);
       }
 
-      setSelectedAsset(newSelectedAsset);
+      setSelectedAssets(newSelectedAsset);
     },
-    [selectedAsset, setSelectedAsset],
+    [selectedAssets, setSelectedAssets],
   );
 
   const addToken = useCallback(
-    async ({ address, symbol, decimals, iconUrl, name }) => {
+    async ({
+      address,
+      symbol,
+      decimals,
+      iconUrl,
+      name,
+      chainId: networkId,
+    }) => {
+      const networkConfig =
+        Engine.context.NetworkController.state
+          ?.networkConfigurationsByChainId?.[networkId];
+
+      if (!networkConfig) {
+        return;
+      }
+
+      const networkClient =
+        networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex]
+          ?.networkClientId;
+
+      if (!networkClient) {
+        return;
+      }
+
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { TokensController } = Engine.context as any;
@@ -161,15 +232,23 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
         decimals,
         image: iconUrl,
         name,
+        networkClientId: networkClient,
       });
 
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-          .addProperties(getAnalyticsParams())
-          .build(),
-      );
+      const analyticsParams = getTokenAddedAnalyticsParams({
+        address,
+        symbol,
+      });
+
+      if (analyticsParams) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+            .addProperties(analyticsParams)
+            .build(),
+        );
+      }
     },
-    [getAnalyticsParams, trackEvent, createEventBuilder],
+    [getTokenAddedAnalyticsParams, trackEvent, createEventBuilder],
   );
 
   /**
@@ -185,13 +264,13 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   }, [navigation]);
 
   const addTokenList = useCallback(async () => {
-    for (const asset of selectedAsset) {
+    for (const asset of selectedAssets) {
       await addToken({ ...asset });
     }
 
     setSearchResults([]);
     setSearchQuery('');
-    setSelectedAsset([]);
+    setSelectedAssets([]);
 
     InteractionManager.runAfterInteractions(() => {
       goToWalletPage();
@@ -200,20 +279,20 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
         duration: 5000,
         title: strings('wallet.token_toast.token_imported_title'),
         description:
-          selectedAsset.length > 1
+          selectedAssets.length > 1
             ? strings('wallet.token_toast.tokens_import_success_multiple', {
-                tokensNumber: selectedAsset.length,
+                tokensNumber: selectedAssets.length,
               })
             : strings('wallet.token_toast.token_imported_desc_1'),
       });
     });
-  }, [addToken, selectedAsset, goToWalletPage]);
+  }, [addToken, selectedAssets, goToWalletPage]);
 
   const networkName = useSelector(selectNetworkName);
 
   const goToConfirmAddToken = () => {
     navigation.push('ConfirmAddAsset', {
-      selectedAsset,
+      selectedAsset: selectedAssets,
       networkName,
       chainId,
       ticker,
@@ -284,6 +363,32 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       <ScrollView style={styles.wrapper}>
         <View>
           {renderTokenDetectionBanner()}
+          <TouchableOpacity
+            style={styles.networkSelectorContainer}
+            onPress={onPress}
+            onLongPress={onPress}
+            testID="filter-controls-button"
+          >
+            <TouchableOpacity
+              style={styles.base}
+              disabled={false}
+              onPress={onPress}
+              onLongPress={onPress}
+            >
+              <Text style={styles.title}>
+                {isAllNetworksEnabled
+                  ? `${strings('app_settings.popular')} ${strings(
+                      'app_settings.networks',
+                    )}`
+                  : networkName}
+              </Text>
+            </TouchableOpacity>
+            <NetworkImageComponent
+              isAllNetworksEnabled={isAllNetworksEnabled}
+              allNetworksEnabled={allNetworksEnabled}
+              onPress={onPress}
+            />
+          </TouchableOpacity>
 
           <View style={styles.searchInput}>
             <AssetSearch
@@ -292,12 +397,13 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
                 setFocusState(true);
               }}
               onBlur={() => setFocusState(false)}
+              allNetworksEnabled={isAllNetworksEnabled}
             />
           </View>
           <MultiAssetListItems
             searchResults={searchResults}
             handleSelectAsset={handleSelectAsset}
-            selectedAsset={selectedAsset}
+            selectedAsset={selectedAssets}
             searchQuery={searchQuery}
             chainId={chainId}
             networkName={networkName}
@@ -311,7 +417,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
           width={ButtonWidthTypes.Full}
           label={strings('transaction.next')}
           onPress={goToConfirmAddToken}
-          isDisabled={selectedAsset.length < 1}
+          isDisabled={selectedAssets.length < 1}
           testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
         />
       </View>

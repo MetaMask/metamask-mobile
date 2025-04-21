@@ -70,6 +70,10 @@ enum EVENT_NAME {
   CONNECT_REQUEST_OTPFAILURE = 'Connect Request OTP Failure',
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
 
+  // Phishing
+  PHISHING_PAGE_DISPLAYED = 'Phishing Page Displayed',
+  PROCEED_ANYWAY_CLICKED = 'Proceed Anyway Clicked',
+
   // Wallet
   WALLET_OPENED = 'Wallet Opened',
   TOKEN_ADDED = 'Token Added',
@@ -360,6 +364,7 @@ enum EVENT_NAME {
   ACTIONS_BUTTON_CLICKED = 'Global Actions Button Clicked',
   RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
   SWAP_BUTTON_CLICKED = 'Swaps Button Clicked',
+  BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
   SEND_BUTTON_CLICKED = 'Send Button Clicked',
   EARN_BUTTON_CLICKED = 'Earn Button Clicked',
   // Edit account name
@@ -377,6 +382,9 @@ enum EVENT_NAME {
 
   // Remove an account
   ACCOUNT_REMOVED = 'Account removed',
+  ACCOUNT_REMOVE_FAILED = 'Account remove failed',
+  // Account added
+  ACCOUNT_ADDED = 'Account Added',
 
   //Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
@@ -393,10 +401,6 @@ enum EVENT_NAME {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
-  // Transactions
-  // Fired when the transaction reaches a final state (e.g., CONFIRMED, FAILED, DROPPED).
-  TRANSACTION_FINALIZED = 'Transaction Finalized',
-
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
 
@@ -411,6 +415,7 @@ enum EVENT_NAME {
   // Profile Syncing
   ACCOUNTS_SYNC_ADDED = 'Accounts Sync Added',
   ACCOUNTS_SYNC_NAME_UPDATED = 'Accounts Sync Name Updated',
+  ACCOUNTS_SYNC_ERRONEOUS_SITUATION = 'Accounts Sync Erroneous Situation',
   // network
   MULTI_RPC_MIGRATION_MODAL_ACCEPTED = 'multi_rpc_migration_modal_accepted',
 
@@ -420,6 +425,10 @@ enum EVENT_NAME {
 
   // Tooltip
   TOOLTIP_OPENED = 'Tooltip Opened',
+
+  // RPC Failover
+  RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
+  RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
 }
 
 enum ACTIONS {
@@ -488,6 +497,11 @@ const events = {
     EVENT_NAME.CONNECT_REQUEST_OTPFAILURE,
   ),
   CONNECT_REQUEST_CANCELLED: generateOpt(EVENT_NAME.CONNECT_REQUEST_CANCELLED),
+
+  // Phishing events
+  PHISHING_PAGE_DISPLAYED: generateOpt(EVENT_NAME.PHISHING_PAGE_DISPLAYED),
+  PROCEED_ANYWAY_CLICKED: generateOpt(EVENT_NAME.PROCEED_ANYWAY_CLICKED),
+
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
@@ -824,6 +838,7 @@ const events = {
   ACTIONS_BUTTON_CLICKED: generateOpt(EVENT_NAME.ACTIONS_BUTTON_CLICKED),
   RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
+  BRIDGE_BUTTON_CLICKED: generateOpt(EVENT_NAME.BRIDGE_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
   EARN_BUTTON_CLICKED: generateOpt(EVENT_NAME.EARN_BUTTON_CLICKED),
   NETWORK_SELECTOR_PRESSED: generateOpt(EVENT_NAME.NETWORK_SELECTOR),
@@ -853,6 +868,8 @@ const events = {
 
   // Remove an account
   ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
+  ACCOUNT_REMOVE_FAILED: generateOpt(EVENT_NAME.ACCOUNT_REMOVE_FAILED),
+  ACCOUNT_ADDED: generateOpt(EVENT_NAME.ACCOUNT_ADDED),
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
@@ -889,8 +906,6 @@ const events = {
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
   ),
-  // Transactions
-  TRANSACTION_FINALIZED: generateOpt(EVENT_NAME.TRANSACTION_FINALIZED),
   // Nft auto detection modal
   NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
     EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
@@ -911,6 +926,9 @@ const events = {
   ACCOUNTS_SYNC_ADDED: generateOpt(EVENT_NAME.ACCOUNTS_SYNC_ADDED),
   ACCOUNTS_SYNC_NAME_UPDATED: generateOpt(
     EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
+  ),
+  ACCOUNTS_SYNC_ERRONEOUS_SITUATION: generateOpt(
+    EVENT_NAME.ACCOUNTS_SYNC_ERRONEOUS_SITUATION,
   ),
   // Connection
   CONNECTION_DROPPED: generateOpt(EVENT_NAME.CONNECTION_DROPPED),
@@ -1005,6 +1023,10 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
+
+  // RPC Failover
+  RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
+  RPC_SERVICE_DEGRADED: generateOpt(EVENT_NAME.RPC_SERVICE_DEGRADED),
 };
 
 /**

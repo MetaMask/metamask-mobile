@@ -297,13 +297,20 @@ describe('SnapUIRenderer', () => {
 
   it('re-renders when the interface changes', () => {
     const { toJSON, getAllByTestId, updateInterface, getRenderCount } =
-      renderInterface(Box({ children: Input({ name: 'input' }) }));
+      renderInterface(
+        Box({ children: Input({ name: 'input', type: 'number' }) }),
+      );
 
     const inputs = getAllByTestId('input');
     expect(inputs).toHaveLength(1);
 
     updateInterface(
-      Box({ children: [Input({ name: 'input' }), Input({ name: 'input2' })] }),
+      Box({
+        children: [
+          Input({ name: 'input', type: 'number' }),
+          Input({ name: 'input2', type: 'password' }),
+        ],
+      }),
     );
 
     const inputsAfterRerender = getAllByTestId('input');
@@ -533,7 +540,11 @@ describe('SnapUIRenderer', () => {
             Field({
               label: 'My Input',
               children: [
-                ImageComponent({ src: '<svg />' }),
+                Box({
+                  children: [
+                    ImageComponent({ src: '<svg height="32" width="32" />' }),
+                  ],
+                }),
                 Input({ name: 'input' }),
                 Button({ type: 'submit', name: 'submit', children: 'Submit' }),
               ],

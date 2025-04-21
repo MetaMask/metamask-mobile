@@ -44,6 +44,12 @@ pipelines:
       - build_e2e_ios_stage: {}
       - run_e2e_ios_stage: {}
       - notify: {}
+  #Run E2E test suite for  Flask builds
+  run_e2e_flask_pipeline:
+    stages:
+      - build_e2e_flask_ios_android: {}
+      - run_e2e_flask_ios_android: {}
+      - notify: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
@@ -80,10 +86,10 @@ pipelines:
     stages:
       - create_build_qa_android: {}
       - app_upgrade_test_stage: {}
-  multichain_permissions_e2e_pipeline:
-    stages:
-      - build_multichain_permissions_e2e_ios_android_stage: {}
-      - run_multichain_permissions_e2e_ios_android_stage: {}
+  # multichain_permissions_e2e_pipeline:
+  #   stages:
+  #     - build_multichain_permissions_e2e_ios_android_stage: {}
+  #     - run_multichain_permissions_e2e_ios_android_stage: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
@@ -137,6 +143,7 @@ stages:
       - build_android_devbuild: {}
       - build_android_qa: {}
       - build_ios_devbuild: {}
+      - build_ios_simbuild: {}
       - build_ios_qa: {}
   create_build_qa_flask:
     workflows:
@@ -168,32 +175,26 @@ stages:
     workflows:
       - build_ios_multichain_permissions_e2e: {}
       - build_android_multichain_permissions_e2e: {}
-  run_multichain_permissions_e2e_ios_android_stage:
-    workflows:
-      - run_tag_multichain_permissions_ios: {}
-      - run_tag_multichain_permissions_android: {}
+  # run_multichain_permissions_e2e_ios_android_stage:
+  #   workflows:
+  #     - run_tag_multichain_permissions_ios: {}
+  #     - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_ios_api_specs: {}
-      - run_tag_smoke_accounts_ios: {}
-      - run_tag_smoke_accounts_android: {}
-      # - run_tag_smoke_identity_ios: {}
-      # - run_tag_smoke_identity_android: {}
-      # - run_tag_smoke_assets_ios: {}
-      - run_tag_smoke_assets_android: {}
+      - run_trade_swimlane_ios_smoke: {}
+      - run_trade_swimlane_android_smoke: {}
+      - run_network_abstraction_swimlane_ios_smoke: {}
+      - run_network_abstraction_swimlane_android_smoke: {}
+      - run_network_expansion_swimlane_ios_smoke: {}
+      - run_network_expansion_swimlane_android_smoke: {}
+      - run_wallet_platform_swimlane_ios_smoke: {}
+      - run_wallet_platform_swimlane_android_smoke: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
-      - run_tag_smoke_ramps_android: {}
-      # - run_tag_smoke_ramps_ios: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      - run_tag_smoke_swaps_ios: {}
-      - run_tag_smoke_swaps_android: {}
-      # - run_tag_smoke_stake_ios: {}
-      # - run_tag_smoke_stake_android: {}
-      - run_tag_smoke_core_ios: {}
-      - run_tag_smoke_core_android: {}
-      - run_tag_multichain_permissions_ios: {}
-      - run_tag_multichain_permissions_android: {}
+      # - run_tag_multichain_permissions_ios: {}
+      # - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -206,21 +207,20 @@ stages:
     workflows:
       - ios_run_regression_tests: {}
       - android_run_regression_tests: {}
+      - run_ios_api_specs: {}
+      - run_trade_swimlane_ios_smoke: {}
+      - run_trade_swimlane_android_smoke: {}
+      - run_network_expansion_swimlane_ios_smoke: {}
+      - run_network_expansion_swimlane_android_smoke: {}
+      - run_network_abstraction_swimlane_ios_smoke: {}
+      - run_network_abstraction_swimlane_android_smoke: {}
+      - run_wallet_platform_swimlane_ios_smoke: {}
+      - run_wallet_platform_swimlane_android_smoke: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      - run_tag_smoke_accounts_ios: {}
-      - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_ramps_android: {}
-      - run_tag_smoke_ramps_ios: {}
-      # - run_tag_smoke_identity_ios: {}
-      # - run_tag_smoke_identity_android: {}
-      # - run_tag_smoke_assets_ios: {}
-      - run_tag_smoke_assets_android: {}
-      # - run_tag_smoke_swaps_ios: {}
-      # - run_tag_smoke_swaps_android: {}
-      - run_tag_smoke_core_ios: {}
-      - run_tag_smoke_core_android: {}
+      # - run_tag_multichain_permissions_ios: {}
+      # - run_tag_multichain_permissions_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
   report_results_stage:
@@ -247,13 +247,21 @@ stages:
   app_launch_times_test_stage:
     workflows:
       - run_android_app_launch_times_appium_test: {}
-      - run_ios_app_launch_times_appium_test: {}
+      # - run_ios_app_launch_times_appium_test: {}
   app_upgrade_test_stage:
     workflows:
       - run_tag_upgrade_android: {}
   release_notify:
     workflows:
       - release_announcing_stores: {}
+  build_e2e_flask_ios_android:
+    workflows:
+      - build_flask_e2e_android: {}
+      - build_flask_e2e_ios: {}
+  run_e2e_flask_ios_android:
+    workflows:
+      - run_flask_e2e_android: {}
+      - run_flask_e2e_ios: {}
   create_build_flask_release:
     workflows:
       - build_android_flask_release: {}
@@ -555,13 +563,11 @@ workflows:
   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
   ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection
   ios_build_regression_tests:
-    envs:
-      - TEST_SUITE: 'Regression'
     after_run:
       - ios_e2e_build
   ios_run_regression_tests:
     envs:
-      - TEST_SUITE: 'Regression'
+      - TEST_SUITE_TAG: 'Regression'
     after_run:
       - ios_e2e_test
   android_build_regression_tests:
@@ -569,10 +575,6 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE: 'Regression'
-      - MM_MULTICHAIN_V1_ENABLED: false
-      - MM_CHAIN_PERMISSIONS: false
     after_run:
       - android_e2e_build
   android_run_regression_tests:
@@ -581,24 +583,94 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE: 'Regression'
+      - TEST_SUITE_TAG: 'Regression'
     after_run:
       - android_e2e_test
-  run_tag_upgrade_android:
+  download_production_qa_apk:
+    steps:
+      - script@1:
+          title: Download Production QA APK
+          inputs:
+            - content: |
+                #!/usr/bin/env bash
+                ./scripts/download-android-qa-app.sh
+                # APK_PATH is already set by the download script using envman
+  build_flask_e2e_android:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://6b59d556df4a5a0448ff161cbfcab16d92607b72' # Last production's QA build
-      - PRODUCTION_BUILD_NAME: 7.38.0
-      - PRODUCTION_BUILD_NUMBER: 1528
-      - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
-      - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
-      - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
-      - TEST_TYPE: 'upgrade'
+      - METAMASK_BUILD_TYPE: 'flask'
     after_run:
-      - wdio_android_e2e_test
+      - android_e2e_build
+  run_flask_e2e_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - android_e2e_test
+  build_flask_e2e_ios:
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - ios_e2e_build
+  run_flask_e2e_ios:
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - ios_e2e_test
+  run_tag_upgrade_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    before_run:
+      - setup
+      - prep_environment
+      - download_production_qa_apk
+    after_run:
+      -  wdio_android_e2e_test
+    envs:
+      - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
+      - TEST_TYPE: 'upgrade'
+      - NEW_BUILD_STRING: 'MetaMask v$VERSION_NAME ($VERSION_NUMBER)' # this is the build string for the new build that was generated by build_android_qa
+    steps:
+      - script@1:
+          title: Set Build Strings
+          inputs:
+            - content: |
+                envman add --key PRODUCTION_BUILD_STRING --value "MetaMask v${PRODUCTION_BUILD_NAME} (${PRODUCTION_BUILD_NUMBER})"
+                
+                BITRISE_GIT_BRANCH="qa-release"
+                VERSION_NAME="$PRODUCTION_BUILD_NAME" #  This value (PRODUCTION_BUILD_NAME) comes from the script to download the production build
+                VERSION_NUMBER="$PRODUCTION_BUILD_NUMBER" # This value (PRODUCTION_BUILD_NUMBER) comes from the script to download the production build
+                echo "Using qa-release with production version: $VERSION_NAME ($VERSION_NUMBER)"
+
+                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
+                CUSTOM_ID=${CUSTOM_ID////-}
+
+                #### The UPLOAD_APK_PATH is the path to the apk file that was downloaded by the download_production_qa_apk step
+                echo "apk path: $UPLOAD_APK_PATH"
+                RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+                    -F "file=@$UPLOAD_APK_PATH" \
+                    -F 'data={"custom_id": "'$CUSTOM_ID'"}')
+
+                # Extract app_url
+                APP_URL=$(echo "$RESPONSE" | jq -r '.app_url')
+
+                # Set the environment variable
+                envman add --key PRODUCTION_APP_URL --value "$APP_URL"
+                
+                # Debug output
+                echo "Response: $RESPONSE"
+                echo "APP_URL: $APP_URL"
+                echo "PRODUCTION_APP_URL: $PRODUCTION_APP_URL"
+      
   build_ios_multichain_permissions_e2e:
     after_run:
       - ios_e2e_build
@@ -646,58 +718,70 @@ workflows:
       - wdio_ios_e2e_test
 
   ### Separating workflows so they run concurrently during smoke runs
-  run_tag_smoke_accounts_ios:
+  run_network_expansion_swimlane_ios_smoke:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
-      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+      - TEST_SUITE_TAG: '.*NetworkExpansion.*'
     after_run:
       - ios_e2e_test
-  run_tag_smoke_accounts_android:
+  run_network_expansion_swimlane_android_smoke:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
-      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+      - TEST_SUITE_TAG: '.*NetworkExpansion.*'
     after_run:
       - android_e2e_test
-  run_tag_smoke_identity_ios:
+  
+  run_wallet_platform_swimlane_ios_smoke:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/identity/*'
-      - TEST_SUITE_TAG: '.*SmokeIdentity.*'
+      - TEST_SUITE_TAG: '.*SmokeWalletPlatform.*'
     after_run:
       - ios_e2e_test
-  run_tag_smoke_identity_android:
+  run_wallet_platform_swimlane_android_smoke:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/identity/*'
-      - TEST_SUITE_TAG: '.*SmokeIdentity.*'
+      - TEST_SUITE_TAG: '.*SmokeWalletPlatform.*'
     after_run:
       - android_e2e_test
-  run_tag_smoke_assets_ios:
+
+  run_network_abstraction_swimlane_ios_smoke:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
-      - TEST_SUITE_TAG: '.*SmokeAssets.*'
+      - TEST_SUITE_TAG: '.*SmokeNetworkAbstraction.*'
     after_run:
       - ios_e2e_test
-  run_tag_smoke_assets_android:
+  run_network_abstraction_swimlane_android_smoke:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
-      - TEST_SUITE_TAG: '.*SmokeAssets.*'
+      - TEST_SUITE_TAG: '.*SmokeNetworkAbstraction.*'
     after_run:
       - android_e2e_test
+  run_trade_swimlane_ios_smoke:
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeTrade.*'
+    after_run:
+      - ios_e2e_test
+  run_trade_swimlane_android_smoke:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeTrade.*'
+    after_run:
+      - android_e2e_test
+  run_ios_api_specs:
+    after_run:
+      - ios_api_specs
   run_tag_smoke_confirmations_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
-      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
+      - TEST_SUITE_TAG: 'SmokeConfirmations '
     after_run:
       - ios_e2e_test
   run_tag_smoke_confirmations_android:
@@ -706,70 +790,16 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
-      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
+      - TEST_SUITE_TAG: 'SmokeConfirmations '
     after_run:
       - android_e2e_test
   run_tag_smoke_confirmations_redesigned_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations-redesigned/*'
-      - TEST_SUITE_TAG: '.*SmokeConfirmationsRedesigned.*'
+      - TEST_SUITE_TAG: 'SmokeConfirmationsRedesigned'
     after_run:
       - ios_e2e_test
-  run_tag_smoke_swaps_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
-      - TEST_SUITE_TAG: '.*SmokeSwaps.*'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_swaps_android:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
-      - TEST_SUITE_TAG: '.*SmokeSwaps.*'
-    after_run:
-      - android_e2e_test
-  run_tag_smoke_stake_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/stake/*'
-      - TEST_SUITE_TAG: '.*SmokeStake.*'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_stake_android:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/stake/*'
-      - TEST_SUITE_TAG: '.*SmokeStake.*'
-    after_run:
-      - android_e2e_test
-  run_ios_api_specs:
-    after_run:
-      - ios_api_specs
-  run_tag_smoke_core_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
-      - TEST_SUITE_TAG: '.*SmokeCore.*'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_core_android:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
-      - TEST_SUITE_TAG: '.*SmokeCore.*'
-    after_run:
-      - android_e2e_test
   run_tag_multichain_permissions_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
       - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
     after_run:
       - ios_e2e_test
@@ -779,26 +809,10 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
       - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
     after_run:
       - android_e2e_test
-  run_tag_smoke_ramps_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/ramps/*'
-      - TEST_SUITE_TAG: '.*SmokeRamps.*'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_ramps_android:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/ramps/*'
-      - TEST_SUITE_TAG: '.*SmokeRamps.*'
-    after_run:
-      - android_e2e_test
+
   android_e2e_build:
     before_run:
       - code_setup
@@ -847,14 +861,9 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
       - save-gradle-cache@1: {}
       - save-cache@1:
@@ -921,21 +930,14 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                TEST_SUITE="Regression"
-                else
-                TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
+       
                 export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/
+                else
+                ./scripts/run-e2e-tags.sh
+                fi
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
@@ -1098,7 +1100,7 @@ workflows:
                 ./scripts/cache/setup-ccache.sh
                 node -v
                 export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
       - save-cocoapods-cache@1: {}
       - save-cache@1:
@@ -1167,28 +1169,28 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - script@1:
+          title: Boot up simulator
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                xcrun simctl boot "iPhone 15 Pro" || true
+                xcrun simctl list | grep Booted
+      - script@1:
           title: Run detox test
           timeout: 1200
           is_always_run: false
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
+
                 node -v
                 export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
+                else
+                ./scripts/run-e2e-tags.sh
+                fi
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -1280,22 +1282,32 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 # Set base paths for release builds
-                APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
-                BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
-                
+                           if [ "$IS_DEV_BUILD" = "true" ]; then
+                    APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/debug"
+                else
+                    APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
+                    BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
+                fi
+
                 # Generate new names based on build type and version
                 NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
-                
+
                 # Rename APK
-                OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
+                if [ "$IS_DEV_BUILD" = "true" ]; then
+                    OLD_APK="$APK_DIR/app-$APP_NAME-debug.apk"
+                    OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-debug.aab"
+                else
+                    OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
+                    OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
+                fi
+
                 NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
                 mv "$OLD_APK" "$NEW_APK"
-                
+
                 # Rename AAB
-                OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
                 NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
                 mv "$OLD_AAB" "$NEW_AAB"
-                
+
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
                 envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
@@ -1338,7 +1350,7 @@ workflows:
   build_android_release:
     envs:
       - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1349,7 +1361,7 @@ workflows:
   build_android_beta:
     envs:
       - METAMASK_BUILD_TYPE: 'beta'
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1361,7 +1373,7 @@ workflows:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
       - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1554,14 +1566,33 @@ workflows:
                 set -e
                 set -x
                 set -o pipefail
-                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
-                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
+                APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/qa/release"
+                ORIGINAL_APK="$APK_DIR/app-qa-release.apk"
+                
+                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"                
                 CUSTOM_ID=${CUSTOM_ID////-}
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_ANDROID_APP_URL
-                APK_PATH_FOR_APP_LIVE=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/"$CUSTOM_ID".apk
-                mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+                
+                mv "$ORIGINAL_APK" "$APK_DIR/$CUSTOM_ID.apk"
+                APK_PATH="$APK_DIR/$CUSTOM_ID.apk"
+                
+                # Upload to app-automate
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+                    -F "file=@$APK_PATH" \
+                    -F 'data={"custom_id": "'$CUSTOM_ID'"}' \
+                    | jq -j '.app_url' \
+                    | envman add --key BROWSERSTACK_ANDROID_APP_URL
+
+                # Upload to app-live
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X POST "https://api-cloud.browserstack.com/app-live/upload" \
+                    -F "file=@$APK_PATH" \
+                    -F 'data={"custom_id": "'$CUSTOM_ID'"}'
+
+                # Get recent apps
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X GET https://api-cloud.browserstack.com/app-automate/recent_apps \
+                    | jq > browserstack_uploaded_apps.json
       - share-pipeline-variable@1:
           title: Persist BROWSERSTACK_ANDROID_APP_URL across all stages
           inputs:
@@ -1579,6 +1610,14 @@ workflows:
     after_run:
       - notify_failure
     steps:
+      - script@1:
+          title: Debug Env Variables
+          inputs:
+            - content: |
+                echo "PRODUCTION_BUILD_NAME: $PRODUCTION_BUILD_NAME"
+                echo "PRODUCTION_BUILD_NUMBER: $PRODUCTION_BUILD_NUMBER"
+                echo "PRODUCTION_APP_URL from tag upgrade workflow: $PRODUCTION_APP_URL"
+                echo "BROWSERSTACK_ANDROID_APP_URL: $BROWSERSTACK_ANDROID_APP_URL"
       - script@1:
           title: Run Android E2E tests on Browserstack
           is_always_run: true
@@ -1687,19 +1726,27 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - certificate-and-profile-installer@1: {}
+      - certificate-and-profile-installer@1: {
+        run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
+      }
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $NAME
             - build_version: $NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/$INFO_PLIST_NAME
       - script@1:
+          title: iOS Sourcemaps & Build
+          is_always_run: false
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 echo 'This is the current build type: $METAMASK_BUILD_TYPE'
                 if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
+                    if [ "$IS_SIM_BUILD" = "true" ]; then
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
+                    else
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
+                    fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:ios:pre-release
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
@@ -1710,51 +1757,60 @@ workflows:
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
                 fi
-          title: iOS Sourcemaps & Build
-          is_always_run: false
       - script@1:
-          title: Rename release files
+          title: Rename iOS artifact files
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 # Set base paths
-                IPA_DIR="ios/build/output"
-                ARCHIVE_DIR="ios/build"
+                if [ "$IS_SIM_BUILD" = "true" ]; then
+                  BUILD_DIR="ios/build/Build/Products/Debug-iphonesimulator"
+                  DEVICE_TYPE="simulator"
+                  BINARY_EXTENSION=".app"
+                else
+                  BUILD_DIR="ios/build/output"
+                  DEVICE_TYPE="physical"
+                  BINARY_EXTENSION=".ipa"
+                fi
 
                 # Generate new name based on build type and version
-                NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
-                
-                # Rename IPA
-                OLD_IPA="$IPA_DIR/$APP_NAME.ipa"
-                NEW_IPA="$IPA_DIR/$NEW_BASE_NAME.ipa"
-                mv "$OLD_IPA" "$NEW_IPA"
-                
-                # Rename xcarchive
-                OLD_ARCHIVE="$ARCHIVE_DIR/$APP_NAME.xcarchive"
-                NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
-                mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
-                
+                NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+
+                # Rename binary
+                OLD_BINARY="$BUILD_DIR/$APP_NAME$BINARY_EXTENSION"
+                NEW_BINARY="$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
+                mv "$OLD_BINARY" "$NEW_BINARY"
+
+                # Rename xcarchive (only for non-simulator builds)
+                if [ "$IS_SIM_BUILD" != "true" ]; then
+                  ARCHIVE_DIR="ios/build"
+                  OLD_ARCHIVE="$ARCHIVE_DIR/$APP_NAME.xcarchive"
+                  NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
+                  mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
+                fi
+
                 # Export new names as environment variables
-                envman add --key RENAMED_IPA_FILE --value "$NEW_BASE_NAME.ipa"
                 envman add --key RENAMED_ARCHIVE_FILE --value "$NEW_BASE_NAME.xcarchive"
-                envman add --key IPA_DEPLOY_PATH --value "$IPA_DIR/$NEW_BASE_NAME.ipa"
+                envman add --key BINARY_DEPLOY_PATH --value "$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: ios/build/output/$RENAMED_IPA_FILE:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: $IPA_DEPLOY_PATH
-          title: Deploy iOS IPA
+            - pipeline_intermediate_files: $BINARY_DEPLOY_PATH:BITRISE_APP_STORE_IPA_PATH
+            - deploy_path: $BINARY_DEPLOY_PATH
+            - is_compress: true
+          title: Deploy iOS Binary
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
-          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+          run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
           inputs:
             - deploy_path: ios/build/$RENAMED_ARCHIVE_FILE
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
           inputs:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
@@ -1762,7 +1818,7 @@ workflows:
   build_ios_release:
     envs:
       - METAMASK_BUILD_TYPE: "main"
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -1773,7 +1829,7 @@ workflows:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
       - METAMASK_BUILD_TYPE: "main"
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -1783,7 +1839,7 @@ workflows:
   build_ios_beta:
     envs:
       - METAMASK_BUILD_TYPE: "beta"
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -1793,11 +1849,23 @@ workflows:
   build_ios_flask_release:
     envs:
       - METAMASK_BUILD_TYPE: "flask"
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_simbuild:
+    envs:
+      - IS_SIM_BUILD: 'true'
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'debug'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: 'MetaMask'
+      - INFO_PLIST_NAME: 'Info.plist'
     after_run:
       - _ios_build_template
   build_ios_devbuild:
@@ -1864,14 +1932,34 @@ workflows:
                 set -e
                 set -x
                 set -o pipefail
+
+                IPA_DIR="ios/build/output"
+                ORIGINAL_IPA="$IPA_DIR/MetaMask-QA.ipa"
+                
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
-                IPA_PATH=ios/build/output/MetaMask-QA.ipa
-                IPA_PATH_FOR_APP_LIVE=ios/build/output/"$CUSTOM_ID".ipa
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_IOS_APP_URL
-                mv "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+                
+                mv "$ORIGINAL_IPA" "$IPA_DIR/$CUSTOM_ID.ipa"
+                IPA_PATH="$IPA_DIR/$CUSTOM_ID.ipa"
+
+                # Upload to app-automate
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+                    -F "file=@$IPA_PATH" \
+                    -F 'data={"custom_id": "'$CUSTOM_ID'"}' \
+                    | jq -j '.app_url' \
+                    | envman add --key BROWSERSTACK_IOS_APP_URL
+                echo "BROWSERSTACK_IOS_APP_URL: $BROWSERSTACK_IOS_APP_URL"
+                # Upload to app-live
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X POST "https://api-cloud.browserstack.com/app-live/upload" \
+                    -F "file=@$IPA_PATH" \
+                    -F 'data={"custom_id": "'$CUSTOM_ID'"}'
+
+                # Get recent apps
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X GET https://api-cloud.browserstack.com/app-automate/recent_apps \
+                    | jq > browserstack_uploaded_apps.json
       - share-pipeline-variable@1:
           title: Persist BROWSERSTACK_IOS_APP_URL across all stages
           inputs:
@@ -2068,7 +2156,7 @@ app:
   envs:
     - opts:
         is_expand: false
-      MM_NOTIFICATIONS_UI_ENABLED: false
+      MM_NOTIFICATIONS_UI_ENABLED: true
     - opts:
         is_expand: false
       MM_NETWORK_UI_REDESIGN_ENABLED: false
@@ -2119,16 +2207,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.43.0
+      VERSION_NAME: 7.44.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1656
+      VERSION_NUMBER: 1685
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.43.0
+      FLASK_VERSION_NAME: 7.44.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1656
+      FLASK_VERSION_NUMBER: 1685
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
