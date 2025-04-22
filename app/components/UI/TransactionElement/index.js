@@ -710,7 +710,7 @@ TransactionElement.contextType = ThemeContext;
 
 // Create a wrapper functional component
 const TransactionElementWithBridge = (props) => {
-  const bridgeTxHistoryData = useBridgeTxHistoryData({ txMeta: props.tx });
+  const bridgeTxHistoryData = useBridgeTxHistoryData({ evmTxMeta: props.tx });
 
   return (
     <TransactionElement {...props} bridgeTxHistoryData={bridgeTxHistoryData} />
