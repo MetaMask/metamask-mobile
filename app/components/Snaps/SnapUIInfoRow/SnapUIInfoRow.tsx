@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { ReactNode } from 'react';
 import { View } from 'react-native';
 import Text, {
@@ -27,7 +26,6 @@ export interface SnapUIInfoRowProps {
   variant?: RowVariant | string;
 }
 
-// Helper function to convert variant strings to TextColor
 const getColorFromVariant = (variant?: RowVariant | string): TextColor => {
   if (variant === RowVariant.Critical || variant === 'critical')
     return TextColor.Error;
@@ -36,7 +34,6 @@ const getColorFromVariant = (variant?: RowVariant | string): TextColor => {
   return TextColor.Default;
 };
 
-// Helper function to get the corresponding IconColor from variant
 const getIconColorFromVariant = (variant?: RowVariant | string): IconColor => {
   if (variant === RowVariant.Critical || variant === 'critical')
     return IconColor.Error;
@@ -119,4 +116,3 @@ export const SnapUIInfoRow: React.FC<SnapUIInfoRowProps> = ({
 };
 
 export default SnapUIInfoRow;
-///: END:ONLY_INCLUDE_IF
