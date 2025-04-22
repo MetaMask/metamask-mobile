@@ -182,6 +182,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                     "padding": 16,
                   }
                 }
+                testID="nft-import-network-selector-dropdown"
               >
                 <Text
                   style={
@@ -936,6 +937,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                 "padding": 16,
               }
             }
+            testID="nft-import-network-selector-dropdown"
           >
             <Text
               style={
