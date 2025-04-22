@@ -220,10 +220,6 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * oauth2LoginError
-     */
-    oauth2LoginError: PropTypes.string,
   };
   notificationAnimated = new Animated.Value(100);
   detailsYAnimated = new Animated.Value(0);
@@ -285,6 +281,7 @@ class Onboarding extends PureComponent {
   };
 
   componentDidMount() {
+    this.props.unsetLoading();
     this.updateNavBar();
     this.mounted = true;
     this.checkIfExistingUser();
@@ -363,32 +360,6 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
-
-  metricNavigationWrapper = (targetRoute, previousScreen, metricEvent) => {
-    const { metrics } = this.props;
-    if (metrics.isEnabled()) {
-      this.props.navigation.push(
-        targetRoute,
-        {
-          [PREVIOUS_SCREEN]: previousScreen,
-        }
-      );
-      this.track(metricEvent === 'import' ? MetaMetricsEvents.WALLET_IMPORT_STARTED : MetaMetricsEvents.WALLET_SETUP_STARTED);
-    } else {
-      this.props.navigation.navigate('OptinMetrics', {
-        onContinue: () => {
-          this.props.navigation.replace(
-            targetRoute,
-            {
-              [PREVIOUS_SCREEN]: previousScreen,
-            }
-          );
-          this.track(metricEvent === 'import' ? MetaMetricsEvents.WALLET_IMPORT_STARTED : MetaMetricsEvents.WALLET_SETUP_STARTED);
-        },
-      });
-    }
-  };
-
   handlePostSocialLogin = (result) => {
     if (result.type === 'success') {
       if (this.state.createWallet) {
@@ -397,11 +368,17 @@ class Onboarding extends PureComponent {
             accountName: result.accountName,
           });
         } else {
-          this.metricNavigationWrapper('ChoosePassword', ONBOARDING, 'create');
+          this.props.navigation.push('ChoosePassword', {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+          });
+          this.track(MetaMetricsEvents.WALLET_SETUP_STARTED)
         }
       } else if (!this.state.createWallet) {
         if (result.existingUser) {
-          this.metricNavigationWrapper('Login', ONBOARDING, 'import');
+          this.props.navigation.push('Login', {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+          });
+          this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED)
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,

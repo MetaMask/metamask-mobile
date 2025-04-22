@@ -525,6 +525,8 @@ class AuthenticationService {
             // await KeyringController.addSRP(item, password);
           // }
         }
+        this.dispatchLogin();
+        this.dispatchPasswordSet();
         this.dispatchOauth2Reset();
       } else {
         throw new Error('No account data found');
