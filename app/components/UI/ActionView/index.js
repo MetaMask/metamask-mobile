@@ -36,9 +36,10 @@ const getStyles = (colors) =>
     },
     actionContainer: {
       width: '100%',
-      flexDirection: 'column',
+      flexDirection: 'row',
       justifyContent: 'flex-end',
       marginBottom: 16,
+      paddingHorizontal: 16,
     },
     button: {
       flexDirection: 'column',
@@ -51,7 +52,6 @@ const getStyles = (colors) =>
     confirm: {
       marginTop: 'auto',
       marginLeft: 8,
-      backgroundColor: colors.primary.default,
     },
     confirmButtonError: {
       backgroundColor: colors.error.default,
@@ -85,6 +85,8 @@ export default function ActionView({
   style = undefined,
   confirmButtonState = ConfirmButtonState.Normal,
   scrollViewTestID,
+  rootStyle,
+  buttonContainerStyle,
 }) {
   const { colors } = useTheme();
   confirmText = confirmText || strings('action_view.confirm');
@@ -94,7 +96,7 @@ export default function ActionView({
   return (
     <View style={[baseStyles.flexGrow, styles.actionView]}>
       <KeyboardAwareScrollView
-        contentContainerStyle={styles.root}
+        contentContainerStyle={rootStyle}
         style={[baseStyles.flexGrow, style, styles.actionView]}
         resetScrollToCoords={{ x: 0, y: 0 }}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
@@ -114,7 +116,7 @@ export default function ActionView({
             {children}
           </TouchableWithoutFeedback>
 
-          <View style={styles.actionContainer}>
+          <View style={[styles.actionContainer, buttonContainerStyle]}>
             {showCancelButton && (
               <StyledButton
                 testID={cancelTestID}
@@ -246,4 +248,12 @@ ActionView.propTypes = {
    * Optional TestID for the parent scroll View
    */
   scrollViewTestID: PropTypes.string,
+  /**
+   * Optional View styles. Applies to scroll view
+   */
+  rootStyle: PropTypes.object,
+  /**
+   * Optional View styles. Applies to action container
+   */
+  buttonContainerStyle: PropTypes.object,
 };

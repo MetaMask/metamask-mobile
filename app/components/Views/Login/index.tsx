@@ -442,7 +442,7 @@ const Login: React.FC = () => {
           resetScrollToCoords={{ x: 0, y: 0 }}
           style={styles.wrapper}
         >
-          <View testID={LoginViewSelectors.CONTAINER}>
+          <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
             <Image
               source={METAMASK_NAME}
               style={styles.metamaskName}
