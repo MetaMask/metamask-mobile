@@ -5,6 +5,28 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useRampSDK } from '../sdk';
 import { Region } from '../types';
 import useSDKMethod from './useSDKMethod';
+import { Country, State } from '@consensys/on-ramp-sdk';
+import { createBuyNavigationDetails } from '../routes/utils';
+import {createBuildQuoteNavDetails} from "../Views/BuildQuote/BuildQuote";
+
+export const isCountry = (region: Country | State | null): region is Country =>
+  (region as Country).states !== undefined;
+
+const findGeolocatedRegion = (regions: (Country | State)[]): Region | null => {
+  for (const region of regions) {
+    if (region.detected) {
+      if (isCountry(region) && region.states.length > 0) {
+        const detectedState = region.states.find((state) => state.detected);
+        if (detectedState) {
+          return detectedState as Region;
+        }
+      } else {
+        return region as Region;
+      }
+    }
+  }
+  return null;
+};
 
 export default function useRegions() {
   const navigation = useNavigation();
@@ -49,6 +71,15 @@ export default function useRegions() {
       });
     }
   }, [navigation, route.name]);
+
+  useEffect(() => {
+    if (!data || selectedRegion) return;
+    const detectedRegion = findGeolocatedRegion(data);
+    if (detectedRegion) {
+      setSelectedRegion(detectedRegion);
+      navigation.navigate(...createBuildQuoteNavDetails());
+    }
+  }, [data, navigation, selectedRegion, setSelectedRegion]);
 
   useEffect(() => {
     if (!updatedRegion) return;
