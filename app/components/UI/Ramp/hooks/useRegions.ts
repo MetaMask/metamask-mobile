@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { isEqual } from 'lodash';
 import Routes from '../../../../constants/navigation/Routes';
@@ -6,13 +6,11 @@ import { useRampSDK } from '../sdk';
 import { Region } from '../types';
 import useSDKMethod from './useSDKMethod';
 import { Country, State } from '@consensys/on-ramp-sdk';
-import { createBuyNavigationDetails } from '../routes/utils';
-import {createBuildQuoteNavDetails} from "../Views/BuildQuote/BuildQuote";
 
 export const isCountry = (region: Country | State | null): region is Country =>
   (region as Country).states !== undefined;
 
-const findGeolocatedRegion = (regions: (Country | State)[]): Region | null => {
+const findDetectedRegion = (regions: (Country | State)[]): Region | null => {
   for (const region of regions) {
     if (region.detected) {
       if (isCountry(region) && region.states.length > 0) {
@@ -39,6 +37,8 @@ export default function useRegions() {
     isBuy,
     isSell,
   } = useRampSDK();
+
+  const [isDetecting, setisDetecting] = useState(!selectedRegion);
 
   const [{ data, isFetching, error }, queryGetCountries] =
     useSDKMethod('getCountries');
@@ -73,13 +73,14 @@ export default function useRegions() {
   }, [navigation, route.name]);
 
   useEffect(() => {
-    if (!data || selectedRegion) return;
-    const detectedRegion = findGeolocatedRegion(data);
+    if (!data || selectedRegion || !isDetecting) return;
+    const detectedRegion = findDetectedRegion(data);
     if (detectedRegion) {
       setSelectedRegion(detectedRegion);
-      navigation.navigate(...createBuildQuoteNavDetails());
     }
-  }, [data, navigation, selectedRegion, setSelectedRegion]);
+
+    setisDetecting(false);
+  }, [data, navigation, selectedRegion, setSelectedRegion, isDetecting]);
 
   useEffect(() => {
     if (!updatedRegion) return;
@@ -121,6 +122,7 @@ export default function useRegions() {
   return {
     data,
     isFetching,
+    isDetecting,
     error,
     query: queryGetCountries,
     selectedRegion,
