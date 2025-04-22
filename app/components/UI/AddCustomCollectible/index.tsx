@@ -79,7 +79,6 @@ const AddCustomCollectible = ({
   const [mounted, setMounted] = useState<boolean>(true);
   const [address, setAddress] = useState<string>('');
   const [tokenId, setTokenId] = useState<string>('');
-  const [noNetworkWarning, setNoNetworkWarning] = useState<string>('');
   const [warningAddress, setWarningAddress] = useState<string>('');
   const [warningTokenId, setWarningTokenId] = useState<string>('');
   const [inputWidth, setInputWidth] = useState<string | undefined>(
@@ -258,12 +257,6 @@ const AddCustomCollectible = ({
               selectedNetwork={selectedNetwork ?? ''}
               chainId={chainId as Hex}
             />
-            <Text
-              style={styles.warningText}
-              testID={NFTImportScreenSelectorsIDs.NO_NETWORK_WARNING_MESSAGE}
-            >
-              {noNetworkWarning}
-            </Text>
           </View>
           <View style={styles.rowWrapper}>
             <Text style={styles.rowTitleText}>
