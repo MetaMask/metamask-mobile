@@ -11,7 +11,11 @@ const createStyles = (colors: ThemeColors) =>
     },
   });
 
-const ScreenView: React.FC = (props) => {
+interface ScreenViewProps {
+  children: React.ReactNode;
+}
+
+const ScreenView: React.FC<ScreenViewProps> = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
