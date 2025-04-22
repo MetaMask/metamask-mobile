@@ -1,8 +1,5 @@
 import React from 'react';
-import renderWithProvider, {
-  renderScreen,
-} from '../../../util/test/renderWithProvider';
-import QrScanner from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import NftOptions from './';
 
