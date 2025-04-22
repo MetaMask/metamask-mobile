@@ -17,6 +17,12 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     width: '100%',
   },
+  errorTitle: {
+    textAlign: 'center',
+    alignSelf: 'center',
+    width: '70%',
+    marginHorizontal: 'auto',
+  },
 });
 
 export default styles;

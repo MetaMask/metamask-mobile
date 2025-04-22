@@ -109,6 +109,23 @@ const ProtectYourWallet = ({
           label={strings('app_settings.learn_more')}
         />
       )}
+      <Banner
+        variant={BannerVariant.Alert}
+        severity={BannerAlertSeverity.Success}
+        title={strings('app_settings.social_login_linked')}
+        description={
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            yourusername@gmail.com
+          </Text>
+        }
+        style={styles.accessory}
+      />
+      <Banner
+        variant={BannerVariant.Alert}
+        severity={BannerAlertSeverity.Error}
+        title={strings('app_settings.social_login_linked')}
+        style={styles.accessory}
+      />
       {srpBackedup ? (
         <Banner
           variant={BannerVariant.Alert}
@@ -145,7 +162,7 @@ const ProtectYourWallet = ({
         />
       ) : (
         <Button
-          label={strings('reveal_credential.seed_phrase_title')}
+          label={strings('app_settings.protect_title')}
           width={ButtonWidthTypes.Full}
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}

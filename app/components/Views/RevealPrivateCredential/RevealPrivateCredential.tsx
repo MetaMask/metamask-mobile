@@ -596,7 +596,7 @@ const RevealPrivateCredential = ({
           <Text style={styles.warningMessageText}>
             {strings(
               `reveal_credential.${privCredentialName}_warning_explanation`,
-            )}
+            )}{' '}
           </Text>
         ) : (
           <Text style={styles.warningMessageText}>
@@ -646,6 +646,7 @@ const RevealPrivateCredential = ({
               renderSRPExplanation()
             )}
           </View>
+
           {renderWarning(credentialSlug)}
 
           <View style={styles.rowWrapper}>

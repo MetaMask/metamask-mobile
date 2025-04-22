@@ -54,7 +54,11 @@ const ErrorSheet = ({
           color={colors.error.default}
         />
         {typeof errorTitle === 'string' ? (
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.HeadingMD}
+            color={TextColor.Default}
+            style={styles.errorTitle}
+          >
             {errorTitle}
           </Text>
         ) : (

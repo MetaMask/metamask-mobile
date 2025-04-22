@@ -91,6 +91,7 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
+import PasswordHint from '../../Views/PasswordHint';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -206,7 +207,10 @@ const TransactionsHome = () => (
       name={Routes.RAMP.SEND_TRANSACTION}
       component={SendTransaction}
     />
-    <Stack.Screen name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS} component={BridgeTransactionDetails} />
+    <Stack.Screen
+      name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
+      component={BridgeTransactionDetails}
+    />
   </Stack.Navigator>
 );
 
@@ -359,6 +363,11 @@ const SettingsFlow = () => (
       name="ResetPassword"
       component={ResetPassword}
       options={ResetPassword.navigationOptions}
+    />
+    <Stack.Screen
+      name="PasswordHint"
+      component={PasswordHint}
+      options={PasswordHint.navigationOptions}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
