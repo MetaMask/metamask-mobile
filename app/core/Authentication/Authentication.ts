@@ -31,6 +31,10 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
+import {
+  MultichainWalletSnapFactory,
+  WalletClientType,
+} from '../SnapKeyring/MultichainWalletSnapClient';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -101,6 +105,15 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
+
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    const primaryHdKeyringId =
+      Engine.context.KeyringController.state.keyringsMetadata[0].id;
+    const client = await MultichainWalletSnapFactory.createClient(
+      WalletClientType.Solana,
+    );
+    await client.addDiscoveredAccounts(primaryHdKeyringId);
+    ///: END:ONLY_INCLUDE_IF(beta)
     password = this.wipeSensitiveData();
   };
 
