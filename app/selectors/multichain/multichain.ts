@@ -109,10 +109,10 @@ export const selectMultichainShouldShowFiat = createDeepEqualSelector(
   selectMultichainIsMainnet,
   selectIsEvmNetworkSelected,
   selectShowFiatInTestnets,
-  (multichainIsMainnet, isEvmSelected, shouldShowFiatOnTestnets) => {
+  (multichainIsMainnet, isEvmSelected, shouldShowFiatOnTestnets): boolean => {
     const isTestnet = !multichainIsMainnet;
     if (isEvmSelected) {
-      return isTestnet ? shouldShowFiatOnTestnets : true; // Is it safe to assume that we default show fiat for mainnet?
+      return isTestnet ? (shouldShowFiatOnTestnets as boolean) : true; // Is it safe to assume that we default show fiat for mainnet?
     }
     return (
       multichainIsMainnet || (isTestnet && Boolean(shouldShowFiatOnTestnets))

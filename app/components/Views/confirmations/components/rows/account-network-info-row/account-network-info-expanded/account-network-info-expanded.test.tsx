@@ -3,7 +3,7 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { personalSignatureConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import AccountNetworkInfoExpanded from './account-network-info-expanded';
 import { isPortfolioViewEnabled } from '../../../../../../../util/networks';
-import { useMultichainBalances } from '../../../../../../../components/hooks/useMultichainBalances';
+import { useMultichainBalancesForSelectedAccount } from '../../../../../../../components/hooks/useMultichainBalances';
 
 jest.mock('../../../../../../../util/networks', () => ({
   ...jest.requireActual('../../../../../../../util/networks'),
@@ -29,12 +29,14 @@ jest.mock(
 
 describe('AccountNetworkInfoExpanded', () => {
   const mockIsPortfolioViewEnabled = jest.mocked(isPortfolioViewEnabled);
-  const mockUseMultichainBalances = jest.mocked(useMultichainBalances);
+  const mockUseMultichainBalancesForSelectedAccount = jest.mocked(
+    useMultichainBalancesForSelectedAccount,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsPortfolioViewEnabled.mockReturnValue(false);
-    mockUseMultichainBalances.mockReturnValue({
+    mockUseMultichainBalancesForSelectedAccount.mockReturnValue({
       selectedAccountMultichainBalance: {
         displayBalance: '$0.00',
         displayCurrency: 'USD',
@@ -51,7 +53,6 @@ describe('AccountNetworkInfoExpanded', () => {
           ethFiat1dAgo: 0,
         },
       },
-      multichainBalancesForAllAccounts: {},
     });
   });
 

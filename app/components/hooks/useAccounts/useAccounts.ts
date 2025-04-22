@@ -24,7 +24,7 @@ import {
   getFormattedAddressFromInternalAccount,
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
-import { useMultichainBalances } from '../useMultichainBalances';
+import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -48,6 +48,7 @@ const useAccounts = ({
   // Track re-renders
   useEffect(() => {
     renderCountRef.current += 1;
+    // eslint-disable-next-line no-console
     console.log(`useAccounts re-rendered ${renderCountRef.current} times`, {
       timestamp: new Date().toISOString(),
       chainId,
@@ -63,7 +64,8 @@ const useAccounts = ({
     });
   });
 
-  const { multichainBalancesForAllAccounts } = useMultichainBalances();
+  const { multichainBalancesForAllAccounts } =
+    useMultichainBalancesForAllAccounts();
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,

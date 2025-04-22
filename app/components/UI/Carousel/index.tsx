@@ -16,7 +16,7 @@ import { dismissBanner } from '../../../reducers/banners';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { useMultichainBalances } from '../../hooks/useMultichainBalances';
+import { useMultichainBalancesForSelectedAccount } from '../../hooks/useMultichainBalances';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -28,7 +28,8 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { selectedAccountMultichainBalance } = useMultichainBalances();
+  const { selectedAccountMultichainBalance } =
+    useMultichainBalancesForSelectedAccount();
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();
