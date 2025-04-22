@@ -14,10 +14,10 @@ import styleSheet from './Tooltip.styles';
 
 interface TooltipProps {
   content: string | ReactNode;
+  iconColor?: IconColor;
   onPress?: () => void;
   title?: string;
   tooltipTestId?: string;
-  iconColor?: IconColor;
 }
 
 interface TooltipModalProps {
