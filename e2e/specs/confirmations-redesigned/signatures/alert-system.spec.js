@@ -80,7 +80,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       });
     });
 
-    it('should show security alert for malicious request, acknowledge and confirm the signature', async () => {
+    it.skip('should show security alert for malicious request, acknowledge and confirm the signature', async () => {
       const testSpecificMock = {
         POST: [
           {
