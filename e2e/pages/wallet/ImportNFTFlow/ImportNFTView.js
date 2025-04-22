@@ -31,10 +31,6 @@ class ImportNFTView {
     );
   }
 
-  get networkSelection() {
-    return Matchers.getElementByText('Ethereum Mainnet');
-  }
-
   async typeInNFTAddress(address) {
     await Gestures.typeTextAndHideKeyboard(this.addressInput, address);
   }
@@ -47,8 +43,8 @@ class ImportNFTView {
     await Gestures.waitAndTap(this.networkDropdown);
   }
 
-  async selectNetworkByNetworkName() {
-    const networkListItem = await this.networkSelection();
+  async selectNetworkByNetworkName(network) {
+    const networkListItem = await Matchers.getElementByID(network);
     await Gestures.waitAndTap(networkListItem);
   }
 }

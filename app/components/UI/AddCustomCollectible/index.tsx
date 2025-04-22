@@ -130,7 +130,7 @@ const AddCustomCollectible = ({
     } else if (!isValidEthAddress) {
       setWarningAddress(strings('collectible.address_must_be_valid'));
       validated = false;
-    } else if (!(await isSmartContractAddress(address, chainId as string))) {
+    } else if (chainId && !(await isSmartContractAddress(address, chainId))) {
       setWarningAddress(strings('collectible.address_must_be_smart_contract'));
       validated = false;
     } else {

@@ -46,13 +46,14 @@ describe(SmokeNetworkAbstractions('NFT Details page'), () => {
 
         await WalletView.tapImportNFTButton();
         await Assertions.checkIfVisible(ImportNFTView.container);
+
+        await ImportNFTView.pressNetworkDropdown();
+        await ImportNFTView.selectNetworkByNetworkName('Localhost');
+
         await ImportNFTView.typeInNFTAddress('1234');
         await ImportNFTView.typeInNFTIdentifier('');
         await Assertions.checkIfVisible(ImportNFTView.addressWarningMessage);
         //await ImportNFTView.tapBackButton();
-
-        await ImportNFTView.pressNetworkDropdown();
-        await ImportNFTView.selectNetworkByNetworkName();
 
         await ImportNFTView.typeInNFTAddress(nftsAddress);
         await ImportNFTView.typeInNFTIdentifier('1');
