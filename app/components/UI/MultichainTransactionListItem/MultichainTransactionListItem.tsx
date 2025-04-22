@@ -22,6 +22,7 @@ import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
 import Routes from '../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
+import { calcTokenAmount } from '../../../util/transactions';
 
 const MultichainTransactionListItem = ({
   transaction,
@@ -137,9 +138,17 @@ const MultichainTransactionListItem = ({
                 />
               )}
             </ListItem.Body>
-            {Boolean(asset?.amount) && (
+            {!isBridgeTx && Boolean(asset?.amount) && (
               <ListItem.Amount style={style.listItemAmount as TextStyle}>
                 {asset?.amount} {asset?.unit}
+              </ListItem.Amount>
+            )}
+            {isBridgeTx && (
+              <ListItem.Amount style={style.listItemAmount as TextStyle}>
+                -{calcTokenAmount(
+                  bridgeHistoryItem.quote.srcTokenAmount,
+                  bridgeHistoryItem.quote.srcAsset.decimals,
+                ).toFixed(5)} {bridgeHistoryItem.quote.srcAsset.symbol}
               </ListItem.Amount>
             )}
           </ListItem.Content>
