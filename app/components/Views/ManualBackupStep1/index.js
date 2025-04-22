@@ -291,6 +291,8 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       confirmDisabled={seedPhraseHidden}
       showCancelButton={false}
       confirmButtonMode={'confirm'}
+      rootStyle={styles.actionView}
+      buttonContainerStyle={styles.buttonContainer}
     >
       <View
         style={styles.wrapper}

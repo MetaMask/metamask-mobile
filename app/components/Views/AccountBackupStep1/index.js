@@ -191,14 +191,12 @@ const AccountBackupStep1 = (props) => {
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
-    props.navigation.reset({
-      index: 1,
-      routes: [
-        {
-          name: Routes.ONBOARDING.SUCCESS,
-          params: { showPasswordHint: false },
-        },
-      ],
+    props.navigation.navigate('OptinMetrics', {
+      onContinue: () => {
+        props.navigation.navigate('OnboardingSuccess', {
+          showPasswordHint: false,
+        });
+      },
     });
   };
 
