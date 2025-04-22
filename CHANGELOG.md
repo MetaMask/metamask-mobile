@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - feat(bridge): Handle Solana vs EVM swap and bridge routing ([#14614](https://github.com/MetaMask/metamask-mobile/pull/14614))
 
+### Fixed
+
+- fix: Confirmation font sizes ([#14715](https://github.com/MetaMask/metamask-mobile/pull/14715))
+
 ## [7.44.0]
 
 ### Added
