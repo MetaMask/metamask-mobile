@@ -124,6 +124,7 @@ const BridgeView = () => {
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad = isInputFocused || !hasValidBridgeInputs;
+  const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
 
   // Compute error state directly from dependencies
   const isError = isNoQuotesAvailable || quoteFetchError;
@@ -137,6 +138,16 @@ const BridgeView = () => {
       updateQuoteParams.cancel();
     };
   }, [hasValidBridgeInputs, updateQuoteParams]);
+
+  // Blur input when quotes have loaded
+  useEffect(() => {
+    if (!isLoading) {
+      setIsInputFocused(false);
+      if (inputRef.current) {
+        inputRef.current.blur();
+      }
+    }
+  }, [isLoading]);
 
   // Reset bridge state when component unmounts
   useEffect(
@@ -157,7 +168,10 @@ const BridgeView = () => {
   useEffect(() => {
     const setBridgeFeatureFlags = async () => {
       try {
-        if (isBasicFunctionalityEnabled && Engine.context.BridgeController?.setBridgeFeatureFlags) {
+        if (
+          isBasicFunctionalityEnabled &&
+          Engine.context.BridgeController?.setBridgeFeatureFlags
+        ) {
           await Engine.context.BridgeController.setBridgeFeatureFlags();
         }
       } catch (error) {
@@ -175,8 +189,6 @@ const BridgeView = () => {
     valueAsNumber: number;
     pressedKey: string;
   }) => {
-    // Keep focus when editing
-    setIsInputFocused(true);
     dispatch(setSourceAmount(value || undefined));
   };
 
@@ -218,11 +230,6 @@ const BridgeView = () => {
       } as BridgeDestTokenSelectorRouteParams,
     });
 
-  const hasDestinationPickerAndQuoteCard =
-    hasDestinationPicker && hasQuoteDetails && !isInputFocused;
-
-  const hasOnlyQuoteCard = hasQuoteDetails && !isInputFocused;
-
   const renderBottomContent = () => {
     let buttonLabel = strings('bridge.continue');
     if (hasInsufficientBalance) {
@@ -232,36 +239,39 @@ const BridgeView = () => {
     }
 
     return (
-    <Box style={styles.buttonContainer}>
-      {!hasValidBridgeInputs || isLoading || !activeQuote ? (
-        <Text color={TextColor.Primary}>{strings('bridge.select_amount')}</Text>
-      ) : isError ? (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
-          description={strings('bridge.error_banner_description')}
-        />
-      ) : (
-        <>
-          <Button
-            variant={ButtonVariants.Primary}
-            label={buttonLabel}
-            onPress={handleContinue}
-            style={styles.button}
-            isDisabled={hasInsufficientBalance || isSubmittingTx}
+      <Box style={styles.buttonContainer}>
+        {!hasValidBridgeInputs || isLoading || !activeQuote ? (
+          <Text color={TextColor.Primary}>
+            {strings('bridge.select_amount')}
+          </Text>
+        ) : isError ? (
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            description={strings('bridge.error_banner_description')}
           />
-          <Button
-            variant={ButtonVariants.Link}
-            label={
-              <Text color={TextColor.Alternative}>
-                {strings('bridge.terms_and_conditions')}
-              </Text>
-            }
-            onPress={handleTermsPress}
-          />
-        </>
-      )}
-    </Box>
-  )};
+        ) : (
+          <>
+            <Button
+              variant={ButtonVariants.Primary}
+              label={buttonLabel}
+              onPress={handleContinue}
+              style={styles.button}
+              isDisabled={hasInsufficientBalance || isSubmittingTx}
+            />
+            <Button
+              variant={ButtonVariants.Link}
+              label={
+                <Text color={TextColor.Alternative}>
+                  {strings('bridge.terms_and_conditions')}
+                </Text>
+              }
+              onPress={handleTermsPress}
+            />
+          </>
+        )}
+      </Box>
+    );
+  };
 
   return (
     // Need this to be full height of screen
@@ -288,7 +298,7 @@ const BridgeView = () => {
               onTokenPress={handleSourceTokenPress}
               onFocus={() => setIsInputFocused(true)}
               onBlur={() => setIsInputFocused(false)}
-              autoFocus
+              onInputPress={() => setIsInputFocused(true)}
             />
             <Box style={styles.arrowContainer}>
               <Box style={styles.arrowCircle}>
@@ -309,28 +319,18 @@ const BridgeView = () => {
                     getNetworkImageSource({ chainId: destToken?.chainId })
                   : undefined
               }
-              isReadonly
               testID="dest-token-area"
               tokenType={TokenInputAreaType.Destination}
               onTokenPress={handleDestTokenPress}
               isLoading={isLoading}
             />
           </Box>
-          <Box
-            style={[
-              styles.dynamicContent,
-              hasDestinationPickerAndQuoteCard
-                ? styles.dynamicContentWithDestinationPickerAndQuoteCard
-                : hasOnlyQuoteCard
-                ? styles.dynamicContentWithOnlyQuoteCard
-                : styles.dynamicContent,
-            ]}
-          >
+          <Box style={styles.dynamicContent}>
             <Box style={styles.destinationAccountSelectorContainer}>
               {hasDestinationPicker && <DestinationAccountSelector />}
             </Box>
 
-            {hasQuoteDetails && !isInputFocused ? (
+            {shouldDisplayQuoteDetails ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
               </Box>
