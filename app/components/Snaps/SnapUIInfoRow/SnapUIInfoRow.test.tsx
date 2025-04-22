@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import SnapUIInfoRow, { RowVariant } from './SnapUIInfoRow';
@@ -111,4 +110,3 @@ describe('SnapUIInfoRow', () => {
     expect(queryByTestId('snap-ui-info-row-tooltip-container')).toBeNull();
   });
 });
-///: END:ONLY_INCLUDE_IF
