@@ -1,5 +1,8 @@
 import BN from 'bnjs4';
-import { validateSufficientBalance, validateSufficientTokenBalance } from './validation';
+import {
+  validateSufficientBalance,
+  validateSufficientTokenBalance,
+} from './validation';
 import { renderFromWei, hexToBN } from '../../../../../../util/number';
 import {
   getTicker,
@@ -23,10 +26,11 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 describe('validateSufficientBalance', () => {
   it('returns an error message if weiBalance is less than totalTransactionValue', () => {
-    const weiBalance = new BN('1000');
-    const totalTransactionValue = new BN('2000');
+    const weiBalance = '0x3e8'; // 1000 in hex
+    const totalTransactionValue = '0x7d0'; // 2000 in hex
     const ticker = 'TOKEN';
 
+    (hexToBN as jest.Mock).mockImplementation((value) => new BN(value));
     (renderFromWei as jest.Mock).mockReturnValue('1');
     (getTicker as jest.Mock).mockReturnValue('TOKEN');
     (strings as jest.Mock).mockReturnValue('Insufficient amount');
@@ -38,9 +42,9 @@ describe('validateSufficientBalance', () => {
     );
 
     expect(result).toBe('Insufficient amount');
-    expect(renderFromWei).toHaveBeenCalledWith(
-      totalTransactionValue.sub(weiBalance),
-    );
+    expect(hexToBN).toHaveBeenCalledWith(weiBalance);
+    expect(hexToBN).toHaveBeenCalledWith(totalTransactionValue);
+    expect(renderFromWei).toHaveBeenCalled();
     expect(getTicker).toHaveBeenCalledWith(ticker);
     expect(strings).toHaveBeenCalledWith('transaction.insufficient_amount', {
       amount: '1',
@@ -49,9 +53,11 @@ describe('validateSufficientBalance', () => {
   });
 
   it('returns undefined if weiBalance is sufficient', () => {
-    const weiBalance = new BN('2000');
-    const totalTransactionValue = new BN('1000');
+    const weiBalance = '0x7d0'; // 2000 in hex
+    const totalTransactionValue = '0x3e8'; // 1000 in hex
     const ticker = 'TOKEN';
+
+    (hexToBN as jest.Mock).mockImplementation((value) => new BN(value));
 
     const result = validateSufficientBalance(
       weiBalance,
@@ -60,6 +66,8 @@ describe('validateSufficientBalance', () => {
     );
 
     expect(result).toBeUndefined();
+    expect(hexToBN).toHaveBeenCalledWith(weiBalance);
+    expect(hexToBN).toHaveBeenCalledWith(totalTransactionValue);
   });
 });
 
