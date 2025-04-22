@@ -13,10 +13,8 @@ export enum RowVariant {
 const getTextColorFromVariant = (variant?: string) => {
   switch (variant) {
     case RowVariant.Critical:
-    case 'critical':
       return 'error';
     case RowVariant.Warning:
-    case 'warning':
       return 'warning';
     default:
       return 'default';
