@@ -28,6 +28,7 @@ const ADDRESS_SUFFIX_LENGTH = 5;
 const QRAccountDisplay = (props: { accountAddress: string }) => {
   const { styles } = useStyles(styleSheet, {});
   const addr = props.accountAddress;
+  console.log('addr', addr);
   const identities = useSelector(selectInternalAccounts);
   const accountLabel = renderAccountName(addr, identities);
   const { toastRef } = useContext(ToastContext);
