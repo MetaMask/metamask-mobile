@@ -42,13 +42,13 @@ import {
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 
 const AddNewAccount = ({ route }: AddNewAccountProps) => {
   const { navigate } = useNavigation();
@@ -103,6 +103,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
       }
       navigate(Routes.WALLET.HOME);
     } catch (e: unknown) {
+      Logger.log('error', e);
       const errorMessage = strings(
         'accounts.error_messages.failed_to_create_account',
         {
@@ -126,7 +127,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     let accountNameToUse = nextAvailableAccountName;
     switch (clientType) {
       case WalletClientType.Bitcoin: {
-        if (scope === MultichainNetwork.BitcoinTestnet) {
+        if (scope === BtcScope.Testnet) {
           accountNameToUse = `${strings(
             'accounts.labels.bitcoin_testnet_account_name',
           )} ${accountNumber}`;
@@ -139,12 +140,12 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
       }
       case WalletClientType.Solana: {
         switch (scope) {
-          case MultichainNetwork.SolanaDevnet:
+          case SolScope.Devnet:
             accountNameToUse = `${strings(
               'accounts.labels.solana_devnet_account_name',
             )} ${accountNumber}`;
             break;
-          case MultichainNetwork.SolanaTestnet:
+          case SolScope.Testnet:
             accountNameToUse = `${strings(
               'accounts.labels.solana_testnet_account_name',
             )} ${accountNumber}`;
@@ -197,6 +198,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
               onBack();
             }}
           />
+          <Text variant={TextVariant.BodyMDMedium}>{'hihi'}</Text>
           {showSRPList ? (
             <SRPList onKeyringSelect={(id) => onKeyringSelection(id)} />
           ) : (

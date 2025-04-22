@@ -1,6 +1,11 @@
 import { CaipChainId, Json, SnapId } from '@metamask/snaps-sdk';
 import { KeyringClient, Sender } from '@metamask/keyring-snap-client';
-import { EntropySourceId } from '@metamask/keyring-api';
+import {
+  BtcScope,
+  EntropySourceId,
+  KeyringAccount,
+  SolScope,
+} from '@metamask/keyring-api';
 import {
   BITCOIN_WALLET_SNAP_ID,
   BITCOIN_WALLET_NAME,
@@ -14,7 +19,7 @@ import {
 import Engine from '../Engine';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import Logger from '../../util/Logger';
 
 export enum WalletClientType {
   Bitcoin = 'bitcoin',
@@ -69,27 +74,29 @@ export abstract class MultichainWalletSnapClient {
     return this.snapName;
   }
 
-  protected abstract getScopes(): CaipChainId[];
+  protected abstract getScope(): CaipChainId;
   protected abstract getSnapSender(): Sender;
 
   protected async withSnapKeyring(
-    callback: (keyring: SnapKeyring) => Promise<void>,
-  ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    callback: (keyring: SnapKeyring) => Promise<any>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<any> {
     const controllerMessenger = Engine.controllerMessenger;
     await Engine.getSnapKeyring();
 
     return await controllerMessenger.call(
       'KeyringController:withKeyring',
       { type: KeyringTypes.snap },
-      async ({ keyring }) => {
-        await callback(keyring as unknown as SnapKeyring);
-      },
+      async ({ keyring }) => await callback(keyring as unknown as SnapKeyring),
     );
   }
 
-  async createAccount(options: MultichainWalletSnapOptions) {
+  async createAccount(
+    options: MultichainWalletSnapOptions,
+  ): Promise<KeyringAccount> {
     return await this.withSnapKeyring(async (keyring) => {
-      (keyring as unknown as SnapKeyring).createAccount(
+      return keyring.createAccount(
         this.snapId,
         options as unknown as Record<string, Json>,
         this.snapKeyringOptions,
@@ -104,34 +111,54 @@ export abstract class MultichainWalletSnapClient {
   ) {
     const keyringApiClient = new KeyringClient(this.getSnapSender());
 
-    return await keyringApiClient.discoverAccounts(
+    Logger.log('discovering accounts', scopes, entropySource, groupIndex);
+
+    const accounts = await keyringApiClient.discoverAccounts(
       scopes,
       entropySource,
       groupIndex,
     );
+
+    Logger.log('found accounts', accounts);
+
+    return accounts;
   }
 
   async addDiscoveredAccounts(entropySource: EntropySourceId) {
-    const discoveredAccounts = await this.discoverAccounts(
-      this.getScopes(),
-      entropySource,
-      0,
-    );
-
-    return await this.withSnapKeyring(async (keyring) => {
-      await Promise.allSettled(
-        discoveredAccounts.map(async (account) => {
-          await (keyring as unknown as SnapKeyring).createAccount(
-            this.snapId,
-            {
-              derivationPath: account.derivationPath,
-              entropySource,
-            },
-            this.snapKeyringOptions,
-          );
-        }),
+    Logger.log('using entropySource', entropySource);
+    for (let index = 0; ; index++) {
+      const discoveredAccounts = await this.discoverAccounts(
+        [this.getScope()],
+        entropySource,
+        index,
       );
-    });
+
+      // We stop discovering accounts if none got discovered for that index.
+      if (discoveredAccounts.length === 0) {
+        // default create 1 account
+        await this.createAccount({
+          scope: this.getScope(),
+        });
+        break;
+      }
+
+      Logger.log('discovered accounts', discoveredAccounts);
+
+      return await this.withSnapKeyring(async (keyring) => {
+        await Promise.allSettled(
+          discoveredAccounts.map(async (account) => {
+            keyring.createAccount(
+              this.snapId,
+              {
+                derivationPath: account.derivationPath,
+                entropySource,
+              },
+              this.snapKeyringOptions,
+            );
+          }),
+        );
+      });
+    }
   }
 }
 
@@ -140,12 +167,16 @@ export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
     super(BITCOIN_WALLET_SNAP_ID, BITCOIN_WALLET_NAME, snapKeyringOptions);
   }
 
-  protected getScopes(): CaipChainId[] {
-    return [BtcScope.Mainnet, BtcScope.Testnet];
+  protected getScope(): CaipChainId {
+    return BtcScope.Mainnet;
   }
 
   protected getSnapSender(): Sender {
     return new BitcoinWalletSnapSender();
+  }
+
+  protected getMainnetScope(): CaipChainId {
+    return BtcScope.Mainnet;
   }
 }
 
@@ -154,8 +185,8 @@ export class SolanaWalletSnapClient extends MultichainWalletSnapClient {
     super(SOLANA_WALLET_SNAP_ID, SOLANA_WALLET_NAME, snapKeyringOptions);
   }
 
-  protected getScopes(): CaipChainId[] {
-    return [SolScope.Mainnet, SolScope.Devnet, SolScope.Testnet];
+  protected getScope(): CaipChainId {
+    return SolScope.Mainnet;
   }
 
   protected getSnapSender(): Sender {

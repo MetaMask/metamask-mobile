@@ -49,7 +49,7 @@ describe('MultichainWalletSnapClient', () => {
       super(mockSnapId, mockSnapName, mockSnapKeyringOptions);
     }
 
-    protected getScopes(): CaipChainId[] {
+    protected getScope(): CaipChainId[] {
       return [MultichainNetwork.Bitcoin, MultichainNetwork.BitcoinTestnet];
     }
 

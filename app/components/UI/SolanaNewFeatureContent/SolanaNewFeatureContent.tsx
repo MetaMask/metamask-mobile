@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { View } from 'react-native';
-import { KeyringClient } from '@metamask/keyring-snap-client';
 import { SolScope } from '@metamask/keyring-api';
 import Text from '../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
 import Logger from '../../../util/Logger';
 import Button, {
   ButtonVariants,
@@ -21,6 +19,10 @@ import { selectHasCreatedSolanaMainnetAccount } from '../../../selectors/account
 import createStyles from './SolanaNewFeatureContent.styles';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+import {
+  MultichainWalletSnapFactory,
+  WalletClientType,
+} from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 
 const SolanaNewFeatureContent = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -60,7 +62,9 @@ const SolanaNewFeatureContent = () => {
 
   const createSolanaAccount = async () => {
     try {
-      const client = new KeyringClient(new SolanaWalletSnapSender());
+      const client = MultichainWalletSnapFactory.createClient(
+        WalletClientType.Solana,
+      );
 
       await client.createAccount({
         scope: SolScope.Mainnet,
