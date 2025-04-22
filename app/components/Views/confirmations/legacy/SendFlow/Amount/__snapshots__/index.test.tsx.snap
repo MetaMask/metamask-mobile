@@ -432,7 +432,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -1148,7 +1148,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -1864,7 +1864,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -2597,7 +2597,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -3330,7 +3330,7 @@ exports[`Amount should display correct balance 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -4045,7 +4045,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -5434,7 +5434,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                 }
                               >
                                 <TouchableOpacity
-                                  disabled={true}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={{}}
                                 >
@@ -5442,7 +5442,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -6145,7 +6145,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                 }
                               >
                                 <TouchableOpacity
-                                  disabled={true}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={{}}
                                 >
@@ -6153,7 +6153,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -6939,7 +6939,7 @@ exports[`Amount should render correctly 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -7649,7 +7649,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -8276,7 +8276,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                 }
                               >
                                 <TouchableOpacity
-                                  disabled={true}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={{}}
                                 >
@@ -8284,7 +8284,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
