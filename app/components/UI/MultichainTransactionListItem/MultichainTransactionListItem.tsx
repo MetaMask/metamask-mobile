@@ -1,6 +1,11 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Image, TouchableHighlight, TextStyle } from 'react-native';
+import {
+  Image,
+  TouchableHighlight,
+  TextStyle,
+  useColorScheme,
+} from 'react-native';
 import { capitalize } from 'lodash';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
@@ -16,6 +21,7 @@ import styles from './MultichainTransactionListItem.styles';
 import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
 import Routes from '../../../constants/navigation/Routes';
+import { useSelector } from 'react-redux';
 
 const MultichainTransactionListItem = ({
   transaction,
@@ -29,6 +35,11 @@ const MultichainTransactionListItem = ({
   navigation: NavigationProp<ParamListBase>;
 }) => {
   const { colors, typography } = useTheme();
+  const osColorScheme = useColorScheme();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const appTheme = useSelector((state: any) => state.user.appTheme);
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { type, status, to, from, asset } = useMultichainTransactionDisplay({
     transaction,
@@ -74,7 +85,12 @@ const MultichainTransactionListItem = ({
 
   const renderTxElementIcon = (transactionType: string) => {
     const isFailedTransaction = status === 'failed';
-    const icon = getTransactionIcon(transactionType, isFailedTransaction);
+    const icon = getTransactionIcon(
+      transactionType,
+      isFailedTransaction,
+      appTheme,
+      osColorScheme,
+    );
     return <Image source={icon} style={style.icon} resizeMode="stretch" />;
   };
 
