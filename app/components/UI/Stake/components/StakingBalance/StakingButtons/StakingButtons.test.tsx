@@ -17,11 +17,15 @@ import {
 } from '@react-navigation/native';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
-import { mockedEarnFeatureFlagsEnabledState } from '../../../../Earn/__mocks__/mockData';
+import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+
+jest.mock('../../../../Earn/selectors/featureFlags', () => ({
+  selectPooledStakingEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -47,11 +51,6 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          ...mockedEarnFeatureFlagsEnabledState,
-        },
-      },
     },
   },
 };
@@ -86,6 +85,10 @@ describe('StakingButtons', () => {
       setOptions: jest.fn(),
       dispatch: jest.fn(),
     } as unknown as NavigationProp<ParamListBase>);
+
+    (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+      true,
+    );
   });
 
   it('should render the stake and unstake buttons', () => {
@@ -103,19 +106,9 @@ describe('StakingButtons', () => {
   });
 
   it('should not render stake/stake more button if pooled staking is disabled', () => {
-    const mockStatePooledStakingDisabled = {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              earnPooledStakingEnabled: false,
-            },
-          },
-        },
-      },
-    };
+    (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+      false,
+    );
 
     const props = {
       style: {},
@@ -126,7 +119,7 @@ describe('StakingButtons', () => {
     const { getByText, queryByText } = renderWithProvider(
       <StakingButtons {...props} />,
       {
-        state: mockStatePooledStakingDisabled,
+        state: mockInitialState,
       },
     );
 

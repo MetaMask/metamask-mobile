@@ -3,6 +3,7 @@ import StakingEarnings from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
+import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
 
 const mockNavigate = jest.fn();
 
@@ -27,6 +28,13 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+// Mock the feature flags selector
+jest.mock('../../../Earn/selectors/featureFlags', () => ({
+  selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
+    .fn()
+    .mockReturnValue(false),
+}));
 
 jest.mock('../../hooks/useStakingEarnings', () => ({
   __esModule: true,
@@ -104,26 +112,11 @@ describe('Staking Earnings', () => {
   });
 
   it('displays pooled-staking maintenance banner when feature flag is enabled', () => {
-    const mockStateWithPooledStakingMaintenanceBanner = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: '0x1',
-            }),
-          },
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              earnPooledStakingServiceInterruptionBannerEnabled: true,
-            },
-          },
-        },
-      },
-    };
+    (
+      selectPooledStakingServiceInterruptionBannerEnabledFlag as unknown as jest.Mock
+    ).mockReturnValue(true);
 
-    const { toJSON, getByText } = render(
-      mockStateWithPooledStakingMaintenanceBanner,
-    );
+    const { toJSON, getByText } = render();
 
     expect(toJSON()).toMatchSnapshot();
     expect(

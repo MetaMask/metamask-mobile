@@ -1,9 +1,5 @@
-export interface PoolStakingRemoteFeatureFlags {
-  earnPooledStakingEnabled: boolean;
-  earnPooledStakingServiceInterruptionBannerEnabled: boolean;
-}
-
-export interface StablecoinLendingRemoteFeatureFlags {
-  earnStablecoinLendingEnabled: boolean;
-  earnStablecoinLendingServiceInterruptionBannerEnabled: boolean;
+// The standard format for all Earn LaunchDarkly feature flags
+export interface EarnLaunchDarklyFlag {
+  enabled: boolean;
+  minimumVersion: string;
 }

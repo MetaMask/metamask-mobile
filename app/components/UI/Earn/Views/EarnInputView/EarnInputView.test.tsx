@@ -3,7 +3,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import { Contract } from 'ethers';
 import React from 'react';
@@ -338,8 +338,6 @@ describe('EarnInputView', () => {
         key: Routes.STAKING.STAKE,
         name: 'params',
       });
-
-      screen.debug();
 
       expect(mockGetStakingNavbar).toHaveBeenCalledWith(
         'Deposit',

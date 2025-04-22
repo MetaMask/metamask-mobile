@@ -14,9 +14,17 @@ import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
-import { mockedEarnFeatureFlagsEnabledState } from '../../../Earn/__mocks__/mockData';
+import { getVersion } from 'react-native-device-info';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 
 const mockNavigate = jest.fn();
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -29,6 +37,17 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../../../hooks/useMetrics');
+
+// Mock the environment variables
+jest.mock('../../../../../util/environment', () => ({
+  isProduction: jest.fn().mockReturnValue(false),
+}));
+
+// Mock the feature flags selector
+jest.mock('../../../Earn/selectors/featureFlags', () => ({
+  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
+  selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
+}));
 
 (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
   trackEvent: jest.fn(),
@@ -115,11 +134,6 @@ const STATE_MOCK = {
           },
         },
       },
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          ...mockedEarnFeatureFlagsEnabledState,
-        },
-      },
     },
   },
 } as unknown as RootState;
@@ -132,10 +146,12 @@ const renderComponent = (state = STATE_MOCK) =>
 describe('StakeButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (getVersion as jest.Mock).mockReturnValue('1.0.0');
   });
 
   it('renders correctly', () => {
     const { getByTestId } = renderComponent();
+
     expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
 
@@ -220,11 +236,6 @@ describe('StakeButton', () => {
               },
             },
           },
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              ...mockedEarnFeatureFlagsEnabledState,
-            },
-          },
         },
       },
     } as unknown as RootState;
@@ -248,48 +259,14 @@ describe('StakeButton', () => {
   });
 
   it('does not render button when all earn experiences are disabled', () => {
-    const mockedStateWithDisabledEarnExperiences = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: '0x1',
-            }),
-          },
-          MultichainNetworkController: {
-            isEvmSelected: true,
-            selectedMultichainNetworkChainId: SolScope.Mainnet,
-
-            multichainNetworkConfigurationsByChainId: {
-              'bip122:000000000019d6689c085ae165831e93': {
-                chainId: 'bip122:000000000019d6689c085ae165831e93',
-                name: 'Bitcoin Mainnet',
-                nativeCurrency:
-                  'bip122:000000000019d6689c085ae165831e93/slip44:0',
-                isEvm: false,
-              },
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-                name: 'Solana Mainnet',
-                nativeCurrency:
-                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                isEvm: false,
-              },
-            },
-          },
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              earnPooledStakingEnabled: false,
-              earnStablecoinLendingEnabled: false,
-            },
-          },
-        },
-      },
-    } as unknown as RootState;
-
-    const { queryByTestId } = renderComponent(
-      mockedStateWithDisabledEarnExperiences,
+    (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+      false,
     );
+    (
+      selectStablecoinLendingEnabledFlag as unknown as jest.Mock
+    ).mockReturnValue(false);
+
+    const { queryByTestId } = renderComponent();
 
     expect(queryByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeNull();
   });
