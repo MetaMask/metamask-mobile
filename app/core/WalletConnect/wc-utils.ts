@@ -291,6 +291,11 @@ export const checkWCPermissions = async ({
 
   if (caip2ChainId !== activeCaip2ChainId) {
     try {
+      if (!isAllowedChainId && allowSwitchingToNewChain) {
+        DevLogger.log(`WC::checkWCPermissions adding permitted chain for ${origin}:`, hexChainIdString);
+        await addPermittedChain(getHostname(origin), hexChainIdString);
+      }
+
       await switchToNetwork({
         network: existingNetwork,
         chainId: hexChainIdString,
@@ -300,11 +305,6 @@ export const checkWCPermissions = async ({
         origin,
         isAddNetworkFlow: false,
       });
-      
-      if (!isAllowedChainId && allowSwitchingToNewChain) {
-        DevLogger.log(`WC::checkWCPermissions adding permitted chain for ${origin}:`, hexChainIdString);
-        await addPermittedChain(getHostname(origin), hexChainIdString);
-      }
 
     } catch (error) {
       DevLogger.log(
