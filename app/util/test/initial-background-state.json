@@ -8,7 +8,6 @@
     "logs": {}
   },
   "AccountTrackerController": {
-    "accounts": {},
     "accountsByChainId": {
       "0x1": {}
     }
@@ -34,15 +33,11 @@
     "ignoredNfts": []
   },
   "TokensController": {
-    "tokens": [],
-    "ignoredTokens": [],
-    "detectedTokens": [],
     "allTokens": {},
     "allIgnoredTokens": {},
     "allDetectedTokens": {}
   },
   "TokenListController": {
-    "tokenList": {},
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
@@ -408,6 +403,7 @@
     "assetsMetadata": {}
   },
   "BridgeController": {
+    "assetExchangeRates": {},
     "bridgeFeatureFlags": {
       "extensionConfig": {
         "chains": {},
