@@ -53,8 +53,10 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       AccountTrackerController: {
-        accounts: {
-          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
+        accountsByChainId: {
+          '0x1': {
+            '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
+          },
         },
       },
       CurrencyRateController: {
@@ -131,7 +133,9 @@ jest.mock('../../../../../../lib/ppom/ppom-util', () => ({
 
 jest.mock('../../../../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
-    jest.requireActual('../../../../../../util/test/accountsControllerTestUtils');
+    jest.requireActual(
+      '../../../../../../util/test/accountsControllerTestUtils',
+    );
   return {
     rejectPendingApproval: jest.fn(),
     context: {
@@ -179,7 +183,9 @@ jest.mock('../../../../../../util/transactions', () => ({
 }));
 
 jest.mock('../../../../../../core/redux/slices/confirmationMetrics', () => ({
-  ...jest.requireActual('../../../../../../core/redux/slices/confirmationMetrics'),
+  ...jest.requireActual(
+    '../../../../../../core/redux/slices/confirmationMetrics',
+  ),
   updateConfirmationMetric: jest.fn(),
   selectConfirmationMetrics: jest.fn().mockReturnValue({}),
 }));
@@ -253,8 +259,10 @@ describe('Confirm', () => {
       engine: {
         backgroundState: {
           AccountTrackerController: {
-            accounts: {
-              '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': { balance: '0' },
+            accountsByChainId: {
+              '0x1': {
+                '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': { balance: '0' },
+              },
             },
           },
         },

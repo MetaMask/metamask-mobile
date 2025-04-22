@@ -5,7 +5,6 @@ import {
   State,
   UserInputEventType,
 } from '@metamask/snaps-sdk';
-import { Json } from '@metamask/utils';
 import React, {
   FunctionComponent,
   createContext,
@@ -50,7 +49,6 @@ export interface SnapInterfaceContextProviderProps {
   interfaceId: string;
   snapId: string;
   initialState: InterfaceState;
-  context: Json;
 }
 /**
  * The Snap interface context provider that handles all the interface state operations.
@@ -60,12 +58,11 @@ export interface SnapInterfaceContextProviderProps {
  * @param params.interfaceId - The interface ID to use.
  * @param params.snapId - The Snap ID that requested the interface.
  * @param params.initialState - The initial state of the interface.
- * @param params.context - The context blob of the interface.
  * @returns The context provider.
  */
 export const SnapInterfaceContextProvider: FunctionComponent<
   SnapInterfaceContextProviderProps
-> = ({ children, interfaceId, snapId, initialState, context }) => {
+> = ({ children, interfaceId, snapId, initialState }) => {
   // We keep an internal copy of the state to speed up the state update in the
   // UI. It's kept in a ref to avoid useless re-rendering of the entire tree of
   // components.
@@ -87,7 +84,7 @@ export const SnapInterfaceContextProvider: FunctionComponent<
   ) => {
     handleSnapRequest(controllerMessenger, {
       snapId: snapId as SnapId,
-      origin: '',
+      origin: 'metamask',
       handler: HandlerType.OnUserInput,
       request: {
         jsonrpc: '2.0',
@@ -99,7 +96,6 @@ export const SnapInterfaceContextProvider: FunctionComponent<
             ...(value !== undefined && value !== null ? { value } : {}),
           },
           id: interfaceId,
-          context,
         },
       },
     });

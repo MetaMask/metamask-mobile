@@ -431,7 +431,10 @@ class ApproveTransactionReview extends PureComponent {
             erc20TokenBalance,
             decimals,
           );
-          unroundedAccountBalance = fromTokenMinimalUnit(erc20TokenBalance || 0, decimals);
+          unroundedAccountBalance = fromTokenMinimalUnit(
+            erc20TokenBalance || 0,
+            decimals,
+          );
         }
       } catch (e) {
         tokenSymbol = contract?.symbol || 'ERC20 Token';
