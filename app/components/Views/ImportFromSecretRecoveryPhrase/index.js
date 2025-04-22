@@ -782,7 +782,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     onPress={() => handleContinueImportFlow()}
                     width={ButtonWidthTypes.Full}
                     size={ButtonSize.Lg}
-                    isDisabled={isSRPContinueButtonDisabled() || error}
+                    isDisabled={isSRPContinueButtonDisabled() || Boolean(error)}
                   />
                 </View>
               </View>
