@@ -1,6 +1,6 @@
 'use strict';
 
-import { SmokeAssets } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -15,7 +15,7 @@ import Assertions from '../../utils/Assertions';
 import enContent from '../../../locales/languages/en.json';
 import { buildPermissions } from '../../fixtures/utils';
 
-describe(SmokeAssets('NFT Details page'), () => {
+describe(SmokeNetworkAbstractions('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const TEST_DAPP_CONTRACT = 'TestDappNFTs';
   beforeAll(async () => {
