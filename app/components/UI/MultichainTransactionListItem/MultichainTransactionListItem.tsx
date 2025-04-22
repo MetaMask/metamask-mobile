@@ -68,7 +68,7 @@ const MultichainTransactionListItem = ({
       'transactions.to',
     )} ${toUnit}`;
   } else if (isBridgeTx) {
-    title = getBridgeTxActivityTitle(bridgeHistoryItem) ?? 'Bridge';
+    title = getBridgeTxActivityTitle(bridgeHistoryItem) ?? strings('bridge.title');
   }
 
   const style = styles(colors, typography);
