@@ -754,6 +754,7 @@ export const getRpcMethodMiddleware = ({
           isWalletConnect,
         });
 
+        Logger.log('logging: eth_signTypedData trace call', { req });
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
           () => PPOMUtil.validateRequest(req),
