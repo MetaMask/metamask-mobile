@@ -6,40 +6,43 @@ import Logger from '../../util/Logger';
 import ReduxService from '../redux';
 
 import { UserActionType } from '../../actions/user';
-import { handleAndroidAppleLogin } from './android/apple';
-import { handleAndroidGoogleLogin } from './android/google';
-import { ByoaResponse, HandleFlowParams, ByoaServerUrl, HandleOauth2LoginResult, LoginProvider, GroupedAuthConnectionId, AuthConnectionId } from './Oauth2loginInterface';
-import { handleIosGoogleLogin } from './ios/google';
-import { handleIosAppleLogin } from './ios/apple';
+import { HandleOauth2LoginResult, OAuthProvider, GroupedAuthConnectionId, AuthConnectionId, ByoaResponse } from './Oauth2loginInterface';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { TOPRFNetwork } from '../Engine/controllers/seedless-onboarding-controller';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import { ByoaServerUrl, createLoginHandler, getByoaTokens } from './Ouath2LoginHandler';
+
+export interface Oauth2LoginServiceConfig {
+    authConnectionId: string;
+    groupedAuthConnectionId: string;
+    web3AuthNetwork: Web3AuthNetwork;
+    byoaServerUrl: string;
+}
 
 export class Oauth2LoginService {
     public localState: {
         loginInProgress: boolean;
-        authConnectionId: string;
-        groupedAuthConnectionId: string;
         userId: string | null;
     };
 
     public config : {
+        authConnectionId: string;
+        groupedAuthConnectionId: string;
         web3AuthNetwork: Web3AuthNetwork;
+        byoaServerUrl: string;
     };
 
-    constructor(config: {web3AuthNetwork: Web3AuthNetwork , authConnectionId: string, groupedAuthConnectionId: string}) {
-        const { web3AuthNetwork, authConnectionId, groupedAuthConnectionId} = config;
+    constructor(config: Oauth2LoginServiceConfig) {
+        const { byoaServerUrl, web3AuthNetwork, authConnectionId, groupedAuthConnectionId} = config;
         this.localState = {
             loginInProgress: false,
-            authConnectionId,
-            groupedAuthConnectionId,
             userId: null,
         };
         this.config = {
+            authConnectionId,
+            groupedAuthConnectionId,
             web3AuthNetwork,
-        };
-        this.config = {
-            web3AuthNetwork: config.web3AuthNetwork,
+            byoaServerUrl
         };
     }
 
@@ -80,80 +83,23 @@ export class Oauth2LoginService {
         });
     };
 
-    #iosHandleOauth2Login = async (provider: LoginProvider) : Promise<HandleFlowParams | undefined> => {
-        if (provider === 'apple') {
-            const result = await handleIosAppleLogin();
-            return result;
-        } else if (provider === 'google') {
-            const result = await handleIosGoogleLogin();
-            return result;
-        }
-        throw new Error('Invalid provider : ' + provider);
-    };
-
-    #androidHandleOauth2Login = async (provider: LoginProvider) : Promise<HandleFlowParams | undefined> => {
-        if (provider === 'apple') {
-            const result = await handleAndroidAppleLogin();
-            return result;
-        } else if (provider === 'google') {
-            const result = await handleAndroidGoogleLogin();
-            return result;
-        }
-        throw new Error('Invalid provider : ' + provider);
-
-    };
-
-    handleCodeFlow = async (params : HandleFlowParams & {web3AuthNetwork: Web3AuthNetwork}) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean, accountName?: string}> => {
-        const {code, idToken, provider, clientId, redirectUri, codeVerifier, web3AuthNetwork} = params;
-
-        const pathname = code ? 'api/v1/oauth/token' : 'api/v1/oauth/id_token';
-        const body = code ? {
-            code,
-            client_id: clientId,
-            login_provider: provider,
-            network: web3AuthNetwork,
-            redirect_uri: redirectUri,
-            code_verifier: codeVerifier,
-        } : {
-            id_token: idToken,
-            client_id: clientId,
-            login_provider: provider,
-            network: web3AuthNetwork,
-        };
-
-        Logger.log('handleCodeFlow: body', body);
+    handleSeedlessAuthenticate = async (data : ByoaResponse ) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean, accountName?: string}> => {
         try {
-            const res = await fetch(`${ByoaServerUrl}/${pathname}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(body),
+            const jwtPayload = jwtDecode(data.jwt_tokens.metamask) as JwtPayload & {email?: string};
+            const userId = jwtPayload.sub ?? '';
+            const accountName = jwtPayload.email ?? '';
+            this.updateLocalState({
+                userId,
             });
 
-            const data = await res.json() as ByoaResponse;
-            Logger.log('handleCodeFlow: data', data);
-            if (data.success) {
-                const finalToken = idToken ?? data.id_token;
-                const tokenPayload = jwtDecode(finalToken) as JwtPayload & {email: string};
-                const accountName = tokenPayload.email ?? '';
-
-                const jwtPayload = jwtDecode(data.jwt_tokens.metamask) as JwtPayload & {email: string};
-                const userId = jwtPayload.sub ?? '';
-                this.updateLocalState({
-                    userId,
-                });
-
-                const result = await Engine.context.SeedlessOnboardingController.authenticate({
-                    idTokens: Object.values(data.jwt_tokens),
-                    authConnectionId: this.localState.authConnectionId,
-                    groupedAuthConnectionId: this.localState.groupedAuthConnectionId,
-                    userId,
-                });
-                Logger.log('handleCodeFlow: result', result);
-                return {type: 'success', existingUser: !result.isNewUser, accountName};
-            }
-            throw new Error('Failed to authenticate OAuth user : ' + data.message);
+            const result = await Engine.context.SeedlessOnboardingController.authenticate({
+                idTokens: Object.values(data.jwt_tokens),
+                authConnectionId: this.config.authConnectionId,
+                groupedAuthConnectionId: this.config.groupedAuthConnectionId,
+                userId,
+            });
+            Logger.log('handleCodeFlow: result', result);
+            return {type: 'success', existingUser: !result.isNewUser, accountName};
         } catch (error) {
             Logger.error( error as Error, {
                 message: 'handleCodeFlow',
@@ -162,7 +108,7 @@ export class Oauth2LoginService {
         }
     };
 
-    handleOauth2Login = async (provider: LoginProvider) : Promise<HandleOauth2LoginResult> => {
+    handleOauth2Login = async (provider: OAuthProvider) : Promise<HandleOauth2LoginResult> => {
         const web3AuthNetwork = this.config.web3AuthNetwork;
 
         if (this.localState.loginInProgress) {
@@ -171,18 +117,13 @@ export class Oauth2LoginService {
         this.#dispatchLogin();
 
         try {
-            let result;
-            if (Platform.OS === 'ios') {
-                result = await this.#iosHandleOauth2Login(provider);
-            } else if (Platform.OS === 'android') {
-                result = await this.#androidHandleOauth2Login(provider);
-            } else {
-                throw new Error('Invalid platform');
-            }
+            const loginHandler = createLoginHandler(Platform.OS, provider);
+            const result = await loginHandler.login();
 
             Logger.log('handleOauth2Login: result', result);
             if (result) {
-                const handleCodeFlowResult = await this.handleCodeFlow({...result , web3AuthNetwork});
+                const data = await getByoaTokens( {...result, web3AuthNetwork}, this.config.byoaServerUrl);
+                const handleCodeFlowResult = await this.handleSeedlessAuthenticate(data);
                 this.#dispatchPostLogin(handleCodeFlowResult);
                 return handleCodeFlowResult;
             }
@@ -205,8 +146,8 @@ export class Oauth2LoginService {
     };
 
     getVerifierDetails = () => ({
-        authConnectionId: this.localState.authConnectionId,
-        groupedAuthConnectionId: this.localState.groupedAuthConnectionId,
+        authConnectionId: this.config.authConnectionId,
+        groupedAuthConnectionId: this.config.groupedAuthConnectionId,
         userId: this.localState.userId,
     });
 
@@ -215,4 +156,4 @@ export class Oauth2LoginService {
     };
 }
 
-export default new Oauth2LoginService({web3AuthNetwork: TOPRFNetwork, authConnectionId: AuthConnectionId, groupedAuthConnectionId: GroupedAuthConnectionId});
+export default new Oauth2LoginService({web3AuthNetwork: TOPRFNetwork, authConnectionId: AuthConnectionId, groupedAuthConnectionId: GroupedAuthConnectionId, byoaServerUrl: ByoaServerUrl});

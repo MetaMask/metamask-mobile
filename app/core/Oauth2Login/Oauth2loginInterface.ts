@@ -1,31 +1,32 @@
 import { AuthSessionResult } from 'expo-auth-session';
-import { ACTIONS , PREFIXES } from '../../constants/deeplinks';
-
-
-// to be get from enviroment variable
-export const ByoaServerUrl = 'https://api-develop-torus-byoa.web3auth.io';
-export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH2_REDIRECT}`;
-
-export const IosGID = '882363291751-nbbp9n0o307cfil1lup766g1s99k0932.apps.googleusercontent.com';
-export const IosGoogleRedirectUri = 'com.googleusercontent.apps.882363291751-nbbp9n0o307cfil1lup766g1s99k0932:/oauth2redirect/google';
-
-export const AndroidGoogleWebGID = '882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com';
-export const AppleServerRedirectUri = `${ByoaServerUrl}/api/v1/oauth/callback`;
-export const AppleWebClientId = 'com.web3auth.appleloginextension';
-
-
+import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 
 export type HandleOauth2LoginResult = ({type: 'pending'} | {type: AuthSessionResult['type'], existingUser: boolean} | {type: 'error', error: string});
-export type LoginProvider = 'apple' | 'google';
+export enum OAuthProvider {
+    Google = 'google',
+    Apple = 'apple',
+  }
 
-export interface HandleFlowParams {
-    provider: LoginProvider;
-    code?: string;
-    idToken?: string;
+export interface LoginHandlerCodeResult {
+    provider: OAuthProvider;
+    code: string;
     clientId: string;
     redirectUri?: string;
     codeVerifier?: string;
 }
+
+export interface LoginHandlerIdTokenResult {
+    provider: OAuthProvider;
+    idToken: string;
+    clientId: string;
+    redirectUri?: string;
+    codeVerifier?: string;
+}
+
+export type LoginHandlerResult = LoginHandlerCodeResult | LoginHandlerIdTokenResult;
+
+export type HandleFlowParams = LoginHandlerResult & { web3AuthNetwork : Web3AuthNetwork }
+
 
 export interface ByoaResponse {
     id_token: string;
@@ -38,7 +39,9 @@ export interface ByoaResponse {
     jwt_tokens: Record<string, string>;
 }
 
+export interface LoginHandler {
+    login(): Promise<LoginHandlerResult | undefined>
+}
 
 export const AuthConnectionId = 'byoa-server';
-
 export const GroupedAuthConnectionId = 'mm-seedless-onboarding';
