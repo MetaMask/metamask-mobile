@@ -105,10 +105,6 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications.js';
 import { backupVault } from '../BackupVault';
-import {
-  SignatureController,
-  SignatureControllerOptions,
-} from '@metamask/signature-controller';
 import { Hex, Json } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
@@ -164,7 +160,6 @@ import {
   SnapControllerUpdateSnapStateAction,
 } from './controllers/snaps';
 ///: END:ONLY_INCLUDE_IF
-import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import {
   BaseControllerMessenger,
@@ -194,6 +189,7 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
@@ -804,7 +800,9 @@ export class Engine {
           'AccountsController:selectedAccountChange',
         ],
       }),
-      state: initialState.AccountTrackerController ?? { accounts: {} },
+      state: initialState.AccountTrackerController ?? {
+        accountsByChainId: {},
+      },
       getStakedBalanceForChain:
         assetsContractController.getStakedBalanceForChain.bind(
           assetsContractController,
@@ -860,7 +858,9 @@ export class Engine {
             const internalAccountCount = internalAccounts.length;
 
             const accountTrackerCount = Object.keys(
-              accountTrackerController.state.accounts || {},
+              accountTrackerController.state.accountsByChainId[
+                currentChainId
+              ] || {},
             ).length;
 
             captureException(
@@ -931,9 +931,6 @@ export class Engine {
       messenger: userStorageControllerMessenger,
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
-      env: {
-        isAccountSyncingEnabled: true,
-      },
       config: {
         accountSyncing: {
           onAccountAdded: (profileId) => {
@@ -1037,9 +1034,12 @@ export class Engine {
         allowedActions: [
           'AccountsController:getSelectedMultichainAccount',
           'SnapController:handleRequest',
-          'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',
+          'NetworkController:findNetworkClientIdByChainId',
+          'TokenRatesController:getState',
+          'MultichainAssetsRatesController:getState',
+          'CurrencyRateController:getState',
         ],
         allowedEvents: [],
       }),
@@ -1067,16 +1067,33 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'BridgeStatusController',
         allowedActions: [
-          'AccountsController:getSelectedAccount',
+          'AccountsController:getSelectedMultichainAccount',
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
+          'TokensController:addDetectedTokens',
+          'BridgeController:getBridgeERC20Allowance',
+          'GasFeeController:getState',
+          'AccountsController:getAccountByAddress',
+          'PreferencesController:getState',
+          'SnapController:handleRequest',
           'TransactionController:getState',
         ],
         allowedEvents: [],
       }),
+      state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
-      fetchFn: fetch,
+      fetchFn: handleFetch,
+      addTransactionFn: (...args: Parameters<typeof this.transactionController.addTransaction>) =>
+        this.transactionController.addTransaction(...args),
+      estimateGasFeeFn: (...args: Parameters<typeof this.transactionController.estimateGasFee>) =>
+        this.transactionController.estimateGasFee(...args),
+      addUserOperationFromTransactionFn: (...args: unknown[]) =>
+        // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
+        this.userOperationController?.addUserOperationFromTransaction?.(...args),
+      config: {
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL
+      },
     });
 
     const existingControllersByName = {
@@ -1098,6 +1115,7 @@ export class Engine {
         AppMetadataController: appMetadataControllerInit,
         GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
+        SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -1124,8 +1142,9 @@ export class Engine {
     });
 
     const accountsController = controllersByName.AccountsController;
-    const transactionController = controllersByName.TransactionController;
     const gasFeeController = controllersByName.GasFeeController;
+    const signatureController = controllersByName.SignatureController;
+    const transactionController = controllersByName.TransactionController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -1417,26 +1436,7 @@ export class Engine {
       PermissionController: permissionController,
       RemoteFeatureFlagController: remoteFeatureFlagController,
       SelectedNetworkController: selectedNetworkController,
-      SignatureController: new SignatureController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'SignatureController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-            `${this.keyringController.name}:signPersonalMessage`,
-            `${this.keyringController.name}:signMessage`,
-            `${this.keyringController.name}:signTypedMessage`,
-            `${loggingController.name}:add`,
-            `${networkController.name}:getNetworkClientById`,
-          ],
-          allowedEvents: [],
-        }),
-        // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
-        trace: trace as unknown as SignatureControllerOptions['trace'],
-        decodingApiUrl: AppConstants.DECODING_API_URL,
-        // TODO: check preferences useExternalServices
-        isDecodeSignatureRequestEnabled: () =>
-          preferencesController.state.useTransactionSimulations,
-      }),
+      SignatureController: signatureController,
       TokenSearchDiscoveryController: tokenSearchDiscoveryController,
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)

@@ -623,8 +623,11 @@ function decodeConfirmTx(args) {
 
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
+  const chainId = txChainId;
 
-  const tokenList = Engine.context.TokenListController.state.tokenList;
+  const tokenList =
+    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
+      ?.data || [];
   let symbol;
   if (renderTo in tokenList) {
     symbol = tokenList[renderTo].symbol;
@@ -638,6 +641,8 @@ function decodeConfirmTx(args) {
     transactionType = TRANSACTION_TYPES.SET_APPROVAL_FOR_ALL;
   else if (actionKey === strings('transactions.swaps_transaction'))
     transactionType = TRANSACTION_TYPES.SWAPS_TRANSACTION;
+  else if (actionKey === strings('transactions.bridge_transaction'))
+    transactionType = TRANSACTION_TYPES.BRIDGE_TRANSACTION;
   else if (
     actionKey === strings('transactions.smart_contract_interaction') ||
     (!actionKey.includes(strings('transactions.sent')) &&
