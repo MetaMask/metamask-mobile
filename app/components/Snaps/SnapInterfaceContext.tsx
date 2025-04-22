@@ -5,7 +5,6 @@ import {
   State,
   UserInputEventType,
 } from '@metamask/snaps-sdk';
-import { Json } from '@metamask/utils';
 import React, {
   FunctionComponent,
   createContext,
