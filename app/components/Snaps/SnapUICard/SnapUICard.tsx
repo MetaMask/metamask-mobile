@@ -7,7 +7,6 @@ import Text, {
 import { SnapUIImage } from '../SnapUIImage/SnapUIImage';
 import {
   FlexDirection,
-  TextAlign,
   JustifyContent,
   AlignItems,
 } from '../../UI/Box/box.types';
