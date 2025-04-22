@@ -1,5 +1,5 @@
 ('use strict');
-import { SmokeAssets } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -18,7 +18,7 @@ import { buildPermissions } from '../../fixtures/utils';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 
-describe(SmokeAssets('Asset Watch:'), () => {
+describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();

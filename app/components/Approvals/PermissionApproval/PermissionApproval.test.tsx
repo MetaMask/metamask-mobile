@@ -148,6 +148,13 @@ describe('PermissionApproval', () => {
               2: 'testAccount2',
               3: 'testAccount3',
             },
+            accountsByChainId: {
+              '0x1': {
+                1: 'testAccount',
+                2: 'testAccount2',
+                3: 'testAccount3',
+              },
+            },
           },
         },
       },

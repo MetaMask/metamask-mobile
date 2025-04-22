@@ -42,15 +42,20 @@ function useHandleSuccessfulOrder() {
 
       const { TokensController } = Engine.context;
 
+      const tokens =
+        TokensController.state.allTokens?.[chainId as `0x${string}`]?.[
+          selectedAddress
+        ] || [];
+
       if (
-        !TokensController.state.tokens.find((stateToken: Token) =>
+        !tokens.find((stateToken: Token) =>
           toLowerCaseEquals(stateToken.address, address),
         )
       ) {
         await TokensController.addToken({ address, symbol, decimals, name });
       }
     },
-    [selectedChainId],
+    [selectedChainId, selectedAddress],
   );
 
   const handleDispatchUserWalletProtection = useCallback(() => {
