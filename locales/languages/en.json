@@ -3890,7 +3890,8 @@
     "insufficient_funds": "Insufficient funds",
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
-    "title": "Bridge"
+    "title": "Bridge",
+    "submitting_transaction": "Submitting"
   },
   "bridge_transaction_details": {
     "status": "Status",

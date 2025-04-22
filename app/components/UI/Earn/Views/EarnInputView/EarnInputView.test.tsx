@@ -55,7 +55,7 @@ const MOCK_USDC_MAINNET_ASSET = createMockToken({
     CHAIN_IDS.MAINNET,
     TOKENS_WITH_DEFAULT_OPTIONS.USDC,
   ),
-  address: '0xusDC123',
+  address: '0x123232',
 });
 
 const mockSetOptions = jest.fn();

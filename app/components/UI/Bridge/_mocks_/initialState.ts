@@ -82,24 +82,6 @@ export const initialState = {
             ],
           },
         },
-        tokens: [
-          {
-            address: ethToken1Address,
-            symbol: 'TOKEN1',
-            decimals: 18,
-            image: 'https://token1.com/logo.png',
-            name: 'Token One',
-            aggregators: ['1inch'],
-          },
-          {
-            address: ethToken2Address,
-            symbol: 'HELLO',
-            decimals: 18,
-            image: 'https://token2.com/logo.png',
-            name: 'Hello Token',
-            aggregators: ['uniswap'],
-          },
-        ],
       },
       NetworkController: {
         selectedNetworkClientId: 'mainnet',
@@ -152,11 +134,6 @@ export const initialState = {
         },
       },
       AccountTrackerController: {
-        accounts: {
-          [evmAccountAddress]: {
-            balance: '0x29a2241af62c0000' as Hex, // 3 ETH
-          },
-        },
         accountsByChainId: {
           [ethChainId]: {
             [evmAccountAddress]: {
@@ -261,6 +238,20 @@ export const initialState = {
           },
         },
       },
+      SmartTransactionsController: {
+        smartTransactionsState: {
+          liveness: true,
+        },
+      },
+      GasFeeController: {
+        gasFeeEstimatesByChainId: {
+          [ethChainId]: {
+            gasFeeEstimates: undefined,
+            estimatedGasFeeTimeBounds: undefined,
+            gasEstimateType: 'eth_gasPrice' as const,
+          },
+        },
+      },
       CurrencyRateController: {
         currentCurrency: 'USD',
         currencyRates: {
@@ -309,24 +300,6 @@ export const initialState = {
         },
       },
       TokenListController: {
-        tokenList: {
-          [ethToken1Address]: {
-            name: 'Token One',
-            symbol: 'TOKEN1',
-            decimals: 18,
-            address: ethToken1Address,
-            iconUrl: 'https://token1.com/logo.png',
-            occurrences: 1,
-            aggregators: [],
-          },
-          [ethToken2Address]: {
-            name: 'Hello Token',
-            symbol: 'HELLO',
-            decimals: 18,
-            address: ethToken2Address,
-            iconUrl: 'https://token2.com/logo.png',
-          },
-        },
         tokensChainsCache: {
           [ethChainId]: {
             timestamp: Date.now(),
@@ -381,17 +354,21 @@ export const initialState = {
         },
       },
       KeyringController: {
+        vault: '',
+        isUnlocked: true,
         keyrings: [
           {
             accounts: [evmAccountAddress],
             type: 'HD Key Tree',
           },
-          { accounts: [], type: 'QR Hardware Wallet Device' },
           {
             accounts: [solanaAccountAddress],
             type: 'Snap Keyring',
           },
         ],
+        keyringsMetadata: [],
+        encryptionKey: '',
+        encryptionSalt: '',
       },
     },
   },
