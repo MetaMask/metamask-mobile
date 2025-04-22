@@ -891,7 +891,7 @@ exports[`BridgeView renders 1`] = `
                                           "justifyContent": "flex-end",
                                           "paddingBottom": 36,
                                         },
-                                        undefined,
+                                        false,
                                       ],
                                     ]
                                   }
