@@ -9,7 +9,7 @@ class ImportNFTView {
 
   get networkDropdown() {
     return Matchers.getElementByID(
-      NFTImportScreenSelectorsIDs.ADDRESS_INPUT_BOX,
+      NFTImportScreenSelectorsIDs.NETWORK_SELECTOR_DROPDOWN,
     );
   }
 
