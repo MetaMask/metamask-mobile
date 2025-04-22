@@ -3,6 +3,8 @@ import { TouchableHighlight } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import MultichainTransactionListItem from '../MultichainTransactionListItem';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
@@ -25,6 +27,22 @@ jest.mock(
   '../MultichainTransactionDetailsModal',
   () => 'MultichainTransactionDetailsModal',
 );
+
+// Create a mock store with the necessary state
+const createMockStore = () => configureStore({
+  reducer: {
+    user: (state = { appTheme: 'light' }) => state,
+  },
+});
+
+const renderWithProvider = (ui: React.ReactElement) => {
+  const store = createMockStore();
+  return render(
+    <Provider store={store}>
+      {ui}
+    </Provider>
+  );
+};
 
 describe('MultichainTransactionListItem', () => {
   const mockNavigation = { navigate: jest.fn() };
@@ -60,7 +78,7 @@ describe('MultichainTransactionListItem', () => {
   });
 
   it('renders correctly for a Send transaction', () => {
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <MultichainTransactionListItem
         transaction={mockTransaction}
         selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
@@ -100,7 +118,7 @@ describe('MultichainTransactionListItem', () => {
       value: '2000000000',
     };
 
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <MultichainTransactionListItem
         transaction={receiveTransaction}
         selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
@@ -127,7 +145,7 @@ describe('MultichainTransactionListItem', () => {
       asset: { amount: '1.5', unit: 'SOL' },
     });
 
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <MultichainTransactionListItem
         transaction={mockTransaction}
         selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
@@ -141,7 +159,7 @@ describe('MultichainTransactionListItem', () => {
   });
 
   it('opens transaction details modal when pressed', () => {
-    const { UNSAFE_getByType } = render(
+    const { UNSAFE_getByType } = renderWithProvider(
       <MultichainTransactionListItem
         transaction={mockTransaction}
         selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
@@ -165,7 +183,7 @@ describe('MultichainTransactionListItem', () => {
       asset: { amount: '1.5', unit: 'SOL' },
     });
 
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProvider(
       <MultichainTransactionListItem
         transaction={mockTransaction}
         selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
@@ -187,7 +205,7 @@ describe('MultichainTransactionListItem', () => {
       priorityFee: { amount: '0.000001', unit: 'SOL' },
     });
 
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <MultichainTransactionListItem
         transaction={mockTransaction}
         selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"

@@ -12,6 +12,7 @@ import transactionIconReceivedFailed from '../../images/transaction-icons/receiv
 import transactionIconSwapFailedLight from '../../images/transaction-icons/swap-failed.png';
 import transactionIconSwapFailedDark from '../../images/transaction-icons/swap-failed-dark.png';
 import { ColorSchemeName } from 'react-native';
+import { AppThemeKey } from '../theme/models';
 
 /**
  * Returns the appropriate transaction icon based on type and status
@@ -22,8 +23,7 @@ import { ColorSchemeName } from 'react-native';
 export function getTransactionIcon(
   transactionType: string,
   isFailed: boolean,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  appTheme: any,
+  appTheme: AppThemeKey,
   osColorScheme: ColorSchemeName,
 ) {
   const swapIcon = getAssetFromTheme(appTheme, osColorScheme, transactionIconSwapLight, transactionIconSwapDark);

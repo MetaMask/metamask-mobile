@@ -22,6 +22,7 @@ import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
 import Routes from '../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
+import { RootState } from '../../../reducers';
 
 const MultichainTransactionListItem = ({
   transaction,
@@ -36,9 +37,7 @@ const MultichainTransactionListItem = ({
 }) => {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const appTheme = useSelector((state: any) => state.user.appTheme);
+  const appTheme = useSelector((state: RootState) => state.user.appTheme);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { type, status, to, from, asset } = useMultichainTransactionDisplay({
