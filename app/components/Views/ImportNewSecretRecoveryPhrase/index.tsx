@@ -386,7 +386,7 @@ const ImportNewSecretRecoveryPhrase = () => {
                 label={strings(
                   'import_new_secret_recovery_phrase.srp_number_of_words_option_title',
                 )}
-                selectedValue={selectedDropdownValue}
+                selectedValue={String(selectedDropdownValue)}
                 onValueChange={handleSrpNumberChange}
                 options={srpOptions}
                 testID={ImportSRPIDs.SRP_SELECTION_DROPDOWN}
@@ -447,7 +447,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             containerStyle={styles.button}
             type={'confirm'}
             onPress={onSubmit}
-            disabled={Boolean(srpError) || !isValidSrp}
+            disabled={Boolean(srpError) || !isValidSrp || loading}
             testID={ImportSRPIDs.IMPORT_BUTTON}
           >
             {loading ? (
