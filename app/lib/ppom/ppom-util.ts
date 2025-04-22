@@ -70,11 +70,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
   );
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
   const isBlockaidFeatEnabled = await isBlockaidFeatureEnabled();
-  if (
-    !ppomController ||
-    !isBlockaidFeatEnabled ||
-    !isConfirmationMethod
-  ) {
+  if (!ppomController || !isBlockaidFeatEnabled || !isConfirmationMethod) {
     return;
   }
 
@@ -102,7 +98,11 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
       securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
       return;
     }
-
+    Logger.log('ppom-util', 'validateRequest try catch start', 'error', {
+      isTransaction,
+      transactionId,
+      isNotTransactionId: !transactionId,
+    });
     setSecurityAlertResponse(
       req,
       SECURITY_ALERT_RESPONSE_IN_PROGRESS,
@@ -121,12 +121,17 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
       chainId,
     };
   } catch (e) {
+    Logger.log('ppom-util', 'validateRequest finally', 'error', { e });
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
   } finally {
     if (!securityAlertResponse) {
       securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
     }
-
+    Logger.log('ppom-util', 'validateRequest finally', {
+      req,
+      securityAlertResponse,
+      transactionId,
+    });
     setSecurityAlertResponse(req, securityAlertResponse, transactionId, {
       updateControllerState: true,
     });
@@ -179,7 +184,10 @@ function setSecurityAlertResponse(
   transactionId?: string,
   { updateControllerState }: { updateControllerState?: boolean } = {},
 ) {
+  const _isTransactionRequest = isTransactionRequest(request);
+  Logger.log('ppom-util', { _isTransactionRequest, request, transactionId });
   if (isTransactionRequest(request)) {
+    Logger.log('ppom-util', 'ENTERED IF FOR FIRING EVENT', { response });
     store.dispatch(
       setTransactionSecurityAlertResponse(transactionId, response),
     );
