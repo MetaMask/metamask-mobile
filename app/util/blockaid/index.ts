@@ -34,10 +34,7 @@ export const getBlockaidMetricsParams = (
     additionalParams.security_alert_reason = reason;
     additionalParams.security_alert_source = source;
 
-    if (result_type === ResultType.Malicious) {
-      additionalParams.ui_customizations = ['flagged_as_malicious'];
-    } else if (result_type === ResultType.RequestInProgress) {
-      additionalParams.ui_customizations = ['security_alert_loading'];
+ if (result_type === ResultType.RequestInProgress) {
       additionalParams.security_alert_response = 'loading';
     }
 
