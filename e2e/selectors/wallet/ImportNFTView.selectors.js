@@ -6,4 +6,5 @@ export const NFTImportScreenSelectorsIDs = {
   IDENTIFIER_INPUT_BOX: 'input-collectible-identifier',
   NEXT_BUTTON_CUSTOM_IMPORT: 'next-button-custom-import',
   NETWORK_SELECTOR_DROPDOWN: 'nft-import-network-selector-dropdown',
+  NO_NETWORK_WARNING_MESSAGE: 'nft-import-no-network-warning',
 };
