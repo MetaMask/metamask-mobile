@@ -4,12 +4,13 @@ import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
-import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-
+import {
+  validateCustomCollectibleAddress as validateAddress,
+  validateCollectibleOwnership as validateOwnership,
+} from './util';
 import { useTheme } from '../../../util/theme';
 import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportNFTView.selectors';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -122,21 +123,9 @@ const AddCustomCollectible = ({
   }, [chainId]);
 
   const validateCustomCollectibleAddress = async (): Promise<boolean> => {
-    let validated = true;
-    const isValidEthAddress = isValidAddress(address);
-    if (address.length === 0) {
-      setWarningAddress(strings('collectible.address_cant_be_empty'));
-      validated = false;
-    } else if (!isValidEthAddress) {
-      setWarningAddress(strings('collectible.address_must_be_valid'));
-      validated = false;
-    } else if (chainId && !(await isSmartContractAddress(address, chainId))) {
-      setWarningAddress(strings('collectible.address_must_be_smart_contract'));
-      validated = false;
-    } else {
-      setWarningAddress(``);
-    }
-    return validated;
+    const result = await validateAddress(address, chainId);
+    setWarningAddress(result.warningMessage);
+    return result.isValid;
   };
 
   const validateCustomCollectibleTokenId = (): boolean => {
@@ -156,37 +145,17 @@ const AddCustomCollectible = ({
     return validatedAddress && validatedTokenId;
   };
 
-  /**
-   * Method to validate collectible ownership.
-   *
-   * @returns Promise that resolves ownershio as a boolean.
-   */
   const validateCollectibleOwnership = async (): Promise<boolean> => {
-    try {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { NftController } = Engine.context as any;
-      const isOwner = await NftController.isNftOwner(
-        selectedAddress,
-        address,
-        tokenId,
-      );
-
-      if (!isOwner)
-        Alert.alert(
-          strings('collectible.not_owner_error_title'),
-          strings('collectible.not_owner_error'),
-        );
-
-      return isOwner;
-    } catch {
-      Alert.alert(
-        strings('collectible.ownership_verification_error_title'),
-        strings('collectible.ownership_verification_error'),
-      );
-
-      return false;
+    if (!address) return false;
+    const result = await validateOwnership(
+      selectedAddress ?? '',
+      address,
+      tokenId,
+    );
+    if (!result.isOwner && result.error) {
+      Alert.alert(result.error.title, result.error.message);
     }
+    return result.isOwner;
   };
 
   const addNft = async (): Promise<void> => {
