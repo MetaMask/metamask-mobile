@@ -39,7 +39,6 @@ describe('SnapInterfaceContext', () => {
       interfaceId={mockInterfaceId}
       snapId={mockSnapId}
       initialState={mockInitialState}
-      context={mockContext}
     >
       {children}
     </SnapInterfaceContextProvider>
