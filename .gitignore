@@ -140,3 +140,6 @@ github-tools/
 
 # API Monitor logs
 api-monitor-logs/
+
+# Analytics
+app/core/Analytics/typewriter/

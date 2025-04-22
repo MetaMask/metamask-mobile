@@ -617,7 +617,7 @@ PODS:
     - React
   - react-native-flipper (0.263.0):
     - React-Core
-  - react-native-get-random-values (1.8.0):
+  - react-native-get-random-values (1.11.0):
     - React-Core
   - react-native-gzip (1.1.0):
     - Base64
@@ -859,12 +859,12 @@ PODS:
     - React-Core
   - RNVectorIcons (6.4.2):
     - React
-  - segment-analytics-react-native (2.17.0):
+  - segment-analytics-react-native (2.20.5):
     - React-Core
     - sovran-react-native
   - Sentry/HybridSDK (8.36.0)
   - SocketRocket (0.6.1)
-  - sovran-react-native (1.0.4):
+  - sovran-react-native (1.1.3):
     - React-Core
   - TcpSockets (4.0.0):
     - CocoaAsyncSocket
@@ -1373,7 +1373,7 @@ SPEC CHECKSUMS:
   react-native-cookies: d648ab7025833b977c0b19e142503034f5f29411
   react-native-fast-crypto: 6b448866f5310cf203714a21147ef67f735bea8e
   react-native-flipper: ca4382a2b6cfd319b6e212539bc1fe7aafe36879
-  react-native-get-random-values: 0fd2b6a3129988d701d10e30f0622d5f039531bc
+  react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-gzip: 8d602277c2564591f04dd1cec4043acc8350dcc3
   react-native-in-app-review: b3d1eed3d1596ebf6539804778272c4c65e4a400
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
@@ -1433,10 +1433,10 @@ SPEC CHECKSUMS:
   RNShare: d03cdc71e750246a48b81dcd62bd792bf57a758e
   RNSVG: e77adf5edb2302f0f10dd03a09e92bb9420d914e
   RNVectorIcons: 24be0b504ce32d5bea38bde6c645f08b9c736392
-  segment-analytics-react-native: 885c1703579dc7964b97e7ae11d857669aa9b015
+  segment-analytics-react-native: be835fc068af1177254e7b421858d7a4bc3de7d0
   Sentry: f8374b5415bc38dfb5645941b3ae31230fbeae57
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
+  sovran-react-native: a3ad3f8ff90c2002b2aa9790001a78b0b0a38594
   TcpSockets: 48866ffcb39d7114741919d21069fc90189e474a
   Yoga: 6f5ab94cd8b1ecd04b6e973d0bc583ede2a598cc
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a

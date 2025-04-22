@@ -34,6 +34,7 @@ import {
   saveOnboardingEvent as SaveEvent,
   OnboardingActionTypes,
 } from '../../../actions/onboarding';
+import { useAnalytics } from '../../../core/Analytics/typewriter/segment';
 
 const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -154,6 +155,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   const [appStartTime, setAppStartTime] = useState<string | undefined>(
     undefined,
   );
+  const { welcomeMessageViewed } = useAnalytics();
   const themeContext = useContext(ThemeContext);
   const colors = themeContext.colors || mockTheme.colors;
   const styles = createStyles(colors);
@@ -176,7 +178,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
 
   const renderTabBar = () => <View />;
 
-  const onChangeTab = (obj: { i: number }) => {
+  const onChangeTab = async (obj: { i: number }) => {
     setCurrentTab(obj.i + 1);
     track(
       MetricsEventBuilder.createEventBuilder(
@@ -197,14 +199,20 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
 
   const initialize = useCallback(async () => {
     updateNavBar();
-    track(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED,
-      ).build(),
-    );
+
+    // track(
+    //   MetricsEventBuilder.createEventBuilder(
+    //     MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED,
+    //   ).build(),
+    // );
+    try {
+      await welcomeMessageViewed();
+    } catch (error) {
+      console.error('Error tracking welcome message viewed', error);
+    }
     const newAppStartTime = await StorageWrapper.getItem('appStartTime');
     setAppStartTime(newAppStartTime);
-  }, [updateNavBar, track]);
+  }, [updateNavBar, welcomeMessageViewed]);
 
   useEffect(() => {
     initialize();

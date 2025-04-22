@@ -14,6 +14,7 @@ import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
+import { AnalyticsProvider, createClient } from '../../../core/Analytics/typewriter/segment';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -24,6 +25,10 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
  */
 const Root = ({ foxCode }: RootProps) => {
   const [isLoading, setIsLoading] = useState(true);
+
+  const segmentClient = createClient({
+    writeKey: 'IKTFv1wYObT20NTYO85nJ1E3LW3NF9Kb'
+  });
 
   /**
    * Wait for store to be initialized in Detox tests
@@ -73,7 +78,9 @@ const Root = ({ foxCode }: RootProps) => {
               <ControllersGate>
                 <ToastContextWrapper>
                   <ErrorBoundary view="Root">
-                    <App />
+                    <AnalyticsProvider client={segmentClient}>
+                      <App />
+                    </AnalyticsProvider>
                   </ErrorBoundary>
                 </ToastContextWrapper>
               </ControllersGate>
