@@ -242,6 +242,17 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                   </TouchableOpacity>
                 </View>
               </TouchableOpacity>
+              <Text
+                style={
+                  {
+                    "color": "#ca3542",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontWeight": "400",
+                    "marginTop": 15,
+                  }
+                }
+                testID="nft-import-no-network-warning"
+              />
             </View>
             <View
               style={
