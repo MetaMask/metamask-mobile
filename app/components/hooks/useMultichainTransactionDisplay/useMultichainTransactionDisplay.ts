@@ -2,6 +2,7 @@ import { Transaction, TransactionType } from '@metamask/keyring-api';
 import I18n from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { formatUnits } from 'ethers/lib/utils';
 
 type Fee = Transaction['fees'][0]['asset'];
 type Token = Transaction['from'][0]['asset'];
@@ -16,7 +17,8 @@ export function useMultichainTransactionDisplay({
   bridgeHistoryItem?: BridgeHistoryItem;
 }) {
   const locale = I18n.locale;
-  const isBridgeTx = transaction.type === TransactionType.Send && bridgeHistoryItem;
+  const isBridgeTx =
+    transaction.type === TransactionType.Send && bridgeHistoryItem;
 
   const transactionFromEntry = transaction.from?.find(
     (entry) => entry?.address === userAddress,
@@ -50,12 +52,6 @@ export function useMultichainTransactionDisplay({
       to = transaction.to?.[0] ?? null;
   }
 
-  if (isBridgeTx) {
-    console.log('bridgeHistoryItem', bridgeHistoryItem);
-    // from = bridgeHistoryItem?.quote.srcAsset;
-    // to = bridgeHistoryItem?.quote.destAsset;
-  }
-
   const asset = {
     [TransactionType.Send]: parseAssetWithThreshold(
       from?.asset ?? null,
@@ -72,7 +68,22 @@ export function useMultichainTransactionDisplay({
       '0.00001',
       { locale, isNegative: true },
     ),
-  }[transaction.type];
+    'bridge': parseAssetWithThreshold(
+      bridgeHistoryItem
+        ? {
+            unit: bridgeHistoryItem.quote.srcAsset.symbol,
+            type: bridgeHistoryItem.quote.srcAsset.assetId,
+            amount: formatUnits(
+              bridgeHistoryItem.quote.srcTokenAmount,
+              bridgeHistoryItem.quote.srcAsset.decimals,
+            ),
+            fungible: true,
+          }
+        : null,
+      '0.00001',
+      { locale, isNegative: true },
+    ),
+  }[isBridgeTx ? 'bridge' : transaction.type];
 
   return {
     ...transaction,
