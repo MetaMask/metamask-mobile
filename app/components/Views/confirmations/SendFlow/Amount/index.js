@@ -576,8 +576,10 @@ class Amount extends PureComponent {
       isPaymentRequest,
       gasEstimateType,
       gasFeeEstimates,
+      conversionRate,
     } = this.props;
     // For analytics
+
     this.updateNavBar();
     navigation.setParams({ providerType, isPaymentRequest });
 
@@ -1144,6 +1146,7 @@ class Amount extends PureComponent {
       contractExchangeRates,
       accountsByChainId,
       sendFlowContextualChainId,
+      ticker,
     } = this.props;
 
     const accounts =
@@ -1189,7 +1192,11 @@ class Amount extends PureComponent {
         <View style={styles.assetElement}>
           {isNativeToken(token) ? (
             // TODO: add badge wraper with network image for native token
-            <NetworkMainAssetLogo big />
+            <NetworkMainAssetLogo
+              big
+              ticker={ticker}
+              chainId={sendFlowContextualChainId}
+            />
           ) : (
             // TODO: add badge wraper with network image and erc20 token
             <TokenImage
@@ -1640,6 +1647,11 @@ const mapStateToProps = (state, ownProps) => {
   const globalChainId = selectChainId(state);
   const globalNetworkClientId = selectNetworkClientId(state);
   const sendFlowContextualChainId = selectSendFlowContextualChainId(state);
+  const sendFlowContextualNetworkConfiguration =
+    selectNetworkConfigurationByChainId(
+      state,
+      toHexadecimal(selectSendFlowContextualChainId(state)),
+    );
 
   // TODO: double check all mapped state is used in the component
   return {
@@ -1653,14 +1665,18 @@ const mapStateToProps = (state, ownProps) => {
     allTokenBalances: selectAllTokenBalances(state),
     collectibles: collectiblesSelector(state),
     collectibleContracts: collectibleContractsSelector(state),
-    conversionRate: selectConversionRateByChainId(state, globalChainId),
+    conversionRate: selectConversionRateByChainId(
+      state,
+      sendFlowContextualChainId,
+    ),
+
     currentCurrency: selectCurrentCurrency(state),
     gasEstimateType: selectGasFeeControllerEstimateType(state),
     gasFeeEstimates: selectGasFeeEstimates(state),
-    providerType: selectProviderTypeByChainId(state, globalChainId),
+    providerType: selectProviderTypeByChainId(state, sendFlowContextualChainId),
     primaryCurrency: state.settings.primaryCurrency,
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-    ticker: selectNativeCurrencyByChainId(state, globalChainId),
+    ticker: selectNativeCurrencyByChainId(state, sendFlowContextualChainId),
     tokens: selectTokens(state),
     allTokens: selectAllTokens(state),
     transactionState: transaction,
@@ -1674,10 +1690,7 @@ const mapStateToProps = (state, ownProps) => {
     globalChainId,
     globalNetworkClientId,
     sendFlowContextualChainId: selectSendFlowContextualChainId(state),
-    sendFlowContextualNetworkConfiguration: selectNetworkConfigurationByChainId(
-      state,
-      toHexadecimal(selectSendFlowContextualChainId(state)),
-    ),
+    sendFlowContextualNetworkConfiguration,
   };
 };
 
