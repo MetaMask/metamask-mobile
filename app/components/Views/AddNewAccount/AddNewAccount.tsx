@@ -198,7 +198,6 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
               onBack();
             }}
           />
-          <Text variant={TextVariant.BodyMDMedium}>{'hihi'}</Text>
           {showSRPList ? (
             <SRPList onKeyringSelect={(id) => onKeyringSelection(id)} />
           ) : (
