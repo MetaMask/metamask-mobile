@@ -239,7 +239,7 @@ const UrlAutocomplete = forwardRef<
     }
     hide();
     onDismiss();
-  }, [hide, onDismiss, goToSwapsHook]);
+  }, [hide, onDismiss, goToSwapsHook, trackEvent, createEventBuilder]);
 
   const renderSectionHeader = useCallback(({section: { category }}: {section: ResultsWithCategory}) => (
     <View style={styles.categoryWrapper}>
