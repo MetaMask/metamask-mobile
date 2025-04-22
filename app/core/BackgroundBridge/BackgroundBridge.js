@@ -394,11 +394,11 @@ export class BackgroundBridge extends EventEmitter {
       'PreferencesController:stateChange',
       previousValueComparator(async (prevState, currState) => {
         // const { currentLocale } = currState;
-        this.#restartSmartTransactionPoller();
+        this._restartSmartTransactionPoller();
 
         // TODO: [ffmcgee] invoke function to update current locale here..Do we have one already ?
         // await updateCurrentLocale(currentLocale);
-        this.#checkTokenListPolling(currState, prevState);
+        this._checkTokenListPolling(currState, prevState);
       }, PreferencesController.state),
     );
 
@@ -1475,7 +1475,7 @@ export class BackgroundBridge extends EventEmitter {
     return this.sortEvmAccountsByLastSelected(ethAccounts);
   }
 
-  #restartSmartTransactionPoller() {
+  _restartSmartTransactionPoller() {
     if (
       Engine.context.PreferencesController.state.useExternalServices === true
     ) {
@@ -1484,9 +1484,9 @@ export class BackgroundBridge extends EventEmitter {
     }
   }
 
-  #checkTokenListPolling(currentState, previousState) {
-    const previousEnabled = this.#isTokenListPollingRequired(previousState);
-    const newEnabled = this.#isTokenListPollingRequired(currentState);
+  _checkTokenListPolling(currentState, previousState) {
+    const previousEnabled = this._isTokenListPollingRequired(previousState);
+    const newEnabled = this._isTokenListPollingRequired(currentState);
 
     if (previousEnabled === newEnabled) {
       return;
@@ -1497,7 +1497,7 @@ export class BackgroundBridge extends EventEmitter {
     );
   }
 
-  #isTokenListPollingRequired(preferencesControllerState) {
+  _isTokenListPollingRequired(preferencesControllerState) {
     const { useTokenDetection, useTransactionSimulations, preferences } =
       preferencesControllerState ?? {};
 
