@@ -87,7 +87,9 @@ const BridgeView = () => {
     quoteFetchError,
     isNoQuotesAvailable,
   } = useBridgeQuoteData();
-  const { quoteRequest } = useSelector(selectBridgeControllerState);
+  const { quoteRequest, quotesLastFetched } = useSelector(
+    selectBridgeControllerState,
+  );
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
 
   // inputRef is used to programmatically blur the input field after a delay
@@ -211,6 +213,9 @@ const BridgeView = () => {
     if (sourceToken && destToken) {
       dispatch(setSourceToken(destToken));
       dispatch(setDestToken(sourceToken));
+      // Force immediate quote update
+      updateQuoteParams.cancel(); // Cancel any pending updates
+      updateQuoteParams(); // Trigger immediate update
     }
   };
 
@@ -230,45 +235,66 @@ const BridgeView = () => {
       } as BridgeDestTokenSelectorRouteParams,
     });
 
-  const renderBottomContent = () => {
-    let buttonLabel = strings('bridge.continue');
-    if (hasInsufficientBalance) {
-      buttonLabel = strings('bridge.insufficient_funds');
-    } else if (isSubmittingTx) {
-      buttonLabel = strings('bridge.submitting_transaction');
-    }
+  const getButtonLabel = () => {
+    if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
+    if (isSubmittingTx) return strings('bridge.submitting_transaction');
+    return strings('bridge.continue');
+  };
 
-    return (
-      <Box style={styles.buttonContainer}>
-        {!hasValidBridgeInputs || isLoading || !activeQuote ? (
-          <Text color={TextColor.Primary}>
-            {strings('bridge.select_amount')}
-          </Text>
-        ) : isError ? (
+  const renderBottomContent = () => {
+    if (isError) {
+      return (
+        <Box style={styles.buttonContainer}>
           <BannerAlert
             severity={BannerAlertSeverity.Error}
             description={strings('bridge.error_banner_description')}
           />
-        ) : (
-          <>
-            <Button
-              variant={ButtonVariants.Primary}
-              label={buttonLabel}
-              onPress={handleContinue}
-              style={styles.button}
-              isDisabled={hasInsufficientBalance || isSubmittingTx}
-            />
-            <Button
-              variant={ButtonVariants.Link}
-              label={
-                <Text color={TextColor.Alternative}>
-                  {strings('bridge.terms_and_conditions')}
-                </Text>
-              }
-              onPress={handleTermsPress}
-            />
-          </>
-        )}
+        </Box>
+      );
+    }
+
+    if (!hasValidBridgeInputs) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <Text color={TextColor.Primary}>
+            {strings('bridge.select_amount')}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <Text color={TextColor.Primary}>
+            {strings('bridge.fetching_quote')}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (!activeQuote && !quotesLastFetched) {
+      return;
+    }
+
+    return (
+      <Box style={styles.buttonContainer}>
+        <Button
+          variant={ButtonVariants.Primary}
+          label={getButtonLabel()}
+          onPress={handleContinue}
+          style={styles.button}
+          isDisabled={hasInsufficientBalance || isSubmittingTx}
+        />
+        <Button
+          variant={ButtonVariants.Link}
+          label={
+            <Text color={TextColor.Alternative}>
+              {strings('bridge.terms_and_conditions')}
+            </Text>
+          }
+          onPress={handleTermsPress}
+        />
       </Box>
     );
   };
