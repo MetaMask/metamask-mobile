@@ -28,7 +28,7 @@ import {
 } from '../../../selectors/multichain';
 import { selectSelectedNonEvmNetworkChainId } from '../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   getAccountBalanceData,
   getAggregatedBalance,
@@ -42,6 +42,7 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
  */
 const useMultichainBalancesForAllAccounts =
   (): UseAllAccountsMultichainBalancesHook => {
+    const renderCountRef = useRef(0);
     const accountsList = useSelector(selectInternalAccounts);
     const chainId = useSelector(selectChainId);
     const evmChainId = useSelector(selectEvmChainId);
@@ -81,6 +82,15 @@ const useMultichainBalancesForAllAccounts =
     ///: END:ONLY_INCLUDE_IF
 
     const isPortfolioEnabled = isPortfolioViewEnabled();
+
+    // Track re-renders
+    useEffect(() => {
+      renderCountRef.current += 1;
+      // eslint-disable-next-line no-console
+      console.log(
+        `useMultichainBalances re-rendered ${renderCountRef.current} times`,
+      );
+    });
 
     // Create a stable reference for each account's balance data
     const allAccountBalances = useMemo(() => {
