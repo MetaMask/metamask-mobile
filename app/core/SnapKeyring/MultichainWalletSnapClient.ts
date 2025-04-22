@@ -14,7 +14,7 @@ import {
 import Engine from '../Engine';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
-import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 
 export enum WalletClientType {
   Bitcoin = 'bitcoin',
@@ -141,7 +141,7 @@ export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
   }
 
   protected getScopes(): CaipChainId[] {
-    return [MultichainNetwork.Bitcoin, MultichainNetwork.BitcoinTestnet];
+    return [BtcScope.Mainnet, BtcScope.Testnet];
   }
 
   protected getSnapSender(): Sender {
@@ -155,11 +155,7 @@ export class SolanaWalletSnapClient extends MultichainWalletSnapClient {
   }
 
   protected getScopes(): CaipChainId[] {
-    return [
-      MultichainNetwork.Solana,
-      MultichainNetwork.SolanaDevnet,
-      MultichainNetwork.SolanaTestnet,
-    ];
+    return [SolScope.Mainnet, SolScope.Devnet, SolScope.Testnet];
   }
 
   protected getSnapSender(): Sender {
