@@ -216,11 +216,11 @@ describe('removeNft', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    Engine.context = {
+    Object.assign(Engine.context, {
       NftController: {
         removeAndIgnoreNft: mockRemoveAndIgnoreNft,
       },
-    };
+    });
   });
 
   it('should remove NFT and call necessary functions', () => {
