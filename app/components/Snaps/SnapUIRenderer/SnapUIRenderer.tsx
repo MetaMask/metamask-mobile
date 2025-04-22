@@ -74,14 +74,13 @@ const SnapUIRendererComponent = ({
     return <ActivityIndicator size="large" color={Colors.primary} />;
   }
 
-  const { state: initialState, context } = interfaceState;
+  const { state: initialState } = interfaceState;
   return (
     <View style={[styles.root, style]}>
       <SnapInterfaceContextProvider
         snapId={snapId}
         interfaceId={interfaceId}
         initialState={initialState}
-        context={context}
       >
         <TemplateRenderer sections={sections} />
         {PERF_DEBUG && <PerformanceTracker />}
