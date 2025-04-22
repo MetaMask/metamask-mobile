@@ -57,6 +57,11 @@ const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
 };
 
 async function validateRequest(req: PPOMRequest, transactionId?: string) {
+  console.log('[Security Alert] Starting request validation:', {
+    req,
+    transactionId,
+  });
+
   const {
     AccountsController,
     NetworkController,
@@ -99,6 +104,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
 
   try {
     if (isTransaction && !transactionId) {
+      console.log('[Security Alert] Transaction validation failed - missing transactionId');
       securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
       return;
     }
@@ -110,10 +116,13 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
     );
 
     const normalizedRequest = normalizeRequest(req);
+    console.log('[Security Alert] Normalized request:', normalizedRequest);
 
     securityAlertResponse = isSecurityAlertsAPIEnabled()
       ? await validateWithAPI(ppomController, chainId, normalizedRequest)
       : await validateWithController(ppomController, normalizedRequest);
+
+    console.log('[Security Alert] Validation response:', securityAlertResponse);
 
     securityAlertResponse = {
       ...securityAlertResponse,
@@ -121,9 +130,11 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
       chainId,
     };
   } catch (e) {
+    console.error('[Security Alert] Error validating request:', e);
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
   } finally {
     if (!securityAlertResponse) {
+      console.log('[Security Alert] No response received, setting failed response');
       securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
     }
 
@@ -137,16 +148,20 @@ async function validateWithController(
   ppomController: PPOMController,
   request: PPOMRequest,
 ): Promise<SecurityAlertResponse> {
+  console.log('[Security Alert] Validating with local PPOM controller');
   try {
     const response = (await ppomController.usePPOM((ppom) =>
       ppom.validateJsonRpc(request as unknown as Record<string, unknown>),
     )) as SecurityAlertResponse;
+
+    console.log('[Security Alert] Local PPOM response:', response);
 
     return {
       ...response,
       source: SecurityAlertSource.Local,
     };
   } catch (e) {
+    console.error('[Security Alert] Error validating with local PPOM:', e);
     Logger.log(`Error validating request with PPOM: ${e}`);
     return {
       ...SECURITY_ALERT_RESPONSE_FAILED,
@@ -160,6 +175,7 @@ async function validateWithAPI(
   chainId: string,
   request: PPOMRequest,
 ): Promise<SecurityAlertResponse> {
+  console.log('[Security Alert] Validating with security alerts API');
   try {
     const response = await validateWithSecurityAlertsAPI(chainId, request);
 
@@ -168,6 +184,7 @@ async function validateWithAPI(
       source: SecurityAlertSource.API,
     };
   } catch (e) {
+    console.error('[Security Alert] Error validating with API, falling back to local PPOM:', e);
     Logger.log(`Error validating request with security alerts API: ${e}`);
     return await validateWithController(ppomController, request);
   }

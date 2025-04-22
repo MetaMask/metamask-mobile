@@ -16,22 +16,36 @@ export async function validateWithSecurityAlertsAPI(
   chainId: string,
   body: SecurityAlertsAPIRequest,
 ): Promise<SecurityAlertResponse> {
+  console.log('[Security Alert] Validating request with API:', {
+    chainId,
+    body,
+    enabled: isSecurityAlertsAPIEnabled(),
+  });
+  
   const endpoint = `${ENDPOINT_VALIDATE}/${chainId}`;
-  return request(endpoint, {
+  const response = await request(endpoint, {
     method: 'POST',
     body: JSON.stringify(body),
     headers: {
       'Content-Type': 'application/json',
     },
   });
+  
+  console.log('[Security Alert] API response:', response);
+  return response;
 }
 
 async function request(endpoint: string, options?: RequestInit) {
   const url = getUrl(endpoint);
+  console.log('[Security Alert] Making request to:', url);
 
   const response = await fetch(url, options);
 
   if (!response.ok) {
+    console.error('[Security Alert] Request failed:', {
+      status: response.status,
+      statusText: response.statusText,
+    });
     throw new Error(
       `Security alerts API request failed with status: ${response.status}`,
     );
@@ -44,6 +58,7 @@ function getUrl(endpoint: string) {
   const host = AppConstants.SECURITY_ALERTS_API.URL;
 
   if (!host) {
+    console.error('[Security Alert] API URL not set');
     throw new Error('Security alerts API URL is not set');
   }
 

@@ -73,6 +73,11 @@ export default function useBlockaidAlerts(): Alert[] {
   const { securityAlertResponse } = useSecurityAlertResponse();
   const { trackEvent, createEventBuilder } = useMetrics();
 
+  console.log('[Security Alert] Processing alerts:', {
+    signatureRequest,
+    securityAlertResponse,
+  });
+
   const {
     type,
     messageParams: { from: fromAddress },
@@ -101,12 +106,21 @@ export default function useBlockaidAlerts(): Alert[] {
     securityAlertResponse?.result_type as BlockaidResultType,
   );
 
+  console.log('[Security Alert] Result type ignored:', isResultTypeIgnored);
+
   const alerts = useMemo(() => {
     if (!securityAlertResponse || isResultTypeIgnored) {
+      console.log('[Security Alert] No alerts to display');
       return [];
     }
 
     const { result_type, reason, features } = securityAlertResponse;
+
+    console.log('[Security Alert] Creating alert:', {
+      result_type,
+      reason,
+      features,
+    });
 
     return [
       {
