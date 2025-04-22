@@ -3,6 +3,7 @@ import { TokenListState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import { tokenListToArray } from '../util/tokens';
 import { createDeepEqualSelector } from '../selectors/util';
+import { selectEvmChainId } from './networkController';
 
 const selectTokenListConstrollerState = (state: RootState) =>
   state.engine.backgroundState.TokenListController;
@@ -13,8 +14,9 @@ const selectTokenListConstrollerState = (state: RootState) =>
  */
 export const selectTokenList = createSelector(
   selectTokenListConstrollerState,
-  (tokenListControllerState: TokenListState) =>
-    tokenListControllerState?.tokenList,
+  selectEvmChainId,
+  (tokenListControllerState: TokenListState, chainId) =>
+    tokenListControllerState?.tokensChainsCache?.[chainId]?.data || [],
 );
 
 /**
