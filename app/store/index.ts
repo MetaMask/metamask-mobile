@@ -68,6 +68,7 @@ const createStoreAndPersistor = async () => {
     endTrace({ name: TraceName.StoreInit });
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
+    // This sets the basic functionality value from the persisted state when the app is restarted
     store.dispatch(toggleBasicFunctionality(store.getState().settings.basicFunctionalityEnabled));
   };
 
