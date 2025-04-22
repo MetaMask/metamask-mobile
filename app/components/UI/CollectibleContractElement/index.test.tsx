@@ -7,6 +7,8 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { mockNetworkState } from '../../../util/test/network';
+import Engine from '../../../core/Engine';
+import { removeNft } from './util';
 
 const mockStore = configureStore([]);
 const initialState = {
@@ -188,5 +190,151 @@ describe('CollectibleContractElement', () => {
       );
       expect(queryByTestId('collectible-Collectible11-1')).toBeNull();
     });
+  });
+});
+
+describe('removeNft', () => {
+  const mockRemoveFavoriteCollectible = jest.fn();
+  const mockRemoveAndIgnoreNft = jest.fn();
+  const mockLongPressedCollectible = {
+    current: {
+      address: '0x123',
+      tokenId: '456',
+      chainId: '1',
+    },
+  };
+  const mockNetworkConfigurations = {
+    '0x1': {
+      rpcEndpoints: [
+        {
+          networkClientId: 'test-network-client-id',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    Engine.context = {
+      NftController: {
+        removeAndIgnoreNft: mockRemoveAndIgnoreNft,
+      },
+    };
+  });
+
+  it('should remove NFT and call necessary functions', () => {
+    removeNft({
+      selectedAddress: '0x789',
+      chainId: '1',
+      longPressedCollectible: mockLongPressedCollectible,
+      removeFavoriteCollectible: mockRemoveFavoriteCollectible,
+      networkConfigurations: mockNetworkConfigurations,
+    });
+
+    expect(mockRemoveFavoriteCollectible).toHaveBeenCalledWith(
+      '0x789',
+      '1',
+      mockLongPressedCollectible.current,
+    );
+
+    expect(mockRemoveAndIgnoreNft).toHaveBeenCalledWith('0x123', '456', {
+      networkClientId: 'test-network-client-id',
+      userAddress: '0x789',
+    });
+  });
+
+  it('should handle missing network configuration gracefully', () => {
+    const networkConfigWithoutRpc = {
+      '0x1': {
+        rpcEndpoints: [],
+        defaultRpcEndpointIndex: 0,
+      },
+    };
+
+    removeNft({
+      selectedAddress: '0x789',
+      chainId: '1',
+      longPressedCollectible: mockLongPressedCollectible,
+      removeFavoriteCollectible: mockRemoveFavoriteCollectible,
+      networkConfigurations: networkConfigWithoutRpc,
+    });
+
+    expect(mockRemoveFavoriteCollectible).toHaveBeenCalledWith(
+      '0x789',
+      '1',
+      mockLongPressedCollectible.current,
+    );
+
+    expect(mockRemoveAndIgnoreNft).toHaveBeenCalledWith('0x123', '456', {
+      networkClientId: undefined,
+      userAddress: '0x789',
+    });
+  });
+
+  it('should handle missing RPC endpoint gracefully', () => {
+    const networkConfigWithoutRpc = {
+      '0x1': {
+        rpcEndpoints: [],
+        defaultRpcEndpointIndex: 0,
+      },
+    };
+
+    removeNft({
+      selectedAddress: '0x789',
+      chainId: '1',
+      longPressedCollectible: mockLongPressedCollectible,
+      removeFavoriteCollectible: mockRemoveFavoriteCollectible,
+      networkConfigurations: networkConfigWithoutRpc,
+    });
+
+    expect(mockRemoveFavoriteCollectible).toHaveBeenCalledWith(
+      '0x789',
+      '1',
+      mockLongPressedCollectible.current,
+    );
+
+    expect(mockRemoveAndIgnoreNft).toHaveBeenCalledWith('0x123', '456', {
+      networkClientId: undefined,
+      userAddress: '0x789',
+    });
+  });
+
+  it('should call NftController with correct arguments', () => {
+    const mockCollectible = {
+      current: {
+        address: '0xabc123',
+        tokenId: '789',
+        chainId: '1',
+      },
+    };
+
+    const mockConfig = {
+      '0x1': {
+        rpcEndpoints: [
+          {
+            networkClientId: 'specific-network-id',
+          },
+        ],
+        defaultRpcEndpointIndex: 0,
+      },
+    };
+
+    removeNft({
+      selectedAddress: '0xdef456',
+      chainId: '1',
+      longPressedCollectible: mockCollectible,
+      removeFavoriteCollectible: mockRemoveFavoriteCollectible,
+      networkConfigurations: mockConfig,
+    });
+
+    expect(mockRemoveAndIgnoreNft).toHaveBeenCalledWith(
+      '0xabc123', // NFT address
+      '789', // tokenId
+      {
+        networkClientId: 'specific-network-id',
+        userAddress: '0xdef456',
+      },
+    );
   });
 });
