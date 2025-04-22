@@ -178,7 +178,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
 
   const renderTabBar = () => <View />;
 
-  const onChangeTab = async (obj: { i: number }) => {
+  const onChangeTab = (obj: { i: number }) => {
     setCurrentTab(obj.i + 1);
     track(
       MetricsEventBuilder.createEventBuilder(
@@ -199,14 +199,18 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
 
   const initialize = useCallback(async () => {
     updateNavBar();
-
+    // Reference for the original code implementation for tracking events
     // track(
     //   MetricsEventBuilder.createEventBuilder(
     //     MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED,
     //   ).build(),
     // );
     try {
-      await welcomeMessageViewed();
+      await welcomeMessageViewed({
+        properties: {
+          $country_code: 'KK',
+        },
+      });
     } catch (error) {
       console.error('Error tracking welcome message viewed', error);
     }
