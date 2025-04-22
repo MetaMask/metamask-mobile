@@ -13,11 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- feat(ramp): auto-select region
 - fix(multi-srp): display errors only after all the words are have been entered ([#14607](https://github.com/MetaMask/metamask-mobile/pull/14607))
 
 ### Added
 
-- feat(ramp): auto-select region
 - feat(bridge): add solana chain support and improve bridge state management ([#14713](https://github.com/MetaMask/metamask-mobile/pull/14713))
 - feat(bridge): add error handling and input management for bridge quotes ([#14693](https://github.com/MetaMask/metamask-mobile/pull/14693))
 - feat(multi-srp): enable multi-srp in main and beta ([#14558](https://github.com/MetaMask/metamask-mobile/pull/14558))
