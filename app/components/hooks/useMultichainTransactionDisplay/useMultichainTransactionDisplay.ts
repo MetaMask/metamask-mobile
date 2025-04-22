@@ -7,6 +7,14 @@ import { formatUnits } from 'ethers/lib/utils';
 type Fee = Transaction['fees'][0]['asset'];
 type Token = Transaction['from'][0]['asset'];
 
+export const getMultichainTxFees = (transaction: Transaction) => {
+  const baseFee = transaction?.fees?.find((fee) => fee.type === 'base') ?? null;
+  const priorityFee =
+    transaction?.fees?.find((fee) => fee.type === 'priority') ?? null;
+
+  return { baseFee, priorityFee };
+};
+
 export function useMultichainTransactionDisplay({
   transaction,
   userAddress,
@@ -27,9 +35,7 @@ export function useMultichainTransactionDisplay({
     (entry) => entry?.address === userAddress,
   );
 
-  const baseFee = transaction?.fees?.find((fee) => fee.type === 'base') ?? null;
-  const priorityFee =
-    transaction?.fees?.find((fee) => fee.type === 'priority') ?? null;
+  const { baseFee, priorityFee } = getMultichainTxFees(transaction);
 
   let from = null;
   let to = null;

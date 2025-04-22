@@ -6,10 +6,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../Box/Box';
-import {
-  FlexDirection,
-  AlignItems,
-} from '../../../Box/box.types';
+import { FlexDirection, AlignItems } from '../../../Box/box.types';
 import { getBridgeTransactionDetailsNavbar } from '../../../Navbar';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { TransactionMeta } from '@metamask/transaction-controller';
@@ -30,8 +27,14 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeToken } from '../../types';
-import { formatChainIdToCaip, formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  formatChainIdToHex,
+  getNativeAssetForChainId,
+  isSolanaChainId,
+} from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
+import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -40,44 +43,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    },
-    arrowContainer: {
-      paddingLeft: 11,
-      paddingTop: 1,
-      paddingBottom: 10,
-    },
-    transactionContainer: {
-      paddingLeft: 8,
-    },
-    transactionAssetsContainer: {
-      paddingVertical: 16,
-    },
-    blockExplorerButton: {
-      width: '90%',
-      alignSelf: 'center',
-      marginTop: 12,
-    },
-    textTransform: {
-      textTransform: 'capitalize',
-    },
-    container: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: 8,
-    },
-    tokenIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    tokenInfo: {
-      flexDirection: 'column',
-      gap: 2,
-    },
-  });
+  },
+  arrowContainer: {
+    paddingLeft: 11,
+    paddingTop: 1,
+    paddingBottom: 10,
+  },
+  transactionContainer: {
+    paddingLeft: 8,
+  },
+  transactionAssetsContainer: {
+    paddingVertical: 16,
+  },
+  blockExplorerButton: {
+    width: '90%',
+    alignSelf: 'center',
+    marginTop: 12,
+  },
+  textTransform: {
+    textTransform: 'capitalize',
+  },
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 8,
+  },
+  tokenIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tokenInfo: {
+    flexDirection: 'column',
+    gap: 2,
+  },
+});
 
 interface BridgeTransactionDetailsProps {
   route: {
@@ -182,10 +185,20 @@ export const BridgeTransactionDetails = (
       })
     : null;
 
-  const totalGasFee = evmTxMeta ? calcTokenAmount(
-    calcHexGasTotal(evmTxMeta),
-    18,
-  ).toFixed(5) : null;
+  const evmTotalGasFee = evmTxMeta
+    ? calcTokenAmount(calcHexGasTotal(evmTxMeta), 18).toFixed(5)
+    : null;
+
+  let multiChainTotalGasFee;
+  if (multiChainTx) {
+    const { baseFee, priorityFee } = getMultichainTxFees(multiChainTx);
+    multiChainTotalGasFee =
+      baseFee?.asset.fungible && priorityFee?.asset.fungible
+        ? (
+            Number(baseFee?.asset.amount) + Number(priorityFee?.asset.amount)
+          ).toFixed(5)
+        : null;
+  }
 
   return (
     <ScreenView>
@@ -264,7 +277,17 @@ export const BridgeTransactionDetails = (
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
           {/* TODO get solana gas fee from multiChainTx */}
-          <Text>{totalGasFee} ETH</Text>
+          {evmTotalGasFee && (
+            <Text>
+              {evmTotalGasFee} {getNativeAssetForChainId(quote.srcChainId).symbol}
+            </Text>
+          )}
+          {multiChainTotalGasFee && (
+            <Text>
+              {multiChainTotalGasFee}{' '}
+              {getNativeAssetForChainId(quote.srcChainId).symbol}
+            </Text>
+          )}
         </Box>
       </Box>
       <Box>
