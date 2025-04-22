@@ -100,6 +100,7 @@ describe('Blockaid util', () => {
         transaction as unknown as TransactionType,
       );
       expect(result).toEqual({
+        ui_customizations: ['flagged_as_malicious'],
         security_alert_response: ResultType.Malicious,
         security_alert_reason: Reason.notApplicable,
         ppom_eth_call_count: 5,
@@ -147,6 +148,7 @@ describe('Blockaid util', () => {
 
       const result = getBlockaidMetricsParams(securityAlertResponse);
       expect(result).toEqual({
+        ui_customizations: ['flagged_as_malicious'],
         security_alert_response: ResultType.Malicious,
         security_alert_reason: Reason.notApplicable,
         security_alert_source: SecurityAlertSource.API,
@@ -165,6 +167,7 @@ describe('Blockaid util', () => {
 
       const result = getBlockaidMetricsParams(securityAlertResponse);
       expect(result).toEqual({
+        ui_customizations: ['flagged_as_malicious'],
         security_alert_response: ResultType.Malicious,
         security_alert_reason: Reason.notApplicable,
       });
@@ -180,6 +183,7 @@ describe('Blockaid util', () => {
 
       const result = getBlockaidMetricsParams(securityAlertResponse);
       expect(result).toEqual({
+        ui_customizations: ['flagged_as_malicious'],
         security_alert_response: ResultType.Malicious,
         security_alert_reason: Reason.notApplicable,
       });
@@ -200,6 +204,7 @@ describe('Blockaid util', () => {
 
       const result = getBlockaidMetricsParams(securityAlertResponse);
       expect(result).toEqual({
+        ui_customizations: ['security_alert_loading'],
         security_alert_response: 'loading',
         security_alert_reason: Reason.notApplicable,
         security_alert_source: SecurityAlertSource.API,

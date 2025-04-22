@@ -44,7 +44,7 @@ const SignatureMetrics = {
   security_alert_response: 'Malicious',
   security_alert_source: 'api',
   signature_type: 'eth_signTypedData',
-  ui_customizations: ['redesigned_confirmation'],
+  ui_customizations: ['redesigned_confirmation', 'flagged_as_malicious'],
   version: 'V4',
 };
 
