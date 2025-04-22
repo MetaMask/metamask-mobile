@@ -1,5 +1,5 @@
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   setDestToken,
@@ -9,6 +9,8 @@ import { Hex } from '@metamask/utils';
 import BridgeView from '.';
 import { createBridgeTestState } from '../../testUtils';
 import { initialState } from '../../_mocks_/initialState';
+import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
+import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
@@ -19,6 +21,23 @@ jest.mock('../../../../../core/Engine', () => ({
       fetchAggregatorMetadataWithCache: jest.fn(),
       fetchTopAssetsWithCache: jest.fn(),
       fetchTokenWithCache: jest.fn(),
+    },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x1234567890123456789012345678901234567890'],
+            type: 'HD Key Tree',
+          },
+        ],
+      },
+    },
+    BridgeStatusController: {
+      submitTx: jest.fn().mockResolvedValue({ success: true }),
+    },
+    BridgeController: {
+      resetState: jest.fn(),
+      setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -72,8 +91,6 @@ jest.mock('../../hooks/useLatestBalance', () => ({
 }));
 
 describe('BridgeView', () => {
-  const mockChainId = '0x1' as Hex;
-  const optimismChainId = '0xa' as Hex;
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
 
   beforeEach(() => {
@@ -81,14 +98,20 @@ describe('BridgeView', () => {
   });
 
   it('renders', async () => {
-    const { getByText } = renderScreen(
+    const { toJSON } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
       },
       { state: initialState },
     );
-    expect(getByText('Select amount')).toBeDefined();
+
+    // Wait for any async operations to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should open BridgeTokenSelector when clicking source token', async () => {
@@ -275,6 +298,8 @@ describe('BridgeView', () => {
           quoteRequest: {
             insufficientBal: true,
           },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuotes[0] as unknown as QuoteResponse],
         },
       });
 
@@ -295,6 +320,8 @@ describe('BridgeView', () => {
           quoteRequest: {
             insufficientBal: false,
           },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuotes[0] as unknown as QuoteResponse],
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0', // Less than balance of 2.0 ETH
@@ -314,28 +341,26 @@ describe('BridgeView', () => {
     });
 
     it('should handle Continue button press', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0', // Less than balance of 2.0 ETH
+        },
+      });
+
       const { getByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
         },
         {
-          state: {
-            ...initialState,
-            bridge: {
-              ...initialState.bridge,
-              sourceAmount: '1.0',
-              destToken: {
-                address: token2Address,
-                symbol: 'TOKEN2',
-                decimals: 18,
-                image: 'https://token2.com/logo.png',
-                chainId: optimismChainId,
-              },
-              selectedDestChainId: optimismChainId,
-              selectedSourceChainIds: [mockChainId, optimismChainId],
-            },
-          },
+          state: testState,
         },
       );
 
@@ -352,6 +377,8 @@ describe('BridgeView', () => {
           quoteRequest: {
             insufficientBal: false,
           },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuotes[0] as unknown as QuoteResponse],
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0', // Less than balance of 2.0 ETH

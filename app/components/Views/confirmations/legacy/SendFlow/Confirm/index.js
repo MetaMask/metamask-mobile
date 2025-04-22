@@ -130,6 +130,7 @@ import {
 } from './validation';
 import { buildTransactionParams } from '../../../../../../util/confirmation/transactions';
 import {
+  selectEvmChainId,
   selectNativeCurrencyByChainId,
   // Pending updated multichain UX to specify the send chain.
   // eslint-disable-next-line no-restricted-syntax
@@ -337,7 +338,10 @@ class Confirm extends PureComponent {
   setNetworkNonce = async () => {
     const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
       this.props;
-    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
+    const proposedNonce = await getNetworkNonce(
+      transaction,
+      globalNetworkClientId,
+    );
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -894,10 +898,7 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (
-      isNativeToken(selectedAsset) ||
-      selectedAsset.tokenId
-    ) {
+    if (isNativeToken(selectedAsset) || selectedAsset.tokenId) {
       return insufficientBalanceMessage;
     }
 
@@ -925,7 +926,6 @@ class Confirm extends PureComponent {
     assetType,
     gaParams,
   ) => {
-
     const { navigation } = this.props;
     // Manual cancel from UI or rejected from ledger device.
     try {
@@ -1426,7 +1426,9 @@ class Confirm extends PureComponent {
                 style={styles.blockaidBanner}
                 onContactUsClicked={this.onContactUsClicked}
               />
-              <SmartTransactionsMigrationBanner style={styles.smartTransactionsMigrationBanner}/>
+              <SmartTransactionsMigrationBanner
+                style={styles.smartTransactionsMigrationBanner}
+              />
             </>
           )}
           {!selectedAsset.tokenId ? (
@@ -1594,7 +1596,7 @@ Confirm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
-  const chainId = transaction?.chainId;
+  const chainId = selectEvmChainId(state);
   const networkClientId =
     transaction?.networkClientId || selectNetworkClientId(state);
 
