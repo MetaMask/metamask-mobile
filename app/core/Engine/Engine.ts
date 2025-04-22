@@ -802,7 +802,9 @@ export class Engine {
           'AccountsController:selectedAccountChange',
         ],
       }),
-      state: initialState.AccountTrackerController ?? { accounts: {} },
+      state: initialState.AccountTrackerController ?? {
+        accountsByChainId: {},
+      },
       getStakedBalanceForChain:
         assetsContractController.getStakedBalanceForChain.bind(
           assetsContractController,
@@ -858,7 +860,9 @@ export class Engine {
             const internalAccountCount = internalAccounts.length;
 
             const accountTrackerCount = Object.keys(
-              accountTrackerController.state.accounts || {},
+              accountTrackerController.state.accountsByChainId[
+                currentChainId
+              ] || {},
             ).length;
 
             captureException(
@@ -1046,9 +1050,12 @@ export class Engine {
         allowedActions: [
           'AccountsController:getSelectedMultichainAccount',
           'SnapController:handleRequest',
-          'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',
+          'NetworkController:findNetworkClientIdByChainId',
+          'TokenRatesController:getState',
+          'MultichainAssetsRatesController:getState',
+          'CurrencyRateController:getState',
         ],
         allowedEvents: [],
       }),
@@ -1076,11 +1083,16 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'BridgeStatusController',
         allowedActions: [
-          'AccountsController:getSelectedAccount',
           'AccountsController:getSelectedMultichainAccount',
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
+          'TokensController:addDetectedTokens',
+          'BridgeController:getBridgeERC20Allowance',
+          'GasFeeController:getState',
+          'AccountsController:getAccountByAddress',
+          'PreferencesController:getState',
+          'SnapController:handleRequest',
           'TransactionController:getState',
         ],
         allowedEvents: [],
@@ -1088,6 +1100,16 @@ export class Engine {
       state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
       fetchFn: handleFetch,
+      addTransactionFn: (...args: Parameters<typeof this.transactionController.addTransaction>) =>
+        this.transactionController.addTransaction(...args),
+      estimateGasFeeFn: (...args: Parameters<typeof this.transactionController.estimateGasFee>) =>
+        this.transactionController.estimateGasFee(...args),
+      addUserOperationFromTransactionFn: (...args: unknown[]) =>
+        // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
+        this.userOperationController?.addUserOperationFromTransaction?.(...args),
+      config: {
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL
+      },
     });
 
     const existingControllersByName = {
