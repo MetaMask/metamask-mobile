@@ -916,9 +916,7 @@ class Amount extends PureComponent {
       const balanceBN = hexToBN(accounts[selectedAddress].balance);
       const realMaxValue = balanceBN.sub(estimatedTotalGas);
       const maxValue =
-        balanceBN.isZero() || realMaxValue.isNeg()
-          ? hexToBN('0x0')
-          : realMaxValue;
+      balanceBN.isZero() || realMaxValue.isNeg() ? hexToBN('0x0') : realMaxValue;
       if (internalPrimaryCurrencyIsCrypto) {
         input = fromWei(maxValue);
       } else {
