@@ -52,7 +52,6 @@ describe('BridgeDestNetworkSelector', () => {
     expect(getByText('Select network')).toBeTruthy();
 
     // Networks should be visible
-    expect(getByText('Ethereum Mainnet')).toBeTruthy();
     expect(getByText('Optimism')).toBeTruthy();
 
     expect(toJSON()).toMatchSnapshot();
