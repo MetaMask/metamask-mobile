@@ -38,6 +38,8 @@ import { Hex } from '@metamask/utils';
 import Engine from '../../../core/Engine';
 import { selectCurrentCurrency, selectUsdConversionRate } from '../../../selectors/currencyRateController';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '../Bridge/hooks/useSwapBridgeNavigation';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
 
 export * from './types';
 
@@ -211,8 +213,26 @@ const UrlAutocomplete = forwardRef<
     sourcePage: 'MainView',
   });
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+
   const goToSwaps = useCallback(async (result: TokenSearchResult) => {
     try {
+      let properties: JsonMap;
+      if (latestSearchTerm.current?.startsWith('0x')) {
+        properties = {
+          token_address: latestSearchTerm.current,
+        };
+      } else {
+        properties = {
+          token_symbol: result.symbol,
+        };
+      }
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_SEARCH_DISCOVERY_TOKEN_SWAP_OPENED)
+        .addProperties(properties)
+        .build()
+      );
+
       await goToSwapsHook(result);
     } catch (error) {
       return;

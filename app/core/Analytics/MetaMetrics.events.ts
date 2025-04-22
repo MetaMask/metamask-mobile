@@ -429,6 +429,11 @@ enum EVENT_NAME {
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
   RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
+
+  // Token Search and Discovery
+  TOKEN_SEARCH_DISCOVERY_SITE_OPENED = 'Token Search and Discovery Site Opened',
+  TOKEN_SEARCH_DISCOVERY_TOKEN_DETAILS_OPENED = 'Token Search and Discovery Token Details Opened',
+  TOKEN_SEARCH_DISCOVERY_TOKEN_SWAP_OPENED = 'Token Search and Discovery Token Swap Opened',
 }
 
 enum ACTIONS {
@@ -1027,6 +1032,17 @@ const events = {
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
   RPC_SERVICE_DEGRADED: generateOpt(EVENT_NAME.RPC_SERVICE_DEGRADED),
+
+  // Token Search and Discovery
+  TOKEN_SEARCH_DISCOVERY_SITE_OPENED: generateOpt(
+    EVENT_NAME.TOKEN_SEARCH_DISCOVERY_SITE_OPENED,
+  ),
+  TOKEN_SEARCH_DISCOVERY_TOKEN_DETAILS_OPENED: generateOpt(
+    EVENT_NAME.TOKEN_SEARCH_DISCOVERY_TOKEN_DETAILS_OPENED,
+  ),
+  TOKEN_SEARCH_DISCOVERY_TOKEN_SWAP_OPENED: generateOpt(
+    EVENT_NAME.TOKEN_SEARCH_DISCOVERY_TOKEN_SWAP_OPENED,
+  ),
 };
 
 /**
