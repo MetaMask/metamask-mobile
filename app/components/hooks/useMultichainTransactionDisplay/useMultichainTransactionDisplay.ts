@@ -1,19 +1,22 @@
 import { Transaction, TransactionType } from '@metamask/keyring-api';
 import I18n from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 
 type Fee = Transaction['fees'][0]['asset'];
 type Token = Transaction['from'][0]['asset'];
 
-
 export function useMultichainTransactionDisplay({
   transaction,
   userAddress,
+  bridgeHistoryItem,
 }: {
   transaction: Transaction;
   userAddress: string;
+  bridgeHistoryItem?: BridgeHistoryItem;
 }) {
   const locale = I18n.locale;
+  const isBridgeTx = transaction.type === TransactionType.Send && bridgeHistoryItem;
 
   const transactionFromEntry = transaction.from?.find(
     (entry) => entry?.address === userAddress,
@@ -45,6 +48,12 @@ export function useMultichainTransactionDisplay({
     default:
       from = transaction.from?.[0] ?? null;
       to = transaction.to?.[0] ?? null;
+  }
+
+  if (isBridgeTx) {
+    console.log('bridgeHistoryItem', bridgeHistoryItem);
+    // from = bridgeHistoryItem?.quote.srcAsset;
+    // to = bridgeHistoryItem?.quote.destAsset;
   }
 
   const asset = {

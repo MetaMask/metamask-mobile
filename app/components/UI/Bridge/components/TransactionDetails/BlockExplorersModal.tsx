@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet } from 'react-native';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
@@ -25,6 +25,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
+import { Transaction } from '@metamask/keyring-api';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -49,7 +50,8 @@ const styleSheet = (params: { theme: Theme }) =>
 interface BlockExplorersModalProps {
   route: {
     params: {
-      tx: TransactionMeta;
+      evmTxMeta?: TransactionMeta;
+      multiChainTx?: Transaction;
     };
   };
 }
@@ -59,28 +61,19 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
-    txMeta: props.route.params.tx,
+    evmTxMeta: props.route.params.evmTxMeta,
+    multiChainTx: props.route.params.multiChainTx,
   });
 
   // Get source chain explorer data
-  const {
-    explorerTxUrl: srcExplorerTxUrl,
-    explorerName: srcExplorerName,
-    networkImageSource: srcNetworkImageSource,
-    chainName: srcChainName,
-  } = useMultichainBlockExplorerTxUrl({
-    chainId: bridgeTxHistoryItem.quote.srcChainId,
-    txHash: props.route.params.tx.hash,
+  const srcExplorerData = useMultichainBlockExplorerTxUrl({
+    chainId: bridgeTxHistoryItem?.quote.srcChainId,
+    txHash: bridgeTxHistoryItem?.status.srcChain?.txHash,
   });
 
   // Get destination chain explorer data
-  const {
-    explorerTxUrl: destExplorerTxUrl,
-    explorerName: destExplorerName,
-    networkImageSource: destNetworkImageSource,
-    chainName: destChainName,
-  } = useMultichainBlockExplorerTxUrl({
-    chainId: bridgeTxHistoryItem.quote.destChainId,
+  const destExplorerData = useMultichainBlockExplorerTxUrl({
+    chainId: bridgeTxHistoryItem?.quote.destChainId,
     txHash: bridgeTxHistoryItem?.status.destChain?.txHash,
   });
 
@@ -97,19 +90,19 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
         alignItems={AlignItems.center}
         justifyContent={JustifyContent.center}
       >
-        {srcExplorerTxUrl && (
+        {srcExplorerData && (
           <Button
             variant={ButtonVariants.Secondary}
             label={
               <>
                 <Badge
                   variant={BadgeVariant.Network}
-                  name={srcChainName}
-                  imageSource={srcNetworkImageSource}
+                  name={srcExplorerData.chainName}
+                  imageSource={srcExplorerData.networkImageSource}
                   style={styles.badge}
                 />
                 <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
-                  {srcExplorerName}
+                  {srcExplorerData.explorerName}
                 </Text>
               </>
             }
@@ -117,7 +110,7 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
               navigation.navigate(Routes.BROWSER.HOME, {
                 screen: Routes.BROWSER.VIEW,
                 params: {
-                  newTabUrl: srcExplorerTxUrl,
+                  newTabUrl: srcExplorerData.explorerTxUrl,
                   timestamp: Date.now(),
                 },
               });
@@ -126,19 +119,19 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
           />
         )}
 
-        {destExplorerTxUrl && (
+        {destExplorerData && (
           <Button
             variant={ButtonVariants.Secondary}
             label={
               <>
                 <Badge
                   variant={BadgeVariant.Network}
-                  name={destChainName}
-                  imageSource={destNetworkImageSource}
+                  name={destExplorerData.chainName}
+                  imageSource={destExplorerData.networkImageSource}
                   style={styles.badge}
                 />
                 <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
-                  {destExplorerName}
+                  {destExplorerData.explorerName}
                 </Text>
               </>
             }
@@ -146,7 +139,7 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
               navigation.navigate(Routes.BROWSER.HOME, {
                 screen: Routes.BROWSER.VIEW,
                 params: {
-                  newTabUrl: destExplorerTxUrl,
+                  newTabUrl: destExplorerData.explorerTxUrl,
                   timestamp: Date.now(),
                 },
               });

@@ -30,7 +30,7 @@ export const useMultichainBlockExplorerTxUrl = ({
   chainId,
   txHash,
 }: {
-  chainId: number; // From the Bridge API
+  chainId?: number; // From the Bridge API
   txHash?: string;
 }) => {
   const evmNetworkConfigurations = useSelector(
@@ -40,15 +40,20 @@ export const useMultichainBlockExplorerTxUrl = ({
     selectNonEvmNetworkConfigurationsByChainId,
   );
 
-  const formattedChainId = isSolanaChainId(chainId)
-    ? formatChainIdToCaip(chainId)
-    : formatChainIdToHex(chainId);
+  // Format chainId based on whether it's Solana or not
+  const isSolana = chainId ? isSolanaChainId(chainId) : false;
+  let formattedChainId: string | undefined;
+  if (chainId) {
+    formattedChainId = isSolana
+      ? formatChainIdToCaip(chainId)
+      : formatChainIdToHex(chainId);
+  }
 
-  // EVM specific hooks
-  // If chainId is Solana, these should be undefined
-  const evmNetworkConfig = isSolanaChainId(chainId)
-    ? undefined
-    : evmNetworkConfigurations[formattedChainId as Hex];
+  // EVM specific hooks - always call these regardless of chainId
+  const evmNetworkConfig = formattedChainId && !isSolana
+    ? evmNetworkConfigurations[formattedChainId as Hex]
+    : undefined;
+
   const evmProviderConfig = useMemo(
     () =>
       evmNetworkConfig
@@ -56,15 +61,22 @@ export const useMultichainBlockExplorerTxUrl = ({
         : undefined,
     [evmNetworkConfig],
   );
+
   const evmExplorer = useEvmBlockExplorer(
     evmNetworkConfigurations,
     evmProviderConfig,
   );
 
+  // Handle undefined chainId case
+  if (!chainId) {
+    return undefined;
+  }
+
+  // Determine explorer URL based on chain type and txHash
   let explorerTxUrl: string | undefined;
   if (!txHash) {
     explorerTxUrl = undefined;
-  } else if (isSolanaChainId(formattedChainId)) {
+  } else if (isSolana) {
     // Solana
     explorerTxUrl = getTransactionUrl(txHash, formatChainIdToCaip(chainId));
   } else {
@@ -72,19 +84,25 @@ export const useMultichainBlockExplorerTxUrl = ({
     explorerTxUrl = evmExplorer.tx(txHash);
   }
 
+  // Get network image source
   //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
   const networkImageSource = getNetworkImageSource({
-    chainId: formattedChainId,
+    chainId: formattedChainId as string,
   });
+
+  // Determine explorer name and chain name
+  const explorerName = isSolana && explorerTxUrl
+    ? getBlockExplorerName(explorerTxUrl)
+    : evmExplorer.name;
+
+  const chainName = isSolana && formattedChainId
+    ? nonEvmNetworkConfigurations[formattedChainId]?.name
+    : evmNetworkConfig?.name;
 
   return {
     explorerTxUrl,
-    explorerName: isSolanaChainId(formattedChainId) && explorerTxUrl
-      ? getBlockExplorerName(explorerTxUrl)
-      : evmExplorer.name,
+    explorerName,
     networkImageSource,
-    chainName: isSolanaChainId(formattedChainId)
-      ? nonEvmNetworkConfigurations[formattedChainId]?.name
-      : evmNetworkConfig?.name,
+    chainName,
   };
 };

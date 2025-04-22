@@ -61,6 +61,7 @@ import {
   formatChainIdToHex,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
+import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -252,7 +253,7 @@ class TransactionElement extends PureComponent {
     onPressItem(tx.id, i);
     if (tx.type === 'bridge') {
       this.props.navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
-        tx,
+        evmTxMeta: tx,
       });
     } else {
       this.setState({ detailsModalVisible: true });
@@ -408,15 +409,7 @@ class TransactionElement extends PureComponent {
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
     let title = actionKey;
     if (isBridgeTransaction && bridgeTxHistoryItem) {
-      const destChainId = isSolanaChainId(bridgeTxHistoryItem.quote.destChainId)
-        ? formatChainIdToCaip(bridgeTxHistoryItem.quote.destChainId)
-        : formatChainIdToHex(bridgeTxHistoryItem.quote.destChainId);
-      const destChainName = NETWORK_TO_SHORT_NETWORK_NAME_MAP[destChainId];
-      title = destChainName
-        ? strings('bridge_transaction_details.bridge_to_chain', {
-            chainName: destChainName,
-          })
-        : title;
+      title = getBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
     }
     return (
       <>
@@ -438,7 +431,7 @@ class TransactionElement extends PureComponent {
               !isBridgeComplete ? (
                 <BridgeActivityItemTxSegments
                   bridgeTxHistoryItem={bridgeTxHistoryItem}
-                  transaction={this.props.tx}
+                  transactionStatus={this.props.tx.status}
                 />
               ) : (
                 <StatusText

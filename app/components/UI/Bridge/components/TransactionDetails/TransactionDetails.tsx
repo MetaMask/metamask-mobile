@@ -31,6 +31,7 @@ import Button, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeToken } from '../../types';
 import { formatChainIdToCaip, formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
+import { Transaction } from '@metamask/keyring-api';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -81,7 +82,8 @@ const styles = StyleSheet.create({
 interface BridgeTransactionDetailsProps {
   route: {
     params: {
-      tx: TransactionMeta;
+      evmTxMeta?: TransactionMeta;
+      multiChainTx?: Transaction;
     };
   };
 }
@@ -97,9 +99,15 @@ export const BridgeTransactionDetails = (
   props: BridgeTransactionDetailsProps,
 ) => {
   const navigation = useNavigation();
+
+  const evmTxMeta = props.route.params.evmTxMeta;
+  const multiChainTx = props.route.params.multiChainTx;
+
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
-    txMeta: props.route.params.tx,
+    evmTxMeta,
+    multiChainTx,
   });
+
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
 
   useEffect(() => {
@@ -174,10 +182,10 @@ export const BridgeTransactionDetails = (
       })
     : null;
 
-  const totalGasFee = calcTokenAmount(
-    calcHexGasTotal(props.route.params.tx),
+  const totalGasFee = evmTxMeta ? calcTokenAmount(
+    calcHexGasTotal(evmTxMeta),
     18,
-  ).toFixed(5);
+  ).toFixed(5) : null;
 
   return (
     <ScreenView>
@@ -241,7 +249,7 @@ export const BridgeTransactionDetails = (
           <Box style={styles.detailRow}>
             <BridgeStepList
               bridgeHistoryItem={bridgeTxHistoryItem}
-              srcChainTxMeta={props.route.params.tx}
+              srcChainTxMeta={evmTxMeta}
             />
           </Box>
         )}
@@ -255,6 +263,7 @@ export const BridgeTransactionDetails = (
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
+          {/* TODO get solana gas fee from multiChainTx */}
           <Text>{totalGasFee} ETH</Text>
         </Box>
       </Box>
@@ -267,7 +276,8 @@ export const BridgeTransactionDetails = (
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
               params: {
-                tx: props.route.params.tx,
+                evmTxMeta: props.route.params.evmTxMeta,
+                multiChainTx: props.route.params.multiChainTx,
               },
             });
           }}

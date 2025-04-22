@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Image, TouchableHighlight, TextStyle } from 'react-native';
 import { capitalize } from 'lodash';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import ListItem from '../../Base/ListItem';
@@ -12,13 +13,18 @@ import { toDateFormat } from '../../../util/date';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import styles from './MultichainTransactionListItem.styles';
+import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
+import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
+import Routes from '../../../constants/navigation/Routes';
 
 const MultichainTransactionListItem = ({
   transaction,
+  bridgeHistoryItem,
   selectedAddress,
   navigation,
 }: {
   transaction: Transaction;
+  bridgeHistoryItem?: BridgeHistoryItem;
   selectedAddress: string;
   navigation: NavigationProp<ParamListBase>;
 }) => {
@@ -27,7 +33,16 @@ const MultichainTransactionListItem = ({
   const { type, status, to, from, asset } = useMultichainTransactionDisplay({
     transaction,
     userAddress: selectedAddress,
+    bridgeHistoryItem,
   });
+
+  const isBridgeTx = type === TransactionType.Send && bridgeHistoryItem;
+  const isBridgeComplete = bridgeHistoryItem
+    ? Boolean(
+        bridgeHistoryItem?.status.srcChain.txHash &&
+          bridgeHistoryItem.status.destChain?.txHash,
+      )
+    : null;
 
   let title = capitalize(type);
 
@@ -41,12 +56,20 @@ const MultichainTransactionListItem = ({
     title = `${strings('transactions.swap')} ${fromUnit} ${strings(
       'transactions.to',
     )} ${toUnit}`;
+  } else if (isBridgeTx) {
+    title = getBridgeTxActivityTitle(bridgeHistoryItem) ?? 'Bridge';
   }
 
   const style = styles(colors, typography);
 
   const handlePress = () => {
-    setIsModalVisible(true);
+    if (isBridgeTx) {
+      navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
+        multiChainTx: transaction,
+      });
+    } else {
+      setIsModalVisible(true);
+    }
   };
 
   const renderTxElementIcon = (transactionType: string) => {
@@ -81,6 +104,12 @@ const MultichainTransactionListItem = ({
               >
                 {title}
               </ListItem.Title>
+              {isBridgeTx && !isBridgeComplete && (
+                <BridgeActivityItemTxSegments
+                  bridgeTxHistoryItem={bridgeHistoryItem}
+                  transactionStatus={transaction.status}
+                />
+              )}
               <StatusText
                 testID={`transaction-status-${transaction.id}`}
                 status={status}
