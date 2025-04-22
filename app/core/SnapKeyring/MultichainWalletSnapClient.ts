@@ -94,12 +94,13 @@ export abstract class MultichainWalletSnapClient {
 
   async createAccount(
     options: MultichainWalletSnapOptions,
+    snapKeyringOptions?: SnapKeyringOptions,
   ): Promise<KeyringAccount> {
     return await this.withSnapKeyring(async (keyring) => {
-      return keyring.createAccount(
+      keyring.createAccount(
         this.snapId,
         options as unknown as Record<string, Json>,
-        this.snapKeyringOptions,
+        snapKeyringOptions ?? this.snapKeyringOptions,
       );
     });
   }
@@ -110,22 +111,16 @@ export abstract class MultichainWalletSnapClient {
     groupIndex: number,
   ) {
     const keyringApiClient = new KeyringClient(this.getSnapSender());
-
-    Logger.log('discovering accounts', scopes, entropySource, groupIndex);
-
     const accounts = await keyringApiClient.discoverAccounts(
       scopes,
       entropySource,
       groupIndex,
     );
 
-    Logger.log('found accounts', accounts);
-
     return accounts;
   }
 
   async addDiscoveredAccounts(entropySource: EntropySourceId) {
-    Logger.log('using entropySource', entropySource);
     for (let index = 0; ; index++) {
       const discoveredAccounts = await this.discoverAccounts(
         [this.getScope()],
@@ -136,13 +131,18 @@ export abstract class MultichainWalletSnapClient {
       // We stop discovering accounts if none got discovered for that index.
       if (discoveredAccounts.length === 0) {
         // default create 1 account
-        await this.createAccount({
-          scope: this.getScope(),
-        });
+        await this.createAccount(
+          {
+            scope: this.getScope(),
+          },
+          {
+            displayConfirmation: false,
+            displayAccountNameSuggestion: false,
+            setSelectedAccount: false,
+          },
+        );
         break;
       }
-
-      Logger.log('discovered accounts', discoveredAccounts);
 
       return await this.withSnapKeyring(async (keyring) => {
         await Promise.allSettled(
@@ -153,7 +153,11 @@ export abstract class MultichainWalletSnapClient {
                 derivationPath: account.derivationPath,
                 entropySource,
               },
-              this.snapKeyringOptions,
+              {
+                displayConfirmation: false,
+                displayAccountNameSuggestion: false,
+                setSelectedAccount: false,
+              },
             );
           }),
         );
