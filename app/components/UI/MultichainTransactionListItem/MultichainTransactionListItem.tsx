@@ -96,7 +96,9 @@ const MultichainTransactionListItem = ({
               toDateFormat(new Date(transaction.timestamp * 1000))}
           </ListItem.Date>
           <ListItem.Content style={style.listItemContent}>
-            <ListItem.Icon>{renderTxElementIcon(type)}</ListItem.Icon>
+            <ListItem.Icon>
+              {renderTxElementIcon(isBridgeTx ? 'bridge' : type)}
+            </ListItem.Icon>
             <ListItem.Body>
               <ListItem.Title
                 numberOfLines={1}
