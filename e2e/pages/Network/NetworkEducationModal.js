@@ -33,6 +33,11 @@ class NetworkEducationModal {
   async tapGotItButton() {
     await Gestures.waitAndTap(this.closeButton);
   }
+
+  async tapNetworkName() {
+    await Gestures.waitAndTap(this.networkName);
+    await Gestures.waitAndTap(this.networkName);
+  }
 }
 
 export default new NetworkEducationModal();

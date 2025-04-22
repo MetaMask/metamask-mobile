@@ -30,6 +30,7 @@ import {
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
+  selectIsEvmSolanaBridge,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import {
@@ -41,7 +42,6 @@ import { getBridgeNavbar } from '../../../Navbar';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
-import { QuoteResponse } from '../../types';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
@@ -50,10 +50,6 @@ import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import DestinationAccountSelector from '../../components/DestinationAccountSelector.tsx';
-import {
-  isSolanaChainId,
-  type QuoteMetadata,
-} from '@metamask/bridge-controller';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
@@ -67,7 +63,7 @@ import type { BridgeDestTokenSelectorRouteParams } from '../../components/Bridge
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
-
+  const [isSubmittingTx, setIsSubmittingTx] = useState(false);
   // The same as getUseExternalServices in Extension
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -92,6 +88,7 @@ const BridgeView = () => {
     isNoQuotesAvailable,
   } = useBridgeQuoteData();
   const { quoteRequest } = useSelector(selectBridgeControllerState);
+  const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
 
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -103,8 +100,8 @@ const BridgeView = () => {
   useInitialSourceToken();
   useInitialDestToken();
 
-  const hasDestinationPicker =
-    destToken?.chainId && isSolanaChainId(destToken.chainId);
+  const hasDestinationPicker = isEvmSolanaBridge;
+
   const hasQuoteDetails = activeQuote && !isLoading;
 
   const latestSourceBalance = useLatestBalance({
@@ -145,8 +142,10 @@ const BridgeView = () => {
   useEffect(
     () => () => {
       dispatch(resetBridgeState());
-      // Clear bridge controller state
-      Engine.context.BridgeController.resetState();
+      // Clear bridge controller state if available
+      if (Engine.context.BridgeController?.resetState) {
+        Engine.context.BridgeController.resetState();
+      }
     },
     [dispatch],
   );
@@ -158,7 +157,10 @@ const BridgeView = () => {
   useEffect(() => {
     const setBridgeFeatureFlags = async () => {
       try {
-        if (isBasicFunctionalityEnabled) {
+        if (
+          isBasicFunctionalityEnabled &&
+          Engine.context.BridgeController?.setBridgeFeatureFlags
+        ) {
           await Engine.context.BridgeController.setBridgeFeatureFlags();
         }
       } catch (error) {
@@ -182,18 +184,10 @@ const BridgeView = () => {
   };
 
   const handleContinue = async () => {
-    // TODO: Implement bridge transaction with source and destination amounts
-    // TESTING: Paste a quote from the Bridge API here to test the bridge flow
-    const quoteResponse = {};
-    // TESTING: Paste quote metadata from extension here to test the bridge flow
-    const quoteMetadata = {};
-    if (
-      Object.keys(quoteResponse).length > 0 &&
-      Object.keys(quoteMetadata).length > 0
-    ) {
+    if (activeQuote) {
+      setIsSubmittingTx(true);
       await submitBridgeTx({
-        quoteResponse: { ...quoteResponse, ...quoteMetadata } as QuoteResponse &
-          QuoteMetadata,
+        quoteResponse: activeQuote,
       });
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
@@ -232,41 +226,48 @@ const BridgeView = () => {
 
   const hasOnlyQuoteCard = hasQuoteDetails && !isInputFocused;
 
-  const renderBottomContent = () => (
-    <Box style={styles.buttonContainer}>
-      {!hasValidBridgeInputs || isLoading || !activeQuote ? (
-        <Text color={TextColor.Primary}>{strings('bridge.select_amount')}</Text>
-      ) : isError ? (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
-          description={strings('bridge.error_banner_description')}
-        />
-      ) : (
-        <>
-          <Button
-            variant={ButtonVariants.Primary}
-            label={
-              hasInsufficientBalance
-                ? strings('bridge.insufficient_funds')
-                : strings('bridge.continue')
-            }
-            onPress={handleContinue}
-            style={styles.button}
-            isDisabled={hasInsufficientBalance}
+  const renderBottomContent = () => {
+    let buttonLabel = strings('bridge.continue');
+    if (hasInsufficientBalance) {
+      buttonLabel = strings('bridge.insufficient_funds');
+    } else if (isSubmittingTx) {
+      buttonLabel = strings('bridge.submitting_transaction');
+    }
+
+    return (
+      <Box style={styles.buttonContainer}>
+        {!hasValidBridgeInputs || isLoading || !activeQuote ? (
+          <Text color={TextColor.Primary}>
+            {strings('bridge.select_amount')}
+          </Text>
+        ) : isError ? (
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            description={strings('bridge.error_banner_description')}
           />
-          <Button
-            variant={ButtonVariants.Link}
-            label={
-              <Text color={TextColor.Alternative}>
-                {strings('bridge.terms_and_conditions')}
-              </Text>
-            }
-            onPress={handleTermsPress}
-          />
-        </>
-      )}
-    </Box>
-  );
+        ) : (
+          <>
+            <Button
+              variant={ButtonVariants.Primary}
+              label={buttonLabel}
+              onPress={handleContinue}
+              style={styles.button}
+              isDisabled={hasInsufficientBalance || isSubmittingTx}
+            />
+            <Button
+              variant={ButtonVariants.Link}
+              label={
+                <Text color={TextColor.Alternative}>
+                  {strings('bridge.terms_and_conditions')}
+                </Text>
+              }
+              onPress={handleTermsPress}
+            />
+          </>
+        )}
+      </Box>
+    );
+  };
 
   return (
     // Need this to be full height of screen

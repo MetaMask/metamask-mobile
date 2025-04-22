@@ -15,25 +15,27 @@ import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeIdentity } from '../../../tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { getEventsPayloads } from '../../analytics/helpers';
 import { EVENT_NAME } from '../../../../app/core/Analytics/MetaMetrics.events';
 
 describe(
-  SmokeIdentity('Account syncing - syncs previously synced accounts'),
+  SmokeWalletPlatform('Account syncing - syncs previously synced accounts'),
   () => {
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8001;
     let mockServer;
 
     beforeAll(async () => {
-        const segmentMock = {
-          POST: [mockEvents.POST.segmentTrack],
-        };
+      const segmentMock = {
+        POST: [mockEvents.POST.segmentTrack],
+      };
 
-
-      mockServer = await startMockServer(segmentMock, TEST_SPECIFIC_MOCK_SERVER_PORT);
+      mockServer = await startMockServer(
+        segmentMock,
+        TEST_SPECIFIC_MOCK_SERVER_PORT,
+      );
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -53,7 +55,10 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT), sendMetaMetricsinE2E: true },
+        launchArgs: {
+          mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+          sendMetaMetricsinE2E: true,
+        },
       });
     });
 
@@ -76,12 +81,10 @@ describe(
         }),
       );
 
-      await importWalletWithRecoveryPhrase(
-        {
-          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-          password: IDENTITY_TEAM_PASSWORD,
-        },
-      );
+      await importWalletWithRecoveryPhrase({
+        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+        password: IDENTITY_TEAM_PASSWORD,
+      });
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
@@ -96,13 +99,10 @@ describe(
       /**
        * TEST SEGMENT/METAMETRICS EVENTS
        */
-      const events = await getEventsPayloads(
-        mockServer,
-        [
-          EVENT_NAME.ACCOUNTS_SYNC_ADDED,
-          EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
-        ],
-      );
+      const events = await getEventsPayloads(mockServer, [
+        EVENT_NAME.ACCOUNTS_SYNC_ADDED,
+        EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
+      ]);
 
       // There should be 3 events:
       // 1 for adding the account (Since every wallet always adds the first account) and 2 for updating the names (from user storage)
@@ -115,18 +115,11 @@ describe(
 
       await Assertions.checkIfValueIsPresent(addedAccountEvent);
 
-      await Assertions.checkIfArrayHasLength(
-        updatedAccountEvents,
-        2,
-      );
+      await Assertions.checkIfArrayHasLength(updatedAccountEvents, 2);
 
       for (const event of events) {
-        await Assertions.checkIfValueIsPresent(
-          event.properties,
-          'profile_id',
-        );
+        await Assertions.checkIfValueIsPresent(event.properties, 'profile_id');
       }
-
     });
   },
 );

@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import SendView from '../../pages/Send/SendView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
@@ -28,7 +28,7 @@ const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
 const fixtureServer = new FixtureServer();
 
-describe(SmokeCore('Addressbook Tests'), () => {
+describe(SmokeWalletPlatform('Addressbook Tests'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
@@ -109,14 +109,11 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await ContactsView.tapOnAlias('Myth'); // Tap on Myth address
     await AddContactView.tapEditButton();
     await AddContactView.typeInName('Moon'); // Change name from Myth to Moon
-    await AddContactView.tapEditContactCTA();
+    await TestHelpers.delay(1500);
 
-    // because tapping edit contact is slow to load on bitrise
-    try {
-      await Assertions.checkIfVisible(ContactsView.container);
-    } catch {
-      await AddContactView.tapEditContactCTA();
-      await Assertions.checkIfVisible(ContactsView.container);
+    await AddContactView.tapEditContactCTA();
+    if (device.getPlatform() === 'ios') {
+      await AddContactView.tapEditContactCTA(); // Because on CI, tapping the edit contact button requires a double tap for iOS
     }
     await ContactsView.isContactAliasVisible('Moon'); // Check that Ibrahim address is saved in the address book
     await ContactsView.isContactAliasNotVisible('Myth'); // Ensure Myth is not visible

@@ -1,6 +1,6 @@
 // 'persists the preferred asset list preference when changing networks'
 
-import { SmokeAssets } from '../../../tags';
+import { SmokeNetworkAbstractions } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
@@ -26,7 +26,7 @@ const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';
 const BNB_NAME = 'BNB';
 
-describe(SmokeAssets('Import Tokens'), () => {
+describe(SmokeNetworkAbstractions('Import Tokens'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withPopularNetworks().build();
@@ -100,6 +100,8 @@ describe(SmokeAssets('Import Tokens'), () => {
       NetworkEducationModal.networkName,
       BNB_NAME,
     );
+    await TestHelpers.delay(1500); // Nasty work. Only adding delay because app is slow on CI.
+    await NetworkEducationModal.tapNetworkName(); // to dismiss keyboard
     await NetworkEducationModal.tapGotItButton();
   });
 

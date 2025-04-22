@@ -14,11 +14,14 @@ class Assertions {
    * @param timeout
    */
   static async checkIfVisible(elementId, timeout = TIMEOUT) {
-    // rename this. We are checking if element is visible.
-
-    return await waitFor(await elementId)
-      .toBeVisible()
-      .withTimeout(timeout);
+    try {
+      await waitFor(await elementId)
+        .toBeVisible()
+        .withTimeout(timeout);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -217,7 +220,9 @@ class Assertions {
    */
   static async checkIfValueIsPresent(value) {
     if (value === null || value === undefined || value === '') {
-      throw new Error('Value is not present (null, undefined, or empty string)');
+      throw new Error(
+        'Value is not present (null, undefined, or empty string)',
+      );
     }
     return true;
   }

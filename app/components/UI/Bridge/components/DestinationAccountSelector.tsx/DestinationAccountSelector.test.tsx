@@ -140,7 +140,9 @@ describe('DestinationAccountSelector', () => {
   it('clears destination address when close button is pressed', () => {
     const { getByTestId, store } = renderComponent();
     // The close button is a ButtonIcon component with IconName.Close
-    const closeButton = getByTestId('cellselect').findByProps({ iconName: 'Close' });
+    const closeButton = getByTestId('cellselect').findByProps({
+      iconName: 'Close',
+    });
     fireEvent.press(closeButton);
 
     const actions = store.getActions();
@@ -154,6 +156,26 @@ describe('DestinationAccountSelector', () => {
     const { store } = renderComponent({
       bridge: {
         destAddress: undefined,
+        sourceToken: {
+          address: '0x123',
+          symbol: 'ETH',
+          decimals: 18,
+          image: 'https://example.com/eth.png',
+          chainId: '0x1',
+          name: 'Ethereum',
+          balance: '100',
+          balanceFiat: '100',
+        },
+        destToken: {
+          address: '0x456',
+          symbol: 'SOL',
+          decimals: 9,
+          image: 'https://example.com/sol.png',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          name: 'Solana',
+          balance: '100',
+          balanceFiat: '100',
+        },
       },
     });
 
@@ -166,7 +188,9 @@ describe('DestinationAccountSelector', () => {
 
   it('clears destination when close button is pressed', () => {
     const { getByTestId, store } = renderComponent();
-    const closeButton = getByTestId('cellselect').findByProps({ iconName: 'Close' });
+    const closeButton = getByTestId('cellselect').findByProps({
+      iconName: 'Close',
+    });
     fireEvent.press(closeButton);
 
     const actions = store.getActions();

@@ -45,21 +45,19 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
         nativeConversionRate as number,
       );
       const locale = I18n.locale;
-      const nativeCurrencyFee = `${
-        formatAmount(
-          locale,
-          new BigNumber(
-            getValueFromWeiHex({
-              value: hexFee,
-              fromCurrency: 'WEI',
-              toCurrency: 'ETH',
-              numberOfDecimals: 4,
-              conversionRate: 1,
-              toDenomination: 'ETH',
-            }) || 0
-          )
-        )
-      } ${nativeCurrency}`;
+      const nativeCurrencyFee = `${formatAmount(
+        locale,
+        new BigNumber(
+          getValueFromWeiHex({
+            value: hexFee,
+            fromCurrency: 'WEI',
+            toCurrency: 'ETH',
+            numberOfDecimals: 4,
+            conversionRate: 1,
+            toDenomination: 'ETH',
+          }) || 0,
+        ),
+      )} ${nativeCurrency}`;
 
       const decimalCurrentCurrencyFee = Number(
         getValueFromWeiHex({
@@ -133,6 +131,19 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
       supportsEIP1559 ? (minimumFeePerGas as Hex) : (gasPrice as Hex),
       gasLimitNoBuffer as Hex,
     );
+
+    // If there is a L1 and L2 component to the gas fee, add them together
+    const layer1GasFee = transactionMeta?.layer1GasFee as Hex;
+    const hasLayer1GasFee = Boolean(layer1GasFee);
+    if (hasLayer1GasFee) {
+      const estimatedTotalFeesForL2 = addHexes(
+        estimatedFee,
+        layer1GasFee,
+      ) as Hex;
+
+      return getFeesFromHex(estimatedTotalFeesForL2);
+    }
+
     return getFeesFromHex(estimatedFee);
   }, [
     estimatedBaseFee,

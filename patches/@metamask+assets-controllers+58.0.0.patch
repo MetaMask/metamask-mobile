@@ -54,7 +54,7 @@ index 0f15eb6..96e5a68 100644
 +_NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new WeakMap(), _NftController_chainId = new WeakMap(), _NftController_ipfsGateway = new WeakMap(), _NftController_displayNftMedia = new WeakMap(), _NftController_useIpfsSubdomains = new WeakMap(), _NftController_isIpfsGatewayEnabled = new WeakMap(), _NftController_onNftAdded = new WeakMap(), _NftController_instances = new WeakSet(), _NftController_onNetworkControllerNetworkDidChange = function _NftController_onNetworkControllerNetworkDidChange({ selectedNetworkClientId, }) {
      const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
      __classPrivateFieldSet(this, _NftController_chainId, chainId, "f");
- }, _NftController_onPreferencesControllerStateChange = 
+ }, _NftController_onPreferencesControllerStateChange =
 @@ -605,20 +605,20 @@ _NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new Wea
   * Handles the state change of the preference controller.
   * @param preferencesState - The new state of the preference controller.

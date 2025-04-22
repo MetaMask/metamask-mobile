@@ -117,4 +117,34 @@ describe('useFeeCalculations', () => {
         }
       `);
   });
+
+  it('returns fee calculations including layer1GasFee (L1 + L2)', async () => {
+    const clonedStateWithLayer1GasFee = cloneDeep(
+      stakingDepositConfirmationState,
+    );
+    // Add a layer1GasFee to the transactionMeta
+    const layer1GasFee = '0x1000'; // 4096 in hex, small value for test
+    clonedStateWithLayer1GasFee.engine.backgroundState.TransactionController.transactions[0].layer1GasFee =
+      layer1GasFee;
+
+    const transactionMetaWithLayer1GasFee =
+      clonedStateWithLayer1GasFee.engine.backgroundState.TransactionController
+        .transactions[0];
+
+    const { result } = renderHookWithProvider(
+      () => useFeeCalculations(transactionMetaWithLayer1GasFee),
+      {
+        state: clonedStateWithLayer1GasFee,
+      },
+    );
+    // The expected values are the sum of the original estimatedFee and layer1GasFee
+    // The original estimatedFee is 0x5572e9c22d00, so the sum is 0x5572e9c23d00
+    expect(result.current).toMatchInlineSnapshot(`
+      {
+        "estimatedFeeFiat": "$0.34",
+        "estimatedFeeNative": "0.0001 ETH",
+        "preciseNativeFeeInHex": "0x5572e9c23d00",
+      }
+    `);
+  });
 });

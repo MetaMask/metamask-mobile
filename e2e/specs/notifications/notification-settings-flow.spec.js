@@ -4,7 +4,7 @@ import TestHelpers from '../../helpers';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import { SmokeNotifications } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import {
@@ -27,7 +27,7 @@ const launchAppSettings = (port) => ({
   launchArgs: { mockServerPort: port },
 });
 
-describe(SmokeNotifications('Notification Settings Flow'), () => {
+describe(SmokeNetworkAbstractions('Notification Settings Flow'), () => {
   /** @type {import('mockttp').Mockttp} */
   let mockServer;
 
@@ -49,12 +49,10 @@ describe(SmokeNotifications('Notification Settings Flow'), () => {
 
   it('navigates to notification settings page', async () => {
     // Onboard - Import SRP
-    await importWalletWithRecoveryPhrase(
-      {
-        seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
-        password: NOTIFICATIONS_TEAM_PASSWORD,
-      }
-    );
+    await importWalletWithRecoveryPhrase({
+      seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
+      password: NOTIFICATIONS_TEAM_PASSWORD,
+    });
 
     // navigate to notification settings
     await TabBarComponent.tapSettings();
