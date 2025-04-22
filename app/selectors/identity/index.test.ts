@@ -1,6 +1,7 @@
 import {
   selectIsProfileSyncingEnabled,
   selectIsProfileSyncingUpdateLoading,
+  selectIsAccountSyncingReadyToBeDispatched,
   selectIsSignedIn,
 } from './index';
 import { RootState } from '../../reducers';
@@ -15,6 +16,7 @@ describe('Notification Selectors', () => {
         UserStorageController: {
           isProfileSyncingEnabled: true,
           isProfileSyncingUpdateLoading: false,
+          isAccountSyncingReadyToBeDispatched: false,
         },
       },
     },
@@ -31,6 +33,13 @@ describe('Notification Selectors', () => {
     expect(selectIsProfileSyncingUpdateLoading(mockState)).toEqual(
       mockState.engine.backgroundState.UserStorageController
         .isProfileSyncingUpdateLoading,
+    );
+  });
+
+  it('selectIsAccountSyncingReadyToBeDispatched returns correct value', () => {
+    expect(selectIsAccountSyncingReadyToBeDispatched(mockState)).toEqual(
+      mockState.engine.backgroundState.UserStorageController
+        .isAccountSyncingReadyToBeDispatched,
     );
   });
 

@@ -7,7 +7,7 @@ exports[`InfoAddress should match snapshot 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "center",
-        "backgroundColor": "#f2f4f6",
+        "backgroundColor": "#f3f5f9",
         "borderRadius": 99,
         "flexDirection": "row",
         "gap": 5,
@@ -20,7 +20,7 @@ exports[`InfoAddress should match snapshot 1`] = `
   }
 >
   <SvgMock
-    color="#141618"
+    color="#121314"
     height={20}
     name="Question"
     style={
@@ -37,13 +37,13 @@ exports[`InfoAddress should match snapshot 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "flexShrink": 1,
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >

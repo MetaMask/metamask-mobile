@@ -8,11 +8,11 @@ import {
   selectProviderConfig as selectEvmProviderConfig,
 } from '../networkController';
 import {
+  selectInternalAccounts,
   selectSelectedInternalAccount,
-  selectSolanaAccount,
 } from '../accountsController';
 import { createDeepEqualSelector } from '../util';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { Balance, BtcScope, SolScope } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
@@ -24,6 +24,13 @@ import {
 } from '../multichainNetworkController';
 import { parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import {
+  MultichainAssetsControllerState,
+  MultichainAssetsRatesControllerState,
+  MultichainBalancesControllerState,
+} from '@metamask/assets-controllers';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -113,6 +120,19 @@ export const selectMultichainShouldShowFiat = createDeepEqualSelector(
   },
 );
 
+const getNonEvmCachedBalance = (
+  internalAccount: InternalAccount,
+  multichainBalances: MultichainBalancesControllerState['balances'],
+  nonEvmChainId: SupportedCaipChainId,
+) => {
+  // We assume that there's at least one asset type in and that is the native
+  // token for that network.
+  const asset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
+  const balancesForAccount = multichainBalances?.[internalAccount.id];
+  const balanceOfAsset = balancesForAccount?.[asset];
+  return balanceOfAsset?.amount ?? undefined;
+};
+
 const selectNonEvmCachedBalance = createDeepEqualSelector(
   selectSelectedInternalAccount,
   selectMultichainBalances,
@@ -121,12 +141,11 @@ const selectNonEvmCachedBalance = createDeepEqualSelector(
     if (!selectedInternalAccount) {
       return undefined;
     }
-    // We assume that there's at least one asset type in and that is the native
-    // token for that network.
-    const asset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
-    const balancesForAccount = multichainBalances?.[selectedInternalAccount.id];
-    const balanceOfAsset = balancesForAccount?.[asset];
-    return balanceOfAsset?.amount ?? undefined;
+    return getNonEvmCachedBalance(
+      selectedInternalAccount,
+      multichainBalances,
+      nonEvmChainId,
+    );
   },
 );
 
@@ -260,60 +279,149 @@ export const selectMultichainTokenList = createDeepEqualSelector(
   },
 );
 
-export const selectMultichainNetworkAggregatedBalance = createDeepEqualSelector(
-  selectSelectedInternalAccount,
-  selectMultichainBalances,
-  selectMultichainAssets,
-  selectMultichainAssetsRates,
-  selectSelectedNonEvmNetworkChainId,
-  (
-    selectedAccountAddress,
-    multichainBalances,
-    assets,
-    assetsRates,
-    nonEvmNetworkChainId,
-  ) => {
-    if (!selectedAccountAddress) {
-      return { totalBalance: '0', totalBalanceFiat: '0' };
+export interface MultichainNetworkAggregatedBalance {
+  totalNativeTokenBalance: Balance | undefined;
+  totalBalanceFiat: number | undefined;
+  balances: Record<string, Balance> | undefined;
+}
+
+export const getMultichainNetworkAggregatedBalance = (
+  account: InternalAccount,
+  multichainBalances: MultichainBalancesControllerState['balances'],
+  multichainAssets: MultichainAssetsControllerState['accountsAssets'],
+  multichainAssetsRates: MultichainAssetsRatesControllerState['conversionRates'],
+  nonEvmChainId: SupportedCaipChainId,
+): MultichainNetworkAggregatedBalance => {
+  const assetIds = multichainAssets?.[account.id] || [];
+  const balances = multichainBalances?.[account.id] || {};
+
+  // Find the native asset for this chain
+  const nativeAsset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
+
+  // Default values for native token
+  let totalNativeTokenBalance: Balance | undefined;
+  let totalBalanceFiat: BigNumber | undefined;
+
+  for (const assetId of assetIds) {
+    const { chainId } = parseCaipAssetType(assetId);
+
+    if (chainId !== nonEvmChainId) {
+      continue;
     }
 
-    const assetIds = assets?.[selectedAccountAddress.id] || [];
-    const balances = multichainBalances?.[selectedAccountAddress.id];
+    const balance = balances[assetId] || { amount: '0', unit: '' };
 
-    let totalBalance = new BigNumber(0);
-    let totalBalanceFiat = new BigNumber(0);
+    // Safely handle undefined rate
+    const rate = multichainAssetsRates?.[assetId]?.rate;
+    const balanceInFiat =
+      balance.amount && rate
+        ? new BigNumber(balance.amount).times(rate)
+        : new BigNumber(0);
 
-    for (const assetId of assetIds) {
-      const { chainId } = parseCaipAssetType(assetId);
+    // Only update native token balance if this is the native asset
+    if (assetId === nativeAsset) {
+      totalNativeTokenBalance = balance;
+    }
 
-      if (chainId !== nonEvmNetworkChainId) {
-        continue;
-      }
-
-      const balance = balances?.[assetId] || { amount: '0', unit: '' };
-      const rate = assetsRates?.[assetId]?.rate || '0';
-      const balanceInFiat = new BigNumber(balance.amount).times(rate);
-
-      totalBalance = totalBalance.plus(balance.amount);
+    // Always add to total fiat balance
+    if (totalBalanceFiat) {
       totalBalanceFiat = totalBalanceFiat.plus(balanceInFiat);
+    } else {
+      totalBalanceFiat = balanceInFiat;
     }
+  }
 
-    return {
-      totalBalance: totalBalance.toString(),
-      totalBalanceFiat: totalBalanceFiat.toString(),
-    };
-  },
-);
+  return {
+    totalNativeTokenBalance,
+    totalBalanceFiat: totalBalanceFiat
+      ? totalBalanceFiat.toNumber()
+      : undefined,
+    balances,
+  };
+};
+
+export const selectSelectedAccountMultichainNetworkAggregatedBalance =
+  createDeepEqualSelector(
+    selectSelectedInternalAccount,
+    selectMultichainBalances,
+    selectMultichainAssets,
+    selectMultichainAssetsRates,
+    selectSelectedNonEvmNetworkChainId,
+    (
+      selectedAccount,
+      multichainBalances,
+      assets,
+      assetsRates,
+      nonEvmNetworkChainId,
+    ): MultichainNetworkAggregatedBalance => {
+      if (!selectedAccount) {
+        return {
+          totalNativeTokenBalance: undefined,
+          totalBalanceFiat: undefined,
+          balances: {},
+        };
+      }
+      return getMultichainNetworkAggregatedBalance(
+        selectedAccount,
+        multichainBalances,
+        assets,
+        assetsRates,
+        nonEvmNetworkChainId,
+      );
+    },
+  );
+
+interface MultichainNetworkAggregatedBalanceForAllAccounts {
+  [accountId: InternalAccount['id']]: MultichainNetworkAggregatedBalance;
+}
+
+export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
+  createDeepEqualSelector(
+    selectInternalAccounts,
+    selectMultichainBalances,
+    selectMultichainAssets,
+    selectMultichainAssetsRates,
+    selectSelectedNonEvmNetworkChainId,
+    (
+      internalAccounts,
+      multichainBalances,
+      assets,
+      assetsRates,
+      nonEvmNetworkChainId,
+    ): MultichainNetworkAggregatedBalanceForAllAccounts => {
+      return internalAccounts.reduce(
+        (acc, account) => ({
+          ...acc,
+          [account.id]: getMultichainNetworkAggregatedBalance(
+            account,
+            multichainBalances,
+            assets,
+            assetsRates,
+            nonEvmNetworkChainId,
+          ),
+        }),
+        {},
+      );
+    },
+  );
+
+const DEFAULT_TRANSACTION_STATE_ENTRY = {
+  transactions: [],
+  next: null,
+  lastUpdated: 0,
+};
 
 export const selectSolanaAccountTransactions = createDeepEqualSelector(
   selectMultichainTransactions,
-  selectSolanaAccount,
+  selectSelectedInternalAccount,
   (nonEvmTransactions, selectedAccount) => {
     if (!selectedAccount) {
-      return [];
+      return DEFAULT_TRANSACTION_STATE_ENTRY;
     }
 
-    return nonEvmTransactions[selectedAccount.id] || [];
+    return (
+      nonEvmTransactions[selectedAccount.id] ?? DEFAULT_TRANSACTION_STATE_ENTRY
+    );
   },
 );
 

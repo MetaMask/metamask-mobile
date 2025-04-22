@@ -28,13 +28,14 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { multichainBalances } = useMultichainBalances();
+  const { selectedAccountMultichainBalance } = useMultichainBalances();
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, { style });
   const dismissedBanners = useSelector(selectDismissedBanners);
-  const isZeroBalance = multichainBalances.totalFiatBalance === 0;
+  const isZeroBalance =
+    selectedAccountMultichainBalance?.totalFiatBalance === 0;
 
   const slidesConfig = useMemo(
     () =>

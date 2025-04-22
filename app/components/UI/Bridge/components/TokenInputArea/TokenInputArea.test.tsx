@@ -1,6 +1,5 @@
 import { getDisplayFiatValue } from '.';
 import { Hex } from '@metamask/utils';
-import { TokenI } from '../../../Tokens/types';
 
 describe('getDisplayFiatValue', () => {
   const mockChainId = '0x1' as Hex;
@@ -13,13 +12,8 @@ describe('getDisplayFiatValue', () => {
     decimals: 18,
     image: 'https://token1.com/logo.png',
     name: 'Token One',
-    aggregators: ['1inch'],
-    isETH: false,
-    isNative: false,
-    isStaked: false,
     balance: '1',
     balanceFiat: '$20000',
-    logo: 'https://token1.com/logo.png',
     tokenFiatAmount: 20000,
   };
 
@@ -60,7 +54,7 @@ describe('getDisplayFiatValue', () => {
 
   it('should return zero when amount is undefined', () => {
     const result = getDisplayFiatValue({
-      token: mockToken as TokenI,
+      token: mockToken,
       amount: undefined,
       multiChainMarketData: mockMultiChainMarketData,
       networkConfigurationsByChainId: mockNetworkConfigurations,
@@ -73,7 +67,7 @@ describe('getDisplayFiatValue', () => {
 
   it('should calculate correct fiat value for token amount', () => {
     const result = getDisplayFiatValue({
-      token: mockToken as TokenI,
+      token: mockToken,
       amount: '1',
       multiChainMarketData: mockMultiChainMarketData,
       networkConfigurationsByChainId: mockNetworkConfigurations,
@@ -87,7 +81,7 @@ describe('getDisplayFiatValue', () => {
 
   it('should return "< $0.01" for very small fiat values', () => {
     const result = getDisplayFiatValue({
-      token: mockToken as TokenI,
+      token: mockToken,
       amount: '0.0000001',
       multiChainMarketData: mockMultiChainMarketData,
       networkConfigurationsByChainId: mockNetworkConfigurations,
@@ -100,7 +94,7 @@ describe('getDisplayFiatValue', () => {
 
   it('should handle different currencies correctly', () => {
     const result = getDisplayFiatValue({
-      token: mockToken as TokenI,
+      token: mockToken,
       amount: '1',
       multiChainMarketData: mockMultiChainMarketData,
       networkConfigurationsByChainId: mockNetworkConfigurations,
@@ -114,7 +108,7 @@ describe('getDisplayFiatValue', () => {
 
   it('should handle undefined market data correctly', () => {
     const result = getDisplayFiatValue({
-      token: mockToken as TokenI,
+      token: mockToken,
       amount: '1',
       multiChainMarketData: undefined,
       networkConfigurationsByChainId: mockNetworkConfigurations,
@@ -136,7 +130,7 @@ describe('getDisplayFiatValue', () => {
     };
 
     const result = getDisplayFiatValue({
-      token: mockToken as TokenI,
+      token: mockToken,
       amount: '1',
       multiChainMarketData: noValueMarketData,
       networkConfigurationsByChainId: mockNetworkConfigurations,

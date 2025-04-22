@@ -7,6 +7,99 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.45.0]
+
+### Added
+
+- feat(4213-2) update network icons ([#14069](https://github.com/MetaMask/metamask-mobile/pull/14069))
+- feat(ramp): add backpress handler to expanded quotes view ([#14210](https://github.com/MetaMask/metamask-mobile/pull/14210))
+- feat(ramp): paymentMethods refactor for sdk evolution ([#13464](https://github.com/MetaMask/metamask-mobile/pull/13464))
+- feat(ramp): erc20 gas and balance checks for off-ramp ([#12526](https://github.com/MetaMask/metamask-mobile/pull/12526))
+- feat(4213-3): network badge positioning ([#14071](https://github.com/MetaMask/metamask-mobile/pull/14071))
+- feat(4213-1): rounded square network icons ([#14065](https://github.com/MetaMask/metamask-mobile/pull/14065))
+- feat: new cicd integration changelog-check ([#14011](https://github.com/MetaMask/metamask-mobile/pull/14011))
+- feat: 14467 expo ios simulator ([#14569](https://github.com/MetaMask/metamask-mobile/pull/14569))
+- feat: Auto-failover to Quicknode when Infura is down ([#14139](https://github.com/MetaMask/metamask-mobile/pull/14139))
+- feat: bridge solana bridge button ([#14364](https://github.com/MetaMask/metamask-mobile/pull/14364))
+- feat: multi srp reveal seed ([#13825](https://github.com/MetaMask/metamask-mobile/pull/13825))
+- feat: add account syncing ([#14291](https://github.com/MetaMask/metamask-mobile/pull/14291))
+- feat: Add support for native asset token images on custom networks ([#14491](https://github.com/MetaMask/metamask-mobile/pull/14491))
+- feat: feature flag to disable epd ([#14407](https://github.com/MetaMask/metamask-mobile/pull/14407))
+- feat: api request logging ([#14083](https://github.com/MetaMask/metamask-mobile/pull/14083))
+- feat: bridge top tokens ([#14258](https://github.com/MetaMask/metamask-mobile/pull/14258))
+- feat: add `MegaETH Testnet` as default network ([#14241](https://github.com/MetaMask/metamask-mobile/pull/14241))
+- feat: add new `completedOnboarding` onboarding state property ([#14370](https://github.com/MetaMask/metamask-mobile/pull/14370))
+- feat: Init asset details balance, remove PV flag ([#14439](https://github.com/MetaMask/metamask-mobile/pull/14439))
+- feat: util file for phishing detection ([#14232](https://github.com/MetaMask/metamask-mobile/pull/14232))
+- feat: upgrade `@testing-library/react-native` to `13.2.0` ([#14450](https://github.com/MetaMask/metamask-mobile/pull/14450))
+- feat: add metrics for Alert System ([#14246](https://github.com/MetaMask/metamask-mobile/pull/14246))
+- feat: Updated design-tokens package to 7.0 ([#14395](https://github.com/MetaMask/metamask-mobile/pull/14395))
+- feat: bump `@metamask/notification-services-controller` to `^5.0.1` ([#14296](https://github.com/MetaMask/metamask-mobile/pull/14296))
+- feat: added mmpoly and mmsans font files ([#14394](https://github.com/MetaMask/metamask-mobile/pull/14394))
+- feat: Snaps UI text styling inheritance ([#14355](https://github.com/MetaMask/metamask-mobile/pull/14355))
+- feat: solana opt-in modal ([#14298](https://github.com/MetaMask/metamask-mobile/pull/14298))
+- feat: add quote details card component to Bridge UI ([#14264](https://github.com/MetaMask/metamask-mobile/pull/14264))
+- feat: add accounts to different srps ([#13852](https://github.com/MetaMask/metamask-mobile/pull/13852))
+- feat: Support input types on `SnapUIInput` ([#14312](https://github.com/MetaMask/metamask-mobile/pull/14312))
+- feat: multichain trx history ([#13922](https://github.com/MetaMask/metamask-mobile/pull/13922))
+- feat: escape / sanitize signTypedData update ([#14280](https://github.com/MetaMask/metamask-mobile/pull/14280))
+- feat: add phishing tracking events to PhishingModal component ([#14254](https://github.com/MetaMask/metamask-mobile/pull/14254))
+- feat: upgrade to brand evolution colors ([#14218](https://github.com/MetaMask/metamask-mobile/pull/14218))
+
+### Fixed
+
+- fix(swaps): set default slippage when source or destination token is not stablecoin ([#14730](https://github.com/MetaMask/metamask-mobile/pull/14730))
+- fix: cp-7.45.0 fix block explorer link for default networks on trx detail modal. ([#14498](https://github.com/MetaMask/metamask-mobile/pull/14498))
+- fix(14255): invalid url on account list ([#14259](https://github.com/MetaMask/metamask-mobile/pull/14259))
+- fix(snaps): Update snap footer buttons ([#13953](https://github.com/MetaMask/metamask-mobile/pull/13953))
+- fix(14305): removed background color for header in QR code screen ([#14411](https://github.com/MetaMask/metamask-mobile/pull/14411))
+- fix: deeplinks when non evm network is selected ([#14521](https://github.com/MetaMask/metamask-mobile/pull/14521))
+- fix: account syncing flaky E2E tests ([#14557](https://github.com/MetaMask/metamask-mobile/pull/14557))
+- fix: show multisrp banner ([#14564](https://github.com/MetaMask/metamask-mobile/pull/14564))
+- fix: Crowdin Action ([#14562](https://github.com/MetaMask/metamask-mobile/pull/14562))
+- fix: 10371 hide biometrics button on manual lock ([#14396](https://github.com/MetaMask/metamask-mobile/pull/14396))
+- fix: temporarily disable identity E2E ([#14570](https://github.com/MetaMask/metamask-mobile/pull/14570))
+- fix: cp-7.44.0 STAKE-1005 refresh staking data when staking txs are confirmed ([#14520](https://github.com/MetaMask/metamask-mobile/pull/14520))
+- fix: SDK Connection when multichain account is selected ([#14494](https://github.com/MetaMask/metamask-mobile/pull/14494))
+- fix: activity reloads every minute ([#14465](https://github.com/MetaMask/metamask-mobile/pull/14465))
+- fix: prevent text overlap in notification opt-in modal ([#14481](https://github.com/MetaMask/metamask-mobile/pull/14481))
+- fix: cp-7.44.0 Update traits when tracked settings change 2/2 ([#14088](https://github.com/MetaMask/metamask-mobile/pull/14088))
+- fix: cp-7.44.0 Add notification when redesigned transaction confirmation submitted and finalized ([#14495](https://github.com/MetaMask/metamask-mobile/pull/14495))
+- fix: cp-7.44.0 Fix header styling for redesigned staking confirmations ([#14472](https://github.com/MetaMask/metamask-mobile/pull/14472))
+- fix: update `ConfirmAlertModal` copy blockaid ([#14206](https://github.com/MetaMask/metamask-mobile/pull/14206))
+- fix: code fence name - show only in Beta ([#14490](https://github.com/MetaMask/metamask-mobile/pull/14490))
+- fix: Prevent re-renders of Field component in Snaps UI [cp-7.44.0] ([#14475](https://github.com/MetaMask/metamask-mobile/pull/14475))
+- fix: hide show private key in non-evm accounts ([#14466](https://github.com/MetaMask/metamask-mobile/pull/14466))
+- fix: fix typo in network message ([#14434](https://github.com/MetaMask/metamask-mobile/pull/14434))
+- fix: create Solana account in beta builds ([#14460](https://github.com/MetaMask/metamask-mobile/pull/14460))
+- fix: activity showing same transactions ([#14449](https://github.com/MetaMask/metamask-mobile/pull/14449))
+- fix: Prevent Snap footer buttons from being pushed out of the modal ([#14430](https://github.com/MetaMask/metamask-mobile/pull/14430))
+- fix: Disable auto correct on Snaps UI inputs [cp-7.44.0] ([#14433](https://github.com/MetaMask/metamask-mobile/pull/14433))
+- fix: 3273 keyboard blocks send flow (Solana) ([#14403](https://github.com/MetaMask/metamask-mobile/pull/14403))
+- fix: fix dark mode for trx history network selector ([#14416](https://github.com/MetaMask/metamask-mobile/pull/14416))
+- fix: #3931 Stop loading when enabling biometrics from settings ([#14412](https://github.com/MetaMask/metamask-mobile/pull/14412))
+- fix: Remove bitcoin from beta release ([#14406](https://github.com/MetaMask/metamask-mobile/pull/14406))
+- fix: cp-7.44.0 Add new feature flag for staking confirmations ([#14401](https://github.com/MetaMask/metamask-mobile/pull/14401))
+- fix: E2E phishing test on android ([#14402](https://github.com/MetaMask/metamask-mobile/pull/14402))
+- fix: import button ([#14398](https://github.com/MetaMask/metamask-mobile/pull/14398))
+- fix: #13410: Don't switch networks when 'Close' button is tapped in Add Network flow ([#14297](https://github.com/MetaMask/metamask-mobile/pull/14297))
+- fix: clear error if the srp is cleared manually. ([#14327](https://github.com/MetaMask/metamask-mobile/pull/14327))
+- fix: small update for event consistency ([#14357](https://github.com/MetaMask/metamask-mobile/pull/14357))
+- fix: Hide account list selector balance for non evm accounts ([#14379](https://github.com/MetaMask/metamask-mobile/pull/14379))
+- fix: Dont send empty set "Token Added" event to Mixpanel ([#14303](https://github.com/MetaMask/metamask-mobile/pull/14303))
+- fix: Resolve a couple of Snaps UI dark mode issues ([#14353](https://github.com/MetaMask/metamask-mobile/pull/14353))
+- fix: anonymous props that's not moved to sensitive props ([#12931](https://github.com/MetaMask/metamask-mobile/pull/12931))
+- fix: notification switch loading flicker ([#14331](https://github.com/MetaMask/metamask-mobile/pull/14331))
+- fix: Relocate confirmations code to `legacy` folder ([#14313](https://github.com/MetaMask/metamask-mobile/pull/14313))
+- fix: ledger singing on re-designed signature pages ([#14266](https://github.com/MetaMask/metamask-mobile/pull/14266))
+- fix: adds translations for a Swap tx in the Multichain activity view ([#14314](https://github.com/MetaMask/metamask-mobile/pull/14314))
+- fix: Fix missing invalid password for login #13558 ([#14308](https://github.com/MetaMask/metamask-mobile/pull/14308))
+- fix: Remove `Transaction Finalized` event tied to STX ([#14293](https://github.com/MetaMask/metamask-mobile/pull/14293))
+- fix: yml formatting causing error ([#14277](https://github.com/MetaMask/metamask-mobile/pull/14277))
+- fix: reduce tests worker for only performance tests ([#14051](https://github.com/MetaMask/metamask-mobile/pull/14051))
+- fix: scroll for the confirmation screen ([#14269](https://github.com/MetaMask/metamask-mobile/pull/14269))
+- fix: STAKE-964: bumped @metamask/earn-controller dependency to resolve pooled-staking geo-block for fresh installs ([#14257](https://github.com/MetaMask/metamask-mobile/pull/14257))
+
 ## [7.44.0]
 
 ### Added
@@ -79,6 +172,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: inherit icon size from text component parent ([#14024](https://github.com/MetaMask/metamask-mobile/pull/14024))
 - fix: animation added for loading state on SnapUILink button ([#13973](https://github.com/MetaMask/metamask-mobile/pull/13973))
 - fix: Revert "chore: upgrade Xcode 16 on bitrise.yml" ([#14012](https://github.com/MetaMask/metamask-mobile/pull/14012))
+<<<<<<< HEAD
+=======
+- fix(bridge): hide staked native assets from token selectors ([#14457](https://github.com/MetaMask/metamask-mobile/pull/14457))
+
+>>>>>>> 14fd5f227f (fix: not setting default slippage for non stablecoin pairs (#14730))
 
 ## [7.43.0]
 
@@ -5246,7 +5344,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.44.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.0...HEAD
+[7.45.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.44.0...v7.45.0
 [7.44.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.43.0...v7.44.0
 [7.43.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.42.1...v7.43.0
 [7.42.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.42.0...v7.42.1

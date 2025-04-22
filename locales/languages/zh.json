@@ -1,4 +1,34 @@
 {
+  "alert_system": {
+    "alert_modal": {
+      "title": "提醒",
+      "checkbox_label": "我已知晓风险，但仍想继续",
+      "got_it_btn": "知道了",
+      "alert_details": "提醒详情"
+    },
+    "confirm_modal": {
+      "title": "高风险请求",
+      "checkbox_label": "我已收到提醒，但仍想继续",
+      "review_alerts": "查看所有提醒",
+      "message": "我们建议您拒绝此请求。如果继续，您的资产可能会面临风险。",
+      "title_blockaid": "您的资产可能面临风险",
+      "blockaid": {
+        "message": "如果您确认此请求，可能会遭受资产损失。我们建议您取消此请求。",
+        "message1": "如果您确认此请求，则表示您允许欺诈方提取并花费您的资产。您将无法收回资产。",
+        "message2": "您正在将您的资产发送给欺诈方。如果继续，您将会损失这部分资产。",
+        "message3": "如果继续，您在 OpenSea 上列出的全部资产都将面临风险。",
+        "message4": "如果继续，您在 Blur 上列出的全部资产都将面临风险。",
+        "message5": "您正在与恶意网站交互。如果继续，您可能会遭受资产损失。"
+      }
+    },
+    "inline_alert_label": "提醒",
+    "review_alerts": "查看提醒",
+    "review_alert": "查看提醒",
+    "domain_mismatch": {
+      "title": "可疑登录请求",
+      "message": "发起请求的网站并非您要登录的网站。可能试图窃取您的登录凭据。"
+    }
+  },
   "blockaid_banner": {
     "approval_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方可能会拿走您的所有资产。",
     "blur_farming_description": "如果您批准此请求，则有人可以窃取您列于Blur上的资产。",
@@ -382,32 +412,35 @@
     "description": "我们现在支持单个网络的多个 RPC（远程过程调用）。您最近的 RPC 已选为默认 RPC，以解决冲突信息。",
     "accept": "接受"
   },
-  "nft_details": {
-    "bought_for": "购买用于",
-    "highest_floor_price": "最高底价",
-    "data_unavailable": "数据不可用",
-    "price_unavailable": "价格不可用",
-    "rank": "排名",
-    "contract_address": "合约地址",
-    "token_id": "代币 ID",
-    "token_symbol": "代币符号",
-    "token_standard": "代币标准",
-    "date_created": "创建日期",
-    "unique_token_holders": "唯一代币持有者",
-    "tokens_in_collection": "收藏品中的代币",
-    "creator_address": "创建者地址",
-    "last_sold": "最后售出",
-    "highest_current_bid": "当前最高出价",
-    "options": {
-      "view_on_os": "在 OpenSea 上查看",
-      "remove_nft": "去除 NFT"
-    },
-    "attributes": "属性",
-    "disclaimer": "免责声明：MetaMask 从源 URL 中提取媒体文件。该 URL 有时会因铸造 NFT 的市场而改变。"
-  },
   "qr_tab_switcher": {
     "scanner_tab": "扫描二维码",
     "receive_tab": "您的二维码"
+  },
+  "banner": {
+    "bridge": {
+      "title": "准备好桥接了吗？",
+      "subtitle": "在您的钱包内可跨 9 条链进行转移"
+    },
+    "card": {
+      "title": "MetaMask Card",
+      "subtitle": "在特定地区可用"
+    },
+    "fund": {
+      "title": "为您的钱包充值",
+      "subtitle": "添加或转入代币即可开始使用"
+    },
+    "cashout": {
+      "title": "通过 MetaMask 提现",
+      "subtitle": "卖出加密货币换取现金"
+    },
+    "aggregated": {
+      "title": "您的余额为汇总总额",
+      "subtitle": "在设置中控制您的余额视图"
+    },
+    "multisrp": {
+      "title": "Add multiple Secret Recovery Phrases",
+      "subtitle": "Import and use multiple wallets in MetaMask"
+    }
   },
   "wallet": {
     "title": "钱包",
@@ -524,6 +557,29 @@
       "token_details": "代币详情",
       "remove_token": "删除代币"
     }
+  },
+  "nft_details": {
+    "bought_for": "购买用于",
+    "highest_floor_price": "最高底价",
+    "data_unavailable": "数据不可用",
+    "price_unavailable": "价格不可用",
+    "rank": "排名",
+    "contract_address": "合约地址",
+    "token_id": "代币 ID",
+    "token_symbol": "代币符号",
+    "token_standard": "代币标准",
+    "date_created": "创建日期",
+    "unique_token_holders": "唯一代币持有者",
+    "tokens_in_collection": "收藏品中的代币",
+    "creator_address": "创建者地址",
+    "last_sold": "最后售出",
+    "highest_current_bid": "当前最高出价",
+    "options": {
+      "view_on_os": "在 OpenSea 上查看",
+      "remove_nft": "去除 NFT"
+    },
+    "attributes": "属性",
+    "disclaimer": "免责声明：MetaMask 从源 URL 中提取媒体文件。该 URL 有时会因铸造 NFT 的市场而改变。"
   },
   "activity_view": {
     "title": "活动"
@@ -693,6 +749,7 @@
     "select_accounts_description": "选择要在此网站上使用的账户：",
     "connect_multiple_accounts": "连接多个账户",
     "connect_more_accounts": "连接更多账户",
+    "add": "添加",
     "cancel": "取消",
     "connect": "连接",
     "connect_with_count": "连接{{countLabel}}",
@@ -720,7 +777,15 @@
     "potential_threat": "潜在威胁包括",
     "fake_metamask": "MetaMask的伪造版本",
     "srp_theft": "私钥助记词或密码被盗",
-    "malicious_transactions": "导致资产被盗的恶意交易"
+    "malicious_transactions": "导致资产被盗的恶意交易",
+    "secret_recovery_phrase": "私钥助记词",
+    "account_name": "账户名称",
+    "select_secret_recovery_phrase": "选择私钥助记词",
+    "reveal_secret_recovery_phrase": "显示私钥助记词",
+    "add_new_hd_account_helper_text": "用于生成您的新账户的私钥助记词",
+    "accounts": "账户",
+    "show_accounts": "显示",
+    "hide_accounts": "隐藏"
   },
   "toast": {
     "connected_and_active": "已连接且处于活动状态。",
@@ -773,7 +838,8 @@
   },
   "app_settings": {
     "enabling_notifications": "正在启用通知...",
-    "disabling_notifications": "正在禁用通知...",
+    "updating_notifications": "正在更新通知......",
+    "updating_account_settings": "正在更新账户设置......",
     "reset_notifications_title": "重设通知",
     "reset_notifications_description": "重设通知意味着您要删除通知存储密钥并重设所有通知历史记录。您确定要这样做吗？",
     "reset_notifications": "重设通知",
@@ -864,6 +930,7 @@
     "notifications_title": "通知",
     "notifications_desc": "管理您的通知",
     "allow_notifications": "允许通知",
+    "enable_push_notifications": "启用推送通知",
     "allow_notifications_desc": "通过通知随时了解您的钱包动态。为了使用通知，我们使用配置文件在您的不同设备上同步某些设置。",
     "notifications_opts": {
       "customize_session_title": "自定义您的通知",
@@ -902,6 +969,8 @@
     "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC（远程过程调用）名称",
     "network_rpc_placeholder": "新 RPC 网络",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "链 ID",
     "network_chain_id_placeholder": "链 ID（可选）",
     "network_symbol_label": "符号",
@@ -918,6 +987,7 @@
     "remove_network": "删除",
     "cancel_remove_network": "取消",
     "info_title": "MetaMask 简介",
+    "info_title_beta": "关于 MetaMask Beta",
     "info_title_flask": "关于 MetaMask Flask",
     "experimental_title": "实验性",
     "experimental_desc": "WalletConnect 及更多...",
@@ -1118,6 +1188,7 @@
     "security_alerts": "安全提醒",
     "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。",
     "smart_transactions_opt_in_heading": "智能交易",
+    "smart_transactions_opt_in_desc_supported_networks": "开启智能交易，以便在支持网络上实现更加安全可靠的交易。",
     "smart_transactions_learn_more": "了解更多。",
     "simulation_details": "预计余额变化",
     "simulation_details_description": "开启此选项，以便在确认交易之前估计交易余额的变化。这并不能保证交易的最终结果。 ",
@@ -1280,8 +1351,8 @@
       "swap": "此账户不支持兑换",
       "bridge": "此账户不支持跨链桥",
       "send": "此账户不支持发送",
-      "earn": "此账户不支持赚取",
-      "action": "此账户不支持此操作"
+      "action": "此账户不支持此操作",
+      "earn": "此账户不支持赚取"
     },
     "description": "描述",
     "totalSupply": "总供给量",
@@ -1617,6 +1688,9 @@
     "tabs_done": "完成",
     "no_tabs_title": "无打开的标签页",
     "no_tabs_desc": "要浏览去中心化网络，请添加新标签页",
+    "got_it": "知道了",
+    "max_tabs_title": "达到最大标签页数量限制",
+    "max_tabs_desc": "我们目前仅支持同时打开 5 个标签页。请在添加新标签页前关闭现有标签页。",
     "failed_to_resolve_ens_name": "我们无法解析该 ENS 名称",
     "remove_bookmark_title": "删除收藏",
     "remove_bookmark_msg": "是否确实想要从您的收藏夹中删除此站点？",
@@ -1682,6 +1756,9 @@
     "sent_collectible": "已发送收藏品",
     "sent": "已发送",
     "received": "已接收",
+    "receive": "接收",
+    "swap": "兑换",
+    "send": "发送",
     "contract_deploy": "合约部署",
     "to_contract": "新合约",
     "tx_details_free": "免费",
@@ -1705,6 +1782,7 @@
     "gas_price": "燃料价格 (GWEI)",
     "base_fee": "基础费用（GWEI）",
     "priority_fee": "优先费用（GWEI）",
+    "multichain_priority_fee": "优先费用",
     "max_fee": "每单位燃料的最大费用",
     "total": "总计",
     "view_on": "在以下位置查看：",
@@ -1728,7 +1806,9 @@
     "sign_description_1": "您使用硬件钱包签名后，",
     "sign_description_2": "点击‘’获取签名‘’",
     "sign_get_signature": "获取签名",
-    "network_fee": "网络费"
+    "transaction_id": "交易 ID",
+    "network_fee": "网络费",
+    "network_fee_tooltip": "网络上处理交易所支付的金额。"
   },
   "smart_transactions": {
     "status_submitting_header": "正在提交您的交易",
@@ -1840,6 +1920,7 @@
     "you_can": "或者您可以",
     "add_network": "手动添加更多网络。",
     "add_specific_network": "添加 {{network_name}}",
+    "update_network": "更新 {{network_name}}",
     "select_network": "选择网络",
     "enabled_networks": "启用的网络",
     "additional_networks": "其他网络",
@@ -1875,7 +1956,8 @@
     "this_site_cant": "此网站无法与您当前的网络一起使用。请添加网络许可或选择已经获得许可的网络。",
     "non_permitted_network_description": "此网站无法与您当前的网络一起使用。请添加网络许可或选择已经获得许可的网络。",
     "edit_permissions": "编辑许可",
-    "permitted_networks_info_sheet_description": "这是您以前在此网站上授予使用许可的网络列表。从列表中选择一个或编辑此网站的网络许可。"
+    "permitted_networks_info_sheet_description": "这是您以前在此网站上授予使用许可的网络列表。从列表中选择一个或编辑此网站的网络许可。",
+    "connect_an_account": "连接账户"
   },
   "select": {
     "cancel": "取消",
@@ -1966,6 +2048,31 @@
     "title": "账户导入成功！",
     "description_one": "您现在将能够在 MetaMask 中查看您的账户。"
   },
+  "import_new_secret_recovery_phrase": {
+    "title": "导入私钥助记词",
+    "description": "输入您钱包的私钥助记词。您可以导入任何以太坊、Solana 或比特币私钥助记词。",
+    "subtitle": "粘贴您的私钥助记词",
+    "cta_text": "继续",
+    "paste": "粘贴",
+    "clear": "全部清除",
+    "srp_number_of_words_option_title": "单词数量",
+    "12_word_option": "我有12个单词组成的助记词",
+    "24_word_option": "我有24个单词组成的助记词",
+    "error_title": "出错了",
+    "error_message": "我们无法导入此私钥助记词。请确保您输入正确。",
+    "error_empty_message": "您需要输入您的私钥助记词。",
+    "error_number_of_words_error_message": "私钥助记词包含 12 或 24 个单词",
+    "error_srp_is_case_sensitive": "输入无效！私钥助记词需区分大小写。",
+    "error_srp_word_error_1": "单词 ",
+    "error_srp_word_error_2": " 不正确或拼写错误。",
+    "error_multiple_srp_word_error_1": "单词 ",
+    "error_multiple_srp_word_error_2": " 和 ",
+    "error_multiple_srp_word_error_3": " 不正确或拼写错误。",
+    "error_invalid_srp": "私钥助记词无效",
+    "error_duplicate_srp": "此私钥助记词已导入。",
+    "success_1": "私钥助记词",
+    "success_2": "已导入"
+  },
   "first_incoming_transaction": {
     "title": "{{asset}} 已存入您的账户",
     "amount": "数额：",
@@ -1982,7 +2089,8 @@
     "info_text_1": "用几分钟时间完成 MetaMask 钱包的设置。",
     "info_text_2": "这将确保只有您才可以访问自己的资金，还可以在丢失设备时找回自己的钱包",
     "cta_text": "创建密码",
-    "creating_password": "正在创建密码..."
+    "creating_password": "正在创建密码...",
+    "srp_list_selection": "Select Secret Recovery Phrase"
   },
   "account_backup_step_1": {
     "remind_me_later": "稍后提醒我",
@@ -2136,7 +2244,15 @@
     "continue_on_your_own": "继续操作。",
     "file_an_issue_intro": "如果您认为此域标记错误，或者被拦截的合法网站已解决其安全问题，",
     "file_an_issue": "请提交问题。",
-    "back_to_safety": "返回以确保安全"
+    "back_to_safety": "返回以确保安全",
+    "site_might_be_harmful": "此网站可能有害",
+    "metamask_flagged_site": "MetaMask 将您正在尝试访问的网站标记为可能具有欺骗性。攻击者可能会诱骗您进行危险操作。",
+    "you_may_proceed_anyway": "您也可以",
+    "proceed_anyway": "仍然继续",
+    "but_please_do_so_at_your_own_risk": "但请自行承担风险。",
+    "report_detection_problem": "报告检测问题",
+    "share_on_twitter": "如果您觉得有所帮助，请在 X 上分享！",
+    "share_text": "MetaMask 保护我免于访问可能有害的网站：{{url}}。注意安全！"
   },
   "notifications": {
     "timeout": "超时",
@@ -2227,7 +2343,7 @@
     "lido_stake_completed_title": "质押完成",
     "lido_withdrawal_requested_title": "已请求提取",
     "lido_withdrawal_completed_title": "提取已完成",
-    "lido_stake_ready_to_be_withdrawn_title": "已准备好提取质押 ",
+    "lido_stake_ready_to_be_withdrawn_title": "可供提取的质押",
     "erc721_sent_title": "NFT 已发送",
     "erc721_received_title": "NFT 已收到",
     "erc1155_sent_title": "NFT 已发送",
@@ -2261,36 +2377,30 @@
     "lido_withdrawal_completed_message": "解除质押完成",
     "lido_stake_ready_to_be_withdrawn_message": "已请求提取",
     "push_notification_content": {
+      "funds_sent_title": "已发送资金",
+      "funds_sent_description": "您已成功发送 {{amount}} {{symbol}}",
+      "funds_sent_default_description": "您已成功发送一些代币",
+      "funds_received_title": "已收到资金",
+      "funds_received_description": "您已收到 {{amount}} {{symbol}}",
+      "funds_received_default_description": "您已收到一些代币",
       "metamask_swap_completed_title": "兑换已完成",
       "metamask_swap_completed_description": "您的 MetaMask 兑换已成功",
-      "erc20_sent_title": "已发送资金",
-      "erc20_sent_description": "您已成功发送 {{amount}} {{token}}",
-      "erc20_received_title": "已收到资金",
-      "erc20_received_description": "您已收到 {{amount}} {{token}}",
-      "eth_sent_title": "已发送资金",
-      "eth_sent_description": "您已成功发送 {{amount}} ETH",
-      "eth_received_title": "已收到资金",
-      "eth_received_description": "您已收到 {{amount}} {{token}}",
+      "nft_sent_title": "已发送 NFT",
+      "nft_sent_description": "您已成功发送一个 NFT",
+      "nft_received_title": "已收到 NFT",
+      "nft_received_description": "您已收到新的 NFT",
       "rocketpool_stake_completed_title": "质押完成",
       "rocketpool_stake_completed_description": "您的 RocketPool 质押已成功",
       "rocketpool_unstake_completed_title": "解除质押完成",
       "rocketpool_unstake_completed_description": "您的 RocketPool 解除质押已成功",
       "lido_stake_completed_title": "质押完成",
       "lido_stake_completed_description": "您的 Lido 质押已成功",
+      "lido_stake_ready_to_be_withdrawn_title": "可供提取的质押",
+      "lido_stake_ready_to_be_withdrawn_description": "您的 Lido 质押现在已准备好提取",
       "lido_withdrawal_requested_title": "已请求提取",
       "lido_withdrawal_requested_description": "您的 Lido 提取请求已提交",
       "lido_withdrawal_completed_title": "提取已完成",
-      "lido_withdrawal_completed_description": "您的 Lido 提取已成功",
-      "lido_stake_ready_to_be_withdrawn_title": "已准备好提取质押 ",
-      "lido_stake_ready_to_be_withdrawn_description": "您的 Lido 质押现在已准备好提取",
-      "erc721_sent_title": "已发送 NFT",
-      "erc721_sent_description": "您已成功发送 NFT",
-      "erc721_received_title": "NFT 已收到",
-      "erc721_received_description": "您已收到新的 NFT",
-      "erc1155_sent_title": "NFT 已发送",
-      "erc1155_sent_description": "您已成功发送 NFT",
-      "erc1155_received_title": "NFT 已收到",
-      "erc1155_received_description": "您已收到新的 NFT"
+      "lido_withdrawal_completed_description": "您的 Lido 提取已成功"
     },
     "prompt_title": "接收推送通知",
     "notifications_enabled_error_title": "出错了",
@@ -2588,6 +2698,8 @@
     "one_more_option": "还有 1 个选项",
     "more_options": "还有 {{count}} 个选项",
     "previously_used": "先前使用的",
+    "best_rate": "最优价格",
+    "most_reliable": "最可靠",
     "quotes_timeout": "报价超时",
     "request_new_quotes": "请重新请求报价，以获得最新的最佳价格。",
     "terms_of_service": "服务条款",
@@ -2602,6 +2714,7 @@
     "done": "完成",
     "fetching_quotes": "正在获取报价",
     "select_a_quote": "选择报价",
+    "recommended_quote": "建议报价",
     "select_a_cryptocurrency": "选择加密货币",
     "select_a_cryptocurrency_description": "从{{network}}上的代币列表中选择。",
     "search_by_cryptocurrency": "按加密货币搜索",
@@ -2618,6 +2731,7 @@
     "minimum": "最低保证金为",
     "maximum": "最高保证金为",
     "insufficient_balance": "此金额高于您的余额",
+    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
     "enter_larger_amount": "输入更大的金额以继续",
     "enter_smaller_amount": "输入较小的金额以继续",
     "enter_lower_gas_fees": "输入更低金额以支付燃料费",
@@ -2764,7 +2878,7 @@
     "token_to_verify": "来验证这就是您要找的代币。",
     "continue": "继续",
     "select_a_token": "选择代币",
-    "search_token": "搜索代币",
+    "search_token": "输入代币名称或粘贴地址",
     "no_tokens_result": "没有符合“{{searchString}}”的代币",
     "find_token_address": "寻找代币地址",
     "cant_find_token": "找不到代币？",
@@ -2816,9 +2930,12 @@
     "n_quotes": "{{numberOfQuotes}} 出价",
     "view_details": "查看详情",
     "estimated_gas_fee": "估算的燃料费",
+    "gas_fee": "燃料费",
+    "included": "已包含",
     "max_gas_fee": "最大燃料费",
     "edit": "编辑",
     "quotes_include_fee": "报价包括 %{{fee}} 的 MetaMask 费用",
+    "quotes_include_gas_and_metamask_fee": "报价包括燃料费和 {{fee}}% 的 MetaMask 费用",
     "tap_to_swap": "点按以兑换",
     "swipe_to_swap": "滑动以兑换",
     "swipe_to": "滑动以",
@@ -2888,6 +3005,8 @@
     "high_recommendation": "交换通常对时间敏感。“高”将有助于避免因市场条件的变化而造成的潜在损失。",
     "recommended": "建议",
     "recommended_gas": "建议燃料费",
+    "gas_included_tooltip_explanation": "此报价通过调整发送或接收的代币数量纳入了燃料费。您可以在活动列表的单独交易中收到 ETH。",
+    "gas_included_tooltip_explanation_link_text": "了解更多有关燃料费的信息",
     "gas_education_title": "估算的燃料费用",
     "gas_education_1": "燃料费会支付给在以太坊网络上",
     "gas_education_2_ethereum": "处理交易的加密货币矿工。",
@@ -2976,6 +3095,8 @@
     "title_new_network": "已增加新网络",
     "switch_warning": "这将把 MetaMask 中选择的网络切换到先前添加的网络：",
     "add_network_and_give_dapp_permission_warning": "您正在将此网络添加到 MetaMask 并授予 {{dapp_origin}} 其使用许可。",
+    "update_network_and_give_dapp_permission_warning": "您正在 MetaMask 中更新此网络并授予 {{dapp_origin}} 其使用许可。",
+    "request_update_network_url": "{{dapp_origin}} 正在请求更新您的默认网络 URL。您可以随时编辑默认值和网络信息。",
     "available": "现在可以在网络选择工具中使用。",
     "cancel": "取消",
     "switch": "切换网络"
@@ -3138,7 +3259,9 @@
     "enable_token_detection": "启用自动代币检测",
     "token_detection_mainnet_title": "已启用代币检测，因此代币将会自动显示在您的钱包中。",
     "token_detection_mainnet_link": "您也可以手动添加代币。",
-    "or": "或"
+    "or": "或",
+    "non_evm_first_description": "该网络上的原生资产是 {{ticker}}。它用于交易费用。",
+    "non_evm_second_description": "如果您尝试从另一个网络发送资产或向另一个网络发送资产，您将会损失资产。"
   },
   "download_files": {
     "error": "未能下载附件。",
@@ -3356,13 +3479,17 @@
   "account_actions": {
     "edit_name": "编辑账户名",
     "add_account_or_hardware_wallet": "添加账户或硬件钱包",
-    "add_account": "添加账户",
-    "add_new_account": "添加新账户",
-    "add_hardware_wallet": "添加硬件钱包",
-    "import_account": "导入账户",
-    "add_bitcoin_account_testnet": "添加新的比特币账户（测试网）",
-    "add_bitcoin_account_mainnet": "添加新的比特币账户（测试版）",
-    "add_solana_account": "添加新的 Solana 账户（测试版）"
+    "connect_hardware_wallet": "连接账户",
+    "import_wallet_or_account": "导入钱包或账户",
+    "add_account": "创建新账户",
+    "create_an_account": "创建新账户",
+    "add_new_account": "以太坊账户",
+    "import_srp": "私钥助记词",
+    "add_hardware_wallet": "硬件钱包",
+    "import_account": "私钥",
+    "add_bitcoin_account_testnet": "比特币测试网账户",
+    "add_bitcoin_account_mainnet": "比特币账户",
+    "add_solana_account": "Solana 账户"
   },
   "show_nft": {
     "show_nft_title": "显示NFT",
@@ -3380,6 +3507,18 @@
     "show_display_nft_media_content_3": "打开显示 NFT 媒体和数据功能后，OpenSea 或其他第三方就可以看到您的 IP 地址。NFT 自动检测依赖于此功能，关闭后将不可用。",
     "show_display_nft_media_content_4": "您可以在此处关闭显示 NFT 媒体：",
     "show_display_nft_media_content_5": "设置 > 安全和隐私。"
+  },
+  "solana_new_feature_content": {
+    "title": "MetaMask 上的 Solana",
+    "create_solana_account": "创建 Solana 账户",
+    "not_now": "暂时不",
+    "got_it": "知道了",
+    "feature_1_title": "发送、接收和兑换代币",
+    "feature_1_description": "使用 SOL、USDC 等代币进行转账和交易。",
+    "feature_2_title": "导入 Solana 账户",
+    "feature_2_description": "导入私钥助记词，从其他钱包迁移您的 Solana 账户。",
+    "feature_3_title": "即将推出更多功能",
+    "feature_3_description": "即将推出 Solana 去中心化应用、NFT、硬件钱包支持等。"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS 网关",
@@ -3407,6 +3546,14 @@
     "error_title": "安装失败",
     "error_description": "{{snap}}安装失败。"
   },
+  "earn": {
+    "empty_state_cta": {
+      "heading": "借出 {{tokenSymbol}} 并赚取",
+      "body_prefix": "您可赚取高达",
+      "body_suffix": "即通过借出您的 {{tokenSymbol}} 每年可赚取的金额。",
+      "start_earning": "开始赚取"
+    }
+  },
   "stake": {
     "stake": "质押",
     "earn": "赚取",
@@ -3425,17 +3572,23 @@
       "stake_annual_rate_tooltip": "年回报率工具提示"
     },
     "estimated_annual_rewards": "预计年度奖励",
+    "estimated_annual_reward": "预计年度奖励",
+    "reward_frequency": "奖励频率",
+    "reward_frequency_tooltip": "您的质押余额每 {{frequency}} 更新一次，以计入新的奖励。",
+    "withdrawal_time": "提取时间",
     "metamask_pool": "MetaMask Pool",
     "enter_amount": "输入金额",
     "review": "审核",
     "not_enough_eth": "ETH 不足",
+    "not_enough_token": "{{ticker}} 不足",
     "balance": "余额",
     "stake_eth_and_earn": "质押 ETH 并赚取奖励",
-    "stake_any_amount_of_eth": "抵押任意金额的 ETH",
+    "how_it_works": "如何运作",
+    "stake_any_amount_of_eth": "抵押任意金额的 ETH。",
     "no_minimum_required": "无最低要求。",
-    "earn_eth_rewards": "赚取 ETH 奖励",
+    "earn_eth_rewards": "赚取 ETH 奖励。",
     "earn_eth_rewards_description": "质押后，即刻开始赚取奖励。奖励自动计算。",
-    "flexible_unstaking": "灵活解除质押",
+    "flexible_unstaking": "灵活解除质押。",
     "flexible_unstaking_description": "随时解除质押。通常需要不到 3 天的时间，但处理过程最多可能需要 11 天。",
     "disclaimer": "质押并不能保证回报，而且涉及包括资金损失在内的风险。",
     "learn_more": "了解详情",
@@ -3475,6 +3628,8 @@
     "unstake_input_banner_description": "平均而言，不到 3 天时间即可领取解除质押的 ETH，但也可能最长需要 11 天的时间。",
     "max": "最大",
     "staking_from": "质押提供商",
+    "advanced_details": "高级信息",
+    "ethereum_mainnet": "以太坊主网",
     "interacting_with": "正在与下述内容交互：",
     "12_hours": "12 小时",
     "terms_of_service": "服务条款",
@@ -3486,15 +3641,40 @@
     "you_receive": "您收到",
     "up_to_n": "最高达 {{count}}",
     "unstaking_to": "解除质押到",
+    "claiming_to": "领取并存入",
     "max_modal": {
       "title": "最大值",
-      "description": "最大值是您拥有的 ETH 总额减去质押所需的燃料费。不妨在您的钱包里多存一些 ETH 以备将来交易。"
+      "eth": {
+        "description": "最大值是您拥有的 ETH 总额减去质押所需的燃料费。不妨在您的钱包里多存一些 ETH 以备将来交易。"
+      }
     },
     "use_max": "使用最大值",
     "estimated_unstaking_time": "1 - 11 天",
     "proceed_anyway": "仍然继续",
     "gas_cost_impact": "燃料成本影响",
-    "gas_cost_impact_warning": "警告：交易燃料成本将占您的保证金的 30% 以上。"
+    "select_a_token": "选择代币",
+    "you_could_earn": "您可以",
+    "per_year_on_your_tokens": "每年通过您的代币赚取奖励",
+    "deposit": "保证金",
+    "gas_cost_impact_warning": "警告：交易燃料成本将占您的保证金的 {{percentOverDeposit}}% 以上。",
+    "view_earnings_history": "查看奖励历史",
+    "earnings_history_title": "{{ticker}} 奖励",
+    "earnings_history_list_title": "奖励发放历史",
+    "apr": "年利率",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7 天",
+        "1M": "1 个月",
+        "3M": "3 个月",
+        "6M": "6 个月"
+      }
+    },
+    "today": "今天",
+    "one_week_average": "平均 1 周",
+    "one_month_average": "平均 1 个月",
+    "three_month_average": "平均 3 个月",
+    "six_month_average": "平均 6 个月",
+    "one_year_average": "平均 1 年"
   },
   "default_settings": {
     "title": "您的钱包已准备就绪",
@@ -3576,26 +3756,63 @@
     }
   },
   "confirm": {
-    "reject": "拒绝",
+    "cancel": "取消",
     "confirm": "确认",
+    "staking_footer": {
+      "part1": "继续即表示您同意我们的 ",
+      "terms_of_use": "使用条款",
+      "part2": " 和 ",
+      "risk_disclosure": "风险披露",
+      "part3": "。"
+    },
+    "label": {
+      "account": "账户",
+      "balance": "余额",
+      "interacting_with": "正在与下述内容交互：",
+      "network": "网络",
+      "primary_type": "主要类型",
+      "request_from": "请求来自",
+      "signing_in_with": "使用以下方式登录",
+      "spender": "支出者"
+    },
     "title": {
-      "signature": "签名请求"
+      "signature": "签名请求",
+      "permit": "支出上限请求",
+      "permit_revoke": "去除许可",
+      "permit_NFTs": "提取请求",
+      "signature_siwe": "登录请求"
     },
     "sub_title": {
-      "signature": "在确认之前检查请求详情。"
+      "permit": "该网站想获得花费您的代币的许可。",
+      "permit_NFTs": "该网站想获得提取您的 NFT 的许可。",
+      "signature": "在确认之前检查请求详情。",
+      "signature_siwe": "一个网站需要您登录来证明您拥有此账户。"
     },
     "request_from": "请求来自",
+    "staking_from": "质押提供商",
+    "signing_in_with": "使用以下方式登录",
     "message": "消息",
-    "primary_type": "主要类型",
     "personal_sign_tooltip": "此网站要求您签名",
     "details": "详情",
-    "account": "账户",
-    "balance": "余额",
-    "network": "网络",
+    "qr_get_sign": "获取签名",
+    "qr_scan_text": "使用您的硬件钱包扫描",
+    "sign_with_ledger": "使用 Ledger 签名",
+    "siwe_message": {
+      "url": "URL",
+      "network": "网络",
+      "account": "账户",
+      "version": "版本",
+      "chain_id": "链 ID",
+      "nonce": "唯一交易标识号",
+      "issued": "已签发",
+      "requestId": "请求 ID",
+      "resources": "资源"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "当接受出价时，NFT 将反映在您的钱包中。",
       "decoded_tooltip_list_nft": "只有当有人购买您的 NFT 时才会发生变化。",
       "info_permit": "您将授予支出者许可，才能从您的账户花费这些代币。",
+      "info_revoke": "您正在删除某人从您的账户中花费代币的许可。",
       "label_change_type_bidding": "您出价",
       "label_change_type_listing": "您挂牌",
       "label_change_type_nft_listing": "挂牌价格",
@@ -3610,7 +3827,7 @@
       "unavailable": "不可用"
     },
     "unlimited": "无限制",
-    "none": "None"
+    "none": "无"
   },
   "change_in_simulation_modal": {
     "title": "结果已发生变化",
@@ -3623,5 +3840,34 @@
     "input_title": "账户名称",
     "add_account_button": "添加账户",
     "name_taken_message": "此账户名已存在"
+  },
+  "smart_transactions_migration": {
+    "title": "交易更加智能",
+    "link": "更高成功率",
+    "description": " 和 MEV 保护。现在默认开启。"
+  },
+  "bridge": {
+    "continue": "继续",
+    "terms_and_conditions": "条款和条件",
+    "select_token": "选择代币",
+    "select_network": "选择网络",
+    "all_networks": "所有网络",
+    "num_networks": "{{numNetworks}} 个网络",
+    "one_network": "1个网络",
+    "select_all_networks": "全部选择",
+    "deselect_all_networks": "取消全部选择",
+    "see_all": "查看全部",
+    "apply": "应用",
+    "slippage": "滑移",
+    "slippage_info": "如果价格在您下单和确认之间发生变化，称为“滑移”。如果滑移超过您在此设置的最大幅度，您的兑换将自动取消。",
+    "network_fee": "网络费",
+    "estimated_time": "预计时间",
+    "quote": "报价",
+    "quote_details": "报价详情",
+    "price_impact": "价格影响",
+    "time": "时间",
+    "quote_info_content": "此报价是我们搜索中能为您提供的最优回报。其基于当前兑换汇率计算，包含桥接费用及 0.875% 的 MetaMask 手续费，但不含燃料费。燃料费根据网络活动及交易复杂度动态变化。",
+    "quote_info_title": "我们推荐此报价的原因",
+    "see_other_quotes": "查看其他报价"
   }
 }

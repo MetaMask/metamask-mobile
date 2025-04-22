@@ -7,7 +7,7 @@ import { getNavbar } from '../../Navbar/Navbar';
 import StakingClaim from './StakingClaim';
 
 jest.mock('../../../../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
@@ -62,12 +62,15 @@ describe('StakingClaim', () => {
     const mockRoute: RouteProp<{ params: { amountWei: string } }, 'params'> = {
       key: 'test',
       name: 'params',
-      params: { amountWei: '1000000000000000000' }
+      params: { amountWei: '1000000000000000000' },
     };
 
-    const { getByText } = renderWithProvider(<StakingClaim route={mockRoute} />, {
-      state: stakingClaimConfirmationState,
-    });
+    const { getByText } = renderWithProvider(
+      <StakingClaim route={mockRoute} />,
+      {
+        state: stakingClaimConfirmationState,
+      },
+    );
     expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Claiming to')).toBeDefined();
     expect(getByText('Interacting with')).toBeDefined();
@@ -81,6 +84,7 @@ describe('StakingClaim', () => {
       title: 'Claim',
       onReject: mockOnReject,
       addBackButton: false,
+      theme: expect.any(Object),
     });
   });
 });

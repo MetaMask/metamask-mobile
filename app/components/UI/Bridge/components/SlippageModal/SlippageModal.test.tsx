@@ -5,9 +5,11 @@ import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import SlippageModal from './index';
+import { setSlippage } from '../../../../../core/redux/slices/bridge';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -20,25 +22,33 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const props = {
-  route: {
-    params: {
-      selectedSlippage: '0.5',
-      onSelectSlippage: jest.fn(),
-    },
-  },
-};
+jest.mock('react-redux', () => {
+  const actualReactRedux = jest.requireActual('react-redux');
+  return {
+    ...actualReactRedux,
+    useDispatch: () => mockDispatch,
+  };
+});
 
 const initialMetrics: Metrics = {
   frame: { x: 0, y: 0, width: 320, height: 640 },
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
 
+const initialState = {
+  bridge: {
+    slippage: '0.5',
+  },
+};
+
 const renderSlippageModal = () =>
   renderWithProvider(
     <SafeAreaProvider initialMetrics={initialMetrics}>
-      <SlippageModal {...props} />
+      <SlippageModal />
     </SafeAreaProvider>,
+    {
+      state: initialState,
+    },
   );
 
 describe('SlippageModal', () => {
@@ -59,7 +69,7 @@ describe('SlippageModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('updates slippage value when segment is selected and sends value back when applied', () => {
+  it('updates slippage value when segment is selected and dispatches action when applied', () => {
     const { getByText, getByTestId } = renderSlippageModal();
 
     // Click on the 3% option
@@ -70,8 +80,9 @@ describe('SlippageModal', () => {
     const applyButton = getByText(strings('bridge.apply'));
     fireEvent.press(applyButton);
 
-    // Check if the callback was called with the correct value
-    expect(props.route.params.onSelectSlippage).toHaveBeenCalledWith('3');
+    // Check if the action was dispatched with the correct value
+    expect(mockDispatch).toHaveBeenCalledWith(setSlippage('3'));
+
     // Check that navigation.goBack was called
     expect(mockGoBack).toHaveBeenCalled();
   });

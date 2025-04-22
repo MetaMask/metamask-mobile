@@ -16,7 +16,7 @@ exports[`DeleteWalletModal should render correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#00000099",
+          "backgroundColor": "#00000066",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -119,7 +119,7 @@ exports[`DeleteWalletModal should render correctly 1`] = `
         onStartShouldSetResponder={[Function]}
         style={
           {
-            "backgroundColor": "#00000099",
+            "backgroundColor": "#00000066",
             "bottom": 0,
             "height": 1334,
             "left": 0,
@@ -271,12 +271,12 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                     style={
                       [
                         {
-                          "color": "#d73847",
+                          "color": "#ca3542",
                           "fontSize": 46,
                         },
                         {
                           "alignSelf": "center",
-                          "color": "#d73847",
+                          "color": "#ca3542",
                           "marginVertical": 10,
                         },
                         {
@@ -294,8 +294,8 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                     style={
                       [
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Bold",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Bold",
                           "fontSize": 20,
                           "fontWeight": "600",
                           "lineHeight": 26,
@@ -303,7 +303,7 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                           "textAlign": "center",
                         },
                         {
-                          "color": "#d73847",
+                          "color": "#ca3542",
                           "marginHorizontal": 24,
                         },
                       ]
@@ -314,8 +314,8 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                   <Text
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
                         "fontWeight": "400",
                         "lineHeight": 22,
@@ -330,7 +330,7 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                     <Text
                       style={
                         {
-                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontFamily": "CentraNo1-Bold",
                           "fontWeight": "600",
                         }
                       }
@@ -345,8 +345,8 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                     style={
                       [
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "lineHeight": 22,
@@ -362,7 +362,7 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                     <Text
                       style={
                         {
-                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontFamily": "CentraNo1-Bold",
                           "fontWeight": "600",
                         }
                       }
@@ -402,7 +402,7 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                           "padding": 15,
                         },
                         {
-                          "backgroundColor": "#d73847",
+                          "backgroundColor": "#ca3542",
                         },
                         [
                           {
@@ -428,7 +428,7 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                         null,
                         [
                           {
-                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontFamily": "CentraNo1-Bold",
                             "fontSize": 14,
                             "fontWeight": "600",
                             "textAlign": "center",
@@ -461,7 +461,7 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                         },
                         {
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#6a737d",
+                          "borderColor": "#686e7d",
                           "borderWidth": 1,
                         },
                         [
@@ -488,13 +488,13 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                         null,
                         [
                           {
-                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontFamily": "CentraNo1-Bold",
                             "fontSize": 14,
                             "fontWeight": "600",
                             "textAlign": "center",
                           },
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                           },
                           undefined,
                         ],

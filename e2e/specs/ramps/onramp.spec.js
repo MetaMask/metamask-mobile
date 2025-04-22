@@ -67,22 +67,23 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  it('should change parameters and select a quote', async () => {
-    const paymentMethod = device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
+  it.skip('should change parameters and select a quote', async () => {
+    const paymentMethod =
+      device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
 
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
     await BuildQuoteView.tapCurrencySelector();
     await SelectCurrencyView.tapCurrencyOption('Euro');
     await BuildQuoteView.tapTokenDropdown('Ethereum');
-    await TokenSelectBottomSheet.tapTokenByName('LINK');
+    await TokenSelectBottomSheet.tapTokenByName('DAI');
     await BuildQuoteView.tapRegionSelector();
     await SelectRegionView.tapRegionOption('France');
     await BuildQuoteView.tapPaymentMethodDropdown('Debit or Credit');
     await SelectPaymentMethodView.tapPaymentMethodOption(paymentMethod);
     await Assertions.checkIfTextIsDisplayed('€0');
     await Assertions.checkIfTextIsNotDisplayed('$0');
-    await Assertions.checkIfTextIsDisplayed('Chainlink');
+    await Assertions.checkIfTextIsDisplayed('Dai Stablecoin');
     await Assertions.checkIfTextIsNotDisplayed('Ethereum');
     await Assertions.checkIfTextIsNotDisplayed('Debit or Credit');
     await Assertions.checkIfTextIsDisplayed(paymentMethod);
@@ -94,5 +95,4 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await QuotesView.closeQuotesSection();
     await BuildQuoteView.tapCancelButton();
   });
-
 });

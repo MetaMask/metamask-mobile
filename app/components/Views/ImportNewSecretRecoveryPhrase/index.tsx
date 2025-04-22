@@ -239,6 +239,20 @@ const ImportNewSecretRecoveryPhrase = () => {
         return state;
       };
 
+      const hideErrorIfSrpIsEmpty = (
+        state: { error: string; words: boolean[] },
+        phrase: string[],
+      ) => {
+        if (phrase.every((word) => word === '')) {
+          return {
+            words: Array(phrase.length).fill(false),
+            error: '',
+          };
+        }
+
+        return state;
+      };
+
       const joinedDraftSrp = newDraftSrp.join(' ').trim();
       const invalidWords = Array(newDraftSrp.length).fill(false);
       let validationResult = validateSRP(newDraftSrp, invalidWords);
@@ -246,6 +260,7 @@ const ImportNewSecretRecoveryPhrase = () => {
       validationResult = validateCase(validationResult, joinedDraftSrp);
       validationResult = validateWords(validationResult);
       validationResult = validateMnemonic(validationResult, joinedDraftSrp);
+      validationResult = hideErrorIfSrpIsEmpty(validationResult, newDraftSrp);
 
       setSecretRecoveryPhrase(newDraftSrp);
       setSrpError(validationResult.error);
@@ -414,7 +429,10 @@ const ImportNewSecretRecoveryPhrase = () => {
           </View>
         </View>
         {srpError && (
-          <BannerAlert severity={BannerAlertSeverity.Error}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            testID={ImportSRPIDs.SRP_ERROR}
+          >
             <Text>{srpError}</Text>
           </BannerAlert>
         )}

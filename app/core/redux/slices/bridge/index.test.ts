@@ -3,39 +3,32 @@ import reducer, {
   setSourceAmount,
   setDestAmount,
   resetBridgeState,
+  setSlippage,
 } from '.';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { TokenI } from '../../../../components/UI/Tokens/types';
+import { BridgeToken } from '../../../../components/UI/Bridge/types';
+import { Hex } from '@metamask/utils';
 
 describe('bridge slice', () => {
-  const mockToken: TokenI = {
+  const mockToken: BridgeToken = {
     address: '0x123',
     symbol: 'ETH',
     decimals: 18,
     image: 'https://example.com/eth.png',
-    chainId: 'eip155:1' as SupportedCaipChainId,
-    aggregators: [],
+    chainId: '0x1' as Hex,
     name: 'Ethereum',
     balance: '100',
     balanceFiat: '100',
-    isETH: true,
-    isNative: true,
-    logo: 'https://example.com/eth.png',
   };
 
-  const mockDestToken: TokenI = {
+  const mockDestToken: BridgeToken = {
     address: '0x456',
     symbol: 'USDC',
     decimals: 6,
     image: 'https://example.com/usdc.png',
-    chainId: 'eip155:2' as SupportedCaipChainId,
-    aggregators: [],
+    chainId: '0x2' as Hex,
     name: 'USDC',
     balance: '100',
     balanceFiat: '100',
-    isETH: false,
-    isNative: false,
-    logo: 'https://example.com/usdc.png',
   };
 
   describe('initial state', () => {
@@ -46,6 +39,7 @@ describe('bridge slice', () => {
         destChainId: undefined,
         sourceToken: undefined,
         destToken: undefined,
+        slippage: '0.5',
       });
     });
   });
@@ -64,6 +58,16 @@ describe('bridge slice', () => {
       const state = reducer(initialState, action);
 
       expect(state.sourceAmount).toBeUndefined();
+    });
+  });
+
+  describe('setSlippage', () => {
+    it('should set the slippage', () => {
+      const slippage = '0.5';
+      const action = setSlippage(slippage);
+      const state = reducer(initialState, action);
+
+      expect(state.slippage).toBe(slippage);
     });
   });
 
