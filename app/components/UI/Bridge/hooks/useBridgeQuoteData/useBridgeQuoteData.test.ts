@@ -34,8 +34,28 @@ describe('useBridgeQuoteData', () => {
     });
 
     expect(result.current).toEqual({
-      activeQuote: mockQuotes[0],
-      bestQuote: mockQuotes[0],
+      activeQuote: {
+        ...mockQuotes[0],
+        adjustedReturn: { usd: null, valueInCurrency: null },
+        cost: { usd: null, valueInCurrency: null },
+        gasFee: { amount: '0', usd: null, valueInCurrency: null },
+        sentAmount: { amount: '0.5', usd: null, valueInCurrency: null },
+        swapRate: '114.112442',
+        toTokenAmount: { amount: '57.056221', usd: null, valueInCurrency: null },
+        totalMaxNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+        totalNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+      },
+      bestQuote: {
+        ...mockQuotes[0],
+        adjustedReturn: { usd: null, valueInCurrency: null },
+        cost: { usd: null, valueInCurrency: null },
+        gasFee: { amount: '0', usd: null, valueInCurrency: null },
+        sentAmount: { amount: '0.5', usd: null, valueInCurrency: null },
+        swapRate: '114.112442',
+        toTokenAmount: { amount: '57.056221', usd: null, valueInCurrency: null },
+        totalMaxNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+        totalNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+      },
       destTokenAmount: '57.06',
       formattedQuoteData: {
         networkFee: '44',
@@ -96,7 +116,17 @@ describe('useBridgeQuoteData', () => {
 
     expect(result.current).toEqual({
       activeQuote: undefined,
-      bestQuote: mockQuotes[0],
+      bestQuote: {
+        ...mockQuotes[0],
+        adjustedReturn: { usd: null, valueInCurrency: null },
+        cost: { usd: null, valueInCurrency: null },
+        gasFee: { amount: '0', usd: null, valueInCurrency: null },
+        sentAmount: { amount: '0.5', usd: null, valueInCurrency: null },
+        swapRate: '114.112442',
+        toTokenAmount: { amount: '57.056221', usd: null, valueInCurrency: null },
+        totalMaxNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+        totalNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+      },
       destTokenAmount: undefined,
       formattedQuoteData: undefined,
       isLoading: false,
