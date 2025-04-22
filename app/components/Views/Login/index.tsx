@@ -513,7 +513,7 @@ const Login: React.FC = () => {
               />
             </View>
 
-            {renderSwitch()}
+            {/* {renderSwitch()} */}
 
             <View style={styles.helperTextContainer}>
               {showHint && (
