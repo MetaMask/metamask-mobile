@@ -1,6 +1,7 @@
 import { isValidAddress } from 'ethereumjs-util';
 import { isSmartContractAddress } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
 
 interface ValidationResult {
   isValid: boolean;
