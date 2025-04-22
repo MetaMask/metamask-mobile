@@ -128,12 +128,14 @@ const MultichainTransactionListItem = ({
                   transactionStatus={transaction.status}
                 />
               )}
-              <StatusText
-                testID={`transaction-status-${transaction.id}`}
-                status={status}
-                style={style.listItemStatus as TextStyle}
-                context="transaction"
-              />
+              {(!isBridgeTx || (isBridgeTx && isBridgeComplete)) && (
+                <StatusText
+                  testID={`transaction-status-${transaction.id}`}
+                  status={status}
+                  style={style.listItemStatus as TextStyle}
+                  context="transaction"
+                />
+              )}
             </ListItem.Body>
             {Boolean(asset?.amount) && (
               <ListItem.Amount style={style.listItemAmount as TextStyle}>
