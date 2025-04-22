@@ -13,6 +13,7 @@ import {
   selectMultichainTokenList,
   selectSelectedAccountMultichainNetworkAggregatedBalance,
   selectSolanaAccountTransactions,
+  selectMultichainHistoricalPrices,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -842,6 +843,38 @@ describe('MultichainNonEvm Selectors', () => {
         lastUpdated: 0,
         next: null,
         transactions: [],
+      });
+    });
+  });
+
+  describe('selectMultichainHistoricalPrices', () => {
+    const testAsset = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+
+    it('returns empty object if no historical prices are available', () => {
+      const state = getEvmState(undefined);
+      state.engine.backgroundState.MultichainAssetsRatesController.historicalPrices =
+        {};
+
+      expect(selectMultichainHistoricalPrices(state)).toStrictEqual({});
+    });
+
+    it('Returns historical prices for a given asset', () => {
+      const testCurrency = 'usd';
+      const state = getEvmState(undefined);
+      const mockHistoricalPricesForAsset = {
+        [testCurrency]: {
+          intervals: {},
+          updateTime: 1737542312,
+          expirationTime: 1737542312,
+        },
+      };
+      state.engine.backgroundState.MultichainAssetsRatesController.historicalPrices =
+        {
+          [testAsset]: mockHistoricalPricesForAsset,
+        };
+
+      expect(selectMultichainHistoricalPrices(state)).toStrictEqual({
+        [testAsset]: mockHistoricalPricesForAsset,
       });
     });
   });
