@@ -58,10 +58,10 @@ describe('LedgerContext', () => {
         state: personalSignatureConfirmationState,
       },
     );
-    expect(getByText('Sign with Ledger')).toBeTruthy();
+    expect(getByText('Confirm')).toBeTruthy();
   });
 
-  it('display ledger sign modal when "Sign with Ledger" button is clicked in footer', async () => {
+  it('display ledger sign modal when "Confirm" button is clicked in footer', async () => {
     jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
     const { getByText } = renderWithProvider(
       <LedgerContextProvider>
@@ -71,7 +71,7 @@ describe('LedgerContext', () => {
         state: personalSignatureConfirmationState,
       },
     );
-    fireEvent.press(getByText('Sign with Ledger'));
+    fireEvent.press(getByText('Confirm'));
     expect(getByText('Mock LedgerSignModal')).toBeTruthy();
   });
 });
