@@ -420,8 +420,8 @@ describe('BridgeTransactionDetails', () => {
       },
       { state: mockState },
     );
-    expect(getByText('1.00000 TOKEN1')).toBeTruthy();
-    expect(getByText('2.00000 TOKEN2')).toBeTruthy();
+    expect(getByText('1.00000')).toBeTruthy();
+    expect(getByText('2.00000')).toBeTruthy();
   });
 
   it('displays submission date', () => {
