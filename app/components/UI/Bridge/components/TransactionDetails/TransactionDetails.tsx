@@ -35,6 +35,7 @@ import {
 } from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
+// import { renderShortAddress } from '../../../../../util/address';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -272,6 +273,13 @@ export const BridgeTransactionDetails = (
           </Text>
           <Text>{submissionDateString}</Text>
         </Box>
+        {/* TODO uncomment when recipient is available */}
+        {/* <Box style={styles.detailRow}>
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('bridge_transaction_details.recipient')}
+          </Text>
+          <Text>{renderShortAddress(bridgeTxHistoryItem.account)}</Text>
+        </Box> */}
         <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('bridge_transaction_details.total_gas_fee')}

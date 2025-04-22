@@ -4,6 +4,7 @@ import BottomSheet from '../../../../../component-library/components/BottomSheet
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { Box } from '../../../Box/Box';
 import {
@@ -30,17 +31,8 @@ import { Transaction } from '@metamask/keyring-api';
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
-      height: 100,
-    },
-    button: {
-      width: '90%',
-      alignSelf: 'center',
-    },
-    firstButton: {
-      marginBottom: 10,
-    },
-    badge: {
-      marginRight: 10,
+      paddingLeft: 16,
+      paddingRight: 16,
     },
     text: {
       color: params.theme.colors.primary.default,
@@ -89,22 +81,32 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
         flexDirection={FlexDirection.Column}
         alignItems={AlignItems.center}
         justifyContent={JustifyContent.center}
+        gap={20}
       >
+        <Text variant={TextVariant.BodyMD}>
+          {strings('bridge_transaction_details.block_explorer_description', {
+            chainName: srcExplorerData?.chainName,
+          })}
+        </Text>
         {srcExplorerData && (
           <Button
             variant={ButtonVariants.Secondary}
+            width={ButtonWidthTypes.Full}
             label={
-              <>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
                 <Badge
                   variant={BadgeVariant.Network}
                   name={srcExplorerData.chainName}
                   imageSource={srcExplorerData.networkImageSource}
-                  style={styles.badge}
                 />
                 <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
                   {srcExplorerData.explorerName}
                 </Text>
-              </>
+              </Box>
             }
             onPress={() => {
               navigation.navigate(Routes.BROWSER.HOME, {
@@ -115,25 +117,28 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
                 },
               });
             }}
-            style={{ ...styles.button, ...styles.firstButton }}
           />
         )}
 
         {destExplorerData && (
           <Button
             variant={ButtonVariants.Secondary}
+            width={ButtonWidthTypes.Full}
             label={
-              <>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
                 <Badge
                   variant={BadgeVariant.Network}
                   name={destExplorerData.chainName}
                   imageSource={destExplorerData.networkImageSource}
-                  style={styles.badge}
                 />
                 <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
                   {destExplorerData.explorerName}
                 </Text>
-              </>
+              </Box>
             }
             onPress={() => {
               navigation.navigate(Routes.BROWSER.HOME, {
@@ -144,7 +149,6 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
                 },
               });
             }}
-            style={styles.button}
           />
         )}
       </Box>
