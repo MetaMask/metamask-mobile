@@ -3,6 +3,13 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { createBridgeTestState } from '../../testUtils';
 import Engine from '../../../../../core/Engine';
 import { act } from '@testing-library/react-native';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+
+// Mock isSolanaChainId
+jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
+  isSolanaChainId: jest.fn(),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -236,5 +243,53 @@ describe('useBridgeQuoteRequest', () => {
       // Should have been called exactly once
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('uses destAddress as destWalletAddress when destination chain is Solana', async () => {
+    const solanaDestChainId = '0xfa'; // Solana chain ID
+    const evmSourceChainId = '0x1'; // Ethereum chain ID
+    const destSolanaAddress = 'FakeS0LanaAddr3ss111111111111111111111111111';
+
+    // Mock isSolanaChainId to return true for Solana chain ID and false for EVM chain ID
+    (isSolanaChainId as jest.Mock).mockImplementation((chainId) => chainId === solanaDestChainId);
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        selectedDestChainId: solanaDestChainId,
+        destAddress: destSolanaAddress,
+        sourceToken: {
+          address: '0x0000000000000000000000000000000000000000',
+          symbol: 'ETH',
+          decimals: 18,
+          chainId: evmSourceChainId,
+          name: 'Ethereum',
+        },
+        destToken: {
+          address: '0x0000000000000000000000000000000000000000',
+          symbol: 'SOL',
+          decimals: 9,
+          chainId: solanaDestChainId,
+          name: 'Solana',
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+      state: testState,
+    });
+
+    await act(async () => {
+      await result.current();
+      jest.advanceTimersByTime(300);
+    });
+
+    expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+      expect.objectContaining({
+        destWalletAddress: destSolanaAddress,
+      }),
+    );
+
+    // Reset mock
+    (isSolanaChainId as jest.Mock).mockReset();
   });
 });
