@@ -1,6 +1,13 @@
 import { CodeChallengeMethod, ResponseType } from "expo-auth-session";
 import { AuthRequest } from "expo-auth-session";
 import { OAuthProvider, LoginHandler, LoginHandlerResult } from "../../Oauth2loginInterface";
+
+export interface AndroidAppleLoginHandlerParams {
+    clientId: string, 
+    redirectUri: string, 
+    appRedirectUri: string
+}
+
 const AppleAuthorizeEndpoint = 'https://appleid.apple.com/auth/authorize';
 
 export class AndroidAppleLoginHandler implements LoginHandler {
@@ -9,7 +16,7 @@ export class AndroidAppleLoginHandler implements LoginHandler {
     redirectUri: string;
     appRedirectUri: string;
 
-    constructor(params: {clientId: string, redirectUri: string, appRedirectUri: string}) {
+    constructor(params: AndroidAppleLoginHandlerParams) {
         const {appRedirectUri, redirectUri, clientId} = params;
         this.clientId = clientId;
         this.redirectUri = redirectUri;

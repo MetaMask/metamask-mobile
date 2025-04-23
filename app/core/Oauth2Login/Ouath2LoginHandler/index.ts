@@ -16,6 +16,7 @@ export const IosGoogleRedirectUri = 'com.googleusercontent.apps.882363291751-nbb
 export const AndroidGoogleWebGID = '882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com';
 export const AppleServerRedirectUri = `${ByoaServerUrl}/api/v1/oauth/callback`;
 export const AppleWebClientId = 'com.web3auth.appleloginextension';
+export const IosAppleClientId = 'io.metamask.MetaMask';
 
 
 export function createLoginHandler(
@@ -31,7 +32,7 @@ export function createLoginHandler(
                         redirecUri: IosGoogleRedirectUri
                     });
                 case OAuthProvider.Apple:
-                    return new IosAppleLoginHandler();
+                    return new IosAppleLoginHandler({clientId: IosAppleClientId});
                 default:
                     throw new Error('Invalid provider');
             }
@@ -83,7 +84,10 @@ export async function getByoaTokens (params : HandleFlowParams , byoaServerUrl?:
         body: JSON.stringify(body),
     });
 
-    const data = await res.json() as ByoaResponse;
+    if (res.status === 200 ) {
+        const data = await res.json() as ByoaResponse;
+        return data;
+    }
 
-    return data;
+    throw new Error(`BYOA Error : ${await res.text()}`);
 }

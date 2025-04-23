@@ -1,7 +1,7 @@
 import { LoginHandler, LoginHandlerCodeResult, OAuthProvider } from "../../Oauth2loginInterface";
 import { AuthRequest, CodeChallengeMethod, ResponseType } from "expo-auth-session";
 
-export type IosAppleLoginHandlerParams = {
+export type IosGoogleLoginHandlerParams = {
     clientId : string,
     redirecUri: string,
 }
@@ -9,7 +9,7 @@ export type IosAppleLoginHandlerParams = {
 export class IosGoogleLoginHandler implements LoginHandler {
     clientId : string
     redirectUri: string
-    constructor( params : IosAppleLoginHandlerParams){
+    constructor( params : IosGoogleLoginHandlerParams){
         this.clientId = params.clientId;
         this.redirectUri = params.redirecUri;
     }

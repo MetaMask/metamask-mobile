@@ -1,8 +1,8 @@
 import Logger from "../../../../util/Logger";
-import { LoginHandlerIdTokenResult, OAuthProvider } from "../../Oauth2loginInterface";
+import { LoginHandler, LoginHandlerIdTokenResult, OAuthProvider } from "../../Oauth2loginInterface";
 import { signInWithGoogle } from "react-native-google-acm";
 
-export class AndroidGoogleLoginHandler {
+export class AndroidGoogleLoginHandler implements LoginHandler {
     provider = OAuthProvider.Google
     clientId
 
