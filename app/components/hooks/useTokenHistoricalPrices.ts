@@ -5,8 +5,6 @@ import { selectMultichainHistoricalPrices } from '../../selectors/multichain';
 import { useSelector } from 'react-redux';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
 import Engine from '../../core/Engine';
-import { MultichainAssetsRatesController } from '@metamask/assets-controllers';
-import { HistoricalPriceValue } from '@metamask/snaps-sdk';
 import { TokenI } from '../UI/Tokens/types';
 
 export type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y';
