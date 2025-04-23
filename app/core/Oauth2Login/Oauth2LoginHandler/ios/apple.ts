@@ -1,10 +1,19 @@
-import { LoginHandler, LoginHandlerIdTokenResult, OAuthProvider } from "../../Oauth2loginInterface";
+import { LoginHandler, LoginHandlerIdTokenResult, AuthConnection } from "../../Oauth2loginInterface";
 import { signInAsync } from "expo-apple-authentication";
 import { AppleAuthenticationScope } from "expo-apple-authentication";
 
 export class IosAppleLoginHandler implements LoginHandler {
-    provider = OAuthProvider.Apple
-    clientId : string;
+    readonly #scope = [AppleAuthenticationScope.FULL_NAME, AppleAuthenticationScope.EMAIL];
+    
+    protected clientId: string;
+
+    get authConnection() {
+        return AuthConnection.Apple;
+    }
+    
+    get scope() {
+        return this.#scope;
+    }
 
     constructor(params: {clientId: string}) {
         this.clientId = params.clientId
@@ -12,14 +21,12 @@ export class IosAppleLoginHandler implements LoginHandler {
 
     async login (): Promise<LoginHandlerIdTokenResult | undefined> {
         const credential = await signInAsync({
-            requestedScopes: [
-                AppleAuthenticationScope.FULL_NAME,
-                AppleAuthenticationScope.EMAIL,
-            ],
+            requestedScopes: this.#scope,
         });
+    
         if (credential.identityToken) {
             return {
-                provider: this.provider,
+                authConnection: this.authConnection,
                 idToken: credential.identityToken,
                 clientId: this.clientId,
             };

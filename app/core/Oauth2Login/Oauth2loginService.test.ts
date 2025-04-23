@@ -1,4 +1,4 @@
-import { OAuthProvider } from './Oauth2loginInterface';
+import { AuthConnection } from './Oauth2loginInterface';
 import Oauth2LoginService from './Oauth2loginService';
 import ReduxService, { ReduxStore } from '../redux';
 
@@ -26,14 +26,14 @@ describe('Oauth2 login service', () => {
       }),
       getByoaTokens: () => ({}),
     }));
-    const result = await Oauth2LoginService.handleOauth2Login(OAuthProvider.Google);
+    const result = await Oauth2LoginService.handleOauth2Login(AuthConnection.Google);
     expect(result.type).toBe('dismiss');
 
     mockLoginHandlerResponse = () => {
       throw new Error('unexpecte Error');
     };
 
-    const result2 = await Oauth2LoginService.handleOauth2Login(OAuthProvider.Google);
+    const result2 = await Oauth2LoginService.handleOauth2Login(AuthConnection.Google);
     expect(result2.type).toBe('error');
   });
 

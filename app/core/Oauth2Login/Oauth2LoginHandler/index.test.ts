@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { OAuthProvider } from '../Oauth2loginInterface';
+import { AuthConnection } from '../Oauth2loginInterface';
 import { createLoginHandler } from './index';
 
 
@@ -28,10 +28,10 @@ jest.mock('./ios/apple', () => ({
 describe('Oauth2 login service', () => {
   it('should return a type dismiss', async () => {
     for ( const os of ['ios', 'android']) {
-        for ( const provider of Object.values(OAuthProvider) ) {
+        for ( const provider of Object.values(AuthConnection) ) {
             const handler = createLoginHandler(os as Platform['OS'], provider);
             const result = await handler.login();
-            expect(result?.provider).toBe(provider);
+            expect(result?.authConnection).toBe(provider);
             expect(result?.clientId).toBe(`${os}.${provider}.clientId`);
         }
     }

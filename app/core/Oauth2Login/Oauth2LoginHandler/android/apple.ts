@@ -1,6 +1,7 @@
 import { CodeChallengeMethod, ResponseType } from "expo-auth-session";
 import { AuthRequest } from "expo-auth-session";
-import { OAuthProvider, LoginHandler, LoginHandlerResult } from "../../Oauth2loginInterface";
+import { AuthConnection, LoginHandler, LoginHandlerResult, OAuthUserInfo } from "../../Oauth2loginInterface";
+import { jwtDecode } from "jwt-decode";
 
 export interface AndroidAppleLoginHandlerParams {
     clientId: string, 
@@ -8,14 +9,22 @@ export interface AndroidAppleLoginHandlerParams {
     appRedirectUri: string
 }
 
-const AppleAuthorizeEndpoint = 'https://appleid.apple.com/auth/authorize';
-
 export class AndroidAppleLoginHandler implements LoginHandler {
-    provider = OAuthProvider.Apple
-    clientId: string;
-    redirectUri: string;
-    appRedirectUri: string;
+    public readonly OAUTH_SERVER_URL = 'https://appleid.apple.com/auth/authorize';
 
+    readonly #scope = ['name', 'email'];
+    
+    protected clientId: string;
+    protected redirectUri: string;
+    protected appRedirectUri: string;
+
+    get authConnection() {
+        return AuthConnection.Apple;
+    }
+    
+    get scope() {
+        return this.#scope;
+    }
     constructor(params: AndroidAppleLoginHandlerParams) {
         const {appRedirectUri, redirectUri, clientId} = params;
         this.clientId = clientId;
@@ -25,7 +34,7 @@ export class AndroidAppleLoginHandler implements LoginHandler {
 
     async login (): Promise<LoginHandlerResult | undefined> {
         const state = JSON.stringify({
-            provider: this.provider,
+            provider: this.authConnection,
             client_redirect_back_uri: this.appRedirectUri,
             redirectUri: this.redirectUri,
             clientId: this.appRedirectUri,
@@ -34,7 +43,7 @@ export class AndroidAppleLoginHandler implements LoginHandler {
         const authRequest = new AuthRequest({
             clientId: this.clientId,
             redirectUri: this.redirectUri,
-            scopes: ['email', 'name'],
+            scopes: this.#scope,
             responseType: ResponseType.Code,
             codeChallengeMethod: CodeChallengeMethod.S256,
             usePKCE: false,
@@ -45,32 +54,24 @@ export class AndroidAppleLoginHandler implements LoginHandler {
         });
         // generate the auth url
         const authUrl = await authRequest.makeAuthUrlAsync({
-            authorizationEndpoint: AppleAuthorizeEndpoint,
+            authorizationEndpoint: this.OAUTH_SERVER_URL,
         });
     
         // create a dummy auth request so that the auth-session can return result on appRedirectUrl
         const authRequestDummy = new AuthRequest({
             clientId: this.clientId,
             redirectUri: this.appRedirectUri,
-            scopes: ['email', 'name'],
-            responseType: ResponseType.Code,
-            codeChallengeMethod: CodeChallengeMethod.S256,
-            usePKCE: false,
-            state,
-            extraParams: {
-                response_mode: 'form_post',
-            }
         });
     
         // prompt the auth request using generated auth url instead of the dummy auth request
         const result = await authRequestDummy.promptAsync({
-            authorizationEndpoint: AppleAuthorizeEndpoint,
+            authorizationEndpoint: this.OAUTH_SERVER_URL,
         }, {
             url: authUrl,
         });
         if (result.type === 'success') {
             return {
-                provider: OAuthProvider.Apple,
+                authConnection: AuthConnection.Apple,
                 code: result.params.code,
                 clientId: this.clientId,
                 redirectUri: this.redirectUri,

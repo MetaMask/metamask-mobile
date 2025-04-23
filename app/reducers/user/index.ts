@@ -122,7 +122,6 @@ const userReducer = (
       return {
         ...state,
         oauth2LoginSuccess: true,
-        oauth2LoginExistingUser: action.payload.existingUser,
       };
     case UserActionType.OAUTH2_LOGIN_ERROR:
       return {

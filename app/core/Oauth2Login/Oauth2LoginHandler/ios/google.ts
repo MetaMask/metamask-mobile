@@ -1,4 +1,4 @@
-import { LoginHandler, LoginHandlerCodeResult, OAuthProvider } from "../../Oauth2loginInterface";
+import { LoginHandler, LoginHandlerCodeResult, AuthConnection } from "../../Oauth2loginInterface";
 import { AuthRequest, CodeChallengeMethod, ResponseType } from "expo-auth-session";
 
 export type IosGoogleLoginHandlerParams = {
@@ -7,8 +7,20 @@ export type IosGoogleLoginHandlerParams = {
 }
 
 export class IosGoogleLoginHandler implements LoginHandler {
-    clientId : string
-    redirectUri: string
+    public readonly OAUTH_SERVER_URL = 'https://appleid.apple.com/auth/authorize';
+
+    readonly #scope = ['email', 'profile'];
+    
+    protected clientId: string;
+    protected redirectUri: string;
+
+    get authConnection() {
+        return AuthConnection.Google;
+    }
+    
+    get scope() {
+        return this.#scope;
+    }
     constructor( params : IosGoogleLoginHandlerParams){
         this.clientId = params.clientId;
         this.redirectUri = params.redirecUri;
@@ -21,7 +33,7 @@ export class IosGoogleLoginHandler implements LoginHandler {
         const authRequest = new AuthRequest({
             clientId: this.clientId,
             redirectUri: this.redirectUri,
-            scopes: ['email', 'profile'],
+            scopes: this.#scope,
             responseType: ResponseType.Code,
             codeChallengeMethod: CodeChallengeMethod.S256,
             usePKCE: true,
@@ -33,7 +45,7 @@ export class IosGoogleLoginHandler implements LoginHandler {
     
         if (result.type === 'success') {
             return {
-                provider: OAuthProvider.Google,
+                authConnection: this.authConnection,
                 code: result.params.code, // result.params.idToken
                 clientId: this.clientId,
                 redirectUri: this.redirectUri,
