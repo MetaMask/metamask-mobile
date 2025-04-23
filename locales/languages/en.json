@@ -1507,6 +1507,7 @@
     "gas_fee_slow": "SLOW",
     "hex_data": "Hex Data",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "This is an advanced feature used to cancel or speed up any pending transactions.",
     "current_suggested_nonce": "Current suggested nonce:",
     "edit_transaction_nonce": "Edit transaction nonce",
@@ -3853,7 +3854,9 @@
       "unavailable": "Unavailable"
     },
     "unlimited": "Unlimited",
-    "none": "None"
+    "none": "None",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
