@@ -250,7 +250,7 @@ const BridgeView = () => {
       );
     }
 
-    if (!hasValidBridgeInputs || shouldDisplayKeypad) {
+    if (!hasValidBridgeInputs || isInputFocused) {
       return (
         <Box style={styles.buttonContainer}>
           <Text color={TextColor.Primary}>
