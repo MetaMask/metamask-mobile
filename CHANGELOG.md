@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.45.0]
 
+### Fixed
+
+- fix: updates a padding style specifically for Android devices ([#14725](https://github.com/MetaMask/metamask-mobile/pull/14725))
+
 ### Added
 
 - feat(4213-2) update network icons ([#14069](https://github.com/MetaMask/metamask-mobile/pull/14069))
