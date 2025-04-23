@@ -694,7 +694,6 @@ const mapStateToProps = (state) => ({
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,
 
-  oauth2LoginInProgress: state.user.oauth2LoginInProgress,
   oauth2LoginError: state.user.oauth2LoginError,
   oauth2LoginSuccess: state.user.oauth2LoginSuccess,
   oauth2LoginExistingUser: state.user.oauth2LoginExistingUser,

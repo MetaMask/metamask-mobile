@@ -18,7 +18,6 @@ import Button, {
 import Icon , { IconName, IconSize } from '../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
-import { useMetrics } from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
@@ -68,38 +67,17 @@ const AccountStatus = ({
     false,));
   }, [navigation, colors, route]);
 
-  const { isEnabled } = useMetrics();
-
   const track = (event: IMetaMetricsEvent) => {
     trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
   };
 
-  const metricNavigationWrapper = (targetRoute: string, previousScreen: string, metricEvent: string) => {
-    if (isEnabled()) {
+  const navigateNextScreen = (targetRoute: string, previousScreen: string, metricEvent: string) => {
       navigation.dispatch(
-        StackActions.replace(targetRoute,
-          {
-            [PREVIOUS_SCREEN]: previousScreen,
-          }
-        )
+        StackActions.replace(targetRoute, {
+          [PREVIOUS_SCREEN]: previousScreen,
+        })
       );
       track(metricEvent === 'import' ? MetaMetricsEvents.WALLET_IMPORT_STARTED : MetaMetricsEvents.WALLET_SETUP_STARTED);
-    } else {
-      navigation.dispatch(
-        StackActions.replace('OptinMetrics', {
-          onContinue: () => {
-            navigation.dispatch(
-              StackActions.replace(targetRoute,
-              {
-                [PREVIOUS_SCREEN]: previousScreen,
-              }
-            )
-          );
-            track(metricEvent === 'import' ? MetaMetricsEvents.WALLET_IMPORT_STARTED : MetaMetricsEvents.WALLET_SETUP_STARTED);
-          },
-        }),
-      );
-    }
   };
 
   return (
@@ -134,9 +112,9 @@ const AccountStatus = ({
         width={ButtonWidthTypes.Full}
         onPress={() => {
           if (type === 'found') {
-            metricNavigationWrapper('Login', 'Onboarding', 'import');
+            navigateNextScreen('Login', 'Onboarding', 'import');
           } else {
-            metricNavigationWrapper('ChoosePassword', 'Onboarding', 'create');
+            navigateNextScreen('ChoosePassword', 'Onboarding', 'create');
           }
         }}
         label={
