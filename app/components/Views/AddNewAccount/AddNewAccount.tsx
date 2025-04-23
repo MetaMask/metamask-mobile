@@ -103,7 +103,6 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
       }
       navigate(Routes.WALLET.HOME);
     } catch (e: unknown) {
-      Logger.log('error', e);
       const errorMessage = strings(
         'accounts.error_messages.failed_to_create_account',
         {

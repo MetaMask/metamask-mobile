@@ -92,7 +92,7 @@ class AuthenticationService {
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     const primaryHdKeyringId =
       Engine.context.KeyringController.state.keyringsMetadata[0].id;
-    const client = await MultichainWalletSnapFactory.createClient(
+    const client = MultichainWalletSnapFactory.createClient(
       WalletClientType.Solana,
       {
         setSelectedAccount: false,
@@ -120,7 +120,7 @@ class AuthenticationService {
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     const primaryHdKeyringId =
       Engine.context.KeyringController.state.keyringsMetadata[0].id;
-    const client = await MultichainWalletSnapFactory.createClient(
+    const client = MultichainWalletSnapFactory.createClient(
       WalletClientType.Solana,
       {
         setSelectedAccount: false,

@@ -2,7 +2,6 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
-import { KeyringClient } from '@metamask/keyring-snap-client';
 import SolanaNewFeatureContent from './SolanaNewFeatureContent';
 import StorageWrapper from '../../../store/storage-wrapper';
 
@@ -30,8 +29,15 @@ jest.mock('@metamask/keyring-snap-client', () => ({
   })),
 }));
 
-jest.mock('../../../core/SnapKeyring/SolanaWalletSnap', () => ({
-  SolanaWalletSnapSender: jest.fn(),
+const mockSnapClient = {
+  createAccount: jest.fn(),
+};
+
+jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
+  ...jest.requireActual('../../../core/SnapKeyring/MultichainWalletSnapClient'),
+  MultichainWalletSnapFactory: {
+    createClient: jest.fn().mockImplementation(() => mockSnapClient),
+  },
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -111,11 +117,6 @@ describe('SolanaNewFeatureContent', () => {
   });
 
   it('creates an account when "create account" button is pressed', async () => {
-    const mockCreateAccount = jest.fn();
-    (KeyringClient as jest.Mock).mockImplementation(() => ({
-      createAccount: mockCreateAccount,
-    }));
-
     const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
@@ -125,7 +126,7 @@ describe('SolanaNewFeatureContent', () => {
       fireEvent.press(createButton);
     });
 
-    expect(mockCreateAccount).toHaveBeenCalledWith({
+    expect(mockSnapClient.createAccount).toHaveBeenCalledWith({
       scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     });
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(

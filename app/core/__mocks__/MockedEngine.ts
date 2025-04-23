@@ -7,7 +7,13 @@ import { MOCK_KEYRING_CONTROLLER_STATE } from '../../util/test/keyringController
 export const mockedEngine = {
   init: () => Engine.init({}),
   context: {
-    KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
+    KeyringController: {
+      ...MOCK_KEYRING_CONTROLLER_STATE,
+      isUnlocked: () => true,
+      setLocked: jest.fn(),
+      createNewVaultAndRestore: jest.fn(),
+      createNewVaultAndKeychain: jest.fn(),
+    },
     NetworkController: {
       getNetworkClientById: (networkClientId: NetworkClientId) => {
         if (networkClientId === 'linea_goerli') {
@@ -42,6 +48,7 @@ export const mockedEngine = {
     },
   },
   hasFunds: jest.fn(),
+  resetState: jest.fn(),
 };
 
 export default mockedEngine;

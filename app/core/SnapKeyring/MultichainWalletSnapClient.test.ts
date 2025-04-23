@@ -41,7 +41,7 @@ describe('MultichainWalletSnapClient', () => {
   const mockSnapKeyringOptions = {
     displayConfirmation: false,
     displayAccountNameSuggestion: false,
-    setSelectedAccount: true,
+    setSelectedAccount: false,
   };
 
   class TestMultichainWalletSnapClient extends MultichainWalletSnapClient {
@@ -49,8 +49,8 @@ describe('MultichainWalletSnapClient', () => {
       super(mockSnapId, mockSnapName, mockSnapKeyringOptions);
     }
 
-    protected getScope(): CaipChainId[] {
-      return [MultichainNetwork.Bitcoin, MultichainNetwork.BitcoinTestnet];
+    protected getScope(): CaipChainId {
+      return SolScope.Mainnet;
     }
 
     protected getSnapSender(): Sender {
