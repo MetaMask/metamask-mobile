@@ -3890,7 +3890,9 @@
     "insufficient_funds": "Insufficient funds",
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
-    "title": "Bridge"
+    "title": "Bridge",
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote"
   },
   "bridge_transaction_details": {
     "status": "Status",
@@ -3902,6 +3904,9 @@
     "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
     "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
     "view_on_block_explorer": "View on Block Explorer",
-    "transaction_details": "Transaction Details"
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
   }
 }

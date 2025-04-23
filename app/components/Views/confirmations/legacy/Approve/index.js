@@ -468,7 +468,6 @@ class Approve extends PureComponent {
 
   onLedgerConfirmation = (approve, transactionId, gaParams) => {
     const { metrics } = this.props;
-    const { TransactionController } = Engine.context;
     try {
       //manual cancel from UI when transaction is awaiting from ledger confirmation
       if (!approve) {
@@ -478,8 +477,6 @@ class Approve extends PureComponent {
           'TransactionController:transactionFinished',
           this.#transactionFinishedSubscription,
         );
-
-        TransactionController.cancelTransaction(transactionId);
 
         metrics.trackEvent(
           metrics
