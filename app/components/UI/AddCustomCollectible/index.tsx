@@ -10,6 +10,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   validateCustomCollectibleAddress as validateAddress,
   validateCollectibleOwnership as validateOwnership,
+  validateCustomCollectibleTokenId as validateTokenId,
 } from './util';
 import { useTheme } from '../../../util/theme';
 import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportNFTView.selectors';
@@ -129,14 +130,9 @@ const AddCustomCollectible = ({
   };
 
   const validateCustomCollectibleTokenId = (): boolean => {
-    let validated = false;
-    if (tokenId.length === 0) {
-      setWarningTokenId(strings('collectible.token_id_cant_be_empty'));
-    } else {
-      setWarningTokenId(``);
-      validated = true;
-    }
-    return validated;
+    const result = validateTokenId(tokenId);
+    setWarningTokenId(result.warningMessage);
+    return result.isValid;
   };
 
   const validateCustomCollectible = async (): Promise<boolean> => {

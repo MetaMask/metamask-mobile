@@ -96,3 +96,29 @@ export const validateCollectibleOwnership = async (
     };
   }
 };
+
+interface TokenIdValidationResult {
+  isValid: boolean;
+  warningMessage: string;
+}
+
+/**
+ * Validates a custom collectible token ID
+ * @param tokenId - The token ID to validate
+ * @returns TokenIdValidationResult - Object containing validation result and warning message
+ */
+export const validateCustomCollectibleTokenId = (
+  tokenId: string,
+): TokenIdValidationResult => {
+  if (tokenId.length === 0) {
+    return {
+      isValid: false,
+      warningMessage: strings('collectible.token_id_cant_be_empty'),
+    };
+  }
+
+  return {
+    isValid: true,
+    warningMessage: '',
+  };
+};

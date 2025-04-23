@@ -7,6 +7,7 @@ import initialRootState from '../../../util/test/initial-root-state';
 import {
   validateCustomCollectibleAddress,
   validateCollectibleOwnership,
+  validateCustomCollectibleTokenId,
 } from './util';
 import { isValidAddress } from 'ethereumjs-util';
 import { isSmartContractAddress } from '../../../util/transactions';
@@ -128,6 +129,28 @@ describe('validateCollectibleOwnership', () => {
         title: 'collectible.ownership_verification_error_title',
         message: 'collectible.ownership_verification_error',
       },
+    });
+  });
+});
+
+describe('validateCustomCollectibleTokenId', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should return invalid when tokenId is empty', () => {
+    const result = validateCustomCollectibleTokenId('');
+    expect(result).toEqual({
+      isValid: false,
+      warningMessage: 'collectible.token_id_cant_be_empty',
+    });
+  });
+
+  it('should return valid when tokenId is not empty', () => {
+    const result = validateCustomCollectibleTokenId('123');
+    expect(result).toEqual({
+      isValid: true,
+      warningMessage: '',
     });
   });
 });
