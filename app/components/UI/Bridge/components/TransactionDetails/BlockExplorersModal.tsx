@@ -88,7 +88,7 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
             chainName: srcExplorerData?.chainName,
           })}
         </Text>
-        {srcExplorerData && (
+        {srcExplorerData?.explorerTxUrl && (
           <Button
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
@@ -120,7 +120,7 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
           />
         )}
 
-        {destExplorerData && (
+        {destExplorerData?.explorerTxUrl && (
           <Button
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
