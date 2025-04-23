@@ -9,10 +9,9 @@ import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 
 export const TOPRFNetwork = Web3AuthNetwork.Devnet;
 
-const getDefaultSeedlessOnboardingControllerState = () : SeedlessOnboardingControllerState => ({
+export const getDefaultSeedlessOnboardingControllerState = () : SeedlessOnboardingControllerState => ({
   vault: undefined,
   nodeAuthTokens: undefined,
-  isNewUser: false,
   backupHashes: [],
 });
 
