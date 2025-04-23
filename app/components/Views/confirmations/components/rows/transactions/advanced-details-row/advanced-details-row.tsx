@@ -36,7 +36,7 @@ const AdvancedDetailsRow = () => {
           <InfoSection>
             <InfoRow
               label={strings('stake.advanced_details')}
-              isCompact
+              style={styles.infoRowOverride}
             />
           </InfoSection>
         }

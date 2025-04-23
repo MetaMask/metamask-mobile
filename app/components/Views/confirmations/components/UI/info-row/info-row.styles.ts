@@ -3,9 +3,8 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../styles/common';
 
-const styleSheet = (params: { theme: Theme, vars: { isCompact: boolean | undefined } }) => {
-  const { theme, vars } = params;
-  const { isCompact } = vars;
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
 
   return StyleSheet.create({
     container: {
@@ -14,8 +13,7 @@ const styleSheet = (params: { theme: Theme, vars: { isCompact: boolean | undefin
       justifyContent: 'space-between',
       alignItems: 'center',
       flexWrap: 'wrap',
-      paddingBottom: 0,
-      paddingTop: isCompact ? 8 : 0,
+      paddingBottom: 8,
       paddingHorizontal: 8,
     },
     labelContainer: {

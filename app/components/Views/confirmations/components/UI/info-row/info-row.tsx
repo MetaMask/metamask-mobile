@@ -20,7 +20,6 @@ export interface InfoRowProps {
   testID?: string;
   variant?: TextColor;
   copyText?: string;
-  isCompact?: boolean;
   valueOnNewLine?: boolean;
 }
 
@@ -34,10 +33,9 @@ const InfoRow = ({
   testID,
   variant = TextColor.Default,
   copyText,
-  isCompact = false,
   valueOnNewLine = false,
 }: InfoRowProps) => {
-  const { styles } = useStyles(styleSheet, { isCompact });
+  const { styles } = useStyles(styleSheet, {});
 
   const ValueComponent = typeof children === 'string' ? (
       <Text style={styles.value}>{children}</Text>
