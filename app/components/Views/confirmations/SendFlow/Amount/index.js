@@ -875,15 +875,26 @@ class Amount extends PureComponent {
    * @returns - Whether there is an error with the amount
    */
   validateAmount = (inputValue, internalPrimaryCurrencyIsCrypto) => {
-    const { accounts, selectedAddress, selectedAsset, contractBalances } =
-      this.props;
+    const {
+      selectedAddress,
+      selectedAsset,
+      contractBalances,
+      allTokenBalances,
+      accountsByChainId,
+      sendFlowContextualChainId,
+    } = this.props;
     const { estimatedTotalGas, inputValueConversion } = this.state;
     let value = inputValue;
 
     if (!internalPrimaryCurrencyIsCrypto) {
       value = inputValueConversion;
     }
-
+    const account =
+      accountsByChainId?.[sendFlowContextualChainId]?.[selectedAddress];
+    const tokenBalances =
+      allTokenBalances?.[selectedAddress.toLowerCase()]?.[
+        sendFlowContextualChainId
+      ]?.[selectedAsset.address];
     let weiBalance, weiInput, amountError;
     if (isDecimal(value)) {
       // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
@@ -900,10 +911,10 @@ class Amount extends PureComponent {
 
       if (!amountError) {
         if (isNativeToken(selectedAsset)) {
-          weiBalance = hexToBN(accounts[selectedAddress].balance);
+          weiBalance = hexToBN(account?.balance);
           weiInput = weiValue.add(estimatedTotalGas);
         } else {
-          weiBalance = hexToBN(contractBalances[selectedAsset.address]);
+          weiBalance = hexToBN(tokenBalances);
           weiInput = toTokenMinimalUnit(value, selectedAsset.decimals);
         }
         // TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
@@ -1103,7 +1114,7 @@ class Amount extends PureComponent {
       sendFlowContextualChainId,
       allTokenBalances,
     } = this.props;
-    const asset =
+    const account =
       accountsByChainId?.[sendFlowContextualChainId]?.[selectedAddress];
 
     let currentBalance;
@@ -1111,7 +1122,7 @@ class Amount extends PureComponent {
     if (renderableBalance) {
       currentBalance = `${renderableBalance} ${selectedAsset.symbol}`;
     } else if (isNativeToken(selectedAsset)) {
-      currentBalance = `${renderFromWei(asset?.balance)} ${
+      currentBalance = `${renderFromWei(account?.balance)} ${
         selectedAsset.symbol
       }`;
     } else {
