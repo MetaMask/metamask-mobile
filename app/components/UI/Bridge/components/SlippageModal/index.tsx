@@ -36,7 +36,7 @@ export const SlippageModal = () => {
   const dispatch = useDispatch();
 
   const slippage = useSelector(selectSlippage);
-  const [selectedValue, setSelectedValue] = useState(slippage);
+  const [selectedValue, setSelectedValue] = useState(slippage || '');
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();

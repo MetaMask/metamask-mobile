@@ -96,7 +96,7 @@ export const useBridgeQuoteData = () => {
       estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
       rate,
       priceImpact: `${priceImpactPercentage.toFixed(2)}%`, //TODO: Need to calculate this
-      slippage: `${slippage}%`,
+      slippage: slippage ? `${slippage}%` : 'Auto',
     };
   }, [activeQuote, sourceToken, destToken, quoteRate, slippage]);
 
