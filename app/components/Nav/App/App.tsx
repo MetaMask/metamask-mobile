@@ -129,7 +129,7 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user/selectors';
-import { Confirm } from '../../Views/confirmations/Confirm';
+import { Confirm } from '../../Views/confirmations/components/confirm';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
