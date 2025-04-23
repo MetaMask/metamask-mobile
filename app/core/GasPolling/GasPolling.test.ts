@@ -156,6 +156,7 @@ describe('GetEIP1559TransactionData', () => {
       gasFeeMinConversion: '0.09',
       gasFeeMinNative: '0.00005',
       gasLimitHex: '0x8163' as Hex,
+      gasFeeMaxHex: '0x01',
       maxPriorityFeeConversion: '0.09',
       maxPriorityFeeNative: '0.00005',
       renderableGasFeeMaxConversion: '$0.09',

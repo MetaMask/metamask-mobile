@@ -1,7 +1,5 @@
 import React, { useMemo } from 'react';
-import { NetworkConfiguration } from '@metamask/network-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 import BridgeStepDescription, { getStepStatus } from './BridgeStepDescription';
 import StepProgressBarItem from './StepProgressBarItem';
 import { Box } from '../../../Box/Box';
@@ -36,13 +34,11 @@ const getTime = (
 interface BridgeStepsProps {
   bridgeHistoryItem?: BridgeHistoryItem;
   srcChainTxMeta?: TransactionMeta;
-  networkConfigurationsByChainId: Record<Hex, NetworkConfiguration>;
 }
 
 export default function BridgeStepList({
   bridgeHistoryItem,
   srcChainTxMeta,
-  networkConfigurationsByChainId,
 }: BridgeStepsProps) {
   const steps = useMemo(
     () => bridgeHistoryItem?.quote.steps || [],
@@ -99,7 +95,6 @@ export default function BridgeStepList({
           >
             <BridgeStepDescription
               step={step}
-              networkConfigurationsByChainId={networkConfigurationsByChainId}
               stepStatus={displayedStepStatus}
               time={formattedTime}
             />
