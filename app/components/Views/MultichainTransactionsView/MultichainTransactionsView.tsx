@@ -21,7 +21,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import { getBlockExplorerName } from '../../../util/networks';
 import styles from './MultichainTransactionsView.styles';
-import { useSolanaBridgeTransactionMapping } from '../../UI/Bridge/hooks/useSolanaBridgeTransactionMapping';
+import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 
 const MultichainTransactionsView = () => {
   const { colors } = useTheme();
@@ -40,7 +40,7 @@ const MultichainTransactionsView = () => {
     [solanaAccountTransactions],
   );
 
-  const { bridgeHistoryItemsBySrcTxHash } = useSolanaBridgeTransactionMapping();
+  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const renderEmptyList = () => (
     <View style={style.emptyContainer}>

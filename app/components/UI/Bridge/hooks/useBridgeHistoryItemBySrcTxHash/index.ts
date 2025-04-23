@@ -4,15 +4,10 @@ import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useMemo } from 'react';
 
 /**
- * Hook that takes a list of non-EVM transactions and enhances them with information
- * about related bridge operations. It identifies transactions that are part of a bridge,
- * adds details like destination chain and status, and includes transactions found
- * only in the bridge history (marked as `isBridgeOriginated`).
- *
- * @param initialNonEvmTransactions - The initial list of non-EVM transactions (assumed to be base `Transaction` type).
- * @returns An object containing the list of enhanced transactions (mixed `ExtendedTransaction` and `BridgeOriginatedItem`), or undefined if the input was undefined.
+ * This hook is used to get the bridge history item by source transaction hash.
+ * It is used to get the bridge history item for the non EVM transactions.
  */
-export const useSolanaBridgeTransactionMapping = () => {
+export const useBridgeHistoryItemBySrcTxHash = () => {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
   // Create a lookup map for faster access to bridge history items by source transaction hash.
