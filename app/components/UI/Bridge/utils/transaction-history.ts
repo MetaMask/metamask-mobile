@@ -7,7 +7,7 @@ import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../constants/bridge';
 import { strings } from '../../../../../locales/i18n';
 
-export const getBridgeTxActivityTitle = (bridgeTxHistoryItem: BridgeHistoryItem) => {
+export const getBridgeTxActivityTitle = (bridgeTxHistoryItem: BridgeHistoryItem): string | undefined => {
   const destChainId = isSolanaChainId(bridgeTxHistoryItem.quote.destChainId)
     ? formatChainIdToCaip(bridgeTxHistoryItem.quote.destChainId)
     : formatChainIdToHex(bridgeTxHistoryItem.quote.destChainId);
