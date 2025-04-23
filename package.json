@@ -99,7 +99,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint '**/*.{js,ts,tsx}'"
+      "eslint"
     ]
   },
   "resolutions": {
