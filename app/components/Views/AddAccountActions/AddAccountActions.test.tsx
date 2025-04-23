@@ -290,7 +290,7 @@ describe('AddAccountActions', () => {
       },
     } as unknown as RootState;
 
-    it('navigates to AddAccount when there are multiple srps', async () => {
+    it('navigates to AddAccount screen when there are multiple srps', async () => {
       renderScreen(
         () => <AddAccountActions {...mockProps} />,
         {
