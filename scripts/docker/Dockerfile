@@ -10,16 +10,11 @@ RUN apt-get update \
   && locale-gen
 
 ENV YARN_VERSION 3.8.7
-# replace base image yarn 1.19
-# checksums and sigs for 1.22 not available as of now...
-# https://github.com/nodejs/docker-node/blob/07bd7414c9eeb7a134951122e1105e8c849f770e/Dockerfile-debian.template
-COPY scripts/docker/yarn-v$YARN_VERSION.tar.gz.sha256 .
-RUN curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz" \
-  && sha256sum yarn-v$YARN_VERSION.tar.gz.sha256 \
-  && tar -xzf yarn-v$YARN_VERSION.tar.gz -C /opt/ \
-  && ln -sf /opt/yarn-v$YARN_VERSION/bin/yarn /usr/local/bin/yarn \
-  && ln -sf /opt/yarn-v$YARN_VERSION/bin/yarnpkg /usr/local/bin/yarnpkg \
-  && rm yarn-v$YARN_VERSION.tar.gz.sha256 yarn-v$YARN_VERSION.tar.gz \
+# Install Yarn 3.8.7 from local release
+COPY .yarn/releases/yarn-${YARN_VERSION}.cjs /opt/yarn/bin/yarn
+RUN chmod +x /opt/yarn/bin/yarn \
+  && ln -sf /opt/yarn/bin/yarn /usr/local/bin/yarn \
+  && ln -sf /opt/yarn/bin/yarn /usr/local/bin/yarnpkg \
   && yarn --version
 
 ARG UID=1000
