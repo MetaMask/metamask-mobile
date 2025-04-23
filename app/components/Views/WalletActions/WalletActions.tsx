@@ -375,9 +375,3 @@ const WalletActions = () => {
 };
 
 export default WalletActions;
-
-/**
- * TODO: In the morning:
- * - Update WalletActions tests to NOT use pooled-staking remote feature flag state
- * - Change StakeButton remote feature flag conditional rendering to check for BOTH token.isEth and isPooledStakingEnabled
- */
