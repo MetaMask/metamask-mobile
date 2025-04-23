@@ -24,13 +24,6 @@ export const isProductSafetyDappScanningEnabled = (): boolean =>
 export const getPhishingTestResult = (
   origin: string,
 ): PhishingDetectorResult => {
-  if (isProductSafetyDappScanningEnabled()) {
-    return {
-      result: false,
-      name: 'Product safety dapp scanning is enabled',
-      type: PhishingDetectorResultType.All,
-    };
-  }
   const { PhishingController } = Engine.context as {
     PhishingController: PhishingControllerClass;
   };
