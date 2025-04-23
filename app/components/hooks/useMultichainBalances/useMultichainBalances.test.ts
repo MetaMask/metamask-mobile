@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import useMultichainBalances from './useMultichainBalances';
+import useMultichainBalances from './useMultichainBalancesForAllAccounts';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import Engine from '../../../core/Engine';
