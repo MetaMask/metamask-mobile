@@ -5820,13 +5820,13 @@
   resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-9.2.0.tgz#ee3a5a6466530dc266b5bdb1bd226393148329eb"
   integrity sha512-aMyctMgT8HdHCx7/9SqPfxW4PVKdEh2TtbjiE+fL6nfGv2U0ZnlZdT0OcaC3mEY/qzktip1UnBPmN9/Y5onThA==
 
-"@metamask/token-search-discovery-controller@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/token-search-discovery-controller/-/token-search-discovery-controller-2.1.0.tgz#ff8f78134da5b2451603ccf957ab67a1ba399db2"
-  integrity sha512-mda8IZAZGb0IN91fZqn5KvuvF36iwLgkH5ZLiOwRy6kbMsNFat0Lmqtapg1R2QoHPAEm0LGs7RPepBu1NftURw==
+"@metamask/token-search-discovery-controller@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/token-search-discovery-controller/-/token-search-discovery-controller-3.1.0.tgz#3d4c19e811653888efc5d1844e443c417b716a2b"
+  integrity sha512-+p/aJnn2WbraulbEevaMefzs0o5kgE4YQFr575Dk/oJxfcBFKVdjxGLojVXCzL3wDV3zJS2CM4kcaJCteMzdyQ==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/utils" "^11.1.0"
+    "@metamask/utils" "^11.2.0"
 
 "@metamask/transaction-controller@54.0.0":
   version "54.0.0"

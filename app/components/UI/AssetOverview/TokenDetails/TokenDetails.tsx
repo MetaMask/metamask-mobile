@@ -18,6 +18,10 @@ import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
 import StakingEarnings from '../../Stake/components/StakingEarnings';
+import {
+  isAssetFromSearch,
+  selectTokenDisplayData,
+} from '../../../../selectors/tokenSearchDiscoveryDataController';
 import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
 import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
 import { parseFloatSafe } from '../../Earn/utils';
@@ -117,8 +121,12 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
       : null,
   );
 
+  const evmConversionRate = isAssetFromSearch(asset)
+    ? 1
+    : conversionRateBySymbol;
+
   const conversionRate = isEvmNetworkSelected
-    ? conversionRateBySymbol
+    ? evmConversionRate
     : nonEvmMetadata.rate;
 
   const localizeMarketDetails = useCallback(
@@ -129,10 +137,22 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     [conversionRate],
   );
 
-  const tokenMetadata = isEvmNetworkSelected ? evmMarketData?.metadata : null;
-  const marketData = isEvmNetworkSelected
-    ? evmMarketData?.marketData
-    : nonEvmMarketData;
+  const tokenResult = useSelector((state: RootState) =>
+    selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
+  );
+
+  let marketData;
+  let tokenMetadata;
+
+  if (isAssetFromSearch(asset) && tokenResult?.found && tokenResult.price) {
+    marketData = tokenResult.price;
+    tokenMetadata = tokenResult.token;
+  } else {
+    tokenMetadata = isEvmNetworkSelected ? evmMarketData?.metadata : null;
+    marketData = isEvmNetworkSelected
+      ? evmMarketData?.marketData
+      : nonEvmMarketData;
+  }
 
   const tokenDetails: TokenDetails = getTokenDetails(
     asset,

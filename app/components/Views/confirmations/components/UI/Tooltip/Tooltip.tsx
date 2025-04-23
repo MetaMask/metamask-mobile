@@ -14,6 +14,7 @@ import styleSheet from './Tooltip.styles';
 
 interface TooltipProps {
   content: string | ReactNode;
+  iconColor?: IconColor;
   onPress?: () => void;
   title?: string;
   tooltipTestId?: string;
@@ -67,6 +68,7 @@ const Tooltip = ({
   title,
   tooltipTestId = 'info-row-tooltip',
   onPress,
+  iconColor = IconColor.Muted,
 }: TooltipProps) => {
   const [open, setOpen] = useState(false);
 
@@ -78,7 +80,7 @@ const Tooltip = ({
   return (
     <View>
       <ButtonIcon
-        iconColor={IconColor.Muted}
+        iconColor={iconColor}
         iconName={IconName.Info}
         onPress={handlePress}
         size={ButtonIconSizes.Sm}
