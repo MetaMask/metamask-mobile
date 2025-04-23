@@ -1061,6 +1061,9 @@ export class Engine {
       config: {
         customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
       },
+      trackMetaMetricsFn: () => {
+        //TODO: Implement trackMetaMetricsFn
+      },
     });
 
     const bridgeStatusController = new BridgeStatusController({
@@ -1075,7 +1078,6 @@ export class Engine {
           'BridgeController:getBridgeERC20Allowance',
           'GasFeeController:getState',
           'AccountsController:getAccountByAddress',
-          'PreferencesController:getState',
           'SnapController:handleRequest',
           'TransactionController:getState',
         ],
@@ -1084,15 +1086,19 @@ export class Engine {
       state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
       fetchFn: handleFetch,
-      addTransactionFn: (...args: Parameters<typeof this.transactionController.addTransaction>) =>
-        this.transactionController.addTransaction(...args),
-      estimateGasFeeFn: (...args: Parameters<typeof this.transactionController.estimateGasFee>) =>
-        this.transactionController.estimateGasFee(...args),
+      addTransactionFn: (
+        ...args: Parameters<typeof this.transactionController.addTransaction>
+      ) => this.transactionController.addTransaction(...args),
+      estimateGasFeeFn: (
+        ...args: Parameters<typeof this.transactionController.estimateGasFee>
+      ) => this.transactionController.estimateGasFee(...args),
       addUserOperationFromTransactionFn: (...args: unknown[]) =>
         // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
-        this.userOperationController?.addUserOperationFromTransaction?.(...args),
+        this.userOperationController?.addUserOperationFromTransaction?.(
+          ...args,
+        ),
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
       },
     });
 
