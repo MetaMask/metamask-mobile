@@ -106,16 +106,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const currentAddress = asset.address as Hex;
 
-  // const multichainHistoricalPrices = useSelector(
-  //   selectMultichainHistoricalPrices,
-  // );
-  // console.log(
-  //   'MULTICHAIN: ',
-  //   multichainHistoricalPrices[
-  //     'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501'
-  //   ]['usd']['intervals'][timePeriod],
-  // );
-
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
     address: currentAddress,
@@ -124,28 +114,18 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     vsCurrency: currentCurrency,
   });
 
-  // console.log('PRICES: ', prices);
-
-  // const { data: pricesV3 = [], isLoading: isLoadingV3 } =
-  //   useTokenHistoricalPricesV3({
-  //     address: currentAddress,
-  //     chainId,
-  //     timePeriod,
-  //     vsCurrency: currentCurrency,
-  //   });
-
-  // const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
-  //   location: SwapBridgeNavigationLocation.TokenDetails,
-  //   sourcePage: 'MainView',
-  //   token: {
-  //     address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-  //     chainId: asset.chainId as Hex,
-  //     decimals: asset.decimals,
-  //     symbol: asset.symbol,
-  //     name: asset.name,
-  //     image: asset.image,
-  //   },
-  // });
+  const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TokenDetails,
+    sourcePage: 'MainView',
+    token: {
+      address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      chainId: asset.chainId as Hex,
+      decimals: asset.decimals,
+      symbol: asset.symbol,
+      name: asset.name,
+      image: asset.image,
+    },
+  });
   // const goToBridge = () => console.log('goToBridge');
   // const goToSwaps = () => console.log('toToSwaps');
 
@@ -153,89 +133,89 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   // const isLoading = false;
 
   const { styles } = useStyles(styleSheet, {});
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   endTrace({ name: TraceName.AssetDetails });
-  // }, []);
+  useEffect(() => {
+    endTrace({ name: TraceName.AssetDetails });
+  }, []);
 
-  // useEffect(() => {
-  // const { SwapsController } = Engine.context;
-  // const fetchTokenWithCache = async () => {
-  //   try {
-  //     await SwapsController.fetchTokenWithCache({
-  //       networkClientId: selectedNetworkClientId,
-  //     });
-  //     // TODO: Replace "any" with type
-  //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //   } catch (error: any) {
-  //     Logger.error(
-  //       error,
-  //       'Swaps: error while fetching tokens with cache in AssetOverview',
-  //     );
-  //   }
-  // };
-  // fetchTokenWithCache();
-  // }, [selectedNetworkClientId]);
+  useEffect(() => {
+    const { SwapsController } = Engine.context;
+    const fetchTokenWithCache = async () => {
+      try {
+        await SwapsController.fetchTokenWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        Logger.error(
+          error,
+          'Swaps: error while fetching tokens with cache in AssetOverview',
+        );
+      }
+    };
+    fetchTokenWithCache();
+  }, [selectedNetworkClientId]);
 
-  // const onReceive = () => {
-  //   navigation.navigate(Routes.QR_TAB_SWITCHER, {
-  //     initialScreen: QRTabSwitcherScreens.Receive,
-  //     disableTabber: true,
-  //     networkName,
-  //   });
-  // };
+  const onReceive = () => {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Receive,
+      disableTabber: true,
+      networkName,
+    });
+  };
 
-  // const onSend = async () => {
-  //   navigation.navigate(Routes.WALLET.HOME, {
-  //     screen: Routes.WALLET.TAB_STACK_FLOW,
-  //     params: {
-  //       screen: Routes.WALLET_VIEW,
-  //     },
-  //   });
+  const onSend = async () => {
+    navigation.navigate(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
 
-  //   if (asset.chainId !== selectedChainId) {
-  //     const { NetworkController, MultichainNetworkController } = Engine.context;
-  //     const networkConfiguration =
-  //       NetworkController.getNetworkConfigurationByChainId(
-  //         asset.chainId as Hex,
-  //       );
+    if (asset.chainId !== selectedChainId) {
+      const { NetworkController, MultichainNetworkController } = Engine.context;
+      const networkConfiguration =
+        NetworkController.getNetworkConfigurationByChainId(
+          asset.chainId as Hex,
+        );
 
-  //     const networkClientId =
-  //       networkConfiguration?.rpcEndpoints?.[
-  //         networkConfiguration.defaultRpcEndpointIndex
-  //       ]?.networkClientId;
+      const networkClientId =
+        networkConfiguration?.rpcEndpoints?.[
+          networkConfiguration.defaultRpcEndpointIndex
+        ]?.networkClientId;
 
-  //     await MultichainNetworkController.setActiveNetwork(
-  //       networkClientId as string,
-  //     );
-  //   }
+      await MultichainNetworkController.setActiveNetwork(
+        networkClientId as string,
+      );
+    }
 
-  //   if ((asset.isETH || asset.isNative) && ticker) {
-  //     dispatch(newAssetTransaction(getEther(ticker)));
-  //   } else {
-  //     dispatch(newAssetTransaction(asset));
-  //   }
-  //   navigation.navigate('SendFlowView', {});
-  // };
+    if ((asset.isETH || asset.isNative) && ticker) {
+      dispatch(newAssetTransaction(getEther(ticker)));
+    } else {
+      dispatch(newAssetTransaction(asset));
+    }
+    navigation.navigate('SendFlowView', {});
+  };
 
-  // const onBuy = () => {
-  //   navigation.navigate(
-  //     ...createBuyNavigationDetails({
-  //       address: asset.address,
-  //       chainId: getDecimalChainId(chainId),
-  //     }),
-  //   );
-  //   trackEvent(
-  //     createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
-  //       .addProperties({
-  //         text: 'Buy',
-  //         location: 'TokenDetails',
-  //         chain_id_destination: getDecimalChainId(chainId),
-  //       })
-  //       .build(),
-  //   );
-  // };
+  const onBuy = () => {
+    navigation.navigate(
+      ...createBuyNavigationDetails({
+        address: asset.address,
+        chainId: getDecimalChainId(chainId),
+      }),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy',
+          location: 'TokenDetails',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  };
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -363,7 +343,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
-          {/* <AssetDetailsActions
+          <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
@@ -373,17 +353,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             onBuy={onBuy}
             onReceive={onReceive}
             onSend={onSend}
-          /> */}
-          <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
-            displaySwapsButton={displaySwapsButton}
-            displayBridgeButton={displayBridgeButton}
-            swapsIsLive={swapsIsLive}
-            goToBridge={() => console.log('goToBridge')}
-            goToSwaps={() => console.log('goToSwaps')}
-            onBuy={() => console.log('onBuy')}
-            onReceive={() => console.log('onReceive')}
-            onSend={() => console.log('onSend')}
           />
           <Balance
             asset={asset}
