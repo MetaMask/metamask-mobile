@@ -256,6 +256,9 @@ export const initialState = {
           liveness: true,
         },
       },
+      TransactionController: {
+        transactions: [],
+      },
       GasFeeController: {
         gasFeeEstimatesByChainId: {
           [ethChainId]: {
