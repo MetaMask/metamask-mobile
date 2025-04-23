@@ -49,14 +49,11 @@ const Price = ({
   timePeriod,
 }: PriceProps) => {
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
-  const { marketData, metadata } = useSelector(selectNonEvmMarketData);
 
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
   const multichainAssetRates =
     multichainAssetsRates[asset.address as CaipAssetId];
-
-  console.log('multichainAssetRates', multichainAssetRates);
 
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 
