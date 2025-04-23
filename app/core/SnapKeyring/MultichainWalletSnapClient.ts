@@ -110,9 +110,6 @@ export abstract class MultichainWalletSnapClient {
     groupIndex: number,
   ) {
     const keyringApiClient = new KeyringClient(this.getSnapSender());
-    Logger.log(`discovering accounts scopes: ${scopes}`);
-    Logger.log(`entropySource: ${entropySource}`);
-    Logger.log(`groupIndex: ${groupIndex}`);
     const accounts = await keyringApiClient.discoverAccounts(
       scopes,
       entropySource,
@@ -129,8 +126,6 @@ export abstract class MultichainWalletSnapClient {
         entropySource,
         index,
       );
-
-      Logger.log('discovered accounts', discoveredAccounts);
 
       // We stop discovering accounts if none got discovered for that index.
       if (discoveredAccounts.length === 0) {
