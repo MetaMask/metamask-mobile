@@ -5,11 +5,13 @@ import {
   getEthAccounts,
 } from '@metamask/chain-agnostic-permission';
 import { createWalletMiddleware } from '@metamask/eth-json-rpc-middleware';
-import { JsonRpcRequest } from '@metamask/utils';
+import { Json, JsonRpcRequest } from '@metamask/utils';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 import Engine from '../Engine';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { JsonRpcMiddleware } from '@metamask/json-rpc-engine';
+import { JsonRpcParams } from '@metamask/eth-query';
 
 const getPermittedAccounts = (origin: string) => {
   const { PermissionController } = Engine.context;
@@ -54,9 +56,12 @@ export const getAccounts = async ({ origin }: { origin: string }) => {
   return Promise.resolve([]);
 };
 
-export const createAsyncWalletMiddleware = () =>
+export const createAsyncWalletMiddleware = (): JsonRpcMiddleware<
+  JsonRpcParams,
+  Json
+> =>
   createWalletMiddleware({
     getAccounts: getAccounts as unknown as (
       req: JsonRpcRequest,
     ) => Promise<string[]>,
-  });
+  }) as JsonRpcMiddleware<JsonRpcParams, Json>;
