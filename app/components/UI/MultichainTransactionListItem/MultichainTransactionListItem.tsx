@@ -1,8 +1,14 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Image, TouchableHighlight, TextStyle } from 'react-native';
+import {
+  Image,
+  TouchableHighlight,
+  TextStyle,
+  useColorScheme,
+} from 'react-native';
 import { capitalize } from 'lodash';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import ListItem from '../../Base/ListItem';
@@ -12,22 +18,41 @@ import { toDateFormat } from '../../../util/date';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import styles from './MultichainTransactionListItem.styles';
+import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
+import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
+import Routes from '../../../constants/navigation/Routes';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../reducers';
 
 const MultichainTransactionListItem = ({
   transaction,
+  bridgeHistoryItem,
   selectedAddress,
   navigation,
 }: {
   transaction: Transaction;
+  bridgeHistoryItem?: BridgeHistoryItem;
   selectedAddress: string;
   navigation: NavigationProp<ParamListBase>;
 }) => {
   const { colors, typography } = useTheme();
+  const osColorScheme = useColorScheme();
+  const appTheme = useSelector((state: RootState) => state.user.appTheme);
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { type, status, to, from, asset } = useMultichainTransactionDisplay({
     transaction,
     userAddress: selectedAddress,
+    bridgeHistoryItem,
   });
+
+  const isBridgeTx = type === TransactionType.Send && bridgeHistoryItem;
+  const isBridgeComplete = bridgeHistoryItem
+    ? Boolean(
+        bridgeHistoryItem?.status.srcChain.txHash &&
+          bridgeHistoryItem.status.destChain?.txHash,
+      )
+    : null;
 
   let title = capitalize(type);
 
@@ -41,17 +66,30 @@ const MultichainTransactionListItem = ({
     title = `${strings('transactions.swap')} ${fromUnit} ${strings(
       'transactions.to',
     )} ${toUnit}`;
+  } else if (isBridgeTx) {
+    title = getBridgeTxActivityTitle(bridgeHistoryItem) ?? strings('bridge.title');
   }
 
   const style = styles(colors, typography);
 
   const handlePress = () => {
-    setIsModalVisible(true);
+    if (isBridgeTx) {
+      navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
+        multiChainTx: transaction,
+      });
+    } else {
+      setIsModalVisible(true);
+    }
   };
 
   const renderTxElementIcon = (transactionType: string) => {
     const isFailedTransaction = status === 'failed';
-    const icon = getTransactionIcon(transactionType, isFailedTransaction);
+    const icon = getTransactionIcon(
+      transactionType,
+      isFailedTransaction,
+      appTheme,
+      osColorScheme,
+    );
     return <Image source={icon} style={style.icon} resizeMode="stretch" />;
   };
 
@@ -73,7 +111,9 @@ const MultichainTransactionListItem = ({
               toDateFormat(new Date(transaction.timestamp * 1000))}
           </ListItem.Date>
           <ListItem.Content style={style.listItemContent}>
-            <ListItem.Icon>{renderTxElementIcon(type)}</ListItem.Icon>
+            <ListItem.Icon>
+              {renderTxElementIcon(isBridgeTx ? 'bridge' : type)}
+            </ListItem.Icon>
             <ListItem.Body>
               <ListItem.Title
                 numberOfLines={1}
@@ -81,12 +121,20 @@ const MultichainTransactionListItem = ({
               >
                 {title}
               </ListItem.Title>
-              <StatusText
-                testID={`transaction-status-${transaction.id}`}
-                status={status}
-                style={style.listItemStatus as TextStyle}
-                context="transaction"
-              />
+              {isBridgeTx && !isBridgeComplete && (
+                <BridgeActivityItemTxSegments
+                  bridgeTxHistoryItem={bridgeHistoryItem}
+                  transactionStatus={transaction.status}
+                />
+              )}
+              {(!isBridgeTx || (isBridgeTx && isBridgeComplete)) && (
+                <StatusText
+                  testID={`transaction-status-${transaction.id}`}
+                  status={status}
+                  style={style.listItemStatus as TextStyle}
+                  context="transaction"
+                />
+              )}
             </ListItem.Body>
             {Boolean(asset?.amount) && (
               <ListItem.Amount style={style.listItemAmount as TextStyle}>
