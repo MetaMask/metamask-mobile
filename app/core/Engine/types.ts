@@ -593,7 +593,7 @@ export type ControllersToInitialize =
   | 'TransactionController'
   | 'GasFeeController'
   | 'SignatureController'
-  | 'SeedlessOnboardingController;
+  | 'SeedlessOnboardingController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
