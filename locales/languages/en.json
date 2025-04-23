@@ -83,10 +83,11 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "Search by site or address",
+    "placeholder": "Search by token, site or address",
     "recents": "Recents",
     "favorites": "Favorites",
-    "sites": "Sites"
+    "sites": "Sites",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Back",
