@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Alert, ListRenderItem, View, ViewStyle } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
@@ -54,6 +54,7 @@ const AccountSelectorList = ({
   privacyMode = false,
   ...props
 }: AccountSelectorListProps) => {
+  const renderCount = useRef(0);
   const { navigate } = useNavigation();
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -70,6 +71,12 @@ const AccountSelectorList = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  useEffect(() => {
+    renderCount.current += 1;
+    // eslint-disable-next-line no-console
+    console.log('AccountSelectorList rendered', renderCount.current);
+  });
 
   const internalAccounts = useSelector(selectInternalAccounts);
   const getKeyExtractor = ({ address }: Account) => address;

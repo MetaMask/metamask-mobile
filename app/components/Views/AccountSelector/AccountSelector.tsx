@@ -40,6 +40,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TraceName, endTrace } from '../../../util/trace';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
+  const renderCount = useRef(0);
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const {
@@ -62,6 +63,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
+
+  useEffect(() => {
+    renderCount.current += 1;
+    // eslint-disable-next-line no-console
+    console.log('AccountSelector rendered', renderCount.current);
+  });
+
   useEffect(() => {
     endTrace({ name: TraceName.AccountList });
   }, []);

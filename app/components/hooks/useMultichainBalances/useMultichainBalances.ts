@@ -1,4 +1,5 @@
 /* eslint-disable arrow-body-style */
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { isTestNet, isPortfolioViewEnabled } from '../../../util/networks';
@@ -38,7 +39,6 @@ import { selectSelectedNonEvmNetworkChainId } from '../../../selectors/multichai
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import I18n from '../../../../locales/i18n';
-import { useCallback, useMemo } from 'react';
 
 /**
  * Hook to manage portfolio balance data across chains.
@@ -47,6 +47,8 @@ import { useCallback, useMemo } from 'react';
  */
 const useMultichainBalances = (): UseMultichainBalancesHook => {
   // Production selectors (EVM)
+
+  const renderCount = useRef(0);
   const accountsList = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const chainId = useSelector(selectChainId);
@@ -87,6 +89,12 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   ///: END:ONLY_INCLUDE_IF
 
   const isPortfolioEnabled = isPortfolioViewEnabled();
+
+  useEffect(() => {
+    renderCount.current += 1;
+    // eslint-disable-next-line no-console
+    console.log('multichainBalances rendered', renderCount.current);
+  });
 
   // Production balance calculartion (EVM)
   const getEvmBalance = useCallback(

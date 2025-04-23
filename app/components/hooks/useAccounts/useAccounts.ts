@@ -24,7 +24,7 @@ import {
   getFormattedAddressFromInternalAccount,
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
-import { useMultichainBalances } from '../useMultichainBalances';
+// import { useMultichainBalances } from '../useMultichainBalances';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -35,6 +35,7 @@ const useAccounts = ({
   checkBalanceError: checkBalanceErrorFn,
   isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
+  const renderCount = useRef(0);
   const isMountedRef = useRef(false);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [evmAccounts, setEVMAccounts] = useState<Account[]>([]);
@@ -44,7 +45,410 @@ const useAccounts = ({
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
-  const { multichainBalancesForAllAccounts } = useMultichainBalances();
+  // const { multichainBalancesForAllAccounts } = useMultichainBalances();
+
+  // // eslint-disable-next-line no-console
+  // console.log(
+  //   'multichainBalancesForAllAccounts',
+  //   JSON.stringify(multichainBalancesForAllAccounts, null, 2),
+  // );
+
+  const multichainBalancesForAllAccounts = useMemo(
+    () => ({
+      'ea72d901-e07f-4bab-9960-995746659f29': {
+        displayBalance: '$0.33',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0.33,
+        totalNativeTokenBalance: '0.00019',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0.33,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0.31357012913219945,
+        },
+      },
+      'e87c7f90-5120-48b4-8360-2f262a3de4bc': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      'a94e6613-952e-4712-92c2-26e514b0a221': {
+        displayBalance: '$0.92',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0.92,
+        totalNativeTokenBalance: '0.00052',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0.92,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0.8741955115200712,
+        },
+      },
+      '34318c5e-b52d-47b7-b5b6-4b6daa59e170': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      '30c7d55b-1cf9-47b5-972d-5179005b675e': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      '9efcb124-8384-4660-8769-53a0e2d75f7f': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      'a0d21f17-3083-4c12-9997-b6100ce7e24e': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      '11215165-b99d-4e1c-9dcd-93ae4002e53f': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      '2ee00d0d-180b-4eb8-8cc2-b4f801596d9e': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      '70ab3243-eab1-4f51-8f30-54f577516ff8': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      '9d52ff11-55ed-4c45-a416-ae7f2edb09cd': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      'eb0b680c-4900-4a7a-a26d-d329c7637ea1': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      'c9e056e0-7432-4d29-9be3-2304e191668f': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      '6399bc95-72ea-463c-998e-6a680afa5b7d': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      '7a6b1be7-1c4f-41fd-b92c-8f20c272bdf6': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      'e0162033-e1b7-44f0-9c7a-8a478992c926': {
+        displayBalance: '$0.00',
+        displayCurrency: 'usd',
+        totalFiatBalance: 0,
+        totalNativeTokenBalance: '0',
+        nativeTokenUnit: 'ETH',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: true,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+      '50f6e785-9f0d-4baf-a55c-aca75bb8aed1': {
+        displayBalance: '$6.39',
+        displayCurrency: 'usd',
+        totalFiatBalance: 6.385692829638231,
+        totalNativeTokenBalance: '0.012223519',
+        nativeTokenUnit: 'SOL',
+        tokenFiatBalancesCrossChains: [
+          {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            tokensWithBalances: [],
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          },
+        ],
+        shouldShowAggregatedPercentage: false,
+        isPortfolioVieEnabled: false,
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+      },
+    }),
+    [],
+  );
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -54,6 +458,12 @@ const useAccounts = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
+
+  useEffect(() => {
+    renderCount.current += 1;
+    // eslint-disable-next-line no-console
+    console.log('useAccounts rendered', renderCount.current);
+  });
   const fetchENSNames = useCallback(
     async ({
       flattenedAccounts,
