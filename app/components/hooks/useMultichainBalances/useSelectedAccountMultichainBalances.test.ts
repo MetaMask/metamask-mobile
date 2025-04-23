@@ -72,11 +72,15 @@ jest.mock('../../../util/networks', () => ({
   isPortfolioViewEnabled: jest.fn().mockReturnValue(false),
 }));
 
+<<<<<<< HEAD
 <<<<<<<< HEAD:app/components/hooks/useMultichainBalances/useSelectedAccountMultichainBalances.test.ts
 describe('useSelectedAccountMultichainBalances', () => {
 ========
 describe('useMultichainBalancesForAllAccounts', () => {
 >>>>>>>> 535a72ad67 (test useMultichainBalancesForAllAccounts):app/components/hooks/useMultichainBalances/useMultichainBalancesForAllAccounts.test.ts
+=======
+describe('useSelectedAccountMultichainBalances', () => {
+>>>>>>> a5d2ac5f4b (add test for useSelectedAccountMultichainBalances)
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation((selector) =>
@@ -107,9 +111,13 @@ describe('useMultichainBalancesForAllAccounts', () => {
 
     const { result } = renderHook(() => useSelectedAccountMultichainBalances());
 
+<<<<<<< HEAD
     expect(
       result.current.multichainBalancesForAllAccounts[MOCK_SELECTED_ACCOUNT_ID],
     ).toEqual({
+=======
+    expect(result.current.selectedAccountMultichainBalance).toEqual({
+>>>>>>> a5d2ac5f4b (add test for useSelectedAccountMultichainBalances)
       displayBalance: '$0.00',
       displayCurrency: 'USD',
       tokenFiatBalancesCrossChains: [],
@@ -146,12 +154,19 @@ describe('useMultichainBalancesForAllAccounts', () => {
     const { result } = renderHook(() => useSelectedAccountMultichainBalances());
 
     expect(
+<<<<<<< HEAD
       result.current.multichainBalancesForAllAccounts[MOCK_SELECTED_ACCOUNT_ID]
         ?.displayBalance,
     ).toBe('$150.00');
     expect(
       result.current.multichainBalancesForAllAccounts[MOCK_SELECTED_ACCOUNT_ID]
         ?.aggregatedBalance,
+=======
+      result.current.selectedAccountMultichainBalance?.displayBalance,
+    ).toBe('$150.00');
+    expect(
+      result.current.selectedAccountMultichainBalance?.aggregatedBalance,
+>>>>>>> a5d2ac5f4b (add test for useSelectedAccountMultichainBalances)
     ).toEqual(aggregatedBalance);
   });
 
@@ -211,6 +226,7 @@ describe('useMultichainBalancesForAllAccounts', () => {
     const { result } = renderHook(() => useSelectedAccountMultichainBalances());
 
     expect(
+<<<<<<< HEAD
       result.current.multichainBalancesForAllAccounts[MOCK_SELECTED_ACCOUNT_ID]
         ?.isPortfolioVieEnabled,
     ).toBe(true);
@@ -221,6 +237,15 @@ describe('useMultichainBalancesForAllAccounts', () => {
     expect(
       result.current.multichainBalancesForAllAccounts[MOCK_SELECTED_ACCOUNT_ID]
         ?.displayBalance,
+=======
+      result.current.selectedAccountMultichainBalance?.isPortfolioVieEnabled,
+    ).toBe(true);
+    expect(
+      result.current.selectedAccountMultichainBalance?.totalFiatBalance,
+    ).toBe(mockTotalFiatBalance);
+    expect(
+      result.current.selectedAccountMultichainBalance?.displayBalance,
+>>>>>>> a5d2ac5f4b (add test for useSelectedAccountMultichainBalances)
     ).toBe('$1,000.00');
   });
 
@@ -243,12 +268,19 @@ describe('useMultichainBalancesForAllAccounts', () => {
     const { result } = renderHook(() => useSelectedAccountMultichainBalances());
 
     expect(
+<<<<<<< HEAD
       result.current.multichainBalancesForAllAccounts[MOCK_SELECTED_ACCOUNT_ID]
+=======
+      result.current.selectedAccountMultichainBalance
+>>>>>>> a5d2ac5f4b (add test for useSelectedAccountMultichainBalances)
         ?.shouldShowAggregatedPercentage,
     ).toBe(false);
   });
 
+<<<<<<< HEAD
 <<<<<<<< HEAD:app/components/hooks/useMultichainBalances/useSelectedAccountMultichainBalances.test.ts
+=======
+>>>>>>> a5d2ac5f4b (add test for useSelectedAccountMultichainBalances)
   it('returns undefined when no selected account is available', () => {
     // Create a modified state with no selected account
     const stateWithNoSelectedAccount = {
@@ -285,6 +317,7 @@ describe('useMultichainBalancesForAllAccounts', () => {
     const { result } = renderHook(() => useSelectedAccountMultichainBalances());
 
     expect(result.current.selectedAccountMultichainBalance).toBeUndefined();
+<<<<<<< HEAD
 ========
   it('returns balances for all accounts', () => {
     // Use the predefined account IDs from the test utils
@@ -371,5 +404,7 @@ describe('useMultichainBalancesForAllAccounts', () => {
         ?.totalNativeTokenBalance,
     ).toBe('0.025');
 >>>>>>>> 535a72ad67 (test useMultichainBalancesForAllAccounts):app/components/hooks/useMultichainBalances/useMultichainBalancesForAllAccounts.test.ts
+=======
+>>>>>>> a5d2ac5f4b (add test for useSelectedAccountMultichainBalances)
   });
 });
