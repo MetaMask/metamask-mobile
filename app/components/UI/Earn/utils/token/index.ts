@@ -3,6 +3,9 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { TokenI } from '../../../Tokens/types';
 
+// Temporary: Will be replaced with supported vaults from API request
+const HOODI_CHAIN_ID_HEX = '0x88BB0'; // Chain id 560048
+
 const SUPPORTED_STAKING_TOKENS = new Set(['Ethereum']);
 
 // Temporary: Will be replaced with supported markets from API request
@@ -49,6 +52,9 @@ export const RECEIPT_TOKEN_TO_LENDING_TOKEN_MAP: Record<
 const SUPPORTED_CHAIN_IDS = new Set<string>([
   CHAIN_IDS.MAINNET,
   CHAIN_IDS.BASE,
+  CHAIN_IDS.BSC,
+  CHAIN_IDS.SEPOLIA,
+  HOODI_CHAIN_ID_HEX,
 ]);
 
 export const getSupportedEarnTokens = (
