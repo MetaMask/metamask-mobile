@@ -229,6 +229,15 @@ const AccountSelectorList = ({
         cellStyle.alignItems = 'center';
       }
 
+      // Log when account item is rendered and what avatar props are being passed
+      // eslint-disable-next-line no-console
+      console.log(`Rendering account item for ${address} (${name})`, {
+        index,
+        isSelected: isSelectedAccount,
+        accountAvatarType,
+        cellVariant,
+      });
+
       return (
         <Cell
           key={address}

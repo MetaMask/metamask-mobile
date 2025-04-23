@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 // External dependencies.
 import AvatarAccount from './variants/AvatarAccount';
@@ -17,6 +17,32 @@ import { AvatarTokenProps } from './variants/AvatarToken/AvatarToken.types';
 import { AvatarProps, AvatarVariant } from './Avatar.types';
 
 const Avatar = ({ variant, ...props }: AvatarProps) => {
+  // Track render count with a ref
+  const renderCountRef = useRef(0);
+  // Track previous variant to detect changes
+  const prevVariantRef = useRef(variant);
+
+  // Increment render count on each render
+  renderCountRef.current += 1;
+
+  // Log the render count and if variant changed
+  useEffect(() => {
+    const prevVariant = prevVariantRef.current;
+    const variantChanged = prevVariant !== variant;
+
+    // eslint-disable-next-line no-console
+    console.log(
+      `Avatar rendered ${renderCountRef.current} times.`,
+      variantChanged
+        ? `Variant changed from ${prevVariant} to ${variant}`
+        : 'Variant unchanged',
+      { props },
+    );
+
+    // Update the previous variant ref
+    prevVariantRef.current = variant;
+  });
+
   switch (variant) {
     case AvatarVariant.Account:
       return <AvatarAccount {...(props as AvatarAccountProps)} />;
