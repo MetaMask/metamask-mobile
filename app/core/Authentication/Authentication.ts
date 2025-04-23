@@ -89,6 +89,17 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     if (clearEngine) await Engine.resetState();
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    const primaryHdKeyringId =
+      Engine.context.KeyringController.state.keyringsMetadata[0].id;
+    const client = await MultichainWalletSnapFactory.createClient(
+      WalletClientType.Solana,
+      {
+        setSelectedAccount: false,
+      },
+    );
+    await client.addDiscoveredAccounts(primaryHdKeyringId);
+    ///: END:ONLY_INCLUDE_IF(beta)
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
@@ -111,6 +122,9 @@ class AuthenticationService {
       Engine.context.KeyringController.state.keyringsMetadata[0].id;
     const client = await MultichainWalletSnapFactory.createClient(
       WalletClientType.Solana,
+      {
+        setSelectedAccount: false,
+      },
     );
     await client.addDiscoveredAccounts(primaryHdKeyringId);
     ///: END:ONLY_INCLUDE_IF(beta)
