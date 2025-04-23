@@ -6,6 +6,7 @@ import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 export default function useCryptoCurrencies() {
   const {
     selectedRegion,
+    selectedPaymentMethodId,
     selectedFiatCurrencyId,
     selectedAsset,
     setSelectedAsset,
@@ -25,7 +26,7 @@ export default function useCryptoCurrencies() {
   ] = useSDKMethod(
     isBuy ? 'getCryptoCurrencies' : 'getSellCryptoCurrencies',
     selectedRegion?.id,
-    [], // paymentMethodIds is passed as a wildcard to fetch all cryptocurrencies
+    selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
     selectedFiatCurrencyId,
   );
 

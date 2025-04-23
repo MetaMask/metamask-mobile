@@ -12,7 +12,7 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import {
   selectConfirmationRedesignFlags,
   type ConfirmationRedesignRemoteFlags,
-} from '../../../../../selectors/featureFlagController/confirmations';
+} from '../../../../../selectors/featureFlagController';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { GasImpactModalProps } from './GasImpactModal.types';
 import GasImpactModal from './index';
@@ -39,7 +39,9 @@ jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/featureFlagController/confirmations');
+jest.mock('../../../../../selectors/featureFlagController', () => ({
+  selectConfirmationRedesignFlags: jest.fn(),
+}));
 
 jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   __esModule: true,

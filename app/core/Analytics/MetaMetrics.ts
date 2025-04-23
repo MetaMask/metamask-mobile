@@ -36,7 +36,6 @@ import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsM
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
-import MetaMetricsTestUtils from './MetaMetricsTestUtils';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -518,21 +517,7 @@ class MetaMetrics implements IMetaMetrics {
           )}`,
         );
 
-      /*
-      E2E tests hang when segment is enabled see: https://github.com/MetaMask/metamask-mobile/pull/9791
-      So we need to mock the Segment client when running E2E tests
-      */
-      const segmentClient = isE2E
-        ? {
-            track: () => Promise.resolve(),
-            identify: () => Promise.resolve(),
-            group: () => Promise.resolve(),
-            screen: () => Promise.resolve(),
-            flush: () => Promise.resolve(),
-            reset: () => Promise.resolve(),
-            add: () => Promise.resolve(),
-          }
-        : createClient(config);
+      const segmentClient = isE2E ? undefined : createClient(config);
 
       this.instance = new MetaMetrics(segmentClient as ISegmentClient);
     }
@@ -562,9 +547,7 @@ class MetaMetrics implements IMetaMetrics {
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
 
-      this.segmentClient?.add({
-        plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId),
-      });
+      this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
 
       this.#isConfigured = true;
 
@@ -678,11 +661,6 @@ class MetaMetrics implements IMetaMetrics {
     saveDataRecording: boolean = true,
   ): void => {
     if (!this.enabled) {
-      return;
-    }
-
-    if (isE2E) {
-      MetaMetricsTestUtils.getInstance().trackEvent(event);
       return;
     }
 

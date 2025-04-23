@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
@@ -16,7 +16,6 @@ import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import Logger from '../../../util/Logger';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,17 +101,15 @@ const AddCustomCollectible = ({
     };
   }, [mounted, collectibleContract, inputWidth]);
 
-  const getAnalyticsParams = useCallback(() => {
+  const getAnalyticsParams = () => {
     try {
       return {
         chain_id: getDecimalChainId(chainId),
-        source: 'manual',
       };
     } catch (error) {
-      Logger.error(error as Error, 'AddCustomCollectible.getAnalyticsParams');
-      return undefined;
+      return {};
     }
-  }, [chainId]);
+  };
 
   const validateCustomCollectibleAddress = async (): Promise<boolean> => {
     let validated = true;
@@ -198,15 +195,11 @@ const AddCustomCollectible = ({
     const { NftController } = Engine.context as any;
     NftController.addNft(address, tokenId);
 
-    const params = getAnalyticsParams();
-    if (params) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
-          .addProperties(params)
-          .build(),
-      );
-    }
-
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
     setLoading(false);
     navigation.goBack();
   };

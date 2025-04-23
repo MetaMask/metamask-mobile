@@ -37,7 +37,6 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 4,
       padding: 10,
       marginVertical: 10,
-      color: colors.text.default,
     },
   });
 };

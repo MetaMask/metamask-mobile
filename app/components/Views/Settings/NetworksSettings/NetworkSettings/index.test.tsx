@@ -1500,24 +1500,6 @@ describe('NetworkSettings', () => {
       expect(result).toEqual([]);
     });
 
-    it('should return an empty array if the RPC URL does not exist with no rpcEndpointUrls present', async () => {
-      const rpcUrl = 'https://random.network.io';
-      const instance = wrapper.instance();
-
-      wrapper.setProps({
-        networkConfigurations: {
-          '0x1': {
-            chainId: '0x1',
-            name: 'Mainnet',
-          },
-        },
-      });
-
-      const result = await instance.checkIfRpcUrlExists(rpcUrl);
-
-      expect(result).toEqual([]);
-    });
-
     it('should return multiple networks if multiple RPC URLs match', async () => {
       const instance = wrapper.instance();
 

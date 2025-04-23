@@ -39,7 +39,9 @@ import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
 import { NetworkClientId, NetworkState } from '@metamask/network-controller';
 import {
   AccountImportStrategy,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   KeyringTypes,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';

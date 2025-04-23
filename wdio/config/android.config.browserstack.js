@@ -34,7 +34,7 @@ const upgradeCapabilities = [
     build: 'Android App Upgrade Tests',
     device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
     os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
-    app: process.env.PRODUCTION_APP_URL,
+    app: process.env.PRODUCTION_APP_URL || process.env.BROWSERSTACK_ANDROID_APP_URL,
     'browserstack.debug': true,
     'browserstack.local': true,
     'browserstack.midSessionInstallApps' : [process.env.BROWSERSTACK_ANDROID_APP_URL],

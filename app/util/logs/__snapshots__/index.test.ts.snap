@@ -477,7 +477,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "UserStorageController": {
         "hasAccountSyncingSyncedAtLeastOnce": false,
-        "isAccountSyncingEnabled": true,
         "isAccountSyncingInProgress": false,
         "isAccountSyncingReadyToBeDispatched": false,
         "isProfileSyncingEnabled": true,

@@ -6,23 +6,16 @@ function usePaymentMethods() {
   const {
     selectedRegion,
     selectedPaymentMethodId,
-    selectedAsset,
-    selectedFiatCurrencyId,
     setSelectedPaymentMethodId,
     isBuy,
   } = useRampSDK();
 
   const paymentMethodsMethod = isBuy
-    ? 'getPaymentMethodsForCrypto'
-    : 'getSellPaymentMethodsForCrypto';
+    ? 'getPaymentMethods'
+    : 'getSellPaymentMethods';
 
   const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
-    useSDKMethod(
-      paymentMethodsMethod,
-      selectedRegion?.id,
-      selectedAsset?.id,
-      selectedFiatCurrencyId,
-    );
+    useSDKMethod(paymentMethodsMethod, selectedRegion?.id);
 
   const currentPaymentMethod = useMemo(
     () =>
@@ -30,7 +23,6 @@ function usePaymentMethods() {
     [paymentMethods, selectedPaymentMethodId],
   );
 
-  // auto-select the first payment method if there is no current one
   useEffect(() => {
     if (!isFetching && !error && !currentPaymentMethod && paymentMethods) {
       setSelectedPaymentMethodId(paymentMethods?.[0]?.id);

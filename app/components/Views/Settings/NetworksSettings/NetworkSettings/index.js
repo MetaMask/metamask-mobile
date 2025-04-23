@@ -802,7 +802,7 @@ export class NetworkSettings extends PureComponent {
     const checkCustomNetworks = Object.values(
       this.props.networkConfigurations,
     ).filter((item) =>
-      item.rpcEndpoints?.some((endpoint) => endpoint.url === rpcUrl),
+      item.rpcEndpoints.some((endpoint) => endpoint.url === rpcUrl),
     );
 
     if (checkCustomNetworks.length > 0) {

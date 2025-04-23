@@ -2,12 +2,6 @@ import { SnapId } from '@metamask/snaps-sdk';
 import PREINSTALLED_SNAPS from '../../../lib/snaps/preinstalled-snaps';
 import { BITCOIN_WALLET_SNAP_ID } from '../BitcoinWalletSnap';
 import { SOLANA_WALLET_SNAP_ID } from '../SolanaWalletSnap';
-import {
-  getLocalizedSnapManifest,
-  stripSnapPrefix,
-} from '@metamask/snaps-utils';
-import { SnapKeyringBuilderMessenger } from '../types';
-import I18n from '../../../../locales/i18n';
 
 /**
  * Check if a Snap is a preinstalled Snap.
@@ -37,34 +31,4 @@ const ALLOW_LISTED_SNAPS = [BITCOIN_WALLET_SNAP_ID, SOLANA_WALLET_SNAP_ID];
  */
 export function isMultichainWalletSnap(id: SnapId): boolean {
   return ALLOW_LISTED_SNAPS.includes(id);
-}
-
-/**
- * Get the localized Snap name or some fallback name otherwise.
- *
- * @param snapId - Snap ID.
- * @param messenger - Snap keyring messenger.
- * @returns The Snap name.
- */
-export function getSnapName(
-  snapId: SnapId,
-  messenger: SnapKeyringBuilderMessenger,
-) {
-  const snap = messenger.call('SnapController:get', snapId);
-  const currentLocale = I18n.locale;
-
-  if (!snap) {
-    return stripSnapPrefix(snapId);
-  }
-
-  if (snap.localizationFiles) {
-    const localizedManifest = getLocalizedSnapManifest(
-      snap.manifest,
-      currentLocale,
-      snap.localizationFiles,
-    );
-    return localizedManifest.proposedName;
-  }
-
-  return snap.manifest.proposedName;
 }

@@ -9,9 +9,9 @@ import {
 } from '../../../../util/test/confirm-data-helpers';
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 // eslint-disable-next-line import/no-namespace
-import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-context';
+import * as QRHardwareHook from '../context/QRHardwareContext/QRHardwareContext';
 // eslint-disable-next-line import/no-namespace
-import * as LedgerContext from '../context/ledger-context/ledger-context';
+import * as LedgerContext from '../context/LedgerContext/LedgerContext';
 // eslint-disable-next-line import/no-namespace
 import * as SmartTransactionsSelector from '../../../../selectors/smartTransactionsController';
 import { useConfirmActions } from './useConfirmActions';
@@ -27,7 +27,7 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockCaptureSignatureMetrics = jest.fn();
-jest.mock('./signatures/useSignatureMetrics', () => ({
+jest.mock('./useSignatureMetrics', () => ({
   useSignatureMetrics: () => ({
     captureSignatureMetrics: mockCaptureSignatureMetrics,
   }),

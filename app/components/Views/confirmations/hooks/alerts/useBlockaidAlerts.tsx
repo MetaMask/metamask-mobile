@@ -1,27 +1,26 @@
 import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 // TODO: Remove legacy import
-import {
-  Reason,
-  SecurityAlertResponse,
-} from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
+import { Reason, SecurityAlertResponse } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, AlertSeverity, Severity } from '../../types/alerts';
 import { getAnalyticsParams } from '../../../../../util/confirmation/signatureUtils';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';
-import { useSignatureRequest } from '../signatures/useSignatureRequest';
+import { useSecurityAlertResponse } from '../useSecurityAlertResponse';
+import { useSignatureRequest } from '../useSignatureRequest';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
 // TODO: Remove legacy import
 import { REASON_TITLE_I18N_KEY_MAP } from '../../legacy/components/BlockaidBanner/BlockaidBanner.constants';
-import BlockaidAlertContent from '../../components/blockaid-alert-content/blockaid-alert-content';
+import BlockaidAlertContent from '../../components/Confirm/BlockaidAlertContent/BlockaidAlertContent';
 
 const IGNORED_RESULT_TYPES = [
   BlockaidResultType.Benign,
   BlockaidResultType.RequestInProgress,
 ];
 
-function getBlockaidAlertSeverity(severity: BlockaidResultType): AlertSeverity {
+function getBlockaidAlertSeverity(
+  severity: BlockaidResultType,
+): AlertSeverity {
   switch (severity) {
     case BlockaidResultType.Malicious:
       return Severity.Danger;
@@ -35,7 +34,7 @@ function getBlockaidAlertSeverity(severity: BlockaidResultType): AlertSeverity {
 const getTitle = (reason: Reason): string =>
   strings(
     REASON_TITLE_I18N_KEY_MAP[reason] ??
-      'blockaid_banner.deceptive_request_title',
+    'blockaid_banner.deceptive_request_title',
   );
 
 const getConfirmModalDescription = (reason: Reason) => {
@@ -115,9 +114,7 @@ export default function useBlockaidAlerts(): Alert[] {
         content: (
           <BlockaidAlertContent
             alertDetails={features}
-            securityAlertResponse={
-              securityAlertResponse as SecurityAlertResponse
-            }
+            securityAlertResponse={securityAlertResponse as SecurityAlertResponse}
             onContactUsClicked={onContactUsClicked}
           />
         ),

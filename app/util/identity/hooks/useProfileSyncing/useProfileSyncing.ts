@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
-import { setIsBackupAndSyncFeatureEnabled } from '../../../../actions/identity';
-import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
+import {
+  disableProfileSyncing as disableProfileSyncingAction,
+  enableProfileSyncing as enableProfileSyncingAction,
+} from '../../../../actions/identity';
 
 /**
  * Custom hook to enable profile syncing. This hook handles the process of signing in
@@ -21,7 +23,7 @@ export function useEnableProfileSyncing(): {
     setError(null);
 
     try {
-      await setIsBackupAndSyncFeatureEnabled(BACKUPANDSYNC_FEATURES.main, true);
+      await enableProfileSyncingAction();
     } catch (e) {
       const errorMessage =
         e instanceof Error ? e.message : JSON.stringify(e ?? '');
@@ -54,10 +56,7 @@ export function useDisableProfileSyncing(): {
     setError(null);
 
     try {
-      await setIsBackupAndSyncFeatureEnabled(
-        BACKUPANDSYNC_FEATURES.main,
-        false,
-      );
+      await disableProfileSyncingAction();
     } catch (e) {
       const errorMessage =
         e instanceof Error ? e.message : JSON.stringify(e ?? '');

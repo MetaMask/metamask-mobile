@@ -582,8 +582,7 @@ export type ControllersToInitialize =
   | 'AccountsController'
   | 'MultichainNetworkController'
   | 'TransactionController'
-  | 'GasFeeController'
-  | 'SignatureController';
+  | 'GasFeeController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

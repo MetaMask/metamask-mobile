@@ -10,6 +10,7 @@ type DeepPartial<BaseType> = {
 
 const mockuseRampSDKInitialValues: DeepPartial<RampSDK> = {
   selectedRegion: { id: 'test-region-id' },
+  selectedPaymentMethodId: 'test-payment-method-id',
   selectedFiatCurrencyId: 'test-fiat-currency-id',
   selectedAsset: null,
   setSelectedAsset: jest.fn(),
@@ -51,7 +52,7 @@ describe('useCryptoCurrencies', () => {
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getCryptoCurrencies',
       'test-region-id',
-      [],
+      ['test-payment-method-id'],
       'test-fiat-currency-id',
     );
   });
@@ -72,7 +73,7 @@ describe('useCryptoCurrencies', () => {
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getSellCryptoCurrencies',
       'test-region-id',
-      [],
+      ['test-payment-method-id'],
       'test-fiat-currency-id',
     );
   });

@@ -9,6 +9,8 @@ const Routes = {
     BUY: 'RampBuy',
     SELL: 'RampSell',
     GET_STARTED: 'GetStarted',
+    PAYMENT_METHOD: 'PaymentMethod',
+    PAYMENT_METHOD_HAS_STARTED: 'PaymentMethodHasStarted',
     BUILD_QUOTE: 'BuildQuote',
     BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
     QUOTES: 'Quotes',

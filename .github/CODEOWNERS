@@ -40,13 +40,11 @@ app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
 
 # Confirmation Team
-app/components/Views/confirmations                          @MetaMask/confirmations
-app/core/Engine/controllers/gas-fee-controller              @MetaMask/confirmations
-app/core/Engine/controllers/signature-controller            @MetaMask/confirmations
-app/core/Engine/controllers/transaction-controller          @MetaMask/confirmations
-app/core/Analytics/events/confirmations                     @MetaMask/confirmations
-ppom                                                        @MetaMask/confirmations
-app/selectors/featureFlagController/confirmations/          @MetaMask/confirmations
+app/components/Views/confirmations   @MetaMask/confirmations
+app/core/Engine/controllers/gas-fee-controller             @MetaMask/confirmations
+app/core/Engine/controllers/transaction-controller             @MetaMask/confirmations
+app/core/Analytics/events/confirmations   @MetaMask/confirmations
+ppom                                 @MetaMask/confirmations
 
 # All below files are maintained by the SDK team because they contain SDK related code, WalletConnect integrations, or critical SDK flows.
 app/actions/sdk   @MetaMask/sdk-devs

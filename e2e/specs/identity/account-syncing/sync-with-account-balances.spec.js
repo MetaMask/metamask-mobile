@@ -107,10 +107,10 @@ describe(
 
       // PHASE 1: Initial setup and account creation
       // Complete initial setup with provided seed phrase
-      await importWalletWithRecoveryPhrase({
-        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-        password: IDENTITY_TEAM_PASSWORD,
-      });
+      await importWalletWithRecoveryPhrase(
+        IDENTITY_TEAM_SEED_PHRASE,
+        IDENTITY_TEAM_PASSWORD,
+      );
 
       // Verify initial state and balance
       // Adding a delay here to make sure that importAdditionalAccounts has completed
@@ -142,10 +142,10 @@ describe(
         launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
 
-      await importWalletWithRecoveryPhrase({
-        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-        password: IDENTITY_TEAM_PASSWORD,
-      });
+      await importWalletWithRecoveryPhrase(
+        IDENTITY_TEAM_SEED_PHRASE,
+        IDENTITY_TEAM_PASSWORD,
+      );
 
       // Verify initial state and balance
       // Adding a delay here to make sure that importAdditionalAccounts has completed

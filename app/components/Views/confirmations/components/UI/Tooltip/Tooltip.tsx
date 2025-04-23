@@ -9,7 +9,7 @@ import {
 } from '../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
-import BottomModal from '../bottom-modal';
+import BottomModal from '../BottomModal';
 import styleSheet from './Tooltip.styles';
 
 interface TooltipProps {

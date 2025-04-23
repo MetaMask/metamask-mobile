@@ -362,8 +362,7 @@
     "isAccountSyncingReadyToBeDispatched": false,
     "isAccountSyncingInProgress": false,
     "isProfileSyncingEnabled": true,
-    "isProfileSyncingUpdateLoading": false,
-    "isAccountSyncingEnabled": true
+    "isProfileSyncingUpdateLoading": false
   },
   "MultichainBalancesController": {
     "balances": {}

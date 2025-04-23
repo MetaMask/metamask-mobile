@@ -6,13 +6,13 @@ import {
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  ConfirmationRedesignRemoteFlags,
+  type ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
-} from '../../../../selectors/featureFlagController/confirmations';
+} from '../../../../selectors/featureFlagController';
 import { isHardwareAccount } from '../../../../util/address';
 import { isStakingConfirmation } from '../utils/confirm';
 import useApprovalRequest from './useApprovalRequest';
-import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
+import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
 const REDESIGNED_SIGNATURE_TYPES = [
   ApprovalType.EthSignTypedData,
@@ -23,7 +23,6 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
   TransactionType.stakingClaim,
-  TransactionType.contractInteraction,
 ];
 
 function isRedesignedSignature({
@@ -66,10 +65,6 @@ function isRedesignedTransaction({
 
   if (isStakingConfirmation(transactionMetadata?.type as string)) {
     return confirmationRedesignFlags?.staking_confirmations;
-  }
-
-  if (transactionMetadata?.type === TransactionType.contractInteraction) {
-    return confirmationRedesignFlags?.contract_interaction;
   }
 
   return false;

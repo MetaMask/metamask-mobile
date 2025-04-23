@@ -44,16 +44,14 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RefreshTestId, SpinnerTestId } from './constants';
-import { debounce, cloneDeep, isEqual } from 'lodash';
+import { debounce } from 'lodash';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { isTestNet, getDecimalChainId } from '../../../util/networks';
+import { isTestNet } from '../../../util/networks';
 import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSheet';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
-import Logger from '../../../util/Logger';
-import { prepareNftDetectionEvents } from '../../../util/assets';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -372,64 +370,18 @@ const CollectibleContracts = ({
       )
     );
   }, [favoriteCollectibles, collectibles, onItemPress]);
-
-  const getNftDetectionAnalyticsParams = useCallback((nft) => {
-    try {
-      return {
-        chain_id: getDecimalChainId(nft.chainId),
-        source: 'detected',
-      };
-    } catch (error) {
-      Logger.error(
-        error,
-        'CollectibleContracts.getNftDetectionAnalyticsParams',
-      );
-      return undefined;
-    }
-  }, []);
-
   const onRefresh = useCallback(async () => {
     requestAnimationFrame(async () => {
-      // Get initial state of NFTs before refresh
-      const { NftDetectionController, NftController } = Engine.context;
-      const previousNfts = cloneDeep(
-        NftController.state.allNfts[selectedAddress.toLowerCase()],
-      );
-
       setRefreshing(true);
-
+      const { NftDetectionController, NftController } = Engine.context;
       const actions = [
         NftDetectionController.detectNfts(chainIdsToDetectNftsFor),
         NftController.checkAndUpdateAllNftsOwnershipStatus(),
       ];
       await Promise.allSettled(actions);
       setRefreshing(false);
-
-      // Get updated state after refresh
-      const newNfts = cloneDeep(
-        NftController.state.allNfts[selectedAddress.toLowerCase()],
-      );
-
-      const eventParams = prepareNftDetectionEvents(
-        previousNfts,
-        newNfts,
-        getNftDetectionAnalyticsParams,
-      );
-      eventParams.forEach((params) => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
-            .addProperties(params)
-            .build(),
-        );
-      });
     });
-  }, [
-    chainIdsToDetectNftsFor,
-    createEventBuilder,
-    getNftDetectionAnalyticsParams,
-    selectedAddress,
-    trackEvent,
-  ]);
+  }, [setRefreshing, chainIdsToDetectNftsFor]);
 
   const goToLearnMore = useCallback(
     () =>

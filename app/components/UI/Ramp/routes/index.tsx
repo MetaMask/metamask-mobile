@@ -2,6 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Regions from '../Views/Regions';
 import Quotes from '../Views/Quotes';
+import PaymentMethods from '../Views/PaymentMethods';
 import NetworkSwitcher from '../Views/NetworkSwitcher';
 import GetStarted from '../Views/GetStarted';
 import CheckoutWebView from '../Views/Checkout';
@@ -19,6 +20,15 @@ const RampRoutes = ({ rampType }: { rampType: RampType }) => (
       <Stack.Screen
         name={Routes.RAMP.NETWORK_SWITCHER}
         component={NetworkSwitcher}
+        options={{ animationEnabled: false }}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.PAYMENT_METHOD}
+        component={PaymentMethods}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.PAYMENT_METHOD_HAS_STARTED}
+        component={PaymentMethods}
         options={{ animationEnabled: false }}
       />
       <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />

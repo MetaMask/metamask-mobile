@@ -22,7 +22,6 @@ import {
 } from '@metamask/snaps-controllers';
 import { MultichainTransactionsController } from '@metamask/multichain-transactions-controller';
 import { TransactionController } from '@metamask/transaction-controller';
-import { SignatureController } from '@metamask/signature-controller';
 import { merge } from 'lodash';
 
 import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
@@ -36,7 +35,6 @@ import { multichainNetworkControllerInit } from '../controllers/multichain-netwo
 import { multichainTransactionsControllerInit } from '../controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { notificationServicesControllerInit } from '../controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from '../controllers/notifications/notification-services-push-controller-init';
-import { SignatureControllerInit } from '../controllers/signature-controller';
 import {
   cronjobControllerInit,
   executionServiceInit,
@@ -76,7 +74,6 @@ jest.mock(
   '../controllers/notifications/notification-services-push-controller-init',
 );
 jest.mock('../controllers/snaps');
-jest.mock('../controllers/signature-controller');
 jest.mock('../controllers/transaction-controller');
 
 describe('initModularizedControllers', () => {
@@ -115,7 +112,7 @@ describe('initModularizedControllers', () => {
   );
   const mockGasFeeControllerInit = jest.mocked(GasFeeControllerInit);
   const mockAppMetadataControllerInit = jest.mocked(appMetadataControllerInit);
-  const mockSignatureControllerInit = jest.mocked(SignatureControllerInit);
+
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
   ) {
@@ -139,7 +136,6 @@ describe('initModularizedControllers', () => {
             mockNotificationServicesControllerInit,
           NotificationServicesPushController:
             mockNotificationServicesPushControllerInit,
-          SignatureController: mockSignatureControllerInit,
           SnapController: mockSnapControllerInit,
           SnapInterfaceController: mockSnapInterfaceControllerInit,
           SnapsRegistry: mockSnapsRegistryInit,
@@ -209,9 +205,6 @@ describe('initModularizedControllers', () => {
     mockAppMetadataControllerInit.mockReturnValue({
       controller: {} as unknown as AppMetadataController,
     });
-    mockSignatureControllerInit.mockReturnValue({
-      controller: {} as unknown as SignatureController,
-    });
   });
 
   it('initializes controllers', () => {
@@ -238,7 +231,6 @@ describe('initModularizedControllers', () => {
     ).toBeDefined();
     expect(controllers.controllersByName.TransactionController).toBeDefined();
     expect(controllers.controllersByName.GasFeeController).toBeDefined();
-    expect(controllers.controllersByName.SignatureController).toBeDefined();
   });
 
   it('initializes function including initMessenger', () => {

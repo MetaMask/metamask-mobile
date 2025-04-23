@@ -10,8 +10,6 @@ type DeepPartial<BaseType> = {
 const mockuseRampSDKInitialValues: DeepPartial<RampSDK> = {
   selectedRegion: { id: '/regions/us-ca' },
   selectedPaymentMethodId: '/payments/debit-credit',
-  selectedAsset: { id: '/currencies/crypto/eth' },
-  selectedFiatCurrencyId: '/currencies/fiat/usd',
   setSelectedPaymentMethodId: jest.fn(),
   isBuy: true,
 };
@@ -49,10 +47,8 @@ describe('usePaymentMethods', () => {
     renderHookWithProvider(() => usePaymentMethods());
 
     expect(useSDKMethod).toHaveBeenCalledWith(
-      'getPaymentMethodsForCrypto',
+      'getPaymentMethods',
       '/regions/us-ca',
-      '/currencies/crypto/eth',
-      '/currencies/fiat/usd',
     );
   });
 
@@ -72,10 +68,8 @@ describe('usePaymentMethods', () => {
     renderHookWithProvider(() => usePaymentMethods());
 
     expect(useSDKMethod).toHaveBeenCalledWith(
-      'getSellPaymentMethodsForCrypto',
+      'getSellPaymentMethods',
       '/regions/us-ca',
-      '/currencies/crypto/eth',
-      '/currencies/fiat/usd',
     );
   });
 
@@ -159,7 +153,6 @@ describe('usePaymentMethods', () => {
     const { result, rerender } = renderHookWithProvider(() =>
       usePaymentMethods(),
     );
-
     expect(result.current.data).toEqual([{ id: '/payments/debit-credit' }]);
 
     (useSDKMethod as jest.Mock).mockReturnValue([
@@ -172,27 +165,5 @@ describe('usePaymentMethods', () => {
     ]);
     rerender(() => usePaymentMethods());
     expect(result.current.data).toEqual([{ id: '/payments/bank-transfer' }]);
-  });
-
-  it('auto-selects the first payment method if the current one is not in the list', () => {
-    const mockSetSelectedPaymentMethodId = jest.fn();
-    mockUseRampSDKValues.setSelectedPaymentMethodId =
-      mockSetSelectedPaymentMethodId;
-    (useSDKMethod as jest.Mock).mockReturnValue([
-      {
-        data: [
-          { id: '/payments/bank-transfer' },
-          { id: '/payments/credit-card' },
-        ],
-        error: null,
-        isFetching: false,
-      },
-      jest.fn(),
-    ]);
-    mockUseRampSDKValues.selectedPaymentMethodId = '/payments/paypal';
-    renderHookWithProvider(() => usePaymentMethods());
-    expect(mockSetSelectedPaymentMethodId).toHaveBeenCalledWith(
-      '/payments/bank-transfer',
-    );
   });
 });

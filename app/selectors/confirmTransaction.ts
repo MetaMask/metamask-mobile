@@ -1,8 +1,8 @@
-import { mergeGasFeeEstimates } from '@metamask/transaction-controller';
-import { createSelector } from 'reselect';
+import { selectTransactions } from './transactionController';
 import { RootState } from '../reducers';
 import { selectGasFeeControllerEstimates } from './gasFeeController';
-import { selectTransactions } from './transactionController';
+import { mergeGasFeeEstimates } from '@metamask/transaction-controller';
+import { createSelector } from 'reselect';
 import { createDeepEqualSelector } from './util';
 
 const selectCurrentTransactionId = (state: RootState) => state.transaction?.id;

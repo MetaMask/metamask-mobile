@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 
-import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
+import { useTransactionMetadataRequest } from '../hooks/useTransactionMetadataRequest';
 import { selectConversionRateByChainId } from '../../../../selectors/currencyRateController';
 import I18n from '../../../../../locales/i18n';
 import { formatAmount } from '../../../../components/UI/SimulationDetails/formatAmount';
@@ -12,6 +12,7 @@ import { RootState } from '../../../../reducers';
 
 // TODO: This hook will be extended to calculate token and fiat information from transaction metadata on upcoming redesigned confirmations
 export const useTokenValues = ({ amountWei }: { amountWei?: string } = {}) => {
+
   const transactionMetadata = useTransactionMetadataRequest();
 
   let ethAmountInWei;

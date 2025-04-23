@@ -20,7 +20,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingVertical: 24,
     },
-    modalHeader: {
+      modalHeader: {
       flexDirection: 'row',
       justifyContent: 'center',
       width: '100%',
@@ -55,5 +55,4 @@ const styleSheet = (params: { theme: Theme }) => {
   });
 };
 
-export type TooltipStylesType = ReturnType<typeof styleSheet>;
 export default styleSheet;
