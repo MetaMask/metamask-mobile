@@ -38,7 +38,10 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
 import { swapsControllerTokens } from '../../../reducers/swaps';
-import { FINAL_NON_CONFIRMED_STATUSES, useBridgeTxHistoryData } from '../../../util/bridge/hooks/useBridgeTxHistoryData';
+import {
+  FINAL_NON_CONFIRMED_STATUSES,
+  useBridgeTxHistoryData,
+} from '../../../util/bridge/hooks/useBridgeTxHistoryData';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
 import { decimalToHex } from '../../../util/conversions';
@@ -53,6 +56,12 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import {
+  formatChainIdToCaip,
+  formatChainIdToHex,
+  isSolanaChainId,
+} from '@metamask/bridge-controller';
+import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -244,7 +253,7 @@ class TransactionElement extends PureComponent {
     onPressItem(tx.id, i);
     if (tx.type === 'bridge') {
       this.props.navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
-        tx,
+        evmTxMeta: tx,
       });
     } else {
       this.setState({ detailsModalVisible: true });
@@ -392,16 +401,15 @@ class TransactionElement extends PureComponent {
     const renderNormalActions =
       (status === 'submitted' ||
         (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
-      !isSmartTransaction && !isBridgeTransaction;
+      !isSmartTransaction &&
+      !isBridgeTransaction;
     const renderUnsignedQRActions =
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
-    let title  = actionKey;
+    let title = actionKey;
     if (isBridgeTransaction && bridgeTxHistoryItem) {
-      const hexDestChainId = addHexPrefix(decimalToHex(bridgeTxHistoryItem.quote.destChainId));
-      const destChainName = NETWORK_TO_SHORT_NETWORK_NAME_MAP[hexDestChainId];
-      title = destChainName ? `${actionKey} to ${destChainName}` : title;
+      title = getBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
     }
     return (
       <>
@@ -419,20 +427,19 @@ class TransactionElement extends PureComponent {
                 {title}
               </ListItem.Title>
               {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
-                isBridgeTransaction &&
-                !isBridgeComplete ? (
-                  <BridgeActivityItemTxSegments
-                    bridgeTxHistoryItem={bridgeTxHistoryItem}
-                    transaction={this.props.tx}
-                  />
-                ) : (
-                  <StatusText
-                    testID={`transaction-status-${i}`}
-                    status={status}
-                    style={styles.listItemStatus}
-                  />
-                )
-              }
+              isBridgeTransaction &&
+              !isBridgeComplete ? (
+                <BridgeActivityItemTxSegments
+                  bridgeTxHistoryItem={bridgeTxHistoryItem}
+                  transactionStatus={this.props.tx.status}
+                />
+              ) : (
+                <StatusText
+                  testID={`transaction-status-${i}`}
+                  status={status}
+                  style={styles.listItemStatus}
+                />
+              )}
             </ListItem.Body>
             {Boolean(value) && (
               <ListItem.Amounts>
@@ -703,9 +710,11 @@ TransactionElement.contextType = ThemeContext;
 
 // Create a wrapper functional component
 const TransactionElementWithBridge = (props) => {
-  const bridgeTxHistoryData = useBridgeTxHistoryData({txMeta: props.tx});
+  const bridgeTxHistoryData = useBridgeTxHistoryData({ evmTxMeta: props.tx });
 
-  return <TransactionElement {...props} bridgeTxHistoryData={bridgeTxHistoryData} />;
+  return (
+    <TransactionElement {...props} bridgeTxHistoryData={bridgeTxHistoryData} />
+  );
 };
 
 TransactionElementWithBridge.propTypes = {
