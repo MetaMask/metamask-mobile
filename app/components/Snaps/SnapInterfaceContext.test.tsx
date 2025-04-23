@@ -30,7 +30,6 @@ describe('SnapInterfaceContext', () => {
     },
   };
 
-  const mockContext = {};
   const mockInterfaceId = 'test-interface';
   const mockSnapId = 'test-snap';
 
@@ -39,7 +38,6 @@ describe('SnapInterfaceContext', () => {
       interfaceId={mockInterfaceId}
       snapId={mockSnapId}
       initialState={mockInitialState}
-      context={mockContext}
     >
       {children}
     </SnapInterfaceContextProvider>
