@@ -258,6 +258,14 @@ export const selectIsEvmSolanaBridge = createSelector(
   (isEvmToSolana, isSolanaToEvm) => isEvmToSolana || isSolanaToEvm
 );
 
+export const selectIsSolanaSwap = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId && isSolanaChainId(sourceToken.chainId) &&
+    destToken?.chainId && isSolanaChainId(destToken.chainId)
+);
+
 // Actions
 export const {
   setSourceAmount,

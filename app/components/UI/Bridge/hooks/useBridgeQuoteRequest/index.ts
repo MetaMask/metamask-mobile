@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
-import { type GenericQuoteRequest } from '@metamask/bridge-controller';
+import { BRIDGE_DEFAULT_SLIPPAGE, type GenericQuoteRequest } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import {
   selectSourceAmount,
@@ -11,6 +11,7 @@ import {
   selectDestAddress,
   selectIsEvmToSolana,
   selectIsSolanaToEvm,
+  selectIsSolanaSwap,
 } from '../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../../../util/networks';
@@ -31,6 +32,7 @@ export const useBridgeQuoteRequest = () => {
   const destAddress = useSelector(selectDestAddress);
   const isEvmToSolana = useSelector(selectIsEvmToSolana);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
+  const isSolanaSwap = useSelector(selectIsSolanaSwap);
 
   /**
    * Updates quote parameters in the bridge controller
@@ -60,7 +62,7 @@ export const useBridgeQuoteRequest = () => {
       destChainId: getDecimalChainId(destChainId),
       destTokenAddress: destToken.address,
       srcTokenAmount: normalizedSourceAmount,
-      slippage: Number(slippage),
+      slippage: isSolanaSwap && Number(slippage) === BRIDGE_DEFAULT_SLIPPAGE ? undefined : Number(slippage),
       walletAddress,
       destWalletAddress:
         isEvmToSolana || isSolanaToEvm ? destAddress : walletAddress,
@@ -79,6 +81,7 @@ export const useBridgeQuoteRequest = () => {
     destAddress,
     isEvmToSolana,
     isSolanaToEvm,
+    isSolanaSwap,
   ]);
 
   // Create a stable debounced function that persists across renders
