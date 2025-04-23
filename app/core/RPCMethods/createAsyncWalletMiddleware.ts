@@ -48,7 +48,7 @@ const getPermittedAccounts = (origin: string) => {
 export const getAccounts = async ({ origin }: { origin: string }) => {
   const { AccountsController, KeyringController } = Engine.context;
   if (origin === ORIGIN_METAMASK) {
-    const selectedAddress = AccountsController.getSelectedAccount().address;
+    const selectedAddress = AccountsController.getSelectedAccount()?.address;
     return Promise.resolve(selectedAddress ? [selectedAddress] : []);
   } else if (KeyringController.state.isUnlocked) {
     return Promise.resolve(getPermittedAccounts(origin));
