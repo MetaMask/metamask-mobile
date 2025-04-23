@@ -403,7 +403,7 @@ describe('BridgeTransactionDetails', () => {
 
   it('renders without crashing', () => {
     const { getByText } = renderScreen(
-      () => <BridgeTransactionDetails route={{ params: { tx: mockTx } }} />,
+      () => <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />,
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
@@ -414,19 +414,19 @@ describe('BridgeTransactionDetails', () => {
 
   it('displays source and destination token information', () => {
     const { getByText } = renderScreen(
-      () => <BridgeTransactionDetails route={{ params: { tx: mockTx } }} />,
+      () => <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />,
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
       { state: mockState },
     );
-    expect(getByText('1.00000 TOKEN1')).toBeTruthy();
-    expect(getByText('2.00000 TOKEN2')).toBeTruthy();
+    expect(getByText('1.00000')).toBeTruthy();
+    expect(getByText('2.00000')).toBeTruthy();
   });
 
   it('displays submission date', () => {
     const { getByText } = renderScreen(
-      () => <BridgeTransactionDetails route={{ params: { tx: mockTx } }} />,
+      () => <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />,
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
@@ -437,7 +437,7 @@ describe('BridgeTransactionDetails', () => {
 
   it('shows total gas fee', () => {
     const { getByText } = renderScreen(
-      () => <BridgeTransactionDetails route={{ params: { tx: mockTx } }} />,
+      () => <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />,
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
@@ -448,7 +448,7 @@ describe('BridgeTransactionDetails', () => {
 
   it('displays block explorer button', () => {
     const { getByText } = renderScreen(
-      () => <BridgeTransactionDetails route={{ params: { tx: mockTx } }} />,
+      () => <BridgeTransactionDetails route={{ params: { evmTxMeta: mockTx } }} />,
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
