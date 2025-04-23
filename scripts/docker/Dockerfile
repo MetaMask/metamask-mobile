@@ -10,12 +10,12 @@ RUN apt-get update \
   && locale-gen
 
 ENV YARN_VERSION 3.8.7
-# Install Yarn 3.8.7 from local release
-COPY .yarn/releases/yarn-${YARN_VERSION}.cjs /opt/yarn/bin/yarn
-RUN chmod +x /opt/yarn/bin/yarn \
-  && ln -sf /opt/yarn/bin/yarn /usr/local/bin/yarn \
-  && ln -sf /opt/yarn/bin/yarn /usr/local/bin/yarnpkg \
-  && yarn --version
+
+# Install corepack (bundled with newer Node versions), which manages Yarn versions
+RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
+# Optionally verify the installed version
+RUN yarn --version
+
 
 ARG UID=1000
 ARG GID=1000
