@@ -206,7 +206,6 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-// mock trace util
 jest.mock('../../../util/trace', () => ({
   trace: jest.fn(),
   TraceName: {
