@@ -60,8 +60,7 @@ import {
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import type { BridgeSourceTokenSelectorRouteParams } from '../../components/BridgeSourceTokenSelector';
 import type { BridgeDestTokenSelectorRouteParams } from '../../components/BridgeDestTokenSelector';
-import { useMetrics } from '../../../../hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { BridgeViewMode } from '../../types';
 
 const BridgeView = () => {
@@ -207,7 +206,7 @@ const BridgeView = () => {
           .build(),
       );
     }
-  }, [sourceToken, destToken, trackEvent]);
+  }, [sourceToken, destToken, trackEvent, createEventBuilder, route.params.bridgeViewMode]);
 
   const handleKeypadChange = ({
     value,

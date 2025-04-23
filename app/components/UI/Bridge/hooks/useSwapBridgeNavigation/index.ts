@@ -94,7 +94,7 @@ export const useSwapBridgeNavigation = ({
           .build(),
       );
     },
-    [navigation, selectedChainId, tokenBase, sourcePage],
+    [navigation, selectedChainId, tokenBase, sourcePage, trackEvent, createEventBuilder, location],
   );
 
   const goToBridge = useCallback(
