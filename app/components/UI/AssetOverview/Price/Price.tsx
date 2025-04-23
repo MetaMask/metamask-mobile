@@ -47,7 +47,7 @@ const Price = ({
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const { marketData, metadata } = useSelector(selectNonEvmMarketData);
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
-  console.log('prices', prices);
+  // console.log('prices', prices);
 
   const distributedPriceData = useMemo(() => {
     if (prices.length > 0) {
