@@ -357,14 +357,14 @@ describe('getRpcMethodMiddleware', () => {
       });
     engine.push(nextMiddleware);
 
-    // const response = await engine.handle({
-    //   jsonrpc,
-    //   id: 1,
-    //   method: 'this-is-a-fake-method',
-    // });
+    const response = await engine.handle({
+      jsonrpc,
+      id: 1,
+      method: 'this-is-a-fake-method',
+    });
 
-    // assertIsJsonRpcSuccess(response);
-    // expect(response.result).toBe('success');
+    assertIsJsonRpcSuccess(response);
+    expect(response.result).toBe('success');
   });
 
   describe('with permission middleware before', () => {
