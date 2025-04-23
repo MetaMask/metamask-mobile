@@ -595,9 +595,11 @@ function SwapsAmountView({
         destinationTokenAddress,
       );
       if (enableDirectWrapping && !isDirectWrapping) {
+        // ETH <> WETH, set slippage to 0
         setSlippage(0);
         setIsDirectWrapping(true);
       } else if (isDirectWrapping && !enableDirectWrapping) {
+        // Coming out of ETH <> WETH to a non (ETH <> WETH) pair, reset slippage
         setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
         setIsDirectWrapping(false);
       }

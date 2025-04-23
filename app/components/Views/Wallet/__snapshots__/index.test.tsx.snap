@@ -223,7 +223,8 @@ exports[`Wallet should render correctly 1`] = `
                   }
                 }
               >
-                <View
+                <TouchableOpacity
+                  onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -462,7 +463,7 @@ exports[`Wallet should render correctly 1`] = `
                   >
                     0xC496...a756
                   </Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
             <View
@@ -1377,7 +1378,8 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                   }
                 }
               >
-                <View
+                <TouchableOpacity
+                  onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -1616,7 +1618,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                   >
                     0xC496...a756
                   </Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
             <View
@@ -2531,7 +2533,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                   }
                 }
               >
-                <View
+                <TouchableOpacity
+                  onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -2770,7 +2773,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                   >
                     0xC496...a756
                   </Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
             <View

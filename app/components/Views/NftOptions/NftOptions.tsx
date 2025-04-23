@@ -8,7 +8,10 @@ import { strings } from '../../../../locales/i18n';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
+} from '../../../selectors/networkController';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './NftOptions.styles';
 import Text, {
@@ -26,6 +29,7 @@ import {
   MetaMetricsEvents,
 } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
+import { toHex } from '@metamask/controller-utils';
 
 interface Props {
   route: {
@@ -45,6 +49,9 @@ const NftOptions = (props: Props) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
+  );
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
   );
 
   const goToWalletPage = () => {
@@ -91,10 +98,17 @@ const NftOptions = (props: Props) => {
 
   const removeNft = () => {
     const { NftController } = Engine.context;
+    const nftChainNetwork = networkConfigurations[toHex(collectible.chainId)];
+    const nftNetworkClientId =
+      nftChainNetwork?.rpcEndpoints?.[nftChainNetwork?.defaultRpcEndpointIndex]
+        .networkClientId;
     removeFavoriteCollectible(selectedAddress, chainId, collectible);
     NftController.removeAndIgnoreNft(
       collectible.address,
       collectible.tokenId.toString(),
+      {
+        networkClientId: nftNetworkClientId,
+      },
     );
     trackEvent(
       createEventBuilder(MetaMetricsEvents.COLLECTIBLE_REMOVED)

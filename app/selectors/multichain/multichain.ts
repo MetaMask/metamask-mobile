@@ -207,6 +207,11 @@ export function selectMultichainAssetsRates(state: RootState) {
     .conversionRates;
 }
 
+export function selectMultichainHistoricalPrices(state: RootState) {
+  return state.engine.backgroundState.MultichainAssetsRatesController
+    .historicalPrices;
+}
+
 export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
   selectMultichainBalances,
   selectMultichainAssets,
@@ -256,9 +261,9 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
       const decimals = metadata.units[0]?.decimals || 0;
 
       tokens.push({
-        name: metadata?.name,
+        name: metadata?.name ?? '',
         address: assetId,
-        symbol: metadata?.symbol,
+        symbol: metadata?.symbol ?? '',
         image: metadata?.iconUrl,
         logo: metadata?.iconUrl,
         decimals,

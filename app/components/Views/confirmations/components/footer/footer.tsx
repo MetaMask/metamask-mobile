@@ -16,7 +16,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useAlerts } from '../../context/alert-system-context';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
-import { useLedgerContext } from '../../context/ledger-context/ledger-context';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
 import { useQRHardwareContext } from '../../context/qr-hardware-context/qr-hardware-context';
@@ -38,7 +37,6 @@ export const Footer = () => {
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
-  const { isLedgerAccount } = useLedgerContext();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
@@ -87,9 +85,6 @@ export const Footer = () => {
   const confirmButtonLabel = () => {
     if (isQRSigningInProgress) {
       return strings('confirm.qr_get_sign');
-    }
-    if (isLedgerAccount) {
-      return strings('confirm.sign_with_ledger');
     }
     if (hasUnconfirmedDangerAlerts) {
       return fieldAlerts.length > 1

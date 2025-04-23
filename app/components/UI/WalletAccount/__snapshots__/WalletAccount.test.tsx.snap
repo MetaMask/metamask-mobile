@@ -11,7 +11,8 @@ exports[`WalletAccount renders correctly 1`] = `
     }
   }
 >
-  <View
+  <TouchableOpacity
+    onPress={[Function]}
     style={
       {
         "alignItems": "center",
@@ -234,7 +235,7 @@ exports[`WalletAccount renders correctly 1`] = `
         width={12}
       />
     </TouchableOpacity>
-  </View>
+  </TouchableOpacity>
   <View
     style={
       {

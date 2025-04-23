@@ -30,6 +30,7 @@ import {
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
+  selectIsEvmSolanaBridge,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import {
@@ -41,7 +42,6 @@ import { getBridgeNavbar } from '../../../Navbar';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
-import { QuoteResponse } from '../../types';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
@@ -50,10 +50,6 @@ import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import DestinationAccountSelector from '../../components/DestinationAccountSelector.tsx';
-import {
-  isSolanaChainId,
-  type QuoteMetadata,
-} from '@metamask/bridge-controller';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
@@ -65,8 +61,9 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import type { BridgeSourceTokenSelectorRouteParams } from '../../components/BridgeSourceTokenSelector';
 import type { BridgeDestTokenSelectorRouteParams } from '../../components/BridgeDestTokenSelector';
 
-// We get here through handleBridgeNavigation in AssetOverview and WalletActions
 const BridgeView = () => {
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isSubmittingTx, setIsSubmittingTx] = useState(false);
   // The same as getUseExternalServices in Extension
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -88,9 +85,12 @@ const BridgeView = () => {
     isLoading,
     destTokenAmount,
     quoteFetchError,
-    bestQuote,
+    isNoQuotesAvailable,
   } = useBridgeQuoteData();
-  const { quoteRequest } = useSelector(selectBridgeControllerState);
+  const { quoteRequest, quotesLastFetched } = useSelector(
+    selectBridgeControllerState,
+  );
+  const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
 
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -102,8 +102,8 @@ const BridgeView = () => {
   useInitialSourceToken();
   useInitialDestToken();
 
-  const hasDestinationPicker =
-    destToken?.chainId && isSolanaChainId(destToken.chainId);
+  const hasDestinationPicker = isEvmSolanaBridge;
+
   const hasQuoteDetails = activeQuote && !isLoading;
 
   const latestSourceBalance = useLatestBalance({
@@ -124,89 +124,41 @@ const BridgeView = () => {
 
   const hasInsufficientBalance = quoteRequest?.insufficientBal;
 
-  const [isInputFocused, setIsInputFocused] = useState(false);
-  // isWaitingForInitialQuote tracks our local loading state for the initial quote request
-  // This is separate from isLoading (from useBridgeQuoteData) to prevent race conditions
-  // when multiple quote requests are in flight or when the loading state changes
-  const [isWaitingForInitialQuote, setIsWaitingForInitialQuote] =
-    useState(false);
-  const [isError, setIsError] = useState(false);
+  // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
+  const shouldDisplayKeypad = isInputFocused || !hasValidBridgeInputs;
+  const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
 
-  // Update error state when relevant states change
-  // We don't show errors while either loading state is true to prevent flashing
-  useEffect(() => {
-    if (isLoading || isWaitingForInitialQuote) {
-      setIsError(false);
-      return;
-    }
-
-    if (quoteFetchError) {
-      setIsError(true);
-      return;
-    }
-
-    setIsError(Boolean(hasValidBridgeInputs && !bestQuote));
-  }, [
-    isLoading,
-    isWaitingForInitialQuote,
-    quoteFetchError,
-    hasValidBridgeInputs,
-    bestQuote,
-  ]);
-
-  // This effect ensures proper coordination between isLoading and isWaitingForInitialQuote
-  // When isLoading becomes false, we know the quote data has been fetched, so we can
-  // safely set isWaitingForInitialQuote to false
-  useEffect(() => {
-    if (!isLoading) {
-      setIsWaitingForInitialQuote(false);
-    }
-  }, [isLoading]);
+  // Compute error state directly from dependencies
+  const isError = isNoQuotesAvailable || quoteFetchError;
 
   // Update quote parameters when relevant state changes
-  // This effect manages the quote request lifecycle and ensures proper state transitions
   useEffect(() => {
     if (hasValidBridgeInputs) {
-      // Set waiting state before starting the quote request
-      setIsWaitingForInitialQuote(true);
-
-      // Add delay before blurring to give users time to type
-      const blurTimeout = setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.blur();
-        }
-      }, 1000);
-
-      const updatePromise = updateQuoteParams();
-      if (updatePromise) {
-        // Clear waiting state after the quote request completes
-        // This ensures we don't show errors prematurely
-        updatePromise.finally(() => {
-          setIsWaitingForInitialQuote(false);
-        });
-      }
-
-      return () => {
-        clearTimeout(blurTimeout);
-        updateQuoteParams.cancel();
-      };
+      updateQuoteParams();
     }
     return () => {
       updateQuoteParams.cancel();
-      // Reset waiting state if component unmounts or inputs become invalid
-      setIsWaitingForInitialQuote(false);
     };
   }, [hasValidBridgeInputs, updateQuoteParams]);
 
-  const shouldDisplayKeypad =
-    !isError || !hasValidBridgeInputs || isInputFocused || isLoading;
+  // Blur input when quotes have loaded
+  useEffect(() => {
+    if (!isLoading) {
+      setIsInputFocused(false);
+      if (inputRef.current) {
+        inputRef.current.blur();
+      }
+    }
+  }, [isLoading]);
 
   // Reset bridge state when component unmounts
   useEffect(
     () => () => {
       dispatch(resetBridgeState());
-      // Clear bridge controller state
-      Engine.context.BridgeController.resetState();
+      // Clear bridge controller state if available
+      if (Engine.context.BridgeController?.resetState) {
+        Engine.context.BridgeController.resetState();
+      }
     },
     [dispatch],
   );
@@ -218,7 +170,10 @@ const BridgeView = () => {
   useEffect(() => {
     const setBridgeFeatureFlags = async () => {
       try {
-        if (isBasicFunctionalityEnabled) {
+        if (
+          isBasicFunctionalityEnabled &&
+          Engine.context.BridgeController?.setBridgeFeatureFlags
+        ) {
           await Engine.context.BridgeController.setBridgeFeatureFlags();
         }
       } catch (error) {
@@ -236,24 +191,14 @@ const BridgeView = () => {
     valueAsNumber: number;
     pressedKey: string;
   }) => {
-    // Keep focus when editing
-    setIsInputFocused(true);
     dispatch(setSourceAmount(value || undefined));
   };
 
   const handleContinue = async () => {
-    // TODO: Implement bridge transaction with source and destination amounts
-    // TESTING: Paste a quote from the Bridge API here to test the bridge flow
-    const quoteResponse = {};
-    // TESTING: Paste quote metadata from extension here to test the bridge flow
-    const quoteMetadata = {};
-    if (
-      Object.keys(quoteResponse).length > 0 &&
-      Object.keys(quoteMetadata).length > 0
-    ) {
+    if (activeQuote) {
+      setIsSubmittingTx(true);
       await submitBridgeTx({
-        quoteResponse: { ...quoteResponse, ...quoteMetadata } as QuoteResponse &
-          QuoteMetadata,
+        quoteResponse: activeQuote,
       });
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
@@ -287,41 +232,69 @@ const BridgeView = () => {
       } as BridgeDestTokenSelectorRouteParams,
     });
 
-  const renderBottomContent = () => (
-    <Box style={styles.buttonContainer}>
-      {!hasValidBridgeInputs || isLoading ? (
-        <Text color={TextColor.Primary}>{strings('bridge.select_amount')}</Text>
-      ) : isError ? (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
-          description={strings('bridge.error_banner_description')}
+  const getButtonLabel = () => {
+    if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
+    if (isSubmittingTx) return strings('bridge.submitting_transaction');
+    return strings('bridge.continue');
+  };
+
+  const renderBottomContent = () => {
+    if (isError) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            description={strings('bridge.error_banner_description')}
+          />
+        </Box>
+      );
+    }
+
+    if (!hasValidBridgeInputs) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <Text color={TextColor.Primary}>
+            {strings('bridge.select_amount')}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <Text color={TextColor.Primary}>
+            {strings('bridge.fetching_quote')}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (!activeQuote && !quotesLastFetched) {
+      return;
+    }
+
+    return (
+      <Box style={styles.buttonContainer}>
+        <Button
+          variant={ButtonVariants.Primary}
+          label={getButtonLabel()}
+          onPress={handleContinue}
+          style={styles.button}
+          isDisabled={hasInsufficientBalance || isSubmittingTx}
         />
-      ) : (
-        <>
-          <Button
-            variant={ButtonVariants.Primary}
-            label={
-              hasInsufficientBalance
-                ? strings('bridge.insufficient_funds')
-                : strings('bridge.continue')
-            }
-            onPress={handleContinue}
-            style={styles.button}
-            isDisabled={hasInsufficientBalance}
-          />
-          <Button
-            variant={ButtonVariants.Link}
-            label={
-              <Text color={TextColor.Alternative}>
-                {strings('bridge.terms_and_conditions')}
-              </Text>
-            }
-            onPress={handleTermsPress}
-          />
-        </>
-      )}
-    </Box>
-  );
+        <Button
+          variant={ButtonVariants.Link}
+          label={
+            <Text color={TextColor.Alternative}>
+              {strings('bridge.terms_and_conditions')}
+            </Text>
+          }
+          onPress={handleTermsPress}
+        />
+      </Box>
+    );
+  };
 
   return (
     // Need this to be full height of screen
@@ -348,7 +321,7 @@ const BridgeView = () => {
               onTokenPress={handleSourceTokenPress}
               onFocus={() => setIsInputFocused(true)}
               onBlur={() => setIsInputFocused(false)}
-              autoFocus
+              onInputPress={() => setIsInputFocused(true)}
             />
             <Box style={styles.arrowContainer}>
               <Box style={styles.arrowCircle}>
@@ -369,29 +342,18 @@ const BridgeView = () => {
                     getNetworkImageSource({ chainId: destToken?.chainId })
                   : undefined
               }
-              isReadonly
               testID="dest-token-area"
               tokenType={TokenInputAreaType.Destination}
               onTokenPress={handleDestTokenPress}
               isLoading={isLoading}
             />
           </Box>
+          <Box style={styles.dynamicContent}>
+            <Box style={styles.destinationAccountSelectorContainer}>
+              {hasDestinationPicker && <DestinationAccountSelector />}
+            </Box>
 
-          <Box
-            style={[
-              styles.dynamicContent,
-              shouldDisplayKeypad
-                ? styles.dynamicContentWithKeypad
-                : styles.dynamicContentWithoutKeypad,
-            ]}
-          >
-            {hasDestinationPicker && (
-              <Box style={styles.destinationAccountSelectorContainer}>
-                <DestinationAccountSelector />
-              </Box>
-            )}
-
-            {hasQuoteDetails && !isInputFocused ? (
+            {shouldDisplayQuoteDetails ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
               </Box>
