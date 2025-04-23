@@ -24,7 +24,13 @@ jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
   return {
-    getTotalFiatAccountBalance: jest.fn(),
+    getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
+      totalNativeTokenBalance: { amount: '1', unit: 'ETH' },
+      totalBalanceFiat: 3200,
+      balances: {
+        '0x0': { amount: '1', unit: 'ETH' },
+      },
+    }),
     context: {
       NftController: {
         allNfts: {
@@ -102,6 +108,13 @@ const mockInitialState = {
       TokensController: {
         ...backgroundState.TokensController,
         detectedTokens: [{ address: '0x123' }],
+        allDetectedTokens: {
+          '0x1': {
+            '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': [
+              { address: '0x123' },
+            ],
+          },
+        },
       },
     },
   },

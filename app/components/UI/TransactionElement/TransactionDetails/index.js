@@ -12,6 +12,7 @@ import {
   isMultiLayerFeeNetwork,
   getBlockExplorerTxUrl,
   findBlockExplorerForNonEvmChainId,
+  isLineaMainnetChainId,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
@@ -19,7 +20,7 @@ import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
 import StyledButton from '../../StyledButton';
 import StatusText from '../../../Base/StatusText';
-import Text from '../../../Base/Text';
+import Text from '../../../../component-library/components/Texts/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
@@ -54,6 +55,13 @@ import Avatar, {
 } from '../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import {
+  LINEA_MAINNET_BLOCK_EXPLORER,
+  LINEA_SEPOLIA_BLOCK_EXPLORER,
+  MAINNET_BLOCK_EXPLORER,
+  SEPOLIA_BLOCK_EXPLORER,
+} from '../../../../constants/urls';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -164,6 +172,39 @@ class TransactionDetails extends PureComponent {
   };
 
   /**
+   * Returns the appropriate block explorer URL for a given chain
+   * @param {string} chainId - The chain ID to get the block explorer for
+   * @param {string} txChainId - The transaction chain ID
+   * @param {Object} networkConfigurations - The network configurations object
+   * @returns {string} The block explorer URL
+   */
+  getBlockExplorerForChain = (chainId, txChainId, networkConfigurations) => {
+    // First check for network configuration block explorer
+    let blockExplorer =
+      networkConfigurations?.[txChainId]?.blockExplorerUrls[
+        networkConfigurations[txChainId]?.defaultBlockExplorerUrlIndex
+      ] || NO_RPC_BLOCK_EXPLORER;
+
+    // Check for default block explorers based on chain ID
+    if (isMainNet(txChainId)) {
+      blockExplorer = MAINNET_BLOCK_EXPLORER;
+    } else if (isLineaMainnetChainId(txChainId)) {
+      blockExplorer = LINEA_MAINNET_BLOCK_EXPLORER;
+    } else if (txChainId === CHAIN_IDS.LINEA_SEPOLIA) {
+      blockExplorer = LINEA_SEPOLIA_BLOCK_EXPLORER;
+    } else if (txChainId === CHAIN_IDS.SEPOLIA) {
+      blockExplorer = SEPOLIA_BLOCK_EXPLORER;
+    }
+
+    // Check for non-EVM chain block explorer
+    if (isNonEvmChainId(chainId)) {
+      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
+    }
+
+    return blockExplorer;
+  };
+
+  /**
    * Updates transactionDetails for multilayer fee networks (e.g. for Optimism).
    */
   updateTransactionDetails = async () => {
@@ -227,14 +268,11 @@ class TransactionDetails extends PureComponent {
       networkConfigurations,
     } = this.props;
 
-    let blockExplorer =
-      networkConfigurations?.[chainId]?.blockExplorerUrls[
-        networkConfigurations[chainId]?.defaultBlockExplorerUrlIndex
-      ] || NO_RPC_BLOCK_EXPLORER;
-
-    if (isNonEvmChainId(chainId)) {
-      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
-    }
+    const blockExplorer = this.getBlockExplorerForChain(
+      chainId,
+      txChainId,
+      networkConfigurations,
+    );
     this.setState({ rpcBlockExplorer: blockExplorer });
     this.updateTransactionDetails();
   };
@@ -446,21 +484,19 @@ class TransactionDetails extends PureComponent {
             chainId={chainId}
           />
         </View>
-
         {updatedTransactionDetails.hash &&
           status !== 'cancelled' &&
+          rpcBlockExplorer &&
           rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
             <TouchableOpacity
               onPress={this.viewOnEtherscan}
               style={styles.touchableViewOnEtherscan}
             >
-              {rpcBlockExplorer ? (
-                <Text reset style={styles.viewOnEtherscan}>
-                  {`${strings('transactions.view_on')} ${getBlockExplorerName(
-                    rpcBlockExplorer,
-                  )}`}
-                </Text>
-              ) : null}
+              <Text style={styles.viewOnEtherscan}>
+                {`${strings('transactions.view_on')} ${getBlockExplorerName(
+                  rpcBlockExplorer,
+                )}`}
+              </Text>
             </TouchableOpacity>
           )}
       </DetailsModal.Body>

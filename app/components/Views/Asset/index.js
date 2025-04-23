@@ -69,7 +69,9 @@ import {
 } from '../../../selectors/transactionController';
 import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
+import { isAssetFromSearch, selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -162,6 +164,7 @@ class Asset extends PureComponent {
     tokens: PropTypes.array,
     swapsIsLive: PropTypes.bool,
     swapsTokens: PropTypes.object,
+    searchDiscoverySwapsTokens: PropTypes.array,
     swapsTransactions: PropTypes.object,
     /**
      * Object that represents the current route info like params passed to it
@@ -518,13 +521,19 @@ class Asset extends PureComponent {
       ? isSwapsAllowed(asset.chainId)
       : isSwapsAllowed(chainId);
 
-    const isAssetAllowed =
-      asset.isETH ||
-      asset.isNative ||
-      asset.address?.toLowerCase() in this.props.swapsTokens;
+    let isAssetAllowed;
+    if (asset.isETH || asset.isNative) {
+      isAssetAllowed = true;
+    } else if (isAssetFromSearch(asset)) {
+      isAssetAllowed = this.props.searchDiscoverySwapsTokens?.includes(asset.address?.toLowerCase());
+    } else {
+      isAssetAllowed = asset.address?.toLowerCase() in this.props.swapsTokens;
+    }
 
     const displaySwapsButton =
       isNetworkAllowed && isAssetAllowed && AppConstants.SWAPS.ACTIVE;
+
+    const displayBridgeButton = isBridgeAllowed(asset.chainId);
 
     const displayBuyButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
@@ -541,6 +550,7 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
+                  displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
@@ -578,6 +588,7 @@ const mapStateToProps = (state, { route }) => ({
   swapsTokens: isPortfolioViewEnabled()
     ? swapsTokensMultiChainObjectSelector(state)
     : swapsTokensObjectSelector(state),
+  searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(state, route.params.chainId),
   swapsTransactions: selectSwapsTransactions(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),

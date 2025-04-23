@@ -242,6 +242,9 @@ export async function switchToNetwork({
       networkConfiguration.shortName,
     ticker: networkConfiguration.ticker || 'ETH',
     chainColor: networkConfiguration.color,
+    pageMeta: {
+      url: origin,
+    },
   };
 
   // for some reason this extra step is necessary for accessing the env variable in test environment
