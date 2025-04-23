@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   DefaultSectionT,
   SafeAreaView,
@@ -30,6 +36,7 @@ import ListItemColumn, {
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { endTrace, TraceName } from '../../../../util/trace';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -211,7 +218,7 @@ const RegionModal: React.FC<Props> = ({
       } else {
         onRegionPress(region);
       }
-
+      endTrace({ name: TraceName.SelectRampRegion });
       trackEvent('RAMP_REGION_SELECTED', {
         is_unsupported_onramp: !region.support.buy,
         is_unsupported_offramp: !region.support.sell,
@@ -320,6 +327,11 @@ const RegionModal: React.FC<Props> = ({
     setCurrentData(data || []);
     setSearchString('');
   }, [data]);
+
+  useEffect(() => {
+    if (!isVisible || data?.length === 0) return;
+    endTrace({ name: TraceName.DisplayRampRegionList });
+  }, [isVisible, data?.length]);
 
   return (
     <Modal

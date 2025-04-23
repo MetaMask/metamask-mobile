@@ -25,6 +25,7 @@ import { toTokenMinimalUnit } from '../../../../../util/number';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
+import { trace, endTrace, TraceName } from '../../../../../util/trace';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -262,6 +263,15 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+jest.mock('../../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    DisplayRampRegionList: 'DisplayRampRegionList',
+    SelectRampRegion: 'SelectRampRegion',
+  },
+}));
+
 describe('BuildQuote View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
@@ -429,10 +439,22 @@ describe('BuildQuote View', () => {
           getByRoleButton(mockUseRegionsValues.selectedRegion?.emoji),
         ),
       );
+      expect(trace).toHaveBeenCalledWith({
+        name: TraceName.DisplayRampRegionList,
+      });
+      // immediately assert the end trace because the data is mocked
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.DisplayRampRegionList,
+      });
+      expect(trace).toHaveBeenCalledWith({ name: TraceName.SelectRampRegion });
+
       await act(async () =>
         fireEvent.press(getByRoleButton(mockRegionsData[1].name)),
       );
       expect(mockSetSelectedRegion).toHaveBeenCalledWith(mockRegionsData[1]);
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.SelectRampRegion,
+      });
     });
   });
 

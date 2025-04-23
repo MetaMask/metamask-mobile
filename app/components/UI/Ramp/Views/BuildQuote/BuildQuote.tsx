@@ -83,6 +83,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { trace, TraceName } from '../../../../../util/trace';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -461,6 +462,8 @@ const BuildQuote = () => {
    */
 
   const handleChangeRegion = useCallback(() => {
+    trace({ name: TraceName.DisplayRampRegionList });
+    trace({ name: TraceName.SelectRampRegion });
     setAmountFocused(false);
     toggleRegionModal();
   }, [toggleRegionModal]);
