@@ -13,11 +13,6 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
-import {
-  convertDecimalToPercentage,
-  localizeLargeNumber,
-} from '../../../../util/number';
-import { formatCurrency } from '../../../../util/confirm-tx';
 import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
@@ -29,10 +24,7 @@ import { parseFloatSafe } from '../../Earn/utils';
 import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
-import {
-  selectMultichainAssetsRates,
-  selectNonEvmMarketData,
-} from '../../../../selectors/multichain';
+import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { formatWithThreshold } from '../../../../util/assets';
 
 export interface TokenDetails {
@@ -55,6 +47,40 @@ interface TokenDetailsProps {
   asset: TokenI;
 }
 
+const getTokenDetails = (
+  asset: TokenI,
+  isEvmNetworkSelected: boolean,
+  tokenContractAddress: string | undefined,
+  tokenMetadata: Record<string, string | number | string[]>,
+): TokenDetails => {
+  if (!isEvmNetworkSelected) {
+    return {
+      contractAddress: asset.address || null,
+      tokenDecimal: asset.decimals || null,
+      tokenList: asset.aggregators.join(', ') || null,
+    };
+  }
+
+  if (asset.isETH) {
+    return {
+      contractAddress: zeroAddress(),
+      tokenDecimal: 18,
+      tokenList: '',
+    };
+  }
+
+  return {
+    contractAddress: tokenContractAddress ?? null,
+    tokenDecimal:
+      typeof tokenMetadata?.decimals === 'number'
+        ? tokenMetadata.decimals
+        : null,
+    tokenList: Array.isArray(tokenMetadata?.aggregators)
+      ? tokenMetadata.aggregators.join(', ')
+      : null,
+  };
+};
+
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
   const nativeCurrency = useSelector((state: RootState) =>
@@ -73,18 +99,14 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
-  const tempData = multichainAssetsRates[asset.address as CaipAssetId];
+  const multichainAssetRates =
+    multichainAssetsRates[asset.address as CaipAssetId];
 
-  const nonEvmMarketData = tempData.marketData;
+  const nonEvmMarketData = multichainAssetRates?.marketData;
   const nonEvmMetadata = {
-    rate: Number(tempData.rate),
-    conversionTime: Number(tempData.conversionTime),
+    rate: Number(multichainAssetRates?.rate),
+    conversionTime: Number(multichainAssetRates?.conversionTime),
   };
-
-  // const { marketData: tempData.marketData, metadata: nonEvmMetadata } =
-  //   useSelector(selectNonEvmMarketData);
-
-  console.log('MULTICHAIN ASSETS RATES: ', nonEvmMarketData);
 
   const evmMarketData = useSelector((state: RootState) =>
     isEvmNetworkSelected
@@ -107,36 +129,22 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     [conversionRate],
   );
 
-  let tokenMetadata;
-  let marketData;
+  const tokenMetadata = isEvmNetworkSelected ? evmMarketData?.metadata : null;
+  const marketData = isEvmNetworkSelected
+    ? evmMarketData?.marketData
+    : nonEvmMarketData;
 
-  if (!isEvmNetworkSelected) {
-    marketData = nonEvmMarketData;
-  } else {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    tokenMetadata = evmMarketData?.metadata;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    marketData = evmMarketData?.marketData;
-  }
+  const tokenDetails: TokenDetails = getTokenDetails(
+    asset,
+    isEvmNetworkSelected,
+    tokenContractAddress,
+    tokenMetadata,
+  );
 
   if (!conversionRate || conversionRate < 0) {
     Logger.log('invalid conversion rate');
     return null;
   }
-
-  // const tokenDetails: TokenDetails = asset.isETH
-  //   ? {
-  //       contractAddress: zeroAddress(),
-  //       tokenDecimal: 18,
-  //       tokenList: '',
-  //     }
-  //   : {
-  //       contractAddress: tokenContractAddress || null,
-  //       tokenDecimal: tokenMetadata?.decimals || null,
-  //       tokenList: tokenMetadata?.aggregators.join(', ') || null,
-  //     };
 
   const marketDetails: MarketDetails = {
     marketCap:
@@ -249,18 +257,18 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
         : null,
   };
 
-  // const hasAssetBalance =
-  //   asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
+  const hasAssetBalance =
+    asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
 
   return (
     <View style={styles.tokenDetailsContainer}>
-      {/* {asset.isETH && <StakingEarnings asset={asset} />} */}
-      {/* {isStablecoinLendingFeatureEnabled() &&
+      {asset.isETH && <StakingEarnings asset={asset} />}
+      {isStablecoinLendingFeatureEnabled() &&
         isSupportedLendingTokenByChainId(asset.symbol, asset.chainId ?? '') &&
-        hasAssetBalance && <EarnEmptyStateCta token={asset} />} */}
-      {/* {(asset.isETH || tokenMetadata) && (
+        hasAssetBalance && <EarnEmptyStateCta token={asset} />}
+      {(asset.isETH || tokenMetadata || !isEvmNetworkSelected) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
-      )} */}
+      )}
       {marketData && <MarketDetailsList marketDetails={marketDetails} />}
     </View>
   );
