@@ -91,7 +91,6 @@ describe('refreshMetadata', () => {
 
 describe('removeNft', () => {
   const mockRemoveAndIgnoreNft = jest.fn();
-  const mockRemoveFavoriteCollectible = jest.fn();
   const mockLongPressedCollectible = {
     address: '0xabc123',
     tokenId: '789',
