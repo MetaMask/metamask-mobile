@@ -438,29 +438,4 @@ export const selectSolanaAccountTransactions = createDeepEqualSelector(
   },
 );
 
-export const selectNonEvmMarketData = createDeepEqualSelector(() => {
-  return {
-    metadata: {
-      rate: 192,
-      conversionTime: 1,
-    },
-    marketData: {
-      marketCap: '58046480394.36662200758692138314',
-      totalVolume: '3267284490.49121393197975318582',
-      circulatingSupply: '512506275.4700137',
-      allTimeHigh: '262.1029666127304599094',
-      allTimeLow: '0.44751773816992952247',
-      pricePercentChange: {
-        PT1H: -0.7015657267954617,
-        P1D: 1.6270441732346845,
-        P7D: -10.985589910714582,
-        P14D: 2.557473792001135,
-        P30D: -11.519171371325216,
-        P200D: -4.453777067234332,
-        P1Y: -35.331458644625535,
-      },
-    },
-  };
-});
-
 ///: END:ONLY_INCLUDE_IF

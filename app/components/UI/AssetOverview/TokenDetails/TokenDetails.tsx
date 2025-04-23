@@ -1,7 +1,7 @@
 import { zeroAddress } from 'ethereumjs-util';
 import { CaipAssetId, Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
-import React, { useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import i18n from '../../../../../locales/i18n';
@@ -29,7 +29,8 @@ import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
-import { formatWithThreshold } from '../../../../util/assets';
+import { MarketDataDetails } from '@metamask/assets-controllers';
+import { formatMarketDetails } from '../utils/marketDetails';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -49,6 +50,11 @@ export interface MarketDetails {
 
 interface TokenDetailsProps {
   asset: TokenI;
+}
+
+interface EvmMarketData {
+  metadata?: Record<string, string | number | string[]>;
+  marketData?: MarketDataDetails;
 }
 
 const getTokenDetails = (
@@ -101,10 +107,13 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     ? safeToChecksumAddress(asset.address)
     : asset.address;
 
-  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
-
+  const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
   const multichainAssetRates =
-    multichainAssetsRates[asset.address as CaipAssetId];
+    allMultichainAssetsRates[asset.address as CaipAssetId];
+
+  const tokenSearchResult = useSelector((state: RootState) =>
+    selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
+  );
 
   const nonEvmMarketData = multichainAssetRates?.marketData;
   const nonEvmMetadata = {
@@ -119,7 +128,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
           tokenAddress: asset.address,
         })
       : null,
-  );
+  ) as EvmMarketData | null;
 
   const evmConversionRate = isAssetFromSearch(asset)
     ? 1
@@ -129,24 +138,16 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     ? evmConversionRate
     : nonEvmMetadata.rate;
 
-  const localizeMarketDetails = useCallback(
-    (value: number | undefined, shouldConvert: boolean): number | undefined => {
-      if (!value || value <= 0) return undefined;
-      return shouldConvert ? value * conversionRate : value;
-    },
-    [conversionRate],
-  );
-
-  const tokenResult = useSelector((state: RootState) =>
-    selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
-  );
-
   let marketData;
   let tokenMetadata;
 
-  if (isAssetFromSearch(asset) && tokenResult?.found && tokenResult.price) {
-    marketData = tokenResult.price;
-    tokenMetadata = tokenResult.token;
+  if (
+    isAssetFromSearch(asset) &&
+    tokenSearchResult?.found &&
+    tokenSearchResult.price
+  ) {
+    marketData = tokenSearchResult.price;
+    tokenMetadata = tokenSearchResult.token;
   } else {
     tokenMetadata = isEvmNetworkSelected ? evmMarketData?.metadata : null;
     marketData = isEvmNetworkSelected
@@ -154,128 +155,54 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
       : nonEvmMarketData;
   }
 
-  const tokenDetails: TokenDetails = getTokenDetails(
-    asset,
-    isEvmNetworkSelected,
-    tokenContractAddress,
-    tokenMetadata,
+  const tokenDetails = useMemo(
+    () =>
+      getTokenDetails(
+        asset,
+        isEvmNetworkSelected,
+        tokenContractAddress,
+        tokenMetadata as Record<string, string | number | string[]>,
+      ),
+    [asset, isEvmNetworkSelected, tokenContractAddress, tokenMetadata],
   );
+
+  const marketDetails = useMemo(() => {
+    if (!marketData) return null;
+
+    return formatMarketDetails(
+      {
+        marketCap: marketData.marketCap
+          ? Number(marketData.marketCap)
+          : undefined,
+        totalVolume: marketData.totalVolume
+          ? Number(marketData.totalVolume)
+          : undefined,
+        circulatingSupply: marketData.circulatingSupply
+          ? Number(marketData.circulatingSupply)
+          : undefined,
+        allTimeHigh: marketData.allTimeHigh
+          ? Number(marketData.allTimeHigh)
+          : undefined,
+        allTimeLow: marketData.allTimeLow
+          ? Number(marketData.allTimeLow)
+          : undefined,
+        dilutedMarketCap: (marketData as MarketDataDetails)?.dilutedMarketCap
+          ? Number((marketData as MarketDataDetails).dilutedMarketCap)
+          : undefined,
+      },
+      {
+        locale: i18n.locale,
+        currentCurrency,
+        isEvmNetworkSelected,
+        conversionRate,
+      },
+    );
+  }, [marketData, currentCurrency, isEvmNetworkSelected, conversionRate]);
 
   if (!conversionRate || conversionRate < 0) {
     Logger.log('invalid conversion rate');
     return null;
   }
-
-  const marketDetails: MarketDetails = {
-    marketCap:
-      marketData?.marketCap > 0
-        ? formatWithThreshold(
-            localizeMarketDetails(
-              Number(marketData.marketCap),
-              isEvmNetworkSelected,
-            ) ?? 0,
-            0.01,
-            i18n.locale,
-            {
-              style: 'currency',
-              notation: 'compact',
-              currency: currentCurrency,
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            },
-          )
-        : null,
-    totalVolume:
-      marketData?.totalVolume > 0
-        ? formatWithThreshold(
-            localizeMarketDetails(
-              Number(marketData.totalVolume),
-              isEvmNetworkSelected,
-            ) ?? 0,
-            0.01,
-            i18n.locale,
-            {
-              style: 'currency',
-              notation: 'compact',
-              currency: currentCurrency,
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            },
-          )
-        : null,
-    volumeToMarketCap:
-      marketData?.marketCap > 0
-        ? formatWithThreshold(
-            Number(marketData.totalVolume) / Number(marketData.marketCap),
-            0.0001,
-            i18n.locale,
-            {
-              style: 'percent',
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            },
-          )
-        : null,
-    circulatingSupply:
-      marketData?.circulatingSupply && marketData?.circulatingSupply > 0
-        ? formatWithThreshold(
-            Number(marketData.circulatingSupply),
-            0.01,
-            i18n.locale,
-            {
-              style: 'decimal',
-              notation: 'compact',
-              maximumFractionDigits: 2,
-              minimumFractionDigits: 2,
-            },
-          )
-        : null,
-    allTimeHigh:
-      marketData?.allTimeHigh > 0
-        ? formatWithThreshold(
-            localizeMarketDetails(
-              Number(marketData.allTimeHigh),
-              isEvmNetworkSelected,
-            ) ?? 0,
-            0.01,
-            i18n.locale,
-            {
-              style: 'currency',
-              currency: currentCurrency,
-            },
-          )
-        : null,
-    allTimeLow:
-      marketData?.allTimeLow > 0
-        ? formatWithThreshold(
-            localizeMarketDetails(
-              Number(marketData.allTimeLow),
-              isEvmNetworkSelected,
-            ) ?? 0,
-            0.01,
-            i18n.locale,
-            {
-              style: 'currency',
-              currency: currentCurrency,
-            },
-          )
-        : null,
-    fullyDiluted:
-      marketData?.dilutedMarketCap && marketData?.dilutedMarketCap > 0
-        ? formatWithThreshold(
-            Number(marketData.dilutedMarketCap),
-            0.01,
-            i18n.locale,
-            {
-              style: 'currency',
-              notation: 'compact',
-              currency: currentCurrency,
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            },
-          )
-        : null,
-  };
 
   const hasAssetBalance =
     asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
@@ -289,7 +216,9 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
       {(asset.isETH || tokenMetadata || !isEvmNetworkSelected) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}
-      {marketData && <MarketDetailsList marketDetails={marketDetails} />}
+      {marketData && marketDetails && (
+        <MarketDetailsList marketDetails={marketDetails} />
+      )}
     </View>
   );
 };
