@@ -1,5 +1,4 @@
 import { Hex } from '@metamask/utils';
-import { getDecimalChainId } from '../../util/networks';
 import { useState, useEffect } from 'react';
 
 export type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y';

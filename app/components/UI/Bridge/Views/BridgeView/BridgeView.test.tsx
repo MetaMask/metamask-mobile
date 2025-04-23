@@ -22,6 +22,23 @@ jest.mock('../../../../../core/Engine', () => ({
       fetchTopAssetsWithCache: jest.fn(),
       fetchTokenWithCache: jest.fn(),
     },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x1234567890123456789012345678901234567890'],
+            type: 'HD Key Tree',
+          },
+        ],
+      },
+    },
+    BridgeStatusController: {
+      submitTx: jest.fn().mockResolvedValue({ success: true }),
+    },
+    BridgeController: {
+      resetState: jest.fn(),
+      setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
+    },
   },
 }));
 
@@ -88,6 +105,7 @@ describe('BridgeView', () => {
       },
       { state: initialState },
     );
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -237,7 +255,7 @@ describe('BridgeView', () => {
   });
 
   describe('Bottom Content', () => {
-    it('should show "Select amount" when no amount is entered', () => {
+    it('displays "Select amount" when no amount is entered', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
@@ -249,7 +267,7 @@ describe('BridgeView', () => {
       expect(getByText('Select amount')).toBeTruthy();
     });
 
-    it('should show "Select amount" when amount is zero', () => {
+    it('displays "Select amount" when amount is zero', () => {
       const stateWithZeroAmount = {
         ...initialState,
         bridge: {
@@ -269,7 +287,7 @@ describe('BridgeView', () => {
       expect(getByText('Select amount')).toBeTruthy();
     });
 
-    it('should show "Insufficient balance" when amount exceeds balance', () => {
+    it('displays "Insufficient funds" when amount exceeds balance', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
@@ -291,7 +309,25 @@ describe('BridgeView', () => {
       expect(getByText('Insufficient funds')).toBeTruthy();
     });
 
-    it('should show Continue button and Terms link when amount is valid', () => {
+    it('displays "Fetching quote" when quotes are loading', () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.LOADING,
+        },
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      expect(getByText('Fetching quote')).toBeTruthy();
+    });
+
+    it('displays Continue button and Terms link when amount is valid', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
