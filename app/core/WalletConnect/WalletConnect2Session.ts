@@ -248,22 +248,22 @@ class WalletConnect2Session {
       const currentNamespaces = this.session.namespaces;
       const newChainId = `eip155:${chainIdDecimal}`;
       const updatedChains = [
-        ...new Set([...(currentNamespaces.eip155?.chains || []), newChainId]),
+        ...new Set([...(currentNamespaces?.eip155?.chains || []), newChainId]),
       ];
 
-      const accounts = [...new Set((currentNamespaces.eip155?.accounts || []).map((acc) => acc.split(':')[2]))].map((account) => `${newChainId}:${account}`);
+      const accounts = [...new Set((currentNamespaces?.eip155?.accounts || []).map((acc) => acc.split(':')[2]))].map((account) => `${newChainId}:${account}`);
 
       const updatedAccounts = [
-        ...new Set([...(currentNamespaces.eip155?.accounts || []), ...accounts]),
+        ...new Set([...(currentNamespaces?.eip155?.accounts || []), ...accounts]),
       ]
 
       const updatedNamespaces = {
         ...currentNamespaces,
         eip155: {
-          ...currentNamespaces.eip155,
+          ...(currentNamespaces?.eip155 || {}),
           chains: updatedChains,
-          methods: currentNamespaces.eip155.methods,
-          events: currentNamespaces.eip155.events,
+          methods: currentNamespaces?.eip155?.methods || [],
+          events: currentNamespaces?.eip155?.events || [],
           accounts: updatedAccounts,
         },
       };
