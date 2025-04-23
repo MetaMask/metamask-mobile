@@ -1,7 +1,9 @@
-import { TransactionStatus, TransactionType } from '@metamask/transaction-controller';
+import { TransactionMeta, TransactionStatus, TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
 import { generateContractInteractionState } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+// eslint-disable-next-line import/no-namespace
+import * as EditNonceHook from '../../../../../../components/hooks/useEditNonce';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 // eslint-disable-next-line import/no-namespace
@@ -81,7 +83,16 @@ describe('ContractInteraction', () => {
       status: TransactionStatus.unapproved,
       time: Date.now(),
       origin: 'https://metamask.github.io',
-    });
+    } as unknown as TransactionMeta);
+
+    jest.spyOn(EditNonceHook, 'useEditNonce')
+      .mockReturnValue({
+        setShowNonceModal: jest.fn(),
+        setUserSelectedNonce: jest.fn(),
+        showNonceModal: false,
+        proposedNonce: 10,
+        userSelectedNonce: 10,
+      });
   });
 
   it('renders "estimate changes" and "network fee" sections', () => {
