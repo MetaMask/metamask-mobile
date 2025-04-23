@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-  TransactionMeta,
-  TransactionStatus,
-} from '@metamask/transaction-controller';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import {
   BridgeHistoryItem,
   StatusTypes,
@@ -13,6 +10,7 @@ import Text, {
 import { Box } from '../../../Box/Box';
 import Segment from './Segment';
 import { FlexDirection } from '../../../Box/box.types';
+import { Transaction } from '@metamask/keyring-api';
 
 const getTxIndex = (srcTxStatus: StatusTypes) => {
   if (srcTxStatus === StatusTypes.PENDING) {
@@ -26,8 +24,8 @@ const getTxIndex = (srcTxStatus: StatusTypes) => {
   throw new Error('No more possible states for srcTxStatus');
 };
 
-const getSrcTxStatus = (initialTransaction: TransactionMeta) =>
-  initialTransaction.status === TransactionStatus.confirmed
+const getSrcTxStatus = (transactionStatus: TransactionStatus | Transaction['status']) =>
+  transactionStatus === TransactionStatus.confirmed
     ? StatusTypes.COMPLETE
     : StatusTypes.PENDING;
 
@@ -53,16 +51,16 @@ const getDestTxStatus = ({
  *
  * @param options
  * @param options.bridgeTxHistoryItem - The bridge history item for the transaction
- * @param options.transactionGroup - The transaction group for the transaction
+ * @param options.transactionStatus - The transaction status for the transaction. TransactionStatus is for EVM, Transaction['status'] is for Solana
  */
 export default function BridgeActivityItemTxSegments({
   bridgeTxHistoryItem,
-  transaction,
+  transactionStatus,
 }: {
   bridgeTxHistoryItem?: BridgeHistoryItem;
-  transaction: TransactionMeta;
+  transactionStatus: TransactionStatus | Transaction['status'];
 }) {
-  const srcTxStatus = getSrcTxStatus(transaction);
+  const srcTxStatus = getSrcTxStatus(transactionStatus);
   const destTxStatus = getDestTxStatus({ bridgeTxHistoryItem, srcTxStatus });
   const txIndex = getTxIndex(srcTxStatus);
 
