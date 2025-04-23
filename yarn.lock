@@ -4720,10 +4720,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^56.0.0":
-  version "56.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-56.0.0.tgz#195084ee2c45242d781567cf681b9cba2901b15b"
-  integrity sha512-td3EKzY+3eNYH7XwzprqL5DlbVTcp/IZX4XC/IpDy5Yc9yUe5Lcu5loydnauu7kINbCmWNGIqyKq5MyYDUgXfQ==
+"@metamask/assets-controllers@^58.0.0":
+  version "58.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-58.0.0.tgz#dd4997f5ad4ff40c87363ab4790e021dadeb024d"
+  integrity sha512-Tct/YcC6J62LJiQK1LXy8boQUSY69AFwrKEuSsE0cRzFSpM3SftMWzDVBE+li/mavSmWqPn12oj9VcYrIh1vvA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4740,7 +4740,7 @@
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/polling-controller" "^13.0.0"
     "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/snaps-utils" "^8.10.0"
+    "@metamask/snaps-utils" "^9.2.0"
     "@metamask/utils" "^11.2.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
@@ -5779,10 +5779,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.18.0":
-  version "1.18.0"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.18.0.tgz#289b751f37d9f7641a4975c1fc017cf7bb1c4794"
-  integrity sha512-v6LX6fVtUInKgbCkTpl3orhyaKCuq/s2MjOsRiv1zexzZDrJSp+8Np7f3RsQxK32MhwT9Xoef8PkEvEUgxNE4g==
+"@metamask/solana-wallet-snap@^1.22.0":
+  version "1.22.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.22.0.tgz#a7faf4907561be1ed47223edd72d2eb2344e7cf7"
+  integrity sha512-HdPIn9U6d0w5QRm0bpkUHKpz+4bxj87RXL067CNvjUbV4WE5i9sDi8kzPABE+EkI+POWQDknxellVjWKFrPkXg==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"

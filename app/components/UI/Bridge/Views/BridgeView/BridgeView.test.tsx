@@ -1,5 +1,5 @@
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { fireEvent, waitFor, act } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   setDestToken,
@@ -105,11 +105,6 @@ describe('BridgeView', () => {
       },
       { state: initialState },
     );
-
-    // Wait for any async operations to complete
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -260,7 +255,7 @@ describe('BridgeView', () => {
   });
 
   describe('Bottom Content', () => {
-    it('should show "Select amount" when no amount is entered', () => {
+    it('displays "Select amount" when no amount is entered', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
@@ -272,7 +267,7 @@ describe('BridgeView', () => {
       expect(getByText('Select amount')).toBeTruthy();
     });
 
-    it('should show "Select amount" when amount is zero', () => {
+    it('displays "Select amount" when amount is zero', () => {
       const stateWithZeroAmount = {
         ...initialState,
         bridge: {
@@ -292,7 +287,7 @@ describe('BridgeView', () => {
       expect(getByText('Select amount')).toBeTruthy();
     });
 
-    it('should show "Insufficient balance" when amount exceeds balance', () => {
+    it('displays "Insufficient funds" when amount exceeds balance', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
@@ -314,7 +309,25 @@ describe('BridgeView', () => {
       expect(getByText('Insufficient funds')).toBeTruthy();
     });
 
-    it('should show Continue button and Terms link when amount is valid', () => {
+    it('displays "Fetching quote" when quotes are loading', () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.LOADING,
+        },
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      expect(getByText('Fetching quote')).toBeTruthy();
+    });
+
+    it('displays Continue button and Terms link when amount is valid', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
