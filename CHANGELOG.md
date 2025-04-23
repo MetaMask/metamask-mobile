@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix(bridge): enhance UI/UX with improved input handling and layout adjustments ([#14781](https://github.com/MetaMask/metamask-mobile/pull/14781))
 - fix(swaps): set default slippage when source or destination token is not stablecoin ([#14730](https://github.com/MetaMask/metamask-mobile/pull/14730))
 
 ### Changed
