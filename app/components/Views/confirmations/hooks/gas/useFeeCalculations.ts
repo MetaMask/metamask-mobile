@@ -25,22 +25,36 @@ import { useSupportsEIP1559 } from '../transactions/useSupportsEIP1559';
 const HEX_ZERO = '0x0';
 
 export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
-  const { chainId } = transactionMeta;
+  const chainId = transactionMeta?.chainId;
   const { nativeCurrency } = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, chainId as Hex),
-  );
+  ) || {};
   const fiatFormatter = useFiatFormatter();
   const nativeConversionRate = useSelector((state: RootState) =>
     selectConversionRateByChainId(state, chainId as Hex),
   );
 
-  const gasPrice = transactionMeta?.txParams?.gasPrice || HEX_ZERO;
   const { maxFeePerGas, maxPriorityFeePerGas } =
     useEIP1559TxFees(transactionMeta);
   const { supportsEIP1559 } = useSupportsEIP1559(transactionMeta);
+  const { gasFeeEstimates } = useGasFeeEstimates(
+    transactionMeta?.networkClientId,
+  );
+
+  const gasPrice = transactionMeta?.txParams?.gasPrice ?? HEX_ZERO;
+  const estimatedBaseFee = (gasFeeEstimates as GasFeeEstimates)
+    ?.estimatedBaseFee;
 
   const getFeesFromHex = useCallback(
     (hexFee: string) => {
+      if (nativeConversionRate === undefined || nativeConversionRate === null || !nativeCurrency) {
+        return {
+          currentCurrencyFee: null,
+          nativeCurrencyFee: null,
+          preciseNativeFeeInHex: add0x(hexFee),
+        };
+      }
+
       const nativeConversionRateInBN = new BigNumber(
         nativeConversionRate as number,
       );
@@ -109,52 +123,54 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
     [fiatFormatter, nativeConversionRate, nativeCurrency],
   );
 
-  const { gasFeeEstimates } = useGasFeeEstimates(
-    transactionMeta.networkClientId,
-  );
-  const estimatedBaseFee = (gasFeeEstimates as GasFeeEstimates)
-    ?.estimatedBaseFee;
-
-  // Estimated fee
   const estimatedFees = useMemo(() => {
+    if (!transactionMeta || !estimatedBaseFee) {
+      return {
+        currentCurrencyFee: null,
+        nativeCurrencyFee: null,
+        preciseNativeFeeInHex: null,
+      };
+    }
+
+    const gasLimitNoBuffer = transactionMeta.gasLimitNoBuffer || HEX_ZERO;
+    const layer1GasFee = transactionMeta.layer1GasFee as Hex;
+
     let minimumFeePerGas = addHexes(
       decGWEIToHexWEI(estimatedBaseFee) || HEX_ZERO,
-      decimalToHex(maxPriorityFeePerGas),
+      decimalToHex(maxPriorityFeePerGas ?? 0),
     );
 
     const minimumFeePerGasBN = hexToBN(minimumFeePerGas as Hex);
 
     // `minimumFeePerGas` should never be higher than the `maxFeePerGas`
-    if (minimumFeePerGasBN.gt(hexToBN(maxFeePerGas as Hex))) {
+    if (maxFeePerGas && minimumFeePerGasBN.gt(hexToBN(maxFeePerGas as Hex))) {
       minimumFeePerGas = decimalToHex(maxFeePerGas) as Hex;
     }
-    const gasLimitNoBuffer = transactionMeta.gasLimitNoBuffer || HEX_ZERO;
+
     const estimatedFee = multiplyHexes(
       supportsEIP1559 ? (minimumFeePerGas as Hex) : (gasPrice as Hex),
       gasLimitNoBuffer as Hex,
     );
 
     // If there is a L1 and L2 component to the gas fee, add them together
-    const layer1GasFee = transactionMeta?.layer1GasFee as Hex;
     const hasLayer1GasFee = Boolean(layer1GasFee);
-    if (hasLayer1GasFee) {
+    if (hasLayer1GasFee && layer1GasFee) { // Ensure layer1GasFee is not null/undefined before adding
       const estimatedTotalFeesForL2 = addHexes(
         estimatedFee,
         layer1GasFee,
       ) as Hex;
-
       return getFeesFromHex(estimatedTotalFeesForL2);
     }
 
     return getFeesFromHex(estimatedFee);
   }, [
+    transactionMeta,
     estimatedBaseFee,
     getFeesFromHex,
-    gasPrice,
     maxFeePerGas,
     maxPriorityFeePerGas,
     supportsEIP1559,
-    transactionMeta,
+    gasPrice,
   ]);
 
   return {

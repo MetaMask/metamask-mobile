@@ -2,7 +2,12 @@ import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../../../../../styles/common';
 import { Theme } from '../../../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme; vars: { isEIP1559: boolean } }) => {
+const styleSheet = (
+  params: {
+    theme: Theme;
+    vars: { isEIP1559: boolean | undefined };
+  },
+) => {
   const { theme, vars } = params;
   const isEIP1559 = vars.isEIP1559;
 
