@@ -10,13 +10,13 @@ import { Country, State } from '@consensys/on-ramp-sdk';
 const isCountry = (region: Country | State | null): region is Country =>
   (region as Country).states !== undefined;
 
-const findDetectedRegion = (regions: (Country | State)[]): Region | null => {
+const findDetectedRegion = (regions: Region[]): Region | null => {
   const detectedRegion = regions.find((region) => region.detected);
   if (!detectedRegion) return null;
   if (isCountry(detectedRegion) && detectedRegion.states.length > 0) {
-    return findDetectedRegion(detectedRegion.states);
+    return findDetectedRegion(detectedRegion.states as Region[]);
   }
-  return detectedRegion as Region;
+  return detectedRegion;
 };
 
 export default function useRegions() {
