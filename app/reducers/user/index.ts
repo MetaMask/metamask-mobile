@@ -23,6 +23,8 @@ export const userInitialState: UserState = {
   appTheme: AppThemeKey.os,
   ambiguousAddressEntries: {},
   appServicesReady: false,
+  oauth2LoginSuccess: false,
+  oauth2LoginError: null,
 };
 
 /**
@@ -114,6 +116,25 @@ const userReducer = (
       return {
         ...state,
         appServicesReady: true,
+      };
+
+     case UserActionType.OAUTH2_LOGIN_SUCCESS:
+      return {
+        ...state,
+        oauth2LoginSuccess: true,
+        oauth2LoginExistingUser: action.payload.existingUser,
+      };
+    case UserActionType.OAUTH2_LOGIN_ERROR:
+      return {
+        ...state,
+        oauth2LoginSuccess: false,
+        oauth2LoginError: action.payload.error,
+      };
+    case UserActionType.OAUTH2_LOGIN_RESET:
+      return {
+        ...state,
+        oauth2LoginSuccess: false,
+        oauth2LoginError: null,
       };
     default:
       return state;

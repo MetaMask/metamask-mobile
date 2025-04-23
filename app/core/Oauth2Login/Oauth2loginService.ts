@@ -1,0 +1,159 @@
+import {
+    Platform
+} from 'react-native';
+import Engine from '../Engine';
+import Logger from '../../util/Logger';
+import ReduxService from '../redux';
+
+import { UserActionType } from '../../actions/user';
+import { HandleOauth2LoginResult, OAuthProvider, GroupedAuthConnectionId, AuthConnectionId, ByoaResponse } from './Oauth2loginInterface';
+import { jwtDecode, JwtPayload } from 'jwt-decode';
+import { TOPRFNetwork } from '../Engine/controllers/seedless-onboarding-controller';
+import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import { ByoaServerUrl, createLoginHandler, getByoaTokens } from './Ouath2LoginHandler';
+
+export interface Oauth2LoginServiceConfig {
+    authConnectionId: string;
+    groupedAuthConnectionId: string;
+    web3AuthNetwork: Web3AuthNetwork;
+    byoaServerUrl: string;
+}
+
+export class Oauth2LoginService {
+    public localState: {
+        loginInProgress: boolean;
+        userId: string | null;
+    };
+
+    public config : {
+        authConnectionId: string;
+        groupedAuthConnectionId: string;
+        web3AuthNetwork: Web3AuthNetwork;
+        byoaServerUrl: string;
+    };
+
+    constructor(config: Oauth2LoginServiceConfig) {
+        const { byoaServerUrl, web3AuthNetwork, authConnectionId, groupedAuthConnectionId} = config;
+        this.localState = {
+            loginInProgress: false,
+            userId: null,
+        };
+        this.config = {
+            authConnectionId,
+            groupedAuthConnectionId,
+            web3AuthNetwork,
+            byoaServerUrl
+        };
+    }
+
+    #dispatchLogin = () =>{
+        this.updateLocalState({loginInProgress: true});
+        ReduxService.store.dispatch({
+            type: UserActionType.LOADING_SET,
+            payload: {
+                loadingMsg: 'Logging in...',
+            },
+        });
+    };
+
+    #dispatchPostLogin = (result: HandleOauth2LoginResult) => {
+        this.updateLocalState({loginInProgress: false});
+        if (result.type === 'success') {
+            ReduxService.store.dispatch({
+                type: UserActionType.OAUTH2_LOGIN_SUCCESS,
+                payload: {
+                    existingUser: result.existingUser,
+                },
+            });
+        } else if (result.type === 'error' && 'error' in result) {
+            this.clearVerifierDetails();
+            ReduxService.store.dispatch({
+                type: UserActionType.OAUTH2_LOGIN_ERROR,
+                payload: {
+                    error: result.error,
+                },
+            });
+        } else {
+            ReduxService.store.dispatch({
+                type: UserActionType.OAUTH2_LOGIN_RESET,
+            });
+        }
+        ReduxService.store.dispatch({
+            type: UserActionType.LOADING_UNSET,
+        });
+    };
+
+    handleSeedlessAuthenticate = async (data : ByoaResponse ) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean, accountName?: string}> => {
+        try {
+            const jwtPayload = jwtDecode(data.jwt_tokens.metamask) as JwtPayload & {email?: string};
+            const userId = jwtPayload.sub ?? '';
+            const accountName = jwtPayload.email ?? '';
+            this.updateLocalState({
+                userId,
+            });
+
+            const result = await Engine.context.SeedlessOnboardingController.authenticate({
+                idTokens: Object.values(data.jwt_tokens),
+                authConnectionId: this.config.authConnectionId,
+                groupedAuthConnectionId: this.config.groupedAuthConnectionId,
+                userId,
+            });
+            Logger.log('handleCodeFlow: result', result);
+            return {type: 'success', existingUser: !result.isNewUser, accountName};
+        } catch (error) {
+            Logger.error( error as Error, {
+                message: 'handleCodeFlow',
+            } );
+            return {type: 'error', existingUser: false, error: error instanceof Error ? error.message : 'Unknown error'};
+        }
+    };
+
+    handleOauth2Login = async (provider: OAuthProvider) : Promise<HandleOauth2LoginResult> => {
+        const web3AuthNetwork = this.config.web3AuthNetwork;
+
+        if (this.localState.loginInProgress) {
+            throw new Error('Login already in progress');
+        }
+        this.#dispatchLogin();
+
+        try {
+            const loginHandler = createLoginHandler(Platform.OS, provider);
+            const result = await loginHandler.login();
+
+            Logger.log('handleOauth2Login: result', result);
+            if (result) {
+                const data = await getByoaTokens( {...result, web3AuthNetwork}, this.config.byoaServerUrl);
+                const handleCodeFlowResult = await this.handleSeedlessAuthenticate(data);
+                this.#dispatchPostLogin(handleCodeFlowResult);
+                return handleCodeFlowResult;
+            }
+            this.#dispatchPostLogin({type: 'dismiss', existingUser: false});
+            return {type: 'dismiss', existingUser: false};
+        } catch (error) {
+            Logger.error( error as Error, {
+                message: 'handleOauth2Login',
+            } );
+            this.#dispatchPostLogin({type: 'error', existingUser: false, error: error instanceof Error ? error.message : 'Unknown error'});
+            return {type: 'error', existingUser: false, error: error instanceof Error ? error.message : 'Unknown error'};
+        }
+    };
+
+    updateLocalState = (newState: Partial<Oauth2LoginService['localState']>) => {
+        this.localState = {
+            ...this.localState,
+            ...newState,
+        };
+    };
+
+    getVerifierDetails = () => ({
+        authConnectionId: this.config.authConnectionId,
+        groupedAuthConnectionId: this.config.groupedAuthConnectionId,
+        userId: this.localState.userId,
+    });
+
+    clearVerifierDetails = () => {
+        this.localState.userId = null;
+    };
+}
+
+export default new Oauth2LoginService({web3AuthNetwork: TOPRFNetwork, authConnectionId: AuthConnectionId, groupedAuthConnectionId: GroupedAuthConnectionId, byoaServerUrl: ByoaServerUrl});

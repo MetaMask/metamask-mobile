@@ -253,6 +253,12 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
+import {
+  SeedlessOnboardingController,
+  SeedlessOnboardingControllerState,
+  SeedlessOnboardingControllerStateChangeEvent,
+} from '@metamask/seedless-onboarding-controller';
+
 import { Hex } from '@metamask/utils';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
@@ -397,7 +403,8 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
-  | AppMetadataControllerEvents;
+  | AppMetadataControllerEvents
+  | SeedlessOnboardingControllerStateChangeEvent;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -470,6 +477,7 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  SeedlessOnboardingController: SeedlessOnboardingController;
 };
 
 /**
@@ -532,6 +540,7 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  SeedlessOnboardingController: SeedlessOnboardingControllerState;
 };
 
 /** Controller names */
@@ -583,7 +592,8 @@ export type ControllersToInitialize =
   | 'MultichainNetworkController'
   | 'TransactionController'
   | 'GasFeeController'
-  | 'SignatureController';
+  | 'SignatureController'
+  | 'SeedlessOnboardingController;
 
 /**
  * Callback that returns a controller messenger for a specific controller.

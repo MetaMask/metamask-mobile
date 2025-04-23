@@ -204,6 +204,7 @@ import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/util
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
+import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1112,6 +1113,7 @@ export class Engine {
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
+        SeedlessOnboardingController: seedlessOnboardingControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1123,7 +1125,7 @@ export class Engine {
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
-
+    const seedlessOnboardingController = controllersByName.SeedlessOnboardingController;
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1474,6 +1476,7 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
+      SeedlessOnboardingController: seedlessOnboardingController,
     };
 
     const childControllers = Object.assign({}, this.context);
