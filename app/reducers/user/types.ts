@@ -19,5 +19,4 @@ export interface UserState {
   appServicesReady: boolean;
   oauth2LoginError: string | null;
   oauth2LoginSuccess: boolean;
-  oauth2LoginExistingUser: boolean;
 }

@@ -25,7 +25,6 @@ export const userInitialState: UserState = {
   appServicesReady: false,
   oauth2LoginSuccess: false,
   oauth2LoginError: null,
-  oauth2LoginExistingUser: false,
 };
 
 /**
