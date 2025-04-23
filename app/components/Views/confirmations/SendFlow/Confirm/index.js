@@ -144,6 +144,9 @@ import SmartTransactionsMigrationBanner from '../../components/SmartTransactions
 import { isNativeToken } from '../../utils/generic';
 import { setTransactionSendFlowContextualChainId } from '../../../../../actions/transaction';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { selectAllTokens } from '../../../../../selectors/tokensController';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -881,7 +884,6 @@ class Confirm extends PureComponent {
    */
   validateAmount = ({ transaction }) => {
     const {
-      accounts,
       contractBalances,
       selectedAsset,
       ticker,
@@ -889,12 +891,20 @@ class Confirm extends PureComponent {
         transaction: { value },
       },
       updateTransactionMetrics,
+      allTokenBalances,
+      accountsByChainId,
+      sendFlowContextualChainId,
     } = this.props;
+    const account =
+      accountsByChainId?.[sendFlowContextualChainId]?.[transaction?.from];
     const { transactionMeta } = this.state;
     const { id: transactionId } = transactionMeta;
-
-    const selectedAddress = transaction?.from;
-    const weiBalance = hexToBN(accounts[selectedAddress].balance);
+    const tokenBalances =
+      allTokenBalances?.[transaction?.from.toLowerCase()]?.[
+        sendFlowContextualChainId
+      ];
+    // const selectedAddress = transaction?.from;
+    const weiBalance = hexToBN(account?.balance);
     const totalTransactionValue = hexToBN(value);
 
     if (!isDecimal(value)) {
@@ -924,7 +934,7 @@ class Confirm extends PureComponent {
 
     const insufficientTokenBalanceMessage = validateSufficientTokenBalance(
       transaction,
-      contractBalances,
+      tokenBalances,
       selectedAsset,
     );
 
@@ -1632,8 +1642,13 @@ const mapStateToProps = (state) => {
   };
   return {
     accounts: selectAccounts(state),
-    contractExchangeRates: selectContractExchangeRatesByChainId(state, chainId),
+    accountsByChainId: selectAccountsByChainId(state),
+    contractExchangeRates: selectContractExchangeRatesByChainId(
+      state,
+      sendFlowContextualChainId,
+    ),
     contractBalances: selectContractBalances(state),
+    allTokenBalances: selectAllTokenBalances(state),
     conversionRate: selectConversionRateByChainId(state, chainId),
     currentCurrency: selectCurrentCurrency(state),
     providerType: selectProviderTypeByChainId(state, chainId),
@@ -1664,6 +1679,7 @@ const mapStateToProps = (state) => {
       state,
       toHexadecimal(sendFlowContextualChainId),
     ),
+    allTokens: selectAllTokens(state),
   };
 };
 
