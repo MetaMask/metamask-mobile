@@ -1029,12 +1029,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   [
                     {
                       "flexDirection": "column",
-                      "textAlign": "right",
                     },
                     undefined,
                   ]
                 }
-                textAlign="right"
               >
                 <Text
                   accessibilityRole="text"
@@ -1047,6 +1045,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       "fontWeight": "500",
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "right",
                     }
                   }
                 >
@@ -1063,6 +1062,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "right",
                     }
                   }
                 >
@@ -2112,12 +2112,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                       [
                         {
                           "flexDirection": "column",
-                          "textAlign": "right",
                         },
                         undefined,
                       ]
                     }
-                    textAlign="right"
                   >
                     <Text
                       accessibilityRole="text"
@@ -2130,6 +2128,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                           "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
+                          "textAlign": "right",
                         }
                       }
                     >
@@ -2146,6 +2145,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                           "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
+                          "textAlign": "right",
                         }
                       }
                     >
@@ -2549,12 +2549,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   [
                                     {
                                       "flexDirection": "column",
-                                      "textAlign": "right",
                                     },
                                     undefined,
                                   ]
                                 }
-                                textAlign="right"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -2567,6 +2565,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "right",
                                     }
                                   }
                                 >
@@ -2583,6 +2582,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "right",
                                     }
                                   }
                                 >
@@ -2699,12 +2699,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   [
                                     {
                                       "flexDirection": "column",
-                                      "textAlign": "right",
                                     },
                                     undefined,
                                   ]
                                 }
-                                textAlign="right"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -2717,6 +2715,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "right",
                                     }
                                   }
                                 >
@@ -2733,6 +2732,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "right",
                                     }
                                   }
                                 >

@@ -256,9 +256,9 @@ export const selectMultichainTokenList = createDeepEqualSelector(
       const decimals = metadata.units[0]?.decimals || 0;
 
       tokens.push({
-        name: metadata?.name,
+        name: metadata?.name ?? '',
         address: assetId,
-        symbol: metadata?.symbol,
+        symbol: metadata?.symbol ?? '',
         image: metadata?.iconUrl,
         logo: metadata?.iconUrl,
         decimals,
