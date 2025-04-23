@@ -34,7 +34,28 @@ describe('useBridgeQuoteData', () => {
     });
 
     expect(result.current).toEqual({
-      activeQuote: mockQuotes[0],
+      activeQuote: {
+        ...mockQuotes[0],
+        adjustedReturn: { usd: null, valueInCurrency: null },
+        cost: { usd: null, valueInCurrency: null },
+        gasFee: { amount: '0', usd: null, valueInCurrency: null },
+        sentAmount: { amount: '0.5', usd: null, valueInCurrency: null },
+        swapRate: '114.112442',
+        toTokenAmount: { amount: '57.056221', usd: null, valueInCurrency: null },
+        totalMaxNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+        totalNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+      },
+      bestQuote: {
+        ...mockQuotes[0],
+        adjustedReturn: { usd: null, valueInCurrency: null },
+        cost: { usd: null, valueInCurrency: null },
+        gasFee: { amount: '0', usd: null, valueInCurrency: null },
+        sentAmount: { amount: '0.5', usd: null, valueInCurrency: null },
+        swapRate: '114.112442',
+        toTokenAmount: { amount: '57.056221', usd: null, valueInCurrency: null },
+        totalMaxNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+        totalNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+      },
       destTokenAmount: '57.06',
       formattedQuoteData: {
         networkFee: '44',
@@ -45,13 +66,15 @@ describe('useBridgeQuoteData', () => {
       },
       isLoading: false,
       quoteFetchError: null,
+      isNoQuotesAvailable: false,
     });
   });
 
   it('should handle no available quotes', () => {
     const bridgeControllerOverrides = {
       quotes: [],
-      quotesLoadingStatus: null,
+      quotesLoadingStatus: RequestStatus.FETCHED,
+      quotesLastFetched: 123,
       quoteFetchError: null,
     };
 
@@ -65,10 +88,12 @@ describe('useBridgeQuoteData', () => {
 
     expect(result.current).toEqual({
       activeQuote: undefined,
+      bestQuote: undefined,
       destTokenAmount: undefined,
       formattedQuoteData: undefined,
       isLoading: false,
       quoteFetchError: null,
+      isNoQuotesAvailable: true,
     });
   });
 
@@ -91,10 +116,22 @@ describe('useBridgeQuoteData', () => {
 
     expect(result.current).toEqual({
       activeQuote: undefined,
+      bestQuote: {
+        ...mockQuotes[0],
+        adjustedReturn: { usd: null, valueInCurrency: null },
+        cost: { usd: null, valueInCurrency: null },
+        gasFee: { amount: '0', usd: null, valueInCurrency: null },
+        sentAmount: { amount: '0.5', usd: null, valueInCurrency: null },
+        swapRate: '114.112442',
+        toTokenAmount: { amount: '57.056221', usd: null, valueInCurrency: null },
+        totalMaxNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+        totalNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+      },
       destTokenAmount: undefined,
       formattedQuoteData: undefined,
       isLoading: false,
       quoteFetchError: null,
+      isNoQuotesAvailable: false,
     });
   });
 
@@ -119,6 +156,7 @@ describe('useBridgeQuoteData', () => {
       formattedQuoteData: undefined,
       isLoading: true,
       quoteFetchError: null,
+      isNoQuotesAvailable: false,
     });
   });
 
@@ -144,6 +182,7 @@ describe('useBridgeQuoteData', () => {
       formattedQuoteData: undefined,
       isLoading: false,
       quoteFetchError: error,
+      isNoQuotesAvailable: false,
     });
   });
 });

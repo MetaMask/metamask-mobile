@@ -6,8 +6,8 @@ import { BridgeSourceTokenSelector } from './components/BridgeSourceTokenSelecto
 import SlippageModal from './components/SlippageModal';
 import { BridgeSourceNetworkSelector } from './components/BridgeSourceNetworkSelector';
 import { BridgeDestNetworkSelector } from './components/BridgeDestNetworkSelector';
-import BridgeView from '.';
 import QuoteInfoModal from './components/QuoteInfoModal';
+import BridgeView from './Views/BridgeView';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
 
 const clearStackNavigatorOptions = {
