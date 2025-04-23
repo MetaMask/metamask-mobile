@@ -31,6 +31,7 @@ import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import { formatMarketDetails } from '../utils/marketDetails';
+import { getTokenDetails } from '../utils/getTokenDetails';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -56,40 +57,6 @@ interface EvmMarketData {
   metadata?: Record<string, string | number | string[]>;
   marketData?: MarketDataDetails;
 }
-
-const getTokenDetails = (
-  asset: TokenI,
-  isEvmNetworkSelected: boolean,
-  tokenContractAddress: string | undefined,
-  tokenMetadata: Record<string, string | number | string[]>,
-): TokenDetails => {
-  if (!isEvmNetworkSelected) {
-    return {
-      contractAddress: asset.address || null,
-      tokenDecimal: asset.decimals || null,
-      tokenList: asset.aggregators.join(', ') || null,
-    };
-  }
-
-  if (asset.isETH) {
-    return {
-      contractAddress: zeroAddress(),
-      tokenDecimal: 18,
-      tokenList: '',
-    };
-  }
-
-  return {
-    contractAddress: tokenContractAddress ?? null,
-    tokenDecimal:
-      typeof tokenMetadata?.decimals === 'number'
-        ? tokenMetadata.decimals
-        : null,
-    tokenList: Array.isArray(tokenMetadata?.aggregators)
-      ? tokenMetadata.aggregators.join(', ')
-      : null,
-  };
-};
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});

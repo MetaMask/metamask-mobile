@@ -132,11 +132,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       image: asset.image,
     },
   });
-  // const goToBridge = () => console.log('goToBridge');
-  // const goToSwaps = () => console.log('toToSwaps');
-
-  // const prices = {};
-  // const isLoading = false;
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
@@ -268,7 +263,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     [handleSelectTimePeriod, timePeriod],
   );
 
-  // console.log(isEvmSelected);
   const itemAddress = isEvmSelected
     ? safeToChecksumAddress(asset.address)
     : asset.address;

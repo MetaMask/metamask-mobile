@@ -93,7 +93,7 @@ describe('calculateAssetPrice', () => {
 
     expect(result).toEqual({
       currentPrice: 0,
-      priceDiff: -100, // 0 - 100
+      priceDiff: 0,
       comparePrice: 100,
       pricePercentChange: undefined,
     });

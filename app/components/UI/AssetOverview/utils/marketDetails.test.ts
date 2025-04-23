@@ -82,7 +82,8 @@ describe('formatMarketDetails', () => {
     });
   });
 
-  it('should handle different locales correctly', () => {
+  it('should format market details correctly for French locale', () => {
+    // Test data with realistic market values
     const marketData = {
       marketCap: 1000000,
       totalVolume: 500000,
@@ -92,22 +93,28 @@ describe('formatMarketDetails', () => {
       dilutedMarketCap: 2000000,
     };
 
-    const deOptions = {
+    const frenchLocaleOptions = {
       ...mockOptions,
-      locale: 'de-DE',
+      locale: 'fr-FR',
       currentCurrency: 'EUR',
     };
 
-    const result = formatMarketDetails(marketData, deOptions);
+    const formattedMarketDetails = formatMarketDetails(
+      marketData,
+      frenchLocaleOptions,
+    );
 
-    expect(result).toEqual({
-      marketCap: '1,50\xa0Mio.\xa0€',
-      totalVolume: '750,00\xa0Tsd.\xa0€',
-      volumeToMarketCap: '50,00\xa0%',
-      circulatingSupply: '1,00\xa0Mio.',
-      allTimeHigh: '150,00\xa0€',
-      allTimeLow: '75,00\xa0€',
-      fullyDiluted: '3,00\xa0Mio.\xa0€',
-    });
+    // Expected French-formatted values with currency
+    const expectedFormattedValues = {
+      marketCap: '1,50\xa0M\xa0€', // 1.5M EUR
+      totalVolume: '750,00\xa0k\xa0€', // 750K EUR
+      volumeToMarketCap: '50,00\xa0%', // 50% volume to market cap ratio
+      circulatingSupply: '1,00\xa0M', // 1M tokens
+      allTimeHigh: '150,00\xa0€', // 150 EUR
+      allTimeLow: '75,00\xa0€', // 75 EUR
+      fullyDiluted: '3,00\xa0M\xa0€', // 3M EUR
+    };
+
+    expect(formattedMarketDetails).toEqual(expectedFormattedValues);
   });
 });
