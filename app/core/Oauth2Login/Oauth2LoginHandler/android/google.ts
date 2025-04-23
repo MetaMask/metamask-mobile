@@ -1,14 +1,25 @@
+import { jwtDecode } from "jwt-decode";
 import Logger from "../../../../util/Logger";
-import { LoginHandler, LoginHandlerIdTokenResult, OAuthProvider } from "../../Oauth2loginInterface";
+import { LoginHandler, LoginHandlerIdTokenResult, AuthConnection, OAuthUserInfo } from "../../Oauth2loginInterface";
 import { signInWithGoogle } from "react-native-google-acm";
 
 export class AndroidGoogleLoginHandler implements LoginHandler {
-    provider = OAuthProvider.Google
-    clientId
+    readonly #scope = ['email', 'profile'];
+
+    protected clientId: string;
+
+    get authConnection() {
+        return AuthConnection.Google;
+    }
+    
+    get scope() {
+        return this.#scope;
+    }
 
     constructor(params: {clientId: string}) {
         this.clientId = params.clientId
     }
+
     async login  (): Promise<LoginHandlerIdTokenResult | undefined> {
         const result = await signInWithGoogle({
             serverClientId: this.clientId,
@@ -19,7 +30,7 @@ export class AndroidGoogleLoginHandler implements LoginHandler {
     
         if (result.type === 'google-signin') {
             return {
-                provider: this.provider,
+                authConnection: this.authConnection,
                 idToken: result.idToken,
                 clientId: this.clientId,
             };

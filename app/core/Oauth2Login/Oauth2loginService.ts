@@ -6,17 +6,17 @@ import Logger from '../../util/Logger';
 import ReduxService from '../redux';
 
 import { UserActionType } from '../../actions/user';
-import { HandleOauth2LoginResult, OAuthProvider, GroupedAuthConnectionId, AuthConnectionId, ByoaResponse } from './Oauth2loginInterface';
+import { HandleOauth2LoginResult, AuthConnection, GroupedAuthConnectionId, AuthConnectionId, AuthResponse } from './Oauth2loginInterface';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { TOPRFNetwork } from '../Engine/controllers/seedless-onboarding-controller';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
-import { ByoaServerUrl, createLoginHandler, getByoaTokens } from './Oauth2LoginHandler';
+import { AuthServerUrl, createLoginHandler, getAuthTokens } from './Oauth2LoginHandler';
 
 export interface Oauth2LoginServiceConfig {
     authConnectionId: string;
     groupedAuthConnectionId: string;
     web3AuthNetwork: Web3AuthNetwork;
-    byoaServerUrl: string;
+    authServerUrl: string;
 }
 
 export class Oauth2LoginService {
@@ -25,15 +25,10 @@ export class Oauth2LoginService {
         userId: string | null;
     };
 
-    public config : {
-        authConnectionId: string;
-        groupedAuthConnectionId: string;
-        web3AuthNetwork: Web3AuthNetwork;
-        byoaServerUrl: string;
-    };
+    public config : Oauth2LoginServiceConfig;
 
     constructor(config: Oauth2LoginServiceConfig) {
-        const { byoaServerUrl, web3AuthNetwork, authConnectionId, groupedAuthConnectionId} = config;
+        const { authServerUrl, web3AuthNetwork, authConnectionId, groupedAuthConnectionId} = config;
         this.localState = {
             loginInProgress: false,
             userId: null,
@@ -42,7 +37,7 @@ export class Oauth2LoginService {
             authConnectionId,
             groupedAuthConnectionId,
             web3AuthNetwork,
-            byoaServerUrl
+            authServerUrl
         };
     }
 
@@ -83,11 +78,16 @@ export class Oauth2LoginService {
         });
     };
 
-    handleSeedlessAuthenticate = async (data : ByoaResponse ) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean, accountName?: string}> => {
+    handleSeedlessAuthenticate = async (data : AuthResponse ) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean, accountName?: string}> => {
         try {
-            const jwtPayload = jwtDecode(data.jwt_tokens.metamask) as JwtPayload & {email?: string};
+            if (!data.jwt_tokens.metamask) {
+                throw new Error('No token found');
+            }
+
+            const jwtPayload = jwtDecode(data.jwt_tokens.metamask) as Partial<OAuthUserInfo>;
             const userId = jwtPayload.sub ?? '';
             const accountName = jwtPayload.email ?? '';
+
             this.updateLocalState({
                 userId,
             });
@@ -108,7 +108,7 @@ export class Oauth2LoginService {
         }
     };
 
-    handleOauth2Login = async (provider: OAuthProvider) : Promise<HandleOauth2LoginResult> => {
+    handleOauth2Login = async (provider: AuthConnection) : Promise<HandleOauth2LoginResult> => {
         const web3AuthNetwork = this.config.web3AuthNetwork;
 
         if (this.localState.loginInProgress) {
@@ -122,7 +122,7 @@ export class Oauth2LoginService {
 
             Logger.log('handleOauth2Login: result', result);
             if (result) {
-                const data = await getByoaTokens( {...result, web3AuthNetwork}, this.config.byoaServerUrl);
+                const data = await getAuthTokens( {...result, web3AuthNetwork}, this.config.authServerUrl);
                 const handleCodeFlowResult = await this.handleSeedlessAuthenticate(data);
                 this.#dispatchPostLogin(handleCodeFlowResult);
                 return handleCodeFlowResult;
@@ -156,4 +156,4 @@ export class Oauth2LoginService {
     };
 }
 
-export default new Oauth2LoginService({web3AuthNetwork: TOPRFNetwork, authConnectionId: AuthConnectionId, groupedAuthConnectionId: GroupedAuthConnectionId, byoaServerUrl: ByoaServerUrl});
+export default new Oauth2LoginService({web3AuthNetwork: TOPRFNetwork, authConnectionId: AuthConnectionId, groupedAuthConnectionId: GroupedAuthConnectionId, authServerUrl: AuthServerUrl});
