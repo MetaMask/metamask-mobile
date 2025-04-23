@@ -1096,19 +1096,34 @@ class Amount extends PureComponent {
   };
 
   handleSelectedAssetBalance = (selectedAsset, renderableBalance) => {
-    const { accounts, selectedAddress, contractBalances } = this.props;
+    const {
+      accountsByChainId,
+      selectedAddress,
+      contractBalances,
+      sendFlowContextualChainId,
+      allTokenBalances,
+    } = this.props;
+    const asset =
+      accountsByChainId?.[sendFlowContextualChainId]?.[selectedAddress];
+
     let currentBalance;
+
     if (renderableBalance) {
       currentBalance = `${renderableBalance} ${selectedAsset.symbol}`;
     } else if (isNativeToken(selectedAsset)) {
-      currentBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${
+      currentBalance = `${renderFromWei(asset?.balance)} ${
         selectedAsset.symbol
       }`;
     } else {
-      currentBalance = `${renderFromTokenMinimalUnit(
-        contractBalances[selectedAsset.address],
+      const tokenBalances =
+        this.props.allTokenBalances?.[selectedAddress.toLowerCase()]?.[
+          sendFlowContextualChainId
+        ]?.[selectedAsset.address];
+      const tokenBalance = renderFromTokenMinimalUnit(
+        tokenBalances,
         selectedAsset.decimals,
-      )} ${selectedAsset.symbol}`;
+      );
+      currentBalance = `${tokenBalance} ${selectedAsset.symbol}`;
     }
     this.setState({ currentBalance });
   };
