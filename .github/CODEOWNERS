@@ -103,13 +103,13 @@ app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/snaps-dev
 # Wallet API Platform Team
  app/core/RPCMethods/                @MetaMask/wallet-api-platform-engineers
 
-# Staking Team
-app/components/UI/Stake              @MetaMask/metamask-staking
-app/core/Engine/controllers/earn-controller @MetaMask/metamask-staking
-app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-staking
-app/selectors/earnController         @MetaMask/metamask-staking
-**/Earn/**                           @MetaMask/metamask-staking
-**/earn/**                           @MetaMask/metamask-staking
+# Earn Team
+app/components/UI/Stake              @MetaMask/metamask-earn
+app/core/Engine/controllers/earn-controller @MetaMask/metamask-earn
+app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-earn
+app/selectors/earnController         @MetaMask/metamask-earn
+**/Earn/**                           @MetaMask/metamask-earn
+**/earn/**                           @MetaMask/metamask-earn
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets

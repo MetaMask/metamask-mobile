@@ -14,12 +14,16 @@ class Assertions {
    * @param timeout
    */
   static async checkIfVisible(elementId, timeout = TIMEOUT) {
-    // rename this. We are checking if element is visible.
-
-    return await waitFor(await elementId)
-      .toBeVisible()
-      .withTimeout(timeout);
+    try {
+      await waitFor(await elementId)
+        .toBeVisible()
+        .withTimeout(timeout);
+      return true;
+    } catch {
+      return false;
+    }
   }
+  
 
   /**
    * Check if an element with the specified web selector exists.

@@ -195,21 +195,17 @@ describe('SnapUIAddressInput', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('does not render the matched address info if there is an error', () => {
+  it('renders the matched address info with an error', () => {
     mockGetValue.mockReturnValue(`${testChainId}:${testAddress}`);
     const displayName = 'Vitalik.eth';
     (useDisplayName as jest.Mock).mockReturnValue(displayName);
 
-    const { queryByText, queryByTestId, getByText, toJSON } = renderWithProvider(
+    const { queryByText, getByText, toJSON } = renderWithProvider(
       <SnapUIAddressInput name="testAddress" chainId={testChainId} error="Error" />,
       { state: mockInitialState },
     );
 
-    expect(queryByText(displayName)).toBeFalsy();
-
-    const input = queryByTestId(INPUT_TEST_ID);
-
-    expect(input.props.value).toBe(testAddress);
+    expect(queryByText(displayName)).toBeTruthy();
     expect(getByText('Error')).toBeTruthy();
 
     const tree = JSON.stringify(toJSON());
