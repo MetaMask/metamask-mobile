@@ -25,8 +25,6 @@ import {
   selectSelectedDestChainId,
   setSourceAmount,
   resetBridgeState,
-  setSourceToken,
-  setDestToken,
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
@@ -62,11 +60,7 @@ import type { BridgeSourceTokenSelectorRouteParams } from '../../components/Brid
 import type { BridgeDestTokenSelectorRouteParams } from '../../components/BridgeDestTokenSelector';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { BridgeViewMode } from '../../types';
-import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
-import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
-import { isSolanaChainId } from '@metamask/bridge-controller';
-import { CaipChainId, Hex } from '@metamask/utils';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -98,25 +92,7 @@ const BridgeView = () => {
   const { quoteRequest, quotesLastFetched } = useSelector(
     selectBridgeControllerState,
   );
-
-  const {
-    chainId: selectedEvmChainId, // Will be the most recently selected EVM chain if you are on Solana
-    domainIsConnectedDapp,
-    networkName: selectedNetworkName,
-  } = useNetworkInfo();
-  const {
-    onSetRpcTarget,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    onNonEvmNetworkChange,
-    ///: END:ONLY_INCLUDE_IF
-  } = useSwitchNetworks({
-    domainIsConnectedDapp,
-    selectedChainId: selectedEvmChainId,
-    selectedNetworkName,
-  });
-  const evmNetworkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
+  const { handleSwitchTokens } = useSwitchTokens();
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
 
@@ -257,27 +233,6 @@ const BridgeView = () => {
     // TODO: Implement terms and conditions navigation
   };
 
-  const handleArrowPress = async () => {
-    // Switch tokens
-    if (sourceToken && destToken) {
-      dispatch(setSourceToken(destToken));
-      dispatch(setDestToken(sourceToken));
-
-      if (sourceToken.chainId !== destToken.chainId) {
-        if (isSolanaChainId(destToken.chainId)) {
-          await onNonEvmNetworkChange(destToken.chainId as CaipChainId);
-        } else {
-          const evmNetworkConfiguration =
-            evmNetworkConfigurations[destToken.chainId as Hex];
-
-          if (evmNetworkConfiguration) {
-            await onSetRpcTarget(evmNetworkConfiguration);
-          }
-        }
-      }
-    }
-  };
-
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
@@ -389,7 +344,7 @@ const BridgeView = () => {
               <Box style={styles.arrowCircle}>
                 <ButtonIcon
                   iconName={IconName.Arrow2Down}
-                  onPress={handleArrowPress}
+                  onPress={handleSwitchTokens}
                   disabled={!destChainId || !destToken}
                   testID="arrow-button"
                 />
