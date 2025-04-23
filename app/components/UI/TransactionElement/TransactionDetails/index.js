@@ -264,7 +264,8 @@ class TransactionDetails extends PureComponent {
 
   componentDidMount = () => {
     const {
-      transactionObject: { chainId },
+      transactionObject: { chainId: txChainId },
+      chainId,
       networkConfigurations,
     } = this.props;
 
