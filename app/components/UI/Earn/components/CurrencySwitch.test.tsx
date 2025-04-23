@@ -3,16 +3,16 @@ import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import CurrencyToggle from './CurrencySwitch';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
+
+jest.mock('../selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn(),
+}));
 
 const mockInitialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          earnStablecoinLendingEnabled: false,
-        },
-      },
     },
   },
 };
@@ -25,6 +25,11 @@ describe('CurrencyToggle', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
   });
 
   const renderComponent = (state = mockInitialState, props = mockProps) =>
@@ -40,22 +45,13 @@ describe('CurrencyToggle', () => {
   });
 
   it('renders correctly when stablecoin lending is enabled and usd is currency', () => {
-    const mockStateWithStablecoinLendingEnabled = {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              earnStablecoinLendingEnabled: true,
-            },
-          },
-        },
-      },
-    };
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
 
-    const { getByTestId, getByText } = renderComponent(
-      mockStateWithStablecoinLendingEnabled,
-    );
+    const { getByTestId, getByText } = renderComponent();
 
     expect(getByTestId('currency-toggle')).toBeTruthy();
     expect(getByText('200.00')).toBeTruthy();

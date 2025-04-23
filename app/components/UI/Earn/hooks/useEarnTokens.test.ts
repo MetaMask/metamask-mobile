@@ -29,7 +29,7 @@ const mockInitialEarnControllerState: DeepPartial<EarnControllerState> = {
   },
 };
 
-const mockStateWithEarnFeatureFlags = ({
+const mockState = ({
   isEligibleToPoolStake = true,
 }: Partial<{
   isEligibleToPoolStake: boolean;
@@ -53,7 +53,7 @@ const mockStateWithEarnFeatureFlags = ({
   },
 });
 
-const initialState = mockStateWithEarnFeatureFlags();
+const initialState = mockState();
 
 jest.mock('../../../../selectors/multichain', () => ({
   selectAccountTokensAcrossChains: jest.fn(() => ({
@@ -78,9 +78,9 @@ interface MockEarnFeatureFlagOptions {
 }
 
 const mockEarnFeatureFlagSelectors = ({
-  pooledStakingEnabledFlag = false,
-  stablecoinLendingEnabledFlag = false,
-}: Partial<MockEarnFeatureFlagOptions> = {}) => {
+  pooledStakingEnabledFlag,
+  stablecoinLendingEnabledFlag,
+}: MockEarnFeatureFlagOptions) => {
   if (pooledStakingEnabledFlag) {
     (
       selectPooledStakingEnabledFlag as jest.MockedFunction<
@@ -149,9 +149,12 @@ describe('useEarnTokens', () => {
   });
 
   it('filters out pooled-staking tokens when pooled-staking feature flag is disabled', () => {
-    mockEarnFeatureFlagSelectors({ stablecoinLendingEnabledFlag: true });
+    mockEarnFeatureFlagSelectors({
+      pooledStakingEnabledFlag: false,
+      stablecoinLendingEnabledFlag: true,
+    });
 
-    const stateWithPooledStakingDisabled = mockStateWithEarnFeatureFlags();
+    const stateWithPooledStakingDisabled = mockState();
 
     const { result } = renderHookWithProvider(() => useEarnTokens(), {
       state: stateWithPooledStakingDisabled,
@@ -188,7 +191,7 @@ describe('useEarnTokens', () => {
       stablecoinLendingEnabledFlag: true,
     });
 
-    const stateWhereUserIsNotEligibleToStake = mockStateWithEarnFeatureFlags({
+    const stateWhereUserIsNotEligibleToStake = mockState({
       isEligibleToPoolStake: false,
     });
 
@@ -222,9 +225,12 @@ describe('useEarnTokens', () => {
   });
 
   it('filters out stablecoin lending tokens when stablecoin lending feature flag is disabled', () => {
-    mockEarnFeatureFlagSelectors({ pooledStakingEnabledFlag: true });
+    mockEarnFeatureFlagSelectors({
+      pooledStakingEnabledFlag: true,
+      stablecoinLendingEnabledFlag: false,
+    });
 
-    const stateWithLendingDisabled = mockStateWithEarnFeatureFlags();
+    const stateWithLendingDisabled = mockState();
 
     const { result } = renderHookWithProvider(() => useEarnTokens(), {
       state: stateWithLendingDisabled,
@@ -237,9 +243,12 @@ describe('useEarnTokens', () => {
   });
 
   it('returns empty array when pooled-staking and stablecoin lending are disabled', () => {
-    mockEarnFeatureFlagSelectors();
+    mockEarnFeatureFlagSelectors({
+      pooledStakingEnabledFlag: false,
+      stablecoinLendingEnabledFlag: false,
+    });
 
-    const stateWithStakingAndLendingDisabled = mockStateWithEarnFeatureFlags();
+    const stateWithStakingAndLendingDisabled = mockState();
 
     const { result } = renderHookWithProvider(() => useEarnTokens(), {
       state: stateWithStakingAndLendingDisabled,

@@ -130,6 +130,7 @@ describe('StakingButtons', () => {
     // Don't prevent users from unstaking
     expect(getByText('Unstake')).toBeDefined();
     expect(queryByText('Stake more')).toBeNull();
+    expect(queryByText('Stake')).toBeNull();
   });
 
   it('should switch to mainnet if the chain is not supported on press of stake button', async () => {

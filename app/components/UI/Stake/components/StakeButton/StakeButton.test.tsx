@@ -14,17 +14,12 @@ import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
-import { getVersion } from 'react-native-device-info';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 
 const mockNavigate = jest.fn();
-
-jest.mock('react-native-device-info', () => ({
-  getVersion: jest.fn(),
-}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -146,7 +141,6 @@ const renderComponent = (state = STATE_MOCK) =>
 describe('StakeButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (getVersion as jest.Mock).mockReturnValue('1.0.0');
   });
 
   it('renders correctly', () => {

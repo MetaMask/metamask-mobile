@@ -49,11 +49,6 @@ const initialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          earnStablecoinLendingEnabled: false,
-        },
-      },
     },
   },
   settings: {
@@ -340,7 +335,6 @@ describe('TokenDetails', () => {
       selectTokenMarketDataByChainId: {},
       selectConversionRateBySymbol: mockExchangeRate,
       selectNativeCurrencyByChainId: 'ETH',
-      // selectStablecoinLendingEnabledFlag: true,
     } as const;
 
     useSelectorSpy.mockImplementation((selectorOrCallback) => {

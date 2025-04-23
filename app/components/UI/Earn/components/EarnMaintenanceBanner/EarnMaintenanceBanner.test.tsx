@@ -3,15 +3,10 @@ import EarnMaintenanceBanner from '.';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
 
 describe('EarnMaintenanceBanner', () => {
-  const renderBanner = ({
-    isPooledStakingBannerEnabled = true,
-    isStablecoinLendingBannerEnabled = true,
-  }: Partial<{
-    isPooledStakingBannerEnabled: boolean;
-    isStablecoinLendingBannerEnabled: boolean;
-  }> = {}) =>
+  const renderBanner = () =>
     renderWithProvider(<EarnMaintenanceBanner />, {
       state: {
         ...initialRootState,
@@ -20,14 +15,6 @@ describe('EarnMaintenanceBanner', () => {
           backgroundState: {
             ...initialRootState.engine.backgroundState,
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                earnPooledStakingServiceInterruptionBannerEnabled:
-                  isPooledStakingBannerEnabled,
-                earnStablecoinLendingServiceInterruptionBannerEnabled:
-                  isStablecoinLendingBannerEnabled,
-              },
-            },
           },
         },
       },
@@ -37,5 +24,8 @@ describe('EarnMaintenanceBanner', () => {
     const { toJSON } = renderBanner();
 
     expect(toJSON()).toMatchSnapshot();
+    expect(
+      strings('earn.service_interruption_banner.maintenance_message'),
+    ).toBeDefined();
   });
 });

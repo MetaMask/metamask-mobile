@@ -44,7 +44,6 @@ import {
   EARN_INPUT_VIEW_ACTIONS,
   EarnInputViewProps,
 } from './EarnInputView.types';
-// eslint-disable-next-line import/no-namespace
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
 import {
   createMockToken,
@@ -243,11 +242,6 @@ const mockInitialState: DeepPartial<RootState> = {
           },
         },
       },
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          earnStablecoinLendingEnabled: false,
-        },
-      },
     },
   },
 };
@@ -298,7 +292,7 @@ describe('EarnInputView', () => {
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
     } as unknown as ReturnType<typeof useMetrics>);
 
-    selectStablecoinLendingEnabledFlagMock.mockImplementation(() => false);
+    selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
   });
 
   function render(
@@ -327,7 +321,7 @@ describe('EarnInputView', () => {
 
   describe('when erc20 token is selected', () => {
     it('renders the correct USDC token', async () => {
-      selectStablecoinLendingEnabledFlagMock.mockImplementation(() => true);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
       const { getByText, getAllByText } = render(EarnInputView, {
         params: {
