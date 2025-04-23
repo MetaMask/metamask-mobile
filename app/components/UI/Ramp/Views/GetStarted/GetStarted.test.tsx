@@ -35,11 +35,6 @@ jest.mock('../../hooks/useRampNetwork', () =>
   jest.fn(() => mockUseRampNetworkValue),
 );
 
-jest.mock('../../hooks/useRegions', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
 const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   getStarted: false,
   setGetStarted: jest.fn(),
@@ -57,6 +52,10 @@ const mockUseRegionInitialValues: Partial<ReturnType<typeof useRegions>> = {
   isDetecting: false,
   selectedRegion: null,
 };
+
+jest.mock('../../hooks/useRegions', () =>
+  jest.fn(() => mockUseRegionInitialValues),
+);
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
   ...mockuseRampSDKInitialValues,

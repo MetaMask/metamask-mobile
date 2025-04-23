@@ -46,9 +46,6 @@ describe('useRegions', () => {
     };
   });
 
-  const renderHookWithMockedNavigation = (hook: () => any) =>
-    renderHookWithProvider(() => hook());
-
   it('calls useSDKMethod with the correct parameters', () => {
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
@@ -58,7 +55,7 @@ describe('useRegions', () => {
       },
       jest.fn(),
     ]);
-    renderHookWithMockedNavigation(() => useRegions());
+    renderHookWithProvider(() => useRegions());
 
     expect(useSDKMethod).toHaveBeenCalledWith('getCountries');
   });
@@ -73,7 +70,7 @@ describe('useRegions', () => {
       },
       mockQueryGetCountries,
     ]);
-    const { result } = renderHookWithMockedNavigation(() => useRegions());
+    const { result } = renderHookWithProvider(() => useRegions());
 
     expect(result.current).toEqual({
       data: null,
@@ -97,7 +94,7 @@ describe('useRegions', () => {
       },
       mockQueryGetCountries,
     ]);
-    const { result } = renderHookWithMockedNavigation(() => useRegions());
+    const { result } = renderHookWithProvider(() => useRegions());
 
     expect(result.current).toEqual({
       data: null,
@@ -125,7 +122,7 @@ describe('useRegions', () => {
       },
       mockQueryGetCountries,
     ]);
-    renderHookWithMockedNavigation(() => useRegions());
+    renderHookWithProvider(() => useRegions());
 
     expect(mockUseRampSDKValues.setSelectedRegion).toHaveBeenCalledWith({
       id: 'detected-1',
@@ -154,7 +151,7 @@ describe('useRegions', () => {
       },
       mockQueryGetCountries,
     ]);
-    renderHookWithMockedNavigation(() => useRegions());
+    renderHookWithProvider(() => useRegions());
 
     expect(mockUseRampSDKValues.setSelectedRegion).toHaveBeenCalledWith({
       id: 'state-2',
@@ -179,7 +176,7 @@ describe('useRegions', () => {
       },
       mockQueryGetCountries,
     ]);
-    renderHookWithMockedNavigation(() => useRegions());
+    renderHookWithProvider(() => useRegions());
 
     expect(mockUseRampSDKValues.setSelectedRegion).toHaveBeenCalledWith(null);
     expect(mockUseRampSDKValues.setUnsupportedRegion).toHaveBeenCalledWith({
@@ -209,7 +206,7 @@ describe('useRegions', () => {
       },
       mockQueryGetCountries,
     ]);
-    renderHookWithMockedNavigation(() => useRegions());
+    renderHookWithProvider(() => useRegions());
 
     expect(mockUseRampSDKValues.setUnsupportedRegion).toHaveBeenCalledWith({
       id: 'unsupported-sell-region',
@@ -238,7 +235,7 @@ describe('useRegions', () => {
       },
       mockQueryGetCountries,
     ]);
-    renderHookWithMockedNavigation(() => useRegions());
+    renderHookWithProvider(() => useRegions());
 
     expect(mockUseRampSDKValues.setUnsupportedRegion).toHaveBeenCalledWith({
       id: 'unsupported-buy-region',

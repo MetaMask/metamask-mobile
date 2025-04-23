@@ -7,23 +7,16 @@ import { Region } from '../types';
 import useSDKMethod from './useSDKMethod';
 import { Country, State } from '@consensys/on-ramp-sdk';
 
-export const isCountry = (region: Country | State | null): region is Country =>
+const isCountry = (region: Country | State | null): region is Country =>
   (region as Country).states !== undefined;
 
 const findDetectedRegion = (regions: (Country | State)[]): Region | null => {
-  for (const region of regions) {
-    if (region.detected) {
-      if (isCountry(region) && region.states.length > 0) {
-        const detectedState = region.states.find((state) => state.detected);
-        if (detectedState) {
-          return detectedState as Region;
-        }
-      } else {
-        return region as Region;
-      }
-    }
+  const detectedRegion = regions.find((region) => region.detected);
+  if (!detectedRegion) return null;
+  if (isCountry(detectedRegion) && detectedRegion.states.length > 0) {
+    return findDetectedRegion(detectedRegion.states);
   }
-  return null;
+  return detectedRegion as Region;
 };
 
 export default function useRegions() {
