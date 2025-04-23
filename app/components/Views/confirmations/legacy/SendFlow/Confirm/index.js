@@ -136,7 +136,6 @@ import {
   // eslint-disable-next-line no-restricted-syntax
   selectNetworkClientId,
   selectProviderTypeByChainId,
-  selectEvmChainId,
 } from '../../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import { updateTransactionToMaxValue } from './utils';
