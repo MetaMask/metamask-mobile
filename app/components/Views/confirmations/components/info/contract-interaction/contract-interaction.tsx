@@ -2,13 +2,13 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
-import AdvancedDetailsBottomSheet from '../../../../../UI/AdvancedDetailsBottomModal/AdvancedDetailsBottomModal';
 import { SimulationDetails } from '../../../../../UI/SimulationDetails/SimulationDetails';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import AccountNetworkInfo from '../../rows/account-network-info-row';
-import GasFeesDetails from '../../rows/transactions/gas-fee-details';
 import OriginRow from '../../rows/origin-row';
+import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
+import GasFeesDetails from '../../rows/transactions/gas-fee-details';
 import styleSheet from './contract-interaction.styles';
 
 const ContractInteraction = () => {
@@ -31,7 +31,7 @@ const ContractInteraction = () => {
       </View>
       <OriginRow isSignatureRequest={false} />
       <GasFeesDetails />
-      <AdvancedDetailsBottomSheet />
+      <AdvancedDetailsRow />
     </View>
   );
 };

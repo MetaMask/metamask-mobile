@@ -1,20 +1,20 @@
 import React from 'react';
-import { ConfirmationPageSectionsSelectorIDs } from '../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
-import { strings } from '../../../../locales/i18n';
-import Text, { TextColor, TextVariant } from '../../../component-library/components/Texts/Text';
-import { useEditNonce } from '../../hooks/useEditNonce';
-import { useStyles } from '../../hooks/useStyles';
-import ExpandableSection from '../../Views/confirmations/components/UI/expandable-section';
-import InfoRow from '../../Views/confirmations/components/UI/info-row';
-import InfoSection from '../../Views/confirmations/components/UI/info-row/info-section';
-import { useTransactionMetadataRequest } from '../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import CustomNonceModal from '../../Views/confirmations/legacy/SendFlow/components/CustomNonceModal';
-import Name from '../Name';
-import { NameType } from '../Name/Name.types';
-import styleSheet from './AdvancedDetailsBottomModal.styles';
+import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { strings } from '../../../../../../../../locales/i18n';
+import Text from '../../../../../../../component-library/components/Texts/Text/Text';
+import { TextColor, TextVariant } from '../../../../../../../component-library/components/Texts/Text/Text.types';
+import { useEditNonce } from '../../../../../../hooks/useEditNonce';
+import { useStyles } from '../../../../../../hooks/useStyles';
+import Name from '../../../../../../UI/Name';
+import { NameType } from '../../../../../../UI/Name/Name.types';
+import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
+import CustomNonceModal from '../../../../legacy/SendFlow/components/CustomNonceModal';
+import ExpandableSection from '../../../UI/expandable-section';
+import InfoRow from '../../../UI/info-row';
+import InfoSection from '../../../UI/info-row/info-section';
+import styleSheet from './advanced-details-row.styles';
 
-
-const AdvancedDetailsBottomSheet = () => {
+const AdvancedDetailsRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const {
@@ -90,4 +90,4 @@ const AdvancedDetailsBottomSheet = () => {
   );
 };
 
-export default AdvancedDetailsBottomSheet;
+export default AdvancedDetailsRow;
