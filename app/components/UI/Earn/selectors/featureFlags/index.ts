@@ -6,13 +6,14 @@ import { isProduction } from '../../../../../util/environment';
 import { EarnLaunchDarklyFlag } from './types';
 
 const hasMinimumRequiredVersion = (minRequiredVersion: string) => {
+  if (!minRequiredVersion) return false;
   const currentVersion = getVersion();
   return compareVersions.compare(currentVersion, minRequiredVersion, '>=');
 };
 
 const earnRemoteFeatureFlag = (remoteFlag: EarnLaunchDarklyFlag) =>
   Boolean(remoteFlag?.enabled) &&
-  hasMinimumRequiredVersion(remoteFlag.minimumVersion);
+  hasMinimumRequiredVersion(remoteFlag?.minimumVersion);
 
 const prioritizeFlagsByEnv = (
   localFlag: boolean,
