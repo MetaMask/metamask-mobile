@@ -258,6 +258,42 @@ export const addPermittedChain = async (hostname: string, chainId: string) => {
 };
 
 /**
+ * Remove a permitted chain for the given the host.
+ * 
+ * @param hostname - Subject to remove permitted chain. Ex: A Dapp is a subject
+ * @param chainId - ChainId to remove.
+ */
+export const removePermittedChain = async (hostname: string, chainId: string) => {
+  const { PermissionController } = Engine.context;
+  const caveat = PermissionController.getCaveat(
+    hostname,
+    PermissionKeys.permittedChains,
+    CaveatTypes.restrictNetworkSwitching
+  );
+
+  const currentPermittedChains = caveat.value;
+  if (!currentPermittedChains.includes(chainId)) {
+    return;
+  }
+
+  const newPermittedChains = currentPermittedChains.filter((chain: string) => chain !== chainId);
+
+  await PermissionController.grantPermissions({
+    approvedPermissions: {
+      [PermissionKeys.permittedChains]: {
+        caveats: [
+          { type: CaveatTypes.restrictNetworkSwitching, value: newPermittedChains },
+        ],
+      },
+    },
+    subject: {
+      origin: hostname,
+    },
+    preserveExistingPermissions: true,
+  });
+}
+
+/**
  * Get permitted chains for the given the host.
  *
  * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
