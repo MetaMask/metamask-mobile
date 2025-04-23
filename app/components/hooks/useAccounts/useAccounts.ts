@@ -475,7 +475,8 @@ const useAccounts = ({
       // Ensure index exists in account list.
       let safeStartingIndex = startingIndex;
       let mirrorIndex = safeStartingIndex - 1;
-      let latestENSbyAccountAddress: EnsByAccountAddress = {};
+      const latestENSbyAccountAddress: EnsByAccountAddress = {};
+      let hasChanges = false;
 
       if (startingIndex < 0) {
         safeStartingIndex = 0;
@@ -491,10 +492,8 @@ const useAccounts = ({
             chainId,
           );
           if (ens) {
-            latestENSbyAccountAddress = {
-              ...latestENSbyAccountAddress,
-              [address]: ens,
-            };
+            latestENSbyAccountAddress[address] = ens;
+            hasChanges = true;
           }
         } catch (e) {
           // ENS either doesn't exist or failed to fetch.
@@ -512,11 +511,25 @@ const useAccounts = ({
         }
         mirrorIndex--;
         safeStartingIndex++;
-        setENSByAccountAddress(latestENSbyAccountAddress);
+      }
+
+      // Only update state if we have new ENS names
+      if (hasChanges && isMountedRef.current) {
+        setENSByAccountAddress((prevState) => ({
+          ...prevState,
+          ...latestENSbyAccountAddress,
+        }));
       }
     },
     [chainId],
   );
+
+  // Create a stable reference to account IDs for the dependency array
+  const accountIds = useMemo(() => {
+    return internalAccounts.map((account) => account.id);
+  }, [internalAccounts]);
+
+  const accountIdsString = useMemo(() => accountIds.join(','), [accountIds]);
 
   // Memoize the balance calculation to prevent it from causing re-renders
   const accountBalances = useMemo(() => {
@@ -529,13 +542,17 @@ const useAccounts = ({
     > = {};
 
     internalAccounts.forEach((account) => {
-      const balanceForAccount = multichainBalancesForAllAccounts?.[account.id];
+      // Type assertion to make TypeScript happy with the index access
+      const balanceForAccount =
+        multichainBalancesForAllAccounts?.[
+          account.id as keyof typeof multichainBalancesForAllAccounts
+        ];
       const displayBalance = balanceForAccount
         ? `${balanceForAccount.displayBalance}\n${balanceForAccount.totalNativeTokenBalance} ${balanceForAccount.nativeTokenUnit}`
         : '';
 
       const error =
-        balanceForAccount.totalFiatBalance !== undefined
+        balanceForAccount?.totalFiatBalance !== undefined
           ? checkBalanceError?.(balanceForAccount.totalFiatBalance.toString())
           : undefined;
 
@@ -546,19 +563,39 @@ const useAccounts = ({
     });
 
     return balances;
-  }, [internalAccounts, multichainBalancesForAllAccounts, checkBalanceError]);
+  }, [
+    internalAccounts,
+    accountIdsString,
+    multichainBalancesForAllAccounts,
+    checkBalanceError,
+  ]);
 
+  // Create a stable reference to account identifiers for the getAccounts dependency array
+  const accountIdentifiers = useMemo(() => {
+    return internalAccounts.map(
+      (account) => `${account.id}:${account.address}:${account.metadata.name}`,
+    );
+  }, [internalAccounts]);
+
+  const accountIdentifiersString = useMemo(
+    () => accountIdentifiers.join(','),
+    [accountIdentifiers],
+  );
+
+  // Optimize getAccounts to be more stable
   const getAccounts = useCallback(() => {
     if (!isMountedRef.current) return;
+
     // Keep track of the Y position of account item. Used for scrolling purposes.
     let yOffset = 0;
     let selectedIndex = 0;
+    const selectedAddress = selectedInternalAccount?.address;
+
     const flattenedAccounts: Account[] = internalAccounts.map(
       (internalAccount: InternalAccount, index: number) => {
         const formattedAddress =
           getFormattedAddressFromInternalAccount(internalAccount);
-        const isSelected =
-          selectedInternalAccount?.address === internalAccount.address;
+        const isSelected = selectedAddress === internalAccount.address;
         if (isSelected) {
           selectedIndex = index;
         }
@@ -575,8 +612,6 @@ const useAccounts = ({
           type: internalAccount.metadata.keyring.type as KeyringTypes,
           yOffset,
           isSelected,
-          // TODO - Also fetch assets. Reference AccountList component.
-          // assets
           assets:
             isBalanceAvailable && accountBalance.displayBalance
               ? {
@@ -603,11 +638,13 @@ const useAccounts = ({
     );
     fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
   }, [
-    internalAccounts,
-    fetchENSNames,
+    // Stable dependencies
     selectedInternalAccount?.address,
-    accountBalances, // Use the memoized balances instead of multichainBalancesForAllAccounts
+    accountBalances,
     isMultiAccountBalancesEnabled,
+    fetchENSNames,
+    accountIdentifiersString,
+    internalAccounts,
   ]);
 
   useEffect(() => {

@@ -5,8 +5,10 @@ import React, {
   useEffect,
   useRef,
   useState,
+  useMemo,
 } from 'react';
 import { View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
 // External dependencies.
 import AccountSelectorList from '../../UI/AccountSelectorList';
@@ -33,7 +35,6 @@ import {
   AccountSelectorScreens,
 } from './AccountSelector.types';
 import styles from './AccountSelector.styles';
-import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -43,25 +44,43 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const renderCount = useRef(0);
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  // Memoize route params to prevent unnecessary re-renders
+  const routeParams = useMemo(() => route?.params, [route?.params]);
+
+  // Extract params from route once to avoid recalculations
   const {
     onSelectAccount,
     checkBalanceError,
     disablePrivacyMode,
     navigateToAddAccountActions,
-  } = route.params || {};
+  } = routeParams || {};
 
-  const { reloadAccounts } = useSelector((state: RootState) => state.accounts);
+  // Only select the specific state needed
+  const reloadAccounts = useSelector(
+    (state: RootState) => state.accounts.reloadAccounts,
+  );
+  const privacyMode = useSelector(selectPrivacyMode);
+
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
-  const privacyMode = useSelector(selectPrivacyMode);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { accounts, ensByAccountAddress } = useAccounts({
-    checkBalanceError,
-    isLoading: reloadAccounts,
-  });
+
+  // Memoize useAccounts parameters to prevent unnecessary recalculations
+  const accountsParams = useMemo(
+    () => ({
+      checkBalanceError,
+      isLoading: reloadAccounts,
+    }),
+    [checkBalanceError, reloadAccounts],
+  );
+
+  const { accounts, ensByAccountAddress } = useAccounts(accountsParams);
+
+  // Initialize screen state only once with initial value
   const [screen, setScreen] = useState<AccountSelectorScreens>(
-    navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
+    () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
 
   useEffect(() => {
@@ -73,12 +92,15 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   useEffect(() => {
     endTrace({ name: TraceName.AccountList });
   }, []);
+
+  // Handle reload accounts in a separate effect
   useEffect(() => {
     if (reloadAccounts) {
       dispatch(setReloadAccounts(false));
     }
   }, [dispatch, reloadAccounts]);
 
+  // Memoize handlers to prevent unnecessary re-renders
   const _onSelectAccount = useCallback(
     (address: string) => {
       Engine.setSelectedAddress(address);
@@ -105,7 +127,18 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [Engine],
   );
 
-  const renderAccountSelector = useCallback(
+  // Handler for adding accounts
+  const handleAddAccount = useCallback(() => {
+    setScreen(AccountSelectorScreens.AddAccountActions);
+  }, []);
+
+  // Handler for returning from add accounts screen
+  const handleBackToSelector = useCallback(() => {
+    setScreen(AccountSelectorScreens.AccountSelector);
+  }, []);
+
+  // Memoize the account selector rendering to prevent unnecessary re-renders
+  const renderAccountSelector = useMemo(
     () => (
       <Fragment>
         <SheetHeader title={strings('accounts.accounts_title')} />
@@ -124,7 +157,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             label={strings('account_actions.add_account_or_hardware_wallet')}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
-            onPress={() => setScreen(AccountSelectorScreens.AddAccountActions)}
+            onPress={handleAddAccount}
             testID={
               AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
             }
@@ -139,30 +172,29 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onRemoveImportedAccount,
       privacyMode,
       disablePrivacyMode,
+      handleAddAccount,
     ],
   );
 
-  const renderAddAccountActions = useCallback(
-    () => (
-      <AddAccountActions
-        onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
-      />
-    ),
-    [],
+  const renderAddAccountActions = useMemo(
+    () => <AddAccountActions onBack={handleBackToSelector} />,
+    [handleBackToSelector],
   );
 
-  const renderAccountScreens = useCallback(() => {
+  // Render the current screen based on state
+  const currentScreen = useMemo(() => {
     switch (screen) {
       case AccountSelectorScreens.AccountSelector:
-        return renderAccountSelector();
+        return renderAccountSelector;
       case AccountSelectorScreens.AddAccountActions:
-        return renderAddAccountActions();
+        return renderAddAccountActions;
       default:
-        return renderAccountSelector();
+        return renderAccountSelector;
     }
   }, [screen, renderAccountSelector, renderAddAccountActions]);
 
-  return <BottomSheet ref={sheetRef}>{renderAccountScreens()}</BottomSheet>;
+  return <BottomSheet ref={sheetRef}>{currentScreen}</BottomSheet>;
 };
 
-export default AccountSelector;
+// Use React.memo to prevent unnecessary re-renders
+export default React.memo(AccountSelector);
