@@ -91,14 +91,22 @@ export const useBridgeQuoteData = () => {
         }`
       : '--';
 
+    const networkFee = activeQuote.totalNetworkFee?.valueInCurrency;
+
     return {
-      networkFee: '44', // TODO: Needs quote metadata in bridge controller
+      networkFee,
       estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
       rate,
       priceImpact: `${priceImpactPercentage.toFixed(2)}%`, //TODO: Need to calculate this
       slippage: `${slippage}%`,
     };
-  }, [activeQuote, sourceToken, destToken, quoteRate, slippage]);
+  }, [
+    activeQuote,
+    quoteRate,
+    sourceToken?.symbol,
+    destToken?.symbol,
+    slippage,
+  ]);
 
   const isLoading = quotesLoadingStatus === RequestStatus.LOADING;
 
