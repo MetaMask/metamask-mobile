@@ -644,7 +644,7 @@ workflows:
           inputs:
             - content: |
                 envman add --key PRODUCTION_BUILD_STRING --value "MetaMask v${PRODUCTION_BUILD_NAME} (${PRODUCTION_BUILD_NUMBER})"
-                
+
                 BITRISE_GIT_BRANCH="qa-release"
                 VERSION_NAME="$PRODUCTION_BUILD_NAME" #  This value (PRODUCTION_BUILD_NAME) comes from the script to download the production build
                 VERSION_NUMBER="$PRODUCTION_BUILD_NUMBER" # This value (PRODUCTION_BUILD_NUMBER) comes from the script to download the production build
@@ -665,12 +665,12 @@ workflows:
 
                 # Set the environment variable
                 envman add --key PRODUCTION_APP_URL --value "$APP_URL"
-                
+
                 # Debug output
                 echo "Response: $RESPONSE"
                 echo "APP_URL: $APP_URL"
                 echo "PRODUCTION_APP_URL: $PRODUCTION_APP_URL"
-      
+
   build_ios_multichain_permissions_e2e:
     after_run:
       - ios_e2e_build
@@ -732,7 +732,7 @@ workflows:
       - TEST_SUITE_TAG: '.*NetworkExpansion.*'
     after_run:
       - android_e2e_test
-  
+
   run_wallet_platform_swimlane_ios_smoke:
     envs:
       - TEST_SUITE_TAG: '.*SmokeWalletPlatform.*'
@@ -930,7 +930,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-       
+
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
@@ -1568,13 +1568,13 @@ workflows:
                 set -o pipefail
                 APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/qa/release"
                 ORIGINAL_APK="$APK_DIR/app-qa-release.apk"
-                
-                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"                
+
+                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
-                
+
                 mv "$ORIGINAL_APK" "$APK_DIR/$CUSTOM_ID.apk"
                 APK_PATH="$APK_DIR/$CUSTOM_ID.apk"
-                
+
                 # Upload to app-automate
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
                     -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
@@ -1935,10 +1935,10 @@ workflows:
 
                 IPA_DIR="ios/build/output"
                 ORIGINAL_IPA="$IPA_DIR/MetaMask-QA.ipa"
-                
+
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
-                
+
                 mv "$ORIGINAL_IPA" "$IPA_DIR/$CUSTOM_ID.ipa"
                 IPA_PATH="$IPA_DIR/$CUSTOM_ID.ipa"
 
@@ -2210,13 +2210,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.44.0
+      VERSION_NAME: 7.44.99
     - opts:
         is_expand: false
       VERSION_NUMBER: 1685
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.44.0
+      FLASK_VERSION_NAME: 7.44.99
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 1685
