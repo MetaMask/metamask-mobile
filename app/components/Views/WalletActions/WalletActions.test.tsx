@@ -30,6 +30,7 @@ import {
 import Engine from '../../../core/Engine';
 import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
+import { trace, TraceName } from '../../../util/trace';
 
 jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
   sendMultichainTransaction: jest.fn(),
@@ -56,7 +57,9 @@ jest.mock('@metamask/bridge-controller', () => {
     ...actual,
     getNativeAssetForChainId: jest.fn((chainId) => {
       if (chainId === 'solana:mainnet') {
-        return actual.getNativeAssetForChainId('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
+        return actual.getNativeAssetForChainId(
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        );
       }
       return actual.getNativeAssetForChainId(chainId);
     }),
@@ -203,6 +206,14 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+// mock trace util
+jest.mock('../../../util/trace', () => ({
+  trace: jest.fn(),
+  TraceName: {
+    LoadRampExperience: 'LoadRampExperience',
+  },
+}));
+
 describe('WalletActions', () => {
   afterEach(() => {
     mockNavigate.mockClear();
@@ -314,6 +325,12 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
     );
     expect(mockNavigate).toHaveBeenCalled();
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: 'BUY',
+      },
+    });
   });
 
   it('should call the onSend function when the Send button is pressed', () => {
@@ -326,6 +343,12 @@ describe('WalletActions', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalled();
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: 'SELL',
+      },
+    });
   });
 
   it('should call the goToSwaps function when the Swap button is pressed', () => {

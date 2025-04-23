@@ -36,8 +36,13 @@ import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
 } from '../../UI/Ramp/routes/utils';
+import { trace, TraceName } from '../../../util/trace';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
-import { selectCanSignTransactions } from '../../../selectors/accountsController';
+// eslint-disable-next-line no-duplicate-imports, import/no-duplicates
+import {
+  selectCanSignTransactions,
+  selectSelectedInternalAccount,
+} from '../../../selectors/accountsController';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
 import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
@@ -45,11 +50,12 @@ import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constan
 import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
-// eslint-disable-next-line no-duplicate-imports, import/no-duplicates
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 ///: END:ONLY_INCLUDE_IF
-import { useSwapBridgeNavigation, SwapBridgeNavigationLocation } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -67,10 +73,11 @@ const WalletActions = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TabBar,
-    sourcePage: 'MainView',
-  });
+  const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } =
+    useSwapBridgeNavigation({
+      location: SwapBridgeNavigationLocation.TabBar,
+      sourcePage: 'MainView',
+    });
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -142,6 +149,13 @@ const WalletActions = () => {
         })
         .build(),
     );
+
+    trace({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: 'BUY',
+      },
+    });
   }, [
     closeBottomSheetAndNavigate,
     navigate,
@@ -164,6 +178,13 @@ const WalletActions = () => {
         })
         .build(),
     );
+
+    trace({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: 'SELL',
+      },
+    });
   }, [
     closeBottomSheetAndNavigate,
     navigate,
