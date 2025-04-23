@@ -90,7 +90,8 @@
     "start:flipper": "npx flipper-server",
     "gen-bundle:ios": "npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
     "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle",
-    "circular:deps": "dpdm ./app/* --circular --exit-code circular:1 --warning=false"
+    "circular:deps": "dpdm ./app/* --circular --exit-code circular:1 --warning=false",
+    "generate-icons": "npx ts-node app/component-library/components/Icons/Icon/scripts/generate-assets.ts"
   },
   "husky": {
     "hooks": {

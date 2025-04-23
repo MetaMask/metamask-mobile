@@ -106,6 +106,7 @@ import fingerprintSVG from './assets/fingerprint.svg';
 import fireSVG from './assets/fire.svg';
 import firstpageSVG from './assets/first-page.svg';
 import flagSVG from './assets/flag.svg';
+import flashslashSVG from './assets/flash-slash.svg';
 import flashSVG from './assets/flash.svg';
 import flaskSVG from './assets/flask.svg';
 import flowerSVG from './assets/flower.svg';
@@ -152,6 +153,7 @@ import minusboldSVG from './assets/minus-bold.svg';
 import minussquareSVG from './assets/minus-square.svg';
 import minusSVG from './assets/minus.svg';
 import mobileSVG from './assets/mobile.svg';
+import moneybagSVG from './assets/money-bag.svg';
 import moneySVG from './assets/money.svg';
 import monitorSVG from './assets/monitor.svg';
 import morehorizontalSVG from './assets/more-horizontal.svg';
@@ -379,6 +381,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Fire]: fireSVG,
   [IconName.FirstPage]: firstpageSVG,
   [IconName.Flag]: flagSVG,
+  [IconName.FlashSlash]: flashslashSVG,
   [IconName.Flash]: flashSVG,
   [IconName.Flask]: flaskSVG,
   [IconName.Flower]: flowerSVG,
@@ -425,6 +428,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.MinusSquare]: minussquareSVG,
   [IconName.Minus]: minusSVG,
   [IconName.Mobile]: mobileSVG,
+  [IconName.MoneyBag]: moneybagSVG,
   [IconName.Money]: moneySVG,
   [IconName.Monitor]: monitorSVG,
   [IconName.MoreHorizontal]: morehorizontalSVG,
