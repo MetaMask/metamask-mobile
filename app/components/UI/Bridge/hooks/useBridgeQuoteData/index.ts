@@ -100,13 +100,7 @@ export const useBridgeQuoteData = () => {
       priceImpact: `${priceImpactPercentage.toFixed(2)}%`, //TODO: Need to calculate this
       slippage: `${slippage}%`,
     };
-  }, [
-    activeQuote,
-    quoteRate,
-    sourceToken?.symbol,
-    destToken?.symbol,
-    slippage,
-  ]);
+  }, [activeQuote, sourceToken, destToken, quoteRate, slippage]);
 
   const isLoading = quotesLoadingStatus === RequestStatus.LOADING;
 
