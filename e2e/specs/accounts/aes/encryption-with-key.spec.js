@@ -52,7 +52,7 @@ describe(
       // Assert the address derived from SRP
       await Assertions.checkIfElementToHaveText(
         AesCryptoTestForm.accountAddress,
-        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+        '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
       );
 
       const encryptionKey = await AesCryptoTestForm.generateEncryptionKey(

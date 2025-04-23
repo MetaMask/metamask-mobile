@@ -13,7 +13,7 @@ import {
 } from '@metamask/chain-agnostic-permission';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
-  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
+  '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 
 export const DEFAULT_FIXTURE_ACCOUNT_2 =
   '0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da';
