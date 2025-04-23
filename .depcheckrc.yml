@@ -39,7 +39,6 @@ ignores:
   - 'eslint-plugin-prettier'
   - 'eslint-plugin-react-native'
   - 'execa'
-  - 'fbjs-scripts'
   - 'jetifier'
   - 'metro-react-native-babel-preset'
   - 'octonode'
