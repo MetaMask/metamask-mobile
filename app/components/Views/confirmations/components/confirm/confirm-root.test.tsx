@@ -29,7 +29,9 @@ describe('Confirm', () => {
       state: personalSignatureConfirmationState,
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenLastCalledWith(Routes.CONFIRM_MODAL);
+    expect(mockNavigate).toHaveBeenLastCalledWith(
+      Routes.MODAL_CONFIRMATION_REQUEST,
+    );
   });
 
   it('does not navigate if confirmation is standalone', async () => {

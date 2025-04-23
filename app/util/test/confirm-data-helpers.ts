@@ -940,3 +940,19 @@ export const generateContractInteractionState = {
     },
   },
 };
+
+export const transferConfirmationState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.simpleSend },
+          ],
+        } as unknown as TransactionControllerState,
+      },
+    },
+  },
+);

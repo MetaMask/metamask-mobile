@@ -4,16 +4,22 @@ import Device from '../../../../../util/device';
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: { isStakingConfirmationBool: boolean };
+  vars: {
+    isStakingConfirmationBool: boolean;
+    isStandaloneConfirmation: boolean;
+  };
 }) => {
   const {
     theme: { colors },
-    vars: { isStakingConfirmationBool },
+    vars: { isStakingConfirmationBool, isStandaloneConfirmation },
   } = params;
 
   const basePaddingBottom = Device.isIos()
-    ? (isStakingConfirmationBool ? 16 : 8)
-    : (isStakingConfirmationBool ? 36 : 28);
+    ? getIosBottomPadding(isStakingConfirmationBool, isStandaloneConfirmation)
+    : getAndroidBottomPadding(
+        isStakingConfirmationBool,
+        isStandaloneConfirmation,
+      );
 
   return StyleSheet.create({
     base: {
@@ -35,6 +41,26 @@ const styleSheet = (params: {
       justifyContent: 'center',
     },
   });
+};
+
+const getIosBottomPadding = (
+  isStakingConfirmationBool: boolean,
+  isStandaloneConfirmation: boolean,
+) => {
+  if (isStakingConfirmationBool) {
+    return 16;
+  }
+  return isStandaloneConfirmation ? 32 : 8;
+};
+
+const getAndroidBottomPadding = (
+  isStakingConfirmationBool: boolean,
+  isStandaloneConfirmation: boolean,
+) => {
+  if (isStakingConfirmationBool) {
+    return 36;
+  }
+  return isStandaloneConfirmation ? 42 : 28;
 };
 
 export default styleSheet;
