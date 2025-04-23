@@ -31,6 +31,11 @@ import Engine from '../../../core/Engine';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { trace, TraceName } from '../../../util/trace';
 import { RampType } from '../../../reducers/fiatOrders/types';
+import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+
+jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn(),
+}));
 
 jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
   sendMultichainTransaction: jest.fn(),
@@ -171,11 +176,6 @@ const mockInitialState: DeepPartial<RootState> = {
         }),
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          earnStablecoinLendingEnabled: false,
-        },
-      },
     },
   },
 };
@@ -254,41 +254,14 @@ describe('WalletActions', () => {
   });
 
   it('should render earn button if the stablecoin lending feature is enabled', () => {
-    const mockStateWithStablecoinLendingEnabled = {
-      swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
-      fiatOrders: {
-        networks: [
-          {
-            active: true,
-            chainId: '1',
-            chainName: 'Ethereum Mainnet',
-            nativeTokenSupported: true,
-          },
-        ],
-      },
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: CHAIN_IDS.MAINNET,
-              id: 'mainnet',
-              nickname: 'Ethereum Mainnet',
-              ticker: 'ETH',
-            }),
-          },
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              earnStablecoinLendingEnabled: true,
-            },
-          },
-        },
-      },
-    };
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockStateWithStablecoinLendingEnabled,
+      state: mockInitialState,
     });
 
     expect(
@@ -456,41 +429,14 @@ describe('WalletActions', () => {
   });
 
   it('should call the onEarn function when the Earn button is pressed', () => {
-    const mockStateWithStablecoinLendingEnabled = {
-      swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
-      fiatOrders: {
-        networks: [
-          {
-            active: true,
-            chainId: '1',
-            chainName: 'Ethereum Mainnet',
-            nativeTokenSupported: true,
-          },
-        ],
-      },
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: CHAIN_IDS.MAINNET,
-              id: 'mainnet',
-              nickname: 'Ethereum Mainnet',
-              ticker: 'ETH',
-            }),
-          },
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              earnStablecoinLendingEnabled: true,
-            },
-          },
-        },
-      },
-    };
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockStateWithStablecoinLendingEnabled,
+      state: mockInitialState,
     });
 
     fireEvent.press(
@@ -531,11 +477,6 @@ describe('WalletActions', () => {
                     methods: [],
                   },
                 },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                earnStablecoinLendingEnabled: true,
               },
             },
           },

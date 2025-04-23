@@ -20,6 +20,10 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 
+type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
+  typeof selectPooledStakingEnabledFlag
+>;
+
 const MOCK_ADDRESS_1 = '0x0';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
@@ -132,9 +136,9 @@ afterEach(() => {
 describe('StakingBalance', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockImplementation(
-      () => true,
-    );
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(true);
   });
 
   it('render matches snapshot', () => {
@@ -207,9 +211,9 @@ describe('StakingBalance', () => {
   });
 
   it('should not render stake cta if pooled staking is disabled', () => {
-    (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
-      false,
-    );
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(false);
 
     const { getByText, getByTestId, queryByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
@@ -256,9 +260,9 @@ describe('StakingBalance', () => {
 
   // We don't want to prevent users from withdrawing their ETH regardless of feature flags.
   it('should render unstake and claim buttons even if pooled-staking feature flag is disabled', () => {
-    (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
-      false,
-    );
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(false);
 
     const { getByText, getByTestId, queryByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,

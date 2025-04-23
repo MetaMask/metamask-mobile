@@ -12,6 +12,7 @@ import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventB
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 // eslint-disable-next-line import/no-namespace
 import * as useEarnTokenDetails from '../../../Earn/hooks/useEarnTokenDetails';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 jest.mock('../../../../hooks/useMetrics');
 
@@ -28,6 +29,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn(),
+}));
+
 const initialState = {
   ...initialRootState,
   engine: {
@@ -35,11 +40,6 @@ const initialState = {
     backgroundState: {
       ...initialRootState.engine.backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          earnStablecoinLendingEnabled: true,
-        },
-      },
     },
   },
 };
@@ -78,6 +78,14 @@ describe('EmptyStateCta', () => {
         balanceFiatNumber: 100,
       }),
     });
+  });
+
+  beforeEach(() => {
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
   });
 
   it('renders correctly', () => {
@@ -152,26 +160,13 @@ describe('EmptyStateCta', () => {
   });
 
   it('does not render if stablecoin lending feature flag disabled', () => {
-    const stateWithStablecoinLendingDisabled = {
-      ...initialRootState,
-      engine: {
-        ...initialRootState.engine,
-        backgroundState: {
-          ...initialRootState.engine.backgroundState,
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              earnStablecoinLendingEnabled: false,
-            },
-          },
-        },
-      },
-    };
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
 
-    const { toJSON } = renderComponent(
-      MOCK_USDC_MAINNET_ASSET,
-      stateWithStablecoinLendingDisabled,
-    );
+    const { toJSON } = renderComponent(MOCK_USDC_MAINNET_ASSET);
     expect(toJSON()).toBeNull();
   });
 });

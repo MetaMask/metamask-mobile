@@ -19,6 +19,10 @@ import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
 
+type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
+  typeof selectPooledStakingEnabledFlag
+>;
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
@@ -86,9 +90,9 @@ describe('StakingButtons', () => {
       dispatch: jest.fn(),
     } as unknown as NavigationProp<ParamListBase>);
 
-    (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
-      true,
-    );
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(true);
   });
 
   it('should render the stake and unstake buttons', () => {
@@ -106,9 +110,9 @@ describe('StakingButtons', () => {
   });
 
   it('should not render stake/stake more button if pooled staking is disabled', () => {
-    (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
-      false,
-    );
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(false);
 
     const props = {
       style: {},

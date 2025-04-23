@@ -14,6 +14,10 @@ import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
 } from '../../Stake/__mocks__/mockData';
 import { EarnControllerState } from '@metamask/earn-controller';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../selectors/featureFlags';
 
 const mockPooledStakeData = MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0];
 const mockExchangeRate = MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate;
@@ -26,13 +30,9 @@ const mockInitialEarnControllerState: DeepPartial<EarnControllerState> = {
 };
 
 const mockStateWithEarnFeatureFlags = ({
-  pooledStakingEnabled = true,
   isEligibleToPoolStake = true,
-  stablecoinLendingEnabled = true,
 }: Partial<{
-  pooledStakingEnabled: boolean;
   isEligibleToPoolStake: boolean;
-  stablecoinLendingEnabled: boolean;
 }> = {}) => ({
   ...initialRootState,
   engine: {
@@ -40,12 +40,6 @@ const mockStateWithEarnFeatureFlags = ({
     backgroundState: {
       ...initialRootState.engine.backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          earnPooledStakingEnabled: pooledStakingEnabled,
-          earnStablecoinLendingEnabled: stablecoinLendingEnabled,
-        },
-      },
       EarnController: {
         ...mockInitialEarnControllerState,
         pooled_staking: {
@@ -73,8 +67,62 @@ jest.mock('../../../../selectors/multichain', () => ({
   })),
 }));
 
+jest.mock('../selectors/featureFlags', () => ({
+  selectPooledStakingEnabledFlag: jest.fn(),
+  selectStablecoinLendingEnabledFlag: jest.fn(),
+}));
+
+interface MockEarnFeatureFlagOptions {
+  pooledStakingEnabledFlag: boolean;
+  stablecoinLendingEnabledFlag: boolean;
+}
+
+const mockEarnFeatureFlagSelectors = ({
+  pooledStakingEnabledFlag = false,
+  stablecoinLendingEnabledFlag = false,
+}: Partial<MockEarnFeatureFlagOptions> = {}) => {
+  if (pooledStakingEnabledFlag) {
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(true);
+  }
+
+  if (stablecoinLendingEnabledFlag) {
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
+  }
+};
+
+const resetMockedEarnFeatureFlagSelectors = () => {
+  (
+    selectPooledStakingEnabledFlag as jest.MockedFunction<
+      typeof selectPooledStakingEnabledFlag
+    >
+  ).mockReturnValue(false);
+
+  (
+    selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+      typeof selectStablecoinLendingEnabledFlag
+    >
+  ).mockReturnValue(false);
+};
+
 describe('useEarnTokens', () => {
+  beforeEach(() => {
+    resetMockedEarnFeatureFlagSelectors();
+  });
+
   it('returns all pooled-staking and supported stablecoins when all feature flags enabled and user is eligible', () => {
+    mockEarnFeatureFlagSelectors({
+      pooledStakingEnabledFlag: true,
+      stablecoinLendingEnabledFlag: true,
+    });
+
     const { result } = renderHookWithProvider(() => useEarnTokens(), {
       state: initialState,
     });
@@ -101,9 +149,9 @@ describe('useEarnTokens', () => {
   });
 
   it('filters out pooled-staking tokens when pooled-staking feature flag is disabled', () => {
-    const stateWithPooledStakingDisabled = mockStateWithEarnFeatureFlags({
-      pooledStakingEnabled: false,
-    });
+    mockEarnFeatureFlagSelectors({ stablecoinLendingEnabledFlag: true });
+
+    const stateWithPooledStakingDisabled = mockStateWithEarnFeatureFlags();
 
     const { result } = renderHookWithProvider(() => useEarnTokens(), {
       state: stateWithPooledStakingDisabled,
@@ -135,6 +183,11 @@ describe('useEarnTokens', () => {
   });
 
   it("filters out pooled-staking tokens when user isn't eligible to pool-stake", () => {
+    mockEarnFeatureFlagSelectors({
+      pooledStakingEnabledFlag: true,
+      stablecoinLendingEnabledFlag: true,
+    });
+
     const stateWhereUserIsNotEligibleToStake = mockStateWithEarnFeatureFlags({
       isEligibleToPoolStake: false,
     });
@@ -169,9 +222,9 @@ describe('useEarnTokens', () => {
   });
 
   it('filters out stablecoin lending tokens when stablecoin lending feature flag is disabled', () => {
-    const stateWithLendingDisabled = mockStateWithEarnFeatureFlags({
-      stablecoinLendingEnabled: false,
-    });
+    mockEarnFeatureFlagSelectors({ pooledStakingEnabledFlag: true });
+
+    const stateWithLendingDisabled = mockStateWithEarnFeatureFlags();
 
     const { result } = renderHookWithProvider(() => useEarnTokens(), {
       state: stateWithLendingDisabled,
@@ -184,10 +237,9 @@ describe('useEarnTokens', () => {
   });
 
   it('returns empty array when pooled-staking and stablecoin lending are disabled', () => {
-    const stateWithStakingAndLendingDisabled = mockStateWithEarnFeatureFlags({
-      pooledStakingEnabled: false,
-      stablecoinLendingEnabled: false,
-    });
+    mockEarnFeatureFlagSelectors();
+
+    const stateWithStakingAndLendingDisabled = mockStateWithEarnFeatureFlags();
 
     const { result } = renderHookWithProvider(() => useEarnTokens(), {
       state: stateWithStakingAndLendingDisabled,

@@ -18,6 +18,7 @@ describe('earnFeatureFlag selectors', () => {
 
   describe('selectPooledStakingEnabledFlag', () => {
     it('returns boolean feature flag', () => {
+      process.env.MM_POOLED_STAKING_ENABLED = 'true';
       const result = selectPooledStakingEnabledFlag(mockedState);
       expect(result).toBe(true);
     });
@@ -25,6 +26,9 @@ describe('earnFeatureFlag selectors', () => {
 
   describe('selectPooledStakingServiceInterruptionBannerEnabledFlag', () => {
     it('returns boolean feature flag', () => {
+      process.env.MM_POOLED_STAKING_SERVICE_INTERRUPTION_BANNER_ENABLED =
+        'true';
+
       const result =
         selectPooledStakingServiceInterruptionBannerEnabledFlag(mockedState);
       expect(result).toBe(true);
@@ -33,6 +37,7 @@ describe('earnFeatureFlag selectors', () => {
 
   describe('selectStablecoinLendingEnabledFlag', () => {
     it('returns boolean feature flag', () => {
+      process.env.MM_STABLECOIN_LENDING_UI_ENABLED = 'true';
       const result = selectStablecoinLendingEnabledFlag(mockedState);
       expect(result).toBe(true);
     });
@@ -40,6 +45,7 @@ describe('earnFeatureFlag selectors', () => {
 
   describe('selectStablecoinLendingServiceInterruptionBannerEnabledFlag', () => {
     it('returns boolean feature flag', () => {
+      process.env.MM_STABLE_COIN_SERVICE_INTERRUPTION_BANNER_ENABLED = 'true';
       const result =
         selectStablecoinLendingServiceInterruptionBannerEnabledFlag(
           mockedState,

@@ -9,6 +9,11 @@ import {
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
 import useInputHandler, { InputHandlerParams } from './useInput';
+import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
+
+jest.mock('../selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn(),
+}));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
@@ -32,6 +37,12 @@ jest.mock('../../../../selectors/networkController', () => ({
 describe('useInputHandler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
   });
 
   const mockInitialState = {
@@ -95,42 +106,12 @@ describe('useInputHandler', () => {
   });
 
   it('should initialize with default values with stablecoin lending enabled', () => {
-    const mockStateWithStablecoinLendingEnabled = {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-          MultichainNetworkController: {
-            isEvmSelected: true,
-            selectedMultichainNetworkChainId: undefined,
-            multichainNetworkConfigurationsByChainId: {},
-          },
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {
-              [CHAIN_IDS.MAINNET]: {
-                chainId: CHAIN_IDS.MAINNET,
-                nativeCurrency: 'ETH',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                  },
-                ],
-                defaultBlockExplorerUrlIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-              },
-            },
-          },
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              earnStablecoinLendingEnabled: true,
-            },
-          },
-        },
-      },
-    };
-
-    const { result } = renderHook(mockStateWithStablecoinLendingEnabled);
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
+    const { result } = renderHook();
 
     expect(result.current.amountToken).toBe('0');
     expect(result.current.amountTokenMinimalUnit).toEqual(new BN4(0));

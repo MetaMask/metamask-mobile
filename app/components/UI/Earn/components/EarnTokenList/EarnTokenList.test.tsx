@@ -17,7 +17,15 @@ import * as tokenUtils from '../../../Earn/utils/token';
 import * as useStakingEligibilityHook from '../../../Stake/hooks/useStakingEligibility';
 import * as portfolioNetworkUtils from '../../../../../util/networks';
 import { act, fireEvent } from '@testing-library/react-native';
-import { mockedEarnFeatureFlagsEnabledState } from '../../__mocks__/mockData';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../selectors/featureFlags';
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectPooledStakingEnabledFlag: jest.fn(),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -65,11 +73,6 @@ const initialState = {
     backgroundState: {
       ...initialRootState.engine.backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          ...mockedEarnFeatureFlagsEnabledState,
-        },
-      },
     },
   },
 };
@@ -103,6 +106,17 @@ describe('EarnTokenList', () => {
       .mockReturnValue(MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE);
 
     filterEligibleTokensSpy = jest.spyOn(tokenUtils, 'filterEligibleTokens');
+
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(true);
   });
 
   it('render matches snapshot', () => {
@@ -146,58 +160,36 @@ describe('EarnTokenList', () => {
   });
 
   it('does not render the EarnTokenList when required feature flags are disabled', () => {
-    // Requires stablecoin lending an portfolio view to be enabled.
-    const stateWithStablecoinLendingDisabled = {
-      ...initialRootState,
-      engine: {
-        ...initialRootState.engine,
-        backgroundState: {
-          ...initialRootState.engine.backgroundState,
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              earnStablecoinLendingEnabled: false,
-            },
-          },
-        },
-      },
-    };
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
 
     jest
       .spyOn(portfolioNetworkUtils, 'isPortfolioViewEnabled')
       .mockReturnValueOnce(false);
 
     const { toJSON } = renderWithProvider(<EarnTokenList />, {
-      state: stateWithStablecoinLendingDisabled,
+      state: initialState,
     });
 
     expect(toJSON()).toBeNull();
   });
 
   it('filters out pooled-staking assets when pooled staking is disabled', () => {
-    const stateWithPooledStakingDisabled = {
-      ...initialRootState,
-      engine: {
-        ...initialRootState.engine,
-        backgroundState: {
-          ...initialRootState.engine.backgroundState,
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              ...mockedEarnFeatureFlagsEnabledState,
-              earnPooledStakingEnabled: false,
-            },
-          },
-        },
-      },
-    };
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(false);
 
     const { queryAllByText, getByText, getAllByText } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <EarnTokenList />
       </SafeAreaProvider>,
       {
-        state: stateWithPooledStakingDisabled,
+        state: initialState,
       },
     );
 

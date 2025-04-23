@@ -8,6 +8,10 @@ import { useEarnTokenDetails } from './useEarnTokenDetails';
 import { MOCK_ETH_MAINNET_ASSET } from '../../Stake/__mocks__/mockData';
 import useBalance from '../../Stake/hooks/useBalance';
 
+jest.mock('../selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('../../Stake/hooks/useBalance', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
@@ -84,11 +88,6 @@ const mockInitialState = {
               address: mockAddress,
             },
           },
-        },
-      },
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          earnStablecoinLendingEnabled: true,
         },
       },
     },

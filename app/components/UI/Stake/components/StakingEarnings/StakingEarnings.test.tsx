@@ -113,7 +113,9 @@ describe('Staking Earnings', () => {
 
   it('displays pooled-staking maintenance banner when feature flag is enabled', () => {
     (
-      selectPooledStakingServiceInterruptionBannerEnabledFlag as unknown as jest.Mock
+      selectPooledStakingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
+      >
     ).mockReturnValue(true);
 
     const { toJSON, getByText } = render();

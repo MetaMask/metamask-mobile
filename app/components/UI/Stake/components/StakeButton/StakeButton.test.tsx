@@ -259,11 +259,15 @@ describe('StakeButton', () => {
   });
 
   it('does not render button when all earn experiences are disabled', () => {
-    (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
-      false,
-    );
     (
-      selectStablecoinLendingEnabledFlag as unknown as jest.Mock
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(false);
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
     ).mockReturnValue(false);
 
     const { queryByTestId } = renderComponent();
