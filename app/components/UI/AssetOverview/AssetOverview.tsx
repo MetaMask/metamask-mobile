@@ -359,9 +359,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             mainBalance={mainBalance}
             secondaryBalance={secondaryBalance}
           />
-          {/* <View style={styles.tokenDetailsWrapper}>
+          <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
-          </View> */}
+          </View>
         </View>
       )}
     </View>

@@ -1,5 +1,5 @@
 import { zeroAddress } from 'ethereumjs-util';
-import { Hex } from '@metamask/utils';
+import { CaipAssetId, Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
@@ -29,7 +29,11 @@ import { parseFloatSafe } from '../../Earn/utils';
 import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
-import { selectNonEvmMarketData } from '../../../../selectors/multichain';
+import {
+  selectMultichainAssetsRates,
+  selectNonEvmMarketData,
+} from '../../../../selectors/multichain';
+import { formatWithThreshold } from '../../../../util/assets';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -60,17 +64,35 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     selectConversionRateBySymbol(state, nativeCurrency),
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const tokenContractAddress = safeToChecksumAddress(asset.address);
 
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
-  const { marketData: nonEvmMarketData, metadata: nonEvmMetadata } =
-    useSelector(selectNonEvmMarketData);
+
+  const tokenContractAddress = isEvmNetworkSelected
+    ? safeToChecksumAddress(asset.address)
+    : asset.address;
+
+  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+
+  const tempData = multichainAssetsRates[asset.address as CaipAssetId];
+
+  const nonEvmMarketData = tempData.marketData;
+  const nonEvmMetadata = {
+    rate: Number(tempData.rate),
+    conversionTime: Number(tempData.conversionTime),
+  };
+
+  // const { marketData: tempData.marketData, metadata: nonEvmMetadata } =
+  //   useSelector(selectNonEvmMarketData);
+
+  console.log('MULTICHAIN ASSETS RATES: ', nonEvmMarketData);
 
   const evmMarketData = useSelector((state: RootState) =>
-    selectEvmTokenMarketData(state, {
-      chainId: asset.chainId as Hex,
-      tokenAddress: asset.address,
-    }),
+    isEvmNetworkSelected
+      ? selectEvmTokenMarketData(state, {
+          chainId: asset.chainId as Hex,
+          tokenAddress: asset.address,
+        })
+      : null,
   );
 
   const conversionRate = isEvmNetworkSelected
@@ -104,75 +126,141 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     return null;
   }
 
-  const tokenDetails: TokenDetails = asset.isETH
-    ? {
-        contractAddress: zeroAddress(),
-        tokenDecimal: 18,
-        tokenList: '',
-      }
-    : {
-        contractAddress: tokenContractAddress || null,
-        tokenDecimal: tokenMetadata?.decimals || null,
-        tokenList: tokenMetadata?.aggregators.join(', ') || null,
-      };
+  // const tokenDetails: TokenDetails = asset.isETH
+  //   ? {
+  //       contractAddress: zeroAddress(),
+  //       tokenDecimal: 18,
+  //       tokenList: '',
+  //     }
+  //   : {
+  //       contractAddress: tokenContractAddress || null,
+  //       tokenDecimal: tokenMetadata?.decimals || null,
+  //       tokenList: tokenMetadata?.aggregators.join(', ') || null,
+  //     };
 
   const marketDetails: MarketDetails = {
     marketCap:
       marketData?.marketCap > 0
-        ? localizeLargeNumber(
-            i18n,
-            localizeMarketDetails(marketData.marketCap, isEvmNetworkSelected),
+        ? formatWithThreshold(
+            localizeMarketDetails(
+              Number(marketData.marketCap),
+              isEvmNetworkSelected,
+            ) ?? 0,
+            0.01,
+            i18n.locale,
+            {
+              style: 'currency',
+              notation: 'compact',
+              currency: currentCurrency,
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            },
           )
         : null,
     totalVolume:
       marketData?.totalVolume > 0
-        ? localizeLargeNumber(
-            i18n,
-            localizeMarketDetails(marketData.totalVolume, isEvmNetworkSelected),
+        ? formatWithThreshold(
+            localizeMarketDetails(
+              Number(marketData.totalVolume),
+              isEvmNetworkSelected,
+            ) ?? 0,
+            0.01,
+            i18n.locale,
+            {
+              style: 'currency',
+              notation: 'compact',
+              currency: currentCurrency,
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            },
           )
         : null,
     volumeToMarketCap:
       marketData?.marketCap > 0
-        ? convertDecimalToPercentage(
-            marketData.totalVolume / marketData.marketCap,
+        ? formatWithThreshold(
+            Number(marketData.totalVolume) / Number(marketData.marketCap),
+            0.0001,
+            i18n.locale,
+            {
+              style: 'percent',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            },
           )
         : null,
     circulatingSupply:
-      marketData?.circulatingSupply > 0
-        ? localizeLargeNumber(i18n, marketData.circulatingSupply)
+      marketData?.circulatingSupply && marketData?.circulatingSupply > 0
+        ? formatWithThreshold(
+            Number(marketData.circulatingSupply),
+            0.01,
+            i18n.locale,
+            {
+              style: 'decimal',
+              notation: 'compact',
+              maximumFractionDigits: 2,
+              minimumFractionDigits: 2,
+            },
+          )
         : null,
     allTimeHigh:
       marketData?.allTimeHigh > 0
-        ? formatCurrency(
-            localizeMarketDetails(marketData.allTimeHigh, isEvmNetworkSelected),
-            currentCurrency,
+        ? formatWithThreshold(
+            localizeMarketDetails(
+              Number(marketData.allTimeHigh),
+              isEvmNetworkSelected,
+            ) ?? 0,
+            0.01,
+            i18n.locale,
+            {
+              style: 'currency',
+              currency: currentCurrency,
+            },
           )
         : null,
     allTimeLow:
       marketData?.allTimeLow > 0
-        ? formatCurrency(
-            localizeMarketDetails(marketData.allTimeLow, isEvmNetworkSelected),
-            currentCurrency,
+        ? formatWithThreshold(
+            localizeMarketDetails(
+              Number(marketData.allTimeLow),
+              isEvmNetworkSelected,
+            ) ?? 0,
+            0.01,
+            i18n.locale,
+            {
+              style: 'currency',
+              currency: currentCurrency,
+            },
           )
         : null,
     fullyDiluted:
-      marketData?.dilutedMarketCap > 0
-        ? localizeLargeNumber(i18n, marketData.dilutedMarketCap)
+      marketData?.dilutedMarketCap && marketData?.dilutedMarketCap > 0
+        ? formatWithThreshold(
+            Number(marketData.dilutedMarketCap),
+            0.01,
+            i18n.locale,
+            {
+              style: 'currency',
+              notation: 'compact',
+              currency: currentCurrency,
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            },
+          )
         : null,
   };
 
-  const hasAssetBalance =
-    asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
+  // const hasAssetBalance =
+  //   asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
 
   return (
     <View style={styles.tokenDetailsContainer}>
-      {asset.isETH && <StakingEarnings asset={asset} />}
-      {isStablecoinLendingFeatureEnabled() &&
+      {/* {asset.isETH && <StakingEarnings asset={asset} />} */}
+      {/* {isStablecoinLendingFeatureEnabled() &&
         isSupportedLendingTokenByChainId(asset.symbol, asset.chainId ?? '') &&
-        hasAssetBalance && <EarnEmptyStateCta token={asset} />}
-      {(asset.isETH || tokenMetadata) && (
+        hasAssetBalance && <EarnEmptyStateCta token={asset} />} */}
+      {/* {(asset.isETH || tokenMetadata) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
-      )}
+      )} */}
       {marketData && <MarketDetailsList marketDetails={marketDetails} />}
     </View>
   );
