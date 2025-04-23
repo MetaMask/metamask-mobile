@@ -23,9 +23,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Enable Corepack
-          run: corepack enable
+        run: corepack enable
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
 
@@ -40,4 +40,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn run bitrise-results-check
         working-directory: '.github/scripts'
-

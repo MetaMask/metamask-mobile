@@ -6,8 +6,8 @@ on:
       - 'v*'
 
 permissions:
-      contents: write
-      pull-requests: read
+  contents: write
+  pull-requests: read
 
 jobs:
   draft_release:
@@ -15,11 +15,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        - name: Enable Corepack
-            run: corepack enable
+      - name: Enable Corepack
+        run: corepack enable
         with:
-          ref: ${{ github.ref }}  # Explicitly specifies the tag ref
-
+          ref: ${{ github.ref }} # Explicitly specifies the tag ref
 
       - name: Setup GitHub CLI
         run: |

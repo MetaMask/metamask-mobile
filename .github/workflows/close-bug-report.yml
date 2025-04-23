@@ -6,7 +6,7 @@ on:
       - stable
     types:
       - closed
-    
+
 jobs:
   close-bug-report:
     runs-on: ubuntu-latest
@@ -14,13 +14,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        - name: Enable Corepack
-            run: corepack enable
+      - name: Enable Corepack
+        run: corepack enable
         with:
-            fetch-depth: 1 # This retrieves only the latest commit.
+          fetch-depth: 1 # This retrieves only the latest commit.
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
 
