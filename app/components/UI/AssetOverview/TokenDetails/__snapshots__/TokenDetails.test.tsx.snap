@@ -89,7 +89,7 @@ exports[`TokenDetails should render correctly 1`] = `
               }
             }
           >
-            0x6B17...1d0F
+            0x6B175...71d0F
           </Text>
           <SvgMock
             color="#4459ff"

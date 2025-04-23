@@ -1,40 +1,40 @@
+import { defaultBridgeControllerState } from './bridgeControllerState';
 import { CaipAssetId, Hex } from '@metamask/utils';
-import { formatChainIdToCaip , BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
+import { ethers } from 'ethers';
+import { StatusTypes } from '@metamask/bridge-status-controller';
 
 export const ethChainId = '0x1' as Hex;
 export const optimismChainId = '0xa' as Hex;
 
 export const evmAccountId = 'evmAccountId';
-export const evmAccountAddress = '0x1234567890123456789012345678901234567890' as Hex;
+export const evmAccountAddress =
+  '0x1234567890123456789012345678901234567890' as Hex;
 
 export const solanaAccountId = 'solanaAccountId';
-export const solanaAccountAddress = 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61';
+export const solanaAccountAddress =
+  'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61';
 
 // Ethereum tokens
-export const ethToken1Address = '0x0000000000000000000000000000000000000001' as Hex;
-export const ethToken2Address = '0x0000000000000000000000000000000000000002' as Hex;
+export const ethToken1Address =
+  '0x0000000000000000000000000000000000000001' as Hex;
+export const ethToken2Address =
+  '0x0000000000000000000000000000000000000002' as Hex;
 
 // Optimism tokens
-export const optimismToken1Address = '0x0000000000000000000000000000000000000003' as Hex;
+export const optimismToken1Address =
+  '0x0000000000000000000000000000000000000003' as Hex;
 
 // Solana tokens
-export const solanaNativeTokenAddress = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as CaipAssetId;
-export const solanaToken2Address = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as CaipAssetId;
+export const solanaNativeTokenAddress =
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as CaipAssetId;
+export const solanaToken2Address =
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as CaipAssetId;
 
 export const initialState = {
   engine: {
     backgroundState: {
-      BridgeController: {
-        bridgeFeatureFlags: {
-          [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
-            chains: {
-              [formatChainIdToCaip(ethChainId)]: { isActiveSrc: true, isActiveDest: true },
-              [formatChainIdToCaip(optimismChainId)]: { isActiveSrc: true, isActiveDest: true },
-            },
-          },
-        },
-      },
+      BridgeController: defaultBridgeControllerState,
       TokenBalancesController: {
         tokenBalances: {
           [evmAccountAddress]: {
@@ -83,27 +83,9 @@ export const initialState = {
             ],
           },
         },
-        tokens: [
-          {
-            address: ethToken1Address,
-            symbol: 'TOKEN1',
-            decimals: 18,
-            image: 'https://token1.com/logo.png',
-            name: 'Token One',
-            aggregators: ['1inch'],
-          },
-          {
-            address: ethToken2Address,
-            symbol: 'HELLO',
-            decimals: 18,
-            image: 'https://token2.com/logo.png',
-            name: 'Hello Token',
-            aggregators: ['uniswap'],
-          },
-        ],
       },
       NetworkController: {
-        selectedNetworkClientId: 'ethNetworkClientId',
+        selectedNetworkClientId: 'mainnet',
         networksMetadata: {
           mainnet: {
             EIPS: {
@@ -115,13 +97,18 @@ export const initialState = {
               1559: true,
             },
           },
+          selectedNetworkClientId: {
+            EIPS: {
+              1559: true,
+            },
+          },
         },
         networkConfigurationsByChainId: {
           [ethChainId]: {
             chainId: ethChainId,
             rpcEndpoints: [
               {
-                networkClientId: 'ethNetworkClientId',
+                networkClientId: 'mainnet',
               },
             ],
             defaultRpcEndpointIndex: 0,
@@ -148,11 +135,6 @@ export const initialState = {
         },
       },
       AccountTrackerController: {
-        accounts: {
-          [evmAccountAddress]: {
-            balance: '0x29a2241af62c0000' as Hex, // 3 ETH
-          },
-        },
         accountsByChainId: {
           [ethChainId]: {
             [evmAccountAddress]: {
@@ -169,7 +151,19 @@ export const initialState = {
       MultichainNetworkController: {
         isEvmSelected: true,
         selectedMultichainNetworkChainId: SolScope.Mainnet as const,
-        multichainNetworkConfigurationsByChainId: {},
+        multichainNetworkConfigurationsByChainId: {
+          [SolScope.Mainnet]: {
+            chainId: SolScope.Mainnet,
+            name: 'Solana',
+            nativeCurrency: 'SOL',
+            rpcEndpoints: [
+              {
+                networkClientId: 'solana',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
       },
       MultichainBalancesController: {
         balances: {
@@ -187,16 +181,14 @@ export const initialState = {
       },
       MultichainAssetsController: {
         accountsAssets: {
-          [solanaAccountId]: [
-            solanaNativeTokenAddress,
-            solanaToken2Address,
-          ],
+          [solanaAccountId]: [solanaNativeTokenAddress, solanaToken2Address],
         },
         assetsMetadata: {
           [solanaNativeTokenAddress]: {
             name: 'Solana',
             symbol: 'SOL',
-            iconUrl: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+            iconUrl:
+              'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
             fungible: true as const,
             units: [
               {
@@ -209,7 +201,8 @@ export const initialState = {
           [solanaToken2Address]: {
             name: 'USD Coin',
             symbol: 'USDC',
-            iconUrl: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+            iconUrl:
+              'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
             fungible: true as const,
             units: [
               {
@@ -219,7 +212,7 @@ export const initialState = {
               },
             ],
           },
-        }
+        },
       },
       MultichainAssetsRatesController: {
         conversionRates: {
@@ -258,6 +251,20 @@ export const initialState = {
           },
         },
       },
+      SmartTransactionsController: {
+        smartTransactionsState: {
+          liveness: true,
+        },
+      },
+      GasFeeController: {
+        gasFeeEstimatesByChainId: {
+          [ethChainId]: {
+            gasFeeEstimates: undefined,
+            estimatedGasFeeTimeBounds: undefined,
+            gasEstimateType: 'eth_gasPrice' as const,
+          },
+        },
+      },
       CurrencyRateController: {
         currentCurrency: 'USD',
         currencyRates: {
@@ -270,6 +277,11 @@ export const initialState = {
       TokenRatesController: {
         marketData: {
           [ethChainId]: {
+            [ethers.constants.AddressZero as Hex]: {
+              tokenAddress: ethers.constants.AddressZero as Hex,
+              currency: 'ETH',
+              price: 1, // 1 ETH = 1 ETH
+            },
             [ethToken1Address]: {
               tokenAddress: ethToken1Address,
               currency: 'ETH',
@@ -301,24 +313,6 @@ export const initialState = {
         },
       },
       TokenListController: {
-        tokenList: {
-          [ethToken1Address]: {
-            name: 'Token One',
-            symbol: 'TOKEN1',
-            decimals: 18,
-            address: ethToken1Address,
-            iconUrl: 'https://token1.com/logo.png',
-            occurrences: 1,
-            aggregators: [],
-          },
-          [ethToken2Address]: {
-            name: 'Hello Token',
-            symbol: 'HELLO',
-            decimals: 18,
-            address: ethToken2Address,
-            iconUrl: 'https://token2.com/logo.png',
-          },
-        },
         tokensChainsCache: {
           [ethChainId]: {
             timestamp: Date.now(),
@@ -372,6 +366,59 @@ export const initialState = {
           },
         },
       },
+      KeyringController: {
+        vault: '',
+        isUnlocked: true,
+        keyrings: [
+          {
+            accounts: [evmAccountAddress],
+            type: 'HD Key Tree',
+          },
+          {
+            accounts: [solanaAccountAddress],
+            type: 'Snap Keyring',
+          },
+        ],
+        keyringsMetadata: [],
+        encryptionKey: '',
+        encryptionSalt: '',
+      },
+      BridgeStatusController: {
+        txHistory: {
+          'test-tx-id': {
+            txMetaId: 'test-tx-id',
+            account: evmAccountAddress,
+            quote: {
+              requestId: 'test-request-id',
+              srcChainId: 1,
+              srcAsset: {
+                chainId: 1,
+                address: '0x123',
+                decimals: 18,
+              },
+              destChainId: 10,
+              destAsset: {
+                chainId: 10,
+                address: '0x456',
+                decimals: 18,
+              },
+              srcTokenAmount: '1000000000000000000',
+              destTokenAmount: '2000000000000000000',
+            },
+            status: {
+              srcChain: {
+                txHash: '0x123',
+              },
+              destChain: {
+                txHash: '0x456',
+              },
+              status: StatusTypes.COMPLETE,
+            },
+            startTime: Date.now(),
+            estimatedProcessingTimeInSeconds: 300,
+          },
+        },
+      },
     },
   },
   bridge: {
@@ -381,5 +428,7 @@ export const initialState = {
     sourceToken: undefined,
     destToken: undefined,
     selectedSourceChainIds: undefined,
+    selectedDestChainId: undefined,
+    slippage: '0.5',
   },
 };
