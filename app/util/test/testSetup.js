@@ -34,6 +34,17 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
+/**
+ * Mocking expo-image as it requires extensive jest transformations.
+ * Falling back to React-Native image on tests
+ */
+jest.mock('expo-image', () => {
+  const { Image } = require('react-native');
+  return {
+    Image: (props) => <Image {...props} testID="mock-expo-image"></Image>,
+  };
+});
+
 jest.mock('../../lib/snaps/preinstalled-snaps');
 
 const mockFs = {

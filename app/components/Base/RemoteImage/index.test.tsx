@@ -1,8 +1,7 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import RemoteImage from './';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
-import { act, render } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
@@ -25,19 +24,19 @@ jest.mock('../../../util/networks', () => ({
 const mockGetFormattedIpfsUrl = getFormattedIpfsUrl as jest.Mock;
 
 describe('RemoteImage', () => {
-  it('should render svg correctly', () => {
-    const wrapper = shallow(
+  it('renders the remote svg image snapshot', () => {
+    const wrapper = render(
       <RemoteImage
         source={{
           uri: 'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg',
         }}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
-  it('should render static sources', () => {
-    const wrapper = shallow(
+  it('renders the remote png image snapshot', () => {
+    const wrapper = render(
       <RemoteImage
         source={{
           uri: 'https://s3.amazonaws.com/airswap-token-images/OXT.png',
@@ -47,22 +46,25 @@ describe('RemoteImage', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should render ipfs sources', async () => {
+  it('renders the remote ipfs image snapshot', async () => {
     const testIpfsUri = 'ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23';
     mockGetFormattedIpfsUrl.mockResolvedValue(testIpfsUri);
-    const wrapper = render(
+    const { toJSON, getByTestId } = render(
       <RemoteImage
         source={{
           uri: testIpfsUri,
         }}
       />,
     );
-    // eslint-disable-next-line no-empty-function
-    await act(async () => {});
-    expect(wrapper).toMatchSnapshot();
+    await waitFor(() =>
+      expect(getByTestId('mock-expo-image')).toHaveProp('source', {
+        uri: testIpfsUri,
+      }),
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render with Solana network badge when on Solana network', async () => {
+  it('renders remote solana image and badge snapshot', async () => {
     // @ts-expect-error - useSelector is mocked in the top of the file
     useSelector.mockImplementation((selector) => {
       const mockState = {

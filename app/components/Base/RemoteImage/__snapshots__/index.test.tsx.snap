@@ -1,53 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`RemoteImage should render ipfs sources 1`] = `
-<Image
-  onError={[Function]}
-  source={
-    {
-      "uri": "ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
-    }
-  }
-/>
-`;
-
-exports[`RemoteImage should render static sources 1`] = `
-<Image
-  onError={[Function]}
-  source={
-    {
-      "uri": "https://s3.amazonaws.com/airswap-token-images/OXT.png",
-    }
-  }
-/>
-`;
-
-exports[`RemoteImage should render svg correctly 1`] = `
-<ComponentErrorBoundary
-  componentLabel="RemoteImage-SVG"
->
-  <View
-    style={
-      {
-        "overflow": "hidden",
-      }
-    }
-  >
-    <SvgUri
-      height="100%"
-      source={
-        {
-          "uri": "https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg",
-        }
-      }
-      uri="https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg"
-      width="100%"
-    />
-  </View>
-</ComponentErrorBoundary>
-`;
-
-exports[`RemoteImage should render with Solana network badge when on Solana network 1`] = `
+exports[`RemoteImage renders remote solana image and badge snapshot 1`] = `
 <View
   useNativeDriver={true}
 >
@@ -83,6 +36,7 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
                 "width": "100%",
               }
             }
+            testID="mock-expo-image"
           />
         </View>
       </View>
@@ -167,5 +121,56 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
       }
     />
   </View>
+</View>
+`;
+
+exports[`RemoteImage renders the remote ipfs image snapshot 1`] = `
+<Image
+  onError={[Function]}
+  source={
+    {
+      "uri": "ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
+    }
+  }
+  testID="mock-expo-image"
+/>
+`;
+
+exports[`RemoteImage renders the remote png image snapshot 1`] = `
+<Image
+  onError={[Function]}
+  source={
+    {
+      "uri": "https://s3.amazonaws.com/airswap-token-images/OXT.png",
+    }
+  }
+  testID="mock-expo-image"
+/>
+`;
+
+exports[`RemoteImage renders the remote svg image snapshot 1`] = `
+<View
+  style={
+    {
+      "overflow": "hidden",
+    }
+  }
+>
+  <Image
+    contentFit="contain"
+    source={
+      {
+        "uri": "https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg",
+      }
+    }
+    style={
+      {
+        "aspectRatio": 1,
+        "height": "100%",
+        "width": "100%",
+      }
+    }
+    testID="mock-expo-image"
+  />
 </View>
 `;
