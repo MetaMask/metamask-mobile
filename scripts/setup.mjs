@@ -120,12 +120,6 @@ const buildPpomTask = {
     return task.newListr(
       [
         {
-          title: 'Clean',
-          task: async () => {
-            await $ppom`yarn clean`;
-          },
-        },
-        {
           title: 'Install deps',
           task: async () => {
             await $ppom`yarn`;

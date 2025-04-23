@@ -26,6 +26,8 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v3
+      - name: Enable Corepack
+          run: corepack enable
         with:
           # This is to guarantee that the most recent tag is fetched.
           # This can be configured to a more reasonable value by consumers.

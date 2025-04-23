@@ -40,7 +40,6 @@ ignores:
   - 'eslint-plugin-react-native'
   - 'execa'
   - 'fbjs-scripts'
-  - 'improved-yarn-audit'
   - 'jetifier'
   - 'metro-react-native-babel-preset'
   - 'octonode'

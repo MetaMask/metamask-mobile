@@ -1,6 +1,7 @@
 {
   "name": "ppom-view",
   "version": "1.0.0",
+  "private": true,
   "devDependencies": {
     "@babel/preset-env": "^7.22.6",
     "@blockaid/ppom_release": "^1.5.3",
@@ -21,7 +22,7 @@
     "build-html": "webpack --config ./webpack.config.html.js",
     "build-html-js": "webpack --config ./webpack.config.html-js.js",
     "build-version": "webpack --config ./webpack.config.version.js",
-    "build": "yarn clean && yarn build-html && yarn build-html-js && yarn build-version",
+    "build": "yarn build-html && yarn build-html-js && yarn build-version",
     "clean": "rm -rf ../app/lib/ppom/ppom.html.js && rm -rf ./dist"
   }
 }
