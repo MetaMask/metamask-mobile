@@ -334,7 +334,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       priceDiff: calculatedPriceDiff,
       comparePrice: calculatedComparePrice,
     } = calculateAssetPrice({
-      asset,
+      _asset: asset,
       isEvmNetworkSelected: isEvmSelected,
       exchangeRate,
       tickerConversionRate:
