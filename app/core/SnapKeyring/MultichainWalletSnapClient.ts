@@ -47,9 +47,9 @@ interface SnapKeyringOptions {
 }
 
 export abstract class MultichainWalletSnapClient {
-  protected readonly snapId: SnapId;
-  protected readonly snapName: string;
-  protected readonly snapKeyringOptions: SnapKeyringOptions;
+  readonly snapId: SnapId;
+  readonly snapName: string;
+  readonly snapKeyringOptions: SnapKeyringOptions;
 
   protected constructor(
     snapId: SnapId,
@@ -69,7 +69,7 @@ export abstract class MultichainWalletSnapClient {
     return this.snapName;
   }
 
-  protected abstract getScopes(): CaipChainId[];
+  abstract getScopes(): CaipChainId[];
   protected abstract getSnapSender(): Sender;
 
   protected async withSnapKeyring(
@@ -140,7 +140,7 @@ export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
     super(BITCOIN_WALLET_SNAP_ID, BITCOIN_WALLET_NAME, snapKeyringOptions);
   }
 
-  protected getScopes(): CaipChainId[] {
+  getScopes(): CaipChainId[] {
     return [MultichainNetwork.Bitcoin, MultichainNetwork.BitcoinTestnet];
   }
 
@@ -154,7 +154,7 @@ export class SolanaWalletSnapClient extends MultichainWalletSnapClient {
     super(SOLANA_WALLET_SNAP_ID, SOLANA_WALLET_NAME, snapKeyringOptions);
   }
 
-  protected getScopes(): CaipChainId[] {
+  getScopes(): CaipChainId[] {
     return [
       MultichainNetwork.Solana,
       MultichainNetwork.SolanaDevnet,
