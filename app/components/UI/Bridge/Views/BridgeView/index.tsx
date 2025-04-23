@@ -213,9 +213,6 @@ const BridgeView = () => {
     if (sourceToken && destToken) {
       dispatch(setSourceToken(destToken));
       dispatch(setDestToken(sourceToken));
-      // Force immediate quote update
-      updateQuoteParams.cancel(); // Cancel any pending updates
-      updateQuoteParams(); // Trigger immediate update
     }
   };
 
