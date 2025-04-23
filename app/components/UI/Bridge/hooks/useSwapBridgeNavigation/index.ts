@@ -15,6 +15,8 @@ import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import isBridgeAllowed from '../../utils/isBridgeAllowed';
 import { ethers } from 'ethers';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { getDecimalChainId } from '../../../../../util/networks';
 import { isAssetFromSearch } from '../../../../../selectors/tokenSearchDiscoveryDataController';
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
@@ -43,6 +45,7 @@ export const useSwapBridgeNavigation = ({
   const navigation = useNavigation();
   const selectedChainId = useSelector(selectChainId);
   const goToPortfolioBridge = useGoToPortfolioBridge(location);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Bridge
   // title is consumed by getBridgeNavbar in app/components/UI/Navbar/index.js
@@ -84,8 +87,18 @@ export const useSwapBridgeNavigation = ({
           bridgeViewMode,
         } as BridgeRouteParams,
       });
+      trackEvent(
+        createEventBuilder(bridgeViewMode === BridgeViewMode.Bridge ? MetaMetricsEvents.BRIDGE_BUTTON_CLICKED : MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+          .addProperties({
+            location,
+            chain_id_source: getDecimalChainId(bridgeToken.chainId),
+            token_symbol_source: bridgeToken?.symbol,
+            token_address_source: bridgeToken?.address,
+          })
+          .build(),
+      );
     },
-    [navigation, selectedChainId, tokenBase, sourcePage],
+    [navigation, selectedChainId, tokenBase, sourcePage, trackEvent, createEventBuilder, location],
   );
 
   const goToBridge = useCallback(
