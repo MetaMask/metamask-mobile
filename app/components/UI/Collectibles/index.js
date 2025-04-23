@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Alert,
   ScrollView,
   RefreshControl,
   FlatList,
@@ -12,11 +11,10 @@ import {
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionSheet from '@metamask/react-native-actionsheet';
-import Engine from '../../../core/Engine';
 import CollectibleMedia from '../CollectibleMedia';
 import AssetElement from '../AssetElement';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { toHex } from '@metamask/controller-utils';
+import { refreshMetadata, removeNft } from './util';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -140,54 +138,26 @@ export default class Collectibles extends PureComponent {
     this.actionSheet.show();
   };
 
-  refreshMetadata = () => {
-    const { NftController } = Engine.context;
-    const { networkConfigurations } = this.props;
-
-    const chainIdHex = toHex(this.longPressedCollectible.current.chainId);
-    const config = networkConfigurations[chainIdHex];
-    const nftNetworkClientId =
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      config?.rpcEndpoints?.[config.defaultRpcEndpointIndex]?.networkClientId;
-
-    NftController.addNft(
-      this.longPressedCollectible.current.address,
-      this.longPressedCollectible.current.tokenId,
-      nftNetworkClientId,
+  handleRefreshMetadata = () => {
+    refreshMetadata(
+      this.longPressedCollectible.current,
+      this.props.networkConfigurations,
     );
   };
 
   handleMenuAction = (index) => {
     if (index === 1) {
-      this.removeNft();
+      this.handleRemoveNft();
     } else if (index === 0) {
-      this.refreshMetadata();
+      this.handleRefreshMetadata();
     }
   };
 
-  removeNft = () => {
-    const { NftController } = Engine.context;
-    const { networkConfigurations, selectedAddress } = this.props;
-
-    const chainIdHex = toHex(this.longPressedCollectible.current.chainId);
-    const config = networkConfigurations[chainIdHex];
-    const nftNetworkClientId =
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      config?.rpcEndpoints?.[config.defaultRpcEndpointIndex]?.networkClientId;
-
-    NftController.removeAndIgnoreNft(
-      this.longPressedCollectible.address,
-      this.longPressedCollectible.tokenId,
-      {
-        networkClientId: nftNetworkClientId,
-        userAddress: selectedAddress,
-      },
-    );
-    Alert.alert(
-      strings('wallet.collectible_removed_title'),
-      strings('wallet.collectible_removed_desc'),
+  handleRemoveNft = () => {
+    removeNft(
+      this.longPressedCollectible.current,
+      this.props.networkConfigurations,
+      this.props.selectedAddress,
     );
   };
 
