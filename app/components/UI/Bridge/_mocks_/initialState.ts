@@ -151,7 +151,19 @@ export const initialState = {
       MultichainNetworkController: {
         isEvmSelected: true,
         selectedMultichainNetworkChainId: SolScope.Mainnet as const,
-        multichainNetworkConfigurationsByChainId: {},
+        multichainNetworkConfigurationsByChainId: {
+          [SolScope.Mainnet]: {
+            chainId: SolScope.Mainnet,
+            name: 'Solana',
+            nativeCurrency: 'SOL',
+            rpcEndpoints: [
+              {
+                networkClientId: 'solana',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
       },
       MultichainBalancesController: {
         balances: {

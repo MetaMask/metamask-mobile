@@ -67,8 +67,8 @@ export const useMultichainBlockExplorerTxUrl = ({
     evmProviderConfig,
   );
 
-  // Handle undefined chainId case
-  if (!chainId) {
+  // Handle undefined cases
+  if (!chainId || !txHash) {
     return undefined;
   }
 
