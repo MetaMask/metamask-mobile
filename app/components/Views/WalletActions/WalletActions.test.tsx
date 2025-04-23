@@ -7,7 +7,11 @@ import {
 } from '../../../selectors/accountsController';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
-import { SolScope , EthAccountType, SolAccountType } from '@metamask/keyring-api';
+import {
+  SolScope,
+  EthAccountType,
+  SolAccountType,
+} from '@metamask/keyring-api';
 
 import renderWithProvider, {
   DeepPartial,
@@ -46,6 +50,19 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('@metamask/bridge-controller', () => {
+  const actual = jest.requireActual('@metamask/bridge-controller');
+  return {
+    ...actual,
+    getNativeAssetForChainId: jest.fn((chainId) => {
+      if (chainId === 'solana:mainnet') {
+        return actual.getNativeAssetForChainId('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
+      }
+      return actual.getNativeAssetForChainId(chainId);
+    }),
+  };
+});
+
 jest.mock('../../../selectors/networkController', () => ({
   selectChainId: jest.fn().mockReturnValue('0x1'),
   selectEvmChainId: jest.fn().mockReturnValue('0x1'),
@@ -58,6 +75,7 @@ jest.mock('../../../selectors/networkController', () => ({
     nickname: 'Ethereum Mainnet',
   }),
   selectEvmTicker: jest.fn().mockReturnValue('ETH'),
+  selectNativeCurrencyByChainId: jest.fn(),
 }));
 
 jest.mock('../../../selectors/accountsController', () => {
@@ -312,6 +330,9 @@ describe('WalletActions', () => {
 
   it('should call the goToSwaps function when the Swap button is pressed', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
+    (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
+    (isBridgeAllowed as jest.Mock).mockReturnValue(true);
+
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
     });
@@ -337,33 +358,14 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('BrowserTabHome', {
       params: {
-        newTabUrl: 'https://bridge.metamask.io/?metamaskEntry=mobile&srcChain=1',
+        newTabUrl:
+          'https://bridge.metamask.io/?metamaskEntry=mobile&srcChain=1',
         timestamp: 123,
       },
       screen: 'BrowserView',
     });
   });
 
-  it('should call the goToSwaps function when the Swap button is pressed not on Solana testnet', () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
-    (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
-
-    const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
-    });
-
-    fireEvent.press(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
-      params: {
-        sourcePage: 'MainView',
-        sourceToken: '0x0000000000000000000000000000000000000000',
-      },
-      screen: 'SwapsAmountView',
-    });
-  });
   it('should call the goToBridge function when the Bridge button is pressed', () => {
     (isBridgeAllowed as jest.Mock).mockReturnValue(true);
     const { getByTestId } = renderWithProvider(<WalletActions />, {

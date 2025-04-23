@@ -2,20 +2,22 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-} from '../../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
   AllowedBridgeChainIds,
   BridgeFeatureFlagsKey,
   formatChainIdToCaip,
-  getNativeAssetForChainId,
+  isSolanaChainId,
+  selectBridgeQuotes as selectBridgeQuotesBase,
+  SortOrder,
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
+import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
+import { MetaMetrics } from '../../../Analytics';
+import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -25,6 +27,7 @@ export interface BridgeState {
   destAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
+  destAddress: string | undefined;
   selectedSourceChainIds: (Hex | CaipChainId)[] | undefined;
   selectedDestChainId: Hex | CaipChainId | undefined;
   slippage: string;
@@ -35,6 +38,7 @@ export const initialState: BridgeState = {
   destAmount: undefined,
   sourceToken: undefined,
   destToken: undefined,
+  destAddress: undefined,
   selectedSourceChainIds: undefined,
   selectedDestChainId: undefined,
   slippage: '0.5',
@@ -52,7 +56,10 @@ const slice = createSlice({
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
     },
-    setSelectedSourceChainIds: (state, action: PayloadAction<(Hex | CaipChainId)[]>) => {
+    setSelectedSourceChainIds: (
+      state,
+      action: PayloadAction<(Hex | CaipChainId)[]>,
+    ) => {
       state.selectedSourceChainIds = action.payload;
     },
     setSelectedDestChainId: (
@@ -67,6 +74,9 @@ const slice = createSlice({
     },
     setDestToken: (state, action: PayloadAction<BridgeToken>) => {
       state.destToken = action.payload;
+    },
+    setDestAddress: (state, action: PayloadAction<string | undefined>) => {
+      state.destAddress = action.payload;
     },
     setSlippage: (state, action: PayloadAction<string>) => {
       state.slippage = action.payload;
@@ -119,8 +129,10 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
   selectBridgeFeatureFlags,
   (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
   (bridgeFeatureFlags, chainId) =>
-    chainId ?
-      bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[formatChainIdToCaip(chainId)].topAssets
+    chainId
+      ? bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[
+          formatChainIdToCaip(chainId)
+        ].topAssets
       : undefined,
 );
 
@@ -163,27 +175,7 @@ export const selectEnabledDestChains = createSelector(
 // Combined selectors for related state
 export const selectSourceToken = createSelector(
   selectBridgeState,
-  selectChainId,
-  (bridgeState, currentChainId) => {
-    // If we have a selected source token in the bridge state, use that
-    if (bridgeState.sourceToken) {
-      return bridgeState.sourceToken;
-    }
-
-    // Otherwise, fall back to the native token of current chain
-    const sourceToken = getNativeAssetForChainId(currentChainId);
-
-    const sourceTokenFormatted: BridgeToken = {
-      address: sourceToken.address,
-      name: sourceToken.name ?? '',
-      symbol: sourceToken.symbol,
-      image: 'iconUrl' in sourceToken ? sourceToken.iconUrl : '',
-      decimals: sourceToken.decimals,
-      chainId: currentChainId as Hex,
-    };
-
-    return sourceTokenFormatted;
-  },
+  (bridgeState) => bridgeState.sourceToken,
 );
 
 export const selectDestToken = createSelector(
@@ -220,6 +212,52 @@ export const selectSlippage = createSelector(
   (bridgeState) => bridgeState.slippage,
 );
 
+export const selectDestAddress = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.destAddress,
+);
+
+const selectControllerFields = (state: RootState) => ({
+  ...state.engine.backgroundState.BridgeController,
+  gasFeeEstimates: selectGasFeeControllerEstimates(state) as GasFeeEstimates,
+  ...state.engine.backgroundState.MultichainAssetsRatesController,
+  ...state.engine.backgroundState.TokenRatesController,
+  ...state.engine.backgroundState.CurrencyRateController,
+  participateInMetaMetrics: MetaMetrics.getInstance().isEnabled(),
+});
+
+export const selectBridgeQuotes = createSelector(
+  selectControllerFields,
+  (requiredControllerFields) =>
+    selectBridgeQuotesBase(requiredControllerFields, {
+      sortOrder: SortOrder.COST_ASC, // TODO for v1 we don't allow user to select alternative quotes, hardcode for now
+      selectedQuote: null, // TODO for v1 we don't allow user to select alternative quotes, pass in null for now
+      featureFlagsKey: BridgeFeatureFlagsKey.MOBILE_CONFIG,
+    }),
+);
+
+export const selectIsEvmToSolana = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId && !isSolanaChainId(sourceToken.chainId) &&
+    destToken?.chainId && isSolanaChainId(destToken.chainId)
+);
+
+export const selectIsSolanaToEvm = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId && isSolanaChainId(sourceToken.chainId) &&
+    destToken?.chainId && !isSolanaChainId(destToken.chainId)
+);
+
+export const selectIsEvmSolanaBridge = createSelector(
+  selectIsEvmToSolana,
+  selectIsSolanaToEvm,
+  (isEvmToSolana, isSolanaToEvm) => isEvmToSolana || isSolanaToEvm
+);
+
 // Actions
 export const {
   setSourceAmount,
@@ -230,4 +268,5 @@ export const {
   setSelectedSourceChainIds,
   setSelectedDestChainId,
   setSlippage,
+  setDestAddress,
 } = actions;

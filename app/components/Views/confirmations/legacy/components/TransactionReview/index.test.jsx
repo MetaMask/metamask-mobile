@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import TransactionReview from '.';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
+// eslint-disable-next-line import/no-namespace
 import * as BlockaidUtils from '../../../../../../util/blockaid';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -110,9 +111,11 @@ const mockState = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS_1]: {
-            balance: '0x2',
+        accountsByChainId: {
+          '0x1': {
+            [MOCK_ADDRESS_1]: {
+              balance: '0x2',
+            },
           },
         },
       },
@@ -292,9 +295,11 @@ describe('TransactionReview', () => {
           ...mockState.engine.backgroundState,
           AccountTrackerController: {
             ...mockState.engine.backgroundState.AccountTrackerController,
-            accounts: {
-              '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
-                balance: '0x0',
+            accountsByChainId: {
+              '0x1': {
+                '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+                  balance: '0x0',
+                },
               },
             },
           },
