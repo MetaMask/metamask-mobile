@@ -87,7 +87,9 @@ const BridgeView = () => {
     quoteFetchError,
     isNoQuotesAvailable,
   } = useBridgeQuoteData();
-  const { quoteRequest } = useSelector(selectBridgeControllerState);
+  const { quoteRequest, quotesLastFetched } = useSelector(
+    selectBridgeControllerState,
+  );
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
 
   // inputRef is used to programmatically blur the input field after a delay
@@ -124,6 +126,7 @@ const BridgeView = () => {
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad = isInputFocused || !hasValidBridgeInputs;
+  const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
 
   // Compute error state directly from dependencies
   const isError = isNoQuotesAvailable || quoteFetchError;
@@ -137,6 +140,16 @@ const BridgeView = () => {
       updateQuoteParams.cancel();
     };
   }, [hasValidBridgeInputs, updateQuoteParams]);
+
+  // Blur input when quotes have loaded
+  useEffect(() => {
+    if (!isLoading) {
+      setIsInputFocused(false);
+      if (inputRef.current) {
+        inputRef.current.blur();
+      }
+    }
+  }, [isLoading]);
 
   // Reset bridge state when component unmounts
   useEffect(
@@ -157,7 +170,10 @@ const BridgeView = () => {
   useEffect(() => {
     const setBridgeFeatureFlags = async () => {
       try {
-        if (isBasicFunctionalityEnabled && Engine.context.BridgeController?.setBridgeFeatureFlags) {
+        if (
+          isBasicFunctionalityEnabled &&
+          Engine.context.BridgeController?.setBridgeFeatureFlags
+        ) {
           await Engine.context.BridgeController.setBridgeFeatureFlags();
         }
       } catch (error) {
@@ -175,8 +191,6 @@ const BridgeView = () => {
     valueAsNumber: number;
     pressedKey: string;
   }) => {
-    // Keep focus when editing
-    setIsInputFocused(true);
     dispatch(setSourceAmount(value || undefined));
   };
 
@@ -218,50 +232,69 @@ const BridgeView = () => {
       } as BridgeDestTokenSelectorRouteParams,
     });
 
-  const hasDestinationPickerAndQuoteCard =
-    hasDestinationPicker && hasQuoteDetails && !isInputFocused;
-
-  const hasOnlyQuoteCard = hasQuoteDetails && !isInputFocused;
+  const getButtonLabel = () => {
+    if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
+    if (isSubmittingTx) return strings('bridge.submitting_transaction');
+    return strings('bridge.continue');
+  };
 
   const renderBottomContent = () => {
-    let buttonLabel = strings('bridge.continue');
-    if (hasInsufficientBalance) {
-      buttonLabel = strings('bridge.insufficient_funds');
-    } else if (isSubmittingTx) {
-      buttonLabel = strings('bridge.submitting_transaction');
+    if (isError) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            description={strings('bridge.error_banner_description')}
+          />
+        </Box>
+      );
+    }
+
+    if (!hasValidBridgeInputs) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <Text color={TextColor.Primary}>
+            {strings('bridge.select_amount')}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <Text color={TextColor.Primary}>
+            {strings('bridge.fetching_quote')}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (!activeQuote && !quotesLastFetched) {
+      return;
     }
 
     return (
-    <Box style={styles.buttonContainer}>
-      {!hasValidBridgeInputs || isLoading || !activeQuote ? (
-        <Text color={TextColor.Primary}>{strings('bridge.select_amount')}</Text>
-      ) : isError ? (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
-          description={strings('bridge.error_banner_description')}
+      <Box style={styles.buttonContainer}>
+        <Button
+          variant={ButtonVariants.Primary}
+          label={getButtonLabel()}
+          onPress={handleContinue}
+          style={styles.button}
+          isDisabled={hasInsufficientBalance || isSubmittingTx}
         />
-      ) : (
-        <>
-          <Button
-            variant={ButtonVariants.Primary}
-            label={buttonLabel}
-            onPress={handleContinue}
-            style={styles.button}
-            isDisabled={hasInsufficientBalance || isSubmittingTx}
-          />
-          <Button
-            variant={ButtonVariants.Link}
-            label={
-              <Text color={TextColor.Alternative}>
-                {strings('bridge.terms_and_conditions')}
-              </Text>
-            }
-            onPress={handleTermsPress}
-          />
-        </>
-      )}
-    </Box>
-  )};
+        <Button
+          variant={ButtonVariants.Link}
+          label={
+            <Text color={TextColor.Alternative}>
+              {strings('bridge.terms_and_conditions')}
+            </Text>
+          }
+          onPress={handleTermsPress}
+        />
+      </Box>
+    );
+  };
 
   return (
     // Need this to be full height of screen
@@ -288,7 +321,7 @@ const BridgeView = () => {
               onTokenPress={handleSourceTokenPress}
               onFocus={() => setIsInputFocused(true)}
               onBlur={() => setIsInputFocused(false)}
-              autoFocus
+              onInputPress={() => setIsInputFocused(true)}
             />
             <Box style={styles.arrowContainer}>
               <Box style={styles.arrowCircle}>
@@ -309,28 +342,18 @@ const BridgeView = () => {
                     getNetworkImageSource({ chainId: destToken?.chainId })
                   : undefined
               }
-              isReadonly
               testID="dest-token-area"
               tokenType={TokenInputAreaType.Destination}
               onTokenPress={handleDestTokenPress}
               isLoading={isLoading}
             />
           </Box>
-          <Box
-            style={[
-              styles.dynamicContent,
-              hasDestinationPickerAndQuoteCard
-                ? styles.dynamicContentWithDestinationPickerAndQuoteCard
-                : hasOnlyQuoteCard
-                ? styles.dynamicContentWithOnlyQuoteCard
-                : styles.dynamicContent,
-            ]}
-          >
+          <Box style={styles.dynamicContent}>
             <Box style={styles.destinationAccountSelectorContainer}>
               {hasDestinationPicker && <DestinationAccountSelector />}
             </Box>
 
-            {hasQuoteDetails && !isInputFocused ? (
+            {shouldDisplayQuoteDetails ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
               </Box>

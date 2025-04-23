@@ -3901,7 +3901,8 @@
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
     "title": "Bridge",
-    "submitting_transaction": "Submitting"
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote"
   },
   "bridge_transaction_details": {
     "status": "Status",
