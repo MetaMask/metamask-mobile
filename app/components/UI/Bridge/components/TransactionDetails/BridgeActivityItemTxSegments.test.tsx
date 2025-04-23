@@ -17,7 +17,7 @@ describe('BridgeActivityItemTxSegments', () => {
     } as TransactionMeta;
 
     const { getByText } = render(
-      <BridgeActivityItemTxSegments transaction={mockTransaction} />,
+      <BridgeActivityItemTxSegments transactionStatus={mockTransaction.status} />,
     );
 
     expect(getByText('Transaction 2 of 2')).toBeTruthy();
@@ -29,7 +29,7 @@ describe('BridgeActivityItemTxSegments', () => {
     } as TransactionMeta;
 
     const { getByText } = render(
-      <BridgeActivityItemTxSegments transaction={mockTransaction} />,
+      <BridgeActivityItemTxSegments transactionStatus={mockTransaction.status} />,
     );
 
     expect(getByText('Transaction 1 of 2')).toBeTruthy();
@@ -51,7 +51,7 @@ describe('BridgeActivityItemTxSegments', () => {
 
     const { getByText } = render(
       <BridgeActivityItemTxSegments
-        transaction={mockTransaction}
+        transactionStatus={mockTransaction.status}
         bridgeTxHistoryItem={mockBridgeHistory}
       />,
     );
@@ -75,7 +75,7 @@ describe('BridgeActivityItemTxSegments', () => {
 
     const { getByText } = render(
       <BridgeActivityItemTxSegments
-        transaction={mockTransaction}
+        transactionStatus={mockTransaction.status}
         bridgeTxHistoryItem={mockBridgeHistory}
       />,
     );

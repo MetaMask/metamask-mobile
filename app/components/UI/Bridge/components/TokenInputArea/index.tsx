@@ -120,14 +120,13 @@ interface TokenInputAreaProps {
   tokenBalance?: string;
   networkImageSource?: ImageSourcePropType;
   networkName?: string;
-  autoFocus?: boolean;
-  isReadonly?: boolean;
   testID?: string;
   tokenType?: TokenInputAreaType;
   onTokenPress?: () => void;
   isLoading?: boolean;
   onFocus?: () => void;
   onBlur?: () => void;
+  onInputPress?: () => void;
 }
 
 export const TokenInputArea = forwardRef<
@@ -141,14 +140,13 @@ export const TokenInputArea = forwardRef<
       tokenBalance,
       networkImageSource,
       networkName,
-      autoFocus,
-      isReadonly = false,
       testID,
       tokenType,
       onTokenPress,
       isLoading = false,
       onFocus,
       onBlur,
+      onInputPress,
     },
     ref,
   ) => {
@@ -221,12 +219,16 @@ export const TokenInputArea = forwardRef<
                   ref={inputRef}
                   value={amount}
                   style={styles.input}
-                  isReadonly={isReadonly}
-                  autoFocus={autoFocus}
+                  isDisabled={false}
+                  isReadonly={tokenType === TokenInputAreaType.Destination}
+                  showSoftInputOnFocus={false}
+                  caretHidden={false}
+                  autoFocus
                   placeholder="0"
                   testID={`${testID}-input`}
                   onFocus={() => {
                     onFocus?.();
+                    onInputPress?.();
                   }}
                   onBlur={() => {
                     onBlur?.();
