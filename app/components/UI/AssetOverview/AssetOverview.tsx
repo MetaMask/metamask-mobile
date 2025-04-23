@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
+import { Hex, CaipAssetId } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -54,14 +54,15 @@ import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { formatWithThreshold } from '../../../util/assets';
-import useTokenHistoricalPricesV3 from '../../hooks/useTokenHistoricalPricesV3';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { TraceName, endTrace } from '../../../util/trace';
-import { selectMultichainHistoricalPrices } from '../../../selectors/multichain';
+import { selectMultichainAssetsRates } from '../../../selectors/multichain';
+import { calculateAssetPrice } from './utils/calculateAssetPrice';
+
 interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
@@ -309,20 +310,26 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     asset.isETH ? asset.ticker : asset.symbol
   }`;
 
-  let currentPrice = 0;
-  let priceDiff = 0;
+  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+  const multichainAssetRates =
+    multichainAssetsRates?.[asset.address as CaipAssetId];
+  const convertedMultichainAssetRates = multichainAssetRates
+    ? {
+        rate: Number(multichainAssetRates.rate),
+        marketData: undefined,
+      }
+    : undefined;
 
-  const tickerConversionRate =
-    conversionRateByTicker?.[nativeCurrency]?.conversionRate ?? 0;
-  currentPrice =
-    exchangeRate && tickerConversionRate
-      ? exchangeRate * tickerConversionRate
-      : 0;
-
-  const comparePrice = prices[0]?.[1] || 0;
-  if (currentPrice !== undefined && currentPrice !== null) {
-    priceDiff = currentPrice - comparePrice;
-  }
+  const { currentPrice, priceDiff, comparePrice } = calculateAssetPrice({
+    asset,
+    isEvmNetworkSelected: isEvmSelected,
+    exchangeRate,
+    tickerConversionRate:
+      conversionRateByTicker?.[nativeCurrency]?.conversionRate ?? undefined,
+    prices,
+    multichainAssetRates: convertedMultichainAssetRates,
+    timePeriod,
+  });
 
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>

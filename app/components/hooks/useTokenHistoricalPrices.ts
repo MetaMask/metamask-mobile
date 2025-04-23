@@ -15,7 +15,7 @@ export type TokenPrice = [string, number];
 
 const placeholderPrices = Array(289).fill(['0', 0] as TokenPrice);
 
-const standardizeTimeInterval = (timePeriod: TimePeriod) => {
+export const standardizeTimeInterval = (timePeriod: TimePeriod) => {
   switch (timePeriod) {
     case '1d':
       return 'P1D';

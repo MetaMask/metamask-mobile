@@ -19,9 +19,13 @@ import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { TokenI } from '../../Tokens/types';
-import { selectNonEvmMarketData } from '../../../../selectors/multichain';
+import {
+  selectMultichainAssetsRates,
+  selectNonEvmMarketData,
+} from '../../../../selectors/multichain';
 import { useSelector } from 'react-redux';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { CaipAssetId } from '@metamask/utils';
 
 interface PriceProps {
   asset: TokenI;
@@ -46,8 +50,15 @@ const Price = ({
 }: PriceProps) => {
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const { marketData, metadata } = useSelector(selectNonEvmMarketData);
+
+  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+
+  const multichainAssetRates =
+    multichainAssetsRates[asset.address as CaipAssetId];
+
+  console.log('multichainAssetRates', multichainAssetRates);
+
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
-  // console.log('prices', prices);
 
   const distributedPriceData = useMemo(() => {
     if (prices.length > 0) {
@@ -72,7 +83,7 @@ const Price = ({
 
   const price: number = isEvmNetworkSelected
     ? distributedPriceData[activeChartIndex]?.[1] || currentPrice
-    : metadata.rate;
+    : Number(multichainAssetRates.rate);
 
   const date: string | undefined = distributedPriceData[activeChartIndex]?.[0]
     ? toDateFormat(distributedPriceData[activeChartIndex]?.[0])
