@@ -13,9 +13,10 @@ import { CONTROLLER_MESSENGERS } from '../messengers';
 import { ApprovalController, ApprovalRequest } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
-// we need to disable no unused vars because `SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES` is code fenced for keyring-snaps
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../../RPCMethods/RPCMethodMiddleware';
+///: END:ONLY_INCLUDE_IF
+
 import { providerErrors } from '@metamask/rpc-errors';
 
 const log = createProjectLogger('controller-init');
