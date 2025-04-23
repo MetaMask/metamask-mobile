@@ -453,10 +453,6 @@ class Amount extends PureComponent {
      */
     providerType: PropTypes.string,
     /**
-     * Action that sets transaction attributes from object to a transaction
-     */
-    setTransactionObject: PropTypes.func,
-    /**
      * function to call when the 'Next' button is clicked
      */
     onConfirm: PropTypes.func,
@@ -500,6 +496,10 @@ class Amount extends PureComponent {
      * Network client id
      */
     globalNetworkClientId: PropTypes.string,
+    /**
+     * Boolean that indicates if the redesigned transfer confirmation is enabled
+     */
+    isRedesignedTransferConfirmationEnabled: PropTypes.bool,
   };
 
   state = {
@@ -1588,8 +1588,6 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  setTransactionObject: (transaction) =>
-    dispatch(setTransactionObject(transaction)),
   prepareTransaction: (transaction) =>
     dispatch(prepareTransaction(transaction)),
   setSelectedAsset: (selectedAsset) =>

@@ -2,6 +2,26 @@ import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
 import Device from '../../../../../util/device';
 
+const getIosBottomPadding = (
+  isStakingConfirmationBool: boolean,
+  isStandaloneConfirmation: boolean,
+) => {
+  if (isStakingConfirmationBool) {
+    return 16;
+  }
+  return isStandaloneConfirmation ? 32 : 8;
+};
+
+const getAndroidBottomPadding = (
+  isStakingConfirmationBool: boolean,
+  isStandaloneConfirmation: boolean,
+) => {
+  if (isStakingConfirmationBool) {
+    return 36;
+  }
+  return isStandaloneConfirmation ? 42 : 28;
+};
+
 const styleSheet = (params: {
   theme: Theme;
   vars: {
@@ -41,26 +61,6 @@ const styleSheet = (params: {
       justifyContent: 'center',
     },
   });
-};
-
-const getIosBottomPadding = (
-  isStakingConfirmationBool: boolean,
-  isStandaloneConfirmation: boolean,
-) => {
-  if (isStakingConfirmationBool) {
-    return 16;
-  }
-  return isStandaloneConfirmation ? 32 : 8;
-};
-
-const getAndroidBottomPadding = (
-  isStakingConfirmationBool: boolean,
-  isStandaloneConfirmation: boolean,
-) => {
-  if (isStakingConfirmationBool) {
-    return 36;
-  }
-  return isStandaloneConfirmation ? 42 : 28;
 };
 
 export default styleSheet;
