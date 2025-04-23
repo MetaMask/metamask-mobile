@@ -1,5 +1,4 @@
 import { MultichainWalletSnapClient } from './MultichainWalletSnapClient';
-import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../Engine';

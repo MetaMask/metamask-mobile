@@ -19,7 +19,6 @@ import {
 import Engine from '../Engine';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
-import Logger from '../../util/Logger';
 
 export enum WalletClientType {
   Bitcoin = 'bitcoin',
@@ -111,6 +110,9 @@ export abstract class MultichainWalletSnapClient {
     groupIndex: number,
   ) {
     const keyringApiClient = new KeyringClient(this.getSnapSender());
+    Logger.log(`discovering accounts scopes: ${scopes}`);
+    Logger.log(`entropySource: ${entropySource}`);
+    Logger.log(`groupIndex: ${groupIndex}`);
     const accounts = await keyringApiClient.discoverAccounts(
       scopes,
       entropySource,
@@ -127,6 +129,8 @@ export abstract class MultichainWalletSnapClient {
         entropySource,
         index,
       );
+
+      Logger.log('discovered accounts', discoveredAccounts);
 
       // We stop discovering accounts if none got discovered for that index.
       if (discoveredAccounts.length === 0) {
