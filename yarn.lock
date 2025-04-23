@@ -5633,10 +5633,10 @@
     fast-json-patch "^3.1.0"
     lodash "^4.17.21"
 
-"@metamask/snaps-controllers@^11.2.1":
-  version "11.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-11.2.1.tgz#89c402817e7e8e8b333a33e6c1ed0d6985049807"
-  integrity sha512-LzvqQ2SEf75zSmvh55vm6P67eFAat4lmDHGs4XQsFIZ+HWbwk5OfAn2s7sc6y6O8Uci6xK9xgfTz+XRbgC7JEg==
+"@metamask/snaps-controllers@^11.2.2":
+  version "11.2.2"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-11.2.2.tgz#f8e83a1a6796f028100448a93905d3ce55e7f0fe"
+  integrity sha512-ADDH/ViYlfbu++lgFusptkUZP+D0oibMA28ImhrlF6BybKYfZ0mM8rhNpBsG/kdnzLVgmiEr4AUKn0pg0q3FCQ==
   dependencies:
     "@metamask/approval-controller" "^7.1.3"
     "@metamask/base-controller" "^8.0.0"
@@ -5652,7 +5652,7 @@
     "@metamask/snaps-rpc-methods" "^12.1.0"
     "@metamask/snaps-sdk" "^6.22.0"
     "@metamask/snaps-utils" "^9.2.0"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/utils" "^11.4.0"
     "@xstate/fsm" "^2.0.0"
     async-mutex "^0.5.0"
     browserify-zlib "^0.2.0"
@@ -5886,10 +5886,10 @@
     semver "^7.5.4"
     uuid "^9.0.1"
 
-"@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^11.2.0":
-  version "11.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.2.0.tgz#f2b35cbe6536c56071b0971f97f2395b860885c4"
-  integrity sha512-5Y4bd8Axvi2kJKjp6Jlbb9wyoTrSZxQjWvVGPevpErAc7SCUYUuW0QOOPVu7YmT+bzisTpnFnRE8LjtwYCKGAg==
+"@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^11.2.0", "@metamask/utils@^11.4.0":
+  version "11.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.4.0.tgz#0f4862b198195c2181da91d64428117c2ae8adb5"
+  integrity sha512-dqsi65DAyprs91wo/D0yTST2Sry9h2krf1NADBJb9L3NTJn1py0w+C8K4jVVSh0XTrrj0/MF/t6XldGsidfypA==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
     "@metamask/superstruct" "^3.1.0"
