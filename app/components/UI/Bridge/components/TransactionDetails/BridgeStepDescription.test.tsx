@@ -8,7 +8,6 @@ import {
   StatusResponse,
   SrcChainStatus,
 } from '@metamask/bridge-status-controller';
-import { NetworkConfiguration } from '@metamask/network-controller';
 import { Step } from '@metamask/bridge-controller';
 import {
   TransactionMeta,
@@ -40,20 +39,10 @@ describe('BridgeStepDescription', () => {
     protocol: 'test-protocol',
   } as unknown as Step;
 
-  const mockNetworkConfigurations = {
-    '0x1': {
-      chainId: '0x1',
-    } as unknown as NetworkConfiguration,
-    '0x2': {
-      chainId: '0x2',
-    } as unknown as NetworkConfiguration,
-  };
-
   it('should render bridge action without crashing', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={mockStep}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.PENDING}
       />,
     );
@@ -65,7 +54,6 @@ describe('BridgeStepDescription', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={mockSwapStep}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.PENDING}
       />,
     );
@@ -78,7 +66,6 @@ describe('BridgeStepDescription', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={mockStep}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.PENDING}
         time="10:00 AM"
       />,
@@ -92,7 +79,6 @@ describe('BridgeStepDescription', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={mockStep}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.COMPLETE}
       />,
     );
@@ -109,7 +95,6 @@ describe('BridgeStepDescription', () => {
     const { queryByText } = render(
       <BridgeStepDescription
         step={stepWithoutDestSymbol}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.PENDING}
       />,
     );
@@ -127,7 +112,6 @@ describe('BridgeStepDescription', () => {
     const { queryByText } = render(
       <BridgeStepDescription
         step={stepWithoutSymbols}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.PENDING}
       />,
     );
@@ -140,7 +124,6 @@ describe('BridgeStepDescription', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={mockStep}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.PENDING}
       />,
     );
@@ -153,7 +136,6 @@ describe('BridgeStepDescription', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={mockStep}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.UNKNOWN}
       />,
     );
@@ -166,7 +148,6 @@ describe('BridgeStepDescription', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={mockStep}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.COMPLETE}
       />,
     );
@@ -181,7 +162,6 @@ describe('BridgeStepDescription', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={mockSwapStep}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.COMPLETE}
       />,
     );
@@ -197,7 +177,6 @@ describe('BridgeStepDescription', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={mockStep}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.COMPLETE}
         time="10:00 AM"
       />,
@@ -219,7 +198,6 @@ describe('BridgeStepDescription', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={stepWithoutDestChainId}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.PENDING}
       />,
     );
@@ -238,7 +216,6 @@ describe('BridgeStepDescription', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={stepWithUnknownChain}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.PENDING}
       />,
     );
@@ -257,7 +234,6 @@ describe('BridgeStepDescription', () => {
     const { queryByText } = render(
       <BridgeStepDescription
         step={stepWithoutSrcSymbol}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.PENDING}
       />,
     );
@@ -275,7 +251,6 @@ describe('BridgeStepDescription', () => {
     const { queryByText } = render(
       <BridgeStepDescription
         step={stepWithoutDestSymbol}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={StatusTypes.PENDING}
       />,
     );
@@ -288,7 +263,6 @@ describe('BridgeStepDescription', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={mockSwapStep}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={null}
       />,
     );
@@ -304,7 +278,6 @@ describe('BridgeStepDescription', () => {
     const { getByText } = render(
       <BridgeStepDescription
         step={mockStep}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
         stepStatus={null}
       />,
     );

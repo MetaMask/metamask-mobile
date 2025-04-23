@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PickerAccount should render correctly 1`] = `
-<View
+<TouchableOpacity
+  onPress={[Function]}
   style={
     {
       "alignItems": "center",
@@ -238,5 +239,5 @@ exports[`PickerAccount should render correctly 1`] = `
   >
     0x29900...da21a
   </Text>
-</View>
+</TouchableOpacity>
 `;

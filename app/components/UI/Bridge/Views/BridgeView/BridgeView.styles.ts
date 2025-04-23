@@ -63,6 +63,7 @@ export const createStyles = (params: { theme: Theme }) => {
       flex: 1,
       justifyContent: 'flex-end',
       paddingBottom: 36,
+      paddingTop: 8,
     },
     keypad: {
       paddingHorizontal: 4,
@@ -80,13 +81,8 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     keypadContainerWithDestinationPicker: {
       justifyContent: 'center',
-      paddingVertical: 12,
-    },
-    dynamicContentWithDestinationPickerAndQuoteCard: {
-      justifyContent: 'flex-start',
-    },
-    dynamicContentWithOnlyQuoteCard: {
-      justifyContent: 'space-around',
+      paddingTop: 8,
+      paddingBottom: 12,
     },
   });
 };

@@ -9,13 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix(bridge): enhance UI/UX with improved input handling and layout adjustments ([#14781](https://github.com/MetaMask/metamask-mobile/pull/14781))
 - fix(swaps): set default slippage when source or destination token is not stablecoin ([#14730](https://github.com/MetaMask/metamask-mobile/pull/14730))
+- fix(bridge): fix transaction history for EVM and Solana bridge transactions ([#14759](https://github.com/MetaMask/metamask-mobile/pull/14759))
 
 ### Changed
 
+- fix(multi-srp): allow a user to select srp when creating a multichain account ([#14644](https://github.com/MetaMask/metamask-mobile/pull/14644))
 - fix(multi-srp): display errors only after all the words are have been entered ([#14607](https://github.com/MetaMask/metamask-mobile/pull/14607))
 - feat: update address truncation format from 4 to 5 characters to match extension ([#14744](https://github.com/MetaMask/metamask-mobile/pull/14744))
+- fix(multi-srp): display errors only after all the words are have been entered ([#14607](https://github.com/MetaMask/metamask-mobile/pull/14607))
+- fix(wallet-ux): increased touchable area for account picker so it is easier to select ([#14762](https://github.com/MetaMask/metamask-mobile/pull/14762))
 - fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
+
+### Fixed
+
+- fix: updates a padding style specifically for Android devices ([#14725](https://github.com/MetaMask/metamask-mobile/pull/14725))
 
 ### Added
 
