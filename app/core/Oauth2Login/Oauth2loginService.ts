@@ -10,7 +10,7 @@ import { HandleOauth2LoginResult, OAuthProvider, GroupedAuthConnectionId, AuthCo
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { TOPRFNetwork } from '../Engine/controllers/seedless-onboarding-controller';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
-import { ByoaServerUrl, createLoginHandler, getByoaTokens } from './Ouath2LoginHandler';
+import { ByoaServerUrl, createLoginHandler, getByoaTokens } from './Oauth2LoginHandler';
 
 export interface Oauth2LoginServiceConfig {
     authConnectionId: string;
