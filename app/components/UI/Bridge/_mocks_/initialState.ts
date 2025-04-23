@@ -2,6 +2,7 @@ import { defaultBridgeControllerState } from './bridgeControllerState';
 import { CaipAssetId, Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { ethers } from 'ethers';
+import { StatusTypes } from '@metamask/bridge-status-controller';
 
 export const ethChainId = '0x1' as Hex;
 export const optimismChainId = '0xa' as Hex;
@@ -369,6 +370,42 @@ export const initialState = {
         keyringsMetadata: [],
         encryptionKey: '',
         encryptionSalt: '',
+      },
+      BridgeStatusController: {
+        txHistory: {
+          'test-tx-id': {
+            txMetaId: 'test-tx-id',
+            account: evmAccountAddress,
+            quote: {
+              requestId: 'test-request-id',
+              srcChainId: 1,
+              srcAsset: {
+                chainId: 1,
+                address: '0x123',
+                decimals: 18,
+              },
+              destChainId: 10,
+              destAsset: {
+                chainId: 10,
+                address: '0x456',
+                decimals: 18,
+              },
+              srcTokenAmount: '1000000000000000000',
+              destTokenAmount: '2000000000000000000',
+            },
+            status: {
+              srcChain: {
+                txHash: '0x123',
+              },
+              destChain: {
+                txHash: '0x456',
+              },
+              status: StatusTypes.COMPLETE,
+            },
+            startTime: Date.now(),
+            estimatedProcessingTimeInSeconds: 300,
+          },
+        },
       },
     },
   },
