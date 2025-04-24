@@ -184,6 +184,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         label={'Download Performance Metrics'}
         onPress={downloadPerformanceMetrics}
         width={ButtonWidthTypes.Full}
+        testID="download-performance-metrics-button"
       />
     </View>
   );
