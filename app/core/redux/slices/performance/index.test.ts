@@ -50,7 +50,7 @@ describe('Performance Slice', () => {
           platform: '',
           appVersion: '',
         },
-        activeTraces: {},
+        activeTraceBySessionId: {},
         isInitialized: false,
       });
     });
@@ -78,8 +78,10 @@ describe('Performance Slice', () => {
       expect(state.sessionId).toBeDefined();
       expect(state.startTime).toBeGreaterThan(0);
       expect(state.environment).toEqual(environment);
-      expect(state.activeTraces.test_trace).toBeDefined();
-      expect(state.activeTraces.test_trace.metadata).toEqual({ test: 'data' });
+      expect(state.activeTraceBySessionId.test_trace).toBeDefined();
+      expect(state.activeTraceBySessionId.test_trace.metadata).toEqual({
+        test: 'data',
+      });
     });
 
     it('not initialize session if already initialized', () => {
@@ -143,7 +145,7 @@ describe('Performance Slice', () => {
       );
 
       const state = store.getState().performance;
-      expect(state.activeTraces.test_trace).toBeUndefined();
+      expect(state.activeTraceBySessionId.test_trace).toBeUndefined();
       expect(state.metrics).toHaveLength(1);
       expect(state.metrics[0].eventName).toBe('test_trace');
       expect(state.metrics[0].duration).toBe(100);
@@ -177,7 +179,7 @@ describe('Performance Slice', () => {
 
       const state = store.getState().performance;
       expect(state.metrics).toHaveLength(0);
-      expect(state.activeTraces).toEqual({});
+      expect(state.activeTraceBySessionId).toEqual({});
     });
   });
 

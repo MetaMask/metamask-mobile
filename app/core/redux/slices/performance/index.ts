@@ -24,7 +24,7 @@ export interface PerformanceState {
     platform: string;
     appVersion: string;
   };
-  activeTraces: Record<
+  activeTraceBySessionId: Record<
     string,
     { startTime: number; metadata?: Record<string, unknown> }
   >;
@@ -41,7 +41,7 @@ export const initialState: PerformanceState = {
     platform: '',
     appVersion: '',
   },
-  activeTraces: {},
+  activeTraceBySessionId: {},
   isInitialized: false,
 };
 
@@ -77,7 +77,7 @@ const slice = createSlice({
       }
 
       const { eventName, metadata } = action.payload;
-      state.activeTraces[eventName] = {
+      state.activeTraceBySessionId[eventName] = {
         startTime: Date.now(),
         metadata,
       };
@@ -93,7 +93,7 @@ const slice = createSlice({
         return;
       }
       const { eventName, additionalMetadata = {} } = action.payload;
-      const activeTrace = state.activeTraces[eventName];
+      const activeTrace = state.activeTraceBySessionId[eventName];
 
       if (activeTrace) {
         const duration = Date.now() - activeTrace.startTime;
@@ -106,7 +106,7 @@ const slice = createSlice({
             ...additionalMetadata,
           },
         });
-        delete state.activeTraces[eventName];
+        delete state.activeTraceBySessionId[eventName];
       }
     },
     clearPerformanceMetrics: (state) => {
@@ -114,7 +114,7 @@ const slice = createSlice({
         return;
       }
       state.metrics = [];
-      state.activeTraces = {};
+      state.activeTraceBySessionId = {};
     },
   },
 });

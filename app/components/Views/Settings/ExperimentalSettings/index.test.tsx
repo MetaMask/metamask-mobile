@@ -49,7 +49,7 @@ const initialState = {
       platform: 'ios',
       appVersion: '1.0.0',
     },
-    activeTraces: {},
+    activeTraceBySessionId: {},
     isInitialized: true,
   },
   engine: {
