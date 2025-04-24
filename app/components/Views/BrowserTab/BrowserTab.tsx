@@ -107,7 +107,7 @@ import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
-import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
+import UrlAutocomplete, { AutocompleteSearchResult, UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import {
   getPhishingTestResult,
@@ -1194,45 +1194,54 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Handle autocomplete selection
    */
-  const onSelect = (url: string) => {
+  const onSelect = useCallback((item: AutocompleteSearchResult) => {
     // Unfocus the url bar and hide the autocomplete results
     urlBarRef.current?.hide();
-    onSubmitEditing(url);
-  };
+
+    if (item.category === 'tokens') {
+      navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
+        chainId: item.chainId,
+        address: item.address,
+      });
+    } else {
+      onSubmitEditing(item.url);
+    }
+  }, [onSubmitEditing, navigation]);
 
   /**
    * Handle autocomplete dismissal
    */
-  const onDismissAutocomplete = () => {
+  const onDismissAutocomplete = useCallback(() => {
     // Unfocus the url bar and hide the autocomplete results
     urlBarRef.current?.hide();
     const hostName =
       new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
-  };
+  }, []);
 
   /**
    * Hide the autocomplete results
    */
-  const hideAutocomplete = () => autocompleteRef.current?.hide();
+  const hideAutocomplete = useCallback(() => autocompleteRef.current?.hide(), []);
 
-  const onCancelUrlBar = () => {
+  const onCancelUrlBar = useCallback(() => {
     hideAutocomplete();
     // Reset the url bar to the current url
     const hostName =
       new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
-  };
+  }, [hideAutocomplete]);
 
-  const onFocusUrlBar = () => {
+  const onFocusUrlBar = useCallback(() => {
     // Show the autocomplete results
     autocompleteRef.current?.show();
     urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
-  };
+  }, []);
 
-  const onChangeUrlBar = (text: string) =>
+  const onChangeUrlBar = useCallback((text: string) => {
     // Search the autocomplete results
     autocompleteRef.current?.search(text);
+  }, []);
 
   const handleWebviewNavigationChange = useCallback(
     (eventName: WebViewNavigationEventName) =>
