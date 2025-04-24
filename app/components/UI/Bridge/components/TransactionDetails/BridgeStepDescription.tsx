@@ -4,14 +4,7 @@ import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import {
-  ActionTypes,
-  BridgeHistoryItem,
-  StatusTypes,
-} from '@metamask/bridge-status-controller';
-import {
-  NETWORK_TO_SHORT_NETWORK_NAME_MAP,
-} from '../../../../../constants/bridge';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import Text, {
@@ -20,7 +13,15 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { StyleSheet } from 'react-native';
-import { formatChainIdToCaip,isSolanaChainId,  formatChainIdToHex, Step } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  isSolanaChainId,
+  formatChainIdToHex,
+  StatusTypes,
+  Step,
+  ActionTypes,
+} from '@metamask/bridge-controller';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 
 /**
  * bridge actions will have step.srcChainId !== step.destChainId
@@ -31,10 +32,7 @@ import { formatChainIdToCaip,isSolanaChainId,  formatChainIdToHex, Step } from '
  * @param step - The step to be rendered
  * @param networkConfigurationsByChainId - The network configurations by chain id
  */
-const getBridgeActionText = (
-  stepStatus: StatusTypes | null,
-  step: Step,
-) => {
+const getBridgeActionText = (stepStatus: StatusTypes | null, step: Step) => {
   let destChainId: CaipChainId | Hex | undefined;
   if (step.destChainId) {
     if (isSolanaChainId(step.destChainId)) {
@@ -44,8 +42,9 @@ const getBridgeActionText = (
     }
   }
 
-  const destChainName =
-    destChainId ? NETWORK_TO_SHORT_NETWORK_NAME_MAP[destChainId] : undefined;
+  const destChainName = destChainId
+    ? NETWORK_TO_SHORT_NETWORK_NAME_MAP[destChainId]
+    : undefined;
 
   const destSymbol = step.destAsset?.symbol;
   // If the destination asset symbol is not available, we cannot display meaningful

@@ -26,7 +26,7 @@ describe('AccountNetworkInfo', () => {
     const { getByText } = renderWithProvider(<AccountNetworkInfo />, {
       state: personalSignatureConfirmationState,
     });
-    expect(getByText('0x935E...5477')).toBeDefined();
+    expect(getByText('0x935E7...05477')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
   });
 });

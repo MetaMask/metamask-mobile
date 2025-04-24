@@ -253,17 +253,23 @@ class WalletConnect2Session {
       const currentNamespaces = this.session.namespaces;
       const newChainId = `eip155:${chainIdDecimal}`;
       const updatedChains = [
-        ...new Set([...(currentNamespaces.eip155?.chains || []), newChainId]),
+        ...new Set([...(currentNamespaces?.eip155?.chains || []), newChainId]),
       ];
+
+      const accounts = [...new Set((currentNamespaces?.eip155?.accounts || []).map((acc) => acc.split(':')[2]))].map((account) => `${newChainId}:${account}`);
+
+      const updatedAccounts = [
+        ...new Set([...(currentNamespaces?.eip155?.accounts || []), ...accounts]),
+      ]
 
       const updatedNamespaces = {
         ...currentNamespaces,
         eip155: {
-          ...currentNamespaces.eip155,
+          ...(currentNamespaces?.eip155 || {}),
           chains: updatedChains,
-          methods: currentNamespaces.eip155.methods,
-          events: currentNamespaces.eip155.events,
-          accounts: currentNamespaces.eip155.accounts,
+          methods: currentNamespaces?.eip155?.methods || [],
+          events: currentNamespaces?.eip155?.events || [],
+          accounts: updatedAccounts,
         },
       };
 
@@ -459,14 +465,8 @@ class WalletConnect2Session {
     const verified = requestEvent.verifyContext?.verified;
     const origin = verified?.origin ?? this.session.peer.metadata.url;
     const method = requestEvent.params.request.method;
-    const caip2ChainId = (
-      method === 'wallet_switchEthereumChain'
-        ? `eip155:${parseInt(
-            requestEvent.params.request.params[0].chainId,
-            16,
-          )}`
-        : requestEvent.params.chainId
-    ) as CaipChainId;
+    const isSwitchingChain = method === 'wallet_switchEthereumChain';
+    const caip2ChainId = (isSwitchingChain ? `eip155:${parseInt(requestEvent.params.request.params[0].chainId, 16)}` : requestEvent.params.chainId) as CaipChainId;
     const methodParams = requestEvent.params.request.params;
 
     DevLogger.log(
@@ -474,7 +474,7 @@ class WalletConnect2Session {
     );
 
     try {
-      const allowed = await checkWCPermissions({ origin, caip2ChainId });
+      const allowed = await checkWCPermissions({ origin, caip2ChainId, allowSwitchingToNewChain: isSwitchingChain });
       DevLogger.log(
         `WC2::handleRequest caip2ChainId=${caip2ChainId} is allowed=${allowed}`,
       );
@@ -514,6 +514,8 @@ class WalletConnect2Session {
 
     if (method === 'wallet_switchEthereumChain') {
       this.handleChainChange(parseInt(caip2ChainId.split(':')[1], 10));
+      // respond to the request as successful
+      await this.approveRequest({ id: requestEvent.id + '', result: true });
       return;
     }
 

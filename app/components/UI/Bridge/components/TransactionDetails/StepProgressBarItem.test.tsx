@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { render } from '@testing-library/react-native';
 import StepProgressBarItem from './StepProgressBarItem';
-import { StatusTypes } from '@metamask/bridge-status-controller';
+import { StatusTypes } from '@metamask/bridge-controller';
 
 describe('StepProgressBarItem', () => {
   it('should render with minimal props', () => {

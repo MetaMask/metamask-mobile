@@ -3,12 +3,11 @@ import { render } from '@testing-library/react-native';
 import BridgeStepDescription, { getStepStatus } from './BridgeStepDescription';
 import {
   ActionTypes,
-  StatusTypes,
   BridgeHistoryItem,
   StatusResponse,
   SrcChainStatus,
 } from '@metamask/bridge-status-controller';
-import { Step } from '@metamask/bridge-controller';
+import { StatusTypes, Step } from '@metamask/bridge-controller';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -261,10 +260,7 @@ describe('BridgeStepDescription', () => {
 
   it('should handle swap action with null status', () => {
     const { getByText } = render(
-      <BridgeStepDescription
-        step={mockSwapStep}
-        stepStatus={null}
-      />,
+      <BridgeStepDescription step={mockSwapStep} stepStatus={null} />,
     );
 
     expect(getByText(/ETH/)).toBeTruthy();
@@ -276,10 +272,7 @@ describe('BridgeStepDescription', () => {
 
   it('should handle bridge action with null status', () => {
     const { getByText } = render(
-      <BridgeStepDescription
-        step={mockStep}
-        stepStatus={null}
-      />,
+      <BridgeStepDescription step={mockStep} stepStatus={null} />,
     );
 
     expect(getByText(/ETH/)).toBeTruthy();

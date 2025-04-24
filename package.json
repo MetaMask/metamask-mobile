@@ -164,9 +164,14 @@
     "@metamask/assets-controllers": "^58.0.0",
     "@metamask/base-controller": "^8.0.0",
     "@metamask/bitcoin-wallet-snap": "^0.9.0",
+<<<<<<< HEAD
     "@metamask/bridge-controller": "^15.0.0",
     "@metamask/bridge-status-controller": "^13.1.0",
     "@metamask/chain-agnostic-permission": "^0.3.0",
+=======
+    "@metamask/bridge-controller": "^17.0.0",
+    "@metamask/bridge-status-controller": "^14.0.0",
+>>>>>>> main
     "@metamask/composable-controller": "^11.0.0",
     "@metamask/controller-utils": "^11.7.0",
     "@metamask/design-tokens": "^7.0.0",
@@ -217,7 +222,7 @@
     "@metamask/signature-controller": "^27.1.0",
     "@metamask/slip44": "^4.1.0",
     "@metamask/smart-transactions-controller": "^16.2.0",
-    "@metamask/snaps-controllers": "^11.2.1",
+    "@metamask/snaps-controllers": "^11.2.2",
     "@metamask/snaps-execution-environments": "^7.2.1",
     "@metamask/snaps-rpc-methods": "^12.1.0",
     "@metamask/snaps-sdk": "^6.22.0",
@@ -226,7 +231,7 @@
     "@metamask/stake-sdk": "^1.0.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^13.1.0",
-    "@metamask/token-search-discovery-controller": "^2.1.0",
+    "@metamask/token-search-discovery-controller": "^3.1.0",
     "@metamask/transaction-controller": "54.0.0",
     "@metamask/utils": "^11.2.0",
     "@ngraveio/bc-ur": "^1.1.6",
