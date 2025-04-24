@@ -700,14 +700,17 @@ const ImportFromSecretRecoveryPhrase = ({
                                     item &&
                                     (showAllSeedPhrase
                                       ? false
-                                      : seedPhraseInputFocusedIndex !== index)
+                                      : seedPhraseInputFocusedIndex !==
+                                        index) &&
+                                    isValidSeed(item)
                                       ? '***'
                                       : item
                                   }
                                   secureTextEntry={
-                                    showAllSeedPhrase
+                                    isValidSeed(item) &&
+                                    (showAllSeedPhrase
                                       ? false
-                                      : seedPhraseInputFocusedIndex !== index
+                                      : seedPhraseInputFocusedIndex !== index)
                                   }
                                   onFocus={() =>
                                     setSeedPhraseInputFocusedIndex(index)

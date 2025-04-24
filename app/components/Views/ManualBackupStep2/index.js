@@ -47,6 +47,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const [emptySlots, setEmptySlots] = useState([]);
   const [missingWords, setMissingWords] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [sortedSlots, setSortedSlots] = useState([]);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -138,12 +139,19 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     setGridWords(tempGrid);
     setMissingWords(removed);
     setEmptySlots(indexesToEmpty);
-    setSelectedSlot(indexesToEmpty.sort((a, b) => a - b)[0]);
+    const sortedIndexes = indexesToEmpty.sort((a, b) => a - b);
+    setSortedSlots(indexesToEmpty.filter((_, i) => i !== 0));
+    setSelectedSlot(sortedIndexes[0]);
   }, [words, showStatusBottomSheet]);
 
   const handleWordSelect = useCallback(
     (word) => {
       const updatedGrid = [...gridWords];
+      if (sortedSlots.length === 0) {
+        const indexesToEmpty = [...emptySlots];
+        const sortedIndexes = indexesToEmpty.sort((a, b) => a - b);
+        setSortedSlots(sortedIndexes);
+      }
 
       // Step 1: Deselect if already placed
       const existingIndex = updatedGrid.findIndex((w) => w === word);
@@ -161,7 +169,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       if (!missingWords.includes(word)) return;
 
       // Get empty slots top-down
-      const emptySlots = updatedGrid
+      const emptySlotsUpdated = updatedGrid
         .map((val, idx) => (val === '' ? idx : null))
         .filter((i) => i !== null);
 
@@ -172,18 +180,19 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       if (
         targetIndex === null || // no slot selected
         updatedGrid[targetIndex] !== '' || // slot already filled
-        !emptySlots.includes(targetIndex) // invalid slot
+        !emptySlotsUpdated.includes(targetIndex) // invalid slot
       ) {
-        targetIndex = emptySlots[0]; // force top-down
+        targetIndex = emptySlotsUpdated[0]; // force top-down
       }
 
       if (targetIndex === undefined) return;
 
       updatedGrid[targetIndex] = word;
       setGridWords(updatedGrid);
-      setSelectedSlot(null); // reset selection after placing
+      setSelectedSlot(sortedSlots[0]); // reset selection after placing
+      setSortedSlots(sortedSlots.filter((_, i) => i !== 0));
     },
-    [gridWords, missingWords, selectedSlot],
+    [gridWords, missingWords, selectedSlot, sortedSlots, emptySlots],
   );
 
   const handleSlotPress = useCallback(
