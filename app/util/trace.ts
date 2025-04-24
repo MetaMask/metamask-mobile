@@ -47,6 +47,7 @@ export enum TraceName {
   AssetDetails = 'Asset Details',
   ImportNfts = 'Import Nfts',
   ImportTokens = 'Import Tokens',
+  LoadRampExperience = 'Load Ramp Experience',
 }
 
 export enum TraceOperation {
