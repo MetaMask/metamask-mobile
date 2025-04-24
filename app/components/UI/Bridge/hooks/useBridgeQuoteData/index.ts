@@ -19,9 +19,8 @@ import {
   getQuoteRefreshRate,
   shouldRefreshQuote,
 } from '../../utils/quoteUtils';
-import type { Hex } from '@metamask/utils';
-import type { RootState } from '../../../../../reducers';
-import { selectNativeCurrencyByChainId } from '../../../../../selectors/networkController';
+
+import { selectTicker } from '../../../../../selectors/networkController';
 import { formatAmount } from '../../../SimulationDetails/formatAmount';
 import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../../locales/i18n';
@@ -38,9 +37,7 @@ export const useBridgeQuoteData = () => {
   const locale = I18n.locale;
   const fiatFormatter = useFiatFormatter();
   const primaryCurrency = useSelector(selectPrimaryCurrency);
-  const nativeCurrency = useSelector((state: RootState) =>
-    selectNativeCurrencyByChainId(state, sourceToken?.chainId as Hex),
-  );
+  const ticker = useSelector(selectTicker);
 
   const quotes = useSelector(selectBridgeQuotes);
 
@@ -100,7 +97,7 @@ export const useBridgeQuoteData = () => {
     const formattedAmount = `${formatAmount(
       locale,
       new BigNumber(amount),
-    )} ${nativeCurrency}`;
+    )} ${ticker}`;
     const formattedValueInCurrency = fiatFormatter(
       new BigNumber(valueInCurrency),
     );
@@ -108,7 +105,7 @@ export const useBridgeQuoteData = () => {
     return primaryCurrency === 'ETH'
       ? formattedAmount
       : formattedValueInCurrency;
-  }, [activeQuote, locale, nativeCurrency, fiatFormatter, primaryCurrency]);
+  }, [activeQuote, locale, ticker, fiatFormatter, primaryCurrency]);
 
   const formattedQuoteData = useMemo(() => {
     if (!activeQuote) return undefined;
