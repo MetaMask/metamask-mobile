@@ -1,9 +1,9 @@
 diff --git a/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.d.ts
 new file mode 100644
-index 0000000..89a81a2
+index 0000000..ba773f4
 --- /dev/null
 +++ b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.d.ts
-@@ -0,0 +1,208 @@
+@@ -0,0 +1,205 @@
 +export interface NativeTransakAccessToken {
 +    id: string;
 +    ttl: number;
@@ -179,9 +179,6 @@ index 0000000..89a81a2
 +export interface OttResponse {
 +    token: string;
 +}
-+export interface OrdersList {
-+    orders: BuyOrder[];
-+}
 +export declare enum TransakEnvironment {
 +    Production = 0,
 +    Staging = 1
@@ -210,11 +207,11 @@ index 0000000..89a81a2
 +    getUserLimits(accessToken: NativeTransakAccessToken, fiatCurrency: string, paymentMethod?: string, kycType?: string): Promise<UserLimits>;
 +    requestOtt(accessToken: NativeTransakAccessToken): Promise<OttResponse>;
 +    generatePaymentWidgetUrl(ottToken: string, fiatCurrency: string, cryptoCurrency: string, network: string, fiatAmount: string, walletAddress: string, paymentMethod: string, redirectUrl: string): string;
-+    getRecentOrders(accessToken: NativeTransakAccessToken, limit?: number): Promise<OrdersList>;
++    getOrdersHistory(accessToken: NativeTransakAccessToken, limit?: number, skip?: number): Promise<BuyOrder[]>;
 +}
 diff --git a/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js
 new file mode 100644
-index 0000000..04510f2
+index 0000000..a17e5bf
 --- /dev/null
 +++ b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js
 @@ -0,0 +1,317 @@
@@ -516,11 +513,11 @@ index 0000000..04510f2
 +        });
 +        return `${widgetBaseUrl}?${params.toString()}`;
 +    }
-+    async getRecentOrders(accessToken, limit = 10) {
++    async getOrdersHistory(accessToken, limit = 10, skip = 0) {
 +        try {
 +            return (await this.transakAxios.get('/api/v2/orders', {
 +                params: {
-+                    skip: 0,
++                    skip: skip,
 +                    limit: limit,
 +                },
 +                headers: {
@@ -529,7 +526,7 @@ index 0000000..04510f2
 +            })).data.response;
 +        }
 +        catch (error) {
-+            console.error('Error in getRecentOrders:', error);
++            console.error('Error in getOrdersHistory:', error);
 +            throw error;
 +        }
 +    }
