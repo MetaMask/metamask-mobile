@@ -22,7 +22,7 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
-import { parseCaipAssetType } from '@metamask/utils';
+import { CaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -296,6 +296,7 @@ export interface MultichainNetworkAggregatedBalance {
   totalNativeTokenBalance: Balance | undefined;
   totalBalanceFiat: number | undefined;
   balances: Record<string, Balance> | undefined;
+  fiatBalances: Record<CaipAssetType, string> | undefined;
 }
 
 export const getMultichainNetworkAggregatedBalance = (
@@ -314,6 +315,7 @@ export const getMultichainNetworkAggregatedBalance = (
   // Default values for native token
   let totalNativeTokenBalance: Balance | undefined;
   let totalBalanceFiat: BigNumber | undefined;
+  const fiatBalances: Record<string, string> = {};
 
   for (const assetId of assetIds) {
     const { chainId } = parseCaipAssetType(assetId);
@@ -330,6 +332,7 @@ export const getMultichainNetworkAggregatedBalance = (
       balance.amount && rate
         ? new BigNumber(balance.amount).times(rate)
         : new BigNumber(0);
+    fiatBalances[assetId] = balanceInFiat.toString();
 
     // Only update native token balance if this is the native asset
     if (assetId === nativeAsset) {
@@ -350,6 +353,7 @@ export const getMultichainNetworkAggregatedBalance = (
       ? totalBalanceFiat.toNumber()
       : undefined,
     balances,
+    fiatBalances,
   };
 };
 
@@ -372,6 +376,7 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
           totalNativeTokenBalance: undefined,
           totalBalanceFiat: undefined,
           balances: {},
+          fiatBalances: {},
         };
       }
       return getMultichainNetworkAggregatedBalance(
