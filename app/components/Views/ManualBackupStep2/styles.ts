@@ -132,6 +132,12 @@ const createStyles = (colors: any) =>
       alignSelf: 'flex-start',
       width: '100%',
     },
+    actionView: {
+      flex: 1,
+    },
+    buttonContainer: {
+      paddingHorizontal: 0,
+    },
   });
 
 export default createStyles;

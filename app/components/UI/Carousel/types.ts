@@ -1,6 +1,12 @@
 import { ViewStyle } from 'react-native';
 
-export type SlideId = 'card' | 'fund' | 'cashout' | 'aggregated' | 'multisrp';
+export type SlideId =
+  | 'card'
+  | 'fund'
+  | 'cashout'
+  | 'aggregated'
+  | 'multisrp'
+  | 'secure';
 
 interface NavigationParams {
   address?: string;

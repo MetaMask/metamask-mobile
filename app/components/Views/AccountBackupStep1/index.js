@@ -13,12 +13,10 @@ import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
-import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
-import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -55,7 +53,6 @@ const createStyles = (colors) =>
     wrapper: {
       flex: 1,
       paddingHorizontal: 16,
-      marginTop: 50,
     },
     content: {
       alignItems: 'center',
@@ -105,9 +102,6 @@ const createStyles = (colors) =>
  */
 const AccountBackupStep1 = (props) => {
   const { navigation, route } = props;
-  const [showRemindLaterModal, setRemindLaterModal] = useState(false);
-  const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
-  const [skipCheckbox, setToggleSkipCheckbox] = useState(false);
   const [hasFunds, setHasFunds] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -165,46 +159,40 @@ const AccountBackupStep1 = (props) => {
     track(MetaMetricsEvents.WALLET_SECURITY_STARTED);
   };
 
-  const showRemindLater = () => {
-    if (hasFunds) return;
-
-    setRemindLaterModal(true);
-    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
-  };
-
-  const toggleSkipCheckbox = () =>
-    skipCheckbox ? setToggleSkipCheckbox(false) : setToggleSkipCheckbox(true);
-
-  const hideRemindLaterModal = () => {
-    setToggleSkipCheckbox(false);
-    setRemindLaterModal(false);
-  };
-
-  const secureNow = () => {
-    hideRemindLaterModal();
-    goNext();
-  };
-
   const skip = async () => {
-    hideRemindLaterModal();
+    // eslint-disable-next-line no-console
+    console.log('skip');
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
-    props.navigation.reset({
-      index: 1,
-      routes: [
-        {
-          name: Routes.ONBOARDING.SUCCESS,
-          params: { showPasswordHint: false },
-        },
-      ],
+    props.navigation.navigate('OptinMetrics', {
+      onContinue: () => {
+        props.navigation.navigate('OnboardingSuccess', {
+          showPasswordHint: false,
+        });
+      },
     });
   };
 
-  const showWhatIsSeedphrase = () => setWhatIsSeedphraseModal(true);
+  const showRemindLater = () => {
+    if (hasFunds) return;
 
-  const hideWhatIsSeedphrase = () => setWhatIsSeedphraseModal(false);
+    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
+      params: {
+        onConfirm: skip,
+        onCancel: goNext,
+      },
+    });
+    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
+  };
+
+  const showWhatIsSeedphrase = () => {
+    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SEEDPHRASE_MODAL,
+    });
+  };
 
   return (
     <SafeAreaView style={styles.mainWrapper}>
@@ -273,18 +261,6 @@ const AccountBackupStep1 = (props) => {
       {Device.isAndroid() && (
         <AndroidBackHandler customBackPress={showRemindLater} />
       )}
-      <SkipAccountSecurityModal
-        modalVisible={showRemindLaterModal}
-        onCancel={secureNow}
-        onConfirm={skip}
-        skipCheckbox={skipCheckbox}
-        onPress={hideRemindLaterModal}
-        toggleSkipCheckbox={toggleSkipCheckbox}
-      />
-      <SeedphraseModal
-        showWhatIsSeedphraseModal={showWhatIsSeedphraseModal}
-        hideWhatIsSeedphrase={hideWhatIsSeedphrase}
-      />
     </SafeAreaView>
   );
 };

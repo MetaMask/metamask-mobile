@@ -19,6 +19,9 @@ export const createStyles = (colors: any) =>
       flexDirection: 'column',
       gap: 16,
     },
+    actionView: {
+      flex: 1,
+    },
     loader: {
       backgroundColor: colors.background.default,
       flex: 1,
@@ -130,5 +133,8 @@ export const createStyles = (colors: any) =>
     },
     headerLeft: {
       marginLeft: 16,
+    },
+    buttonContainer: {
+      paddingHorizontal: 0,
     },
   });

@@ -730,11 +730,7 @@ const Swaps = () => (
 );
 
 const SetPasswordFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerTransparent: true,
-    }}
-  >
+  <Stack.Navigator>
     <Stack.Screen
       name="ChoosePassword"
       component={ChoosePassword}

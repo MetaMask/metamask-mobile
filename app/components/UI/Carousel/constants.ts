@@ -4,6 +4,7 @@ import { CarouselSlide, SlideId } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import {
   createBuyNavigationDetails,
+  createSecureNavigationDetails,
   createSellNavigationDetails,
 } from '../../UI/Ramp/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
@@ -84,6 +85,19 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
     testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_FIFTH_SLIDE_CLOSE_BUTTON,
   },
   ///: END:ONLY_INCLUDE_IF
+  {
+    id: 'secure',
+    title: strings('banner.secure.title'),
+    description: strings('banner.secure.subtitle'),
+    undismissable: false,
+    navigation: {
+      type: 'function',
+      navigate: () => createSecureNavigationDetails(),
+    },
+    testID: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE,
+    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE_TITLE,
+    testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE_CLOSE_BUTTON,
+  },
 ];
 
 export const BANNER_IMAGES: Record<SlideId, ImageSourcePropType> = {
@@ -94,4 +108,5 @@ export const BANNER_IMAGES: Record<SlideId, ImageSourcePropType> = {
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   multisrp: multiSrpImage,
   ///: END:ONLY_INCLUDE_IF
+  secure: cardImage,
 };

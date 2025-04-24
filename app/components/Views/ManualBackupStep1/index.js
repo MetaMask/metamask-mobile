@@ -50,7 +50,7 @@ import Button, {
 import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
-import SeedphraseModal from '../../UI/SeedphraseModal';
+import Routes from '../../../constants/navigation/Routes';
 
 /**
  * View that's shown during the second step of
@@ -64,17 +64,13 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
   const [ready, setReady] = useState(false);
   const [view, setView] = useState(SEED_PHRASE);
   const [words, setWords] = useState([]);
-  const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
-
-  const marginOffset = route.params?.marginOffset;
-  // eslint-disable-next-line no-console
-  console.log('marginOffset', marginOffset);
   const { colors, themeAppearance } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const steps = MANUAL_BACKUP_STEPS;
+  const backupFlow = route?.params?.backupFlow || false;
+  const settingsBackup = route?.params?.settingsBackup || false;
 
-  const hideWhatIsSeedphrase = () => setWhatIsSeedphraseModal(false);
+  const steps = MANUAL_BACKUP_STEPS;
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -106,6 +102,12 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
+  const showWhatIsSeedphrase = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SEEDPHRASE_MODAL,
+    });
+  };
+
   useEffect(() => {
     const getSeedphrase = async () => {
       if (!words.length) {
@@ -129,8 +131,6 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     getSeedphrase();
     setWords(route.params?.words ?? []);
     setReady(true);
-    // eslint-disable-next-line no-console
-    console.log('route.params', route.params);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -146,7 +146,8 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     navigation.navigate('ManualBackupStep2', {
       words,
       steps,
-      marginOffset,
+      backupFlow,
+      settingsBackup,
     });
   };
 
@@ -291,6 +292,8 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       confirmDisabled={seedPhraseHidden}
       showCancelButton={false}
       confirmButtonMode={'confirm'}
+      rootStyle={styles.actionView}
+      buttonContainerStyle={styles.buttonContainer}
     >
       <View
         style={styles.wrapper}
@@ -305,7 +308,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Primary}
-              onPress={() => setWhatIsSeedphraseModal(true)}
+              onPress={showWhatIsSeedphrase}
             >
               {strings('manual_backup_step_1.info-2')}{' '}
             </Text>
@@ -354,11 +357,9 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     </ActionView>
   );
 
-  const marginTop = marginOffset ? 110 : 50;
-
   return ready ? (
     <SafeAreaView style={styles.mainWrapper}>
-      <View style={[styles.container, { marginTop }]}>
+      <View style={[styles.container]}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           Step 2 of 3
         </Text>
@@ -366,10 +367,6 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
           ? renderSeedphraseView()
           : renderConfirmPassword()}
       </View>
-      <SeedphraseModal
-        showWhatIsSeedphraseModal={showWhatIsSeedphraseModal}
-        hideWhatIsSeedphrase={hideWhatIsSeedphrase}
-      />
       <ScreenshotDeterrent hasNavigation enabled isSRP />
     </SafeAreaView>
   ) : (

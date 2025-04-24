@@ -42,7 +42,6 @@ const createStyles = (colors: any) =>
       justifyContent: 'space-between',
       rowGap: 16,
       paddingHorizontal: 24,
-      marginTop: 30,
       marginBottom: 16,
     },
     hintContent: {
