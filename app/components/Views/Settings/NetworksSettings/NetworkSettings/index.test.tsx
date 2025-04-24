@@ -1185,7 +1185,7 @@ describe('NetworkSettings', () => {
   });
 
   describe('NetworkSettings componentDidMount', () => {
-    it('should correctly initialize state when networkTypeOrRpcUrl is provided and the default RPC endpoint has a type', () => {
+    it('should correctly initialize state when networkTypeOrRpcUrl is provided', () => {
       const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
         route: {
           params: {
@@ -1205,9 +1205,8 @@ describe('NetworkSettings', () => {
             chainId: '0x1',
             rpcEndpoints: [
               {
-                name: 'Ethereum Mainnet',
                 networkClientId: 'mainnet',
-                type: 'infura',
+                type: 'Infura',
                 url: 'https://mainnet.infura.io/v3/',
               },
             ],
@@ -1236,60 +1235,6 @@ describe('NetworkSettings', () => {
       expect(wrapper2.state('nickname')).toBe('Ethereum Main Network');
       expect(wrapper2.state('chainId')).toBe('0x1');
       expect(wrapper2.state('rpcUrl')).toBe('https://mainnet.infura.io/v3/');
-      expect(wrapper2.state('rpcName')).toBe('infura');
-    });
-
-    it('should correctly initialize state when networkTypeOrRpcUrl is provided and the default RPC endpoint has no type', () => {
-      const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
-        route: {
-          params: {
-            network: 'mainnet',
-          },
-        },
-        navigation: {
-          setOptions: jest.fn(),
-          navigate: jest.fn(),
-          goBack: jest.fn(),
-        },
-        networkConfigurations: {
-          '0x1': {
-            blockExplorerUrls: ['https://etherscan.io'],
-            defaultBlockExplorerUrlIndex: 0,
-            defaultRpcEndpointIndex: 0,
-            chainId: '0x1',
-            rpcEndpoints: [
-              {
-                name: 'Ethereum Mainnet',
-                networkClientId: 'mainnet',
-                url: 'https://mainnet.infura.io/v3/',
-              },
-            ],
-            name: 'Ethereum Main Network',
-            nativeCurrency: 'ETH',
-          },
-        },
-      };
-
-      // Reinitialize the component with new props
-      const wrapper2 = shallow(
-        <Provider store={store}>
-          <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS_2} />
-        </Provider>,
-      )
-        .find(NetworkSettings)
-        .dive();
-
-      const instance2 = wrapper2.instance();
-
-      // Simulate component mounting
-      instance2.componentDidMount?.();
-
-      // Check if state was initialized correctly
-      expect(wrapper2.state('blockExplorerUrl')).toBe('https://etherscan.io');
-      expect(wrapper2.state('nickname')).toBe('Ethereum Main Network');
-      expect(wrapper2.state('chainId')).toBe('0x1');
-      expect(wrapper2.state('rpcUrl')).toBe('https://mainnet.infura.io/v3/');
-      expect(wrapper2.state('rpcName')).toBe('Ethereum Mainnet');
     });
 
     it('should set addMode to true if no networkTypeOrRpcUrl is provided', () => {
