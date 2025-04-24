@@ -6,7 +6,11 @@ on:
     types: [opened,closed,synchronize]
   merge_group:
     types: [checks_requested]
-    
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   CLABot:
     if: github.event_name == 'pull_request_target' || contains(github.event.comment.html_url, '/pull/')

@@ -14,6 +14,10 @@ env:
   E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
   WORKFLOW_NAME: 'run-bitrise-e2e-check'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   run-bitrise-e2e-check:
     runs-on: ubuntu-latest
