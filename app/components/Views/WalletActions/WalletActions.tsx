@@ -15,7 +15,6 @@ import {
 } from '../../../selectors/networkController';
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
-import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -55,6 +54,8 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import { selectIsBridgeEnabledSource } from '../../../core/redux/slices/bridge';
+import { RootState } from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -70,6 +71,9 @@ const WalletActions = () => {
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const isBridgeEnabledSource = useSelector((state: RootState) =>
+    selectIsBridgeEnabledSource(state, chainId),
+  );
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   ///: END:ONLY_INCLUDE_IF
@@ -329,7 +333,7 @@ const WalletActions = () => {
             disabled={!canSignTransactions || !swapsIsLive}
           />
         )}
-        {isBridgeAllowed(chainId) && (
+        {isBridgeEnabledSource && (
           <WalletAction
             actionType={WalletActionType.Bridge}
             iconName={IconName.Bridge}

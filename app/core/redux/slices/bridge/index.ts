@@ -124,7 +124,7 @@ export const selectBridgeFeatureFlags = createSelector(
   (bridgeControllerState) => bridgeControllerState.bridgeFeatureFlags,
 );
 
-export const selectBridgeIsEnabledSrc = createSelector(
+export const selectIsBridgeEnabledSource = createSelector(
   selectBridgeFeatureFlags,
   (_: RootState, chainId: Hex | CaipChainId) => chainId,
   (bridgeFeatureFlags, chainId) => {
@@ -137,7 +137,7 @@ export const selectBridgeIsEnabledSrc = createSelector(
   },
 );
 
-export const selectBridgeIsEnabledDest = createSelector(
+export const selectIsBridgeEnabledDest = createSelector(
   selectBridgeFeatureFlags,
   (_: RootState, chainId: Hex | CaipChainId) => chainId,
   (bridgeFeatureFlags, chainId) => {
