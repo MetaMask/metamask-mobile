@@ -7,12 +7,13 @@ import {
   type SeedlessOnboardingControllerMessenger,
 } from '@metamask/seedless-onboarding-controller';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
+import { web3AuthNetwork } from '../../../Oauth2Login/Oauth2LoginHandler/constants';
 
-export const web3AuthNetwork = process.env.Web3AuthNetwork as Web3AuthNetwork;
+// const web3AuthNetwork = process.env.Web3AuthNetwork as Web3AuthNetwork;
 
-if (!web3AuthNetwork) {
-  throw new Error('Missing environment variables');
-}
+// if (!web3AuthNetwork) {
+//   throw new Error('Missing environment variables');
+// }
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -39,7 +40,7 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
     state:
       seedlessOnboardingControllerState as SeedlessOnboardingControllerState,
     encryptor,
-    network: web3AuthNetwork,
+    network: web3AuthNetwork as Web3AuthNetwork,
   });
 
   return { controller };

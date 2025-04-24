@@ -10,10 +10,9 @@ import {
   AuthResponse,
   OAuthUserInfo,
 } from './Oauth2loginInterface';
-import { web3AuthNetwork as currentWeb3AuthNetwork } from '../Engine/controllers/seedless-onboarding-controller';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { createLoginHandler } from './Oauth2LoginHandler';
-import { AuthServerUrl } from './Oauth2LoginHandler/constants';
+import { AuthServerUrl, web3AuthNetwork as currentWeb3AuthNetwork } from './Oauth2LoginHandler/constants';
 
 export const AuthConnectionId = process.env.AUTH_CONNECTION_ID;
 export const GroupedAuthConnectionId = process.env.GROUPED_AUTH_CONNECTION_ID;
@@ -216,7 +215,7 @@ if (!AuthServerUrl || !AuthConnectionId || !GroupedAuthConnectionId) {
 }
 
 export default new Oauth2LoginService({
-  web3AuthNetwork: currentWeb3AuthNetwork,
+  web3AuthNetwork : currentWeb3AuthNetwork as Web3AuthNetwork,
   authConnectionId: AuthConnectionId,
   groupedAuthConnectionId: GroupedAuthConnectionId,
   authServerUrl: AuthServerUrl,

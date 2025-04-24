@@ -43,7 +43,7 @@ export abstract class BaseLoginHandler {
   abstract login(): Promise<LoginHandlerResult | undefined>;
 
   constructor() {
-    this.nonce = this.#generateNonce();
+    this.nonce = this.generateNonce();
   }
 
   getAuthTokens(params: HandleFlowParams, authServerUrl: string) {
@@ -67,7 +67,7 @@ export abstract class BaseLoginHandler {
     return Buffer.from(base64String, 'base64').toString('utf-8');
   }
 
-  #generateNonce(): string {
+  generateNonce(): string {
     return Math.random().toString(36).substring(2, 15);
   }
 }
