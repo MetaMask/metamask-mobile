@@ -2074,6 +2074,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      SeedlessOnboardingController,
     } = instance.datamodel.state;
 
     return {
@@ -2123,6 +2124,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      SeedlessOnboardingController,
     };
   },
 
