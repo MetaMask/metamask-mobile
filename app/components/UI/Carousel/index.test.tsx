@@ -106,7 +106,7 @@ jest.mock('../../../images/banners/banner_image_aggregated.png', () => ({
 
 // Mock useMultichainBalances hook
 jest.mock('../../../components/hooks/useMultichainBalances', () => ({
-  useMultichainBalances: jest.fn().mockReturnValue({
+  useSelectedAccountMultichainBalances: jest.fn().mockReturnValue({
     selectedAccountMultichainBalance: {
       displayBalance: '$0.00',
       displayCurrency: 'USD',
