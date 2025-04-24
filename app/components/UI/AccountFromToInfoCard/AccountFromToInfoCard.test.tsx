@@ -14,6 +14,7 @@ import { createMockAccountsControllerState } from '../../../util/test/accountsCo
 import { RootState } from '../../../reducers';
 import { AssetsContractController } from '@metamask/assets-controllers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { MOCK_KEYRING_CONTROLLER_STATE } from '../../../util/test/keyringControllerTestUtils';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
@@ -50,6 +51,11 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      KeyringController: {
+        vault: 'mock-vault',
+        isUnlocked: true,
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+      },
     },
   },
 };
@@ -77,6 +83,12 @@ jest.mock('../../../core/Engine', () => {
                 '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
                 '0x07Be9763a718C0539017E2Ab6fC42853b4aEeb6B',
               ],
+            },
+          ],
+          keyringsMetadata: [
+            {
+              id: '01JNG71B7GTWH0J1TSJY9891S0',
+              name: '',
             },
           ],
         },

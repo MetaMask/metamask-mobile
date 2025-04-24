@@ -47,10 +47,7 @@ jest.mock('../../../core/Engine', () => {
         ...mockAccountsControllerState,
         state: mockAccountsControllerState,
       },
-    },
-    KeyringController: {
-      ...mockKeyringControllerState,
-      state: mockKeyringControllerState,
+      KeyringController: mockKeyringControllerState,
     },
   };
 });
