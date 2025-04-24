@@ -46,7 +46,6 @@ jest.mock('@react-navigation/native', () => {
 
 describe('Transfer', () => {
   const mockTrackPageViewedEvent = jest.fn();
-  const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
@@ -76,8 +75,8 @@ describe('Transfer', () => {
     });
     expect(getByText('Network Fee')).toBeDefined();
 
-    expect(mockGetNavbar).toHaveBeenCalled();
-    expect(mockGetNavbar).toHaveBeenCalledWith({
+    expect(getNavbar).toHaveBeenCalled();
+    expect(getNavbar).toHaveBeenCalledWith({
       title: 'Review',
       onReject: mockOnReject,
       addBackButton: true,

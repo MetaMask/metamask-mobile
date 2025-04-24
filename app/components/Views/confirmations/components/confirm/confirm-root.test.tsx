@@ -30,7 +30,7 @@ describe('Confirm', () => {
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenLastCalledWith(
-      Routes.MODAL_CONFIRMATION_REQUEST,
+      Routes.CONFIRMATION_REQUEST_MODAL,
     );
   });
 

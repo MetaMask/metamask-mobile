@@ -18,8 +18,7 @@ const isRemoteFeatureFlagValuesValid = (
   isObject(obj) &&
   hasProperty(obj, 'signatures') &&
   hasProperty(obj, 'staking_confirmations') &&
-  hasProperty(obj, 'contract_interaction') &&
-  hasProperty(obj, 'transfer');
+  hasProperty(obj, 'contract_interaction');
 
 const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = {
   signatures: true,

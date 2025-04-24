@@ -223,7 +223,6 @@ const renderComponent = (state: any = {}) =>
   );
 
 describe('Amount', () => {
-  const mockAddTransaction = jest.mocked(addTransaction);
   const mockSelectConfirmationRedesignFlags = jest.mocked(
     selectConfirmationRedesignFlags,
   );
@@ -1259,8 +1258,8 @@ describe('Amount', () => {
     expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {
       screen: Routes.STANDALONE_CONFIRMATIONS.TRANSFER,
     });
-    expect(mockAddTransaction).toHaveBeenCalledTimes(1);
-    expect(mockAddTransaction).toHaveBeenCalledWith(
+    expect(addTransaction).toHaveBeenCalledTimes(1);
+    expect(addTransaction).toHaveBeenCalledWith(
       expect.objectContaining({
         from: CURRENT_ACCOUNT,
         to: RECEIVER_ACCOUNT,

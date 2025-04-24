@@ -550,7 +550,7 @@ const ConnectHardwareWalletFlow = () => (
 
 const FlatConfirmationRequest = () => (
   <Stack.Navigator>
-    <Stack.Screen name={Routes.FLAT_CONFIRMATION_REQUEST} component={Confirm} />
+    <Stack.Screen name={Routes.CONFIRMATION_REQUEST_FLAT} component={Confirm} />
   </Stack.Navigator>
 );
 
@@ -563,7 +563,7 @@ const ModalConfirmationRequest = () => (
     mode={'modal'}
   >
     <Stack.Screen
-      name={Routes.MODAL_CONFIRMATION_REQUEST}
+      name={Routes.CONFIRMATION_REQUEST_MODAL}
       component={Confirm}
     />
   </Stack.Navigator>
@@ -696,11 +696,11 @@ const AppFlow = () => {
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen
-        name={Routes.FLAT_CONFIRMATION_REQUEST}
+        name={Routes.CONFIRMATION_REQUEST_FLAT}
         component={FlatConfirmationRequest}
       />
       <Stack.Screen
-        name={Routes.MODAL_CONFIRMATION_REQUEST}
+        name={Routes.CONFIRMATION_REQUEST_MODAL}
         component={ModalConfirmationRequest}
       />
     </Stack.Navigator>

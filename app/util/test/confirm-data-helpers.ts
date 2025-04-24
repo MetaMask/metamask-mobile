@@ -951,7 +951,7 @@ export const transferConfirmationState = merge(
           transactions: [
             { type: TransactionType.simpleSend },
           ],
-        } as unknown as TransactionControllerState,
+        } as Pick<TransactionControllerState, 'transactions'>,
       },
     },
   },

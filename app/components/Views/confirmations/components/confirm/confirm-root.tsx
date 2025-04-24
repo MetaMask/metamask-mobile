@@ -19,8 +19,8 @@ export const ConfirmRoot = () => {
       }
       navigation.navigate(
         isFlatConfirmation
-          ? Routes.FLAT_CONFIRMATION_REQUEST
-          : Routes.MODAL_CONFIRMATION_REQUEST,
+          ? Routes.CONFIRMATION_REQUEST_FLAT
+          : Routes.CONFIRMATION_REQUEST_MODAL,
       );
     }
   }, [

@@ -158,8 +158,8 @@ const Routes = {
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
   LOCK_SCREEN: 'LockScreen',
-  FLAT_CONFIRMATION_REQUEST: 'FlatConfirmationRequest',
-  MODAL_CONFIRMATION_REQUEST: 'ModalConfirmationRequest',
+  CONFIRMATION_REQUEST_FLAT: 'ConfirmationRequestFlat',
+  CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
