@@ -16,6 +16,7 @@ import { selectSelectedInternalAccountAddress } from '../../../../../selectors/a
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
 import { debounce } from 'lodash';
+import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 
 /**
  * Hook for handling bridge quote request updates
@@ -31,7 +32,7 @@ export const useBridgeQuoteRequest = () => {
   const destAddress = useSelector(selectDestAddress);
   const isEvmToSolana = useSelector(selectIsEvmToSolana);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
-
+  const context = useUnifiedSwapBridgeContext();
   /**
    * Updates quote parameters in the bridge controller
    */
@@ -68,6 +69,7 @@ export const useBridgeQuoteRequest = () => {
 
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
       params,
+      context,
     );
   }, [
     sourceToken,
@@ -79,6 +81,7 @@ export const useBridgeQuoteRequest = () => {
     destAddress,
     isEvmToSolana,
     isSolanaToEvm,
+    context,
   ]);
 
   // Create a stable debounced function that persists across renders
