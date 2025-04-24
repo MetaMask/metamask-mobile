@@ -323,9 +323,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       let accountsToAdd: Hex[] = [];
 
       // Identify accounts to be added
-      accountsToAdd = normalizedSelectedAddresses
-        .filter((account) => !normalizedPermittedAccounts.includes(account))
-        .map(toHex);
+      accountsToAdd = normalizedSelectedAddresses.reduce((result: Hex[], account) => {
+        if (!normalizedPermittedAccounts.includes(account)) {
+          result.push(toHex(account));
+        }
+        return result;
+      }, []);
 
       // Add newly selected accounts
       if (accountsToAdd.length > 0) {
