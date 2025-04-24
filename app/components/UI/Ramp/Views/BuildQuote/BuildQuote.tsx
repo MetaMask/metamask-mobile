@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View, BackHandler } from 'react-native';
+import { BackHandler, Pressable, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -60,14 +60,14 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
-import { QuickAmount, Region, ScreenLocation } from '../../types';
+import { QuickAmount, RampType, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectTicker } from '../../../../../selectors/networkController';
 
 import styleSheet from './BuildQuote.styles';
 import {
-  toTokenMinimalUnit,
   fromTokenMinimalUnitString,
+  toTokenMinimalUnit,
 } from '../../../../../util/number';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
@@ -83,6 +83,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { trace, TraceName } from '../../../../../util/trace';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -563,6 +564,12 @@ const BuildQuote = () => {
         location: screenLocation,
       };
 
+      trace({
+        name: TraceName.RampQuoteLoading,
+        tags: {
+          rampType: isBuy ? RampType.BUY : RampType.SELL,
+        },
+      });
       if (isBuy) {
         trackEvent('ONRAMP_QUOTES_REQUESTED', {
           ...analyticsPayload,

@@ -29,6 +29,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RampType, Region } from '../../types';
 import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -181,6 +182,13 @@ let mockUseQuotesAndCustomActionsValues: Partial<
 jest.mock('../../hooks/useQuotesAndCustomActions', () =>
   jest.fn(() => mockUseQuotesAndCustomActionsValues),
 );
+
+jest.mock('../../../../../util/trace', () => ({
+  endTrace: jest.fn(),
+  TraceName: {
+    RampQuoteLoading: TraceName.RampQuoteLoading,
+  },
+}));
 
 describe('Quotes', () => {
   afterEach(() => {
@@ -843,11 +851,14 @@ describe('Quotes', () => {
     });
   });
 
-  it('calls track event on quotes received and quote error', async () => {
+  it('calls endTrace and track event on quotes received and quote error', async () => {
     render(Quotes);
     act(() => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.RampQuoteLoading,
     });
     expect(mockTrackEvent.mock.calls).toMatchInlineSnapshot(`
       [
@@ -899,6 +910,9 @@ describe('Quotes', () => {
     act(() => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.RampQuoteLoading,
     });
     expect(mockTrackEvent.mock.calls).toMatchInlineSnapshot(`
       [

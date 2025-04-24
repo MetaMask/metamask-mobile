@@ -25,6 +25,7 @@ import { toTokenMinimalUnit } from '../../../../../util/number';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
+import { trace, TraceName } from '../../../../../util/trace';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -261,6 +262,13 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+
+jest.mock('../../../../../util/trace', () => ({
+  trace: jest.fn(),
+  TraceName: {
+    RampQuoteLoading: TraceName.RampQuoteLoading,
+  },
+}));
 
 describe('BuildQuote View', () => {
   afterEach(() => {
@@ -816,6 +824,13 @@ describe('BuildQuote View', () => {
       chain_id_destination: '1',
       location: 'Amount to Buy Screen',
     });
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.RampQuoteLoading,
+      tags: {
+        rampType: RampType.BUY,
+      },
+    });
   });
 
   it('Directs the user to the sell quotes page with correct parameters', () => {
@@ -851,6 +866,13 @@ describe('BuildQuote View', () => {
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
       chain_id_source: '1',
       location: 'Amount to Sell Screen',
+    });
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.RampQuoteLoading,
+      tags: {
+        rampType: RampType.SELL,
+      },
     });
   });
 });
