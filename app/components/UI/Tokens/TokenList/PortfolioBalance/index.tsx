@@ -30,7 +30,7 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import { strings } from '../../../../../../locales/i18n';
 import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
-import { useMultichainBalances } from '../../../../hooks/useMultichainBalances';
+import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 
 export const PortfolioBalance = React.memo(() => {
@@ -45,7 +45,8 @@ export const PortfolioBalance = React.memo(() => {
   const navigation = useNavigation();
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
-  const { selectedAccountMultichainBalance } = useMultichainBalances();
+  const { selectedAccountMultichainBalance } =
+    useSelectedAccountMultichainBalances();
 
   const onOpenPortfolio = useCallback(() => {
     const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>

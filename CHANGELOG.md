@@ -7,10 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- feat(bridge): use dynamic slippage for single-chain Solana swaps ([#14805](https://github.com/MetaMask/metamask-mobile/pull/14805))
-
 ### Added
 
+- feat(bridge): use dynamic slippage for single-chain Solana swaps ([#14805](https://github.com/MetaMask/metamask-mobile/pull/14805))
 - feat(bridge): enhance bridging with network fee estimation and UI improvements ([#14786](https://github.com/MetaMask/metamask-mobile/pull/14786))
 - feat(ramp): auto-select region ([#14780](https://github.com/MetaMask/metamask-mobile/pull/14780))
 - feat(bridge): add solana chain support and improve bridge state management ([#14713](https://github.com/MetaMask/metamask-mobile/pull/14713))
@@ -38,11 +37,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix(bridge): keyboard not appearing when error banner is displayed ([#14862](https://github.com/MetaMask/metamask-mobile/pull/14862))
 - fix(bridge): fix not switching networks when selecting source token ([#14712](https://github.com/MetaMask/metamask-mobile/pull/14712))
 - fix: updates a padding style specifically for Android devices ([#14725](https://github.com/MetaMask/metamask-mobile/pull/14725))
 - fix(bridge): enhance UI/UX with improved input handling and layout adjustments ([#14781](https://github.com/MetaMask/metamask-mobile/pull/14781))
 - fix(swaps): set default slippage when source or destination token is not stablecoin ([#14730](https://github.com/MetaMask/metamask-mobile/pull/14730))
 - fix(bridge): fix transaction history for EVM and Solana bridge transactions ([#14759](https://github.com/MetaMask/metamask-mobile/pull/14759))
+- fix(bridge): change networks properly when user switches between source and destination tokens ([#14812](https://github.com/MetaMask/metamask-mobile/pull/14812))
 
 ## [7.44.0]
 
