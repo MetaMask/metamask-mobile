@@ -291,17 +291,6 @@ const BridgeView = () => {
   };
 
   const renderBottomContent = () => {
-    if (isError) {
-      return (
-        <Box style={styles.buttonContainer}>
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            description={strings('bridge.error_banner_description')}
-          />
-        </Box>
-      );
-    }
-
     if (!hasValidBridgeInputs || isInputFocused) {
       return (
         <Box style={styles.buttonContainer}>
@@ -322,29 +311,39 @@ const BridgeView = () => {
       );
     }
 
-    if (!activeQuote && !quotesLastFetched) {
-      return;
+    if (isError) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            description={strings('bridge.error_banner_description')}
+          />
+        </Box>
+      );
     }
 
     return (
-      <Box style={styles.buttonContainer}>
-        <Button
-          variant={ButtonVariants.Primary}
-          label={getButtonLabel()}
-          onPress={handleContinue}
-          style={styles.button}
-          isDisabled={hasInsufficientBalance || isSubmittingTx}
-        />
-        <Button
-          variant={ButtonVariants.Link}
-          label={
-            <Text color={TextColor.Alternative}>
-              {strings('bridge.terms_and_conditions')}
-            </Text>
-          }
-          onPress={handleTermsPress}
-        />
-      </Box>
+      activeQuote &&
+      quotesLastFetched && (
+        <Box style={styles.buttonContainer}>
+          <Button
+            variant={ButtonVariants.Primary}
+            label={getButtonLabel()}
+            onPress={handleContinue}
+            style={styles.button}
+            isDisabled={hasInsufficientBalance || isSubmittingTx}
+          />
+          <Button
+            variant={ButtonVariants.Link}
+            label={
+              <Text color={TextColor.Alternative}>
+                {strings('bridge.terms_and_conditions')}
+              </Text>
+            }
+            onPress={handleTermsPress}
+          />
+        </Box>
+      )
     );
   };
 
