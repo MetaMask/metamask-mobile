@@ -109,6 +109,11 @@ import {
 } from '../../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import { isNativeToken } from '../../../utils/generic';
+import { selectSendFlowContextualChainId } from '../../../../../selectors/transaction';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { selectAllTokens } from '../../../../../selectors/tokensController';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -167,6 +172,13 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
       fontSize: 12,
       color: colors.primary.default,
+      alignSelf: 'flex-end',
+      textTransform: 'uppercase',
+    },
+    maxTextDisabled: {
+      ...fontStyles.normal,
+      fontSize: 12,
+      color: colors.text.alternative,
       alignSelf: 'flex-end',
       textTransform: 'uppercase',
     },
@@ -499,6 +511,22 @@ class Amount extends PureComponent {
      * Network client id
      */
     globalNetworkClientId: PropTypes.string,
+    /**
+     * Send flow contextual chain id
+     */
+    sendFlowContextualChainId: PropTypes.string,
+    /**
+     * All tokens
+     */
+    allTokens: PropTypes.object,
+    /**
+     * All token balances
+     */
+    allTokenBalances: PropTypes.object,
+    /**
+     * Accounts by chain id
+     */
+    accountsByChainId: PropTypes.object,
   };
 
   state = {
@@ -519,6 +547,8 @@ class Amount extends PureComponent {
   updateNavBar = () => {
     const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
+    // Check initial value before setting
+
     navigation.setOptions(
       getSendFlowTitle(
         'send.amount',
@@ -526,13 +556,16 @@ class Amount extends PureComponent {
         route,
         colors,
         resetTransaction,
+        null,
+        true,
+        true,
+        this.props.sendFlowContextualNetworkConfiguration?.name || '',
       ),
     );
   };
 
   componentDidMount = async () => {
     const {
-      tokens,
       ticker,
       transactionState: { readableValue },
       navigation,
@@ -541,12 +574,19 @@ class Amount extends PureComponent {
       isPaymentRequest,
       gasEstimateType,
       gasFeeEstimates,
+      conversionRate,
     } = this.props;
     // For analytics
+
     this.updateNavBar();
     navigation.setParams({ providerType, isPaymentRequest });
 
-    this.tokens = [getEther(ticker), ...tokens];
+    const allTokensFilteredByChainId =
+      this.props.allTokens?.[this.props.sendFlowContextualChainId]?.[
+        this.props.selectedAddress?.toLowerCase()
+      ];
+
+    this.tokens = [getEther(ticker), ...allTokensFilteredByChainId];
     this.collectibles = this.processCollectibles();
     // Wait until navigation finishes to focus
     InteractionManager.runAfterInteractions(() =>
@@ -833,15 +873,26 @@ class Amount extends PureComponent {
    * @returns - Whether there is an error with the amount
    */
   validateAmount = (inputValue, internalPrimaryCurrencyIsCrypto) => {
-    const { accounts, selectedAddress, selectedAsset, contractBalances } =
-      this.props;
+    const {
+      selectedAddress,
+      selectedAsset,
+      contractBalances,
+      allTokenBalances,
+      accountsByChainId,
+      sendFlowContextualChainId,
+    } = this.props;
     const { estimatedTotalGas, inputValueConversion } = this.state;
     let value = inputValue;
 
     if (!internalPrimaryCurrencyIsCrypto) {
       value = inputValueConversion;
     }
-
+    const account =
+      accountsByChainId?.[sendFlowContextualChainId]?.[selectedAddress];
+    const tokenBalances =
+      allTokenBalances?.[selectedAddress.toLowerCase()]?.[
+        sendFlowContextualChainId
+      ]?.[selectedAsset.address];
     let weiBalance, weiInput, amountError;
     if (isDecimal(value)) {
       // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
@@ -858,10 +909,10 @@ class Amount extends PureComponent {
 
       if (!amountError) {
         if (isNativeToken(selectedAsset)) {
-          weiBalance = hexToBN(accounts[selectedAddress].balance);
+          weiBalance = hexToBN(account?.balance);
           weiInput = weiValue.add(estimatedTotalGas);
         } else {
-          weiBalance = hexToBN(contractBalances[selectedAsset.address]);
+          weiBalance = hexToBN(tokenBalances);
           weiInput = toTokenMinimalUnit(value, selectedAsset.decimals);
         }
         // TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
@@ -888,13 +939,21 @@ class Amount extends PureComponent {
       transactionTo,
     } = this.props.transactionState;
     const { globalNetworkClientId } = this.props;
+
+    const { rpcEndpoints, defaultRpcEndpointIndex } =
+      this.props.sendFlowContextualNetworkConfiguration;
+    const { networkClientId: sendFlowContextualNetworkClientId } =
+      rpcEndpoints[defaultRpcEndpointIndex];
+    const effectiveNetworkClientId =
+      sendFlowContextualNetworkClientId || globalNetworkClientId;
+
     const { gas } = await getGasLimit(
       {
         from,
         to: transactionTo,
       },
       false,
-      globalNetworkClientId,
+      effectiveNetworkClientId,
     );
 
     return gas;
@@ -1048,19 +1107,34 @@ class Amount extends PureComponent {
   };
 
   handleSelectedAssetBalance = (selectedAsset, renderableBalance) => {
-    const { accounts, selectedAddress, contractBalances } = this.props;
+    const {
+      accountsByChainId,
+      selectedAddress,
+      contractBalances,
+      sendFlowContextualChainId,
+      allTokenBalances,
+    } = this.props;
+    const account =
+      accountsByChainId?.[sendFlowContextualChainId]?.[selectedAddress];
+
     let currentBalance;
+
     if (renderableBalance) {
       currentBalance = `${renderableBalance} ${selectedAsset.symbol}`;
     } else if (isNativeToken(selectedAsset)) {
-      currentBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${
+      currentBalance = `${renderFromWei(account?.balance)} ${
         selectedAsset.symbol
       }`;
     } else {
-      currentBalance = `${renderFromTokenMinimalUnit(
-        contractBalances[selectedAsset.address],
+      const tokenBalances =
+        this.props.allTokenBalances?.[selectedAddress.toLowerCase()]?.[
+          sendFlowContextualChainId
+        ]?.[selectedAsset.address];
+      const tokenBalance = renderFromTokenMinimalUnit(
+        tokenBalances,
         selectedAsset.decimals,
-      )} ${selectedAsset.symbol}`;
+      );
+      currentBalance = `${tokenBalance} ${selectedAsset.symbol}`;
     }
     this.setState({ currentBalance });
   };
@@ -1091,27 +1165,38 @@ class Amount extends PureComponent {
 
   renderToken = (token, index) => {
     const {
-      accounts,
       selectedAddress,
       conversionRate,
       currentCurrency,
       contractBalances,
       contractExchangeRates,
+      accountsByChainId,
+      sendFlowContextualChainId,
+      ticker,
     } = this.props;
+
+    const accounts =
+      accountsByChainId?.[this.props.sendFlowContextualChainId]?.[
+        selectedAddress
+      ];
     let balance, balanceFiat;
     const { address, decimals, symbol } = token;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     if (isNativeToken(token)) {
-      balance = renderFromWei(accounts[selectedAddress].balance);
+      balance = renderFromWei(accounts.balance);
       balanceFiat = weiToFiat(
-        hexToBN(accounts[selectedAddress].balance),
+        hexToBN(accounts.balance),
         conversionRate,
         currentCurrency,
       );
     } else {
-      balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
+      const tokenBalances =
+        this.props.allTokenBalances?.[selectedAddress.toLowerCase()]?.[
+          sendFlowContextualChainId
+        ]?.[address];
+      balance = renderFromTokenMinimalUnit(tokenBalances, decimals);
       const exchangeRate = contractExchangeRates
         ? contractExchangeRates[address]?.price
         : undefined;
@@ -1132,8 +1217,14 @@ class Amount extends PureComponent {
       >
         <View style={styles.assetElement}>
           {isNativeToken(token) ? (
-            <NetworkMainAssetLogo big />
+            // TODO: add badge wraper with network image for native token
+            <NetworkMainAssetLogo
+              big
+              ticker={ticker}
+              chainId={sendFlowContextualChainId}
+            />
           ) : (
+            // TODO: add badge wraper with network image and erc20 token
             <TokenImage
               asset={token}
               iconStyle={styles.tokenImage}
@@ -1466,6 +1557,10 @@ class Amount extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    const isEstimateedTotalGasValid = estimatedTotalGas
+      ? BigNumber(estimatedTotalGas).gt(0)
+      : false;
+
     return (
       <SafeAreaView
         edges={['bottom']}
@@ -1525,10 +1620,16 @@ class Amount extends PureComponent {
                 {!selectedAsset.tokenId && (
                   <TouchableOpacity
                     style={styles.actionMaxTouchable}
-                    disabled={!estimatedTotalGas}
+                    disabled={!isEstimateedTotalGasValid}
                     onPress={this.useMax}
                   >
-                    <Text style={styles.maxText}>
+                    <Text
+                      style={
+                        isEstimateedTotalGasValid
+                          ? styles.maxText
+                          : styles.maxTextDisabled
+                      }
+                    >
                       {strings('transaction.use_max')}
                     </Text>
                   </TouchableOpacity>
@@ -1569,27 +1670,41 @@ Amount.contextType = ThemeContext;
 
 const mapStateToProps = (state, ownProps) => {
   const transaction = ownProps.transaction || state.transaction;
-  const globalChainId = selectEvmChainId(state);
+  const globalChainId = selectChainId(state);
   const globalNetworkClientId = selectNetworkClientId(state);
+  const sendFlowContextualChainId = selectSendFlowContextualChainId(state);
+  const sendFlowContextualNetworkConfiguration =
+    selectNetworkConfigurationByChainId(
+      state,
+      toHexadecimal(selectSendFlowContextualChainId(state)),
+    );
 
+  // TODO: double check all mapped state is used in the component
   return {
     accounts: selectAccounts(state),
+    accountsByChainId: selectAccountsByChainId(state),
     contractExchangeRates: selectContractExchangeRatesByChainId(
       state,
-      globalChainId,
+      sendFlowContextualChainId,
     ),
     contractBalances: selectContractBalances(state),
+    allTokenBalances: selectAllTokenBalances(state),
     collectibles: collectiblesSelector(state),
     collectibleContracts: collectibleContractsSelector(state),
-    conversionRate: selectConversionRateByChainId(state, globalChainId),
+    conversionRate: selectConversionRateByChainId(
+      state,
+      sendFlowContextualChainId,
+    ),
+
     currentCurrency: selectCurrentCurrency(state),
     gasEstimateType: selectGasFeeControllerEstimateType(state),
     gasFeeEstimates: selectGasFeeEstimates(state),
-    providerType: selectProviderTypeByChainId(state, globalChainId),
+    providerType: selectProviderTypeByChainId(state, sendFlowContextualChainId),
     primaryCurrency: state.settings.primaryCurrency,
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-    ticker: selectNativeCurrencyByChainId(state, globalChainId),
+    ticker: selectNativeCurrencyByChainId(state, sendFlowContextualChainId),
     tokens: selectTokens(state),
+    allTokens: selectAllTokens(state),
     transactionState: transaction,
     selectedAsset: state.transaction.selectedAsset,
     isPaymentRequest: state.transaction.paymentRequest,
@@ -1600,6 +1715,8 @@ const mapStateToProps = (state, ownProps) => {
     swapsIsLive: swapsLivenessSelector(state),
     globalChainId,
     globalNetworkClientId,
+    sendFlowContextualChainId: selectSendFlowContextualChainId(state),
+    sendFlowContextualNetworkConfiguration,
   };
 };
 
@@ -1610,7 +1727,10 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(prepareTransaction(transaction)),
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
-  resetTransaction: () => dispatch(resetTransaction()),
+  resetTransaction: () => {
+    dispatch(setTransactionSendFlowContextualChainId(null));
+    dispatch(resetTransaction());
+  },
   setMaxValueMode: (maxValueMode) => dispatch(setMaxValueMode(maxValueMode)),
 });
 
