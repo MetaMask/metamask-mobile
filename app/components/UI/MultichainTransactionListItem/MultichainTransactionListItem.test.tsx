@@ -8,7 +8,8 @@ import { configureStore } from '@reduxjs/toolkit';
 import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import MultichainTransactionListItem from '../MultichainTransactionListItem';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
-import { BridgeHistoryItem, FeeType, StatusTypes } from '@metamask/bridge-status-controller';
+import { BridgeHistoryItem, FeeType } from '@metamask/bridge-status-controller';
+import { StatusTypes } from '@metamask/bridge-controller';
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
@@ -30,19 +31,16 @@ jest.mock(
 );
 
 // Create a mock store with the necessary state
-const createMockStore = () => configureStore({
-  reducer: {
-    user: (state = { appTheme: 'light' }) => state,
-  },
-});
+const createMockStore = () =>
+  configureStore({
+    reducer: {
+      user: (state = { appTheme: 'light' }) => state,
+    },
+  });
 
 const renderWithProvider = (ui: React.ReactElement) => {
   const store = createMockStore();
-  return render(
-    <Provider store={store}>
-      {ui}
-    </Provider>
-  );
+  return render(<Provider store={store}>{ui}</Provider>);
 };
 
 describe('MultichainTransactionListItem', () => {
@@ -107,8 +105,7 @@ describe('MultichainTransactionListItem', () => {
       },
       bridgeId: 'test-bridge',
       bridges: ['test-bridge'],
-      steps: [
-      ],
+      steps: [],
     },
     status: {
       srcChain: {
@@ -293,11 +290,15 @@ describe('MultichainTransactionListItem', () => {
           transaction={mockTransaction}
           bridgeHistoryItem={mockBridgeHistoryItem}
           selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-          navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
         />,
       );
 
-      expect(getByText('bridge_transaction_details.bridge_to_chain')).toBeTruthy();
+      expect(
+        getByText('bridge_transaction_details.bridge_to_chain'),
+      ).toBeTruthy();
       expect(getByText('1.5 SOL')).toBeTruthy();
     });
 
@@ -330,11 +331,15 @@ describe('MultichainTransactionListItem', () => {
           transaction={mockTransaction}
           bridgeHistoryItem={pendingBridgeHistoryItem}
           selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-          navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
         />,
       );
 
-      expect(getByText('bridge_transaction_details.bridge_to_chain')).toBeTruthy();
+      expect(
+        getByText('bridge_transaction_details.bridge_to_chain'),
+      ).toBeTruthy();
       expect(getByText('Transaction 2 of 2')).toBeTruthy();
     });
 
@@ -344,7 +349,9 @@ describe('MultichainTransactionListItem', () => {
           transaction={mockTransaction}
           bridgeHistoryItem={mockBridgeHistoryItem}
           selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-          navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
         />,
       );
 
@@ -365,7 +372,9 @@ describe('MultichainTransactionListItem', () => {
           transaction={mockTransaction}
           bridgeHistoryItem={mockBridgeHistoryItem}
           selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-          navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
         />,
       );
 
@@ -381,7 +390,9 @@ describe('MultichainTransactionListItem', () => {
         <MultichainTransactionListItem
           transaction={mockTransaction}
           selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-          navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
         />,
       );
 
