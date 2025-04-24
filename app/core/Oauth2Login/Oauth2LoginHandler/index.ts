@@ -7,22 +7,25 @@ import { AndroidAppleLoginHandler } from './android/apple';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 
 // to be get from enviroment variable
-export const AuthServerUrl = 'https://api-develop-torus-byoa.web3auth.io';
+export const AuthServerUrl = process.env.AuthServerUrl;
 export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH2_REDIRECT}`;
 
-export const IosGID = '882363291751-nbbp9n0o307cfil1lup766g1s99k0932.apps.googleusercontent.com';
-export const IosGoogleRedirectUri = 'com.googleusercontent.apps.882363291751-nbbp9n0o307cfil1lup766g1s99k0932:/oauth2redirect/google';
+export const IosGID = process.env.IosGID;
+export const IosGoogleRedirectUri = process.env.IosGoogleRedirectUri;
 
-export const AndroidGoogleWebGID = '882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com';
+export const AndroidGoogleWebGID = process.env.AndroidGoogleWebGID;
 export const AppleServerRedirectUri = `${AuthServerUrl}/api/v1/oauth/callback`;
-export const AppleWebClientId = 'com.web3auth.appleloginextension';
-export const IosAppleClientId = 'io.metamask.MetaMask';
+export const AppleWebClientId = process.env.AppleWebClientId;
+export const IosAppleClientId = process.env.IosAppleClientId;
 
 
 export function createLoginHandler(
     platformOS: Platform['OS'],
     provider: AuthConnection,
 ) {
+    if (!AuthServerUrl || !AppRedirectUri || !IosGID || !IosGoogleRedirectUri || !AndroidGoogleWebGID || !AppleWebClientId || !IosAppleClientId) {
+        throw new Error('Missing environment variables');
+    }
     switch (platformOS) {
         case 'ios' :
             switch (provider) {

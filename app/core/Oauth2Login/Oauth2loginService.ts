@@ -158,4 +158,8 @@ export class Oauth2LoginService {
     };
 }
 
+if (!AuthServerUrl) {
+    throw new Error('Missing environment variables');
+}
+
 export default new Oauth2LoginService({web3AuthNetwork: TOPRFNetwork, authConnectionId: AuthConnectionId, groupedAuthConnectionId: GroupedAuthConnectionId, authServerUrl: AuthServerUrl});

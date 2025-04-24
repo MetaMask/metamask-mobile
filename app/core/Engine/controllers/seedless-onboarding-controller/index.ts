@@ -2,13 +2,16 @@ import type { ControllerInitFunction } from '../../types';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
-  Web3AuthNetwork,
   getDefaultSeedlessOnboardingControllerState,
   type SeedlessOnboardingControllerMessenger,
 } from '@metamask/seedless-onboarding-controller';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 
-export const TOPRFNetwork = Web3AuthNetwork.Devnet;
+export const TOPRFNetwork = process.env.Web3AuthNetwork;
+
+if (!TOPRFNetwork) {
+  throw new Error('Missing environment variables');
+}
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
