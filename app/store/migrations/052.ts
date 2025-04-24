@@ -89,6 +89,13 @@ export const migration52 = (state: unknown, migrationNumber: number) => {
     Object.values(accounts).length > 0 &&
     (!selectedAccount || (selectedAccount && !accounts[selectedAccount]))
   ) {
+    if (Object.values(accounts)[0].id === undefined) {
+      captureException(
+        new Error(
+          `Migration 52: selectedAccount will be undefined because Object.values(accounts)[0].id is undefined: 'accounts: ${accounts}'.`,
+        ),
+      );
+    }
     accountsControllerState.internalAccounts.selectedAccount =
       Object.values(accounts)[0].id;
   }
