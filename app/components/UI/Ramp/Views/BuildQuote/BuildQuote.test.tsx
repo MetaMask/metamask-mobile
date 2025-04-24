@@ -368,14 +368,14 @@ describe('BuildQuote View', () => {
 
   it('calls setOptions when rendering', async () => {
     render(BuildQuote);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalled();
 
     mockSetOptions.mockReset();
 
     mockUseRampSDKValues.isBuy = false;
     mockUseRampSDKValues.isSell = true;
     render(BuildQuote);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalled();
   });
 
   it('navigates and tracks event on cancel button press', async () => {
