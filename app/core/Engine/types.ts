@@ -210,7 +210,6 @@ import {
 } from '@metamask/accounts-controller';
 import {
   getPermissionSpecifications,
-  PermissionKeys,
 } from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
@@ -270,7 +269,6 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
-import { CaveatTypes } from '../Permissions/constants';
 
 /**
  * Controllers that area always instantiated
