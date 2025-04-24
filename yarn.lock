@@ -4774,10 +4774,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
   integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
-"@metamask/bridge-controller@^15.0.0":
-  version "15.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-15.0.0.tgz#9ce811bd94565d135596e6be5e024c0046a7f332"
-  integrity sha512-9vfuiY/TwQpMUPULtvXdx0H9JcgjaOEevPDQeIiGm4/SbaO5rxuly3F6RoYjqEB+1JSRcNDBOk7OOpDTq9d1ig==
+"@metamask/bridge-controller@^17.0.0":
+  version "17.0.0"
+  resolved "https://registry.npmjs.org/@metamask/bridge-controller/-/bridge-controller-17.0.0.tgz#fc825665d9f7d6803d136a62b4a282151d4ea2c6"
+  integrity sha512-PBeOfaPH8r/tfPvDrZi03KCNGYI7JDfcyy8Q8841JoLK12YCfHSlRHV4vEg+GRtCkLvhSfwW89h6uHEcb0/JNw==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -4789,16 +4789,16 @@
     "@metamask/gas-fee-controller" "^23.0.0"
     "@metamask/keyring-api" "^17.4.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/multichain-network-controller" "^0.4.0"
+    "@metamask/multichain-network-controller" "^0.5.1"
     "@metamask/polling-controller" "^13.0.0"
     "@metamask/utils" "^11.2.0"
     bignumber.js "^9.1.2"
     reselect "^5.1.1"
 
-"@metamask/bridge-status-controller@^13.1.0":
-  version "13.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-13.1.0.tgz#8c61c5d4ea369e068d160291dc0ddac8a879c084"
-  integrity sha512-RoP+Jm4LMzHhR6bpWBBX1rw4/cQIy4Yl7MKubZ1i3HnHQsHnFEco0YyIYSiKU2u8kg45omV9ri32A1jVqQJ/6Q==
+"@metamask/bridge-status-controller@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.npmjs.org/@metamask/bridge-status-controller/-/bridge-status-controller-14.0.0.tgz#d9eb1e72864d426dc4d6bdab5282fb3a1c575f0b"
+  integrity sha512-alzQTD5BaV0xRfG2CA8T5T6FdFJt8nPwI504zLI7V1dMES3hFLAJ9hwxBqJTPpPbFRfjMFoppl3XNnelRvG18Q==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.7.0"
@@ -5274,13 +5274,16 @@
     "@metamask/utils" "^11.2.0"
     "@solana/addresses" "^2.0.0"
 
-"@metamask/multichain-network-controller@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.4.0.tgz#10005bc04771d9cf4287009875c0cf865aec4893"
-  integrity sha512-g+aHu4Ctoe/Ocl0C3XTngI/Lj4OcpZPo35Lf5199k428T3av6GbSxw38srch9usCx/VtsQk7pD6xNXXo3OLZ1A==
+"@metamask/multichain-network-controller@^0.5.1":
+  version "0.5.1"
+  resolved "https://registry.npmjs.org/@metamask/multichain-network-controller/-/multichain-network-controller-0.5.1.tgz#d47e49554cb6a4ce539339dd3c4f298f543433ef"
+  integrity sha512-tL9hKAEUaRPsox7AE/Hg/Cb7B0R96H/J/L6v9mUf2mLcZ100qgXBoz4DYwzjSlZ5op7Yfpl1+/QJTiiKmzYELA==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.7.0"
     "@metamask/keyring-api" "^17.4.0"
+    "@metamask/keyring-internal-api" "^6.0.1"
+    "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.2.0"
     "@solana/addresses" "^2.0.0"
 
