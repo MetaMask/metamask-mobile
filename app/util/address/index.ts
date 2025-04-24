@@ -308,7 +308,6 @@ export function getInternalAccountByAddress(
  */
 export function getLabelTextByAddress(address: string) {
   if (!address) return null;
-  console.log('Engine', Engine);
   const { KeyringController } = Engine.context;
   const { keyrings, keyringsMetadata } = KeyringController.state;
   const internalAccount = getInternalAccountByAddress(address);
