@@ -35,6 +35,7 @@ import Logger from '../../../app/util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { AddressBookControllerState } from '@metamask/address-book-controller';
 import {
+  isEqualCaseInsensitive,
   type NetworkType,
   toChecksumHexAddress,
 } from '@metamask/controller-utils';
@@ -324,7 +325,10 @@ export function getLabelTextByAddress(address: string) {
       case ExtendedKeyringTypes.hd:
         if (hdKeyringsWithMetadata.length > 1) {
           const hdKeyringIndex = hdKeyringsWithMetadata.findIndex(
-            (kr: KeyringObject) => kr.accounts.includes(address.toLowerCase()),
+            (kr: KeyringObject) =>
+              kr.accounts.find((account) =>
+                isEqualCaseInsensitive(account, address),
+              ),
           );
           // -1 means the address is not found in any of the hd keyrings
           if (hdKeyringIndex !== -1) {

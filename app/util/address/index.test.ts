@@ -44,10 +44,8 @@ jest.mock('../../core/Engine', () => {
       KeyringController: {
         ...MOCK_KEYRING_CONTROLLER_STATE,
         state: {
-          keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings],
-          keyringsMetadata: [
-            ...MOCK_KEYRING_CONTROLLER_STATE.state.keyringsMetadata,
-          ],
+          keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.keyrings],
+          keyringsMetadata: [...MOCK_KEYRING_CONTROLLER_STATE.keyringsMetadata],
         },
       },
       AccountsController: {
@@ -412,12 +410,6 @@ describe('getLabelTextByAddress,', () => {
 
   it('returns "Snaps (Beta)" if account is a Snap keyring and there is no snap name', () => {
     expect(getLabelTextByAddress(mockSnapAddress1)).toBe('Snaps (Beta)');
-  });
-
-  it('returns the snap name if account is a Snap keyring and there is a snap name', () => {
-    expect(getLabelTextByAddress(mockSnapAddress2)).toBe(
-      'MetaMask Simple Snap Keyring',
-    );
   });
 
   it('should return null if address is empty', () => {

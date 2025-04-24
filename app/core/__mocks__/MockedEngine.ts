@@ -7,7 +7,9 @@ import { MOCK_KEYRING_CONTROLLER_STATE } from '../../util/test/keyringController
 export const mockedEngine = {
   init: () => Engine.init({}),
   context: {
-    KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
+    KeyringController: {
+      state: MOCK_KEYRING_CONTROLLER_STATE,
+    },
     NetworkController: {
       getNetworkClientById: (networkClientId: NetworkClientId) => {
         if (networkClientId === 'linea_goerli') {

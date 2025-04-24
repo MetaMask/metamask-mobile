@@ -72,6 +72,7 @@ const mockInitialState: DeepPartial<RootState> = {
       },
       KeyringController: {
         keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }],
+        keyringsMetadata: [{ id: '01JNG71B7GTWH0J1TSJY9891S0', name: '' }],
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
@@ -149,6 +150,7 @@ jest.mock('../../../../../../core/Engine', () => {
               accounts: ['0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58'],
             },
           ],
+          keyringsMetadata: [{ id: '01JNG71B7GTWH0J1TSJY9891S0', name: '' }],
         },
       },
       TransactionController: {

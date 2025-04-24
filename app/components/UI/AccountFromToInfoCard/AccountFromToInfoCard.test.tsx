@@ -54,7 +54,7 @@ const mockInitialState: DeepPartial<RootState> = {
       KeyringController: {
         vault: 'mock-vault',
         isUnlocked: true,
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        ...MOCK_KEYRING_CONTROLLER_STATE,
       },
     },
   },
@@ -69,6 +69,8 @@ const mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
+
   return {
     context: {
       TokensController: {
@@ -78,6 +80,7 @@ jest.mock('../../../core/Engine', () => {
         state: {
           keyrings: [
             {
+              type: KeyringTypes.hd,
               accounts: [
                 '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
                 '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
