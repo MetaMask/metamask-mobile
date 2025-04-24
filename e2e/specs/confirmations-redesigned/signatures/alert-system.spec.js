@@ -21,7 +21,7 @@ const typedSignRequestBody = {
       { type: 'string', name: 'Message', value: 'Hi, Alice!' },
       { type: 'uint32', name: 'A number', value: '1337' },
     ],
-    '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+    '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
   ],
   origin: 'localhost',
 };
@@ -80,8 +80,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       });
     });
 
-    // TODO: [ffmcgee] uncomment once https://github.com/MetaMask/metamask-mobile/pull/14836 is merged, will fix mock issue causing this test to fail
-    it.skip('should show security alert for malicious request, acknowledge and confirm the signature', async () => {
+    it('should show security alert for malicious request, acknowledge and confirm the signature', async () => {
       const testSpecificMock = {
         POST: [
           {
