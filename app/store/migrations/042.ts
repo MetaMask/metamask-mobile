@@ -91,5 +91,12 @@ function mergeInternalAccounts(state: ValidState) {
   const newSelectedAccountId =
     addressMap[selectedAddress] || Object.keys(mergedAccounts)[0]; // Default to the first account in the list
   accountsController.internalAccounts.accounts = mergedAccounts;
+  if (newSelectedAccountId === undefined) {
+    captureException(
+      new Error(
+        `Migration 42: selectedAccount will be undefined because newSelectedAccountId is undefined: 'addressMap: ${addressMap}, mergedAccounts: ${mergedAccounts}, selectedAddress: ${selectedAddress}'.`,
+      ),
+    );
+  }
   accountsController.internalAccounts.selectedAccount = newSelectedAccountId;
 }
