@@ -79,6 +79,7 @@ export const SlippageModal = () => {
             onValueChange={handleOptionSelected}
             size={ButtonSize.Sm}
             isButtonWidthFlexible={false}
+            style={styles.segmentedControl}
           />
         </View>
         <BottomSheetFooter
