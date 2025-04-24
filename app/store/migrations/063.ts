@@ -24,6 +24,8 @@ export default function migrate(state: unknown) {
   const transactionControllerState = state.engine.backgroundState.TransactionController;
   const smartTransactionsControllerState = state.engine.backgroundState.SmartTransactionsController;
 
+  // const smartTransactionsControllerState = undefined;
+  // state.engine.backgroundState.SmartTransactionsController = undefined;
   if (!isObject(transactionControllerState)) {
     // eslint-disable-next-line no-console
     console.log(' ====== MIGRATION 063: Invalid TransactionController state ====== ');

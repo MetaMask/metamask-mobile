@@ -69,7 +69,15 @@ function getScopesForAccountType(
  * @param state - The state to migrate
  * @returns The migrated state
  */
-export function migration66(state: unknown, migrationNumber: number) {
+export async function migration66(state: unknown, migrationNumber: number) {
+  // eslint-disable-next-line no-console
+  console.log(`Migration 66/67 (running as ${migrationNumber}) started`);
+  
+  await new Promise<void>((res) => setTimeout(() => res(), 5000));
+
+  // eslint-disable-next-line no-console
+  console.log(`Migration 66/67 (running as ${migrationNumber}) timeout completed`);
+
   if (!ensureValidState(state, migrationNumber)) {
     return state;
   }
@@ -130,8 +138,11 @@ export function migration66(state: unknown, migrationNumber: number) {
     );
   }
 
+  // eslint-disable-next-line no-console
+  console.log(`Migration 66/67 (running as ${migrationNumber}) completed`);
   return state;
 }
+
 
 /**
  * Migration for adding scopes to accounts in the AccountsController.

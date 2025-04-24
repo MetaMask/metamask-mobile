@@ -9,6 +9,9 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
  * @returns Migrated Redux state.
  */
 export default async function migrate(stateAsync: unknown) {
+  // eslint-disable-next-line no-console
+  console.log('Migration 65 started');
+  
   const state = await stateAsync;
 
   if (!isObject(state)) {
@@ -79,5 +82,7 @@ export default async function migrate(stateAsync: unknown) {
     }
   });
 
+  // eslint-disable-next-line no-console
+  console.log('Migration 65 completed');
   return state;
 }

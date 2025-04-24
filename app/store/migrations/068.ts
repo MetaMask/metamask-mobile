@@ -16,6 +16,9 @@ export interface State {
 }
 
 export default function migrate(state: unknown) {
+  // eslint-disable-next-line no-console
+  console.log('Migration 68 started');
+
   if (!isObject(state)) {
     captureException(
       new Error(
@@ -75,5 +78,8 @@ export default function migrate(state: unknown) {
   }
 
   preferences.featureFlags.smartTransactionsBannerDismissed = false;
+
+  // eslint-disable-next-line no-console
+  console.log('Migration 68 completed');
   return newState;
 }

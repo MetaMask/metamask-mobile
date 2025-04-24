@@ -23,7 +23,7 @@ export function validatePostMigrationState(state: RootState): void {
   // eslint-disable-next-line no-console
   console.log(' ====== MIGRATION Current state version:', state._persist?.version, '======');
   // eslint-disable-next-line no-console
-  console.log(' ====== MIGRATION Current state:', JSON.stringify(state, null, 2), '======');
+  // console.log(' ====== MIGRATION Current state:', JSON.stringify(state, null, 2), '======');
   
   const allErrors = checks.flatMap((check) => {
     // eslint-disable-next-line no-console

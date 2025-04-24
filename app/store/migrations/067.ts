@@ -9,6 +9,13 @@ import { migration66 } from './066';
  * We now require full scopes (namespace:chain-id) for all Internal Accounts.
  * See https://github.com/MetaMask/accounts/pull/165 for more details.
  */
-export default function migrate(state: unknown) {
-  return migration66(state, 67);
+export default async function migrate(state: unknown) {
+  // eslint-disable-next-line no-console
+  console.log('Migration 67 started');
+  
+  const result = await migration66(state, 67);
+  
+  // eslint-disable-next-line no-console
+  console.log('Migration 67 completed');
+  return result;
 }
