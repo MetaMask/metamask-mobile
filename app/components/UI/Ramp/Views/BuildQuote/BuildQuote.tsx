@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { BackHandler, Pressable, View } from 'react-native';
+import { Pressable, View, BackHandler } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -66,8 +66,8 @@ import { selectTicker } from '../../../../../selectors/networkController';
 
 import styleSheet from './BuildQuote.styles';
 import {
-  fromTokenMinimalUnitString,
   toTokenMinimalUnit,
+  fromTokenMinimalUnitString,
 } from '../../../../../util/number';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
