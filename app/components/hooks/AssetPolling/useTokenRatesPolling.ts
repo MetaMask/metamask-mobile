@@ -43,7 +43,11 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
     startPolling: TokenRatesController.startPolling.bind(TokenRatesController),
     stopPollingByPollingToken:
       TokenRatesController.stopPollingByPollingToken.bind(TokenRatesController),
-    input: chainIdsToPoll.map((chainId) => ({ chainId: chainId as Hex })),
+    input: [
+      {
+        chainIds: chainIdsToPoll as Hex[],
+      },
+    ],
   });
 
   return {
