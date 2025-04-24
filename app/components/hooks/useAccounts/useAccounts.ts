@@ -24,7 +24,7 @@ import {
   getFormattedAddressFromInternalAccount,
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
-import { useMultichainBalances } from '../useMultichainBalances';
+import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -44,7 +44,8 @@ const useAccounts = ({
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
-  const { multichainBalancesForAllAccounts } = useMultichainBalances();
+  const { multichainBalancesForAllAccounts } =
+    useMultichainBalancesForAllAccounts();
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -65,7 +66,8 @@ const useAccounts = ({
       // Ensure index exists in account list.
       let safeStartingIndex = startingIndex;
       let mirrorIndex = safeStartingIndex - 1;
-      let latestENSbyAccountAddress: EnsByAccountAddress = {};
+      const latestENSbyAccountAddress: EnsByAccountAddress = {};
+      let hasChanges = false;
 
       if (startingIndex < 0) {
         safeStartingIndex = 0;
@@ -81,10 +83,8 @@ const useAccounts = ({
             chainId,
           );
           if (ens) {
-            latestENSbyAccountAddress = {
-              ...latestENSbyAccountAddress,
-              [address]: ens,
-            };
+            latestENSbyAccountAddress[address] = ens;
+            hasChanges = true;
           }
         } catch (e) {
           // ENS either doesn't exist or failed to fetch.
@@ -102,7 +102,13 @@ const useAccounts = ({
         }
         mirrorIndex--;
         safeStartingIndex++;
-        setENSByAccountAddress(latestENSbyAccountAddress);
+      }
+      // Only update state if we have new ENS names
+      if (hasChanges && isMountedRef.current) {
+        setENSByAccountAddress((prevState) => ({
+          ...prevState,
+          ...latestENSbyAccountAddress,
+        }));
       }
     },
     [chainId],
