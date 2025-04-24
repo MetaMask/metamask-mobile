@@ -247,7 +247,7 @@ const BuildQuote = () => {
 
   const addressForBalance = useMemo(
     () => (isNonEvmAddress(selectedAddress) ? undefined : selectedAddress),
-    [selectedAddress, selectedAsset],
+    [selectedAddress],
   );
 
   const { addressBalance } = useAddressBalance(
