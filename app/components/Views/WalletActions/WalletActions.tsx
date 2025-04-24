@@ -264,9 +264,6 @@ const WalletActions = () => {
   }, [
     closeBottomSheetAndNavigate,
     goToBridgeBase,
-    trackEvent,
-    chainId,
-    createEventBuilder,
   ]);
 
   const sendIconStyle = useMemo(
