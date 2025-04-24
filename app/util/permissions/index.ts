@@ -5,21 +5,7 @@ import { CaveatTypes } from '../../core/Permissions/constants';
 import { pick } from 'lodash';
 import { isSnapId } from '@metamask/snaps-utils';
 import { Caip25CaveatType, Caip25EndowmentPermissionName, setEthAccounts, setPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
-
-export interface LegacyPermissions {
-  [PermissionKeys.eth_accounts]?: {
-    caveats?: {
-      type: keyof typeof CaveatTypes;
-      value: Hex[];
-    }[];
-  };
-  [PermissionKeys.permittedChains]?: {
-    caveats?: {
-      type: keyof typeof CaveatTypes;
-      value: Hex[];
-    }[];
-  };
-}
+import { RequestedPermissions } from '@metamask/permission-controller';
 
 /**
  * Requests user approval for the CAIP-25 permission for the specified origin
@@ -31,8 +17,21 @@ export interface LegacyPermissions {
  */
 export const getCaip25PermissionFromLegacyPermissions = (
   origin: string,
-  requestedPermissions?: LegacyPermissions,
-) => {
+  requestedPermissions?: {
+    [PermissionKeys.eth_accounts]?: {
+      caveats?: {
+        type: keyof typeof CaveatTypes;
+        value: Hex[];
+      }[];
+    };
+    [PermissionKeys.permittedChains]?: {
+      caveats?: {
+        type: keyof typeof CaveatTypes;
+        value: Hex[];
+      }[];
+    };
+  },
+): RequestedPermissions => {
   const permissions = pick(requestedPermissions, [
     PermissionKeys.eth_accounts,
     PermissionKeys.permittedChains,

@@ -536,7 +536,6 @@ export const getRpcMethodMiddleware = ({
                 ) =>
                   getCaip25PermissionFromLegacyPermissions(
                     origin,
-                    // TODO: [ffmcgee] address lint / type issue
                     requestedPermissions,
                   ),
                 requestPermissionsForOrigin:
