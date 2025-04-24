@@ -20,7 +20,7 @@ export class AndroidGoogleLoginHandler implements LoginHandler {
         this.clientId = params.clientId
     }
 
-    async login  (): Promise<LoginHandlerIdTokenResult | undefined> {
+    async login(): Promise<LoginHandlerIdTokenResult | undefined> {
         const result = await signInWithGoogle({
             serverClientId: this.clientId,
             nonce: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),

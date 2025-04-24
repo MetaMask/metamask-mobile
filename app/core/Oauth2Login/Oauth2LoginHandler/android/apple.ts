@@ -32,7 +32,7 @@ export class AndroidAppleLoginHandler implements LoginHandler {
         this.appRedirectUri = appRedirectUri;
     }
 
-    async login (): Promise<LoginHandlerResult | undefined> {
+    async login(): Promise<LoginHandlerResult | undefined> {
         const state = JSON.stringify({
             provider: this.authConnection,
             client_redirect_back_uri: this.appRedirectUri,

@@ -26,7 +26,7 @@ export class IosGoogleLoginHandler implements LoginHandler {
         this.redirectUri = params.redirecUri;
     }
 
-    async login () : Promise<LoginHandlerCodeResult | undefined> {
+    async login() : Promise<LoginHandlerCodeResult | undefined> {
         const state = JSON.stringify({
             random: Math.random().toString(36).substring(2, 15),
         });

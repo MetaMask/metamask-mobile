@@ -19,7 +19,7 @@ export class IosAppleLoginHandler implements LoginHandler {
         this.clientId = params.clientId
     }
 
-    async login (): Promise<LoginHandlerIdTokenResult | undefined> {
+    async login(): Promise<LoginHandlerIdTokenResult | undefined> {
         const credential = await signInAsync({
             requestedScopes: this.#scope,
         });
