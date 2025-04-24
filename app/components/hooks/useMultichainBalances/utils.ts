@@ -1,17 +1,20 @@
-import { isEvmAccountType } from '@metamask/keyring-api';
+/* eslint-disable arrow-body-style */
 import { InternalAccount } from '@metamask/keyring-internal-api';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   getMultichainNetworkAggregatedBalance,
   MultichainNetworkAggregatedBalance,
 } from '../../../selectors/multichain';
-import { formatWithThreshold } from '../../../util/assets';
-import I18n from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
+import { isEvmAccountType } from '@metamask/keyring-api';
 import {
   MultichainAssetsControllerState,
   MultichainAssetsRatesControllerState,
   MultichainBalancesControllerState,
 } from '@metamask/assets-controllers';
+///: END:ONLY_INCLUDE_IF
+import { formatWithThreshold } from '../../../util/assets';
+import I18n from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TotalFiatBalancesCrossChains } from '../useGetTotalFiatBalanceCrossChains';
 import { isPortfolioViewEnabled, isTestNet } from '../../../util/networks';
@@ -113,14 +116,16 @@ export const getAggregatedBalance = (account: InternalAccount) => {
 
 export const getAccountBalanceData = (
   account: InternalAccount,
+  currentCurrency: string,
+  totalFiatBalancesCrossEvmChain: TotalFiatBalancesCrossChains,
+  isOriginalNativeEvmTokenSymbol: boolean,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainBalances: MultichainBalancesControllerState['balances'],
   multichainAssets: MultichainAssetsControllerState['accountsAssets'],
   multichainAssetsRates: MultichainAssetsRatesControllerState['conversionRates'],
   nonEvmChainId: SupportedCaipChainId,
   shouldShowFiat: boolean,
-  currentCurrency: string,
-  totalFiatBalancesCrossEvmChain: TotalFiatBalancesCrossChains,
-  isOriginalNativeEvmTokenSymbol: boolean,
+  ///: END:ONLY_INCLUDE_IF
 ): {
   displayBalance: string;
   totalFiatBalance: number | undefined;

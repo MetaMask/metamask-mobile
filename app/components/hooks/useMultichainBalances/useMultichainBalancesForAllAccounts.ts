@@ -1,4 +1,3 @@
-/* eslint-disable arrow-body-style */
 import { useSelector } from 'react-redux';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import {
@@ -98,14 +97,16 @@ const useMultichainBalancesForAllAccounts =
       for (const account of accountsList) {
         const accountBalanceData = getAccountBalanceData(
           account,
+          currentCurrency,
+          totalFiatBalancesCrossEvmChain,
+          isOriginalNativeEvmTokenSymbol,
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
           multichainBalances,
           multichainAssets,
           multichainAssetsRates,
           nonEvmChainId,
           shouldShowFiat,
-          currentCurrency,
-          totalFiatBalancesCrossEvmChain,
-          isOriginalNativeEvmTokenSymbol,
+          ///: END:ONLY_INCLUDE_IF
         );
         result[account.id] = {
           displayBalance: accountBalanceData.displayBalance,
@@ -132,12 +133,14 @@ const useMultichainBalancesForAllAccounts =
       currentCurrency,
       isOriginalNativeEvmTokenSymbol,
       isPortfolioEnabled,
+      totalFiatBalancesCrossEvmChain,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       multichainAssets,
       multichainAssetsRates,
       multichainBalances,
       nonEvmChainId,
       shouldShowFiat,
-      totalFiatBalancesCrossEvmChain,
+      ///: END:ONLY_INCLUDE_IF
     ]);
     return {
       multichainBalancesForAllAccounts: allAccountBalances,
