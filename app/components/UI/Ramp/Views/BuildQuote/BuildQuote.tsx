@@ -587,6 +587,7 @@ const BuildQuote = () => {
       }
     }
   }, [
+    rampType,
     screenLocation,
     amount,
     amountNumber,
