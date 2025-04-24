@@ -256,7 +256,7 @@ import {
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
-  SeedlessOnboardingControllerStateChangeEvent,
+  SeedlessOnboardingControllerEvents,
 } from '@metamask/seedless-onboarding-controller';
 
 import { Hex } from '@metamask/utils';
@@ -404,7 +404,7 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | AppMetadataControllerEvents
-  | SeedlessOnboardingControllerStateChangeEvent;
+  | SeedlessOnboardingControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
