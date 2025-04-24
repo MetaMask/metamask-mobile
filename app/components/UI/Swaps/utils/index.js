@@ -4,6 +4,10 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { SolScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF(keyring-snaps)
+import { isBridgeUiEnabled } from '../../Bridge/utils';
 
 const {
   ETH_CHAIN_ID,
@@ -47,6 +51,13 @@ export function isSwapsAllowed(chainId) {
   if (!AppConstants.SWAPS.ONLY_MAINNET) {
     allowedChainIds.push(SWAPS_TESTNET_CHAIN_ID);
   }
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  if (chainId === SolScope.Mainnet && isBridgeUiEnabled()) {
+    return true;
+  }
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+
   return allowedChainIds.includes(chainId);
 }
 
@@ -119,6 +130,7 @@ export function getQuotesNavigationsParams(route) {
  * @param {string} sourceAmount Amount in minimal token units of sourceToken to be swapped
  * @param {string} fromAddress Current address attempting to swap
  * @param {string} networkClientId Current network client ID
+ * @param {boolean} enableGasIncludedQuotes Enable quotes with gas included
  */
 export function getFetchParams({
   slippage = 1,
@@ -127,6 +139,7 @@ export function getFetchParams({
   sourceAmount,
   walletAddress,
   networkClientId,
+  enableGasIncludedQuotes,
 }) {
   return {
     slippage,
@@ -139,6 +152,7 @@ export function getFetchParams({
       destinationTokenInfo: destinationToken,
       networkClientId,
     },
+    enableGasIncludedQuotes,
   };
 }
 
@@ -232,4 +246,29 @@ export function getQuotesSourceMessage(type) {
       ];
     }
   }
+}
+
+/**
+ * Determines whether to show the max balance link in Swaps
+ * @param {object} params - Function parameters
+ * @param {object} params.sourceToken - Source token object
+ * @param {boolean} params.shouldUseSmartTransaction - Whether smart transactions are enabled
+ * @param {boolean} params.hasBalance - Whether the user has a balance of the source token
+ * @return {boolean} Whether to show the max balance link
+ */
+export function shouldShowMaxBalanceLink({
+  sourceToken,
+  shouldUseSmartTransaction,
+  hasBalance,
+}) {
+  if (!sourceToken?.symbol || !hasBalance) {
+    return false;
+  }
+
+  const isNonDefaultFromToken = !isSwapsNativeAsset(sourceToken);
+  const isTokenEligibleForMaxBalance =
+    shouldUseSmartTransaction ||
+    (!shouldUseSmartTransaction && isNonDefaultFromToken);
+
+  return isTokenEligibleForMaxBalance;
 }

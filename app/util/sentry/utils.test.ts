@@ -144,11 +144,6 @@ describe('captureSentryFeedback', () => {
       engine: {
         backgroundState: {
           AccountTrackerController: {
-            accounts: {
-              '0x6312c98831D74754F86dd4936668A13B7e9bA411': {
-                balance: '0x0',
-              },
-            },
             accountsByChainId: {
               '0x1': {
                 '0x6312c98831D74754F86dd4936668A13B7e9bA411': {
@@ -485,8 +480,8 @@ describe('captureSentryFeedback', () => {
       inpageProvider: {
         networkId: '1',
       },
-      transactionMetrics: {
-        metricsByTransactionId: {},
+      confirmationMetrics: {
+        metricsById: {},
       },
     };
 
@@ -522,7 +517,7 @@ describe('captureSentryFeedback', () => {
         signatureRequest: 'object',
         swaps: 'object',
         transaction: 'object',
-        transactionMetrics: 'object',
+        confirmationMetrics: 'object',
         user: 'object',
         wizard: 'object',
       });
@@ -563,7 +558,7 @@ describe('captureSentryFeedback', () => {
         signatureRequest: 'object',
         swaps: 'object',
         transaction: 'object',
-        transactionMetrics: 'object',
+        confirmationMetrics: 'object',
         user: 'object',
         wizard: 'object',
       });
@@ -600,7 +595,7 @@ describe('captureSentryFeedback', () => {
         signatureRequest: 'object',
         swaps: 'object',
         transaction: 'object',
-        transactionMetrics: 'object',
+        confirmationMetrics: 'object',
         user: 'object',
         wizard: 'object',
       });

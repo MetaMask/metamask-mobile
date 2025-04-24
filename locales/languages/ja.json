@@ -1,4 +1,34 @@
 {
+  "alert_system": {
+    "alert_modal": {
+      "title": "アラート",
+      "checkbox_label": "リスクを承知したうえで続行します",
+      "got_it_btn": "了解",
+      "alert_details": "アラートの詳細"
+    },
+    "confirm_modal": {
+      "title": "リスクの高い要求",
+      "checkbox_label": "アラートを確認したうえで続行します",
+      "review_alerts": "すべてのアラートを確認",
+      "message": "この要求を拒否することをお勧めします。続行すると、資産がリスクにさらされる可能性があります。",
+      "title_blockaid": "資産がリスクにさらされている可能性があります",
+      "blockaid": {
+        "message": "この要求を確定すると、資産を失う可能性があります。この要求はキャンセルすることをお勧めします。",
+        "message1": "この要求を確定すると、詐欺師に資産の引き出しや使用を許可することになります。失った資産は取り戻すことができません。",
+        "message2": "資産を詐欺師に送金しようとしています。続行すると、これらの資産は失われます。",
+        "message3": "続行すると、OpenSeaに出品している資産がすべてリスクにさらされる可能性があります。",
+        "message4": "続行すると、Blurに出品している資産がすべてリスクにさらされる可能性があります。",
+        "message5": "悪意のあるサイトとやり取りしています。続行すると、資産が失われます。"
+      }
+    },
+    "inline_alert_label": "アラート",
+    "review_alerts": "アラートを確認",
+    "review_alert": "アラートを確認",
+    "domain_mismatch": {
+      "title": "不審なサインイン要求",
+      "message": "要求を行っているサイトはサインインしようとしているサイトではありません。これはログイン情報を盗む試みかもしれません。"
+    }
+  },
   "blockaid_banner": {
     "approval_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われる可能性があります。",
     "blur_farming_description": "このリクエストを承認すると、Blurに登録されている資産を誰かに盗まれる可能性があります。",
@@ -382,32 +412,35 @@
     "description": "1つのネットワークで複数のRPCがサポートされるようになりました。情報の矛盾を解決するため、最も最近のRPCがデフォルトのRPCとして選択されています",
     "accept": "同意する"
   },
-  "nft_details": {
-    "bought_for": "購入価格:",
-    "highest_floor_price": "最高フロア価格",
-    "data_unavailable": "データが利用できません",
-    "price_unavailable": "価格が利用できません",
-    "rank": "ランキング",
-    "contract_address": "コントラクトアドレス",
-    "token_id": "トークンID",
-    "token_symbol": "トークンシンボル",
-    "token_standard": "トークン規格",
-    "date_created": "作成日",
-    "unique_token_holders": "一意のトークン保有者",
-    "tokens_in_collection": "コレクションのトークン",
-    "creator_address": "クリエイターのアドレス",
-    "last_sold": "前回の売却",
-    "highest_current_bid": "現在の最高入札額",
-    "options": {
-      "view_on_os": "OpenSeaで表示",
-      "remove_nft": "NFTを削除"
-    },
-    "attributes": "属性",
-    "disclaimer": "開示事項: MetaMaskはソースURLからメディアファイルを取得します。このURLは、NFTがミントされたマーケットプレイスによって変更されることがあります。"
-  },
   "qr_tab_switcher": {
     "scanner_tab": "QRコードをスキャン",
     "receive_tab": "QRコード"
+  },
+  "banner": {
+    "bridge": {
+      "title": "ブリッジの準備はできましたか？",
+      "subtitle": "9つのチェーン間での移動がすべてウォレット内で可能"
+    },
+    "card": {
+      "title": "MetaMaskカード",
+      "subtitle": "一部地域で利用可能"
+    },
+    "fund": {
+      "title": "ウォレットへの入金",
+      "subtitle": "トークンを追加または送金して開始"
+    },
+    "cashout": {
+      "title": "MetaMaskでキャッシュアウト",
+      "subtitle": "仮想通貨を売って現金化"
+    },
+    "aggregated": {
+      "title": "残高を集計",
+      "subtitle": "設定で残高の表示を管理"
+    },
+    "multisrp": {
+      "title": "Add multiple Secret Recovery Phrases",
+      "subtitle": "Import and use multiple wallets in MetaMask"
+    }
   },
   "wallet": {
     "title": "ウォレット",
@@ -524,6 +557,29 @@
       "token_details": "トークンの詳細",
       "remove_token": "トークンを削除"
     }
+  },
+  "nft_details": {
+    "bought_for": "購入価格:",
+    "highest_floor_price": "最高フロア価格",
+    "data_unavailable": "データが利用できません",
+    "price_unavailable": "価格が利用できません",
+    "rank": "ランキング",
+    "contract_address": "コントラクトアドレス",
+    "token_id": "トークンID",
+    "token_symbol": "トークンシンボル",
+    "token_standard": "トークン規格",
+    "date_created": "作成日",
+    "unique_token_holders": "一意のトークン保有者",
+    "tokens_in_collection": "コレクションのトークン",
+    "creator_address": "クリエイターのアドレス",
+    "last_sold": "前回の売却",
+    "highest_current_bid": "現在の最高入札額",
+    "options": {
+      "view_on_os": "OpenSeaで表示",
+      "remove_nft": "NFTを削除"
+    },
+    "attributes": "属性",
+    "disclaimer": "開示事項: MetaMaskはソースURLからメディアファイルを取得します。このURLは、NFTがミントされたマーケットプレイスによって変更されることがあります。"
   },
   "activity_view": {
     "title": "アクティビティ"
@@ -693,6 +749,7 @@
     "select_accounts_description": "このサイトで使用するアカウントを選択してください:",
     "connect_multiple_accounts": "複数アカウントを接続",
     "connect_more_accounts": "他のアカウントを接続",
+    "add": "追加",
     "cancel": "キャンセル",
     "connect": "接続",
     "connect_with_count": "{{countLabel}}個を接続",
@@ -720,7 +777,15 @@
     "potential_threat": "潜在的な脅威には次のものが含まれます",
     "fake_metamask": "MetaMaskの偽バージョン",
     "srp_theft": "シークレットリカバリーフレーズまたはパスワードの窃取",
-    "malicious_transactions": "資産の窃取に繋がる悪質なトランザクション"
+    "malicious_transactions": "資産の窃取に繋がる悪質なトランザクション",
+    "secret_recovery_phrase": "シークレットリカバリーフレーズ",
+    "account_name": "アカウント名",
+    "select_secret_recovery_phrase": "シークレットリカバリーフレーズを選択",
+    "reveal_secret_recovery_phrase": "シークレットリカバリーフレーズを確認",
+    "add_new_hd_account_helper_text": "新しいアカウントの生成元となるシークレットリカバリーフレーズ",
+    "accounts": "アカウント",
+    "show_accounts": "表示",
+    "hide_accounts": "非表示"
   },
   "toast": {
     "connected_and_active": "接続済みかつ有効です。",
@@ -773,7 +838,8 @@
   },
   "app_settings": {
     "enabling_notifications": "通知を有効にしています...",
-    "disabling_notifications": "通知を無効にしています...",
+    "updating_notifications": "通知を更新しています...",
+    "updating_account_settings": "アカウント設定を更新しています...",
     "reset_notifications_title": "通知のリセット",
     "reset_notifications_description": "通知をリセットすると、通知ストレージキーが削除され、通知履歴がすべてリセットされます。よろしいですか？",
     "reset_notifications": "通知をリセット",
@@ -864,6 +930,7 @@
     "notifications_title": "通知",
     "notifications_desc": "通知の管理",
     "allow_notifications": "通知を許可する",
+    "enable_push_notifications": "プッシュ通知を有効にする",
     "allow_notifications_desc": "通知を使えば、ウォレットで何が起きているか常に把握できます。通知を使用するために、プロファイルを使用してデバイス間で一部の設定が同期されます。",
     "notifications_opts": {
       "customize_session_title": "通知のカスタマイズ",
@@ -902,6 +969,8 @@
     "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC名",
     "network_rpc_placeholder": "新しいRPCネットワーク",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "チェーンID",
     "network_chain_id_placeholder": "チェーンID",
     "network_symbol_label": "シンボル",
@@ -918,6 +987,7 @@
     "remove_network": "削除",
     "cancel_remove_network": "キャンセル",
     "info_title": "MetaMaskについて",
+    "info_title_beta": "MetaMask Betaの基本情報",
     "info_title_flask": "MetaMask Flaskについて",
     "experimental_title": "試験運用",
     "experimental_desc": "WalletConnectなど...",
@@ -1118,7 +1188,7 @@
     "security_alerts": "セキュリティアラート",
     "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
     "smart_transactions_opt_in_heading": "スマートトランザクション",
-    "smart_transactions_opt_in_desc": "スマートトランザクションをオンにして、イーサリアムメインネット上でのトランザクションの信頼性と安全性を高めましょう。",
+    "smart_transactions_opt_in_desc_supported_networks": "スマートトランザクションをオンにして、サポートされているネットワーク上でのトランザクションの信頼性と安全性を高めましょう。",
     "smart_transactions_learn_more": "詳細。",
     "simulation_details": "予測される残高の増減",
     "simulation_details_description": "トランザクションを確定する前に残高の増減を予測するには、この機能をオンにします。これはトランザクションの最終的な結果を保証するものではありません。",
@@ -1281,8 +1351,8 @@
       "swap": "このアカウントではスワップはサポートされていません",
       "bridge": "このアカウントではブリッジはサポートされていません",
       "send": "このアカウントでは送金はサポートされていません",
-      "earn": "このアカウントでは獲得はサポートされていません",
-      "action": "このアカウントではこの操作はサポートされていません"
+      "action": "このアカウントではこの操作はサポートされていません",
+      "earn": "このアカウントでは獲得はサポートされていません"
     },
     "description": "説明",
     "totalSupply": "合計供給量",
@@ -1618,6 +1688,9 @@
     "tabs_done": "完了",
     "no_tabs_title": "開いているタブがありません",
     "no_tabs_desc": "分散型インターネットを閲覧するには、新規タブを追加してください",
+    "got_it": "了解",
+    "max_tabs_title": "タブの最大数に達しました",
+    "max_tabs_desc": "現在同時に開けるタブの数は5つまでです。新しいタブを追加する前に、既存のタブを閉じてください。",
     "failed_to_resolve_ens_name": "ENS名を解決できませんでした",
     "remove_bookmark_title": "お気に入りを削除",
     "remove_bookmark_msg": "このサイトをお気に入りから削除してよろしいですか？",
@@ -1683,6 +1756,9 @@
     "sent_collectible": "送信されたコレクティブル",
     "sent": "送信済み",
     "received": "受信済み",
+    "receive": "受取",
+    "swap": "スワップ",
+    "send": "送金",
     "contract_deploy": "コントラクトのデプロイ",
     "to_contract": "新しいコントラクト",
     "tx_details_free": "無料",
@@ -1706,6 +1782,7 @@
     "gas_price": "ガス価格 (gwei)",
     "base_fee": "基本料金 (gwei)",
     "priority_fee": "優先手数料 (gwei)",
+    "multichain_priority_fee": "優先手数料",
     "max_fee": "ガス1単位あたりの最大手数料",
     "total": "合計",
     "view_on": "表示方法:",
@@ -1729,7 +1806,9 @@
     "sign_description_1": "ハードウェアウォレットで署名した後、",
     "sign_description_2": "「署名を取得」をタップします",
     "sign_get_signature": "署名を取得",
-    "network_fee": "ネットワーク手数料"
+    "transaction_id": "トランザクションID",
+    "network_fee": "ネットワーク手数料",
+    "network_fee_tooltip": "ネットワーク上でのトランザクションの処理に支払われた金額です。"
   },
   "smart_transactions": {
     "status_submitting_header": "トランザクションを送信中",
@@ -1841,6 +1920,7 @@
     "you_can": "または",
     "add_network": "他のネットワークを手動で追加できます。",
     "add_specific_network": "{{network_name}}を追加",
+    "update_network": "{{network_name}}を更新",
     "select_network": "ネットワークを選択",
     "enabled_networks": "ネットワークが有効になりました",
     "additional_networks": "他のネットワーク",
@@ -1876,7 +1956,8 @@
     "this_site_cant": "このサイトは現在のネットワークでは使用できません。ネットワークのアクセス許可を追加するか、すでに許可されているネットワークを選択してください。",
     "non_permitted_network_description": "このサイトは現在のネットワークでは使用できません。ネットワークのアクセス許可を追加するか、すでに許可されているネットワークを選択してください。",
     "edit_permissions": "アクセス許可を編集",
-    "permitted_networks_info_sheet_description": "これは、以前このサイトで使用するためにアクセス許可を与えたネットワークのリストです。このリストから1つ選択するか、このサイトへのネットワークのアクセス許可を編集してください。"
+    "permitted_networks_info_sheet_description": "これは、以前このサイトで使用するためにアクセス許可を与えたネットワークのリストです。このリストから1つ選択するか、このサイトへのネットワークのアクセス許可を編集してください。",
+    "connect_an_account": "アカウントを接続"
   },
   "select": {
     "cancel": "キャンセル",
@@ -1967,6 +2048,31 @@
     "title": "アカウントがインポートされました！",
     "description_one": "これでMetaMaskにアカウントが表示されるようになりました。"
   },
+  "import_new_secret_recovery_phrase": {
+    "title": "シークレットリカバリーフレーズをインポート",
+    "description": "ウォレットのシークレットリカバリーフレーズを入力してください。イーサリアム、Solana、ビットコインのシークレットリカバリーフレーズをインポートできます。",
+    "subtitle": "シークレットリカバリーフレーズを貼り付けます",
+    "cta_text": "続行",
+    "paste": "貼り付け",
+    "clear": "すべて消去",
+    "srp_number_of_words_option_title": "単語数",
+    "12_word_option": "12単語のフレーズがあります",
+    "24_word_option": "24単語のフレーズがあります",
+    "error_title": "問題が発生しました",
+    "error_message": "指定されたシークレットリカバリーフレーズをインポートできませんでした。正しく入力されていることを確認してください。",
+    "error_empty_message": "シークレットリカバリーフレーズの入力が必要です。",
+    "error_number_of_words_error_message": "シークレットリカバリーフレーズは12単語または24単語のいずれかで構成されています",
+    "error_srp_is_case_sensitive": "無効な入力です！シークレットリカバリーフレーズは大文字・小文字を区別します。",
+    "error_srp_word_error_1": "単語",
+    "error_srp_word_error_2": "が正しくないか、スペルが間違っています。",
+    "error_multiple_srp_word_error_1": "単語",
+    "error_multiple_srp_word_error_2": "と",
+    "error_multiple_srp_word_error_3": "が正しくないか、スペルが間違っています。",
+    "error_invalid_srp": "無効なシークレットリカバリーフレーズ",
+    "error_duplicate_srp": "このシークレットリカバリーフレーズはすでにインポートされています。",
+    "success_1": "シークレットリカバリーフレーズ",
+    "success_2": "がインポートされました"
+  },
   "first_incoming_transaction": {
     "title": "アカウントに{{asset}}が入金されました。",
     "amount": "金額:",
@@ -1983,7 +2089,8 @@
     "info_text_1": "MetaMaskウォレットのセットアップを完了させてください。",
     "info_text_2": "これにより、本人だけが資金にアクセスでき、デバイスを紛失した場合でもウォレットを復元できるようになります",
     "cta_text": "パスワードを作成",
-    "creating_password": "パスワードを作成中..."
+    "creating_password": "パスワードを作成中...",
+    "srp_list_selection": "Select Secret Recovery Phrase"
   },
   "account_backup_step_1": {
     "remind_me_later": "後で通知",
@@ -2137,7 +2244,15 @@
     "continue_on_your_own": "自己責任で行ってください。",
     "file_an_issue_intro": "誤ってリストに登録されていると思われるサイトを見かけたり、ブロックされている正当なサイトが既にセキュリティの問題を解決している場合は",
     "file_an_issue": "ご報告ください。",
-    "back_to_safety": "安全な場所に戻る"
+    "back_to_safety": "安全な場所に戻る",
+    "site_might_be_harmful": "このWebサイトは有害な可能性があります",
+    "metamask_flagged_site": "アクセスしようとしているサイトは、MetaMaskによって詐欺の可能性があるとフラグ付けされています。攻撃者が危険な行為に誘導しようとする可能性があります。",
+    "you_may_proceed_anyway": "承知の上で続けることも",
+    "proceed_anyway": "できますが、",
+    "but_please_do_so_at_your_own_risk": "自己責任で行ってください。",
+    "report_detection_problem": "検出に関する問題の報告",
+    "share_on_twitter": "役に立ったら、Xでシェアしてください！",
+    "share_text": "MetaMaskは有害な可能性があるサイト ({{url}}) にアクセスしないように保護してくれました。気をつけましょう！"
   },
   "notifications": {
     "timeout": "タイムアウト",
@@ -2228,7 +2343,7 @@
     "lido_stake_completed_title": "ステーキングが完了しました",
     "lido_withdrawal_requested_title": "出金がリクエストされました",
     "lido_withdrawal_completed_title": "出金が完了しました",
-    "lido_stake_ready_to_be_withdrawn_title": "ステークの出金準備が完了しました ",
+    "lido_stake_ready_to_be_withdrawn_title": "ステークの出金準備が完了しました",
     "erc721_sent_title": "NFTが送られました",
     "erc721_received_title": "NFTを受け取りました",
     "erc1155_sent_title": "NFTが送られました",
@@ -2262,36 +2377,30 @@
     "lido_withdrawal_completed_message": "ステーキングの解除が完了しました",
     "lido_stake_ready_to_be_withdrawn_message": "出金がリクエストされました",
     "push_notification_content": {
+      "funds_sent_title": "送金されました",
+      "funds_sent_description": "{{amount}} {{symbol}}が送金されました",
+      "funds_sent_default_description": "トークンが送金されました",
+      "funds_received_title": "資金を受け取りました",
+      "funds_received_description": "{{amount}} {{symbol}}受け取りました",
+      "funds_received_default_description": "トークンを受け取りました",
       "metamask_swap_completed_title": "スワップが完了しました",
       "metamask_swap_completed_description": "MetaMaskスワップに成功しました",
-      "erc20_sent_title": "送金されました",
-      "erc20_sent_description": "{{amount}} {{token}}が送金されました",
-      "erc20_received_title": "資金を受け取りました",
-      "erc20_received_description": "{{amount}} {{token}}受け取りました",
-      "eth_sent_title": "送金されました",
-      "eth_sent_description": "{{amount}} ETHが送金されました",
-      "eth_received_title": "資金を受け取りました",
-      "eth_received_description": "{{amount}} {{token}}受け取りました",
+      "nft_sent_title": "NFTが送られました",
+      "nft_sent_description": "NFTが送られました",
+      "nft_received_title": "NFTを受け取りました",
+      "nft_received_description": "新しいNFTを受け取りました",
       "rocketpool_stake_completed_title": "ステーキングが完了しました",
       "rocketpool_stake_completed_description": "RocketPoolのステーキングに成功しました",
       "rocketpool_unstake_completed_title": "ステーキングの解除が完了しました",
       "rocketpool_unstake_completed_description": "RocketPoolのステーキングの解除に成功しました",
       "lido_stake_completed_title": "ステーキングが完了しました",
       "lido_stake_completed_description": "Lidoのステーキングに成功しました",
+      "lido_stake_ready_to_be_withdrawn_title": "ステークの出金準備が完了しました",
+      "lido_stake_ready_to_be_withdrawn_description": "Lidoのステークの出金準備が完了しました",
       "lido_withdrawal_requested_title": "出金がリクエストされました",
       "lido_withdrawal_requested_description": "Lidoの出金リクエストが送信されました",
       "lido_withdrawal_completed_title": "出金が完了しました",
-      "lido_withdrawal_completed_description": "Lidoの出金に成功しました",
-      "lido_stake_ready_to_be_withdrawn_title": "ステークの出金準備が完了しました ",
-      "lido_stake_ready_to_be_withdrawn_description": "Lidoのステークの出金準備が完了しました",
-      "erc721_sent_title": "NFTが送られました",
-      "erc721_sent_description": "NFTが送られました",
-      "erc721_received_title": "NFTを受け取りました",
-      "erc721_received_description": "新しいNFTを受け取りました",
-      "erc1155_sent_title": "NFTが送られました",
-      "erc1155_sent_description": "NFTが送られました",
-      "erc1155_received_title": "NFTを受け取りました",
-      "erc1155_received_description": "新しいNFTを受け取りました"
+      "lido_withdrawal_completed_description": "Lidoの出金に成功しました"
     },
     "prompt_title": "プッシュ通知の受取",
     "notifications_enabled_error_title": "問題が発生しました",
@@ -2589,6 +2698,8 @@
     "one_more_option": "他1個のオプション",
     "more_options": "他{{count}}個のオプション",
     "previously_used": "以前使用",
+    "best_rate": "最も有利なレート",
+    "most_reliable": "信頼性が最も高い",
     "quotes_timeout": "クォートのタイムアウト",
     "request_new_quotes": "最も有利な最新のレートを入手できるよう、新しいクォートをリクエストしてください",
     "terms_of_service": "サービス規約",
@@ -2603,6 +2714,7 @@
     "done": "完了",
     "fetching_quotes": "クォートを取得中",
     "select_a_quote": "クォートを選択",
+    "recommended_quote": "お勧めのクォート",
     "select_a_cryptocurrency": "仮想通貨を選択",
     "select_a_cryptocurrency_description": "{{network}}で利用可能なトークンのリストから選択してください。",
     "search_by_cryptocurrency": "仮想通貨で検索",
@@ -2619,6 +2731,7 @@
     "minimum": "最低入金額は",
     "maximum": "最高入金額は",
     "insufficient_balance": "この金額は残高を超えています",
+    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
     "enter_larger_amount": "続行するにはより大きな金額を入力してください",
     "enter_smaller_amount": "続行するにはより小さな金額を入力してください",
     "enter_lower_gas_fees": "ガス代の金額をより少なめに入力してください",
@@ -2765,7 +2878,7 @@
     "token_to_verify": "これが希望のトークンであることを確認してください。",
     "continue": "続行",
     "select_a_token": "トークンを選択",
-    "search_token": "トークンを検索",
+    "search_token": "トークン名を入力するか、アドレスを貼り付けてください",
     "no_tokens_result": "「{{searchString}}」に一致するトークンがありません",
     "find_token_address": "トークンアドレスを見つける",
     "cant_find_token": "トークンが見つかりませんか？",
@@ -2817,9 +2930,12 @@
     "n_quotes": "{{numberOfQuotes}}件のクォート",
     "view_details": "詳細を表示",
     "estimated_gas_fee": "ガス代の見積もり",
+    "gas_fee": "ガス代",
+    "included": "込み",
     "max_gas_fee": "最大ガス代",
     "edit": "編集",
     "quotes_include_fee": "クォートには{{fee}}%のMetaMask手数料が含まれています",
+    "quotes_include_gas_and_metamask_fee": "クォートにはガス代と、{{fee}}%のMetaMask手数料が含まれています",
     "tap_to_swap": "タップしてスワップ",
     "swipe_to_swap": "スワイプしてスワップ",
     "swipe_to": "スワイプして",
@@ -2889,6 +3005,8 @@
     "high_recommendation": "通常、スワップは時間が重要です。「高」にすると、市場状況の変化による問題を回避しやすくなります。",
     "recommended": "推奨",
     "recommended_gas": "推奨ガス代",
+    "gas_included_tooltip_explanation": "このクォートにはガス代が含まれており、それに応じてトークンの送金または受取額が調整されています。アクティビティリストの別のトランザクションでETHを受け取る可能性があります。",
+    "gas_included_tooltip_explanation_link_text": "ガス代に関する詳細",
     "gas_education_title": "ガス代の見積もり",
     "gas_education_1": "ガス代は、",
     "gas_education_2_ethereum": "イーサリアムネットワークでトランザクションを処理するクリプトマイナーに支払われます。",
@@ -2977,6 +3095,8 @@
     "title_new_network": "新しいネットワークが追加されました",
     "switch_warning": "これによりMetaMask内で選択されたネットワークが、以前に追加されたものに切り替わります:",
     "add_network_and_give_dapp_permission_warning": "このネットワークをMetaMaskに追加し、{{dapp_origin}}がそれを使用することを許可しようとしています。",
+    "update_network_and_give_dapp_permission_warning": "MetaMaskでこのネットワークを更新し、{{dapp_origin}}がそれを使用することを許可しようとしています。",
+    "request_update_network_url": "{{dapp_origin}}がデフォルトのネットワークURLの更新を要求しています。デフォルトとネットワーク情報はいつでも編集できます。",
     "available": "がネットワークセレクターで利用可能になりました。",
     "cancel": "キャンセル",
     "switch": "ネットワークを切り替える"
@@ -3139,7 +3259,9 @@
     "enable_token_detection": "自動トークン検出を有効にする",
     "token_detection_mainnet_title": "トークン検出が有効になっているため、トークンが自動的にウォレットに表示されます。",
     "token_detection_mainnet_link": "手動でトークンを追加することもできます。",
-    "or": "または"
+    "or": "または",
+    "non_evm_first_description": "このネットワーク上のネイティブ資産は{{ticker}}です。この資産がトランザクション手数料に使用されます。",
+    "non_evm_second_description": "別のネットワークから、または別のネットワークに送ろうとすると、資産が失われてしまいます。"
   },
   "download_files": {
     "error": "添付ファイルのダウンロードに失敗しました。",
@@ -3357,13 +3479,17 @@
   "account_actions": {
     "edit_name": "アカウント名を編集",
     "add_account_or_hardware_wallet": "アカウントまたはハードウェアウォレットを追加",
-    "add_account": "アカウントを追加",
-    "add_new_account": "新しいアカウントを追加",
-    "add_hardware_wallet": "ハードウェアウォレットを追加",
-    "import_account": "アカウントをインポート",
-    "add_bitcoin_account_testnet": "新しいビットコインアカウントを追加 (テストネット)",
-    "add_bitcoin_account_mainnet": "新しいビットコインアカウントを追加 (ベータ)",
-    "add_solana_account": "新しいSolanaアカウントを追加 (ベータ)"
+    "connect_hardware_wallet": "アカウントを接続",
+    "import_wallet_or_account": "ウォレットまたはアカウントをインポート",
+    "add_account": "新規アカウントを作成",
+    "create_an_account": "新規アカウントを作成",
+    "add_new_account": "イーサリアムアカウント",
+    "import_srp": "シークレットリカバリーフレーズ",
+    "add_hardware_wallet": "ハードウェアウォレット",
+    "import_account": "秘密鍵",
+    "add_bitcoin_account_testnet": "ビットコインテストネットアカウント",
+    "add_bitcoin_account_mainnet": "ビットコインアカウント",
+    "add_solana_account": "Solanaアカウント"
   },
   "show_nft": {
     "show_nft_title": "NFTを表示",
@@ -3381,6 +3507,18 @@
     "show_display_nft_media_content_3": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、この設定を無効にすると利用できなくなります。",
     "show_display_nft_media_content_4": "NFTメディアの表示は次の場所でオフにできます:",
     "show_display_nft_media_content_5": "「設定」>「セキュリティとプライバシー」"
+  },
+  "solana_new_feature_content": {
+    "title": "MetaMaskでSolana",
+    "create_solana_account": "Solanaアカウントを作成",
+    "not_now": "後で",
+    "got_it": "了解",
+    "feature_1_title": "トークンの送金、受取、スワップ",
+    "feature_1_description": "SOLやUSDCなどのトークンの送金や取引を行います。",
+    "feature_2_title": "Solanaアカウントのインポート",
+    "feature_2_description": "シークレットリカバリーフレーズをインポートして、他のウォレットからSolanaアカウントを移行します。",
+    "feature_3_title": "他の機能も近日追加予定",
+    "feature_3_description": "Solana DApp、NFT、ハードウェアウォレットのサポート、その他機能も近日追加予定。"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFSゲートウェイ",
@@ -3408,6 +3546,14 @@
     "error_title": "インストールに失敗しました",
     "error_description": "{{snap}}のインストールに失敗しました。"
   },
+  "earn": {
+    "empty_state_cta": {
+      "heading": "{{tokenSymbol}}を貸して収益化",
+      "body_prefix": "{{tokenSymbol}}を貸して年間最大",
+      "body_suffix": "の収入を獲得できます。",
+      "start_earning": "収益化を開始"
+    }
+  },
   "stake": {
     "stake": "ステーク",
     "earn": "獲得",
@@ -3426,17 +3572,23 @@
       "stake_annual_rate_tooltip": "年率ツールヒント"
     },
     "estimated_annual_rewards": "予想年間報酬",
+    "estimated_annual_reward": "予想年間報酬",
+    "reward_frequency": "報酬の頻度",
+    "reward_frequency_tooltip": "ステーキングされた残高は、新しい報酬が反映されるように{{frequency}}ごとに更新されます。",
+    "withdrawal_time": "出金時間",
     "metamask_pool": "MetaMask Pool",
     "enter_amount": "金額を入力してください",
     "review": "確認",
     "not_enough_eth": "ETHが不足しています",
+    "not_enough_token": "{{ticker}}が足りません",
     "balance": "残高",
     "stake_eth_and_earn": "ETHをステーキングして収益を獲得",
-    "stake_any_amount_of_eth": "ETHをいくらでもステーキング可能",
+    "how_it_works": "使い方",
+    "stake_any_amount_of_eth": "ETHはいくらでもステーキング可能。",
     "no_minimum_required": "最低要件なし。",
-    "earn_eth_rewards": "ETHの報酬を獲得",
+    "earn_eth_rewards": "ETHの報酬を獲得。",
     "earn_eth_rewards_description": "ステーキングすればすぐに収益が得られます。報酬は自動的に複利で支払われます。",
-    "flexible_unstaking": "柔軟にステーキングを解除可能",
+    "flexible_unstaking": "柔軟にステーキングを解除可能。",
     "flexible_unstaking_description": "いつでもステーキングを解除できます。処理は通常3日以内で完了しますが、最大11日かかる場合もあります。",
     "disclaimer": "ステーキングは報酬を保証するものではなく、資金の喪失を含むリスクを伴います。",
     "learn_more": "詳細",
@@ -3476,6 +3628,8 @@
     "unstake_input_banner_description": "ステーキングが解除されたETHは平均的に3日未満で請求可能になりますが、最長11日かかる場合もあります。",
     "max": "最大",
     "staking_from": "ステーキング元",
+    "advanced_details": "高度な詳細",
+    "ethereum_mainnet": "イーサリアムメインネット",
     "interacting_with": "相手",
     "12_hours": "12時間",
     "terms_of_service": "サービス規約",
@@ -3487,15 +3641,40 @@
     "you_receive": "受取額",
     "up_to_n": "最大{{count}}",
     "unstaking_to": "ステーキングの解除先:",
+    "claiming_to": "入金先:",
     "max_modal": {
       "title": "最大額",
-      "description": "最大額は、保有するETHの合計額から、ステーキングに必要なガス代を差し引いた額です。今後のトランザクションのために、ウォレットに予備のETHを残しておくことをお勧めします。"
+      "eth": {
+        "description": "最大額は、保有するETHの合計額から、ステーキングに必要なガス代を差し引いた額です。今後のトランザクションのために、ウォレットに予備のETHを残しておくことをお勧めします。"
+      }
     },
     "use_max": "最大額を使用",
     "estimated_unstaking_time": "1～11日",
     "proceed_anyway": "承知の上で続ける",
     "gas_cost_impact": "ガス代の影響",
-    "gas_cost_impact_warning": "警告：トランザクションのガス代が入金額の30%を超えます。"
+    "select_a_token": "トークンを選択",
+    "you_could_earn": "トークンに対して年間",
+    "per_year_on_your_tokens": "獲得できる可能性があります",
+    "deposit": "デポジット",
+    "gas_cost_impact_warning": "警告：トランザクションのガス代がデポジットの{{percentOverDeposit}}%を超えます。",
+    "view_earnings_history": "収益履歴を表示",
+    "earnings_history_title": "{{ticker}}の収益",
+    "earnings_history_list_title": "払出履歴",
+    "apr": "APR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7日",
+        "1M": "1か月",
+        "3M": "3か月",
+        "6M": "6か月"
+      }
+    },
+    "today": "今日",
+    "one_week_average": "1週間の平均",
+    "one_month_average": "1か月の平均",
+    "three_month_average": "3か月の平均",
+    "six_month_average": "6か月の平均",
+    "one_year_average": "1年の平均"
   },
   "default_settings": {
     "title": "ウォレットの準備ができました",
@@ -3577,26 +3756,63 @@
     }
   },
   "confirm": {
-    "reject": "拒否",
+    "cancel": "キャンセル",
     "confirm": "確定",
+    "staking_footer": {
+      "part1": "続行することで、",
+      "terms_of_use": "利用規約",
+      "part2": "および",
+      "risk_disclosure": "リスクに関する開示事項",
+      "part3": "に同意したものとみなされます。"
+    },
+    "label": {
+      "account": "アカウント",
+      "balance": "残高",
+      "interacting_with": "相手",
+      "network": "ネットワーク",
+      "primary_type": "主要な型",
+      "request_from": "要求元",
+      "signing_in_with": "サインイン方法",
+      "spender": "使用者"
+    },
     "title": {
-      "signature": "署名要求"
+      "signature": "署名要求",
+      "permit": "使用上限要求",
+      "permit_revoke": "アクセス許可を取り消す",
+      "permit_NFTs": "出金リクエスト",
+      "signature_siwe": "サインイン要求"
     },
     "sub_title": {
-      "signature": "確定する前にリクエストの詳細を確認してください。"
+      "permit": "このサイトがトークンの使用許可を求めています。",
+      "permit_NFTs": "このサイトがNFTの引き出し許可を求めています。",
+      "signature": "確定する前にリクエストの詳細を確認してください。",
+      "signature_siwe": "このアカウントの所有者であることを証明するために、サイトがサインインを求めています。"
     },
     "request_from": "要求元",
+    "staking_from": "ステーキング元",
+    "signing_in_with": "サインイン方法",
     "message": "メッセージ",
-    "primary_type": "プライマリタイプ",
     "personal_sign_tooltip": "このサイトが署名を求めています",
     "details": "詳細",
-    "account": "アカウント",
-    "balance": "残高",
-    "network": "ネットワーク",
+    "qr_get_sign": "署名を取得",
+    "qr_scan_text": "ハードウェアウォレットでスキャン",
+    "sign_with_ledger": "Ledgerで署名",
+    "siwe_message": {
+      "url": "URL",
+      "network": "ネットワーク",
+      "account": "アカウント",
+      "version": "バージョン",
+      "chain_id": "チェーンID",
+      "nonce": "ナンス",
+      "issued": "発行されました",
+      "requestId": "要求ID",
+      "resources": "リソース"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "NFTは、入札が受け入れられるとウォレットに反映されます。",
       "decoded_tooltip_list_nft": "誰かがNFTを購入した場合にのみ変化します。",
       "info_permit": "アカウントからこの量のトークンを使用する、使用者権限を付与しようとしています。",
+      "info_revoke": "アカウントのトークンの使用許可を取り消そうとしています。",
       "label_change_type_bidding": "入札する",
       "label_change_type_listing": "出品する",
       "label_change_type_nft_listing": "出品価格",
@@ -3611,7 +3827,7 @@
       "unavailable": "利用不可"
     },
     "unlimited": "無制限",
-    "none": "None"
+    "none": "なし"
   },
   "change_in_simulation_modal": {
     "title": "結果が変更になりました",
@@ -3624,5 +3840,34 @@
     "input_title": "アカウント名",
     "add_account_button": "アカウントを追加",
     "name_taken_message": "このアカウント名はすでに存在します"
+  },
+  "smart_transactions_migration": {
+    "title": "トランザクションがよりスマートになりました",
+    "link": "より高い成功率",
+    "description": "そしてMEV保護がデフォルトになりました。"
+  },
+  "bridge": {
+    "continue": "続行",
+    "terms_and_conditions": "利用規約",
+    "select_token": "トークンを選択",
+    "select_network": "ネットワークを選択",
+    "all_networks": "すべてのネットワーク",
+    "num_networks": "{{numNetworks}}個のネットワーク",
+    "one_network": "1つのネットワーク",
+    "select_all_networks": "すべて選択",
+    "deselect_all_networks": "すべて選択解除",
+    "see_all": "すべて表示",
+    "apply": "適用",
+    "slippage": "スリッページ",
+    "slippage_info": "発注から確定までの間に価格が変わることを「スリッページ」といいます。スリッページがここで設定された許容範囲を超えた場合、スワップは自動的にキャンセルされます。",
+    "network_fee": "ネットワーク手数料",
+    "estimated_time": "予想時間",
+    "quote": "クォート",
+    "quote_details": "クォートの詳細",
+    "price_impact": "プライスインパクト",
+    "time": "時間",
+    "quote_info_content": "このクォートは、当社の検索で最も有利な条件を提供します。クォートはスワップレートに基づくもので、ブリッジ手数料と0.875%のMetaMask手数料が含まれていますが、ガス代は別になります。ガス代はネットワークのアクティビティとトランザクションの複雑さによって異なります。",
+    "quote_info_title": "このクォートをお勧めする理由",
+    "see_other_quotes": "他のクォートを表示"
   }
 }

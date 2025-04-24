@@ -18,6 +18,7 @@ const getBoxStyles = (props: {
   textAlign?: TextAlign;
   gap?: number;
   color?: TextColor;
+  backgroundColor?: string;
 }) => {
   const {
     display,
@@ -27,6 +28,7 @@ const getBoxStyles = (props: {
     textAlign,
     color,
     gap,
+    backgroundColor,
   } = props;
   return StyleSheet.create({
     dynamicStyles: {
@@ -37,12 +39,13 @@ const getBoxStyles = (props: {
       ...(textAlign && { textAlign }),
       ...(color && { color }),
       ...(gap && { gap }),
+      ...(backgroundColor && { backgroundColor }),
     },
   });
 };
 
 export interface BoxProps extends ViewProps {
-  children: string | JSXElement | React.ReactNode;
+  children?: string | JSXElement | React.ReactNode;
   display?: Display;
   flexDirection?: FlexDirection;
   justifyContent?: JustifyContent;
@@ -50,6 +53,7 @@ export interface BoxProps extends ViewProps {
   textAlign?: TextAlign;
   gap?: number;
   color?: TextColor;
+  backgroundColor?: string;
   ref?: React.Ref<View>;
   testID?: string;
 }
@@ -57,9 +61,9 @@ export interface BoxProps extends ViewProps {
 export const Box: React.FC<BoxProps> = React.forwardRef(
   ({ children, ...props }, ref) => (
     <View
+      {...props}
       ref={ref}
       style={[getBoxStyles(props).dynamicStyles, props.style]}
-      {...props}
       testID={props.testID}
     >
       {children}

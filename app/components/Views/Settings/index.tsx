@@ -19,6 +19,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -42,6 +43,8 @@ const Settings = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
+
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -150,10 +153,13 @@ const Settings = () => {
   };
 
   const showHelp = () => {
-    goToBrowserUrl(
-      'https://support.metamask.io',
-      strings('app_settings.contact_support'),
-    );
+    let supportUrl = 'https://support.metamask.io';
+
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
+    ///: END:ONLY_INCLUDE_IF
+
+    goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
     );
@@ -189,6 +195,10 @@ const Settings = () => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(flask)
   aboutMetaMaskTitle = strings('app_settings.info_title_flask');
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(beta)
+  aboutMetaMaskTitle = strings('app_settings.info_title_beta');
   ///: END:ONLY_INCLUDE_IF
 
   return (
@@ -231,12 +241,14 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.PERMISSIONS}
         />
       )}
-      <SettingsDrawer
-        description={strings('app_settings.contacts_desc')}
-        onPress={onPressContacts}
-        title={strings('app_settings.contacts_title')}
-        testID={SettingsViewSelectorsIDs.CONTACTS}
-      />
+      {isEvmSelected && (
+        <SettingsDrawer
+          description={strings('app_settings.contacts_desc')}
+          onPress={onPressContacts}
+          title={strings('app_settings.contacts_title')}
+          testID={SettingsViewSelectorsIDs.CONTACTS}
+        />
+      )}
       <SettingsDrawer
         title={strings('app_settings.networks_title')}
         description={strings('app_settings.networks_desc')}

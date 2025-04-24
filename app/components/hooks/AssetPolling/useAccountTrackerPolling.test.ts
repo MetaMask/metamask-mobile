@@ -4,6 +4,7 @@ import useAccountTrackerPolling from './useAccountTrackerPolling';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 import { RootState } from '../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -22,6 +23,12 @@ describe('useAccountTrackerPolling', () => {
   const state = {
     engine: {
       backgroundState: {
+        MultichainNetworkController: {
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+          multichainNetworkConfigurationsByChainId: {},
+        },
         NetworkController: {
           selectedNetworkClientId: 'selectedNetworkClientId',
           networkConfigurationsByChainId: {
@@ -142,6 +149,12 @@ describe('useAccountTrackerPolling', () => {
         state: {
           engine: {
             backgroundState: {
+              MultichainNetworkController: {
+                isEvmSelected: true,
+                selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+                multichainNetworkConfigurationsByChainId: {},
+              },
               NetworkController: {
                 selectedNetworkClientId: 'otherNetworkClientId',
                 networkConfigurationsByChainId: {

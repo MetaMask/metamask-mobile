@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useCallback, useContext } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+  useMemo,
+} from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -14,7 +20,6 @@ import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import {
   isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
@@ -31,7 +36,6 @@ import NotificationsService from '../../../util/notifications/services/Notificat
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
@@ -43,12 +47,13 @@ import {
 } from '../../../util/networks';
 import {
   selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectNetworkName,
@@ -73,11 +78,16 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
+  getFontFamily,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
@@ -103,11 +113,20 @@ import {
 } from '../../../selectors/preferencesController';
 import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
-import { Token } from '@metamask/assets-controllers';
+import { Nft, Token } from '@metamask/assets-controllers';
+import { Carousel } from '../../UI/Carousel';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectMultichainIsEvm } from '../../../selectors/multichain';
-import NonEvmTokens from '../../UI/NonEvmTokens';
+import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
 ///: END:ONLY_INCLUDE_IF
+import {
+  selectNativeEvmAsset,
+  selectStakedEvmAsset,
+} from '../../../selectors/multichain';
+import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import Logger from '../../../util/Logger';
+import { cloneDeep } from 'lodash';
+import { prepareNftDetectionEvents } from '../../../util/assets';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -133,6 +152,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       fontWeight: '500',
     },
     loader: {
@@ -145,6 +165,9 @@ const createStyles = ({ colors, typography }: Theme) =>
       widht: '80%',
       marginTop: 20,
       paddingHorizontal: 16,
+    },
+    carouselContainer: {
+      marginTop: 12,
     },
   });
 
@@ -178,6 +201,9 @@ const Wallet = ({
   const { colors } = theme;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const evmNetworkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   /**
    * Object containing the balance of the current selected account
@@ -208,7 +234,7 @@ const Wallet = ({
   /**
    * Current provider ticker
    */
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
   /**
    * Current onboarding wizard step
    */
@@ -219,7 +245,12 @@ const Wallet = ({
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
-  const prevChainId = usePrevious(providerConfig.chainId);
+  const chainId = useSelector(selectChainId);
+
+  const prevChainId = usePrevious(chainId);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
 
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
@@ -244,10 +275,6 @@ const Wallet = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const isEvm = useSelector(selectMultichainIsEvm);
-  ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
     if (
@@ -320,8 +347,8 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const chainId = useSelector(selectChainId);
   const name = useSelector(selectNetworkName);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
@@ -332,6 +359,8 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
+  const nativeEvmAsset = useSelector(selectNativeEvmAsset);
+  const stakedEvmAsset = useSelector(selectStakedEvmAsset);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -340,8 +369,9 @@ const Wallet = ({
     isPortfolioViewEnabled() && isAllNetworks && isPopularNetworks
       ? allDetectedTokens
       : detectedTokens;
-  const allNetworks = useSelector(selectNetworkConfigurations);
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
+
+  const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
@@ -363,14 +393,15 @@ const Wallet = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
         .addProperties({
-          chain_id: getDecimalChainId(providerConfig.chainId),
+          chain_id: getDecimalChainId(chainId),
         })
         .build(),
     );
-  }, [navigate, providerConfig.chainId, trackEvent, createEventBuilder]);
+  }, [navigate, chainId, trackEvent, createEventBuilder]);
 
   /**
    * Handle network filter called when app is mounted and tokenNetworkFilter is empty
+   * TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
    */
   const handleNetworkFilter = useCallback(() => {
     // TODO: Come back possibly just add the chain id of the eth
@@ -401,25 +432,25 @@ const Wallet = ({
    * Check to see if we need to show What's New modal
    */
   useEffect(() => {
+    // TODO: [SOLANA] Revisit this before shipping, we need to check if this logic supports non evm networks
     const networkOnboarded = getIsNetworkOnboarded(
-      providerConfig.chainId,
+      chainId,
       networkOnboardingState,
     );
 
-    if (
-      wizardStep > 0 ||
-      (!networkOnboarded && prevChainId !== providerConfig.chainId)
-    ) {
+    if (wizardStep > 0 || (!networkOnboarded && prevChainId !== chainId)) {
       // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
     }
   }, [
     wizardStep,
     navigation,
-    providerConfig.chainId,
+    chainId,
+    // TODO: Is this providerConfig.rpcUrl needed in this useEffect dependencies?
     providerConfig.rpcUrl,
     networkOnboardingState,
     prevChainId,
+    // TODO: Is this accountBalanceByChainId?.balance needed in this useEffect dependencies?
     accountBalanceByChainId?.balance,
   ]);
 
@@ -428,7 +459,7 @@ const Wallet = ({
       requestAnimationFrame(async () => {
         const { AccountTrackerController } = Engine.context;
 
-        Object.values(networkConfigurations).forEach(
+        Object.values(evmNetworkConfigurations).forEach(
           ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
             AccountTrackerController.refresh(
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
@@ -438,7 +469,9 @@ const Wallet = ({
       });
     },
     /* eslint-disable-next-line */
-    [navigation, providerConfig.chainId],
+    // TODO: The need of usage of this chainId as a dependency is not clear, we shouldn't need to refresh the native balances when the chainId changes. Since the pooling is always working in the back. Check with assets team.
+    // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
+    [navigation, chainId, evmNetworkConfigurations],
   );
 
   useEffect(() => {
@@ -460,7 +493,6 @@ const Wallet = ({
         readNotificationCount,
       ),
     );
-    /* eslint-disable-next-line */
   }, [
     selectedInternalAccount,
     accountName,
@@ -476,6 +508,26 @@ const Wallet = ({
     readNotificationCount,
   ]);
 
+  const getTokenAddedAnalyticsParams = useCallback(
+    ({ address, symbol }: { address: string; symbol: string }) => {
+      try {
+        return {
+          token_address: address,
+          token_symbol: symbol,
+          chain_id: getDecimalChainId(chainId),
+          source: 'Add token dropdown',
+        };
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'SearchTokenAutocomplete.getTokenAddedAnalyticsParams',
+        );
+        return undefined;
+      }
+    },
+    [chainId],
+  );
+
   useEffect(() => {
     const importAllDetectedTokens = async () => {
       // If autodetect tokens toggle is OFF, return
@@ -483,12 +535,16 @@ const Wallet = ({
         return;
       }
       const { TokensController } = Engine.context;
-      if (currentDetectedTokens.length > 0) {
+      if (
+        Array.isArray(currentDetectedTokens) &&
+        currentDetectedTokens.length > 0
+      ) {
         if (isPortfolioViewEnabled()) {
           // Group tokens by their `chainId` using a plain object
           const tokensByChainId: Record<Hex, Token[]> = {};
 
           for (const token of currentDetectedTokens) {
+            // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
             const tokenChainId: Hex =
               (token as TokenI & { chainId: Hex }).chainId ?? chainId;
 
@@ -502,7 +558,7 @@ const Wallet = ({
           // Process grouped tokens in parallel
           const importPromises = Object.entries(tokensByChainId).map(
             async ([networkId, allTokens]) => {
-              const chainConfig = allNetworks[networkId as Hex];
+              const chainConfig = evmNetworkConfigurations[networkId as Hex];
               const { defaultRpcEndpointIndex } = chainConfig;
               const { networkClientId: networkInstanceId } =
                 chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
@@ -519,17 +575,26 @@ const Wallet = ({
           );
         }
 
-        currentDetectedTokens.forEach(({ address, symbol }) =>
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-              .addProperties({
-                token_address: address,
-                token_symbol: symbol,
-                chain_id: getDecimalChainId(chainId),
-                source: 'detected',
-              })
-              .build(),
-          ),
+        currentDetectedTokens.forEach(
+          ({ address, symbol }: { address: string; symbol: string }) => {
+            const analyticsParams = getTokenAddedAnalyticsParams({
+              address,
+              symbol,
+            });
+
+            if (analyticsParams) {
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+                  .addProperties({
+                    token_address: address,
+                    token_symbol: symbol,
+                    chain_id: getDecimalChainId(chainId),
+                    source: 'detected',
+                  })
+                  .build(),
+              );
+            }
+          },
         );
       }
     };
@@ -537,7 +602,7 @@ const Wallet = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isTokenDetectionEnabled,
-    allNetworks,
+    evmNetworkConfigurations,
     chainId,
     currentDetectedTokens,
     selectedNetworkClientId,
@@ -562,29 +627,71 @@ const Wallet = ({
     [styles, colors],
   );
 
+  const getNftDetectionAnalyticsParams = useCallback((nft: Nft) => {
+    try {
+      return {
+        chain_id: getDecimalChainId(nft.chainId),
+        source: 'detected' as const,
+      };
+    } catch (error) {
+      Logger.error(error as Error, 'Wallet.getNftDetectionAnalyticsParams');
+      return undefined;
+    }
+  }, []);
+
   const onChangeTab = useCallback(
     async (obj) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {
+        // Return early if no address selected
+        if (!selectedAddress) return;
+
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
         );
         // Call detect nfts
-        const { NftDetectionController } = Engine.context;
+        const { NftDetectionController, NftController } = Engine.context;
+        const previousNfts = cloneDeep(
+          NftController.state.allNfts[selectedAddress.toLowerCase()],
+        );
+
         try {
           showNftFetchingLoadingIndicator();
-          await NftDetectionController.detectNfts();
+          await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
         } finally {
           hideNftFetchingLoadingIndicator();
         }
+
+        const newNfts = cloneDeep(
+          NftController.state.allNfts[selectedAddress.toLowerCase()],
+        );
+
+        const eventParams = prepareNftDetectionEvents(
+          previousNfts,
+          newNfts,
+          getNftDetectionAnalyticsParams,
+        );
+        eventParams.forEach((params) => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+              .addProperties({
+                chain_id: params.chain_id,
+                source: params.source,
+              })
+              .build(),
+          );
+        });
       }
     },
     [
       trackEvent,
-      hideNftFetchingLoadingIndicator,
-      showNftFetchingLoadingIndicator,
       createEventBuilder,
+      selectedAddress,
+      showNftFetchingLoadingIndicator,
+      chainIdsToDetectNftsFor,
+      hideNftFetchingLoadingIndicator,
+      getNftDetectionAnalyticsParams,
     ],
   );
 
@@ -594,104 +701,44 @@ const Wallet = ({
     });
   }, [navigation]);
 
-  function renderTokensContent(assets: Token[]) {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (!isEvm) {
-      return (
-        <ScrollableTabView
-          renderTabBar={renderTabBar}
-          onChangeTab={onChangeTab}
-        >
-          <NonEvmTokens
-            tabLabel={strings('wallet.tokens')}
-            key={'tokens-tab'}
-          />
-        </ScrollableTabView>
-      );
-    }
-    ///: END:ONLY_INCLUDE_IF
+  const tokensTabProps = useMemo(
+    () => ({
+      key: 'tokens-tab',
+      tabLabel: strings('wallet.tokens'),
+      navigation,
+    }),
+    [navigation],
+  );
 
+  const collectibleContractsTabProps = useMemo(
+    () => ({
+      key: 'nfts-tab',
+      tabLabel: strings('wallet.collectibles'),
+      navigation,
+    }),
+    [navigation],
+  );
+
+  function renderTokensContent() {
     return (
-      <ScrollableTabView
-        renderTabBar={renderTabBar}
-        // eslint-disable-next-line react/jsx-no-bind
-        onChangeTab={onChangeTab}
-      >
-        <Tokens
-          tabLabel={strings('wallet.tokens')}
-          key={'tokens-tab'}
-          navigation={navigation}
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error - TODO: Consolidate into the correct type.
-          tokens={assets}
-        />
-        <CollectibleContracts
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error - TODO: Consolidate into the correct type.
-          tabLabel={strings('wallet.collectibles')}
-          key={'nfts-tab'}
-          navigation={navigation}
-        />
+      <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
+        <Tokens {...tokensTabProps} />
+        {isEvmSelected && (
+          <CollectibleContracts {...collectibleContractsTabProps} />
+        )}
       </ScrollableTabView>
     );
   }
 
   const renderContent = useCallback(() => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let balance: any = 0;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let stakedBalance: any = 0;
-
-    const assets = isPortfolioViewEnabled()
-      ? [...(tokensByChainIdAndAddress || [])]
-      : [...(tokens || [])];
-
-    if (accountBalanceByChainId) {
-      balance = renderFromWei(accountBalanceByChainId.balance);
-      const nativeAsset = {
-        // TODO: Add name property to Token interface in controllers.
-        name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
-        symbol: getTicker(ticker),
-        isETH: true,
-        balance,
-        balanceFiat: weiToFiat(
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          hexToBN(accountBalanceByChainId.balance) as any,
-          conversionRate,
-          currentCurrency,
-        ),
-        logo: '../images/eth-logo-new.png',
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
-      assets.push(nativeAsset);
-
-      // TODO: Need to handle staked asset in multi chain
-      if (
-        accountBalanceByChainId.stakedBalance &&
-        !hexToBN(accountBalanceByChainId.stakedBalance).isZero()
-      ) {
-        stakedBalance = renderFromWei(accountBalanceByChainId.stakedBalance);
-        const stakedAsset = {
-          ...nativeAsset,
-          nativeAsset,
-          name: 'Staked Ethereum',
-          isStaked: true,
-          balance: stakedBalance,
-          balanceFiat: weiToFiat(
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            hexToBN(accountBalanceByChainId.stakedBalance) as any,
-            conversionRate,
-            currentCurrency,
-          ),
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any;
-        assets.push(stakedAsset);
-      }
+    const assets = tokensByChainIdAndAddress
+      ? [...tokensByChainIdAndAddress]
+      : [];
+    if (nativeEvmAsset) {
+      assets.push(nativeEvmAsset);
+    }
+    if (stakedEvmAsset) {
+      assets.push(stakedEvmAsset);
     }
 
     return (
@@ -714,7 +761,13 @@ const Wallet = ({
         ) : null}
         <>
           <PortfolioBalance />
-          {renderTokensContent(assets)}
+          <Carousel style={styles.carouselContainer} />
+          {renderTokensContent()}
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+            <SolanaNewFeatureContent />
+            ///: END:ONLY_INCLUDE_IF
+          }
         </>
       </View>
     );
@@ -722,19 +775,18 @@ const Wallet = ({
   }, [
     tokens,
     accountBalanceByChainId,
-    styles.wrapper,
-    styles.banner,
+    styles,
+    colors,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
-    renderTabBar,
     onChangeTab,
     navigation,
     ticker,
     conversionRate,
     currentCurrency,
     contractBalances,
+    isEvmSelected,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    isEvm,
     tokensByChainIdAndAddress,
     ///: END:ONLY_INCLUDE_IF
   ]);

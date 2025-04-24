@@ -34,11 +34,11 @@ import {
   selectAllDetectedTokensFlat,
 } from '../../../selectors/tokensController';
 import {
-  selectChainId,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkClientId,
-  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import BottomSheet, {
   BottomSheetRef,
@@ -97,8 +97,8 @@ const DetectedTokens = () => {
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
   ) as TokenI[];
-  const allNetworks = useSelector(selectNetworkConfigurations);
-  const chainId = useSelector(selectChainId);
+  const allNetworks = useSelector(selectEvmNetworkConfigurationsByChainId);
+  const chainId = useSelector(selectEvmChainId);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
@@ -120,6 +120,26 @@ const DetectedTokens = () => {
         (token) => `${token.symbol} - ${token.address}`,
       ),
     [currentDetectedTokens],
+  );
+
+  const getTokenAddedAnalyticsParams = useCallback(
+    ({ address, symbol }: { address: string; symbol: string }) => {
+      try {
+        return {
+          token_address: address,
+          token_symbol: symbol,
+          chain_id: getDecimalChainId(chainId),
+          source: 'Add token dropdown',
+        };
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'DetectedTokens.getTokenAddedAnalyticsParams',
+        );
+        return undefined;
+      }
+    },
+    [chainId],
   );
 
   const dismissModalAndTriggerAction = useCallback(
@@ -230,20 +250,29 @@ const DetectedTokens = () => {
                 selectedNetworkClientId,
               );
             }
-            InteractionManager.runAfterInteractions(() =>
-              tokensToImport.forEach(({ address, symbol }) =>
-                trackEvent(
-                  createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-                    .addProperties({
-                      token_address: address,
-                      token_symbol: symbol,
-                      chain_id: getDecimalChainId(chainId),
-                      source: 'detected',
-                    })
-                    .build(),
-                ),
-              ),
-            );
+            InteractionManager.runAfterInteractions(() => {
+              tokensToImport.forEach(
+                ({ address, symbol }: { address: string; symbol: string }) => {
+                  const analyticsParams = getTokenAddedAnalyticsParams({
+                    address,
+                    symbol,
+                  });
+
+                  if (analyticsParams) {
+                    trackEvent(
+                      createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+                        .addProperties({
+                          token_address: address,
+                          token_symbol: symbol,
+                          chain_id: getDecimalChainId(chainId),
+                          source: 'detected',
+                        })
+                        .build(),
+                    );
+                  }
+                },
+              );
+            });
           }
           NotificationManager.showSimpleNotification({
             status: `simple_notification`,
@@ -264,6 +293,7 @@ const DetectedTokens = () => {
       ignoredTokens,
       selectedNetworkClientId,
       allNetworks,
+      getTokenAddedAnalyticsParams,
     ],
   );
 

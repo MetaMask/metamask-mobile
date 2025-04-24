@@ -7,7 +7,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
-        "accounts": {},
         "accountsByChainId": {
           "0x1": {},
         },
@@ -21,6 +20,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AddressBookController": {
         "addressBook": {},
       },
+      "AppMetadataController": {
+        "currentAppVersion": "",
+        "currentMigrationVersion": 0,
+        "previousAppVersion": "",
+        "previousMigrationVersion": 0,
+      },
       "ApprovalController": {
         "approvalFlows": [],
         "pendingApprovalCount": 0,
@@ -28,6 +33,39 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "AuthenticationController": {
         "isSignedIn": false,
+      },
+      "BridgeController": {
+        "assetExchangeRates": {},
+        "bridgeFeatureFlags": {
+          "extensionConfig": {
+            "chains": {},
+            "maxRefreshCount": 5,
+            "refreshRate": 30000,
+            "support": false,
+          },
+          "mobileConfig": {
+            "chains": {},
+            "maxRefreshCount": 5,
+            "refreshRate": 30000,
+            "support": false,
+          },
+        },
+        "quoteFetchError": null,
+        "quoteRequest": {
+          "srcTokenAddress": "0x0000000000000000000000000000000000000000",
+        },
+        "quotes": [],
+        "quotesInitialLoadTime": null,
+        "quotesLastFetched": null,
+        "quotesLoadingStatus": null,
+        "quotesRefreshCount": 0,
+      },
+      "BridgeStatusController": {
+        "txHistory": {},
+      },
+      "CronjobController": {
+        "events": {},
+        "jobs": {},
       },
       "CurrencyRateController": {
         "currencyRates": {
@@ -38,6 +76,49 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           },
         },
         "currentCurrency": "usd",
+      },
+      "EarnController": {
+        "lastUpdated": 0,
+        "pooled_staking": {
+          "exchangeRate": "1",
+          "isEligible": false,
+          "pooledStakes": {
+            "account": "",
+            "assets": "0",
+            "exitRequests": [],
+            "lifetimeRewards": "0",
+          },
+          "vaultApyAverages": {
+            "oneDay": "0",
+            "oneMonth": "0",
+            "oneWeek": "0",
+            "oneYear": "0",
+            "sixMonths": "0",
+            "threeMonths": "0",
+          },
+          "vaultDailyApys": [],
+          "vaultMetadata": {
+            "apy": "0",
+            "capacity": "0",
+            "feePercent": 0,
+            "totalAssets": "0",
+            "vaultAddress": "0x0000000000000000000000000000000000000000",
+          },
+        },
+        "stablecoin_lending": {
+          "vaults": [
+            {
+              "chainId": 0,
+              "currentAPY": "0",
+              "liquidity": "0",
+              "name": "",
+              "supply": "0",
+              "symbol": "",
+              "tokenAddress": "",
+              "vaultAddress": "",
+            },
+          ],
+        },
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
@@ -58,6 +139,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "MultichainAssetsController": {
         "accountsAssets": {},
         "assetsMetadata": {},
+      },
+      "MultichainAssetsRatesController": {
+        "conversionRates": {},
+        "historicalPrices": {},
       },
       "MultichainBalancesController": {
         "balances": {},
@@ -80,6 +165,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
       },
+      "MultichainTransactionsController": {
+        "nonEvmTransactions": {},
+      },
       "NetworkController": {
         "networkConfigurationsByChainId": {
           "0x1": {
@@ -90,9 +178,28 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "nativeCurrency": "ETH",
             "rpcEndpoints": [
               {
+                "failoverUrls": [],
                 "networkClientId": "mainnet",
                 "type": "infura",
                 "url": "https://mainnet.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+          "0x18c6": {
+            "blockExplorerUrls": [
+              "https://megaexplorer.xyz",
+            ],
+            "chainId": "0x18c6",
+            "defaultBlockExplorerUrlIndex": 0,
+            "defaultRpcEndpointIndex": 0,
+            "name": "Mega Testnet",
+            "nativeCurrency": "MegaETH",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "megaeth-testnet",
+                "type": "custom",
+                "url": "https://carrot.megaeth.com/rpc",
               },
             ],
           },
@@ -104,6 +211,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "nativeCurrency": "SepoliaETH",
             "rpcEndpoints": [
               {
+                "failoverUrls": [],
                 "networkClientId": "sepolia",
                 "type": "infura",
                 "url": "https://sepolia.infura.io/v3/{infuraProjectId}",
@@ -118,6 +226,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "nativeCurrency": "LineaETH",
             "rpcEndpoints": [
               {
+                "failoverUrls": [],
                 "networkClientId": "linea-sepolia",
                 "type": "infura",
                 "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}",
@@ -132,6 +241,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "nativeCurrency": "ETH",
             "rpcEndpoints": [
               {
+                "failoverUrls": [],
                 "networkClientId": "linea-mainnet",
                 "type": "infura",
                 "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}",
@@ -161,6 +271,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "NotificationServicesPushController": {
         "fcmToken": "",
+        "isPushEnabled": true,
+        "isUpdatingFCMToken": false,
       },
       "PPOMController": {
         "storageMetadata": [],
@@ -340,7 +452,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "topAggId": null,
         "topAggSavings": null,
         "topAssets": null,
-        "topAssetsLastFetched": 0,
         "usedCustomGas": null,
         "usedGasEstimate": null,
       },
@@ -349,7 +460,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "TokenListController": {
         "preventPollingOnNetworkRestart": false,
-        "tokenList": {},
         "tokensChainsCache": {},
       },
       "TokenRatesController": {
@@ -359,6 +469,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastSearchTimestamp": null,
         "recentSearches": [],
       },
+      "TokenSearchDiscoveryDataController": {
+        "swapsTokenAddressesByChainId": {},
+        "tokenDisplayData": [],
+      },
       "TransactionController": {
         "lastFetchedBlockNumbers": {},
         "methodData": {},
@@ -367,6 +481,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "UserStorageController": {
         "hasAccountSyncingSyncedAtLeastOnce": false,
+        "isAccountSyncingEnabled": true,
+        "isAccountSyncingInProgress": false,
         "isAccountSyncingReadyToBeDispatched": false,
         "isProfileSyncingEnabled": true,
         "isProfileSyncingUpdateLoading": false,

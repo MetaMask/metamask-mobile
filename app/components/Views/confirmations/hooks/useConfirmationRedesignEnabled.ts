@@ -1,25 +1,27 @@
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { ApprovalType } from '@metamask/controller-utils';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { ApprovalType } from '@metamask/controller-utils';
-
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { ConfirmationRedesignRemoteFlags, selectConfirmationRedesignFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { isHardwareAccount } from '../../../../util/address';
-import {
-  type ConfirmationRedesignRemoteFlags,
-  selectConfirmationRedesignFlags,
-} from '../../../../selectors/featureFlagController';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { isStakingConfirmation } from '../utils/confirm';
 import useApprovalRequest from './useApprovalRequest';
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
 const REDESIGNED_SIGNATURE_TYPES = [
   ApprovalType.EthSignTypedData,
   ApprovalType.PersonalSign,
 ];
 
-const REDESIGNED_TRANSACTION_TYPES = [TransactionType.stakingDeposit];
+export const REDESIGNED_TRANSACTION_TYPES = [
+  TransactionType.stakingDeposit,
+  TransactionType.stakingUnstake,
+  TransactionType.stakingClaim,
+  TransactionType.contractInteraction,
+];
 
 function isRedesignedSignature({
   approvalRequestType,
@@ -59,8 +61,12 @@ function isRedesignedTransaction({
     return false;
   }
 
-  if (transactionMetadata.type === TransactionType.stakingDeposit) {
-    return confirmationRedesignFlags?.staking_transactions;
+  if (isStakingConfirmation(transactionMetadata?.type as string)) {
+    return confirmationRedesignFlags?.staking_confirmations;
+  }
+
+  if (transactionMetadata?.type === TransactionType.contractInteraction) {
+    return confirmationRedesignFlags?.contract_interaction;
   }
 
   return false;

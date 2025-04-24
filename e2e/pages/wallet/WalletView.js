@@ -4,6 +4,7 @@ import {
 } from '../../selectors/wallet/WalletView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
+import TestHelpers from '../../helpers';
 
 class WalletView {
   get container() {
@@ -26,7 +27,6 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
   }
 
-
   get tokenDetectionLinkButton() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON,
@@ -35,6 +35,12 @@ class WalletView {
 
   get accountIcon() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
+  }
+
+  get notificationBellIcon() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON,
+    );
   }
 
   get navbarNetworkText() {
@@ -123,6 +129,54 @@ class WalletView {
     return Matchers.getElementByText('Cancel');
   }
 
+  get carouselContainer() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
+  }
+
+  get carouselFirstSlide() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE);
+  }
+
+  get carouselFirstSlideTitle() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE,
+    );
+  }
+
+  get carouselSecondSlide() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE,
+    );
+  }
+
+  get carouselSecondSlideTitle() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE,
+    );
+  }
+
+  get carouselProgressDots() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
+    );
+  }
+
+  get carouselFirstSlideCloseButton() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_CLOSE_BUTTON,
+    );
+  }
+
+  get carouselSecondSlideCloseButton() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_CLOSE_BUTTON,
+    );
+  }
+
+  get carouselSlide() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE);
+  }
+
   async tapCurrentMainWalletAccountActions() {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
@@ -139,8 +193,12 @@ class WalletView {
     await Gestures.waitAndTap(this.accountIcon);
   }
 
+  async tapBellIcon() {
+    await Gestures.waitAndTap(this.notificationBellIcon);
+  }
+
   async tapNetworksButtonOnNavBar() {
-    await Gestures.waitAndTap(this.navbarNetworkButton);
+    await TestHelpers.tap(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
   }
 
   async tapNftTab() {
@@ -162,7 +220,7 @@ class WalletView {
   get testCollectible() {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
+      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE,1);
   }
 
   async tapOnNftName() {
@@ -244,6 +302,14 @@ class WalletView {
 
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
+  }
+
+  async tapCarouselCloseButton() {
+    await Gestures.tap(this.carouselCloseButton);
+  }
+
+  async tapCarouselSlide() {
+    await Gestures.tap(this.carouselSlide);
   }
 }
 

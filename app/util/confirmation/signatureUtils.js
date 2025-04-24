@@ -6,7 +6,7 @@ import { WALLET_CONNECT_ORIGIN } from '../walletconnect';
 import AppConstants from '../../core/AppConstants';
 import { InteractionManager } from 'react-native';
 import { strings } from '../../../locales/i18n';
-import { selectChainId } from '../../selectors/networkController';
+import { selectEvmChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { getBlockaidMetricsParams } from '../blockaid';
 import Device from '../device';
@@ -42,7 +42,7 @@ export const getAnalyticsParams = (
   };
 
   try {
-    const chainId = selectChainId(store.getState());
+    const chainId = selectEvmChainId(store.getState());
     analyticsParams.chain_id = getDecimalChainId(chainId);
 
     if (pageInfo.url) {

@@ -64,6 +64,7 @@ const mockedNetworksDetails = [
       imageUrl:
         'https://static.cx.metamask.io/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png',
     },
+    isEvm: true,
   },
 ];
 
@@ -283,6 +284,7 @@ describe('NetworkSwitcher View', () => {
     render(NetworkSwitcher);
     const lineaNetworkText = screen.getByText('Linea Main Network');
     fireEvent.press(lineaNetworkText);
+
     expect(
       (Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock)
         .mock.calls,
@@ -298,6 +300,7 @@ describe('NetworkSwitcher View', () => {
     render(NetworkSwitcher);
     const polygonNetworkTest = screen.getByText('Polygon Mainnet');
     fireEvent.press(polygonNetworkTest);
+
     expect(
       (Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock)
         .mock.calls,

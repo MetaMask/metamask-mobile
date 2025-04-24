@@ -23,7 +23,6 @@ import imageIcons from '../../../../../images/image-icons';
 import Text from '../../../../Base/Text';
 import CustomNetwork from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import customNetworkStyles from '../../../../Views/Settings/NetworksSettings/NetworkSettings/styles';
-import { Network } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 
 import useFetchRampNetworks from '../../hooks/useFetchRampNetworks';
 import useRampNetwork from '../../hooks/useRampNetwork';
@@ -36,11 +35,14 @@ import { isNetworkRampSupported } from '../../utils';
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
-import { PopularList } from '../../../../../util/networks/customNetworks';
+import {
+  Network,
+  PopularList,
+} from '../../../../../util/networks/customNetworks';
 import { getDecimalChainId } from '../../../../../util/networks';
 
 function NetworkSwitcher() {
@@ -61,7 +63,9 @@ function NetworkSwitcher() {
   const [isCurrentNetworkRampSupported] = useRampNetwork();
   const { selectedChainId, isBuy, intent, setIntent } = useRampSDK();
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const [networkToBeAdded, setNetworkToBeAdded] = useState<Network>();
 
   const isLoading = isLoadingNetworks || isLoadingNetworksDetail;
@@ -97,7 +101,11 @@ function NetworkSwitcher() {
         ({ chainId }) => toHex(chainId) === rampSupportedNetworkChainIdAsHex,
       );
       if (networkDetail) {
-        activeNetworkDetails.push(networkDetail);
+        activeNetworkDetails.push({
+          ...networkDetail,
+          chainId: toHex(networkDetail.chainId),
+          failoverRpcUrls: [],
+        });
       }
     });
 
@@ -152,7 +160,7 @@ function NetworkSwitcher() {
   );
 
   const switchNetwork = useCallback(
-    (networkConfiguration) => {
+    async (networkConfiguration) => {
       const { MultichainNetworkController } = Engine.context;
       const config = Object.values(networkConfigurations).find(
         ({ chainId }) => chainId === networkConfiguration.chainId,
@@ -164,7 +172,8 @@ function NetworkSwitcher() {
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
 
-        MultichainNetworkController.setActiveNetwork(networkClientId);
+        await MultichainNetworkController.setActiveNetwork(networkClientId);
+
         navigateToGetStarted();
       }
     },
@@ -172,7 +181,7 @@ function NetworkSwitcher() {
   );
 
   const handleNetworkPress = useCallback(
-    (networkConfiguration) => {
+    async (networkConfiguration) => {
       setIntent((prevIntent) => ({
         ...prevIntent,
         chainId: networkConfiguration.chainId,
@@ -184,7 +193,7 @@ function NetworkSwitcher() {
       };
 
       if (networkConfiguration.isAdded) {
-        switchNetwork(networkConfigurationWithHexChainId);
+        await switchNetwork(networkConfigurationWithHexChainId);
       } else {
         setNetworkToBeAdded(networkConfigurationWithHexChainId);
       }
@@ -193,7 +202,7 @@ function NetworkSwitcher() {
   );
 
   const handleIntentChainId = useCallback(
-    (chainId: string) => {
+    async (chainId: string) => {
       if (!isNetworkRampSupported(chainId, supportedNetworks)) {
         return;
       }
@@ -225,7 +234,7 @@ function NetworkSwitcher() {
       );
 
       if (networkConfiguration) {
-        handleNetworkPress(networkConfiguration);
+        await handleNetworkPress(networkConfiguration);
       }
     },
     [

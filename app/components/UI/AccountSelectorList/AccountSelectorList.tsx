@@ -46,6 +46,7 @@ const AccountSelectorList = ({
   isLoading = false,
   selectedAddresses,
   isMultiSelect = false,
+  isSelectWithoutMenu = false,
   renderRightAccessory,
   isSelectionDisabled,
   isRemoveAccountEnabled = false,
@@ -115,16 +116,16 @@ const AccountSelectorList = ({
   const onLongPress = useCallback(
     ({
       address,
-      imported,
+      isAccountRemoveable,
       isSelected,
       index,
     }: {
       address: string;
-      imported: boolean;
+      isAccountRemoveable: boolean;
       isSelected: boolean;
       index: number;
     }) => {
-      if (!imported || !isRemoveAccountEnabled) return;
+      if (!isAccountRemoveable || !isRemoveAccountEnabled) return;
       Alert.alert(
         strings('accounts.remove_account_title'),
         strings('accounts.remove_account_message'),
@@ -146,7 +147,7 @@ const AccountSelectorList = ({
                       safeToChecksumAddress(accountAddress)
                     : isAccountSelected,
               ) as Account;
-              let nextActiveAddress = account?.address;
+              let nextActiveAddress = account.address;
               if (isSelected) {
                 const nextActiveIndex = index === 0 ? 1 : index - 1;
                 nextActiveAddress = accounts[nextActiveIndex]?.address;
@@ -204,9 +205,13 @@ const AccountSelectorList = ({
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
-      const cellVariant = isMultiSelect
-        ? CellVariant.MultiSelect
-        : CellVariant.SelectWithMenu;
+      let cellVariant = CellVariant.SelectWithMenu;
+      if (isMultiSelect) {
+        cellVariant = CellVariant.MultiSelect;
+      }
+      if (isSelectWithoutMenu) {
+        cellVariant = CellVariant.Select;
+      }
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
         const lowercasedSelectedAddresses = selectedAddresses.map(
@@ -230,7 +235,8 @@ const AccountSelectorList = ({
           onLongPress={() => {
             onLongPress({
               address,
-              imported: type === KeyringTypes.simple,
+              isAccountRemoveable:
+                type === KeyringTypes.simple || type === KeyringTypes.snap,
               isSelected: isSelectedAccount,
               index,
             });
@@ -269,6 +275,7 @@ const AccountSelectorList = ({
       isLoading,
       selectedAddresses,
       isMultiSelect,
+      isSelectWithoutMenu,
       renderRightAccessory,
       isSelectionDisabled,
       onLongPress,

@@ -1,36 +1,915 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NetworkInfo should render correctly 1`] = `
-<ContextProvider
-  value={
+exports[`NetworkInfo render correctly 1`] = `
+<View
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "backgroundColor": "#ffffff",
+      "borderRadius": 10,
     }
   }
 >
-  <Component
-    onClose={[Function]}
-    ticker=""
-    type=""
-  />
-</ContextProvider>
+  <View
+    style={
+      {
+        "padding": 20,
+      }
+    }
+    testID="network-education-modal"
+  >
+    <Text
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 16,
+          "fontWeight": "600",
+          "marginVertical": 10,
+          "textAlign": "center",
+        }
+      }
+    >
+      You have switched to
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "marginBottom": 30,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#b7bbc866",
+            "borderRadius": 40,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "padding": 10,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 8,
+              "height": 32,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "width": 32,
+            }
+          }
+        >
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
+            style={
+              {
+                "height": 32,
+                "width": 32,
+              }
+            }
+            testID="network-avatar-image"
+          />
+        </View>
+        <Text
+          style={
+            {
+              "color": "#121314",
+              "fontSize": 15,
+              "marginLeft": 8,
+              "paddingRight": 10,
+              "textAlign": "center",
+            }
+          }
+          testID="network-education-modal-network-name"
+        >
+          Ethereum Main Network
+        </Text>
+      </View>
+    </View>
+    <Text
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 14,
+          "fontWeight": "600",
+          "marginBottom": 15,
+          "textAlign": "center",
+        }
+      }
+    >
+      Things to keep in mind
+      :
+    </Text>
+    <View
+      style={
+        {
+          "marginBottom": 15,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "marginBottom": 10,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "flex-start",
+              "flexDirection": "row",
+              "marginBottom": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "marginRight": 10,
+              }
+            }
+          >
+            1
+            .
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "width": "94%",
+              }
+            }
+          >
+            <Text>
+              The native token on this network is ETH. It is the token used for gas fees. 
+            </Text>
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "marginBottom": 10,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "flex-start",
+              "flexDirection": "row",
+              "marginBottom": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "marginRight": 10,
+              }
+            }
+          >
+            2
+            .
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "width": "94%",
+              }
+            }
+          >
+            <Text>
+              If you attempt to send assets directly from one network to another, this may result in permanent asset loss. Make sure to use a bridge. 
+            </Text>
+            <Text
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                }
+              }
+            >
+              Learn more
+            </Text>
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "marginBottom": 10,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "flex-start",
+              "flexDirection": "row",
+              "marginBottom": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "marginRight": 10,
+              }
+            }
+          >
+            3
+            .
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "width": "94%",
+              }
+            }
+          >
+            <Text>
+              Token detection is enabled so tokens will automatically show up in your wallet. 
+            </Text>
+            <Text
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                }
+              }
+            >
+              You can also add tokens manually.
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </View>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        [
+          [
+            {
+              "borderRadius": 100,
+              "justifyContent": "center",
+              "padding": 15,
+            },
+            {
+              "backgroundColor": "#4459ff",
+              "minHeight": 50,
+            },
+            {
+              "borderColor": "#b7bbc866",
+              "marginVertical": 20,
+            },
+          ],
+          null,
+        ]
+      }
+      testID="network-education-modal-close-button"
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#007aff",
+              "fontSize": 17,
+              "fontWeight": "500",
+              "textAlign": "center",
+            },
+            null,
+            [
+              {
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 14,
+                "fontWeight": "600",
+                "textAlign": "center",
+              },
+              {
+                "color": "#ffffff",
+              },
+              undefined,
+            ],
+            null,
+          ]
+        }
+      >
+        Got it
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
+exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderRadius": 10,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "padding": 20,
+      }
+    }
+    testID="network-education-modal"
+  >
+    <Text
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 16,
+          "fontWeight": "600",
+          "marginVertical": 10,
+          "textAlign": "center",
+        }
+      }
+    >
+      You have switched to
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "marginBottom": 30,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#b7bbc866",
+            "borderRadius": 40,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "padding": 10,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#f3f5f9",
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "height": 32,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "width": 32,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            C
+          </Text>
+        </View>
+        <Text
+          style={
+            {
+              "color": "#121314",
+              "fontSize": 15,
+              "marginLeft": 8,
+              "paddingRight": 10,
+              "textAlign": "center",
+            }
+          }
+          testID="network-education-modal-network-name"
+        >
+          Custom mainnet
+        </Text>
+      </View>
+      <Text
+        style={
+          {
+            "color": "#b7bbc866",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 10,
+            "fontWeight": "400",
+            "paddingVertical": 5,
+            "textAlign": "center",
+          }
+        }
+      >
+        https://mainnet.infura.io/v3/{infuraProjectId}
+      </Text>
+    </View>
+    <Text
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 14,
+          "fontWeight": "600",
+          "marginBottom": 15,
+          "textAlign": "center",
+        }
+      }
+    >
+      Things to keep in mind
+      :
+    </Text>
+    <View
+      style={
+        {
+          "marginBottom": 15,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "marginBottom": 10,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "flex-start",
+              "flexDirection": "row",
+              "marginBottom": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "marginRight": 10,
+              }
+            }
+          >
+            1
+            .
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "width": "94%",
+              }
+            }
+          >
+            <Text>
+              This network is unknown and may use a special token for gas fees. 
+            </Text>
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "marginBottom": 10,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "flex-start",
+              "flexDirection": "row",
+              "marginBottom": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "marginRight": 10,
+              }
+            }
+          >
+            2
+            .
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "width": "94%",
+              }
+            }
+          >
+            <Text>
+              If you attempt to send assets directly from one network to another, this may result in permanent asset loss. Make sure to use a bridge. 
+            </Text>
+            <Text
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                }
+              }
+            >
+              Learn more
+            </Text>
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "marginBottom": 10,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "flex-start",
+              "flexDirection": "row",
+              "marginBottom": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "marginRight": 10,
+              }
+            }
+          >
+            3
+            .
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "width": "94%",
+              }
+            }
+          >
+            <Text>
+              Your tokens may not automatically show up in your wallet. 
+            </Text>
+            <Text
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                }
+              }
+            >
+              Add them manually.
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </View>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        [
+          [
+            {
+              "borderRadius": 100,
+              "justifyContent": "center",
+              "padding": 15,
+            },
+            {
+              "backgroundColor": "#4459ff",
+              "minHeight": 50,
+            },
+            {
+              "borderColor": "#b7bbc866",
+              "marginVertical": 20,
+            },
+          ],
+          null,
+        ]
+      }
+      testID="network-education-modal-close-button"
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#007aff",
+              "fontSize": 17,
+              "fontWeight": "500",
+              "textAlign": "center",
+            },
+            null,
+            [
+              {
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 14,
+                "fontWeight": "600",
+                "textAlign": "center",
+              },
+              {
+                "color": "#ffffff",
+              },
+              undefined,
+            ],
+            null,
+          ]
+        }
+      >
+        Got it
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
+exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderRadius": 10,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "padding": 20,
+      }
+    }
+    testID="network-education-modal"
+  >
+    <Text
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 16,
+          "fontWeight": "600",
+          "marginVertical": 10,
+          "textAlign": "center",
+        }
+      }
+    >
+      You have switched to
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "marginBottom": 30,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#b7bbc866",
+            "borderRadius": 40,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "padding": 10,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 8,
+              "height": 32,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "width": 32,
+            }
+          }
+        >
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
+            style={
+              {
+                "height": 32,
+                "width": 32,
+              }
+            }
+            testID="network-avatar-image"
+          />
+        </View>
+        <Text
+          style={
+            {
+              "color": "#121314",
+              "fontSize": 15,
+              "marginLeft": 8,
+              "paddingRight": 10,
+              "textAlign": "center",
+            }
+          }
+          testID="network-education-modal-network-name"
+        >
+          Solana Mainnet
+        </Text>
+      </View>
+    </View>
+    <Text
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 14,
+          "fontWeight": "600",
+          "marginBottom": 15,
+          "textAlign": "center",
+        }
+      }
+    >
+      Things to keep in mind
+      :
+    </Text>
+    <View
+      style={
+        {
+          "marginBottom": 15,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "marginBottom": 10,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "flex-start",
+              "flexDirection": "row",
+              "marginBottom": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "marginRight": 10,
+              }
+            }
+          >
+            1
+            .
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "width": "94%",
+              }
+            }
+          >
+            <Text>
+              The native asset on this network is SOL. It is used for transaction fees. 
+            </Text>
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "marginBottom": 10,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "flex-start",
+              "flexDirection": "row",
+              "marginBottom": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "marginRight": 10,
+              }
+            }
+          >
+            2
+            .
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#121314",
+                "width": "94%",
+              }
+            }
+          >
+            <Text>
+              You will lose your assets if you try to send them from or to another network. 
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </View>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        [
+          [
+            {
+              "borderRadius": 100,
+              "justifyContent": "center",
+              "padding": 15,
+            },
+            {
+              "backgroundColor": "#4459ff",
+              "minHeight": 50,
+            },
+            {
+              "borderColor": "#b7bbc866",
+              "marginVertical": 20,
+            },
+          ],
+          null,
+        ]
+      }
+      testID="network-education-modal-close-button"
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#007aff",
+              "fontSize": 17,
+              "fontWeight": "500",
+              "textAlign": "center",
+            },
+            null,
+            [
+              {
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 14,
+                "fontWeight": "600",
+                "textAlign": "center",
+              },
+              {
+                "color": "#ffffff",
+              },
+              undefined,
+            ],
+            null,
+          ]
+        }
+      >
+        Got it
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
 `;

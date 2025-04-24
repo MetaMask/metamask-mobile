@@ -14,6 +14,8 @@ import {
 } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -240,13 +242,11 @@ export async function switchToNetwork({
       networkConfiguration.shortName,
     ticker: networkConfiguration.ticker || 'ETH',
     chainColor: networkConfiguration.color,
+    pageMeta: {
+      url: origin,
+    },
   };
-  const analyticsParams = {
-    chain_id: getDecimalChainId(chainId),
-    source: 'Custom Network API',
-    symbol: networkConfiguration?.ticker || 'ETH',
-    ...analytics,
-  };
+
   // for some reason this extra step is necessary for accessing the env variable in test environment
   const chainPermissionsFeatureEnabled =
     { ...process.env }?.NODE_ENV === 'test'
@@ -300,10 +300,21 @@ export async function switchToNetwork({
       networkConfigurationId || networkConfiguration.networkType,
     );
   } else {
-    MultichainNetworkController.setActiveNetwork(
+    await MultichainNetworkController.setActiveNetwork(
       networkConfigurationId || networkConfiguration.networkType,
     );
   }
 
-  return analyticsParams;
+  const analyticsParams = {
+    chain_id: getDecimalChainId(chainId),
+    source: 'Custom Network API',
+    symbol: networkConfiguration?.ticker || 'ETH',
+    ...analytics,
+  };
+
+  MetaMetrics.getInstance().trackEvent(
+    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+      .addProperties(analyticsParams)
+      .build(),
+  );
 }

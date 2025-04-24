@@ -3,7 +3,7 @@ import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
 import {
   selectAllPopularNetworkConfigurations,
-  selectChainId,
+  selectEvmChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
@@ -19,7 +19,7 @@ const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const networkConfigurationsPopularNetworks = useSelector(
     selectAllPopularNetworkConfigurations,
   );
-  const currentChainId = useSelector(selectChainId);
+  const currentChainId = useSelector(selectEvmChainId);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
 

@@ -51,7 +51,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: jest.fn(),
+  getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
     NetworkController: {
       setActiveNetwork: jest.fn(),
@@ -100,6 +100,9 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const initialState = {
+  user: {
+    userLoggedIn: true,
+  },
   navigation: { currentBottomNavRoute: 'Wallet' },
   settings: {
     primaryCurrency: 'usd',
@@ -108,11 +111,11 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          '0x': {
-            name: 'account 1',
-            address: '0x',
-            balance: 0,
+        accountsByChainId: {
+          '0x1': {
+            '0x': {
+              balance: 0,
+            },
           },
         },
       },
@@ -345,6 +348,9 @@ describe('Network Selector', () => {
   it('toggle test network is disabled and is on when a testnet is selected', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByTestId } = renderComponent({
+      user: {
+        userLoggedIn: true,
+      },
       navigation: { currentBottomNavRoute: 'Wallet' },
       settings: {
         primaryCurrency: 'usd',
@@ -405,7 +411,6 @@ describe('Network Selector', () => {
     const gnosisCell = getByText('Gnosis Chain');
 
     fireEvent.press(gnosisCell);
-
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
     ).toBeCalled();
@@ -413,6 +418,9 @@ describe('Network Selector', () => {
 
   it('changes to test network when another network cell is pressed', async () => {
     const { getByText } = renderComponent({
+      user: {
+        userLoggedIn: true,
+      },
       navigation: { currentBottomNavRoute: 'Wallet' },
       settings: {
         primaryCurrency: 'usd',

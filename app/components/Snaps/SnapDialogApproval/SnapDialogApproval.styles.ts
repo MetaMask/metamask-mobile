@@ -15,18 +15,18 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
-      paddingTop: 24,
-      paddingLeft: 16,
-      paddingRight: 16,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
       minHeight: 200,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
+      maxHeight: '80%',
     },
-    actionContainer: {
-      flex: 0,
+    footer: {
+      position: 'absolute',
+      bottom: 20,
+      width: '100%',
       paddingVertical: 16,
-      justifyContent: 'center',
+      height: 80,
     },
   });
 };

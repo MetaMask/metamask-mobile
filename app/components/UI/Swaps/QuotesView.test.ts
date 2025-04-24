@@ -18,7 +18,46 @@ import {
 import { SwapsViewSelectors } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
 import Engine from '../../../core/Engine';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { useSwapsSmartTransaction } from './utils/useSwapsSmartTransaction';
+import { query } from '@metamask/controller-utils';
 
+jest.mock('../../../util/networks/global-network', () => ({
+  ...jest.requireActual('../../../util/networks/global-network'),
+  getGlobalEthQuery: jest.fn(),
+}));
+
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  query: jest.fn(),
+}));
+
+jest.mock('./utils/useSwapsSmartTransaction', () => {
+  const actual = jest.requireActual('./utils/useSwapsSmartTransaction');
+  return {
+    ...actual,
+    useSwapsSmartTransaction: jest.fn(actual.useSwapsSmartTransaction),
+  };
+});
+
+jest.mock('../../../../app/selectors/smartTransactionsController', () => ({
+  ...jest.requireActual(
+    '../../../../app/selectors/smartTransactionsController',
+  ),
+  selectShouldUseSmartTransaction: jest.fn(),
+  selectSmartTransactionsForCurrentChain: () => [
+    {
+      status: 'pending',
+      uuid: 'mock-uuid-123',
+      creationTime: Date.now(),
+    },
+  ],
+}));
+
+const mockSubmitSignedTransactions = jest
+  .fn()
+  .mockResolvedValue({ uuid: 'mock-uuid-123' });
+const mockUpdateSmartTransaction = jest.fn();
 jest.mock('../../../core/Engine', () => ({
   context: {
     SwapsController: {
@@ -27,6 +66,8 @@ jest.mock('../../../core/Engine', () => ({
     },
     TransactionController: {
       estimateGasFee: jest.fn(),
+      approveTransactionsWithSameNonce: jest.fn(() => ['asd']),
+      update: jest.fn(),
     },
     KeyringController: {
       state: {
@@ -36,6 +77,14 @@ jest.mock('../../../core/Engine', () => ({
           },
         ],
       },
+    },
+    SmartTransactionsController: {
+      getFees: jest.fn(),
+      submitSignedTransactions: mockSubmitSignedTransactions,
+      updateSmartTransaction: mockUpdateSmartTransaction,
+    },
+    GasFeeController: {
+      getGasFeeEstimatesAndStartPolling: jest.fn(),
     },
   },
 }));
@@ -160,9 +209,11 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
-        accounts: {
-          [selectedAddress]: {
-            balance: accountBalance,
+        accountsByChainId: {
+          '0x1': {
+            [selectedAddress]: {
+              balance: accountBalance,
+            },
           },
         },
       },
@@ -176,6 +227,8 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       SwapsController: {
+        quotesLastFetched: 123,
+        quoteRefreshSeconds: 30,
         topAggId: topAggIdMock,
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -255,6 +308,10 @@ function render(
 }
 
 describe('QuotesView', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render quote screen', async () => {
     const wrapper = render(QuotesView, mockInitialState);
     expect(wrapper).toMatchSnapshot();
@@ -306,6 +363,57 @@ describe('QuotesView', () => {
       );
 
       expect(estimateGasFeeSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Smart Transactions', () => {
+    const state = merge({}, mockInitialState);
+
+    it('should use Smart Transactions when enabled', async () => {
+      const mockSubmitSwapsSmartTransaction = jest.fn().mockResolvedValue({
+        approvalTxUuid: 'approval-uuid-123',
+        tradeTxUuid: 'trade-uuid-456',
+      });
+      (useSwapsSmartTransaction as jest.Mock).mockReturnValue({
+        submitSwapsSmartTransaction: mockSubmitSwapsSmartTransaction,
+      });
+      jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(true);
+      jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
+        timestamp: 1234,
+      });
+
+      const wrapper = render(QuotesView, state);
+
+      const swapButton = await wrapper.findByTestId(
+        SwapsViewSelectors.SWAP_BUTTON,
+      );
+
+      fireEvent.press(swapButton);
+
+      // Verify submitSwapsSmartTransaction was called
+      expect(mockSubmitSwapsSmartTransaction).toHaveBeenCalled();
+    });
+
+    it('should not use Smart Transactions when disabled', async () => {
+      const mockSubmitSwapsSmartTransaction = jest.fn().mockResolvedValue({
+        approvalTxUuid: undefined,
+        tradeTxUuid: 'trade-uuid-456',
+      });
+      (useSwapsSmartTransaction as jest.Mock).mockReturnValue({
+        submitSwapsSmartTransaction: mockSubmitSwapsSmartTransaction,
+      });
+
+      jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
+      const wrapper = render(QuotesView, state);
+
+      const swapButton = await wrapper.findByTestId(
+        SwapsViewSelectors.SWAP_BUTTON,
+      );
+
+      fireEvent.press(swapButton);
+
+      // Verify submitSwapsSmartTransaction was not called
+      expect(mockSubmitSwapsSmartTransaction).not.toHaveBeenCalled();
     });
   });
 });

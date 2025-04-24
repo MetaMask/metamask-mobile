@@ -7,8 +7,15 @@ import { Alert, Severity } from '../Views/confirmations/types/alerts';
  * @returns An object containing various alert confirmation-related states and functions.
  */
 export const useAlertsConfirmed = (alerts: Alert[]) => {
-  const [confirmed, setConfirmed] = useState<{ [key: string]: boolean }>({});
-  const [alertKey, setAlertKey] = useState(alerts[0]?.key);
+  const [confirmed, setConfirmed] = useState<{ [key: string]: boolean }>(
+    alerts.reduce(
+      (acc, alertElement) => ({
+        ...acc,
+        [alertElement.key]: alertElement.skipConfirmation === true,
+      }),
+      {},
+    ),
+  );
 
   /**
    * Sets the confirmation status of an alert.
@@ -44,13 +51,12 @@ export const useAlertsConfirmed = (alerts: Alert[]) => {
   ), [alerts, isAlertConfirmed]);
 
   return {
-    alertKey,
     isAlertConfirmed,
     setAlertConfirmed,
-    setAlertKey: (key: string) => setAlertKey(key),
     unconfirmedDangerAlerts,
     unconfirmedFieldDangerAlerts,
     hasUnconfirmedDangerAlerts: unconfirmedDangerAlerts.length > 0,
+    hasBlockingAlerts: alerts.some((alertElement) => alertElement.isBlocking),
     hasUnconfirmedFieldDangerAlerts: unconfirmedFieldDangerAlerts.length > 0,
   };
 };

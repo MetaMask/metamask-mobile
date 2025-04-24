@@ -5,8 +5,8 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { strings } from '../../../../locales/i18n';
 import {
-  selectChainId,
-  selectTicker,
+  selectEvmChainId,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { collectConfusables } from '../../../util/confusables';
 import { decodeTransferData } from '../../../util/transactions';
@@ -200,8 +200,8 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 
 const mapStateToProps = (state: RootState) => ({
   internalAccounts: selectInternalAccounts(state),
-  chainId: selectChainId(state),
-  ticker: selectTicker(state),
+  chainId: selectEvmChainId(state),
+  ticker: selectEvmTicker(state),
 });
 
 export default connect(mapStateToProps)(AccountFromToInfoCard);

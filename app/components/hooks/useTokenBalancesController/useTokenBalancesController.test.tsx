@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { createStore, Store } from 'redux';
 import { act, render, waitFor } from '@testing-library/react-native';
 import useTokenBalancesController from './useTokenBalancesController';
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 import { cloneDeep } from 'lodash';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
@@ -30,7 +30,7 @@ const mockInitialState = {
         tokenBalances: {
           [accountAddress]: {
             [chainId]: {
-              '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN(0x2a),
+              '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN4(0x2a),
             }
           }
         },
@@ -133,7 +133,7 @@ describe('useTokenBalancesController()', () => {
         value: {
           [accountAddress]: {
             [chainId]: {
-              '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96': new BN(0x539),
+              '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96': new BN4(0x539),
             }
           }
         },
@@ -155,7 +155,7 @@ describe('useTokenBalancesController()', () => {
         value: {
           [accountAddress]: {
             [chainId]: {
-              '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN(0x2a),
+              '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN4(0x2a),
             }
           }
         },

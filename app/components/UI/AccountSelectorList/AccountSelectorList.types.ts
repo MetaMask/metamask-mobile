@@ -10,7 +10,7 @@ import { Account, UseAccounts } from '../../hooks/useAccounts';
  */
 export interface AccountSelectorListProps
   extends Partial<FlatListProps<Account>>,
-    UseAccounts {
+    Omit<UseAccounts, 'evmAccounts'> {
   /**
    * Optional callback to trigger when account is selected.
    */
@@ -37,6 +37,10 @@ export interface AccountSelectorListProps
    * Optional boolean that indicates if list should be used as multi select.
    */
   isMultiSelect?: boolean;
+  /**
+   * Optional boolean that indicates if list should be used as select without menu.
+   */
+  isSelectWithoutMenu?: boolean;
   /**
    * Optional boolean that indicates if list should auto scroll to selected address.
    */

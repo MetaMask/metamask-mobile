@@ -9,9 +9,12 @@ import EmptyPopularList from '../emptyList';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import { PopularList } from '../../../../../../util/networks/customNetworks';
+import {
+  Network,
+  PopularList,
+} from '../../../../../../util/networks/customNetworks';
 import createStyles from '../styles';
-import { CustomNetworkProps, Network } from './CustomNetwork.types';
+import { CustomNetworkProps } from './CustomNetwork.types';
 import {
   selectChainId,
   selectNetworkConfigurations,
@@ -20,6 +23,9 @@ import AvatarNetwork from '../../../../../../component-library/components/Avatar
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import { isNetworkUiRedesignEnabled } from '../../../../../../util/networks/isNetworkUiRedesignEnabled';
 import { useSafeChains } from '../../../../../../components/hooks/useSafeChains';
+import { isNonEvmChainId } from '../../../../../../core/Multichain/utils';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -40,14 +46,23 @@ const CustomNetwork = ({
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedChainId = useSelector(selectChainId);
   const { safeChains } = useSafeChains();
-
   const supportedNetworkList = (customNetworksList ?? PopularList).map(
     (networkConfiguration: Network) => {
       const isAdded = Object.values(networkConfigurations).some(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (savedNetwork: any) =>
-          toHex(savedNetwork.chainId) === toHex(networkConfiguration.chainId),
+        (
+          savedNetwork: NetworkConfiguration | MultichainNetworkConfiguration,
+        ) => {
+          if (
+            isNonEvmChainId(networkConfiguration.chainId) ||
+            isNonEvmChainId(savedNetwork.chainId)
+          ) {
+            return false;
+          }
+
+          return (
+            toHex(savedNetwork.chainId) === toHex(networkConfiguration.chainId)
+          );
+        },
       );
       return {
         ...networkConfiguration,
@@ -71,7 +86,7 @@ const CustomNetwork = ({
 
   return (
     <>
-      {isNetworkModalVisible && (
+      {isNetworkModalVisible && selectedNetwork && (
         <NetworkModals
           showPopularNetworkModal={showPopularNetworkModal}
           isVisible={isNetworkModalVisible}

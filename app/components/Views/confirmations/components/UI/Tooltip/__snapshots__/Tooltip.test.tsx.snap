@@ -19,10 +19,10 @@ exports[`Tooltip should match snapshot 1`] = `
         "width": 24,
       }
     }
-    testID="tooltipTestId"
+    testID="info-row-tooltip-open-btn"
   >
     <SvgMock
-      color="#9fa6ae"
+      color="#9ca1af"
       height={16}
       name="Info"
       style={

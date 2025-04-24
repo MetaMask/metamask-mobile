@@ -4,7 +4,7 @@ exports[`BadgeStatus should render badge status correctly 1`] = `
 <BadgeBase
   style={
     {
-      "backgroundColor": "#6a737d",
+      "backgroundColor": "#686e7d",
       "borderColor": "#ffffff",
       "borderRadius": 5,
       "borderWidth": 2,

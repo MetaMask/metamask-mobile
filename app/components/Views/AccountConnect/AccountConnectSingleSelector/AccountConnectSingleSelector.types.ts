@@ -6,7 +6,8 @@ import { AccountConnectScreens } from '../AccountConnect.types';
 /**
  * AccountConnectSingleSelector props.
  */
-export interface AccountConnectSingleSelectorProps extends UseAccounts {
+export interface AccountConnectSingleSelectorProps
+  extends Omit<UseAccounts, 'evmAccounts'> {
   selectedAddresses: string[];
   isLoading?: boolean;
   onSetScreen: (screen: AccountConnectScreens) => void;

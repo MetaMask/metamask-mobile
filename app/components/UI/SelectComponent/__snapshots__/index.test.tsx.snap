@@ -30,9 +30,9 @@ exports[`SelectComponent should render correctly 1`] = `
           style={
             {
               "alignSelf": "flex-start",
-              "color": "#141618",
+              "color": "#121314",
               "flex": 1,
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "paddingBottom": 10,
@@ -46,7 +46,7 @@ exports[`SelectComponent should render correctly 1`] = `
           style={
             [
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontSize": 24,
               },
               {

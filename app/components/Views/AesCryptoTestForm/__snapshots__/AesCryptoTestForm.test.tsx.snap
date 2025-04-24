@@ -23,8 +23,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -39,8 +39,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -61,8 +61,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -88,7 +88,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Salt bytes count"
             style={
               {
-                "borderColor": "#f2f4f6",
+                "borderColor": "#f3f5f9",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -109,7 +109,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 20,
               "flexDirection": "row",
               "height": 40,
@@ -125,11 +125,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -148,8 +148,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -175,7 +175,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Password"
             style={
               {
-                "borderColor": "#f2f4f6",
+                "borderColor": "#f3f5f9",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -200,7 +200,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Salt"
             style={
               {
-                "borderColor": "#f2f4f6",
+                "borderColor": "#f3f5f9",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -221,7 +221,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 20,
               "flexDirection": "row",
               "height": 40,
@@ -237,11 +237,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -260,8 +260,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -287,7 +287,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Encryption Key"
             style={
               {
-                "borderColor": "#f2f4f6",
+                "borderColor": "#f3f5f9",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -312,7 +312,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Data"
             style={
               {
-                "borderColor": "#f2f4f6",
+                "borderColor": "#f3f5f9",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -333,7 +333,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 20,
               "flexDirection": "row",
               "height": 40,
@@ -349,11 +349,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -372,8 +372,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -399,7 +399,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Encryption Key"
             style={
               {
-                "borderColor": "#f2f4f6",
+                "borderColor": "#f3f5f9",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -420,7 +420,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 20,
               "flexDirection": "row",
               "height": 40,
@@ -436,11 +436,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -459,8 +459,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -486,7 +486,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Data"
             style={
               {
-                "borderColor": "#f2f4f6",
+                "borderColor": "#f3f5f9",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -511,7 +511,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Password"
             style={
               {
-                "borderColor": "#f2f4f6",
+                "borderColor": "#f3f5f9",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -532,7 +532,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 20,
               "flexDirection": "row",
               "height": 40,
@@ -548,11 +548,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -571,8 +571,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -598,7 +598,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             placeholder="Password"
             style={
               {
-                "borderColor": "#f2f4f6",
+                "borderColor": "#f3f5f9",
                 "borderRadius": 50,
                 "borderWidth": 2,
                 "paddingHorizontal": 10,
@@ -619,7 +619,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 20,
               "flexDirection": "row",
               "height": 40,
@@ -635,11 +635,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >

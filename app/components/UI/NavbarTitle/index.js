@@ -1,21 +1,23 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { scale } from 'react-native-size-matters';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks, { getDecimalChainId } from '../../../util/networks';
 import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { withNavigation } from '@react-navigation/compat';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
+import { selectNetworkName } from '../../../selectors/networkInfos';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -72,6 +74,14 @@ class NavbarTitle extends PureComponent {
      */
     children: PropTypes.node,
     /**
+     * Selected multichain chainId
+     */
+    chainId: PropTypes.string,
+    /**
+     * Selected network name
+     */
+    selectedNetworkName: PropTypes.string,
+    /**
      * Source of the network selector
      */
     source: PropTypes.string,
@@ -100,7 +110,7 @@ class NavbarTitle extends PureComponent {
             .createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
             .addProperties({
               // TODO: if contextual chainId is used, the providerConfig is the chain needed for this tracking
-              chain_id: getDecimalChainId(this.props.providerConfig.chainId),
+              chain_id: getDecimalChainId(this.props.chainId),
               source: this.props.source,
             })
             .build(),
@@ -120,16 +130,16 @@ class NavbarTitle extends PureComponent {
       showSelectedNetwork,
       children,
       networkName,
+      selectedNetworkName,
     } = this.props;
     let name = null;
-    const color =
-      (Networks[providerConfig.type] && Networks[providerConfig.type].color) ||
-      null;
+
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (networkName) {
-      name = networkName;
+    if (selectedNetworkName || networkName) {
+      name = networkName || selectedNetworkName;
+      // TODO: [SOLANA] Revisit this before shipping, some screens do not pass a network name as a prop, consider using the selector instead
     } else if (providerConfig.nickname) {
       name = providerConfig.nickname;
     } else {
@@ -175,6 +185,8 @@ NavbarTitle.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
+  chainId: selectChainId(state),
+  selectedNetworkName: selectNetworkName(state),
 });
 
 export default withNavigation(

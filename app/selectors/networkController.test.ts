@@ -1,7 +1,7 @@
 import {
   selectNetworkControllerState,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
   selectChainId,
   selectProviderType,
   selectNickname,
@@ -14,6 +14,7 @@ import {
   selectNativeCurrencyByChainId,
 } from './networkController';
 import { RootState } from '../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 describe('networkSelectors', () => {
   const mockState = {
@@ -53,6 +54,12 @@ describe('networkSelectors', () => {
             'custom-network': { status: 'active' },
           },
         },
+        MultichainNetworkController: {
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+          multichainNetworkConfigurationsByChainId: {},
+        },
       },
     },
   } as unknown as RootState;
@@ -75,8 +82,8 @@ describe('networkSelectors', () => {
     });
   });
 
-  it('selectTicker should return the ticker of the provider config', () => {
-    expect(selectTicker(mockState)).toBe('MATIC');
+  it('selectEvmTicker should return the ticker of the provider config', () => {
+    expect(selectEvmTicker(mockState)).toBe('MATIC');
   });
 
   it('selectChainId should return the chainId of the provider config', () => {

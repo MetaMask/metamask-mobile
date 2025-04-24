@@ -18,6 +18,7 @@ import BottomSheet, {
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
+  findBlockExplorerForNonEvmAccount,
   findBlockExplorerForRpc,
   getBlockExplorerName,
 } from '../../../util/networks';
@@ -41,6 +42,9 @@ import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  isHDOrFirstPartySnapAccount,
+  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
   ///: END:ONLY_INCLUDE_IF
@@ -54,6 +58,10 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+import { selectKeyrings } from '../../../selectors/keyringController';
+///: END:ONLY_INCLUDE_IF
+import { isEvmAccountType } from '@metamask/keyring-api';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -76,6 +84,17 @@ const AccountActions = () => {
     return { KeyringController, PreferencesController };
   }, []);
 
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  const existingKeyrings = useSelector(selectKeyrings);
+
+  const keyringId = useMemo(() => {
+    const keyring = existingKeyrings.find((kr) =>
+      kr.accounts.includes(selectedAccount.address.toLowerCase()),
+    );
+    return keyring?.metadata.id;
+  }, [existingKeyrings, selectedAccount.address]);
+  ///: END:ONLY_INCLUDE_IF
+
   const providerConfig = useSelector(selectProviderConfig);
 
   const selectedAddress = selectedAccount?.address;
@@ -83,17 +102,64 @@ const AccountActions = () => {
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const blockExplorer = useMemo(() => {
-    if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
-      return findBlockExplorerForRpc(
-        providerConfig.rpcUrl,
-        networkConfigurations,
-      );
-    }
-    return null;
-  }, [networkConfigurations, providerConfig.rpcUrl, providerConfig.type]);
+  const blockExplorer:
+    | {
+        url: string;
+        title: string;
+        blockExplorerName: string;
+      }
+    | undefined = useMemo(() => {
+    if (selectedAccount) {
+      if (isEvmAccountType(selectedAccount.type)) {
+        if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
+          const explorer = findBlockExplorerForRpc(
+            providerConfig.rpcUrl,
+            networkConfigurations,
+          );
 
-  const blockExplorerName = getBlockExplorerName(blockExplorer);
+          if (!explorer) {
+            return undefined;
+          }
+
+          return {
+            url: `${explorer}/address/${selectedAccount.address}`,
+            title: new URL(explorer).hostname,
+            blockExplorerName:
+              getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
+          };
+        }
+
+        const url = getEtherscanAddressUrl(
+          providerConfig.type,
+          selectedAccount.address,
+        );
+        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
+          'https://',
+          '',
+        );
+        return {
+          url,
+          title: etherscan_url,
+          blockExplorerName: getBlockExplorerName(url) ?? etherscan_url,
+        };
+      }
+      const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
+      if (explorer) {
+        return {
+          url: explorer,
+          title: new URL(explorer).hostname,
+          blockExplorerName:
+            getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
+        };
+      }
+      return undefined;
+    }
+  }, [
+    networkConfigurations,
+    providerConfig.rpcUrl,
+    providerConfig.type,
+    selectedAccount,
+  ]);
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
@@ -105,24 +171,11 @@ const AccountActions = () => {
     });
   };
 
-  const viewInEtherscan = () => {
+  const viewOnBlockExplorer = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
-        const url = `${blockExplorer}/address/${selectedAddress}`;
-        const title = new URL(blockExplorer).hostname;
-        goToBrowserUrl(url, title);
-      } else {
-        const url = getEtherscanAddressUrl(
-          providerConfig.type,
-          selectedAddress,
-        );
-        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
-          'https://',
-          '',
-        );
-        goToBrowserUrl(url, etherscan_url);
+        goToBrowserUrl(blockExplorer.url, blockExplorer.title);
       }
-
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN,
@@ -166,6 +219,17 @@ const AccountActions = () => {
       });
     });
   };
+
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  const goToExportSRP = () => {
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+        keyringId,
+      });
+    });
+  };
+  ///: END:ONLY_INCLUDE_IF
 
   const showRemoveHWAlert = useCallback(() => {
     Alert.alert(
@@ -368,15 +432,13 @@ const AccountActions = () => {
           onPress={goToEditAccountName}
           testID={AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT}
         />
-        {isExplorerVisible && (
+        {isExplorerVisible && blockExplorer && (
           <AccountAction
-            actionTitle={
-              (blockExplorer &&
-                `${strings('drawer.view_in')} ${blockExplorerName}`) ||
-              strings('drawer.view_in_etherscan')
-            }
+            actionTitle={`${strings('drawer.view_in')} ${
+              blockExplorer.blockExplorerName
+            }`}
             iconName={IconName.Export}
-            onPress={viewInEtherscan}
+            onPress={viewOnBlockExplorer}
             testID={AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN}
           />
         )}
@@ -386,12 +448,28 @@ const AccountActions = () => {
           onPress={onShare}
           testID={AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS}
         />
-        <AccountAction
-          actionTitle={strings('account_details.show_private_key')}
-          iconName={IconName.Key}
-          onPress={goToExportPrivateKey}
-          testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
-        />
+        {selectedAddress && isEvmAccountType(selectedAccount.type) && (
+          <AccountAction
+            actionTitle={strings('account_details.show_private_key')}
+            iconName={IconName.Key}
+            onPress={goToExportPrivateKey}
+            testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
+          />
+        )}
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+          selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
+            <AccountAction
+              actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
+              iconName={IconName.Key}
+              onPress={goToExportSRP}
+              testID={
+                AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
+              }
+            />
+          )
+          ///: END:ONLY_INCLUDE_IF
+        }
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}

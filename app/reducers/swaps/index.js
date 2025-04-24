@@ -3,7 +3,7 @@ import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress } from '../../util/address';
 import { toLowerCaseEquals } from '../../util/general';
 import { lte } from '../../util/lodash';
-import { selectChainId } from '../../selectors/networkController';
+import { selectEvmChainId } from '../../selectors/networkController';
 import {
   selectAllTokens,
   selectTokens,
@@ -54,7 +54,7 @@ function addMetadata(chainId, tokens, tokenList) {
 }
 
 // * Selectors
-const chainIdSelector = selectChainId;
+const chainIdSelector = selectEvmChainId;
 const swapsStateSelector = (state) => state.swaps;
 /**
  * Returns the swaps liveness state
@@ -74,17 +74,11 @@ export const swapsLivenessMultichainSelector = createSelector(
 /**
  * Returns if smart transactions are enabled in feature flags
  */
-const DEVICE_KEY = 'mobileActive';
 export const swapsSmartTxFlagEnabled = createSelector(
   swapsStateSelector,
   (swapsState) => {
     const globalFlags = swapsState.featureFlags;
-
-    const isEnabled = Boolean(
-      globalFlags?.smart_transactions?.mobile_active &&
-        globalFlags?.smartTransactions?.[DEVICE_KEY],
-    );
-
+    const isEnabled = Boolean(globalFlags?.smartTransactions?.mobileActive);
     return isEnabled;
   },
 );
@@ -242,8 +236,15 @@ export const swapsTokensSelector = createSelector(
   },
 );
 
-const topAssets = (state) =>
-  state.engine.backgroundState.SwapsController.topAssets;
+export const topAssets = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.topAssets,
+);
+
+export const selectChainCache = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.chainCache,
+);
 
 /**
  * Returns a memoized object that only has the addesses of the tokens as keys
@@ -261,7 +262,7 @@ export const swapsTokensObjectSelector = createSelector(
       result[token.address] = undefined;
     }
     return result;
-  }
+  },
 );
 
 /**

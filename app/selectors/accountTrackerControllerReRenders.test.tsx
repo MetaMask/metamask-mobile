@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Store } from 'redux';
 import { act } from '@testing-library/react-native';
-import { GetByQuery } from '@testing-library/react-native/build/queries/makeQueries';
+import { GetByQuery } from '@testing-library/react-native/build/queries/make-queries';
 import { CommonQueryOptions } from '@testing-library/react-native/build/queries/options';
 import {
   TextMatch,
@@ -30,6 +30,7 @@ import {
   selectSelectedInternalAccountFormattedAddress,
 } from './accountsController';
 import { selectChainId } from './networkController';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 const MOCK_CHAIN_ID = '0x1';
 const MOCK_CHAIN_ID_2 = '0x2';
@@ -74,6 +75,7 @@ jest.mock('../core/Engine', () => ({
               networkClientId: 'mainnet',
               type: 'infura',
               url: 'https://mainnet.infura.io/v3',
+              failoverUrls: [],
             },
           ],
         },
@@ -88,6 +90,7 @@ jest.mock('../core/Engine', () => ({
               networkClientId: 'testNetwork',
               type: 'custom',
               url: 'https://test.mainnet.io',
+              failoverUrls: [],
             },
           ],
         },
@@ -102,11 +105,19 @@ jest.mock('../core/Engine', () => ({
               networkClientId: 'binance',
               type: 'custom',
               url: 'https://binance.infura.io/v3',
+              failoverUrls: [],
             },
           ],
         },
       },
     } as Partial<NetworkController['state']>,
+    MultichainNetworkController: {
+      isEvmSelected: true,
+      selectedMultichainNetworkChainId:
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+
+      multichainNetworkConfigurationsByChainId: {},
+    } as Partial<MultichainNetworkController['state']>,
     AccountsController: {
       internalAccounts: {
         accounts: {
@@ -199,6 +210,7 @@ describe('selectAccountBalanceByChainId', () => {
                     networkClientId: 'mainnet',
                     type: 'infura',
                     url: 'https://mainnet.infura.io/v3',
+                    failoverUrls: [],
                   },
                 ],
               },
@@ -213,6 +225,7 @@ describe('selectAccountBalanceByChainId', () => {
                     networkClientId: 'testNetwork',
                     type: 'custom',
                     url: 'https://test.mainnet.io',
+                    failoverUrls: [],
                   },
                 ],
               },
@@ -227,11 +240,19 @@ describe('selectAccountBalanceByChainId', () => {
                     networkClientId: 'binance',
                     type: 'custom',
                     url: 'https://binance.infura.io/v3',
+                    failoverUrls: [],
                   },
                 ],
               },
             },
           } as Partial<NetworkController['state']>,
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+
+            multichainNetworkConfigurationsByChainId: {},
+          } as Partial<MultichainNetworkController['state']>,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           AccountTrackerController: {
             accountsByChainId: {

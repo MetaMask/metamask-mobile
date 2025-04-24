@@ -8,7 +8,7 @@ import { RootState } from '../../../../reducers';
 import useAccountInfo from './useAccountInfo';
 
 jest.mock('../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
 }));
 
 const MOCK_ADDRESS = '0x0';
@@ -24,9 +24,11 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS]: {
-            balance: '0x5',
+        accountsByChainId: {
+          '0x1': {
+            [MOCK_ADDRESS]: {
+              balance: '0x5',
+            },
           },
         },
       },
@@ -51,6 +53,6 @@ describe('useAccountInfo', () => {
     expect(result?.current?.accountName).toEqual('Account 1');
     expect(result?.current?.accountAddress).toEqual('0x0');
     expect(result?.current?.accountBalance).toEqual('< 0.00001 ETH');
-    expect(result?.current?.accountFiatBalance).toEqual('$10');
+    expect(result?.current?.accountFiatBalance).toEqual('$10.00');
   });
 });

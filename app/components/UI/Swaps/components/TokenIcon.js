@@ -100,6 +100,10 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style, testID }) {
       return ethLogo;
     }
 
+    if (symbol === 'SOL') {
+      return imageIcons.SOLANA;
+    }
+
     if (Object.keys(imageIcons).includes(symbol)) {
       return imageIcons[symbol];
     }

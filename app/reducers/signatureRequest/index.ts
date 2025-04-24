@@ -1,4 +1,4 @@
-import { SecurityAlertResponse } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+import { SecurityAlertResponse } from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 
 interface StateType {
   securityAlertResponse?: SecurityAlertResponse;

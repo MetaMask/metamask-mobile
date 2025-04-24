@@ -26,16 +26,6 @@ class PageSections {
       ConfirmationPageSectionsSelectorIDs.MESSAGE_SECTION,
     );
   }
-
-  get ScrollButton() {
-    return Matchers.getElementByID(
-      ConfirmationPageSectionsSelectorIDs.SCROLL_BUTTON,
-    );
-  }
-
-  async tapScrollButton() {
-    await Gestures.waitAndTap(this.ScrollButton);
-  }
 }
 
 export default new PageSections();

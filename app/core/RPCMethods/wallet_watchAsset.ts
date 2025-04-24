@@ -9,7 +9,10 @@ import {
   TOKEN_NOT_SUPPORTED_FOR_NETWORK,
   TOKEN_NOT_VALID,
 } from '../../constants/error';
-import { selectChainId, selectNetworkClientId } from '../../selectors/networkController';
+import {
+  selectEvmChainId,
+  selectNetworkClientId,
+} from '../../selectors/networkController';
 import { isValidAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
@@ -48,7 +51,7 @@ const wallet_watchAsset = async ({
 
   const { TokensController } = Engine.context;
   const state = store.getState();
-  const chainId = selectChainId(state);
+  const chainId = selectEvmChainId(state);
   const networkClientId = selectNetworkClientId(state);
 
   checkTabActive();
@@ -60,7 +63,11 @@ const wallet_watchAsset = async ({
   }
 
   // Check if token exists on wallet's active network.
-  const isTokenOnNetwork = await isSmartContractAddress(address, chainId, networkClientId);
+  const isTokenOnNetwork = await isSmartContractAddress(
+    address,
+    chainId,
+    networkClientId,
+  );
   if (!isTokenOnNetwork) {
     throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
   }

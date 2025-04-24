@@ -1,6 +1,7 @@
 import React from 'react';
-import { cloneDeep } from 'lodash';
+import { BackHandler, NativeEventSubscription } from 'react-native';
 import {
+  CryptoCurrency,
   ProviderBuyFeatureBrowserEnum,
   QuoteError,
   QuoteResponse,
@@ -22,11 +23,12 @@ import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
 
 import { RampSDK } from '../../sdk';
-import useQuotes from '../../hooks/useQuotes';
+import useQuotesAndCustomActions from '../../hooks/useQuotesAndCustomActions';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { RampType } from '../../types';
+import { RampType, Region } from '../../types';
+import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -69,6 +71,7 @@ jest.mock('@react-navigation/native', () => {
         pop: mockPop,
       }),
     }),
+    useFocusEffect: jest.fn((callback) => callback()),
   };
 });
 
@@ -80,11 +83,15 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
     POLLING_INTERVAL: 10000,
     POLLING_INTERVAL_HIGHLIGHT: 1000,
   },
-  callbackBaseUrl: '',
+  callbackBaseUrl: 'fake-callback-url',
   sdkError: undefined,
   rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
+  selectedAddress: '0x1234567890',
+  selectedRegion: { id: 'mock-region-id' } as Region,
+  selectedAsset: { id: 'mock-asset-id' } as CryptoCurrency,
+  selectedFiatCurrencyId: 'mock-fiat-currency-id',
 };
 
 let mockUseRampSDKValues: DeepPartial<RampSDK> = {
@@ -98,6 +105,11 @@ jest.mock('../../sdk', () => ({
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('../../hooks/useInAppBrowser', () => () => mockRenderInAppBrowser);
+jest.mock('../../hooks/useFiatCurrencies', () => () => ({
+  currentFiatCurrency: {
+    symbol: 'USD',
+  } as CryptoCurrency,
+}));
 
 const mockUseParamsInitialValues: DeepPartial<QuotesParams> = {
   amount: 50,
@@ -120,18 +132,55 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 const mockQueryGetQuotes = jest.fn();
 
-const mockUseQuotesInitialValues: Partial<ReturnType<typeof useQuotes>> = {
+const mockCustomAction: PaymentCustomAction = {
+  buy: {
+    providerId: '/providers/paypal-staging',
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    provider: {
+      description: 'Per Paypal: [Paypal Description]',
+      environmentType: 'STAGING',
+      hqAddress: '123 PayPal Staging Address',
+      id: '/providers/paypal-staging',
+      logos: {
+        dark: 'https://on-ramp.dev-api.cx.metamask.io/assets/providers/paypal_dark.png',
+        height: 24,
+        light:
+          'https://on-ramp.dev-api.cx.metamask.io/assets/providers/paypal_light.png',
+        width: 65,
+      },
+      name: 'Paypal (Staging)',
+    },
+  },
+  supportedPaymentMethodIds: ['/payments/paypal', '/payments/paypal-staging'],
+  paymentMethodId: '/payments/paypal',
+};
+
+const mockUseQuotesAndCustomActionsInitialValues: Partial<
+  ReturnType<typeof useQuotesAndCustomActions>
+> = {
   quotes: mockQuotesData as (QuoteResponse | QuoteError)[],
+  quotesWithoutError: mockQuotesData as QuoteResponse[],
+  quotesWithError: [],
+  quotesByPriceWithoutError: mockQuotesData as QuoteResponse[],
+  quotesByReliabilityWithoutError: mockQuotesData as QuoteResponse[],
+  recommendedCustomAction: undefined,
+  recommendedQuote: mockQuotesData[1] as QuoteResponse,
+  sorted: [],
   isFetching: false,
   error: null,
   query: mockQueryGetQuotes,
 };
 
-let mockUseQuotesValues: Partial<ReturnType<typeof useQuotes>> = {
-  ...mockUseQuotesInitialValues,
+let mockUseQuotesAndCustomActionsValues: Partial<
+  ReturnType<typeof useQuotesAndCustomActions>
+> = {
+  ...mockUseQuotesAndCustomActionsInitialValues,
 };
 
-jest.mock('../../hooks/useQuotes', () => jest.fn(() => mockUseQuotesValues));
+jest.mock('../../hooks/useQuotesAndCustomActions', () =>
+  jest.fn(() => mockUseQuotesAndCustomActionsValues),
+);
 
 describe('Quotes', () => {
   afterEach(() => {
@@ -150,19 +199,24 @@ describe('Quotes', () => {
     mockUseParamsValues = {
       ...mockUseParamsInitialValues,
     };
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
     };
   });
 
   it('calls setOptions when rendering', async () => {
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       isFetching: true,
       quotes: undefined,
+      quotesWithoutError: [],
+      quotesWithError: [],
+      quotesByPriceWithoutError: [],
+      quotesByReliabilityWithoutError: [],
+      recommendedQuote: undefined,
     };
     render(Quotes);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalled();
   });
 
   it('navigates and tracks event on cancel button press', async () => {
@@ -172,7 +226,9 @@ describe('Quotes', () => {
     expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Quotes Screen',
-      results_count: mockQuotesData.filter((quote) => !quote.error).length,
+      results_count:
+        mockUseQuotesAndCustomActionsInitialValues.quotesByPriceWithoutError
+          ?.length,
     });
     act(() => {
       jest.useRealTimers();
@@ -188,7 +244,9 @@ describe('Quotes', () => {
     expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Quotes Screen',
-      results_count: mockQuotesData.filter((quote) => !quote.error).length,
+      results_count:
+        mockUseQuotesAndCustomActionsInitialValues.quotesByPriceWithoutError
+          ?.length,
     });
     act(() => {
       jest.useRealTimers();
@@ -197,8 +255,8 @@ describe('Quotes', () => {
 
   it('renders animation on first fetching', async () => {
     jest.useRealTimers();
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       isFetching: true,
       quotes: undefined,
     };
@@ -209,9 +267,13 @@ describe('Quotes', () => {
   });
 
   it('renders correctly after animation without quotes', async () => {
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
-      quotes: [],
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
+      customActions: [],
+      quotesWithoutError: [],
+      quotesByPriceWithoutError: [],
+      quotesByReliabilityWithoutError: [],
+      recommendedQuote: undefined,
     };
     render(Quotes);
     act(() => {
@@ -225,7 +287,7 @@ describe('Quotes', () => {
     });
   });
 
-  it('renders correctly after animation with quotes', async () => {
+  it('renders correctly after animation with the recommended quote', async () => {
     render(Quotes);
     act(() => {
       jest.advanceTimersByTime(3000);
@@ -237,14 +299,7 @@ describe('Quotes', () => {
     });
   });
 
-  it('renders correctly after animation with quotes and expanded', async () => {
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
-      quotes: [
-        ...mockQuotesData.slice(0, 2),
-        { ...mockQuotesData[2], error: false },
-      ] as (QuoteResponse | QuoteError)[],
-    };
+  it('renders correctly after animation with expanded quotes', async () => {
     render(Quotes);
     fireEvent.press(
       screen.getByRole('button', { name: 'Explore more options' }),
@@ -280,13 +335,40 @@ describe('Quotes', () => {
     });
   });
 
+  it('calls hardware back handler ', async () => {
+    const backHandlerMock = jest.spyOn(BackHandler, 'addEventListener');
+    const removeMock = jest.fn();
+
+    backHandlerMock.mockImplementation((event, handler) => {
+      if (event === 'hardwareBackPress') {
+        handler();
+        return { remove: removeMock } as NativeEventSubscription;
+      }
+      return { remove: jest.fn() } as NativeEventSubscription;
+    });
+
+    const { unmount } = render(Quotes);
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Explore more options' }),
+    );
+    backHandlerMock.mock.calls[0][1]();
+    unmount();
+    expect(removeMock).toHaveBeenCalled();
+    backHandlerMock.mockRestore();
+  });
+
   const simulateQuoteSelection = async (
     browser: ProviderBuyFeatureBrowserEnum,
   ) => {
-    // Mock the functions for the 2nd mocked quote
-    const mockData = cloneDeep(mockQuotesData);
-    const mockedQuote = mockData[1] as QuoteResponse;
-    const mockQuoteProviderName = mockedQuote.provider?.name as string;
+    const mockedRecommendedQuote =
+      mockUseQuotesAndCustomActionsInitialValues.recommendedQuote;
+
+    if (!mockedRecommendedQuote) {
+      throw new Error('No recommended quote found');
+    }
+
+    const mockQuoteProviderName = mockedRecommendedQuote?.provider
+      ?.name as string;
 
     const mockedBuyAction = {
       browser,
@@ -298,11 +380,12 @@ describe('Quotes', () => {
         }),
     };
 
-    mockedQuote.buy = () => Promise.resolve(mockedBuyAction);
+    (mockedRecommendedQuote as QuoteResponse).buy = () =>
+      Promise.resolve(mockedBuyAction);
 
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
-      quotes: mockData as (QuoteResponse | QuoteError)[],
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
+      recommendedQuote: mockedRecommendedQuote,
     };
     render(Quotes);
     act(() => {
@@ -322,16 +405,232 @@ describe('Quotes', () => {
       fireEvent.press(quoteContinueButton);
     });
 
-    return { mockedQuote, mockedBuyAction };
+    return { mockedRecommendedQuote, mockedBuyAction };
   };
 
+  describe('custom action', () => {
+    const createWidgetMock = jest.fn().mockResolvedValue({
+      url: 'https://test-url.on-ramp.metamask',
+      orderId: 'test-order-id',
+    });
+
+    let mockedBuyAction = {
+      url: 'https://test-url.on-ramp.metamask',
+      orderId: 'test-order-id',
+      browser:
+        ProviderBuyFeatureBrowserEnum.AppBrowser as ProviderBuyFeatureBrowserEnum,
+      createWidget: createWidgetMock,
+    };
+
+    const getSellUrl = jest.fn().mockResolvedValue(mockedBuyAction);
+    const getBuyUrl = jest.fn().mockResolvedValue(mockedBuyAction);
+
+    const mockSdk = {
+      getSellUrl,
+      getBuyUrl,
+    };
+
+    const simulateCustomActionCtaPress = async () => {
+      mockUseQuotesAndCustomActionsValues = {
+        ...mockUseQuotesAndCustomActionsInitialValues,
+        recommendedCustomAction: mockCustomAction,
+      };
+
+      // pull out the custom action provider name
+      const mockCustomActionProviderName = mockCustomAction.buy.provider
+        ?.name as string;
+
+      const getUrlMethod = mockUseRampSDKValues.isBuy
+        ? 'getBuyUrl'
+        : 'getSellUrl';
+
+      mockSdk[getUrlMethod].mockResolvedValue(mockedBuyAction);
+
+      render(Quotes);
+
+      act(() => {
+        jest.advanceTimersByTime(3000);
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      });
+
+      const customActionToSelect = screen.getByLabelText(
+        mockCustomActionProviderName,
+      );
+
+      fireEvent.press(customActionToSelect);
+
+      const customActionContinueButton = screen.getByRole('button', {
+        name: `Continue with ${mockCustomActionProviderName}`,
+      });
+
+      await act(async () => {
+        fireEvent.press(customActionContinueButton);
+      });
+    };
+
+    it('renders correctly after animation with the recommended custom action', async () => {
+      mockUseQuotesAndCustomActionsValues = {
+        ...mockUseQuotesAndCustomActionsInitialValues,
+        recommendedCustomAction: mockCustomAction,
+      };
+
+      render(Quotes);
+      act(() => {
+        jest.advanceTimersByTime(3000);
+        jest.clearAllTimers();
+      });
+      expect(screen.toJSON()).toMatchSnapshot();
+      act(() => {
+        jest.useRealTimers();
+      });
+    });
+
+    it('does nothing is there is no SDK or custom action', async () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: undefined,
+      };
+      await simulateCustomActionCtaPress();
+      expect(mockSdk.getBuyUrl).not.toHaveBeenCalled();
+      expect(mockSdk.getSellUrl).not.toHaveBeenCalled();
+    });
+
+    it('calls the correct analytics event for buy custom action', async () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: mockSdk,
+        isBuy: true,
+        isSell: false,
+      };
+      await simulateCustomActionCtaPress();
+      expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      [
+        "ONRAMP_DIRECT_PROVIDER_CLICKED",
+        {
+          "chain_id_destination": "1",
+          "currency_destination": undefined,
+          "currency_source": "USD",
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "provider_onramp": "Paypal (Staging)",
+          "region": "mock-region-id",
+        },
+      ]
+    `);
+    });
+
+    it('calls the correct analytics event for sell custom action', async () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: mockSdk,
+        isBuy: false,
+        isSell: true,
+      };
+      await simulateCustomActionCtaPress();
+      expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      [
+        "OFFRAMP_DIRECT_PROVIDER_CLICKED",
+        {
+          "chain_id_source": "1",
+          "currency_destination": "USD",
+          "currency_source": undefined,
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "provider_offramp": "Paypal (Staging)",
+          "region": "mock-region-id",
+        },
+      ]
+    `);
+    });
+
+    it('calls the correct sdk method for buy custom action', async () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: mockSdk,
+        isBuy: true,
+        isSell: false,
+      };
+      await simulateCustomActionCtaPress();
+      expect(mockSdk.getBuyUrl).toHaveBeenCalledWith(
+        mockCustomAction.buy.provider,
+        'mock-region-id',
+        '/payment-methods/test-payment-method',
+        'mock-asset-id',
+        'mock-fiat-currency-id',
+        50,
+        '0x1234567890',
+      );
+    });
+
+    it('calls the correct sdk method for sell custom action', async () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: mockSdk,
+        isBuy: false,
+        isSell: true,
+      };
+      await simulateCustomActionCtaPress();
+      expect(mockSdk.getSellUrl).toHaveBeenCalledWith(
+        mockCustomAction.buy.provider,
+        'mock-region-id',
+        '/payment-methods/test-payment-method',
+        'mock-asset-id',
+        'mock-fiat-currency-id',
+        50,
+        '0x1234567890',
+      );
+    });
+
+    it('calls createWidget and navigates to the url when pressing custom action CTA in the App Browser', async () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: mockSdk,
+      };
+      await simulateCustomActionCtaPress();
+
+      expect(createWidgetMock).toBeCalledWith(
+        mockUseRampSDKValues.callbackBaseUrl,
+      );
+
+      expect(mockNavigate).toBeCalledTimes(1);
+      expect(mockNavigate).toBeCalledWith(Routes.RAMP.CHECKOUT, {
+        provider: mockCustomAction.buy.provider,
+        customOrderId: 'test-order-id',
+        url: 'https://test-url.on-ramp.metamask',
+      });
+      expect(mockRenderInAppBrowser).not.toBeCalled();
+    });
+
+    it('calls renderInAppBrowser hook when pressing CTA in the iOSBrowser', async () => {
+      mockedBuyAction = {
+        ...mockedBuyAction,
+        browser: ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
+      };
+
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: mockSdk,
+      };
+
+      await simulateCustomActionCtaPress();
+
+      expect(mockRenderInAppBrowser).toBeCalledWith(
+        mockedBuyAction,
+        mockCustomAction.buy.provider,
+        50,
+        'USD',
+      );
+
+      expect(mockNavigate).not.toBeCalled();
+    });
+  });
+
   it('navigates and tracks events when pressing buy button with app browser quote', async () => {
-    const { mockedQuote } = await simulateQuoteSelection(
+    const { mockedRecommendedQuote } = await simulateQuoteSelection(
       ProviderBuyFeatureBrowserEnum.AppBrowser,
     );
     expect(mockNavigate).toBeCalledTimes(1);
     expect(mockNavigate).toBeCalledWith(Routes.RAMP.CHECKOUT, {
-      provider: mockedQuote.provider,
+      provider: mockedRecommendedQuote.provider,
       customOrderId: 'test-order-id',
       url: 'https://test-url.on-ramp.metamask',
     });
@@ -346,12 +645,15 @@ describe('Quotes', () => {
           "currency_source": "USD",
           "exchange_rate": 2809.8765432098767,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_onramp": "MoonPay (Staging)",
-          "quote_position": 2,
+          "quote_position": 1,
           "refresh_count": 1,
-          "results_count": 2,
+          "results_count": 3,
           "total_fee": 4.48,
         },
       ]
@@ -376,12 +678,15 @@ describe('Quotes', () => {
           "exchange_rate": 2809.8765432098767,
           "fiat_out": 0.0162,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_offramp": "MoonPay (Staging)",
-          "quote_position": 2,
+          "quote_position": 1,
           "refresh_count": 1,
-          "results_count": 2,
+          "results_count": 3,
           "total_fee": 4.48,
         },
       ]
@@ -389,15 +694,16 @@ describe('Quotes', () => {
   });
 
   it('calls renderInAppBrowser hook and tracks events when pressing buy button with in-app browser quote', async () => {
-    const { mockedQuote, mockedBuyAction } = await simulateQuoteSelection(
-      ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
-    );
+    const { mockedRecommendedQuote, mockedBuyAction } =
+      await simulateQuoteSelection(
+        ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
+      );
 
     expect(mockRenderInAppBrowser).toBeCalledWith(
       mockedBuyAction,
-      mockedQuote.provider,
-      mockedQuote.amountIn,
-      mockedQuote.fiat?.symbol,
+      mockedRecommendedQuote.provider,
+      mockedRecommendedQuote.amountIn,
+      mockedRecommendedQuote.fiat?.symbol,
     );
 
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
@@ -411,12 +717,15 @@ describe('Quotes', () => {
           "currency_source": "USD",
           "exchange_rate": 2809.8765432098767,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_onramp": "MoonPay (Staging)",
-          "quote_position": 2,
+          "quote_position": 1,
           "refresh_count": 1,
-          "results_count": 2,
+          "results_count": 3,
           "total_fee": 4.48,
         },
       ]
@@ -441,12 +750,15 @@ describe('Quotes', () => {
           "exchange_rate": 2809.8765432098767,
           "fiat_out": 0.0162,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_offramp": "MoonPay (Staging)",
-          "quote_position": 2,
+          "quote_position": 1,
           "refresh_count": 1,
-          "results_count": 2,
+          "results_count": 3,
           "total_fee": 4.48,
         },
       ]
@@ -460,21 +772,28 @@ describe('Quotes', () => {
       jest.clearAllTimers();
     });
 
-    const mockQuoteProvider = mockQuotesData[0]
-      .provider as QuoteResponse['provider'];
+    const mockRecommendedQuote =
+      mockUseQuotesAndCustomActionsValues.recommendedQuote;
+
+    if (!mockRecommendedQuote) {
+      throw new Error('No recommended quote found');
+    }
+
+    const mockRecommendedProvider =
+      mockRecommendedQuote.provider as QuoteResponse['provider'];
 
     const descriptionNotFound = screen.queryByText(
-      mockQuoteProvider.description,
+      mockRecommendedProvider.description,
     );
     expect(descriptionNotFound).toBeFalsy();
 
     const quoteProviderLogo = screen.getByLabelText(
-      `${mockQuoteProvider.name} logo`,
+      `${mockRecommendedProvider.name} logo`,
     );
 
     fireEvent.press(quoteProviderLogo);
 
-    const description = screen.queryByText(mockQuoteProvider.description);
+    const description = screen.queryByText(mockRecommendedProvider.description);
     expect(description).toBeTruthy();
 
     act(() => {
@@ -536,41 +855,33 @@ describe('Quotes', () => {
           "ONRAMP_QUOTES_RECEIVED",
           {
             "amount": 50,
-            "average_crypto_out": 0.016671,
-            "average_gas_fee": 1.32,
-            "average_processing_fee": 1.455,
-            "average_total_fee": 2.7750000000000004,
-            "average_total_fee_of_amount": 202.50619012432108,
+            "average_crypto_out": 0.016416043333333335,
+            "average_gas_fee": 1.0466666666666666,
+            "average_processing_fee": 2.89,
+            "average_total_fee": 3.936666666666667,
+            "average_total_fee_of_amount": 382.4978079068538,
             "chain_id_destination": "1",
             "currency_destination": "ETH",
             "currency_source": "USD",
             "payment_method_id": "/payment-methods/test-payment-method",
+            "provider_onramp_best_price": "Banxa (Staging)",
             "provider_onramp_first": "Banxa (Staging)",
-            "provider_onramp_last": "MoonPay (Staging)",
+            "provider_onramp_last": "Transak (Staging)",
             "provider_onramp_list": [
               "Banxa (Staging)",
               "MoonPay (Staging)",
+              "Transak (Staging)",
             ],
+            "provider_onramp_most_reliable": "MoonPay (Staging)",
             "quotes_amount_first": 0.017142,
-            "quotes_amount_last": 0.0162,
+            "quotes_amount_last": 0.01590613,
             "quotes_amount_list": [
               0.017142,
               0.0162,
+              0.01590613,
             ],
             "refresh_count": 1,
-            "results_count": 2,
-          },
-        ],
-        [
-          "ONRAMP_QUOTE_ERROR",
-          {
-            "amount": 50,
-            "chain_id_destination": "1",
-            "currency_destination": "ETH",
-            "currency_source": "USD",
-            "error_message": undefined,
-            "payment_method_id": "/payment-methods/test-payment-method",
-            "provider_onramp": "Transak (Staging)",
+            "results_count": 3,
           },
         ],
       ]
@@ -595,41 +906,33 @@ describe('Quotes', () => {
           "OFFRAMP_QUOTES_RECEIVED",
           {
             "amount": 50,
-            "average_fiat_out": 0.016671,
-            "average_gas_fee": 1.32,
-            "average_processing_fee": 1.455,
-            "average_total_fee": 2.7750000000000004,
-            "average_total_fee_of_amount": 202.50619012432108,
+            "average_fiat_out": 0.016416043333333335,
+            "average_gas_fee": 1.0466666666666666,
+            "average_processing_fee": 2.89,
+            "average_total_fee": 3.936666666666667,
+            "average_total_fee_of_amount": 382.4978079068538,
             "chain_id_source": "1",
             "currency_destination": "USD",
             "currency_source": "ETH",
             "payment_method_id": "/payment-methods/test-payment-method",
+            "provider_offramp_best_price": "Banxa (Staging)",
             "provider_offramp_first": "Banxa (Staging)",
-            "provider_offramp_last": "MoonPay (Staging)",
+            "provider_offramp_last": "Transak (Staging)",
             "provider_offramp_list": [
               "Banxa (Staging)",
               "MoonPay (Staging)",
+              "Transak (Staging)",
             ],
+            "provider_offramp_most_reliable": "MoonPay (Staging)",
             "quotes_amount_first": 0.017142,
-            "quotes_amount_last": 0.0162,
+            "quotes_amount_last": 0.01590613,
             "quotes_amount_list": [
               0.017142,
               0.0162,
+              0.01590613,
             ],
             "refresh_count": 1,
-            "results_count": 2,
-          },
-        ],
-        [
-          "OFFRAMP_QUOTE_ERROR",
-          {
-            "amount": 50,
-            "chain_id_source": "1",
-            "currency_destination": "USD",
-            "currency_source": "ETH",
-            "error_message": undefined,
-            "payment_method_id": "/payment-methods/test-payment-method",
-            "provider_offramp": "Transak (Staging)",
+            "results_count": 3,
           },
         ],
       ]
@@ -668,8 +971,8 @@ describe('Quotes', () => {
   });
 
   it('renders correctly when fetching quotes errors', async () => {
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       error: 'Test Error',
     };
     render(Quotes);
@@ -680,8 +983,8 @@ describe('Quotes', () => {
   });
 
   it('fetches quotes again when pressing button after fetching quotes errors', async () => {
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       error: 'Test Error',
     };
     render(Quotes);

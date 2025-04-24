@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Image,
@@ -21,14 +21,12 @@ import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import { useSelector } from 'react-redux';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import {
   getTestNetImageByChainId,
-  isLineaMainnet,
+  isLineaMainnetChainId,
   isMainNet,
+  isSolanaMainnet,
   isTestNet,
 } from '../../../util/networks';
 import images from 'images/image-icons';
@@ -38,6 +36,12 @@ import { BadgeAnchorElementShape } from '../../../component-library/components/B
 import useSvgUriViewBox from '../../hooks/useSvgUriViewBox';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import Logger from '../../../util/Logger';
+import { toHex } from '@metamask/controller-utils';
+import {
+  CustomNetworkImgMapping,
+  PopularList,
+  UnpopularNetworkList,
+} from '../../../util/networks/customNetworks';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -64,8 +68,10 @@ const RemoteImage = (props) => {
   const isImageUrl = isUrl(props?.source?.uri);
   const ipfsGateway = useIpfsGateway();
   const styles = createStyles();
-  const chainId = useSelector(selectChainId);
-  const ticker = useSelector(selectTicker);
+  const currentChainId = useSelector(selectChainId);
+  // The chainId would be passed in props from parent for collectible media
+  //TODO remove once migrated to TS and chainID is properly typed to hex
+  const chainId = props.chainId ? toHex(props.chainId) : currentChainId;
   const networkName = useSelector(selectNetworkName);
   const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState(false);
 
@@ -131,15 +137,33 @@ const RemoteImage = (props) => {
     );
   }, [uri]);
 
-  const NetworkBadgeSource = () => {
+  const NetworkBadgeSource = useCallback(() => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
     if (isMainNet(chainId)) return images.ETHEREUM;
 
-    if (isLineaMainnet(chainId)) return images['LINEA-MAINNET'];
+    if (isLineaMainnetChainId(chainId)) return images['LINEA-MAINNET'];
 
-    return ticker ? images[ticker] : undefined;
-  };
+    if (isSolanaMainnet(chainId)) return images.SOLANA;
+
+    const unpopularNetwork = UnpopularNetworkList.find(
+      (networkConfig) => networkConfig.chainId === chainId,
+    );
+
+    const popularNetwork = PopularList.find(
+      (networkConfig) => networkConfig.chainId === chainId,
+    );
+    const network = unpopularNetwork || popularNetwork;
+    const customNetworkImg = CustomNetworkImgMapping[chainId];
+
+    if (network) {
+      return network.rpcPrefs.imageSource;
+    } else if (customNetworkImg) {
+      return customNetworkImg;
+    }
+    return undefined;
+  }, [chainId]);
+
   const isSVG =
     source &&
     source.uri &&
@@ -287,6 +311,7 @@ RemoteImage.propTypes = {
   isTokenImage: PropTypes.bool,
 
   isFullRatio: PropTypes.bool,
+  chainId: PropTypes.string,
 };
 
 export default RemoteImage;

@@ -4,6 +4,7 @@ import useTokenDetectionPolling from './useTokenDetectionPolling';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 import { RootState } from '../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -54,6 +55,12 @@ describe('useTokenDetectionPolling', () => {
               ],
             },
           },
+        },
+        MultichainNetworkController: {
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+          multichainNetworkConfigurationsByChainId: {},
         },
       },
     },

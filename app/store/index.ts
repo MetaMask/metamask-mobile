@@ -1,6 +1,6 @@
 import { AnyAction } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { persistStore, persistReducer } from 'redux-persist';
+import { persistStore, persistReducer, Persistor } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
 import { rootSaga } from './sagas';
 import rootReducer, { RootState } from '../reducers';
@@ -14,6 +14,7 @@ import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
 import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
+import { toggleBasicFunctionality } from '../actions/settings';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -22,7 +23,7 @@ const pReducer = persistReducer<RootState, AnyAction>(
 );
 
 // eslint-disable-next-line import/no-mutable-exports
-let store: ReduxStore, persistor;
+let store: ReduxStore, persistor: Persistor;
 const createStoreAndPersistor = async () => {
   trace({
     name: TraceName.StoreInit,
@@ -67,6 +68,8 @@ const createStoreAndPersistor = async () => {
     endTrace({ name: TraceName.StoreInit });
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
+    // This sets the basic functionality value from the persisted state when the app is restarted
+    store.dispatch(toggleBasicFunctionality(store.getState().settings.basicFunctionalityEnabled));
   };
 
   persistor = persistStore(store, null, onPersistComplete);

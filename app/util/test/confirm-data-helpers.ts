@@ -1,3 +1,4 @@
+import { GasFeeState } from '@metamask/gas-fee-controller';
 import {
   MessageParamsPersonal,
   MessageParamsTyped,
@@ -5,22 +6,33 @@ import {
   SignatureRequestStatus,
   SignatureRequestType,
 } from '@metamask/signature-controller';
-import { GasFeeState } from '@metamask/gas-fee-controller';
-import { Hex } from '@metamask/utils';
 import {
   TransactionControllerState,
   TransactionEnvelopeType,
+  TransactionMeta,
+  TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
-
+import { Hex } from '@metamask/utils';
+import { merge } from 'lodash';
 import { backgroundState } from './initial-root-state';
+import { ApprovalRequest } from '@metamask/approval-controller';
+
 export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {
     confirmation_redesign: {
       signatures: true,
-      staking_transactions: true,
+      staking_confirmations: true,
     },
   },
 };
+
+const mockTypeDefEIP712Domain = [
+  { name: 'name', type: 'string' },
+  { name: 'version', type: 'string' },
+  { name: 'chainId', type: 'uint256' },
+  { name: 'verifyingContract', type: 'address' }
+];
 
 export const personalSignSignatureRequest = {
   chainId: '0x1',
@@ -503,7 +515,7 @@ export const securityAlertResponse = {
   chainId: '0x1',
 };
 
-export const stakingDepositConfirmationState = {
+const stakingConfirmationBaseState = {
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -571,7 +583,7 @@ export const stakingDepositConfirmationState = {
               value: '0x5af3107a4000',
               type: TransactionEnvelopeType.feeMarket,
             },
-            type: 'stakingDeposit',
+            type: TransactionType.stakingUnstake,
             userEditedGasLimit: false,
             userFeeLevel: 'medium',
             verifiedOnBlockchain: false,
@@ -611,16 +623,20 @@ export const stakingDepositConfirmationState = {
             rpcEndpoints: [
               {
                 networkClientId: 'mainnet',
+                url: 'https://mainnet.infura.io/v3/1234567890',
               },
             ],
+            defaultRpcEndpointIndex: 0,
           },
           '0xaa36a7': {
             nativeCurrency: 'ETH',
             rpcEndpoints: [
               {
                 networkClientId: 'sepolia',
+                url: 'https://sepolia.infura.io/v3/1234567890',
               },
             ],
+            defaultRpcEndpointIndex: 0,
           },
         },
         selectedNetworkClientId: 'mainnet',
@@ -663,5 +679,264 @@ export const stakingDepositConfirmationState = {
   },
   settings: {
     showFiatOnTestnets: true,
+  },
+};
+
+export const stakingDepositConfirmationState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingDeposit },
+          ],
+        } as unknown as TransactionControllerState,
+      },
+    },
+  },
+);
+
+export const stakingWithdrawalConfirmationState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingUnstake },
+          ],
+        } as unknown as TransactionControllerState,
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              '0x0000000000000000000000000000000000000000': {
+                address: '0x0000000000000000000000000000000000000000',
+              },
+            },
+            selectedAccount: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      },
+    },
+  },
+);
+
+export const stakingClaimConfirmationState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingClaim },
+          ],
+        } as unknown as TransactionControllerState,
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              '0x0000000000000000000000000000000000000000': {
+                address: '0x0000000000000000000000000000000000000000',
+              },
+            },
+            selectedAccount: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      },
+    },
+  },
+);
+
+export enum SignTypedDataMockType {
+  BATCH = 'BATCH',
+  DAI = 'DAI',
+}
+
+const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
+  [SignTypedDataMockType.BATCH]: JSON.stringify({
+    types: {
+      EIP712Domain: mockTypeDefEIP712Domain,
+      PermitBatch: [
+        { name: 'details', type: 'PermitDetails[]' },
+        { name: 'spender', type: 'address' },
+        { name: 'sigDeadline', type: 'uint256' }
+      ],
+      PermitDetails: [
+        { name: 'token', type: 'address' },
+        { name: 'amount', type: 'uint160' },
+        { name: 'expiration', type: 'uint48' },
+        { name: 'nonce', type: 'uint48' }
+      ],
+    },
+    domain: {
+      name: 'Permit2',
+      chainId: '1',
+      version: '1',
+      verifyingContract: '0x000000000022d473030f116ddee9f6b43ac78ba3'
+    },
+    primaryType: 'PermitBatch',
+    message: {
+      details: [
+        {
+          token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          amount: '1461501637330902918203684832716283019655932542975',
+          expiration: '1722887542',
+          nonce: '5'
+        },
+        {
+          token: '0xb0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          amount: '250',
+          expiration: '1722887642',
+          nonce: '6'
+        }
+      ],
+      spender: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
+      sigDeadline: '1720297342'
+    }
+  }),
+  [SignTypedDataMockType.DAI]: JSON.stringify({
+    domain: {
+      name: 'Dai Stablecoin',
+      version: '1',
+      chainId: 1,
+      verifyingContract: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
+    },
+    types: {
+      EIP712Domain: mockTypeDefEIP712Domain,
+      Permit: [
+        { name: 'holder', type: 'address' },
+        { name: 'spender', type: 'address' },
+        { name: 'nonce', type: 'uint256' },
+        { name: 'expiry', type: 'uint256' },
+        { name: 'allowed', type: 'bool' }
+      ]
+    },
+    primaryType: 'Permit',
+    message: {
+      spender: '0x5B38Da6a701c568545dCfcB03FcB875f56beddC4',
+      tokenId: '3606393',
+      nonce: 0,
+      expiry: 0,
+      allowed: false
+    },
+  }),
+};
+
+export function generateStateSignTypedData(mockType: SignTypedDataMockType) {
+  const mockSignatureRequest = {
+    id: 'c5067710-87cf-11ef-916c-71f266571322',
+    chainId: '0x1' as Hex,
+    type: SignatureRequestType.TypedSign,
+    messageParams: {
+      data: SIGN_TYPE_DATA[mockType],
+      from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+      version: 'V4',
+      requestId: 14,
+      signatureMethod: 'eth_signTypedData_v4',
+      origin: 'https://metamask.github.io',
+      metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
+      meta: {
+        url: 'https://metamask.github.io/test-dapp/',
+        title: 'E2E Test Dapp',
+        icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+        analytics: { request_source: 'In-App-Browser' },
+      },
+    },
+    networkClientId: '1',
+    status: SignatureRequestStatus.Unapproved,
+    time: 1733143817088,
+  } as SignatureRequest;
+
+  return {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        ApprovalController: {
+          pendingApprovals: {
+            'c5067710-87cf-11ef-916c-71f266571322': {
+              id: 'c5067710-87cf-11ef-916c-71f266571322',
+              origin: 'metamask.github.io',
+              type: SignatureRequestType.TypedSign,
+              time: 1733143817088,
+              requestData: { ...mockSignatureRequest },
+              requestState: null,
+              expectsResult: true,
+            },
+          },
+          pendingApprovalCount: 1,
+          approvalFlows: [],
+        },
+        SignatureController: {
+          signatureRequests: {
+            'c5067710-87cf-11ef-916c-71f266571322':
+            mockSignatureRequest,
+          },
+        },
+      },
+    },
+  };
+}
+
+const mockTxId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
+
+const mockApprovalRequest = {
+  id: mockTxId,
+  origin: 'metamask.github.io',
+  type: 'transaction',
+  time: 1731850822653,
+  requestData: {
+    txId: mockTxId,
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    origin: 'metamask.github.io'
+  },
+  requestState: null,
+  expectsResult: true,
+} as unknown as ApprovalRequest<TransactionMeta>;
+
+const mockTransaction = {
+  id: mockTxId,
+  type: TransactionType.contractInteraction,
+  txParams: {
+    data: '0x123456',
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    to: '0x1234567890123456789012345678901234567890',
+    value: '0x0',
+  },
+  chainId: '0x1' as `0x${string}`,
+  networkClientId: 'mainnet',
+  status: TransactionStatus.unapproved,
+  time: Date.now(),
+  origin: 'https://metamask.github.io',
+} as unknown as TransactionMeta;
+
+const contractInteractionBaseState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: { transactions: [mockTransaction] },
+      },
+    },
+  }
+);
+
+export const generateContractInteractionState = {
+  ...contractInteractionBaseState,
+  engine: {
+    ...contractInteractionBaseState.engine,
+    backgroundState: {
+      ...contractInteractionBaseState.engine.backgroundState,
+      // Set a completely new ApprovalController to reject the approval in
+      // stakingConfirmationBaseState
+      ApprovalController: {
+        pendingApprovals: { [mockTxId]: mockApprovalRequest },
+        pendingApprovalCount: 1,
+        approvalFlows: [],
+      },
+    },
   },
 };

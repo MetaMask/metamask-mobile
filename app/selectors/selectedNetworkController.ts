@@ -12,15 +12,16 @@ import { strings } from '../../locales/i18n';
 import {
   selectProviderConfig,
   selectNetworkClientId,
-  selectNetworkConfigurations,
   selectSelectedNetworkClientId,
-  selectChainId as selectProviderChainId,
+  selectEvmChainId as selectProviderChainId,
   selectRpcUrl as selectProviderRpcUrl,
   ProviderConfig,
-  selectChainId,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from './networkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
+import { isNonEvmChainId } from '../core/Multichain/utils';
 
 const selectSelectedNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.SelectedNetworkController;
@@ -44,9 +45,9 @@ export const makeSelectDomainNetworkClientId = () =>
 const selectProviderNetworkName = createSelector(
   [
     selectProviderConfig,
-    selectNetworkConfigurations,
+    selectEvmNetworkConfigurationsByChainId,
     selectSelectedNetworkClientId,
-    selectChainId,
+    selectEvmChainId,
   ],
   (
     providerConfig: ProviderConfig,
@@ -54,6 +55,10 @@ const selectProviderNetworkName = createSelector(
     selectedNetworkClientId,
     chainId,
   ) => {
+    if (isNonEvmChainId(chainId)) {
+      return networkConfigurations[chainId]?.name;
+    }
+
     if (providerConfig.type === 'rpc') {
       return networkConfigurations[chainId]?.rpcEndpoints.find(
         ({ networkClientId }) => networkClientId === selectedNetworkClientId,
@@ -85,7 +90,7 @@ const selectProviderNetworkImageSource = createSelector(
 
 const selectChainIdToUse = createSelector(
   [
-    selectNetworkConfigurations,
+    selectEvmNetworkConfigurationsByChainId,
     makeSelectDomainNetworkClientId(),
     selectNetworkClientId,
   ],
@@ -96,7 +101,7 @@ const selectChainIdToUse = createSelector(
     let chainIdToUse;
 
     for (const networkConfig of Object.values(
-      networkConfigurations as Record<Hex, NetworkConfiguration>,
+      networkConfigurations as unknown as Record<Hex, NetworkConfiguration>,
     )) {
       const matchingRpcEndpoint = networkConfig.rpcEndpoints.find(
         (endpoint) => endpoint.networkClientId === relevantNetworkClientId,
@@ -114,11 +119,11 @@ const selectChainIdToUse = createSelector(
 export const makeSelectNetworkName = () =>
   createSelector(
     [
-      selectNetworkConfigurations,
+      selectEvmNetworkConfigurationsByChainId,
       selectProviderNetworkName,
       makeSelectDomainNetworkClientId(),
       selectNetworkClientId,
-      selectChainId,
+      selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
     ],
@@ -152,11 +157,11 @@ export const makeSelectNetworkName = () =>
 export const makeSelectNetworkImageSource = () =>
   createSelector(
     [
-      selectNetworkConfigurations,
+      selectEvmNetworkConfigurationsByChainId,
       selectProviderNetworkImageSource,
       makeSelectDomainNetworkClientId(),
       selectNetworkClientId,
-      selectChainId,
+      selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
     ],
@@ -196,7 +201,7 @@ export const makeSelectChainId = () =>
       selectProviderChainId,
       makeSelectDomainNetworkClientId(),
       selectNetworkClientId,
-      selectChainId,
+      selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
     ],
@@ -224,14 +229,15 @@ export const makeSelectChainId = () =>
     },
   );
 
+// TODO: [SOLANA] - This do not support non evm networks, need to revisit
 export const makeSelectRpcUrl = () =>
   createSelector(
     [
-      selectNetworkConfigurations,
+      selectEvmNetworkConfigurationsByChainId,
       selectProviderRpcUrl,
       makeSelectDomainNetworkClientId(),
       selectNetworkClientId,
-      selectChainId,
+      selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
     ],
     (
@@ -242,6 +248,9 @@ export const makeSelectRpcUrl = () =>
       chainId,
       hostname,
     ) => {
+      if (isNonEvmChainId(chainId)) {
+        return;
+      }
       if (!hostname || !isPerDappSelectedNetworkEnabled())
         return providerRpcUrl;
       const relevantNetworkClientId =
@@ -261,6 +270,11 @@ export const makeSelectDomainIsConnectedDapp = () =>
     (networkClientIdsByDomains, hostname) =>
       Boolean(hostname && networkClientIdsByDomains?.[hostname]),
   );
+
+export const selectPerOriginChainId = (state: RootState, hostname?: string) => {
+  const chainIdSelector = makeSelectChainId();
+  return chainIdSelector(state, hostname);
+};
 
 export const useNetworkInfo = (hostname?: string) => {
   const selectNetworkName = useMemo(() => makeSelectNetworkName(), []);

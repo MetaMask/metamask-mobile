@@ -14,7 +14,7 @@ import React, {
 import { getProviderByChainId } from '../../../../util/notifications';
 import { useSelector } from 'react-redux';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectNetworkClientId,
 } from '../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../util/networks';
@@ -39,7 +39,7 @@ export const StakeSDKProvider: React.FC<
   PropsWithChildren<StakeProviderProps>
 > = ({ children }) => {
   const [sdkType, setSdkType] = useState(StakingType.POOLED);
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   const networkClientId = useSelector(selectNetworkClientId);
 
   const sdkService = useMemo(() => {

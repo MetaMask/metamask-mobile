@@ -10,11 +10,11 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
 import { useSelector } from 'react-redux';
-import { selectChainId } from '../../../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../../../selectors/networkController';
 import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
 import Engine from '../../../../../../core/Engine';
-import { STAKE_INPUT_VIEW_ACTIONS } from '../../../Views/StakeInputView/StakeInputView.types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { TokenI } from '../../../../Tokens/types';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
@@ -32,7 +32,7 @@ const StakingButtons = ({
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   const { isStakingSupportedChain } = useStakingChain();
   const { MultichainNetworkController } = Engine.context;
 
@@ -46,6 +46,9 @@ const StakingButtons = ({
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
+      params: {
+        token: asset,
+      },
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_WITHDRAW_BUTTON_CLICKED)
@@ -65,7 +68,7 @@ const StakingButtons = ({
       screen: Routes.STAKING.STAKE,
       params: {
         token: asset,
-        action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
       },
     });
     trackEvent(

@@ -1,5 +1,5 @@
 import { swapsUtils } from '@metamask/swaps-controller';
-import { BN } from 'ethereumjs-util';
+import BN from 'bnjs4';
 
 /* eslint-disable-next-line import/no-namespace */
 import * as controllerUtilsModule from '@metamask/controller-utils';
@@ -75,7 +75,11 @@ ENGINE_MOCK.context = {
   },
   TokenListController: {
     state: {
-      tokenList: {},
+      tokensChainsCache: {
+        '0x1': {
+          data: [],
+        },
+      },
     },
   },
 };
@@ -1181,7 +1185,7 @@ describe('Transactions utils :: isApprovalTransaction', () => {
 });
 
 describe('Transactions utils :: getTransactionReviewActionKey', () => {
-  const transaction = { to: '0xContractAddress' };
+  const transaction = { to: '0x1234567890123456789012345678901234567890' };
   const chainId = '1';
   it('returns `Unknown Method` review action key when transaction action key exists', async () => {
     const expectedReviewActionKey = 'Unknown Method';

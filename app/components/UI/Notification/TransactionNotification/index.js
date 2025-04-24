@@ -25,7 +25,7 @@ import { collectibleContractsSelector } from '../../../../reducers/collectibles'
 import { useTheme } from '../../../../util/theme';
 import {
   selectChainId,
-  selectTicker,
+  selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -36,6 +36,7 @@ import { selectContractExchangeRates } from '../../../../selectors/tokenRatesCon
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectCurrentTransactionMetadata } from '../../../../selectors/confirmTransaction';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -219,7 +220,9 @@ function TransactionNotification(props) {
       const tx = transactions.find(
         ({ id }) => id === currentNotification.transaction.id,
       );
+
       if (!tx) return;
+
       const {
         selectedAddress,
         ticker,
@@ -234,6 +237,7 @@ function TransactionNotification(props) {
         swapsTransactions,
         swapsTokens,
       } = props;
+
       const [transactionElement, transactionDetails] = await decodeTransaction({
         ...props,
         tx,
@@ -431,7 +435,7 @@ TransactionNotification.propTypes = {
   primaryCurrency: PropTypes.string,
 };
 
-const mapStateToProps = (state) => {
+const mapStateToProps = (state, ownProps) => {
   const chainId = selectChainId(state);
 
   const {
@@ -445,11 +449,14 @@ const mapStateToProps = (state) => {
       chainId
     ] || [];
 
+  const tx = TransactionController.transactions.find(
+    ({ id }) => id === ownProps?.currentNotification.transaction.id,
+  );
   return {
     accounts: selectAccounts(state),
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
     transactions: TransactionController.transactions,
-    ticker: selectTicker(state),
+    ticker: selectTickerByChainId(state, tx.chainId),
     chainId,
     tokens: selectTokensByAddress(state),
     collectibleContracts: collectibleContractsSelector(state),

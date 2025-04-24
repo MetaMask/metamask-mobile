@@ -21,7 +21,7 @@ import {
   renderShortAddress,
   validateAddressOrENS,
 } from '../../../../../util/address';
-import ErrorMessage from '../../../confirmations/SendFlow/ErrorMessage';
+import ErrorMessage from '../../../confirmations/legacy/SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { mockTheme, ThemeContext } from '../../../../../util/theme';
@@ -31,7 +31,7 @@ import {
 } from '../../../../../constants/error';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createQRScannerNavDetails } from '../../../QRTabSwitcher';
-import { selectChainId } from '../../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { AddContactViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { toLowerCaseEquals } from '../../../../../util/general';
@@ -507,7 +507,7 @@ ContactForm.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   addressBook: selectAddressBook(state),
   internalAccounts: selectInternalAccounts(state),
-  chainId: selectChainId(state),
+  chainId: selectEvmChainId(state),
 });
 
 export default connect(mapStateToProps)(ContactForm);

@@ -7,7 +7,7 @@ import {
   Reason,
   ResultType,
   SecurityAlertSource,
-} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 // eslint-disable-next-line import/no-namespace
 import * as NetworkControllerMock from '../../selectors/networkController';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
@@ -35,7 +35,7 @@ describe('Blockaid util', () => {
   describe('getBlockaidTransactionMetricsParams', () => {
     beforeEach(() => {
       jest
-        .spyOn(NetworkControllerMock, 'selectChainId')
+        .spyOn(NetworkControllerMock, 'selectEvmChainId')
         .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
     });
 
@@ -112,7 +112,7 @@ describe('Blockaid util', () => {
   describe('getBlockaidMetricsParams', () => {
     beforeEach(() => {
       jest
-        .spyOn(NetworkControllerMock, 'selectChainId')
+        .spyOn(NetworkControllerMock, 'selectEvmChainId')
         .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
     });
 
@@ -127,7 +127,7 @@ describe('Blockaid util', () => {
 
     it('returns empty object when chain id is not in supported chain ids list', async () => {
       jest
-        .spyOn(NetworkControllerMock, 'selectChainId')
+        .spyOn(NetworkControllerMock, 'selectEvmChainId')
         .mockReturnValue('0x10');
       const result = getBlockaidMetricsParams(undefined);
       expect(result).toStrictEqual({});
@@ -197,15 +197,26 @@ describe('Blockaid util', () => {
 
     it('return true if blockaid is supported on current network and its enabled by the user', async () => {
       jest
-        .spyOn(NetworkControllerMock, 'selectChainId')
+        .spyOn(NetworkControllerMock, 'selectEvmChainId')
         .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
       const result = await isBlockaidFeatureEnabled();
       expect(result).toEqual(true);
     });
 
+    it('return false if blockaid is not supported on current network', async () => {
+      Engine.context.PreferencesController.state.securityAlertsEnabled = false;
+
+      jest
+        .spyOn(NetworkControllerMock, 'selectEvmChainId')
+        .mockReturnValue('0x9');
+
+      const result = await isBlockaidFeatureEnabled();
+      expect(result).toEqual(false);
+    });
+
     it('return false if blockaid is not enabled by the user', async () => {
       jest
-        .spyOn(NetworkControllerMock, 'selectChainId')
+        .spyOn(NetworkControllerMock, 'selectEvmChainId')
         .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
       Engine.context.PreferencesController.state.securityAlertsEnabled = false;
       const result = await isBlockaidFeatureEnabled();

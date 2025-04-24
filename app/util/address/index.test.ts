@@ -16,6 +16,7 @@ import {
   getLabelTextByAddress,
   isSnapAccount,
   toFormattedAddress,
+  isHDOrFirstPartySnapAccount,
 } from '.';
 import {
   mockHDKeyringAddress,
@@ -24,6 +25,11 @@ import {
   mockSnapAddress1,
   mockSnapAddress2,
 } from '../test/keyringControllerTestUtils';
+import {
+  internalAccount1,
+  MOCK_SOLANA_ACCOUNT,
+} from '../test/accountsControllerTestUtils';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 jest.mock('../../core/Engine', () => {
   const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
@@ -113,7 +119,7 @@ describe('formatAddress', () => {
 
   describe('with EVM addresses', () => {
     it('returns checksummed address formatted for short type', () => {
-      const expectedValue = '0xC495...D272';
+      const expectedValue = '0xC4955...4D272';
       expect(formatAddress(mockEvmAddress, 'short')).toBe(expectedValue);
     });
 
@@ -130,7 +136,7 @@ describe('formatAddress', () => {
 
   describe('with non-EVM addresses', () => {
     it('returns address formatted for short type without checksumming', () => {
-      const expectedValue = 'bc1qxy...0wlh';
+      const expectedValue = 'bc1qxy2...x0wlh';
       expect(formatAddress(mockBtcAddress, 'short')).toBe(expectedValue);
     });
 
@@ -281,6 +287,7 @@ describe('shouldShowBlockExplorer', () => {
             networkClientId: 'networkId1',
             type: RpcEndpointType.Custom,
             url: 'https://mainnet.infura.io/v3/123',
+            failoverUrls: [],
           },
         ],
       },
@@ -458,5 +465,69 @@ describe('isSnapAccount,', () => {
     expect(
       isSnapAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBeFalsy();
+  });
+});
+
+describe('isHDOrFirstPartySnapAccount', () => {
+  it('should return true for HD accounts', () => {
+    expect(isHDOrFirstPartySnapAccount(internalAccount1)).toBe(true);
+  });
+
+  it('should return true for first-party snap accounts (matching snapId)', () => {
+    expect(isHDOrFirstPartySnapAccount(MOCK_SOLANA_ACCOUNT)).toBe(true);
+  });
+
+  it('should return true for first-party snap accounts (with entropySource)', () => {
+    expect(isHDOrFirstPartySnapAccount(MOCK_SOLANA_ACCOUNT)).toBe(true);
+  });
+
+  it('should return false for third-party snap accounts', () => {
+    expect(
+      isHDOrFirstPartySnapAccount({
+        ...MOCK_SOLANA_ACCOUNT,
+        metadata: {
+          ...MOCK_SOLANA_ACCOUNT.metadata,
+          snap: {
+            id: 'third-party-snap',
+            name: 'Third Party Snap',
+            enabled: true,
+          },
+        },
+        options: {},
+      }),
+    ).toBe(false);
+  });
+
+  it.each([
+    {
+      type: KeyringTypes.simple,
+    },
+    {
+      type: KeyringTypes.ledger,
+    },
+    {
+      type: KeyringTypes.oneKey,
+    },
+    {
+      type: KeyringTypes.qr,
+    },
+    {
+      type: KeyringTypes.trezor,
+    },
+    {
+      type: KeyringTypes.lattice,
+    },
+  ])('returns false for keyring type $type', ({ type }) => {
+    expect(
+      isHDOrFirstPartySnapAccount({
+        ...internalAccount1,
+        metadata: {
+          ...internalAccount1.metadata,
+          keyring: {
+            type,
+          },
+        },
+      }),
+    ).toBe(false);
   });
 });

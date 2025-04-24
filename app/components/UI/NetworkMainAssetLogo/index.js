@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import TokenIcon from '../Swaps/components/TokenIcon';
 import {
   selectChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 
 function NetworkMainAssetLogo({
@@ -40,7 +40,7 @@ function NetworkMainAssetLogo({
 
 const mapStateToProps = (state, ownProps) => ({
   chainId: ownProps.chainId || selectChainId(state),
-  ticker: ownProps.ticker || selectTicker(state),
+  ticker: ownProps.ticker || selectEvmTicker(state),
 });
 
 NetworkMainAssetLogo.propTypes = {

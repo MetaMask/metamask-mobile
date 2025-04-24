@@ -44,6 +44,7 @@ interface AddressFromProps {
 const AddressFrom = ({
   asset,
   chainId,
+  chainId,
   dontWatchAsset,
   from,
   origin,
@@ -51,6 +52,12 @@ const AddressFrom = ({
   const [accountName, setAccountName] = useState('');
 
   const { styles } = useStyles(stylesheet, {});
+  const { addressBalance } = useAddressBalance(
+    asset,
+    from,
+    dontWatchAsset,
+    chainId,
+  );
   const { addressBalance } = useAddressBalance(
     asset,
     from,

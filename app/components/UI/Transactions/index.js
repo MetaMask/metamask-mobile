@@ -39,6 +39,7 @@ import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/Le
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import {
+  findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
   getBlockExplorerAddressUrl,
   getBlockExplorerName,
@@ -50,7 +51,7 @@ import { validateTransactionActionBalance } from '../../../util/transactions';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import TransactionActionModal from '../TransactionActionModal';
 import TransactionElement from '../TransactionElement';
-import UpdateEIP1559Tx from '../../Views/confirmations/components/UpdateEIP1559Tx';
+import UpdateEIP1559Tx from '../../Views/confirmations/legacy/components/UpdateEIP1559Tx';
 import RetryModal from './RetryModal';
 import PriceChartContext, {
   PriceChartProvider,
@@ -77,6 +78,12 @@ import {
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { isEqual } from 'lodash';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -123,6 +130,7 @@ const createStyles = (colors, typography) =>
     disclaimerText: {
       color: colors.text.default,
       ...typography.sBodySM,
+      fontFamily: getFontFamily(TextVariant.BodySM),
     },
   });
 
@@ -269,12 +277,16 @@ class Transactions extends PureComponent {
     const {
       providerConfig: { type, rpcUrl },
       networkConfigurations,
+      chainId,
     } = this.props;
     let blockExplorer;
     if (type === RPC) {
       blockExplorer =
         findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
+    } else if (isNonEvmChainId(chainId)) {
+      // TODO: [SOLANA] - block explorer needs to be implemented
+      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }
 
     this.setState({ rpcBlockExplorer: blockExplorer });
@@ -353,11 +365,9 @@ class Transactions extends PureComponent {
   };
 
   onRefresh = async () => {
-    const { chainId } = this.props;
-
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions([chainId]);
+    await updateIncomingTransactions();
 
     this.setState({ refreshing: false });
   };
@@ -666,12 +676,12 @@ class Transactions extends PureComponent {
       conversionRate={this.props.conversionRate}
       currentCurrency={this.props.currentCurrency}
       navigation={this.props.navigation}
+      txChainId={item.chainId}
     />
   );
 
-  toggleRetry = (errorMsg) => {
+  toggleRetry = (errorMsg) =>
     this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg }));
-  };
 
   retry = () => {
     this.setState((state) => ({

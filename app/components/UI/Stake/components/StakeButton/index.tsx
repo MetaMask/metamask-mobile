@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import AppConstants from '../../../../../core/AppConstants';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { selectChainId } from '../../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { Pressable } from 'react-native';
 import Text, {
   TextColor,
@@ -27,7 +27,7 @@ import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
 import Engine from '../../../../../core/Engine';
-import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -39,7 +39,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
 
@@ -53,7 +53,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         screen: Routes.STAKING.STAKE,
         params: {
           token: asset,
-          action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         },
       });
     } else {

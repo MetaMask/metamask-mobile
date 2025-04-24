@@ -49,7 +49,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: jest.fn(),
+  getTotalEvmFiatAccountBalance: jest.fn(),
 }));
 
 jest.mock('../useGetFormattedTokensPerChain', () => ({
@@ -75,6 +75,15 @@ describe('useMultichainBalances', () => {
   });
 
   it('returns default values when no balances are available', () => {
+    const mockBalance = {
+      ethFiat: 0,
+      tokenFiat: 0,
+      tokenFiat1dAgo: 0,
+      ethFiat1dAgo: 0,
+      totalNativeTokenBalance: '0',
+      ticker: 'ETH',
+    };
+
     const aggregatedBalance = {
       ethFiat: 0,
       tokenFiat: 0,
@@ -82,17 +91,19 @@ describe('useMultichainBalances', () => {
       ethFiat1dAgo: 0,
     };
 
-    (Engine.getTotalFiatAccountBalance as jest.Mock).mockReturnValue(
-      aggregatedBalance,
+    (Engine.getTotalEvmFiatAccountBalance as jest.Mock).mockReturnValue(
+      mockBalance,
     );
 
     const { result } = renderHook(() => useMultichainBalances());
 
-    expect(result.current.multichainBalances).toEqual({
-      displayBalance: '0 USD',
+    expect(result.current.selectedAccountMultichainBalance).toEqual({
+      displayBalance: '$0.00',
+      displayCurrency: 'USD',
       tokenFiatBalancesCrossChains: [],
       totalFiatBalance: 0,
-      totalTokenFiat: 0,
+      totalNativeTokenBalance: '0',
+      nativeTokenUnit: 'ETH',
       shouldShowAggregatedPercentage: true,
       isPortfolioVieEnabled: false,
       aggregatedBalance,
@@ -100,6 +111,15 @@ describe('useMultichainBalances', () => {
   });
 
   it('calculates display balance correctly with ETH and token balances', () => {
+    const mockBalance = {
+      ethFiat: 100,
+      tokenFiat: 50,
+      tokenFiat1dAgo: 45,
+      ethFiat1dAgo: 95,
+      totalNativeTokenBalance: '0.05',
+      ticker: 'ETH',
+    };
+
     const aggregatedBalance = {
       ethFiat: 100,
       tokenFiat: 50,
@@ -107,16 +127,18 @@ describe('useMultichainBalances', () => {
       ethFiat1dAgo: 95,
     };
 
-    (Engine.getTotalFiatAccountBalance as jest.Mock).mockReturnValue(
-      aggregatedBalance,
+    (Engine.getTotalEvmFiatAccountBalance as jest.Mock).mockReturnValue(
+      mockBalance,
     );
 
     const { result } = renderHook(() => useMultichainBalances());
 
-    expect(result.current.multichainBalances.displayBalance).toBe('150 USD');
-    expect(result.current.multichainBalances.aggregatedBalance).toEqual(
-      aggregatedBalance,
-    );
+    expect(
+      result.current.selectedAccountMultichainBalance?.displayBalance,
+    ).toBe('$150.00');
+    expect(
+      result.current.selectedAccountMultichainBalance?.aggregatedBalance,
+    ).toEqual(aggregatedBalance);
   });
 
   it('handles portfolio view mode correctly', () => {
@@ -155,29 +177,57 @@ describe('useMultichainBalances', () => {
       },
     };
 
+    const mockBalance = {
+      ethFiat: 0,
+      tokenFiat: 0,
+      tokenFiat1dAgo: 0,
+      ethFiat1dAgo: 0,
+      totalNativeTokenBalance: '0.5',
+      ticker: 'ETH',
+    };
+
+    (Engine.getTotalEvmFiatAccountBalance as jest.Mock).mockReturnValue(
+      mockBalance,
+    );
+
     (useGetTotalFiatBalanceCrossChains as jest.Mock).mockReturnValue(
       mockTotalFiatBalancesCrossChain,
     );
 
     const { result } = renderHook(() => useMultichainBalances());
 
-    expect(result.current.multichainBalances.isPortfolioVieEnabled).toBe(true);
-    expect(result.current.multichainBalances.totalFiatBalance).toBe(
-      mockTotalFiatBalance,
-    );
-    expect(result.current.multichainBalances.totalTokenFiat).toBe(
-      mockTokenFiatBalance,
-    );
-    expect(result.current.multichainBalances.displayBalance).toBe('1000 USD');
+    expect(
+      result.current.selectedAccountMultichainBalance?.isPortfolioVieEnabled,
+    ).toBe(true);
+    expect(
+      result.current.selectedAccountMultichainBalance?.totalFiatBalance,
+    ).toBe(mockTotalFiatBalance);
+    expect(
+      result.current.selectedAccountMultichainBalance?.displayBalance,
+    ).toBe('$1,000.00');
   });
 
   it('does not show aggregated percentage on test networks', () => {
     (isTestNet as jest.Mock).mockReturnValue(true);
 
+    const mockBalance = {
+      ethFiat: 0,
+      tokenFiat: 0,
+      tokenFiat1dAgo: 0,
+      ethFiat1dAgo: 0,
+      totalNativeTokenBalance: '0',
+      ticker: 'ETH',
+    };
+
+    (Engine.getTotalEvmFiatAccountBalance as jest.Mock).mockReturnValue(
+      mockBalance,
+    );
+
     const { result } = renderHook(() => useMultichainBalances());
 
     expect(
-      result.current.multichainBalances.shouldShowAggregatedPercentage,
+      result.current.selectedAccountMultichainBalance
+        ?.shouldShowAggregatedPercentage,
     ).toBe(false);
   });
 });

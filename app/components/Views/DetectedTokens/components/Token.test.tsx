@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import Token from './Token';
 import { useDispatch, useSelector } from 'react-redux';
 import { Token as TokenType } from '@metamask/assets-controllers';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { selectTokensBalances } from '../../../../selectors/tokenBalancesController';
 import ClipboardManager from '../../../../core/ClipboardManager';
@@ -41,7 +41,7 @@ describe('Token Component', () => {
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountAddress) return '0xAccount';
-      if (selector === selectChainId) return '1';
+      if (selector === selectEvmChainId) return '1';
       if (selector === selectTokenMarketData) return {};
       if (selector === selectTokensBalances)
         return {
@@ -132,7 +132,7 @@ describe('Token Component', () => {
 
   it('copies address to clipboard and triggers alert', async () => {
     const { getByText } = renderComponent();
-    const copyButton = getByText('0xToke...ress');
+    const copyButton = getByText('0xToken...dress');
 
     ClipboardManager.setString = jest.fn(() => Promise.resolve());
 

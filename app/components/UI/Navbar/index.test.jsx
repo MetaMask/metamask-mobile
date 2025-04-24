@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { getNetworkNavbarOptions } from '.';
+import { SolScope } from '@metamask/keyring-api';
 
 describe('getNetworkNavbarOptions', () => {
   const Stack = createStackNavigator();
@@ -32,7 +33,13 @@ describe('getNetworkNavbarOptions', () => {
     const { getByText, getByRole } = renderWithProvider(
       <TestNavigator options={options} />,
       {
-        state: {},
+        state: {
+          engine: {
+            backgroundState: {
+              ...backgroundState,
+            },
+          },
+        },
       },
     );
 

@@ -7,6 +7,7 @@ import { RootState } from '../../../reducers';
 import AccountPermissions from './AccountPermissions';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { fireEvent } from '@testing-library/react-native';
+import { AccountPermissionsScreens } from './AccountPermissions.types';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -87,5 +88,21 @@ describe('AccountPermissions', () => {
 
       expect(getByTestId('permission-summary-container')).toBeDefined();
     });
+  });
+
+  it('should render connect more accounts screen when specified as initial screen', () => {
+    const { getByText } = renderWithProvider(
+      <AccountPermissions
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            initialScreen: AccountPermissionsScreens.ConnectMoreAccounts,
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(getByText('Connect more accounts')).toBeDefined();
   });
 });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import Box from './Box';
-import CurrencyChevron from './CurrencyChevron';
+import DownChevronText from './DownChevronText';
 import ListItem from '../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -81,7 +81,7 @@ const AmountInput: React.FC<Props> = ({
             hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
             testID={BuildQuoteSelectors.SELECT_CURRENCY}
           >
-            <CurrencyChevron currency={currencyCode} />
+            <DownChevronText text={currencyCode} />
           </TouchableOpacity>
         </ListItemColumn>
       ) : null}

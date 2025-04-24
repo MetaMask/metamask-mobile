@@ -1,6 +1,7 @@
 import { ButtonElement, FooterElement } from '@metamask/snaps-sdk/jsx';
 import { footer, DEFAULT_FOOTER } from './footer';
-import { ButtonVariant } from '@metamask/snaps-sdk';
+import { mockTheme } from '../../../../util/theme';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 
 describe('footer', () => {
   const mockT = (value: string) => `translated_${value}`;
@@ -42,6 +43,7 @@ describe('footer', () => {
       element: footerElement,
       t: mockT,
       map: {},
+      theme: mockTheme,
     });
 
     expect(result).toEqual({
@@ -54,16 +56,26 @@ describe('footer', () => {
             disabled: undefined,
             form: undefined,
             isSnapAction: true,
-            label: ['Button'],
             loading: false,
             name: undefined,
             onCancel: undefined,
-            onConfirm: undefined,
-            textVariant: 'sBodyMD',
-            type: 'Button',
-            variant: 'primary',
+            type: undefined,
+            variant: 'Primary',
           },
-          children: ['Button'],
+          children: [
+            {
+              key: '57fd48ba929aa415dc4c3996c826a75f8686418c77765eb14fad2658efa73d87_1',
+              element: 'Text',
+              children: 'Button',
+              props: {
+                color: 'inherit',
+                style: {
+                  fontWeight: undefined,
+                  textAlign: undefined,
+                },
+              },
+            },
+          ],
         },
       ],
     });
@@ -79,6 +91,7 @@ describe('footer', () => {
       t: mockT,
       onCancel: mockOnCancel,
       map: {},
+      theme: mockTheme,
     });
 
     expect(Array.isArray(result.children)).toBe(true);
@@ -88,10 +101,10 @@ describe('footer', () => {
       key: 'default-button',
       props: {
         isSnapAction: false,
-        label: 'translated_template_confirmation.cancel',
         onCancel: mockOnCancel,
-        variant: 'secondary',
+        variant: 'Secondary',
       },
+      children: 'translated_template_confirmation.cancel',
     });
   });
 
@@ -105,16 +118,17 @@ describe('footer', () => {
       element: footerElement,
       t: mockT,
       map: {},
+      theme: mockTheme,
     });
 
     expect(Array.isArray(result.children)).toBe(true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.children as any[])[0].props.variant).toBe(
-      ButtonVariant.Secondary,
+      ButtonVariants.Secondary,
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.children as any[])[1].props.variant).toBe(
-      ButtonVariant.Primary,
+      ButtonVariants.Primary,
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.children as any[])[0].props.isSnapAction).toBe(true);
@@ -131,6 +145,7 @@ describe('footer', () => {
       element: footerElement,
       t: mockT,
       map: {},
+      theme: mockTheme,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

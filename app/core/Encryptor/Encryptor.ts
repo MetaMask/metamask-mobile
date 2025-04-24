@@ -12,6 +12,18 @@ import type {
 } from './types';
 import { getEncryptionLibrary } from './lib';
 
+// Add these interfaces near the top with the other types
+interface DetailedDecryptResult {
+  exportedKeyString: string;
+  vault: unknown;
+  salt: string;
+}
+
+interface DetailedEncryptionResult {
+  vault: string;
+  exportedKeyString: string;
+}
+
 /**
  * Checks if the provided object is a `KeyDerivationOptions`.
  *
@@ -121,6 +133,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    * @param data - The data to encrypt.
    * @returns A promise that resolves to an object containing the cipher text and initialization vector (IV).
    */
+  //@ts-expect-error - TODO: will be implemented at the keyring controller the support for this key type
   encryptWithKey = async (
     key: EncryptionKey,
     data: Json,
@@ -146,6 +159,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    * @param payload - The encrypted payload to decrypt.
    * @returns The decrypted object.
    */
+  //@ts-expect-error - TODO: will be implemented at the keyring controller the support for this key type
   decryptWithKey = async (
     key: EncryptionKey,
     payload: EncryptionResult,
@@ -271,6 +285,73 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       throw new Error('Invalid exported key structure');
     }
     return key as EncryptionKey;
+  };
+
+  /**
+   * Given a password and a cipher text, decrypts the text and returns
+   * the resulting value, keyString, and salt.
+   *
+   * @param password - The password to decrypt with.
+   * @param text - The encrypted vault to decrypt.
+   * @returns The decrypted vault along with the salt and exported key.
+   */
+  decryptWithDetail = async (
+    password: string,
+    text: string,
+  ): Promise<DetailedDecryptResult> => {
+    const payload = JSON.parse(text);
+    const { salt, keyMetadata } = payload;
+    const key = await this.keyFromPassword(
+      password,
+      salt,
+      true,
+      keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
+      payload.lib,
+    );
+    const exportedKeyString = await this.exportKey(key);
+    const vault = await this.decryptWithKey(key, payload);
+
+    return {
+      exportedKeyString,
+      vault,
+      salt,
+    };
+  };
+
+  /**
+   * Encrypts a data object that can be any serializable value using
+   * a provided password.
+   *
+   * @param password - A password to use for encryption.
+   * @param dataObj - The data to encrypt.
+   * @param salt - The salt used to encrypt.
+   * @param keyDerivationOptions - The options to use for key derivation.
+   * @returns The vault and exported key string.
+   */
+  encryptWithDetail = async (
+    password: string,
+    dataObj: Json,
+    salt = this.generateSalt(),
+    keyDerivationOptions = this.keyDerivationOptions,
+  ): Promise<DetailedEncryptionResult> => {
+    const key = await this.keyFromPassword(
+      password,
+      salt,
+      true,
+      keyDerivationOptions,
+      ENCRYPTION_LIBRARY.original,
+    );
+    const exportedKeyString = await this.exportKey(key);
+
+    const result = await this.encryptWithKey(key, dataObj);
+    result.salt = salt;
+    result.keyMetadata = key.keyMetadata;
+    const vault = JSON.stringify(result);
+
+    return {
+      vault,
+      exportedKeyString,
+    };
   };
 }
 

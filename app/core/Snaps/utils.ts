@@ -1,6 +1,6 @@
 import type { BaseControllerMessenger } from '../Engine';
 import type { HandleSnapRequestArgs } from './types';
-import { SnapControllerHandleRequestAction } from '../Engine/controllers/SnapController/constants';
+import { SnapControllerHandleRequestAction } from '../Engine/controllers/snaps';
 
 /**
  * Passes a JSON-RPC request object to the SnapController for execution.

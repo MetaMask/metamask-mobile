@@ -1,6 +1,6 @@
 import Engine from '../Engine';
 import AppConstants from '../AppConstants';
-import { selectChainId } from '../../selectors/networkController';
+import { selectEvmChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 
 // eslint-disable-next-line import/no-nodejs-modules, import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -31,7 +31,7 @@ class WalletConnectPort extends EventEmitter {
           accounts: [selectedAddress],
         });
       } else if (msg?.data?.method === NOTIFICATION_NAMES.accountsChanged) {
-        const chainId = selectChainId(store.getState());
+        const chainId = selectEvmChainId(store.getState());
         this._wcRequestActions?.updateSession?.({
           chainId: parseInt(chainId),
           accounts: msg.data.params,

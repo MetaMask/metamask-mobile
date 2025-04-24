@@ -188,9 +188,12 @@ class SmartTransactionHook {
         return useRegularTransactionSubmit;
       }
 
-      const batchStatusPollingInterval = this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
+      const batchStatusPollingInterval =
+        this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
       if (batchStatusPollingInterval) {
-        this.#smartTransactionsController.setStatusRefreshInterval(batchStatusPollingInterval);
+        this.#smartTransactionsController.setStatusRefreshInterval(
+          batchStatusPollingInterval,
+        );
       }
 
       const submitTransactionResponse = await this.#signAndSubmitTransactions({
@@ -239,11 +242,13 @@ class SmartTransactionHook {
     }
   }
 
+  // here first
   #getFees = async () => {
     try {
       return await this.#smartTransactionsController.getFees(
         { ...this.#txParams, chainId: this.#chainId },
         undefined,
+        { networkClientId: this.#transactionMeta.networkClientId },
       );
     } catch (error) {
       return undefined;
@@ -344,6 +349,7 @@ class SmartTransactionHook {
       signedCanceledTransactions,
       txParams: this.#txParams,
       transactionMeta: this.#transactionMeta,
+      networkClientId: this.#transactionMeta.networkClientId,
     });
   };
 

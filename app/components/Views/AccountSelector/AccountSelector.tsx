@@ -42,8 +42,12 @@ import { TraceName, endTrace } from '../../../util/trace';
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { onSelectAccount, checkBalanceError, disablePrivacyMode } =
-    route.params || {};
+  const {
+    onSelectAccount,
+    checkBalanceError,
+    disablePrivacyMode,
+    navigateToAddAccountActions,
+  } = route.params || {};
 
   const { reloadAccounts } = useSelector((state: RootState) => state.accounts);
   // TODO: Replace "any" with type
@@ -56,7 +60,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     isLoading: reloadAccounts,
   });
   const [screen, setScreen] = useState<AccountSelectorScreens>(
-    AccountSelectorScreens.AccountSelector,
+    navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
   useEffect(() => {
     endTrace({ name: TraceName.AccountList });
