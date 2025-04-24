@@ -2,8 +2,13 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { createBridgeTestState } from '../../testUtils';
 import { isQuoteExpired, getQuoteRefreshRate } from '../../utils/quoteUtils';
-import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
+import {
+  RequestStatus,
+  type QuoteResponse,
+  selectBridgeQuotes,
+} from '@metamask/bridge-controller';
 import { useBridgeQuoteData } from '.';
+import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 
 jest.mock('../../utils/quoteUtils', () => ({
   isQuoteExpired: jest.fn(),
@@ -11,14 +16,35 @@ jest.mock('../../utils/quoteUtils', () => ({
   shouldRefreshQuote: jest.fn(),
 }));
 
+const mockSelectPrimaryCurrency = jest.fn();
+jest.mock('../../../../../selectors/settings', () => ({
+  selectPrimaryCurrency: () => mockSelectPrimaryCurrency(),
+}));
+
+// Mock the bridge-controller module
+jest.mock('@metamask/bridge-controller', () => {
+  const actual = jest.requireActual('@metamask/bridge-controller');
+  return {
+    ...actual,
+    selectBridgeQuotes: jest.fn(),
+  };
+});
+
 describe('useBridgeQuoteData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (isQuoteExpired as jest.Mock).mockReturnValue(false);
     (getQuoteRefreshRate as jest.Mock).mockReturnValue(5000);
+    mockSelectPrimaryCurrency.mockReturnValue('ETH');
   });
 
-  it('should return correct quote data when available', () => {
+  it('returns quote data when quotes are available', () => {
+    // Set up mock for this specific test
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata,
+      alternativeQuotes: [],
+    }));
+
     const bridgeControllerOverrides = {
       quotes: mockQuotes as unknown as QuoteResponse[],
       quotesLoadingStatus: null,
@@ -34,31 +60,11 @@ describe('useBridgeQuoteData', () => {
     });
 
     expect(result.current).toEqual({
-      activeQuote: {
-        ...mockQuotes[0],
-        adjustedReturn: { usd: null, valueInCurrency: null },
-        cost: { usd: null, valueInCurrency: null },
-        gasFee: { amount: '0', usd: null, valueInCurrency: null },
-        sentAmount: { amount: '0.5', usd: null, valueInCurrency: null },
-        swapRate: '114.112442',
-        toTokenAmount: { amount: '57.056221', usd: null, valueInCurrency: null },
-        totalMaxNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
-        totalNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
-      },
-      bestQuote: {
-        ...mockQuotes[0],
-        adjustedReturn: { usd: null, valueInCurrency: null },
-        cost: { usd: null, valueInCurrency: null },
-        gasFee: { amount: '0', usd: null, valueInCurrency: null },
-        sentAmount: { amount: '0.5', usd: null, valueInCurrency: null },
-        swapRate: '114.112442',
-        toTokenAmount: { amount: '57.056221', usd: null, valueInCurrency: null },
-        totalMaxNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
-        totalNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
-      },
+      activeQuote: mockQuoteWithMetadata,
+      bestQuote: mockQuoteWithMetadata,
       destTokenAmount: '57.06',
       formattedQuoteData: {
-        networkFee: '44',
+        networkFee: '-',
         estimatedTime: '1 min',
         rate: '1 ETH = 0.0 USDC',
         priceImpact: '-0.20%',
@@ -70,7 +76,13 @@ describe('useBridgeQuoteData', () => {
     });
   });
 
-  it('should handle no available quotes', () => {
+  it('returns empty state when no quotes exist', () => {
+    // Set up mock for this specific test
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: null,
+      alternativeQuotes: [],
+    }));
+
     const bridgeControllerOverrides = {
       quotes: [],
       quotesLoadingStatus: RequestStatus.FETCHED,
@@ -87,8 +99,8 @@ describe('useBridgeQuoteData', () => {
     });
 
     expect(result.current).toEqual({
-      activeQuote: undefined,
-      bestQuote: undefined,
+      activeQuote: null,
+      bestQuote: null,
       destTokenAmount: undefined,
       formattedQuoteData: undefined,
       isLoading: false,
@@ -97,7 +109,13 @@ describe('useBridgeQuoteData', () => {
     });
   });
 
-  it('should handle expired quote', () => {
+  it('handles expired quotes correctly', () => {
+    // Set up mock for this specific test
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata,
+      alternativeQuotes: [],
+    }));
+
     (isQuoteExpired as jest.Mock).mockReturnValue(true);
 
     const bridgeControllerOverrides = {
@@ -116,17 +134,7 @@ describe('useBridgeQuoteData', () => {
 
     expect(result.current).toEqual({
       activeQuote: undefined,
-      bestQuote: {
-        ...mockQuotes[0],
-        adjustedReturn: { usd: null, valueInCurrency: null },
-        cost: { usd: null, valueInCurrency: null },
-        gasFee: { amount: '0', usd: null, valueInCurrency: null },
-        sentAmount: { amount: '0.5', usd: null, valueInCurrency: null },
-        swapRate: '114.112442',
-        toTokenAmount: { amount: '57.056221', usd: null, valueInCurrency: null },
-        totalMaxNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
-        totalNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
-      },
+      bestQuote: mockQuoteWithMetadata,
       destTokenAmount: undefined,
       formattedQuoteData: undefined,
       isLoading: false,
@@ -135,12 +143,16 @@ describe('useBridgeQuoteData', () => {
     });
   });
 
-  it('should handle loading state', () => {
+  it('displays loading state while fetching quotes', () => {
     const bridgeControllerOverrides = {
-      quotes: [],
       quotesLoadingStatus: RequestStatus.LOADING,
       quoteFetchError: null,
     };
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: undefined,
+      alternativeQuotes: [],
+    }));
 
     const testState = createBridgeTestState({
       bridgeControllerOverrides,
@@ -152,6 +164,7 @@ describe('useBridgeQuoteData', () => {
 
     expect(result.current).toEqual({
       activeQuote: undefined,
+      bestQuote: undefined,
       destTokenAmount: undefined,
       formattedQuoteData: undefined,
       isLoading: true,
@@ -160,13 +173,17 @@ describe('useBridgeQuoteData', () => {
     });
   });
 
-  it('should handle fetch error', () => {
+  it('displays error state when quote fetch fails', () => {
     const error = 'Failed to fetch quotes';
     const bridgeControllerOverrides = {
-      quotes: [],
       quotesLoadingStatus: null,
       quoteFetchError: error,
     };
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: null,
+      alternativeQuotes: [],
+    }));
 
     const testState = createBridgeTestState({
       bridgeControllerOverrides,
@@ -177,12 +194,202 @@ describe('useBridgeQuoteData', () => {
     });
 
     expect(result.current).toEqual({
-      activeQuote: undefined,
+      activeQuote: null,
+      bestQuote: null,
       destTokenAmount: undefined,
       formattedQuoteData: undefined,
       isLoading: false,
       quoteFetchError: error,
       isNoQuotesAvailable: false,
     });
+  });
+
+  it('formats network fee in ETH currency', () => {
+    mockSelectPrimaryCurrency.mockReturnValue('ETH');
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        totalNetworkFee: {
+          amount: '0.01',
+          valueInCurrency: '10',
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.formattedQuoteData?.networkFee).toBe('0.01 ETH');
+  });
+
+  it('formats network fee in USD currency', () => {
+    mockSelectPrimaryCurrency.mockReturnValue('USD');
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        totalNetworkFee: {
+          amount: '0.01',
+          valueInCurrency: '10',
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.formattedQuoteData?.networkFee).toBe('$10');
+  });
+
+  it('returns undefined when activeQuote is undefined', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: undefined,
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.formattedQuoteData?.networkFee).toBe(undefined);
+  });
+
+  it('returns "-" when totalNetworkFee is missing', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        totalNetworkFee: null,
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.formattedQuoteData?.networkFee).toBe('-');
+  });
+
+  it('returns "-" when totalNetworkFee amount is missing', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        totalNetworkFee: {
+          valueInCurrency: '10',
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.formattedQuoteData?.networkFee).toBe('-');
+  });
+
+  it('returns "-" when totalNetworkFee valueInCurrency is missing', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        totalNetworkFee: {
+          amount: '0.01',
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.formattedQuoteData?.networkFee).toBe('-');
+  });
+
+  it('formats network fee with valid totalNetworkFee data', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        totalNetworkFee: {
+          amount: '0.01',
+          valueInCurrency: '10',
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    // The exact format will depend on the locale and formatter, but we can check it's not '-'
+    expect(result.current.formattedQuoteData?.networkFee).not.toBe('-');
+  });
+
+  it('formats network fee in ETH currency when primary currency is not specified', () => {
+    mockSelectPrimaryCurrency.mockReturnValue(undefined);
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        totalNetworkFee: {
+          amount: '0.01',
+          valueInCurrency: '10',
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    // Should default to ETH format when primary currency is not specified
+    expect(result.current.formattedQuoteData?.networkFee).toContain('ETH');
+  });
+
+  it('formats network fee in USD currency when primary currency is not ETH', () => {
+    mockSelectPrimaryCurrency.mockReturnValue('GBP');
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        totalNetworkFee: {
+          amount: '0.01',
+          valueInCurrency: '10',
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    // Should use USD format when primary currency is not ETH
+    expect(result.current.formattedQuoteData?.networkFee).toBe('$10');
   });
 });
