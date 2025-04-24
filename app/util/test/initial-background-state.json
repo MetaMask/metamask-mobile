@@ -201,6 +201,10 @@
     "lastSearchTimestamp": null,
     "recentSearches": []
   },
+  "TokenSearchDiscoveryDataController": {
+    "swapsTokenAddressesByChainId": {},
+    "tokenDisplayData": []
+  },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
     "methodData": {},

@@ -28,6 +28,10 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.default,
       ...fontStyles.normal,
     },
+    valueOnNewLineContainer: {
+      paddingBottom: 8,
+      paddingHorizontal: 8,
+    },
   });
 };
 
