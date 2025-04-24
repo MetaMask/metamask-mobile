@@ -384,7 +384,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressContinueWithApple = async () => {
-    this.props.navigation.goBack();
+    this.props.navigation.navigate('Onboarding');
     const action = async () => {
       const result = await Oauth2loginService.handleOauth2Login('apple').catch((e) => {
         DevLogger.log(e);
@@ -397,7 +397,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressContinueWithGoogle = async () => {
-    this.props.navigation.goBack();
+    this.props.navigation.navigate('Onboarding');
     const action = async () => {
       const result = await Oauth2loginService.handleOauth2Login('google').catch((e) => {
         DevLogger.log(e);

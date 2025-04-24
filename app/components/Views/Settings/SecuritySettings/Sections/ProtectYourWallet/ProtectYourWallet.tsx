@@ -27,6 +27,7 @@ import Banner, {
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { hasMultipleHDKeyrings } from '../../../../../../selectors/keyringController';
+import { selectSeedlessOnboardingUserId, selectSeedlessOnboardingUserEmail } from '../../../../../../selectors/seedlessOnboardingController';
 ///: END:ONLY_INCLUDE_IF
 
 interface IProtectYourWalletProps {
@@ -47,6 +48,9 @@ const ProtectYourWallet = ({
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const shouldShowSRPList = useSelector(hasMultipleHDKeyrings);
   ///: END:ONLY_INCLUDE_IF
+
+  const seedlessOnboardingUserId = useSelector(selectSeedlessOnboardingUserId);
+  const seedlessOnboardingUserEmail = useSelector(selectSeedlessOnboardingUserEmail);
 
   const openSRPQuiz = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -113,23 +117,29 @@ const ProtectYourWallet = ({
           label={strings('app_settings.learn_more')}
         />
       )}
+
+      {seedlessOnboardingUserId && (
       <Banner
         variant={BannerVariant.Alert}
         severity={BannerAlertSeverity.Success}
         title={strings('app_settings.social_login_linked')}
         description={
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            yourusername@gmail.com
+            {seedlessOnboardingUserEmail}
           </Text>
         }
-        style={styles.accessory}
-      />
-      <Banner
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Error}
+          style={styles.accessory}
+        />
+      )}
+      {!seedlessOnboardingUserId && (
+        <Banner
+          variant={BannerVariant.Alert}
+          severity={BannerAlertSeverity.Error}
         title={strings('app_settings.social_login_linked')}
-        style={styles.accessory}
-      />
+          style={styles.accessory}
+        />
+      )}
+
       {srpBackedup ? (
         <Banner
           variant={BannerVariant.Alert}
