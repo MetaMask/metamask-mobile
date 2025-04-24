@@ -260,11 +260,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     </View>
   );
 
-  const charNavigationButtons: TimePeriod[] = useMemo(() => {
-    return isEvmSelected
-      ? ['1d', '1w', '1m', '3m', '1y', '3y']
-      : ['1d', '1w', '1m', '3m', '1y'];
-  }, [isEvmSelected]);
+  const chartNavigationButtons: TimePeriod[] = useMemo(
+    () =>
+      isEvmSelected
+        ? ['1d', '1w', '1m', '3m', '1y', '3y']
+        : ['1d', '1w', '1m', '3m', '1y'],
+    [isEvmSelected],
+  );
 
   const handleSelectTimePeriod = useCallback((_timePeriod: TimePeriod) => {
     setTimePeriod(_timePeriod);
@@ -272,7 +274,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const renderChartNavigationButton = useCallback(
     () =>
-      charNavigationButtons.map((label) => (
+      chartNavigationButtons.map((label) => (
         <ChartNavigationButton
           key={label}
           label={strings(
@@ -282,7 +284,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           selected={timePeriod === label}
         />
       )),
-    [handleSelectTimePeriod, timePeriod],
+    [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
   );
 
   const itemAddress = isEvmSelected
