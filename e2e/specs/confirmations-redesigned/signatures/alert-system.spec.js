@@ -52,7 +52,6 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
-        await TestHelpers.delay(2000000);
         await TestDApp.tapTypedSignButton();
         await Assertions.checkIfVisible(RequestTypes.TypedSignRequest);
         await alertAssertion();
