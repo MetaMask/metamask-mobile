@@ -186,7 +186,7 @@ jest.mock('../../hooks/useQuotesAndCustomActions', () =>
 jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
   TraceName: {
-    RampQuoteLoading: TraceName.RampQuoteLoading,
+    RampQuoteLoading: 'Ramp Quote Loading',
   },
 }));
 
