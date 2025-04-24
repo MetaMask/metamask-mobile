@@ -46,8 +46,16 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
     stopPollingByPollingToken:
       TokenRatesController.stopPollingByPollingToken.bind(TokenRatesController),
     input: isEvmSelected
-      ? chainIdsToPoll.map((chainId) => ({ chainId: chainId as Hex }))
-      : [],
+      ? [
+          {
+            chainIds: chainIdsToPoll as Hex[],
+          },
+        ]
+      : [
+          {
+            chainIds: [],
+          },
+        ],
   });
 
   return {
