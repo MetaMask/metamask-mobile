@@ -406,10 +406,7 @@ const AccountConnect = (props: AccountConnectProps) => {
      * This logic should be removed and the UI should ensure it cannot continue if no chains are selected.
      * {@link https://github.com/MetaMask/metamask-mobile/pull/13970/files#r2042345624}
      */
-    let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
-    if (chainId && chainsToPermit.length === 0) {
-      chainsToPermit = [chainId];
-    }
+    const chainsToPermit = chainId && selectedChainIds.length === 0 ? [chainId] : selectedChainIds;
     const hexSelectedAddresses = selectedAddresses.map((account) =>
       toHex(account),
     );

@@ -1,22 +1,11 @@
-import { captureException } from '@sentry/react-native';
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
-import { KnownCaipNamespace, Hex, CaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import {
-  Caip25CaveatType,
-  Caip25CaveatValue,
-  Caip25EndowmentPermissionName,
-  getEthAccounts,
-  getPermittedEthChainIds,
-  setEthAccounts,
-  setPermittedEthChainIds,
-} from '@metamask/chain-agnostic-permission';
-import {
-  CaveatConstraint,
-  PermissionDoesNotExistError,
-} from '@metamask/permission-controller';
+import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getEthAccounts, getPermittedEthChainIds, setEthAccounts, setPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
+import { captureException } from '@sentry/react-native';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -146,6 +135,7 @@ export const getPermittedAccountsByHostname = (
   return accountsByHostname?.[hostname] || [];
 };
 
+
 /**
  * Returns a default CAIP-25 caveat value.
  * @returns Default {@link Caip25CaveatValue}
@@ -273,7 +263,7 @@ export const removeAccountsFromPermissions = async (addresses: Hex[]) => {
   }
 };
 
-export const addPermittedChains = (
+export const updatePermittedChains = (
   origin: string,
   chainIds: Hex[],
   shouldRemoveExistingChainPermissions = false,
@@ -311,6 +301,31 @@ export const addPermittedChains = (
     Caip25CaveatType,
     caveatValueWithAccountsSynced,
   );
+};
+
+/**
+ * Remove a permitted chain for the given the host.
+ *
+ * @param hostname - Subject to remove permitted chain. Ex: A Dapp is a subject
+ * @param chainId - ChainId to remove.
+ */
+export const removePermittedChain = (hostname: string, chainId: string) => {
+  const caip25Caveat = getCaip25Caveat(origin);
+  if (!caip25Caveat) {
+    throw new Error(
+      `Cannot remove chain permissions for origin "${origin}": no permission currently exists for this origin.`,
+    );
+  }
+  const { PermissionController } = Engine.context;
+  const caveat = PermissionController.getCaveat(
+    hostname,
+    Caip25EndowmentPermissionName,
+    Caip25CaveatType,
+  );
+
+  const permittedChainIds = getPermittedEthChainIds(caveat);
+  const newPermittedChains = permittedChainIds.filter((chain: string) => chain !== chainId);
+  updatePermittedChains(hostname, newPermittedChains, true);
 };
 
 /**

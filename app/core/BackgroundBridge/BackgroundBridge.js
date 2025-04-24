@@ -104,6 +104,7 @@ const API_TYPE = {
   EIP1193: 'eip-1193',
   CAIP_MULTICHAIN: 'caip-multichain',
 };
+import { getCaip25PermissionFromLegacyPermissions } from '../../util/permissions';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -898,6 +899,7 @@ export class BackgroundBridge extends EventEmitter {
     // Handle unsupported RPC Methods
     engine.push(createUnsupportedMethodMiddleware());
 
+    // Unrestricted/permissionless RPC method implementations.
     engine.push(
       createEip1193MethodMiddleware({
         // Permission-related
@@ -906,7 +908,7 @@ export class BackgroundBridge extends EventEmitter {
         getCaip25PermissionFromLegacyPermissionsForOrigin: (
           requestedPermissions,
         ) =>
-          Engine.getCaip25PermissionFromLegacyPermissions(
+          getCaip25PermissionFromLegacyPermissions(
             origin,
             requestedPermissions,
           ),

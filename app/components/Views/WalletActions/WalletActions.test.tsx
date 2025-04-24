@@ -75,6 +75,7 @@ jest.mock('../../../selectors/networkController', () => ({
     nickname: 'Ethereum Mainnet',
   }),
   selectEvmTicker: jest.fn().mockReturnValue('ETH'),
+  selectNativeCurrencyByChainId: jest.fn(),
 }));
 
 jest.mock('../../../selectors/accountsController', () => {

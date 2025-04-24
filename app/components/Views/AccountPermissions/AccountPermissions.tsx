@@ -18,7 +18,7 @@ import BottomSheet, {
 import Engine from '../../../core/Engine';
 import {
   addPermittedAccounts,
-  addPermittedChains,
+  updatePermittedChains,
   getCaip25Caveat,
   getPermittedAccountsByHostname,
   removePermittedAccounts,
@@ -323,9 +323,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       let accountsToAdd: Hex[] = [];
 
       // Identify accounts to be added
-      accountsToAdd = normalizedSelectedAddresses
-        .filter((account) => !normalizedPermittedAccounts.includes(account))
-        .map(toHex);
+      accountsToAdd = normalizedSelectedAddresses.reduce((result: Hex[], account) => {
+        if (!normalizedPermittedAccounts.includes(account)) {
+          result.push(toHex(account));
+        }
+        return result;
+      }, []);
 
       // Add newly selected accounts
       if (accountsToAdd.length > 0) {
@@ -789,7 +792,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           return;
         }
 
-        addPermittedChains(hostname, [chainId]);
+        updatePermittedChains(hostname, [chainId]);
 
         const networkToastProps: ToastOptions = {
           variant: ToastVariants.Network,

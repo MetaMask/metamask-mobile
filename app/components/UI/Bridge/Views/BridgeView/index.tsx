@@ -18,19 +18,22 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { getNetworkImageSource } from '../../../../../util/networks';
+import {
+  getDecimalChainId,
+  getNetworkImageSource,
+} from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
   selectSourceAmount,
   selectSelectedDestChainId,
   setSourceAmount,
   resetBridgeState,
-  setSourceToken,
-  setDestToken,
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
   selectIsEvmSolanaBridge,
+  selectIsSolanaSwap,
+  setSlippage,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import {
@@ -60,6 +63,11 @@ import {
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import type { BridgeSourceTokenSelectorRouteParams } from '../../components/BridgeSourceTokenSelector';
 import type { BridgeDestTokenSelectorRouteParams } from '../../components/BridgeDestTokenSelector';
+import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
+import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { BridgeViewMode } from '../../types';
+import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -75,6 +83,11 @@ const BridgeView = () => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  // Needed to get gas fee estimates
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+  useGasFeeEstimates(selectedNetworkClientId);
 
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -90,7 +103,10 @@ const BridgeView = () => {
   const { quoteRequest, quotesLastFetched } = useSelector(
     selectBridgeControllerState,
   );
+  const { handleSwitchTokens } = useSwitchTokens();
+
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
+  const isSolanaSwap = useSelector(selectIsSolanaSwap);
 
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -101,6 +117,13 @@ const BridgeView = () => {
 
   useInitialSourceToken();
   useInitialDestToken();
+
+  // Set slippage to undefined for Solana swaps
+  useEffect(() => {
+    if (isSolanaSwap) {
+      dispatch(setSlippage(undefined));
+    }
+  }, [isSolanaSwap, dispatch]);
 
   const hasDestinationPicker = isEvmSolanaBridge;
 
@@ -184,6 +207,37 @@ const BridgeView = () => {
     setBridgeFeatureFlags();
   }, [isBasicFunctionalityEnabled]);
 
+  const hasTrackedPageView = useRef(false);
+  useEffect(() => {
+    const shouldTrackPageView = sourceToken && !hasTrackedPageView.current;
+
+    if (shouldTrackPageView) {
+      hasTrackedPageView.current = true;
+      trackEvent(
+        createEventBuilder(
+          route.params.bridgeViewMode === BridgeViewMode.Bridge
+            ? MetaMetricsEvents.BRIDGE_PAGE_VIEWED
+            : MetaMetricsEvents.SWAP_PAGE_VIEWED,
+        )
+          .addProperties({
+            chain_id_source: getDecimalChainId(sourceToken.chainId),
+            chain_id_destination: getDecimalChainId(destToken?.chainId),
+            token_symbol_source: sourceToken.symbol,
+            token_symbol_destination: destToken?.symbol,
+            token_address_source: sourceToken.address,
+            token_address_destination: destToken?.address,
+          })
+          .build(),
+      );
+    }
+  }, [
+    sourceToken,
+    destToken,
+    trackEvent,
+    createEventBuilder,
+    route.params.bridgeViewMode,
+  ]);
+
   const handleKeypadChange = ({
     value,
   }: {
@@ -206,14 +260,6 @@ const BridgeView = () => {
 
   const handleTermsPress = () => {
     // TODO: Implement terms and conditions navigation
-  };
-
-  const handleArrowPress = () => {
-    // Switch tokens
-    if (sourceToken && destToken) {
-      dispatch(setSourceToken(destToken));
-      dispatch(setDestToken(sourceToken));
-    }
   };
 
   const handleSourceTokenPress = () =>
@@ -250,7 +296,7 @@ const BridgeView = () => {
       );
     }
 
-    if (!hasValidBridgeInputs) {
+    if (!hasValidBridgeInputs || isInputFocused) {
       return (
         <Box style={styles.buttonContainer}>
           <Text color={TextColor.Primary}>
@@ -327,7 +373,7 @@ const BridgeView = () => {
               <Box style={styles.arrowCircle}>
                 <ButtonIcon
                   iconName={IconName.Arrow2Down}
-                  onPress={handleArrowPress}
+                  onPress={handleSwitchTokens}
                   disabled={!destChainId || !destToken}
                   testID="arrow-button"
                 />

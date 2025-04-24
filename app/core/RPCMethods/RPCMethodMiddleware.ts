@@ -57,6 +57,7 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
+import { getCaip25PermissionFromLegacyPermissions, requestPermittedChainsPermissionIncremental } from '../../util/permissions';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
@@ -338,7 +339,7 @@ export const getRpcMethodMiddlewareHooks = (origin: string) => ({
     chainId: Hex;
     autoApprove: boolean;
   }) =>
-    Engine.requestPermittedChainsPermissionIncremental({
+    requestPermittedChainsPermissionIncremental({
       ...options,
       origin,
     }),
@@ -533,7 +534,7 @@ export const getRpcMethodMiddleware = ({
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
                   requestedPermissions,
                 ) =>
-                  Engine.getCaip25PermissionFromLegacyPermissions(
+                  getCaip25PermissionFromLegacyPermissions(
                     origin,
                     requestedPermissions,
                   ),

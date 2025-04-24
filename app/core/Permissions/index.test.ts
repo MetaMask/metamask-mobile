@@ -24,7 +24,7 @@ import {
   addPermittedAccounts,
   removePermittedAccounts,
   removeAccountsFromPermissions,
-  addPermittedChains,
+  updatePermittedChains,
   sortAccountsByLastSelected,
   getPermittedAccounts,
 } from '.';
@@ -498,7 +498,7 @@ describe('Permission Utility Functions', () => {
     });
   });
 
-  describe('addPermittedChains', () => {
+  describe('updatePermittedChains', () => {
     it('should add chains to permitted chains', () => {
       const mockCaveat = {
         type: Caip25CaveatType,
@@ -531,7 +531,7 @@ describe('Permission Utility Functions', () => {
         // The updated accounts would be here in the real implementation
       });
 
-      addPermittedChains('https://example.com', newChainIds);
+      updatePermittedChains('https://example.com', newChainIds);
 
       expect(getPermittedEthChainIds).toHaveBeenCalledWith(mockCaveat.value);
       expect(setPermittedEthChainIds).toHaveBeenCalledWith(
@@ -582,7 +582,7 @@ describe('Permission Utility Functions', () => {
         // The updated accounts would be here in the real implementation
       });
 
-      addPermittedChains(
+      updatePermittedChains(
         'https://example.com',
         newChainIds,
         shouldRemoveExistingChainPermissions,
@@ -609,7 +609,7 @@ describe('Permission Utility Functions', () => {
       // Mock getCaip25Caveat to return undefined
       mockGetCaveat.mockReturnValue(undefined);
 
-      expect(() => addPermittedChains('https://example.com', ['0x1'])).toThrow(
+      expect(() => updatePermittedChains('https://example.com', ['0x1'])).toThrow(
         'Cannot add chain permissions for origin "https://example.com": no permission currently exists for this origin.',
       );
     });
@@ -862,4 +862,77 @@ describe('Permission Utility Functions', () => {
       expect(() => getPermittedAccounts('https://example.com')).toThrow(error);
     });
   });
+
+  // describe('removePermittedChain', () => {
+  //   it('removes a chain from permitted chains', async () => {
+  //     const hostname = 'example.com';
+  //     const chainId = '0x1';
+  //     Engine.context.PermissionController.getCaveat.mockReturnValue({
+  //       value: ['0xa', '0x1', '0x5'],
+  //     });
+  //     Engine.context.PermissionController.grantPermissions.mockResolvedValue(undefined);
+
+  //     await removePermittedChain(hostname, chainId);
+
+  //     expect(Engine.context.PermissionController.getCaveat).toHaveBeenCalledWith(
+  //       hostname,
+  //       PermissionKeys.permittedChains,
+  //       CaveatTypes.restrictNetworkSwitching,
+  //     );
+  //     expect(Engine.context.PermissionController.grantPermissions).toHaveBeenCalledWith({
+  //       approvedPermissions: {
+  //         [PermissionKeys.permittedChains]: {
+  //           caveats: [
+  //             { type: CaveatTypes.restrictNetworkSwitching, value: ['0xa', '0x5'] },
+  //           ],
+  //         },
+  //       },
+  //       subject: {
+  //         origin: hostname,
+  //       },
+  //       preserveExistingPermissions: true,
+  //     });
+  //   });
+
+  //   it('does not update permissions if chain is not in permitted chains', async () => {
+  //     const hostname = 'example.com';
+  //     const chainId = '0x99';
+  //     Engine.context.PermissionController.getCaveat.mockReturnValue({
+  //       value: ['0xa', '0x1'],
+  //     });
+
+  //     await removePermittedChain(hostname, chainId);
+
+  //     expect(Engine.context.PermissionController.getCaveat).toHaveBeenCalledWith(
+  //       hostname,
+  //       PermissionKeys.permittedChains,
+  //       CaveatTypes.restrictNetworkSwitching,
+  //     );
+  //     expect(Engine.context.PermissionController.grantPermissions).not.toHaveBeenCalled();
+  //   });
+
+  //   it('handles removing the last chain from permitted chains', async () => {
+  //     const hostname = 'example.com';
+  //     const chainId = '0x1';
+  //     Engine.context.PermissionController.getCaveat.mockReturnValue({
+  //       value: ['0x1'],
+  //     });
+
+  //     await removePermittedChain(hostname, chainId);
+
+  //     expect(Engine.context.PermissionController.grantPermissions).toHaveBeenCalledWith({
+  //       approvedPermissions: {
+  //         [PermissionKeys.permittedChains]: {
+  //           caveats: [
+  //             { type: CaveatTypes.restrictNetworkSwitching, value: [] },
+  //           ],
+  //         },
+  //       },
+  //       subject: {
+  //         origin: hostname,
+  //       },
+  //       preserveExistingPermissions: true,
+  //     });
+  //   });
+  // });
 });
