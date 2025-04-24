@@ -1078,14 +1078,12 @@ export class Engine {
         customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
       },
       trackMetaMetricsFn: (event, properties) => {
-        const actionId = (Date.now() + Math.random()).toString();
         const metricsEvent = MetricsEventBuilder.createEventBuilder({
           // category property here maps to event name
           category: event,
         })
         .addProperties({
           ...(properties ?? {}),
-          action_id: actionId,
         })
         .build();
         MetaMetrics.getInstance().trackEvent(metricsEvent);
