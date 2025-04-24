@@ -624,7 +624,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                   ]
                 }
               >
-                0x123...x123
+                0x123...0x123
               </Text>
             </View>
           </View>

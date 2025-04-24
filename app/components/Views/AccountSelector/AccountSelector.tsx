@@ -39,7 +39,6 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TraceName, endTrace } from '../../../util/trace';
-import AddNewHdAccount from '../AddNewHdAccount';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
@@ -157,18 +156,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => (
       <AddAccountActions
         onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
-        onAddHdAccount={() =>
-          setScreen(AccountSelectorScreens.AddHdAccountSelector)
-        }
-      />
-    ),
-    [],
-  );
-
-  const renderAddHdAccountSelector = useCallback(
-    () => (
-      <AddNewHdAccount
-        onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
       />
     ),
     [],
@@ -180,17 +167,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         return renderAccountSelector();
       case AccountSelectorScreens.AddAccountActions:
         return renderAddAccountActions();
-      case AccountSelectorScreens.AddHdAccountSelector:
-        return renderAddHdAccountSelector();
       default:
         return renderAccountSelector();
     }
-  }, [
-    screen,
-    renderAccountSelector,
-    renderAddAccountActions,
-    renderAddHdAccountSelector,
-  ]);
+  }, [screen, renderAccountSelector, renderAddAccountActions]);
 
   return <BottomSheet ref={sheetRef}>{renderAccountScreens()}</BottomSheet>;
 };
