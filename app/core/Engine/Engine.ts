@@ -103,7 +103,6 @@ import { createUserStorageController } from './controllers/identity/create-user-
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
-  PermissionKeys,
   unrestrictedMethods,
 } from '../Permissions/specifications.js';
 import { backupVault } from '../BackupVault';
@@ -198,18 +197,9 @@ import { currencyRateControllerInit } from './controllers/currency-rate-controll
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import { SignatureControllerInit } from './controllers/signature-controller';
-import {
-  Caip25CaveatType,
-  Caip25EndowmentPermissionName,
-  setEthAccounts,
-  setPermittedEthChainIds,
-} from '@metamask/chain-agnostic-permission';
-import { isSnapId } from '@metamask/snaps-utils';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
-import { pick } from 'lodash';
-import { CaveatTypes } from '../Permissions/constants';
 import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
 import {
@@ -1526,7 +1516,7 @@ export class Engine {
       (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
-            NetworkStatus.Available &&
+          NetworkStatus.Available &&
           getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
@@ -1670,7 +1660,7 @@ export class Engine {
       const chainIdHex = toHexadecimal(chainId);
       const tokens =
         TokensController.state.allTokens?.[chainIdHex]?.[
-          selectedInternalAccount.address
+        selectedInternalAccount.address
         ] || [];
       const { marketData } = TokenRatesController.state;
       const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
@@ -1683,7 +1673,7 @@ export class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectedInternalAccountFormattedAddress
+        selectedInternalAccountFormattedAddress
         ]
       ) {
         const balanceHex =
@@ -1724,7 +1714,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-            chainId
+          chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1735,9 +1725,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address as Hex],
-                    item.decimals,
-                  )
+                  tokenBalances[item.address as Hex],
+                  item.decimals,
+                )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
