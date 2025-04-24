@@ -364,14 +364,14 @@ class Onboarding extends PureComponent {
           this.props.navigation.push('ChoosePassword', {
             [PREVIOUS_SCREEN]: ONBOARDING,
           });
-          this.track(MetaMetricsEvents.WALLET_SETUP_STARTED)
+          this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
         }
       } else if (!this.state.createWallet) {
         if (result.existingUser) {
           this.props.navigation.push('Login', {
             [PREVIOUS_SCREEN]: ONBOARDING,
           });
-          this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED)
+          this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,
@@ -384,6 +384,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressContinueWithApple = async () => {
+    this.props.navigation.goBack();
     const action = async () => {
       const result = await Oauth2loginService.handleOauth2Login('apple').catch((e) => {
         DevLogger.log(e);
@@ -396,6 +397,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressContinueWithGoogle = async () => {
+    this.props.navigation.goBack();
     const action = async () => {
       const result = await Oauth2loginService.handleOauth2Login('google').catch((e) => {
         DevLogger.log(e);
@@ -430,6 +432,8 @@ class Onboarding extends PureComponent {
       params: {
         onPressCreate: this.onPressCreate,
         onPressImport: this.onPressImport,
+        onPressContinueWithGoogle: this.onPressContinueWithGoogle,
+        onPressContinueWithApple: this.onPressContinueWithApple,
         createWallet: actionType === 'create',
       },
     });
