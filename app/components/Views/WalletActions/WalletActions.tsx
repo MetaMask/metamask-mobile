@@ -49,7 +49,10 @@ import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 ///: END:ONLY_INCLUDE_IF
-import { useSwapBridgeNavigation, SwapBridgeNavigationLocation } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -67,10 +70,11 @@ const WalletActions = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TabBar,
-    sourcePage: 'MainView',
-  });
+  const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } =
+    useSwapBridgeNavigation({
+      location: SwapBridgeNavigationLocation.TabBar,
+      sourcePage: 'MainView',
+    });
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -261,10 +265,7 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       goToBridgeBase();
     });
-  }, [
-    closeBottomSheetAndNavigate,
-    goToBridgeBase,
-  ]);
+  }, [closeBottomSheetAndNavigate, goToBridgeBase]);
 
   const sendIconStyle = useMemo(
     () => ({

@@ -184,7 +184,7 @@ import { createTokenSearchDiscoveryController } from './controllers/TokenSearchD
 import {
   BRIDGE_DEV_API_BASE_URL,
   BridgeClientId,
-  BridgeController
+  BridgeController,
 } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
@@ -1029,19 +1029,18 @@ export class Engine {
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
-    const tokenSearchDiscoveryDataController = new TokenSearchDiscoveryDataController({
-      tokenPricesService: codefiTokenApiV2,
-      swapsSupportedChainIds,
-      fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-      fetchTokens: swapsUtils.fetchTokens,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'TokenSearchDiscoveryDataController',
-        allowedActions: [
-          'CurrencyRateController:getState'
-        ],
-        allowedEvents: [],
-      }),
-    });
+    const tokenSearchDiscoveryDataController =
+      new TokenSearchDiscoveryDataController({
+        tokenPricesService: codefiTokenApiV2,
+        swapsSupportedChainIds,
+        fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+        fetchTokens: swapsUtils.fetchTokens,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokenSearchDiscoveryDataController',
+          allowedActions: ['CurrencyRateController:getState'],
+          allowedEvents: [],
+        }),
+      });
 
     /* bridge controller Initialization */
     const bridgeController = new BridgeController({
@@ -1082,10 +1081,10 @@ export class Engine {
           // category property here maps to event name
           category: event,
         })
-        .addProperties({
-          ...(properties ?? {}),
-        })
-        .build();
+          .addProperties({
+            ...(properties ?? {}),
+          })
+          .build();
         MetaMetrics.getInstance().trackEvent(metricsEvent);
       },
     });
