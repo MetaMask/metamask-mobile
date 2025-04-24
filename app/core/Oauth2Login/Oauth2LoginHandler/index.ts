@@ -90,7 +90,8 @@ export async function getAuthTokens(
     'code' in p;
 
   // Type guard to check if params has an idToken property
-  const hasIdToken = (  p: HandleFlowParams,
+  const hasIdToken = (
+    p: HandleFlowParams,
   ): p is LoginHandlerIdTokenResult & { web3AuthNetwork: Web3AuthNetwork } =>
     'idToken' in p;
 
