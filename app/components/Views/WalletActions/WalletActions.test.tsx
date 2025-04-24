@@ -31,6 +31,7 @@ import Engine from '../../../core/Engine';
 import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { trace, TraceName } from '../../../util/trace';
+import { RampType } from '../../../reducers/fiatOrders/types';
 
 jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
   sendMultichainTransaction: jest.fn(),
@@ -327,7 +328,27 @@ describe('WalletActions', () => {
     expect(trace).toHaveBeenCalledWith({
       name: TraceName.LoadRampExperience,
       tags: {
-        rampType: 'BUY',
+        rampType: RampType.BUY,
+      },
+    });
+  });
+
+  it('should call the onSell function when the Sell button is pressed', () => {
+    jest
+      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .default.mockReturnValue([true]);
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
+    );
+    expect(mockNavigate).toHaveBeenCalled();
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: RampType.SELL,
       },
     });
   });
@@ -342,12 +363,6 @@ describe('WalletActions', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalled();
-    expect(trace).toHaveBeenCalledWith({
-      name: TraceName.LoadRampExperience,
-      tags: {
-        rampType: 'SELL',
-      },
-    });
   });
 
   it('should call the goToSwaps function when the Swap button is pressed', () => {

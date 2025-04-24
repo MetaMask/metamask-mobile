@@ -54,6 +54,7 @@ import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { RampType } from '../../../reducers/fiatOrders/types';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -151,7 +152,7 @@ const WalletActions = () => {
     trace({
       name: TraceName.LoadRampExperience,
       tags: {
-        rampType: 'BUY',
+        rampType: RampType.BUY,
       },
     });
   }, [
@@ -180,7 +181,7 @@ const WalletActions = () => {
     trace({
       name: TraceName.LoadRampExperience,
       tags: {
-        rampType: 'SELL',
+        rampType: RampType.SELL,
       },
     });
   }, [
