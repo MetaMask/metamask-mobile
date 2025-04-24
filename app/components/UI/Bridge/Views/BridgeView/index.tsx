@@ -18,19 +18,22 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { getNetworkImageSource } from '../../../../../util/networks';
+import {
+  getDecimalChainId,
+  getNetworkImageSource,
+} from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
   selectSourceAmount,
   selectSelectedDestChainId,
   setSourceAmount,
   resetBridgeState,
-  setSourceToken,
-  setDestToken,
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
   selectIsEvmSolanaBridge,
+  selectIsSolanaSwap,
+  setSlippage,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import {
@@ -60,6 +63,11 @@ import {
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import type { BridgeSourceTokenSelectorRouteParams } from '../../components/BridgeSourceTokenSelector';
 import type { BridgeDestTokenSelectorRouteParams } from '../../components/BridgeDestTokenSelector';
+import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
+import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { BridgeViewMode } from '../../types';
+import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -75,6 +83,11 @@ const BridgeView = () => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  // Needed to get gas fee estimates
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+  useGasFeeEstimates(selectedNetworkClientId);
 
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -87,8 +100,13 @@ const BridgeView = () => {
     quoteFetchError,
     isNoQuotesAvailable,
   } = useBridgeQuoteData();
-  const { quoteRequest } = useSelector(selectBridgeControllerState);
+  const { quoteRequest, quotesLastFetched } = useSelector(
+    selectBridgeControllerState,
+  );
+  const { handleSwitchTokens } = useSwitchTokens();
+
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
+  const isSolanaSwap = useSelector(selectIsSolanaSwap);
 
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -99,6 +117,13 @@ const BridgeView = () => {
 
   useInitialSourceToken();
   useInitialDestToken();
+
+  // Set slippage to undefined for Solana swaps
+  useEffect(() => {
+    if (isSolanaSwap) {
+      dispatch(setSlippage(undefined));
+    }
+  }, [isSolanaSwap, dispatch]);
 
   const hasDestinationPicker = isEvmSolanaBridge;
 
@@ -124,6 +149,7 @@ const BridgeView = () => {
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad = isInputFocused || !hasValidBridgeInputs;
+  const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
 
   // Compute error state directly from dependencies
   const isError = isNoQuotesAvailable || quoteFetchError;
@@ -137,6 +163,16 @@ const BridgeView = () => {
       updateQuoteParams.cancel();
     };
   }, [hasValidBridgeInputs, updateQuoteParams]);
+
+  // Blur input when quotes have loaded
+  useEffect(() => {
+    if (!isLoading) {
+      setIsInputFocused(false);
+      if (inputRef.current) {
+        inputRef.current.blur();
+      }
+    }
+  }, [isLoading]);
 
   // Reset bridge state when component unmounts
   useEffect(
@@ -157,7 +193,10 @@ const BridgeView = () => {
   useEffect(() => {
     const setBridgeFeatureFlags = async () => {
       try {
-        if (isBasicFunctionalityEnabled && Engine.context.BridgeController?.setBridgeFeatureFlags) {
+        if (
+          isBasicFunctionalityEnabled &&
+          Engine.context.BridgeController?.setBridgeFeatureFlags
+        ) {
           await Engine.context.BridgeController.setBridgeFeatureFlags();
         }
       } catch (error) {
@@ -168,6 +207,37 @@ const BridgeView = () => {
     setBridgeFeatureFlags();
   }, [isBasicFunctionalityEnabled]);
 
+  const hasTrackedPageView = useRef(false);
+  useEffect(() => {
+    const shouldTrackPageView = sourceToken && !hasTrackedPageView.current;
+
+    if (shouldTrackPageView) {
+      hasTrackedPageView.current = true;
+      trackEvent(
+        createEventBuilder(
+          route.params.bridgeViewMode === BridgeViewMode.Bridge
+            ? MetaMetricsEvents.BRIDGE_PAGE_VIEWED
+            : MetaMetricsEvents.SWAP_PAGE_VIEWED,
+        )
+          .addProperties({
+            chain_id_source: getDecimalChainId(sourceToken.chainId),
+            chain_id_destination: getDecimalChainId(destToken?.chainId),
+            token_symbol_source: sourceToken.symbol,
+            token_symbol_destination: destToken?.symbol,
+            token_address_source: sourceToken.address,
+            token_address_destination: destToken?.address,
+          })
+          .build(),
+      );
+    }
+  }, [
+    sourceToken,
+    destToken,
+    trackEvent,
+    createEventBuilder,
+    route.params.bridgeViewMode,
+  ]);
+
   const handleKeypadChange = ({
     value,
   }: {
@@ -175,8 +245,6 @@ const BridgeView = () => {
     valueAsNumber: number;
     pressedKey: string;
   }) => {
-    // Keep focus when editing
-    setIsInputFocused(true);
     dispatch(setSourceAmount(value || undefined));
   };
 
@@ -192,14 +260,6 @@ const BridgeView = () => {
 
   const handleTermsPress = () => {
     // TODO: Implement terms and conditions navigation
-  };
-
-  const handleArrowPress = () => {
-    // Switch tokens
-    if (sourceToken && destToken) {
-      dispatch(setSourceToken(destToken));
-      dispatch(setDestToken(sourceToken));
-    }
   };
 
   const handleSourceTokenPress = () =>
@@ -218,50 +278,69 @@ const BridgeView = () => {
       } as BridgeDestTokenSelectorRouteParams,
     });
 
-  const hasDestinationPickerAndQuoteCard =
-    hasDestinationPicker && hasQuoteDetails && !isInputFocused;
-
-  const hasOnlyQuoteCard = hasQuoteDetails && !isInputFocused;
+  const getButtonLabel = () => {
+    if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
+    if (isSubmittingTx) return strings('bridge.submitting_transaction');
+    return strings('bridge.continue');
+  };
 
   const renderBottomContent = () => {
-    let buttonLabel = strings('bridge.continue');
-    if (hasInsufficientBalance) {
-      buttonLabel = strings('bridge.insufficient_funds');
-    } else if (isSubmittingTx) {
-      buttonLabel = strings('bridge.submitting_transaction');
+    if (isError) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            description={strings('bridge.error_banner_description')}
+          />
+        </Box>
+      );
+    }
+
+    if (!hasValidBridgeInputs || isInputFocused) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <Text color={TextColor.Primary}>
+            {strings('bridge.select_amount')}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <Text color={TextColor.Primary}>
+            {strings('bridge.fetching_quote')}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (!activeQuote && !quotesLastFetched) {
+      return;
     }
 
     return (
-    <Box style={styles.buttonContainer}>
-      {!hasValidBridgeInputs || isLoading || !activeQuote ? (
-        <Text color={TextColor.Primary}>{strings('bridge.select_amount')}</Text>
-      ) : isError ? (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
-          description={strings('bridge.error_banner_description')}
+      <Box style={styles.buttonContainer}>
+        <Button
+          variant={ButtonVariants.Primary}
+          label={getButtonLabel()}
+          onPress={handleContinue}
+          style={styles.button}
+          isDisabled={hasInsufficientBalance || isSubmittingTx}
         />
-      ) : (
-        <>
-          <Button
-            variant={ButtonVariants.Primary}
-            label={buttonLabel}
-            onPress={handleContinue}
-            style={styles.button}
-            isDisabled={hasInsufficientBalance || isSubmittingTx}
-          />
-          <Button
-            variant={ButtonVariants.Link}
-            label={
-              <Text color={TextColor.Alternative}>
-                {strings('bridge.terms_and_conditions')}
-              </Text>
-            }
-            onPress={handleTermsPress}
-          />
-        </>
-      )}
-    </Box>
-  )};
+        <Button
+          variant={ButtonVariants.Link}
+          label={
+            <Text color={TextColor.Alternative}>
+              {strings('bridge.terms_and_conditions')}
+            </Text>
+          }
+          onPress={handleTermsPress}
+        />
+      </Box>
+    );
+  };
 
   return (
     // Need this to be full height of screen
@@ -288,13 +367,13 @@ const BridgeView = () => {
               onTokenPress={handleSourceTokenPress}
               onFocus={() => setIsInputFocused(true)}
               onBlur={() => setIsInputFocused(false)}
-              autoFocus
+              onInputPress={() => setIsInputFocused(true)}
             />
             <Box style={styles.arrowContainer}>
               <Box style={styles.arrowCircle}>
                 <ButtonIcon
                   iconName={IconName.Arrow2Down}
-                  onPress={handleArrowPress}
+                  onPress={handleSwitchTokens}
                   disabled={!destChainId || !destToken}
                   testID="arrow-button"
                 />
@@ -309,28 +388,18 @@ const BridgeView = () => {
                     getNetworkImageSource({ chainId: destToken?.chainId })
                   : undefined
               }
-              isReadonly
               testID="dest-token-area"
               tokenType={TokenInputAreaType.Destination}
               onTokenPress={handleDestTokenPress}
               isLoading={isLoading}
             />
           </Box>
-          <Box
-            style={[
-              styles.dynamicContent,
-              hasDestinationPickerAndQuoteCard
-                ? styles.dynamicContentWithDestinationPickerAndQuoteCard
-                : hasOnlyQuoteCard
-                ? styles.dynamicContentWithOnlyQuoteCard
-                : styles.dynamicContent,
-            ]}
-          >
+          <Box style={styles.dynamicContent}>
             <Box style={styles.destinationAccountSelectorContainer}>
               {hasDestinationPicker && <DestinationAccountSelector />}
             </Box>
 
-            {hasQuoteDetails && !isInputFocused ? (
+            {shouldDisplayQuoteDetails ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
               </Box>

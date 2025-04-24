@@ -2,6 +2,8 @@ import {
   getPermittedAccounts,
   getPermittedChains,
   switchActiveAccounts,
+  addPermittedChain,
+  removePermittedChain,
 } from './index';
 import { errorCodes as rpcErrorCodes } from '@metamask/rpc-errors';
 import { RestrictedMethods, CaveatTypes } from './constants';
@@ -15,6 +17,7 @@ jest.mock('../Engine', () => ({
       executeRestrictedMethod: jest.fn(),
       getCaveat: jest.fn(),
       updateCaveat: jest.fn(),
+      grantPermissions: jest.fn(),
     },
     AccountsController: {
       getSelectedAccount: jest.fn(),
@@ -162,6 +165,152 @@ describe('Permission Management Functions', () => {
         CaveatTypes.restrictReturnedAccounts,
         ['0xdef', '0xabc'],
       );
+    });
+  });
+
+  describe('addPermittedChain', () => {
+    it('adds a new chain to permitted chains', async () => {
+      const hostname = 'example.com';
+      const chainId = '0x1';
+      Engine.context.PermissionController.getCaveat.mockReturnValue({
+        value: ['0xa'],
+      });
+      Engine.context.PermissionController.grantPermissions.mockResolvedValue(undefined);
+
+      await addPermittedChain(hostname, chainId);
+
+      expect(Engine.context.PermissionController.getCaveat).toHaveBeenCalledWith(
+        hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+      expect(Engine.context.PermissionController.grantPermissions).toHaveBeenCalledWith({
+        approvedPermissions: {
+          [PermissionKeys.permittedChains]: {
+            caveats: [
+              { type: CaveatTypes.restrictNetworkSwitching, value: ['0xa', '0x1'] },
+            ],
+          },
+        },
+        subject: {
+          origin: hostname,
+        },
+        preserveExistingPermissions: true,
+      });
+    });
+
+    it('does not add chain if already permitted', async () => {
+      const hostname = 'example.com';
+      const chainId = '0x1';
+      Engine.context.PermissionController.getCaveat.mockReturnValue({
+        value: ['0xa', '0x1'],
+      });
+
+      await addPermittedChain(hostname, chainId);
+
+      expect(Engine.context.PermissionController.getCaveat).toHaveBeenCalledWith(
+        hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+      expect(Engine.context.PermissionController.grantPermissions).not.toHaveBeenCalled();
+    });
+
+    it('handles empty initial permitted chains', async () => {
+      const hostname = 'example.com';
+      const chainId = '0x1';
+      Engine.context.PermissionController.getCaveat.mockReturnValue({
+        value: [],
+      });
+
+      await addPermittedChain(hostname, chainId);
+
+      expect(Engine.context.PermissionController.grantPermissions).toHaveBeenCalledWith({
+        approvedPermissions: {
+          [PermissionKeys.permittedChains]: {
+            caveats: [
+              { type: CaveatTypes.restrictNetworkSwitching, value: ['0x1'] },
+            ],
+          },
+        },
+        subject: {
+          origin: hostname,
+        },
+        preserveExistingPermissions: true,
+      });
+    });
+  });
+
+  describe('removePermittedChain', () => {
+    it('removes a chain from permitted chains', async () => {
+      const hostname = 'example.com';
+      const chainId = '0x1';
+      Engine.context.PermissionController.getCaveat.mockReturnValue({
+        value: ['0xa', '0x1', '0x5'],
+      });
+      Engine.context.PermissionController.grantPermissions.mockResolvedValue(undefined);
+
+      await removePermittedChain(hostname, chainId);
+
+      expect(Engine.context.PermissionController.getCaveat).toHaveBeenCalledWith(
+        hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+      expect(Engine.context.PermissionController.grantPermissions).toHaveBeenCalledWith({
+        approvedPermissions: {
+          [PermissionKeys.permittedChains]: {
+            caveats: [
+              { type: CaveatTypes.restrictNetworkSwitching, value: ['0xa', '0x5'] },
+            ],
+          },
+        },
+        subject: {
+          origin: hostname,
+        },
+        preserveExistingPermissions: true,
+      });
+    });
+
+    it('does not update permissions if chain is not in permitted chains', async () => {
+      const hostname = 'example.com';
+      const chainId = '0x99';
+      Engine.context.PermissionController.getCaveat.mockReturnValue({
+        value: ['0xa', '0x1'],
+      });
+
+      await removePermittedChain(hostname, chainId);
+
+      expect(Engine.context.PermissionController.getCaveat).toHaveBeenCalledWith(
+        hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+      expect(Engine.context.PermissionController.grantPermissions).not.toHaveBeenCalled();
+    });
+
+    it('handles removing the last chain from permitted chains', async () => {
+      const hostname = 'example.com';
+      const chainId = '0x1';
+      Engine.context.PermissionController.getCaveat.mockReturnValue({
+        value: ['0x1'],
+      });
+
+      await removePermittedChain(hostname, chainId);
+
+      expect(Engine.context.PermissionController.grantPermissions).toHaveBeenCalledWith({
+        approvedPermissions: {
+          [PermissionKeys.permittedChains]: {
+            caveats: [
+              { type: CaveatTypes.restrictNetworkSwitching, value: [] },
+            ],
+          },
+        },
+        subject: {
+          origin: hostname,
+        },
+        preserveExistingPermissions: true,
+      });
     });
   });
 });

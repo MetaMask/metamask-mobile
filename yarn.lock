@@ -4720,10 +4720,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^56.0.0":
-  version "56.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-56.0.0.tgz#195084ee2c45242d781567cf681b9cba2901b15b"
-  integrity sha512-td3EKzY+3eNYH7XwzprqL5DlbVTcp/IZX4XC/IpDy5Yc9yUe5Lcu5loydnauu7kINbCmWNGIqyKq5MyYDUgXfQ==
+"@metamask/assets-controllers@^58.0.0":
+  version "58.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-58.0.0.tgz#dd4997f5ad4ff40c87363ab4790e021dadeb024d"
+  integrity sha512-Tct/YcC6J62LJiQK1LXy8boQUSY69AFwrKEuSsE0cRzFSpM3SftMWzDVBE+li/mavSmWqPn12oj9VcYrIh1vvA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4740,7 +4740,7 @@
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/polling-controller" "^13.0.0"
     "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/snaps-utils" "^8.10.0"
+    "@metamask/snaps-utils" "^9.2.0"
     "@metamask/utils" "^11.2.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
@@ -4774,10 +4774,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
   integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
-"@metamask/bridge-controller@^15.0.0":
-  version "15.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-15.0.0.tgz#9ce811bd94565d135596e6be5e024c0046a7f332"
-  integrity sha512-9vfuiY/TwQpMUPULtvXdx0H9JcgjaOEevPDQeIiGm4/SbaO5rxuly3F6RoYjqEB+1JSRcNDBOk7OOpDTq9d1ig==
+"@metamask/bridge-controller@^17.0.0":
+  version "17.0.0"
+  resolved "https://registry.npmjs.org/@metamask/bridge-controller/-/bridge-controller-17.0.0.tgz#fc825665d9f7d6803d136a62b4a282151d4ea2c6"
+  integrity sha512-PBeOfaPH8r/tfPvDrZi03KCNGYI7JDfcyy8Q8841JoLK12YCfHSlRHV4vEg+GRtCkLvhSfwW89h6uHEcb0/JNw==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -4789,16 +4789,16 @@
     "@metamask/gas-fee-controller" "^23.0.0"
     "@metamask/keyring-api" "^17.4.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/multichain-network-controller" "^0.4.0"
+    "@metamask/multichain-network-controller" "^0.5.1"
     "@metamask/polling-controller" "^13.0.0"
     "@metamask/utils" "^11.2.0"
     bignumber.js "^9.1.2"
     reselect "^5.1.1"
 
-"@metamask/bridge-status-controller@^13.1.0":
-  version "13.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-13.1.0.tgz#8c61c5d4ea369e068d160291dc0ddac8a879c084"
-  integrity sha512-RoP+Jm4LMzHhR6bpWBBX1rw4/cQIy4Yl7MKubZ1i3HnHQsHnFEco0YyIYSiKU2u8kg45omV9ri32A1jVqQJ/6Q==
+"@metamask/bridge-status-controller@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.npmjs.org/@metamask/bridge-status-controller/-/bridge-status-controller-14.0.0.tgz#d9eb1e72864d426dc4d6bdab5282fb3a1c575f0b"
+  integrity sha512-alzQTD5BaV0xRfG2CA8T5T6FdFJt8nPwI504zLI7V1dMES3hFLAJ9hwxBqJTPpPbFRfjMFoppl3XNnelRvG18Q==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.7.0"
@@ -5274,13 +5274,16 @@
     "@metamask/utils" "^11.2.0"
     "@solana/addresses" "^2.0.0"
 
-"@metamask/multichain-network-controller@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.4.0.tgz#10005bc04771d9cf4287009875c0cf865aec4893"
-  integrity sha512-g+aHu4Ctoe/Ocl0C3XTngI/Lj4OcpZPo35Lf5199k428T3av6GbSxw38srch9usCx/VtsQk7pD6xNXXo3OLZ1A==
+"@metamask/multichain-network-controller@^0.5.1":
+  version "0.5.1"
+  resolved "https://registry.npmjs.org/@metamask/multichain-network-controller/-/multichain-network-controller-0.5.1.tgz#d47e49554cb6a4ce539339dd3c4f298f543433ef"
+  integrity sha512-tL9hKAEUaRPsox7AE/Hg/Cb7B0R96H/J/L6v9mUf2mLcZ100qgXBoz4DYwzjSlZ5op7Yfpl1+/QJTiiKmzYELA==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.7.0"
     "@metamask/keyring-api" "^17.4.0"
+    "@metamask/keyring-internal-api" "^6.0.1"
+    "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.2.0"
     "@solana/addresses" "^2.0.0"
 
@@ -5633,10 +5636,10 @@
     fast-json-patch "^3.1.0"
     lodash "^4.17.21"
 
-"@metamask/snaps-controllers@^11.2.1":
-  version "11.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-11.2.1.tgz#89c402817e7e8e8b333a33e6c1ed0d6985049807"
-  integrity sha512-LzvqQ2SEf75zSmvh55vm6P67eFAat4lmDHGs4XQsFIZ+HWbwk5OfAn2s7sc6y6O8Uci6xK9xgfTz+XRbgC7JEg==
+"@metamask/snaps-controllers@^11.2.2":
+  version "11.2.2"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-11.2.2.tgz#f8e83a1a6796f028100448a93905d3ce55e7f0fe"
+  integrity sha512-ADDH/ViYlfbu++lgFusptkUZP+D0oibMA28ImhrlF6BybKYfZ0mM8rhNpBsG/kdnzLVgmiEr4AUKn0pg0q3FCQ==
   dependencies:
     "@metamask/approval-controller" "^7.1.3"
     "@metamask/base-controller" "^8.0.0"
@@ -5652,7 +5655,7 @@
     "@metamask/snaps-rpc-methods" "^12.1.0"
     "@metamask/snaps-sdk" "^6.22.0"
     "@metamask/snaps-utils" "^9.2.0"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/utils" "^11.4.0"
     "@xstate/fsm" "^2.0.0"
     async-mutex "^0.5.0"
     browserify-zlib "^0.2.0"
@@ -5779,10 +5782,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.18.0":
-  version "1.18.0"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.18.0.tgz#289b751f37d9f7641a4975c1fc017cf7bb1c4794"
-  integrity sha512-v6LX6fVtUInKgbCkTpl3orhyaKCuq/s2MjOsRiv1zexzZDrJSp+8Np7f3RsQxK32MhwT9Xoef8PkEvEUgxNE4g==
+"@metamask/solana-wallet-snap@^1.22.0":
+  version "1.22.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.22.0.tgz#a7faf4907561be1ed47223edd72d2eb2344e7cf7"
+  integrity sha512-HdPIn9U6d0w5QRm0bpkUHKpz+4bxj87RXL067CNvjUbV4WE5i9sDi8kzPABE+EkI+POWQDknxellVjWKFrPkXg==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"
@@ -5820,13 +5823,13 @@
   resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-9.2.0.tgz#ee3a5a6466530dc266b5bdb1bd226393148329eb"
   integrity sha512-aMyctMgT8HdHCx7/9SqPfxW4PVKdEh2TtbjiE+fL6nfGv2U0ZnlZdT0OcaC3mEY/qzktip1UnBPmN9/Y5onThA==
 
-"@metamask/token-search-discovery-controller@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/token-search-discovery-controller/-/token-search-discovery-controller-2.1.0.tgz#ff8f78134da5b2451603ccf957ab67a1ba399db2"
-  integrity sha512-mda8IZAZGb0IN91fZqn5KvuvF36iwLgkH5ZLiOwRy6kbMsNFat0Lmqtapg1R2QoHPAEm0LGs7RPepBu1NftURw==
+"@metamask/token-search-discovery-controller@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/token-search-discovery-controller/-/token-search-discovery-controller-3.1.0.tgz#3d4c19e811653888efc5d1844e443c417b716a2b"
+  integrity sha512-+p/aJnn2WbraulbEevaMefzs0o5kgE4YQFr575Dk/oJxfcBFKVdjxGLojVXCzL3wDV3zJS2CM4kcaJCteMzdyQ==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/utils" "^11.1.0"
+    "@metamask/utils" "^11.2.0"
 
 "@metamask/transaction-controller@54.0.0":
   version "54.0.0"
@@ -5886,10 +5889,10 @@
     semver "^7.5.4"
     uuid "^9.0.1"
 
-"@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^11.2.0":
-  version "11.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.2.0.tgz#f2b35cbe6536c56071b0971f97f2395b860885c4"
-  integrity sha512-5Y4bd8Axvi2kJKjp6Jlbb9wyoTrSZxQjWvVGPevpErAc7SCUYUuW0QOOPVu7YmT+bzisTpnFnRE8LjtwYCKGAg==
+"@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^11.2.0", "@metamask/utils@^11.4.0":
+  version "11.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.4.0.tgz#0f4862b198195c2181da91d64428117c2ae8adb5"
+  integrity sha512-dqsi65DAyprs91wo/D0yTST2Sry9h2krf1NADBJb9L3NTJn1py0w+C8K4jVVSh0XTrrj0/MF/t6XldGsidfypA==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
     "@metamask/superstruct" "^3.1.0"
