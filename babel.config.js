@@ -48,6 +48,10 @@ module.exports = {
       test: './app/core/NavigationService/NavigationService.ts',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
+    {
+      test: './app/core/Oauth2Login/Oauth2LoginHandler',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
   ],
   env: {
     production: {
