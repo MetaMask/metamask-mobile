@@ -266,7 +266,7 @@ jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('../../../../../util/trace', () => ({
   trace: jest.fn(),
   TraceName: {
-    RampQuoteLoading: TraceName.RampQuoteLoading,
+    RampQuoteLoading: 'Ramp Quote Loading',
   },
 }));
 
