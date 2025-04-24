@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Ύποπτο αίτημα σύνδεσης",
       "message": "Ο ιστότοπος που υποβάλλει το αίτημα δεν είναι ο ιστότοπος στον οποίο συνδέεστε. Ενδέχεται να πρόκειται για απόπειρα κλοπής των στοιχείων σύνδεσής σας."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "σε"
   },
   "autocomplete": {
-    "placeholder": "Αναζήτηση ανά ιστότοπο ή διεύθυνση",
+    "placeholder": "Search by token, site or address",
     "recents": "Πρόσφατα",
     "favorites": "Αγαπημένα",
-    "sites": "Ιστότοποι"
+    "sites": "Ιστότοποι",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Πίσω",
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "Η Μυστική Φράση Ανάκτησης από την οποία θα δημιουργηθεί ο νέος σας λογαριασμός",
     "accounts": "λογαριασμοί",
     "show_accounts": "Εμφάνιση",
-    "hide_accounts": "Απόκρυψη"
+    "hide_accounts": "Απόκρυψη",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
+      "bitcoin_account_name": "Bitcoin Account",
+      "solana_devnet_account_name": "Solana Devnet Account",
+      "solana_testnet_account_name": "Solana Testnet Account",
+      "solana_account_name": "Solana Account"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Failed to create {{clientType}} account"
+    }
   },
   "toast": {
     "connected_and_active": "συνδεδεμένοι και ενεργοί.",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snaps",
       "description": "Επισκόπηση και διαχείριση των snaps σας",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Αφαίρεση του snap",
         "remove_snap_section_description": "Αυτή η ενέργεια θα διαγράψει το snap, τα δεδομένα του και τις άδειες που του έχουν χορηγηθεί.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "ΑΡΓΑ",
     "hex_data": "Δεκαεξαδικά Δεδομένα",
     "custom_nonce": "Αριθμός συναλλαγής (nonce)",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "Αυτή είναι μια λειτουργία για προχωρημένους που χρησιμοποιείται για να ακυρώσει ή να επιταχύνει τυχόν εκκρεμείς συναλλαγές.",
     "current_suggested_nonce": "Τρέχον προτεινόμενο nonce:",
     "edit_transaction_nonce": "Επεξεργασία nonce συναλλαγής",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "Μη διαθέσιμο",
     "smart_contract_interaction": "Αλληλεπίδραση έξυπνου συμβολαίου",
     "swaps_transaction": "Συναλλαγή ανταλλαγής",
+    "bridge_transaction": "Bridge",
     "approve": "Έγκριση",
     "increase_allowance": "Αύξηση των αποδοχών",
     "set_approval_for_all": "Ορίστε την έγκριση για όλους",
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Πάρτε την",
       "best_price": "καλύτερη τιμή",
@@ -3780,19 +3804,22 @@
       "permit": "Αίτημα ανώτατου ορίου δαπανών",
       "permit_revoke": "Κατάργηση άδειας",
       "permit_NFTs": "Αίτημα ανάληψης",
-      "signature_siwe": "Αίτημα σύνδεσης"
+      "signature_siwe": "Αίτημα σύνδεσης",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
       "permit_NFTs": "Αυτός ο ιστότοπος θέλει άδεια για την ανάληψη των NFT σας.",
       "signature": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν επιβεβαιώσετε.",
-      "signature_siwe": "Ένας ιστότοπος θέλει να συνδεθείτε για να αποδείξετε ότι είστε ο κάτοχος αυτού του λογαριασμού."
+      "signature_siwe": "Ένας ιστότοπος θέλει να συνδεθείτε για να αποδείξετε ότι είστε ο κάτοχος αυτού του λογαριασμού.",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "Ζητήθηκε από",
     "staking_from": "Ποντάρισμα από",
     "signing_in_with": "Σύνδεση με",
     "message": "Μήνυμα",
     "personal_sign_tooltip": "Αυτός ο ιστότοπος ζητάει την υπογραφή σας",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "Λεπτομέρειες",
     "qr_get_sign": "Λήψη υπογραφής",
     "qr_scan_text": "Σαρώστε με το πορτοφόλι υλικού σας",
@@ -3827,7 +3854,9 @@
       "unavailable": "Μη διαθέσιμο"
     },
     "unlimited": "Απεριόριστα",
-    "none": "Τίποτα"
+    "none": "Τίποτα",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with"
   },
   "change_in_simulation_modal": {
     "title": "Τα αποτελέσματα έχουν αλλάξει",
@@ -3868,6 +3897,29 @@
     "time": "Ώρα",
     "quote_info_content": "Αυτή η προσφορά παρέχει την καλύτερη απόδοση από την αναζήτησή μας. Βασίζεται στο επιτόκιο swap (ανταλλαγής), συμπεριλαμβανομένων των τελών διασύνδεσης και μια χρέωση 0,875% στο MetaMask, αλλά όχι των τελών συναλλαγών. Τα τέλη συναλλαγών ποικίλλουν ανάλογα με τη δραστηριότητα του δικτύου και την πολυπλοκότητα της συναλλαγής.",
     "quote_info_title": "Γιατί προτείνουμε αυτή την προσφορά",
-    "see_other_quotes": "Δείτε άλλες προσφορές"
+    "see_other_quotes": "Δείτε άλλες προσφορές",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge",
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
   }
 }
