@@ -61,7 +61,7 @@ export const useBridgeQuoteRequest = () => {
       destChainId: getDecimalChainId(destChainId),
       destTokenAddress: destToken.address,
       srcTokenAmount: normalizedSourceAmount,
-      slippage: Number(slippage),
+      slippage: slippage ? Number(slippage) : undefined,
       walletAddress,
       destWalletAddress:
         isEvmToSolana || isSolanaToEvm ? destAddress : walletAddress,
