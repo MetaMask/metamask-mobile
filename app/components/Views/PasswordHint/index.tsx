@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Text, {
   TextVariant,
@@ -16,11 +16,16 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-// import { mockTheme } from '../../../util/theme';
+import { SEED_PHRASE_HINTS } from '../../../constants/storage';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
+import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 
 const PasswordHint = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const [savedHint, setSavedHint] = useState('');
+  const { toastRef } = useContext(ToastContext);
 
   const styles = StyleSheet.create({
     root: {
@@ -39,6 +44,16 @@ const PasswordHint = () => {
     },
   });
 
+  const fetchHintFromStorage = async () => {
+    const hints = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
+    if (hints) {
+      const parsedHints = JSON.parse(hints);
+      setSavedHint(parsedHints?.manualBackup);
+    } else {
+      setSavedHint('');
+    }
+  };
+
   useEffect(() => {
     navigation.setOptions(
       getNavigationOptionsTitle(
@@ -48,11 +63,38 @@ const PasswordHint = () => {
         colors,
       ),
     );
+    fetchHintFromStorage();
   }, [navigation, colors]);
 
-  const handleSave = () => {
-    // eslint-disable-next-line no-console
-    console.log('save');
+  const handleSave = async () => {
+    const currentSeedphraseHints = await StorageWrapper.getItem(
+      SEED_PHRASE_HINTS,
+    );
+    if (currentSeedphraseHints) {
+      const parsedHints = JSON.parse(currentSeedphraseHints);
+      await StorageWrapper.setItem(
+        SEED_PHRASE_HINTS,
+        JSON.stringify({ ...parsedHints, manualBackup: savedHint }),
+      );
+    } else {
+      await StorageWrapper.setItem(
+        SEED_PHRASE_HINTS,
+        JSON.stringify({ manualBackup: savedHint }),
+      );
+    }
+
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: strings('password_hint.saved_toast'),
+          isBold: true,
+        },
+      ],
+      hasNoTimeout: false,
+    });
+
+    navigation.goBack();
   };
 
   return (
@@ -73,10 +115,12 @@ const PasswordHint = () => {
       <TextField
         placeholder={strings('password_hint.placeholder')}
         size={TextFieldSize.Lg}
+        value={savedHint}
+        onChangeText={setSavedHint}
       />
 
       <Button
-        label={strings('password_hint.button')}
+        label={strings('password_hint.saved')}
         variant={ButtonVariants.Primary}
         size={ButtonSize.Lg}
         width={ButtonWidthTypes.Full}

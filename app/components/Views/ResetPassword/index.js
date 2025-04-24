@@ -67,7 +67,8 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import ErrorSheet from '../ErrorSheet';
+import Routes from '../../../constants/navigation/Routes';
+import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -191,7 +192,7 @@ const createStyles = (colors) =>
     },
     ctaWrapper: {
       flex: 1,
-      marginTop: 20,
+      marginTop: 24,
     },
     biometrics: {
       position: 'relative',
@@ -264,9 +265,10 @@ const createStyles = (colors) =>
       width: '100%',
       flexDirection: 'column',
       gap: 16,
+      marginBottom: 16,
     },
     passwordLabel: {
-      marginBottom: -8,
+      marginBottom: -4,
     },
     warningButtonsWrapper: {
       flexDirection: 'row',
@@ -317,7 +319,7 @@ class ResetPassword extends PureComponent {
     confirmPassword: '',
     secureTextEntry: true,
     biometryType: null,
-    biometryChoice: false,
+    biometryChoice: true,
     rememberMe: false,
     loading: false,
     error: null,
@@ -629,6 +631,41 @@ class ResetPassword extends PureComponent {
     this.setState({ showPasswordIndex: newShowPasswordIndex });
   };
 
+  handleConfirmAction = (styles) => {
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings('reset_password.warning_password_change_title'),
+        description: strings(
+          'reset_password.warning_password_change_description',
+        ),
+        type: 'error',
+        buttonLabel: (
+          <View style={styles.warningButtonsWrapper}>
+            <Button
+              label={strings('reset_password.warning_password_cancel_button')}
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              style={styles.warningButton}
+              onPress={() =>
+                this.setState({ showPasswordChangeWarning: false })
+              }
+            />
+            <Button
+              label={strings('reset_password.warning_password_change_button')}
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              style={styles.warningButton}
+              onPress={this.onPressCreate}
+            />
+          </View>
+        ),
+      },
+    });
+  };
+
   renderResetPassword() {
     const {
       isSelected,
@@ -835,15 +872,19 @@ class ResetPassword extends PureComponent {
                 {!!error && <Text color={TextColor.Error}>{error}</Text>}
               </View>
 
+              <SecurityOptionToggle
+                title={strings('import_from_seed.unlock_with_face_id')}
+                value={this.state.biometryChoice}
+                onOptionUpdated={this.updateBiometryChoice}
+              />
+
               <View style={styles.ctaWrapper}>
                 <Button
                   label={strings('reset_password.confirm_btn')}
                   variant={ButtonVariants.Primary}
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
-                  onPress={() =>
-                    this.setState({ showPasswordChangeWarning: true })
-                  }
+                  onPress={() => this.handleConfirmAction(styles)}
                   testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                   disabled={isBtnDisabled}
                   isDisabled={isBtnDisabled}
@@ -852,36 +893,6 @@ class ResetPassword extends PureComponent {
             </KeyboardAwareScrollView>
           </View>
         )}
-        <ErrorSheet
-          open={this.state.showPasswordChangeWarning}
-          onClose={() => this.setState({ showPasswordChangeWarning: false })}
-          errorTitle={strings('reset_password.warning_password_change_title')}
-          errorDescription={strings(
-            'reset_password.warning_password_change_description',
-          )}
-          buttonLabel={
-            <View style={styles.warningButtonsWrapper}>
-              <Button
-                label={strings('reset_password.warning_password_cancel_button')}
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                style={styles.warningButton}
-                onPress={() =>
-                  this.setState({ showPasswordChangeWarning: false })
-                }
-              />
-              <Button
-                label={strings('reset_password.warning_password_change_button')}
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                style={styles.warningButton}
-                onPress={this.onPressCreate}
-              />
-            </View>
-          }
-        />
       </SafeAreaView>
     );
   }

@@ -12,12 +12,12 @@ const styles = StyleSheet.create({
   statusButton: {
     width: '100%',
   },
-  errorDescription: {
+  description: {
     textAlign: 'left',
     alignSelf: 'flex-start',
     width: '100%',
   },
-  errorTitle: {
+  title: {
     textAlign: 'center',
     alignSelf: 'center',
     width: '70%',

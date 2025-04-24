@@ -4009,6 +4009,14 @@
     "button": "Create hint",
     "placeholder": "e.g. mom’s home",
     "saved": "Save",
-    "saved_toast": "Password hint saved"
+    "saved_toast": "Password hint updated"
+  },
+  "protect_your_wallet": {
+    "title": "Protect your wallet",
+    "login_with_social": "Log in with Apple or Google",
+    "setup": "Set Up",
+    "secret_recovery_phrase": "Secret recovery phrase {{num}}",
+    "back_up": "Back up",
+    "reveal": "Reveal"
   }
 }

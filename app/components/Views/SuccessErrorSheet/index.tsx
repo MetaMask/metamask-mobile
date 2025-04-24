@@ -71,7 +71,11 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
           }
         />
         {typeof title === 'string' ? (
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.HeadingMD}
+            color={TextColor.Default}
+            style={styles.title}
+          >
             {title}
           </Text>
         ) : (
@@ -81,7 +85,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Default}
-            style={styles.errorDescription}
+            style={styles.description}
           >
             {description}
           </Text>

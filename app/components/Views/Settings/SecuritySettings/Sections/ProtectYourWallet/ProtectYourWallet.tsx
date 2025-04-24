@@ -84,6 +84,10 @@ const ProtectYourWallet = ({
     openSRPQuiz();
   };
 
+  const onProtectYourWalletPressed = () => {
+    navigation.navigate('ProtectYourWallet');
+  };
+
   return (
     <View style={[styles.setting, styles.firstSetting]}>
       <Text variant={TextVariant.BodyLGMedium}>
@@ -162,7 +166,7 @@ const ProtectYourWallet = ({
         />
       ) : (
         <Button
-          label={strings('app_settings.protect_title')}
+          label={strings('reveal_credential.seed_phrase_title')}
           width={ButtonWidthTypes.Full}
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
@@ -171,6 +175,15 @@ const ProtectYourWallet = ({
           testID={SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON}
         />
       )}
+      <Button
+        label={strings('app_settings.protect_title')}
+        width={ButtonWidthTypes.Full}
+        variant={ButtonVariants.Primary}
+        size={ButtonSize.Lg}
+        onPress={onProtectYourWalletPressed}
+        style={styles.accessory}
+        testID={SecurityPrivacyViewSelectorsIDs.PROTECT_YOUR_WALLET}
+      />
     </View>
   );
 };
