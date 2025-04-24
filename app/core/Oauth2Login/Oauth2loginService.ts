@@ -10,7 +10,7 @@ import { HandleOauth2LoginResult, AuthConnection, GroupedAuthConnectionId, AuthC
 import { jwtDecode } from 'jwt-decode';
 import { TOPRFNetwork } from '../Engine/controllers/seedless-onboarding-controller';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
-import { AuthServerUrl, createLoginHandler, getAuthTokens } from './Oauth2LoginHandler';
+import { AuthServerUrl, createLoginHandler } from './Oauth2LoginHandler';
 
 export interface Oauth2LoginServiceConfig {
     authConnectionId: string;
@@ -124,7 +124,7 @@ export class Oauth2LoginService {
 
             Logger.log('handleOauth2Login: result', result);
             if (result) {
-                const data = await getAuthTokens( {...result, web3AuthNetwork}, this.config.authServerUrl);
+                const data = await loginHandler.getAuthTokens( {...result, web3AuthNetwork}, this.config.authServerUrl);
                 const handleCodeFlowResult = await this.handleSeedlessAuthenticate(data, authConnection);
                 this.#dispatchPostLogin(handleCodeFlowResult);
                 return handleCodeFlowResult;

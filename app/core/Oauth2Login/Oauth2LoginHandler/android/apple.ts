@@ -1,15 +1,14 @@
 import { CodeChallengeMethod, ResponseType } from "expo-auth-session";
 import { AuthRequest } from "expo-auth-session";
-import { AuthConnection, LoginHandler, LoginHandlerResult, OAuthUserInfo } from "../../Oauth2loginInterface";
-import { jwtDecode } from "jwt-decode";
-
+import { AuthConnection, LoginHandler, LoginHandlerCodeResult } from "../../Oauth2loginInterface";
+import { BaseLoginHandler } from "../baseHandler";
 export interface AndroidAppleLoginHandlerParams {
     clientId: string, 
     redirectUri: string, 
     appRedirectUri: string
 }
 
-export class AndroidAppleLoginHandler implements LoginHandler {
+export class AndroidAppleLoginHandler extends BaseLoginHandler implements LoginHandler {
     public readonly OAUTH_SERVER_URL = 'https://appleid.apple.com/auth/authorize';
 
     readonly #scope = ['name', 'email'];
@@ -25,14 +24,20 @@ export class AndroidAppleLoginHandler implements LoginHandler {
     get scope() {
         return this.#scope;
     }
+
+    get authServerPath() {
+        return 'api/v1/oauth/id_token';
+    }
+
     constructor(params: AndroidAppleLoginHandlerParams) {
+        super();
         const {appRedirectUri, redirectUri, clientId} = params;
         this.clientId = clientId;
         this.redirectUri = redirectUri;
         this.appRedirectUri = appRedirectUri;
     }
 
-    async login (): Promise<LoginHandlerResult | undefined> {
+    async login(): Promise<LoginHandlerCodeResult | undefined> {
         const state = JSON.stringify({
             provider: this.authConnection,
             client_redirect_back_uri: this.appRedirectUri,
@@ -57,14 +62,14 @@ export class AndroidAppleLoginHandler implements LoginHandler {
             authorizationEndpoint: this.OAUTH_SERVER_URL,
         });
     
-        // create a dummy auth request so that the auth-session can return result on appRedirectUrl
-        const authRequestDummy = new AuthRequest({
+        // create a client auth request instance so that the auth-session can return result on appRedirectUrl
+        const authRequestClient = new AuthRequest({
             clientId: this.clientId,
             redirectUri: this.appRedirectUri,
         });
     
-        // prompt the auth request using generated auth url instead of the dummy auth request
-        const result = await authRequestDummy.promptAsync({
+        // prompt the auth request using generated auth url instead of the client auth request instance
+        const result = await authRequestClient.promptAsync({
             authorizationEndpoint: this.OAUTH_SERVER_URL,
         }, {
             url: authUrl,

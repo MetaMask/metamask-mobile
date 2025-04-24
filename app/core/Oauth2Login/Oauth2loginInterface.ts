@@ -44,6 +44,9 @@ export interface AuthResponse {
 }
 
 export interface LoginHandler {
+    get authConnection(): AuthConnection;
+    get scope(): string[];
+    get authServerPath(): string;
     login(): Promise<LoginHandlerResult | undefined>
 }
 

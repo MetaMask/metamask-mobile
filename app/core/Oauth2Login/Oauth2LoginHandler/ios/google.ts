@@ -1,12 +1,13 @@
-import { LoginHandler, LoginHandlerCodeResult, AuthConnection } from "../../Oauth2loginInterface";
+import { LoginHandlerCodeResult, AuthConnection } from "../../Oauth2loginInterface";
 import { AuthRequest, CodeChallengeMethod, ResponseType } from "expo-auth-session";
+import { BaseLoginHandler } from "../baseHandler";
 
 export type IosGoogleLoginHandlerParams = {
     clientId : string,
     redirecUri: string,
 }
 
-export class IosGoogleLoginHandler implements LoginHandler {
+export class IosGoogleLoginHandler extends BaseLoginHandler {
     public readonly OAUTH_SERVER_URL = 'https://appleid.apple.com/auth/authorize';
 
     readonly #scope = ['email', 'profile'];
@@ -21,12 +22,18 @@ export class IosGoogleLoginHandler implements LoginHandler {
     get scope() {
         return this.#scope;
     }
+
+    get authServerPath() {
+        return 'api/v1/oauth/token';
+    }
+
     constructor( params : IosGoogleLoginHandlerParams){
+        super();
         this.clientId = params.clientId;
         this.redirectUri = params.redirecUri;
     }
 
-    async login () : Promise<LoginHandlerCodeResult | undefined> {
+    async login() : Promise<LoginHandlerCodeResult | undefined> {
         const state = JSON.stringify({
             random: Math.random().toString(36).substring(2, 15),
         });
