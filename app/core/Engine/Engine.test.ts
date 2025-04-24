@@ -12,19 +12,6 @@ import { mockNetworkState } from '../../util/test/network';
 import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { backupVault } from '../BackupVault';
-import {
-  Caip25CaveatType,
-  Caip25EndowmentPermissionName,
-} from '@metamask/chain-agnostic-permission';
-import { CaveatTypes } from '../Permissions/constants';
-import { PermissionKeys } from '../Permissions/specifications';
-import {
-  CaveatSpecificationConstraint,
-  ExtractPermission,
-  PermissionSpecificationConstraint,
-  SubjectPermissions,
-} from '@metamask/permission-controller';
-import { pick } from 'lodash';
 import { rejectOriginApprovals } from './utils';
 
 jest.mock('../BackupVault', () => ({
