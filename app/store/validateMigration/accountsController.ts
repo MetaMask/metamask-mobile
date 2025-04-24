@@ -38,11 +38,10 @@ export const validateAccountsController: ValidationCheck = (rootState) => {
     errors.push(
       `${LOG_TAG}: AccountsController No accounts found in internalAccounts.accounts.`,
     );
-    return errors;
   }
 
   // 3. Check that selectedAccount is non-empty
-  if (!selectedAccount) {
+  if (selectedAccount === undefined || selectedAccount === '') {
     errors.push(
       `${LOG_TAG}: AccountsController selectedAccount is missing or empty.`,
     );
