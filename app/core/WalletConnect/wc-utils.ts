@@ -268,10 +268,7 @@ export const checkWCPermissions = async ({
   const isAllowedChainId = permittedChains.includes(caip2ChainId);
 
   const providerConfig = selectProviderConfig(store.getState());
-  const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(
-    providerConfig.chainId,
-    16,
-  )}`;
+  const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(providerConfig.chainId, 16)}`;
 
   DevLogger.log(
     `WC::checkWCPermissions origin=${origin} caip2ChainId=${caip2ChainId} activeCaip2ChainId=${activeCaip2ChainId} permittedChains=${permittedChains} isAllowedChainId=${isAllowedChainId}`,
