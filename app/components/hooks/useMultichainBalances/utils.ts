@@ -19,7 +19,7 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TotalFiatBalancesCrossChains } from '../useGetTotalFiatBalanceCrossChains';
 import { isPortfolioViewEnabled, isTestNet } from '../../../util/networks';
 
-// Production balance calculartion (EVM)
+// Production balance calculation (EVM)
 const getEvmBalance = (
   account: InternalAccount,
   isOriginalNativeEvmTokenSymbol: boolean,
