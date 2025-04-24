@@ -313,6 +313,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+
   const multichainAssetRates =
     multichainAssetsRates?.[asset.address as CaipAssetId];
   const convertedMultichainAssetRates = multichainAssetRates
