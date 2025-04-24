@@ -1102,6 +1102,7 @@ export class Engine {
           'NetworkController:getState',
           'TokensController:addDetectedTokens',
           'BridgeController:getBridgeERC20Allowance',
+          'BridgeController:trackUnifiedSwapBridgeEvent',
           'GasFeeController:getState',
           'AccountsController:getAccountByAddress',
           'SnapController:handleRequest',
