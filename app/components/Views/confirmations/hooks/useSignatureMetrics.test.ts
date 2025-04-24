@@ -5,8 +5,8 @@ import {
   typedSignV4SignatureRequest,
 } from '../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import { Reason, ResultType, SecurityAlertSource } from '../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { useSignatureMetrics } from './useSignatureMetrics';
-import { ResultType, Reason, SecurityAlertSource } from '../../../../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 
 const mockTypedSignV4SignatureRequest = typedSignV4SignatureRequest;
 jest.mock('./useSignatureRequest', () => ({
