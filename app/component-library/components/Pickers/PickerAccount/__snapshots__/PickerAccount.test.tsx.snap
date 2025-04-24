@@ -237,7 +237,7 @@ exports[`PickerAccount should render correctly 1`] = `
       }
     }
   >
-    0x2990...a21a
+    0x29900...da21a
   </Text>
 </TouchableOpacity>
 `;
