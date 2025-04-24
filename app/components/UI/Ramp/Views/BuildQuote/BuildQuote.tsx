@@ -83,6 +83,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { isNonEvmAddress } from '../../../../../core/Multichain/utils';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -244,9 +245,14 @@ const BuildQuote = () => {
     [selectedAsset],
   );
 
+  const addressForBalance = useMemo(
+    () => (isNonEvmAddress(selectedAddress) ? undefined : selectedAddress),
+    [selectedAddress, selectedAsset],
+  );
+
   const { addressBalance } = useAddressBalance(
     assetForBalance as Asset,
-    selectedAddress,
+    addressForBalance,
     true,
   );
 
