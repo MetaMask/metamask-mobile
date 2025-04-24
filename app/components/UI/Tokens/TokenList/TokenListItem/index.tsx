@@ -56,7 +56,9 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { CustomNetworkNativeImgMapping } from './CustomNetworkNativeImgMapping';
 import { TraceName, trace } from '../../../../../util/trace';
-
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectMultichainAssetsRates } from '../../../../../selectors/multichain/multichain';
+///: END:ONLY_INCLUDE_IF
 interface TokenListItemProps {
   asset: TokenI;
   showScamWarningModal: boolean;
@@ -100,6 +102,10 @@ export const TokenListItem = React.memo(
     const multiChainCurrencyRates = useSelector(selectCurrencyRates);
 
     const styles = createStyles(colors);
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
+    ///: END:ONLY_INCLUDE_IF
 
     const itemAddress = isEvmNetworkSelected
       ? safeToChecksumAddress(asset.address)
@@ -159,17 +165,24 @@ export const TokenListItem = React.memo(
       ],
     );
 
-    const tokenPercentageChange = asset.address
-      ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
-          ?.pricePercentChange1d
-      : undefined;
+    let pricePercentChange1d;
+    if (isEvmNetworkSelected) {
+      const tokenPercentageChange = asset.address
+        ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
+            ?.pricePercentChange1d
+        : undefined;
 
-    const pricePercentChange1d = asset.isNative
-      ? multiChainMarketData?.[chainId as Hex]?.[
-          getNativeTokenAddress(chainId as Hex) as Hex
-        ]?.pricePercentChange1d
-      : tokenPercentageChange;
-
+      pricePercentChange1d = asset.isNative
+        ? multiChainMarketData?.[chainId as Hex]?.[
+            getNativeTokenAddress(chainId as Hex) as Hex
+          ]?.pricePercentChange1d
+        : tokenPercentageChange;
+    } else {
+      pricePercentChange1d =
+        allMultichainAssetsRates[
+          asset?.address as `${string}:${string}/${string}:${string}`
+        ]?.marketData?.pricePercentChange?.P1D;
+    }
     // render balances according to primary currency
     let mainBalance;
     let secondaryBalance;
