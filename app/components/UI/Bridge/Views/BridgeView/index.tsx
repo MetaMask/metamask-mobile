@@ -99,6 +99,8 @@ const BridgeView = () => {
     destTokenAmount,
     quoteFetchError,
     isNoQuotesAvailable,
+    isExpired,
+    willRefresh,
   } = useBridgeQuoteData();
   const { quoteRequest, quotesLastFetched } = useSelector(
     selectBridgeControllerState,
@@ -283,6 +285,16 @@ const BridgeView = () => {
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
     return strings('bridge.continue');
   };
+
+  useEffect(() => {
+    if (isExpired && !willRefresh) {
+      setIsInputFocused(false);
+      // open the quote tooltip modal
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+      });
+    }
+  }, [isExpired, willRefresh, navigation]);
 
   const renderBottomContent = () => {
     if (!hasValidBridgeInputs || isInputFocused) {
