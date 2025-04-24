@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
-import { Hex, isCaipChainId } from '@metamask/utils';
+import { CaipAssetType, Hex, isCaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -166,6 +166,7 @@ export const TokenListItem = React.memo(
     );
 
     let pricePercentChange1d;
+
     if (isEvmNetworkSelected) {
       const tokenPercentageChange = asset.address
         ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
@@ -179,9 +180,8 @@ export const TokenListItem = React.memo(
         : tokenPercentageChange;
     } else {
       pricePercentChange1d =
-        allMultichainAssetsRates[
-          asset?.address as `${string}:${string}/${string}:${string}`
-        ]?.marketData?.pricePercentChange?.P1D;
+        allMultichainAssetsRates[asset?.address as CaipAssetType]?.marketData
+          ?.pricePercentChange?.P1D;
     }
     // render balances according to primary currency
     let mainBalance;
