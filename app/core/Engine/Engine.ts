@@ -185,6 +185,7 @@ import {
   BRIDGE_DEV_API_BASE_URL,
   BridgeClientId,
   BridgeController,
+  UNIFIED_SWAP_BRIDGE_EVENT_CATEGORY,
 } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
@@ -1077,8 +1078,18 @@ export class Engine {
       config: {
         customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
       },
-      trackMetaMetricsFn: () => {
-        //TODO: Implement trackMetaMetricsFn
+      trackMetaMetricsFn: (event, properties) => {
+        const actionId = (Date.now() + Math.random()).toString();
+        const metricsEvent = MetricsEventBuilder.createEventBuilder({
+          // category property here maps to event name
+          category: event,
+        })
+        .addProperties({
+          ...(properties ?? {}),
+          action_id: actionId,
+        })
+        .build();
+        MetaMetrics.getInstance().trackEvent(metricsEvent);
       },
     });
 
