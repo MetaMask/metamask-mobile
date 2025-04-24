@@ -101,7 +101,8 @@ app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
 app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/snaps-devs
 
 # Wallet API Platform Team
- app/core/RPCMethods/                @MetaMask/wallet-api-platform-engineers
+app/core/RPCMethods/                 @MetaMask/wallet-api-platform-engineers
+app/util/permissions/                @MetaMask/wallet-api-platform-engineers
 
 # Earn Team
 app/components/UI/Stake              @MetaMask/metamask-earn
