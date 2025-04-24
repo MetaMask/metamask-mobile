@@ -11,15 +11,21 @@ import {
   BridgeFeatureFlagsKey,
   RequestStatus,
 } from '@metamask/bridge-controller';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
-
+import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import {
   isQuoteExpired,
   getQuoteRefreshRate,
   shouldRefreshQuote,
 } from '../../utils/quoteUtils';
-
+import type { Hex } from '@metamask/utils';
+import type { RootState } from '../../../../../reducers';
+import { selectNativeCurrencyByChainId } from '../../../../../selectors/networkController';
+import { formatAmount } from '../../../SimulationDetails/formatAmount';
+import { BigNumber } from 'bignumber.js';
+import I18n from '../../../../../../locales/i18n';
+import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 /**
  * Hook for getting bridge quote data without request logic
  */
@@ -29,6 +35,12 @@ export const useBridgeQuoteData = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const slippage = useSelector(selectSlippage);
+  const locale = I18n.locale;
+  const fiatFormatter = useFiatFormatter();
+  const primaryCurrency = useSelector(selectPrimaryCurrency);
+  const nativeCurrency = useSelector((state: RootState) =>
+    selectNativeCurrencyByChainId(state, sourceToken?.chainId as Hex),
+  );
 
   const quotes = useSelector(selectBridgeQuotes);
 
@@ -76,6 +88,28 @@ export const useBridgeQuoteData = () => {
       ? undefined
       : Number(destTokenAmount) / Number(sourceAmount);
 
+  const getNetworkFee = useCallback(() => {
+    if (!activeQuote) return '-';
+
+    const { totalNetworkFee } = activeQuote;
+
+    const { amount, valueInCurrency } = totalNetworkFee;
+
+    if (!amount || !valueInCurrency) return '-';
+
+    const formattedAmount = `${formatAmount(
+      locale,
+      new BigNumber(amount),
+    )} ${nativeCurrency}`;
+    const formattedValueInCurrency = fiatFormatter(
+      new BigNumber(valueInCurrency),
+    );
+
+    return primaryCurrency === 'ETH'
+      ? formattedAmount
+      : formattedValueInCurrency;
+  }, [activeQuote, locale, nativeCurrency, fiatFormatter, primaryCurrency]);
+
   const formattedQuoteData = useMemo(() => {
     if (!activeQuote) return undefined;
 
@@ -91,16 +125,21 @@ export const useBridgeQuoteData = () => {
         }`
       : '--';
 
-    const networkFee = activeQuote.totalNetworkFee?.valueInCurrency;
-
     return {
-      networkFee,
+      networkFee: getNetworkFee(),
       estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
       rate,
-      priceImpact: `${priceImpactPercentage.toFixed(2)}%`, //TODO: Need to calculate this
+      priceImpact: `${priceImpactPercentage.toFixed(2)}%`,
       slippage: `${slippage}%`,
     };
-  }, [activeQuote, sourceToken, destToken, quoteRate, slippage]);
+  }, [
+    activeQuote,
+    quoteRate,
+    sourceToken?.symbol,
+    destToken?.symbol,
+    getNetworkFee,
+    slippage,
+  ]);
 
   const isLoading = quotesLoadingStatus === RequestStatus.LOADING;
 
