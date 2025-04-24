@@ -36,7 +36,7 @@ import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Brow
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import Logger from '../../../../util/Logger';
 import {
-  addPermittedChains,
+  updatePermittedChains,
   getCaip25Caveat,
 } from '../../../../core/Permissions';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
@@ -124,7 +124,7 @@ const NetworkConnectMultiSelector = ({
 
       const hexSelectedChainIds = selectedChainIds.map(toHex);
       const removeExistingChainPermissions = true;
-      addPermittedChains(hostname, hexSelectedChainIds, removeExistingChainPermissions);
+      updatePermittedChains(hostname, hexSelectedChainIds, removeExistingChainPermissions);
       onUserAction(USER_INTENT.Confirm);
     }
   }, [

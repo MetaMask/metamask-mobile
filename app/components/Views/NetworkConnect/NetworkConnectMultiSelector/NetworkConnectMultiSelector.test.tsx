@@ -10,7 +10,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
 } from '../../../../selectors/networkController';
-import { addPermittedChains } from '../../../../core/Permissions';
+import { updatePermittedChains } from '../../../../core/Permissions';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -40,7 +40,7 @@ jest.mock('../../../../core/Permissions', () => ({
   addPermittedChains: jest.fn(),
 }));
 
-const mockAddPermittedChains = addPermittedChains as jest.Mock;
+const mockAddPermittedChains = updatePermittedChains as jest.Mock;
 
 // Add mock for react-redux
 jest.mock('react-redux', () => ({
@@ -166,7 +166,7 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(addPermittedChains).toHaveBeenCalledWith(defaultProps.hostname, [
+    expect(updatePermittedChains).toHaveBeenCalledWith(defaultProps.hostname, [
       mockNetworkConfigurationId,
     ], true);
     expect(defaultProps.onUserAction).toHaveBeenCalled();

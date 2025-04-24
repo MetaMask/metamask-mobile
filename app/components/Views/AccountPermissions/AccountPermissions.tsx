@@ -18,7 +18,7 @@ import BottomSheet, {
 import Engine from '../../../core/Engine';
 import {
   addPermittedAccounts,
-  addPermittedChains,
+  updatePermittedChains,
   getCaip25Caveat,
   getPermittedAccountsByHostname,
   removePermittedAccounts,
@@ -792,7 +792,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           return;
         }
 
-        addPermittedChains(hostname, [chainId]);
+        updatePermittedChains(hostname, [chainId]);
 
         const networkToastProps: ToastOptions = {
           variant: ToastVariants.Network,

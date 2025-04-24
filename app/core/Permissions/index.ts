@@ -1,14 +1,11 @@
-import { RestrictedMethods, CaveatTypes } from './constants';
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
-import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
-import { PermissionKeys } from './specifications';
 import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
-import { captureException } from '@sentry/core';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getEthAccounts, getPermittedEthChainIds, setEthAccounts, setPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
+import { captureException } from '@sentry/react-native';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -97,25 +94,6 @@ export const sortAccountsByLastSelected = (accounts: Hex[]) => {
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsCaveatFromPermission(accountsPermission: any = {}) {
-  return (
-    Array.isArray(accountsPermission.caveats) &&
-    accountsPermission.caveats.find(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (caveat: any) => caveat.type === CaveatTypes.restrictReturnedAccounts,
-    )
-  );
-}
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsPermissionFromSubject(subject: any = {}) {
-  return subject.permissions?.eth_accounts || {};
-}
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAccountsFromSubject(subject: any) {
   const caveats =
     subject.permissions?.[Caip25EndowmentPermissionName]?.caveats || [];
@@ -191,38 +169,6 @@ export const getCaip25Caveat = (origin: string) => {
     }
   }
   return caip25Caveat;
-};
-
-export const switchActiveAccounts = (hostname: string, accAddress: string) => {
-  // TODO [ffmcgee]: revisit this implementation from here forwards, it's not updated
-  const { PermissionController } = Engine.context;
-  const existingPermittedAccountAddresses: string[] =
-    PermissionController.getCaveat(
-      hostname,
-      RestrictedMethods.eth_accounts,
-      CaveatTypes.restrictReturnedAccounts,
-    ).value;
-  const accountIndex = existingPermittedAccountAddresses.findIndex(
-    (address) => address === accAddress,
-  );
-  if (accountIndex === -1) {
-    throw new Error(
-      `eth_accounts permission for hostname "${hostname}" does not permit "${accAddress} account".`,
-    );
-  }
-  let newPermittedAccountAddresses = [...existingPermittedAccountAddresses];
-  newPermittedAccountAddresses.splice(accountIndex, 1);
-  newPermittedAccountAddresses = getUniqueList([
-    accAddress,
-    ...newPermittedAccountAddresses,
-  ]);
-
-  PermissionController.updateCaveat(
-    hostname,
-    RestrictedMethods.eth_accounts,
-    CaveatTypes.restrictReturnedAccounts,
-    newPermittedAccountAddresses,
-  );
 };
 
 export const addPermittedAccounts = (
@@ -317,7 +263,7 @@ export const removeAccountsFromPermissions = async (addresses: Hex[]) => {
   }
 };
 
-export const addPermittedChains = (
+export const updatePermittedChains = (
   origin: string,
   chainIds: Hex[],
   shouldRemoveExistingChainPermissions = false,
@@ -363,7 +309,7 @@ export const addPermittedChains = (
  * @param hostname - Subject to remove permitted chain. Ex: A Dapp is a subject
  * @param chainId - ChainId to remove.
  */
-export const removePermittedChain = async (hostname: string, chainId: string) => {
+export const removePermittedChain = (hostname: string, chainId: string) => {
   const caip25Caveat = getCaip25Caveat(origin);
   if (!caip25Caveat) {
     throw new Error(
@@ -377,29 +323,10 @@ export const removePermittedChain = async (hostname: string, chainId: string) =>
     Caip25CaveatType,
   );
 
-  // TODO [ffmcgee]: revisit this implementation from here forwards, it's not updated
-
-  const currentPermittedChains = caveat.value;
-  if (!currentPermittedChains.includes(chainId)) {
-    return;
-  }
-
-  const newPermittedChains = currentPermittedChains.filter((chain: string) => chain !== chainId);
-
-  await PermissionController.grantPermissions({
-    approvedPermissions: {
-      [PermissionKeys.permittedChains]: {
-        caveats: [
-          { type: CaveatTypes.restrictNetworkSwitching, value: newPermittedChains },
-        ],
-      },
-    },
-    subject: {
-      origin: hostname,
-    },
-    preserveExistingPermissions: true,
-  });
-}
+  const permittedChainIds = getPermittedEthChainIds(caveat);
+  const newPermittedChains = permittedChainIds.filter((chain: string) => chain !== chainId);
+  updatePermittedChains(hostname, newPermittedChains, true);
+};
 
 /**
  * Gets the sorted permitted accounts for the specified origin. Returns an empty
