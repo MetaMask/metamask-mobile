@@ -8,7 +8,6 @@
     "logs": {}
   },
   "AccountTrackerController": {
-    "accounts": {},
     "accountsByChainId": {
       "0x1": {}
     }
@@ -22,21 +21,23 @@
   "AddressBookController": {
     "addressBook": {}
   },
+  "AppMetadataController": {
+    "currentAppVersion": "",
+    "currentMigrationVersion": 0,
+    "previousAppVersion": "",
+    "previousMigrationVersion": 0
+  },
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
     "ignoredNfts": []
   },
   "TokensController": {
-    "tokens": [],
-    "ignoredTokens": [],
-    "detectedTokens": [],
     "allTokens": {},
     "allIgnoredTokens": {},
     "allDetectedTokens": {}
   },
   "TokenListController": {
-    "tokenList": {},
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
@@ -200,6 +201,10 @@
     "lastSearchTimestamp": null,
     "recentSearches": []
   },
+  "TokenSearchDiscoveryDataController": {
+    "swapsTokenAddressesByChainId": {},
+    "tokenDisplayData": []
+  },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
     "methodData": {},
@@ -356,7 +361,8 @@
     "isAccountSyncingReadyToBeDispatched": false,
     "isAccountSyncingInProgress": false,
     "isProfileSyncingEnabled": true,
-    "isProfileSyncingUpdateLoading": false
+    "isProfileSyncingUpdateLoading": false,
+    "isAccountSyncingEnabled": true
   },
   "MultichainBalancesController": {
     "balances": {}
@@ -401,6 +407,7 @@
     "assetsMetadata": {}
   },
   "BridgeController": {
+    "assetExchangeRates": {},
     "bridgeFeatureFlags": {
       "extensionConfig": {
         "chains": {},
@@ -429,7 +436,8 @@
     "txHistory": {}
   },
   "MultichainAssetsRatesController": {
-    "conversionRates": {}
+    "conversionRates": {},
+    "historicalPrices": {}
   },
   "CronjobController": {
     "events": {},
