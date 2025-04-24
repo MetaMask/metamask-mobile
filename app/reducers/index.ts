@@ -34,6 +34,7 @@ import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
+import { isTest } from '../util/test/utils';
 
 /**
  * Infer state from a reducer
@@ -162,6 +163,7 @@ const baseReducers = {
 };
 
 if (isTest) {
+  // @ts-expect-error - it's expected to not exist, it should only exist in not production environments
   baseReducers.performance = performanceReducer;
 }
 

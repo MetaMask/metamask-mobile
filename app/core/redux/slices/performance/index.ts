@@ -132,15 +132,15 @@ export const selectPerformanceData = createSelector(
 
 export const selectPerformanceMetrics = createSelector(
   [selectPerformanceState],
-  (performanceState) => performanceState.metrics,
+  (performanceState) => performanceState?.metrics,
 );
 
 export const selectPerformanceSession = createSelector(
   [selectPerformanceState],
   (performanceState) => ({
-    sessionId: performanceState.sessionId,
-    startTime: performanceState.startTime,
-    environment: performanceState.environment,
+    sessionId: performanceState?.sessionId,
+    startTime: performanceState?.startTime,
+    environment: performanceState?.environment,
   }),
 );
 
