@@ -18,7 +18,6 @@ export const createStyles = (params: { theme: Theme }) => {
       width: '100%',
       paddingHorizontal: 16,
       paddingBottom: 24,
-
       gap: 12,
       alignItems: 'center',
       justifyContent: 'center',
@@ -59,12 +58,12 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     quoteContainer: {
       paddingHorizontal: 24,
-      paddingVertical: 24,
     },
     keypadContainer: {
       flex: 1,
       justifyContent: 'flex-end',
       paddingBottom: 36,
+      paddingTop: 8,
     },
     keypad: {
       paddingHorizontal: 4,
@@ -77,16 +76,13 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     dynamicContent: {
       flex: 1,
-    },
-    dynamicContentWithKeypad: {
-      justifyContent: 'flex-start',
-    },
-    dynamicContentWithoutKeypad: {
+      paddingBottom: 12,
       justifyContent: 'flex-start',
     },
     keypadContainerWithDestinationPicker: {
       justifyContent: 'center',
-      paddingVertical: 12,
+      paddingTop: 8,
+      paddingBottom: 12,
     },
   });
 };

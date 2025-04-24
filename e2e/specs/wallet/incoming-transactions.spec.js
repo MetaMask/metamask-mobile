@@ -1,6 +1,6 @@
 'use strict';
 import { TransactionType } from '@metamask/transaction-controller';
-import { SmokeCore } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
@@ -78,7 +78,7 @@ function mockAccountsApi(transactions) {
   };
 }
 
-describe(SmokeCore('Incoming Transactions'), () => {
+describe(SmokeWalletPlatform('Incoming Transactions'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();

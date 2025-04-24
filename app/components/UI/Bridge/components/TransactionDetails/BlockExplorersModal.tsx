@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet } from 'react-native';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { Box } from '../../../Box/Box';
 import {
@@ -16,57 +17,33 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
-import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
-import { decimalToPrefixedHex } from '../../../../../util/conversions';
-import {
-  createProviderConfig,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../../../selectors/networkController';
-import useBlockExplorer from '../../../Swaps/utils/useBlockExplorer';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import { NetworkConfiguration } from '@metamask/network-controller';
-import { getNetworkImageSource } from '../../../../../util/networks';
 import { Theme } from '../../../../../util/theme/models';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
+import { Transaction } from '@metamask/keyring-api';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
-      height: 100,
-    },
-    button: {
-      width: '90%',
-      alignSelf: 'center',
-    },
-    firstButton: {
-      marginBottom: 10,
-    },
-    badge: {
-      marginRight: 10,
+      paddingLeft: 16,
+      paddingRight: 16,
     },
     text: {
       color: params.theme.colors.primary.default,
     },
   });
 
-const getProviderConfigForNetwork = (networkConfig: NetworkConfiguration) => {
-  const rpcEndpoint =
-    networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex];
-  const providerConfig = createProviderConfig(networkConfig, rpcEndpoint);
-
-  return providerConfig;
-};
-
 interface BlockExplorersModalProps {
   route: {
     params: {
-      tx: TransactionMeta;
+      evmTxMeta?: TransactionMeta;
+      multiChainTx?: Transaction;
     };
   };
 }
@@ -76,52 +53,20 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
-    txMeta: props.route.params.tx,
+    evmTxMeta: props.route.params.evmTxMeta,
+    multiChainTx: props.route.params.multiChainTx,
   });
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
 
   // Get source chain explorer data
-  const srcChainIdHex = decimalToPrefixedHex(
-    bridgeTxHistoryItem.quote.srcChainId,
-  );
-  const srcNetworkConfig = networkConfigurations[srcChainIdHex as Hex];
-  const srcProviderConfig = useMemo(
-    () => getProviderConfigForNetwork(srcNetworkConfig),
-    [srcNetworkConfig],
-  );
-  const srcExplorer = useBlockExplorer(
-    networkConfigurations,
-    srcProviderConfig,
-  );
-  const srcExplorerTxUrl = props.route.params.tx.hash
-    ? srcExplorer.tx(props.route.params.tx.hash)
-    : undefined;
-  //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-  const srcNetworkImageSource = getNetworkImageSource({
-    chainId: srcChainIdHex,
+  const srcExplorerData = useMultichainBlockExplorerTxUrl({
+    chainId: bridgeTxHistoryItem?.quote.srcChainId,
+    txHash: bridgeTxHistoryItem?.status.srcChain?.txHash,
   });
 
   // Get destination chain explorer data
-  const destChainIdHex = decimalToPrefixedHex(
-    bridgeTxHistoryItem.quote.destChainId,
-  );
-  const destNetworkConfig = networkConfigurations[destChainIdHex as Hex];
-  const destProviderConfig = useMemo(
-    () => getProviderConfigForNetwork(destNetworkConfig),
-    [destNetworkConfig],
-  );
-  const destExplorer = useBlockExplorer(
-    networkConfigurations,
-    destProviderConfig,
-  );
-  const destExplorerTxUrl = bridgeTxHistoryItem?.status.destChain?.txHash
-    ? destExplorer.tx(bridgeTxHistoryItem.status.destChain.txHash)
-    : undefined;
-  //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-  const destNetworkImageSource = getNetworkImageSource({
-    chainId: destChainIdHex,
+  const destExplorerData = useMultichainBlockExplorerTxUrl({
+    chainId: bridgeTxHistoryItem?.quote.destChainId,
+    txHash: bridgeTxHistoryItem?.status.destChain?.txHash,
   });
 
   return (
@@ -136,62 +81,74 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
         flexDirection={FlexDirection.Column}
         alignItems={AlignItems.center}
         justifyContent={JustifyContent.center}
+        gap={20}
       >
-        {srcExplorerTxUrl && (
+        <Text variant={TextVariant.BodyMD}>
+          {strings('bridge_transaction_details.block_explorer_description', {
+            chainName: srcExplorerData?.chainName,
+          })}
+        </Text>
+        {srcExplorerData?.explorerTxUrl && (
           <Button
             variant={ButtonVariants.Secondary}
+            width={ButtonWidthTypes.Full}
             label={
-              <>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
                 <Badge
                   variant={BadgeVariant.Network}
-                  name={srcNetworkConfig.name}
-                  imageSource={srcNetworkImageSource}
-                  style={styles.badge}
+                  name={srcExplorerData.chainName}
+                  imageSource={srcExplorerData.networkImageSource}
                 />
                 <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
-                  {srcExplorer.name}
+                  {srcExplorerData.explorerName}
                 </Text>
-              </>
+              </Box>
             }
             onPress={() => {
               navigation.navigate(Routes.BROWSER.HOME, {
                 screen: Routes.BROWSER.VIEW,
                 params: {
-                  newTabUrl: srcExplorerTxUrl,
+                  newTabUrl: srcExplorerData.explorerTxUrl,
                   timestamp: Date.now(),
                 },
               });
             }}
-            style={{ ...styles.button, ...styles.firstButton }}
           />
         )}
 
-        {destExplorerTxUrl && (
+        {destExplorerData?.explorerTxUrl && (
           <Button
             variant={ButtonVariants.Secondary}
+            width={ButtonWidthTypes.Full}
             label={
-              <>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
                 <Badge
                   variant={BadgeVariant.Network}
-                  name={destNetworkConfig.name}
-                  imageSource={destNetworkImageSource}
-                  style={styles.badge}
+                  name={destExplorerData.chainName}
+                  imageSource={destExplorerData.networkImageSource}
                 />
                 <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
-                  {destExplorer.name}
+                  {destExplorerData.explorerName}
                 </Text>
-              </>
+              </Box>
             }
             onPress={() => {
               navigation.navigate(Routes.BROWSER.HOME, {
                 screen: Routes.BROWSER.VIEW,
                 params: {
-                  newTabUrl: destExplorerTxUrl,
+                  newTabUrl: destExplorerData.explorerTxUrl,
                   timestamp: Date.now(),
                 },
               });
             }}
-            style={styles.button}
           />
         )}
       </Box>

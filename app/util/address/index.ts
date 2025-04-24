@@ -3,7 +3,6 @@ import {
   isValidAddress,
   addHexPrefix,
   isValidChecksumAddress,
-  //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
   isHexPrefixed,
 } from 'ethereumjs-util';
 import punycode from 'punycode/punycode';
@@ -33,15 +32,21 @@ import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
 import Logger from '../../../app/util/Logger';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AddressBookControllerState } from '@metamask/address-book-controller';
-import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
-import { NetworkClientId, NetworkState } from '@metamask/network-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { AddressBookControllerState } from '@metamask/address-book-controller';
+import {
+  type NetworkType,
+  toChecksumHexAddress,
+} from '@metamask/controller-utils';
+import type {
+  NetworkClientId,
+  NetworkState,
+} from '@metamask/network-controller';
 import {
   AccountImportStrategy,
   KeyringTypes,
 } from '@metamask/keyring-controller';
-import { Hex, isHexString } from '@metamask/utils';
+import { type Hex, isHexString } from '@metamask/utils';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 
 const {
@@ -96,10 +101,10 @@ export function toFormattedAddress(address: string) {
  *
  * @param {String} address - String corresponding to an address
  * @param {Number} chars - Number of characters to show at the end and beginning.
- * Defaults to 4.
+ * Defaults to 5.
  * @returns {String} - String corresponding to short address format
  */
-export function renderShortAddress(address: string, chars = 4) {
+export function renderShortAddress(address: string, chars = 5) {
   if (!address) return address;
   const formattedAddress = toFormattedAddress(address);
   return `${formattedAddress.substr(0, chars + 2)}...${formattedAddress.substr(
