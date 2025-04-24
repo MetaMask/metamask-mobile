@@ -15,8 +15,8 @@ import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { createLoginHandler } from './Oauth2LoginHandler';
 import { AuthServerUrl } from './Oauth2LoginHandler/constants';
 
-export const AuthConnectionId = process.env.AuthConnectionId;
-export const GroupedAuthConnectionId = process.env.GroupedAuthConnectionId;
+export const AuthConnectionId = process.env.AUTH_CONNECTION_ID;
+export const GroupedAuthConnectionId = process.env.GROUPED_AUTH_CONNECTION_ID;
 
 export interface Oauth2LoginServiceConfig {
   authConnectionId: string;

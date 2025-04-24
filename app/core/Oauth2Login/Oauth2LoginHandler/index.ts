@@ -6,6 +6,7 @@ import {
   LoginHandlerIdTokenResult,
   AuthConnection,
 } from '../Oauth2loginInterface';
+import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { IosGoogleLoginHandler } from './iosHandlers/google';
 import { IosAppleLoginHandler } from './iosHandlers/apple';
 import { AndroidGoogleLoginHandler } from './androidHandlers/google';
@@ -81,9 +82,20 @@ export async function getAuthTokens(
     codeVerifier,
     web3AuthNetwork,
   } = params;
-  // TODO: fix this
-  const { code } = params as LoginHandlerCodeResult;
-  const { idToken } = params as LoginHandlerIdTokenResult;
+
+  // Type guard to check if params has a code property
+  const hasCode = (
+    p: HandleFlowParams,
+  ): p is LoginHandlerCodeResult & { web3AuthNetwork: Web3AuthNetwork } =>
+    'code' in p;
+
+  // Type guard to check if params has an idToken property
+  const hasIdToken = (  p: HandleFlowParams,
+  ): p is LoginHandlerIdTokenResult & { web3AuthNetwork: Web3AuthNetwork } =>
+    'idToken' in p;
+
+  const code = hasCode(params) ? params.code : undefined;
+  const idToken = hasIdToken(params) ? params.idToken : undefined;
 
   const body = {
     code,
