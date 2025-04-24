@@ -57,7 +57,7 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-import { getCaip25PermissionFromLegacyPermissions, LegacyPermissions, requestPermittedChainsPermissionIncremental } from '../../util/permissions';
+import { getCaip25PermissionFromLegacyPermissions, requestPermittedChainsPermissionIncremental } from '../../util/permissions';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
