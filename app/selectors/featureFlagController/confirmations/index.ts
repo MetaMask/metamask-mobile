@@ -23,7 +23,7 @@ const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = 
   signatures: true,
   staking_confirmations: false,
   contract_interaction: false,
-}
+};
 
 export const selectConfirmationRedesignFlags = createSelector(
   selectRemoteFeatureFlags,
@@ -47,7 +47,7 @@ export const selectConfirmationRedesignFlags = createSelector(
     const isContractInteractionEnabled = getFeatureFlagValue(
       process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION,
       confirmationRedesignFlags.contract_interaction,
-    )
+    );
 
     return {
       signatures: isSignaturesEnabled,

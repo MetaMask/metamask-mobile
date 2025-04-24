@@ -35,7 +35,7 @@ const styleSheet = (params: { theme: Theme, vars: { color: IconColor } }) => {
       width: Number(ICON_SIZE) - 2,
       height: Number(ICON_SIZE) - 2,
       backgroundColor: params.theme.colors.primary.default,
-      borderRadius: (Number(ICON_SIZE) - 2)/2,
+      borderRadius: (Number(ICON_SIZE) - 2) / 2,
     },
   });
 };

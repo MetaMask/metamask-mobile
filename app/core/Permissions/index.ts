@@ -222,7 +222,7 @@ export const getPermittedAccounts = async (
 
 /**
  * Add a permitted chain for the given the host.
- * 
+ *
  * @param hostname - Subject to add permitted chain. Ex: A Dapp is a subject
  * @param chainId - ChainId to add.
  */
@@ -259,7 +259,7 @@ export const addPermittedChain = async (hostname: string, chainId: string) => {
 
 /**
  * Remove a permitted chain for the given the host.
- * 
+ *
  * @param hostname - Subject to remove permitted chain. Ex: A Dapp is a subject
  * @param chainId - ChainId to remove.
  */
@@ -291,7 +291,7 @@ export const removePermittedChain = async (hostname: string, chainId: string) =>
     },
     preserveExistingPermissions: true,
   });
-}
+};
 
 /**
  * Get permitted chains for the given the host.

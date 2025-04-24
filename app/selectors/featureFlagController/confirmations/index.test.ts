@@ -91,4 +91,4 @@ describe('confirmationRedesign Feature flag: selectConfirmationRedesignFlags sel
       confirmationRedesignFlagsDefaultValues
     );
   });
-}); 
+});

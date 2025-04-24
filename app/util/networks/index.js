@@ -602,7 +602,7 @@ export const WHILELIST_NETWORK_NAME  = {
   [ChainId.mainnet] : 'Mainnet',
   [ChainId['linea-mainnet']] : 'Linea Mainnet',
   [ChainId['megaeth-testnet']] : 'Mega Testnet',
-}
+};
 
 /**
  * Checks if the network name is valid for the given chain ID.

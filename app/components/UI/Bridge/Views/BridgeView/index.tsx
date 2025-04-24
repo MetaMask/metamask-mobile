@@ -190,7 +190,7 @@ const BridgeView = () => {
   const hasTrackedPageView = useRef(false);
   useEffect(() => {
     const shouldTrackPageView = sourceToken && !hasTrackedPageView.current;
-    
+
     if (shouldTrackPageView) {
       hasTrackedPageView.current = true;
       trackEvent(

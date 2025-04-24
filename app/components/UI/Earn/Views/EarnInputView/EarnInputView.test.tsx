@@ -12,7 +12,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { ConfirmationRedesignRemoteFlags, selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  ConfirmationRedesignRemoteFlags,
+  selectConfirmationRedesignFlags,
+} from '../../../../../selectors/featureFlagController/confirmations';
 import { toWei, weiToFiatNumber } from '../../../../../util/number';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -243,7 +246,9 @@ const mockInitialState: DeepPartial<RootState> = {
 
 describe('StakeInputView', () => {
   const usePoolStakedDepositMock = jest.mocked(usePoolStakedDeposit);
-  const selectConfirmationRedesignFlagsMock = jest.mocked(selectConfirmationRedesignFlags)
+  const selectConfirmationRedesignFlagsMock = jest.mocked(
+    selectConfirmationRedesignFlags,
+  );
   const selectSelectedInternalAccountMock = jest.mocked(
     selectSelectedInternalAccount,
   );
@@ -276,7 +281,7 @@ describe('StakeInputView', () => {
     );
     selectConfirmationRedesignFlagsMock.mockReturnValue({
       staking_confirmations: false,
-    } as unknown as ConfirmationRedesignRemoteFlags) ;
+    } as unknown as ConfirmationRedesignRemoteFlags);
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
     });
@@ -462,7 +467,7 @@ describe('StakeInputView', () => {
         // Override the mock value for this specific test
         selectConfirmationRedesignFlagsMock.mockReturnValue({
           staking_confirmations: true,
-        } as unknown as ConfirmationRedesignRemoteFlags) ;
+        } as unknown as ConfirmationRedesignRemoteFlags);
 
         usePoolStakedDepositMock.mockReturnValue({
           attemptDepositTransaction: attemptDepositTransactionMock,
