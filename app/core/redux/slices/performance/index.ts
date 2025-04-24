@@ -59,27 +59,28 @@ const slice = createSlice({
         environment?: PerformanceState['environment'];
       }>,
     ) => {
-      if (isTest) {
-        // Initialize session if not already initialized
-        if (!state.isInitialized) {
-          const { environment } = action.payload;
-          state.sessionId = uuidv4();
-          state.startTime = Date.now();
-          state.environment = {
-            branch: environment?.branch || '',
-            commitHash: environment?.commitHash || '',
-            platform: environment?.platform || Platform.OS,
-            appVersion: environment?.appVersion || '',
-          };
-          state.isInitialized = true;
-        }
-
-        const { eventName, metadata } = action.payload;
-        state.activeTraces[eventName] = {
-          startTime: Date.now(),
-          metadata,
-        };
+      if (!isTest) {
+        return;
       }
+      // Initialize session if not already initialized
+      if (!state.isInitialized) {
+        const { environment } = action.payload;
+        state.sessionId = uuidv4();
+        state.startTime = Date.now();
+        state.environment = {
+          branch: environment?.branch || '',
+          commitHash: environment?.commitHash || '',
+          platform: environment?.platform || Platform.OS,
+          appVersion: environment?.appVersion || '',
+        };
+        state.isInitialized = true;
+      }
+
+      const { eventName, metadata } = action.payload;
+      state.activeTraces[eventName] = {
+        startTime: Date.now(),
+        metadata,
+      };
     },
     endPerformanceTrace: (
       state,
@@ -88,30 +89,32 @@ const slice = createSlice({
         additionalMetadata?: Record<string, unknown>;
       }>,
     ) => {
-      if (isTest) {
-        const { eventName, additionalMetadata = {} } = action.payload;
-        const activeTrace = state.activeTraces[eventName];
+      if (!isTest) {
+        return;
+      }
+      const { eventName, additionalMetadata = {} } = action.payload;
+      const activeTrace = state.activeTraces[eventName];
 
-        if (activeTrace) {
-          const duration = Date.now() - activeTrace.startTime;
-          state.metrics.push({
-            eventName,
-            timestamp: activeTrace.startTime,
-            duration,
-            metadata: {
-              ...activeTrace.metadata,
-              ...additionalMetadata,
-            },
-          });
-          delete state.activeTraces[eventName];
-        }
+      if (activeTrace) {
+        const duration = Date.now() - activeTrace.startTime;
+        state.metrics.push({
+          eventName,
+          timestamp: activeTrace.startTime,
+          duration,
+          metadata: {
+            ...activeTrace.metadata,
+            ...additionalMetadata,
+          },
+        });
+        delete state.activeTraces[eventName];
       }
     },
     clearPerformanceMetrics: (state) => {
-      if (isTest) {
-        state.metrics = [];
-        state.activeTraces = {};
+      if (!isTest) {
+        return;
       }
+      state.metrics = [];
+      state.activeTraces = {};
     },
   },
 });

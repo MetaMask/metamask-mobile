@@ -122,14 +122,10 @@ export interface RootState {
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   bridge: StateFromReducer<typeof bridgeReducer>;
   banners: BannersState;
-  performance: PerformanceState;
+  performance?: PerformanceState;
 }
 
-// TODO: Fix the Action type. It's set to `any` now because some of the
-// TypeScript reducers have invalid actions
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rootReducer = combineReducers<RootState, any>({
+const baseReducers = {
   legalNotices: legalNoticesReducer,
   collectibles: collectiblesReducer,
   // TODO: Replace "any" with type
@@ -163,7 +159,16 @@ const rootReducer = combineReducers<RootState, any>({
   bridge: bridgeReducer,
   banners: bannersReducer,
   confirmationMetrics: confirmationMetricsReducer,
-  performance: performanceReducer,
-});
+};
+
+if (isTest) {
+  baseReducers.performance = performanceReducer;
+}
+
+// TODO: Fix the Action type. It's set to `any` now because some of the
+// TypeScript reducers have invalid actions
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rootReducer = combineReducers<RootState, any>(baseReducers);
 
 export default rootReducer;
