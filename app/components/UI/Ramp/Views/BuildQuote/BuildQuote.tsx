@@ -83,6 +83,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -634,6 +635,23 @@ const BuildQuote = () => {
     errorPaymentMethods,
     errorCryptoCurrencies,
   ]);
+
+  const [shouldEndTrace, setShouldEndTrace] = useState(true);
+  useEffect(() => {
+    if (
+      shouldEndTrace &&
+      !sdkError &&
+      !error &&
+      !isFetching &&
+      cryptoCurrencies &&
+      cryptoCurrencies.length > 0
+    ) {
+      endTrace({
+        name: TraceName.LoadRampExperience,
+      });
+      setShouldEndTrace(false);
+    }
+  }, [cryptoCurrencies, error, isFetching, rampType, sdkError, shouldEndTrace]);
 
   if (sdkError) {
     return (
