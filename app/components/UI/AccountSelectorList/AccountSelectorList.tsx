@@ -1,7 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { Alert, ListRenderItem, View, ViewStyle } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { Alert, View, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -31,6 +30,7 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
@@ -299,14 +299,15 @@ const AccountSelectorList = ({
   }, [accounts, selectedAddresses, isAutoScrollEnabled]);
 
   return (
-    <FlatList
+    <FlashList
       ref={accountListRef}
       onContentSizeChange={onContentSizeChanged}
       data={accounts}
       keyExtractor={getKeyExtractor}
       renderItem={renderAccountItem}
+      estimatedItemSize={80}
       // Increasing number of items at initial render fixes scroll issue.
-      initialNumToRender={999}
+      // initialNumToRender={999}
       {...props}
     />
   );
