@@ -450,10 +450,10 @@ const Main = (props) => {
         <Notification navigation={props.navigation} />
         <RampOrders />
         <SwapsLiveness />
-        <BackupAlert
+        {/* <BackupAlert
           onDismiss={toggleRemindLater}
           navigation={props.navigation}
-        />
+        /> */}
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,

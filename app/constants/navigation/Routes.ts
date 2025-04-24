@@ -63,6 +63,8 @@ const Routes = {
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
     MANUAL_BACKUP: {
+      STEP_1: 'ManualBackupStep1',
+      STEP_2: 'ManualBackupStep2',
       STEP_3: 'ManualBackupStep3',
     },
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
@@ -198,6 +200,7 @@ const Routes = {
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
   SEEDPHRASE_MODAL: 'SeedphraseModal',
+  SET_PASSWORD_FLOW: 'SetPasswordFlow',
 };
 
 export default Routes;
