@@ -285,17 +285,9 @@ const BridgeView = () => {
   };
 
   const renderBottomContent = () => {
-    if (isError) {
-      return (
-        <Box style={styles.buttonContainer}>
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            description={strings('bridge.error_banner_description')}
-          />
-        </Box>
-      );
+    if (!activeQuote && !quotesLastFetched) {
+      return;
     }
-
     if (!hasValidBridgeInputs || isInputFocused) {
       return (
         <Box style={styles.buttonContainer}>
@@ -316,8 +308,15 @@ const BridgeView = () => {
       );
     }
 
-    if (!activeQuote && !quotesLastFetched) {
-      return;
+    if (isError) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            description={strings('bridge.error_banner_description')}
+          />
+        </Box>
+      );
     }
 
     return (
