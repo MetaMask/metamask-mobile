@@ -374,6 +374,7 @@ describe('BridgeView', () => {
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
           quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotesLastFetched: 12,
         },
       });
 
@@ -415,6 +416,7 @@ describe('BridgeView', () => {
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
           quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0', // Less than balance of 2.0 ETH
@@ -441,6 +443,7 @@ describe('BridgeView', () => {
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
           quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0', // Less than balance of 2.0 ETH
@@ -472,6 +475,7 @@ describe('BridgeView', () => {
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
           quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0', // Less than balance of 2.0 ETH
