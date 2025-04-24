@@ -14,7 +14,6 @@ const createStyles = (colors: any) =>
     wrapper: {
       flex: 1,
       paddingHorizontal: 16,
-      marginTop: 50,
     },
     container: {
       marginTop: 6,
@@ -173,6 +172,9 @@ const createStyles = (colors: any) =>
     },
     inputIndex: {
       marginRight: -4,
+    },
+    label: {
+      marginBottom: -4,
     },
   });
 

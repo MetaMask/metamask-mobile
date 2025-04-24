@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
-import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
@@ -79,10 +78,7 @@ const createStyles = (colors) =>
     },
   });
 
-const SeedphraseModal = ({
-  showWhatIsSeedphraseModal,
-  hideWhatIsSeedphrase,
-}) => {
+const SeedphraseModal = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef(null);
@@ -93,12 +89,12 @@ const SeedphraseModal = ({
     strings('account_backup_step_1.seedPhrase_point_3'),
   ];
 
-  return showWhatIsSeedphraseModal ? (
-    <BottomSheet
-      ref={bottomSheetRef}
-      onClose={hideWhatIsSeedphrase}
-      shouldNavigateBack={false}
-    >
+  const hideWhatIsSeedphrase = () => {
+    bottomSheetRef.current?.onCloseBottomSheet?.();
+  };
+
+  return (
+    <BottomSheet ref={bottomSheetRef}>
       <ActionContent
         actionContainerStyle={styles.modalNoBorder}
         displayCancelButton={false}
@@ -141,18 +137,7 @@ const SeedphraseModal = ({
         </View>
       </ActionContent>
     </BottomSheet>
-  ) : null;
-};
-
-SeedphraseModal.propTypes = {
-  /**
-  /* Show or hide modal
-  */
-  showWhatIsSeedphraseModal: PropTypes.bool,
-  /**
-  /* Function to hide modal
-  */
-  hideWhatIsSeedphrase: PropTypes.func,
+  );
 };
 
 export default SeedphraseModal;

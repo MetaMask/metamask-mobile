@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import Icon, {
   IconName,
   IconSize,
@@ -71,19 +71,33 @@ const createStyles = (colors) =>
     },
   });
 
-const SkipAccountSecurityModal = ({
-  modalVisible,
-  onConfirm,
-  onCancel,
-  onPress,
-  toggleSkipCheckbox,
-  skipCheckbox,
-}) => {
+const SkipAccountSecurityModal = ({ route }) => {
+  const sheetRef = useRef(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  return modalVisible ? (
-    <BottomSheet onClose={onPress} shouldNavigateBack={false}>
+  const [skipCheckbox, setSkipCheckbox] = useState(false);
+
+  const toggleSkipCheckbox = () => {
+    setSkipCheckbox(!skipCheckbox);
+  };
+
+  const onConfirmAction = () => {
+    if (route && route.params && route.params.onConfirm) {
+      route.params.onConfirm();
+      // sheetRef.current?.onCloseBottomSheet?.();
+    }
+  };
+
+  const onCancelAction = () => {
+    if (route && route.params && route.params.onCancel) {
+      route.params.onCancel();
+      sheetRef.current?.onCloseBottomSheet?.();
+    }
+  };
+
+  return (
+    <BottomSheet ref={sheetRef}>
       <ActionContent
         cancelTestID={SkipAccountSecurityModalSelectorsIDs.CANCEL_BUTTON}
         confirmTestID={SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON}
@@ -92,9 +106,9 @@ const SkipAccountSecurityModal = ({
         confirmButtonMode={'danger'}
         cancelButtonMode={'normal'}
         actionContainerStyle={styles.modalNoBorder}
-        onCancelPress={onCancel}
+        onCancelPress={onCancelAction}
         confirmDisabled={!skipCheckbox}
-        onConfirmPress={onConfirm}
+        onConfirmPress={onConfirmAction}
       >
         <View style={styles.skipModalContainer}>
           <Icon
@@ -132,24 +146,18 @@ const SkipAccountSecurityModal = ({
         </View>
       </ActionContent>
     </BottomSheet>
-  ) : null;
+  );
 };
 
 const propTypes = {
-  modalVisible: PropTypes.bool.isRequired,
-  onConfirm: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onPress: PropTypes.func,
-  toggleSkipCheckbox: PropTypes.func.isRequired,
-  skipCheckbox: PropTypes.bool.isRequired,
-};
-
-const defaultProps = {
-  modalVisible: false,
-  skipCheckbox: false,
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      onConfirm: PropTypes.func,
+      onCancel: PropTypes.func,
+    }),
+  }),
 };
 
 SkipAccountSecurityModal.propTypes = propTypes;
-SkipAccountSecurityModal.defaultProps = defaultProps;
 
 export default SkipAccountSecurityModal;

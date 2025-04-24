@@ -341,16 +341,9 @@ const OnboardingSuccess = ({
     </View>
   );
 
-  const marginTop = showPasswordHint ? 80 : noSRP ? 100 : 0;
-
   return (
     <ScrollView
-      contentContainerStyle={[
-        styles.root,
-        {
-          marginTop,
-        },
-      ]}
+      contentContainerStyle={[styles.root]}
       testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
     >
       {!showHint ? (

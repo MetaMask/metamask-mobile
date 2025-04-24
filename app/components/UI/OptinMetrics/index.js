@@ -53,7 +53,6 @@ const createStyles = ({ colors }) =>
     root: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
-      marginTop: 24,
     },
     checkbox: {
       display: 'flex',
@@ -72,7 +71,6 @@ const createStyles = ({ colors }) =>
       flex: 1,
     },
     wrapper: {
-      marginTop: 10,
       marginHorizontal: 20,
       flex: 1,
       flexDirection: 'column',

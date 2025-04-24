@@ -75,7 +75,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
     setIsVisible(false);
     navigation.navigate('SetPasswordFlow', {
       screen: 'ManualBackupStep1',
-      params: { marginOffset: true },
+      params: { backupFlow: true },
     });
 
     trackEvent(

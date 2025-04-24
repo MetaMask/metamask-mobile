@@ -22,24 +22,22 @@ import createStyles from './styles';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
+import Routes from '../../../constants/navigation/Routes';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const words = route.params?.words;
-  const marginOffset = route.params?.marginOffset;
+  const backupFlow = route.params?.backupFlow;
+
+  // eslint-disable-next-line no-console
+  console.log('backupFlow', backupFlow);
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -90,8 +88,12 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     if (validateWords()) {
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(async () => {
-        marginOffset
-          ? navigation.navigate('OptinMetrics')
+        backupFlow
+          ? navigation.navigate('OptinMetrics', {
+              onContinue: () => {
+                navigation.reset({ routes: [{ name: 'HomeNav' }] });
+              },
+            })
           : navigation.navigate('OptinMetrics', {
               steps: route.params?.steps,
               words,
@@ -297,18 +299,38 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     ],
   );
 
-  const marginTop = marginOffset ? 110 : 50;
+  const validateSeedPhrase = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: validateWords()
+          ? strings('manual_backup_step_2.success-title')
+          : strings('manual_backup_step_2.error-title'),
+        description: validateWords()
+          ? strings('manual_backup_step_2.success-description')
+          : strings('manual_backup_step_2.error-description'),
+        buttonLabel: validateWords()
+          ? strings('manual_backup_step_2.success-button')
+          : strings('manual_backup_step_2.error-button'),
+        type: validateWords() ? 'success' : 'error',
+        onClose: () => setShowStatusBottomSheet((prev) => !prev),
+        onButtonPress: validateWords()
+          ? goNext
+          : () => setShowStatusBottomSheet((prev) => !prev),
+      },
+    });
+  };
 
   return (
     <SafeAreaView style={styles.mainWrapper}>
-      <View style={[styles.container, { marginTop }]}>
+      <View style={[styles.container]}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           Step 3 of 3
         </Text>
         <ActionView
           confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
           confirmText={strings('manual_backup_step_2.continue')}
-          onConfirmPress={() => setShowStatusBottomSheet(true)}
+          onConfirmPress={validateSeedPhrase}
           confirmDisabled={!isAllWordsPlaced()}
           showCancelButton={false}
           confirmButtonMode={'confirm'}
@@ -336,51 +358,6 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           </View>
         </ActionView>
       </View>
-      {showStatusBottomSheet && (
-        <BottomSheet
-          onClose={() => setShowStatusBottomSheet(false)}
-          shouldNavigateBack={false}
-        >
-          <View style={styles.statusContainer}>
-            <Icon
-              name={validateWords() ? IconName.SuccessSolid : IconName.CircleX}
-              size={IconSize.Xl}
-              color={
-                validateWords() ? colors.success.default : colors.error.default
-              }
-            />
-            <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-              {validateWords()
-                ? strings('manual_backup_step_2.success-title')
-                : strings('manual_backup_step_2.error-title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
-              style={styles.statusDescription}
-            >
-              {validateWords()
-                ? strings('manual_backup_step_2.success-description')
-                : strings('manual_backup_step_2.error-description')}
-            </Text>
-            <Button
-              variant={ButtonVariants.Primary}
-              label={
-                validateWords()
-                  ? strings('manual_backup_step_2.success-button')
-                  : strings('manual_backup_step_2.error-button')
-              }
-              width={ButtonWidthTypes.Full}
-              style={styles.statusButton}
-              onPress={() => {
-                setShowStatusBottomSheet(false);
-                validateWords() && goNext();
-              }}
-              size={ButtonSize.Lg}
-            />
-          </View>
-        </BottomSheet>
-      )}
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

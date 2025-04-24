@@ -68,7 +68,6 @@ const createStyles = (colors: ThemeColors) =>
       paddingTop: 30,
       paddingBottom: 24,
       flex: 1,
-      marginTop: 100,
     },
     title: {
       fontSize: 40,
