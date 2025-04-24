@@ -23,7 +23,7 @@ jest.mock('../../../../../../../core/Engine', () => ({
 jest.mock(
   '../../../../../../../components/hooks/useMultichainBalances',
   () => ({
-    useMultichainBalances: jest.fn(),
+    useSelectedAccountMultichainBalances: jest.fn(),
   }),
 );
 
