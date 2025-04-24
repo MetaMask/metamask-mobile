@@ -710,18 +710,3 @@ export type InitModularizedControllersFunction = (request: {
 }) => {
   controllersByName: ControllerByName;
 };
-
-export interface LegacyPermissions {
-  [PermissionKeys.eth_accounts]?: {
-    caveats?: {
-      type: keyof typeof CaveatTypes;
-      value: Hex[];
-    }[];
-  };
-  [PermissionKeys.permittedChains]?: {
-    caveats?: {
-      type: keyof typeof CaveatTypes;
-      value: Hex[];
-    }[];
-  };
-}

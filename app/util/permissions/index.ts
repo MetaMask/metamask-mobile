@@ -6,7 +6,7 @@ import { pick } from 'lodash';
 import { isSnapId } from '@metamask/snaps-utils';
 import { Caip25CaveatType, Caip25EndowmentPermissionName, setEthAccounts, setPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 
-interface LegacyPermissions {
+export interface LegacyPermissions {
   [PermissionKeys.eth_accounts]?: {
     caveats?: {
       type: keyof typeof CaveatTypes;
@@ -31,7 +31,7 @@ interface LegacyPermissions {
  */
 export const getCaip25PermissionFromLegacyPermissions = (
   origin: string,
-  requestedPermissions: LegacyPermissions,
+  requestedPermissions?: LegacyPermissions,
 ) => {
   const permissions = pick(requestedPermissions, [
     PermissionKeys.eth_accounts,

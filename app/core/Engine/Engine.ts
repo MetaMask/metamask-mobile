@@ -173,7 +173,6 @@ import {
   EngineState,
   EngineContext,
   StatefulControllers,
-  LegacyPermissions,
 } from './types';
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
