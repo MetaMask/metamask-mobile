@@ -2688,37 +2688,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
           1Y
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderRadius": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 8,
-            "paddingLeft": 10,
-            "paddingVertical": 2,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 3,
-              "lineHeight": 22,
-              "textAlign": "center",
-            }
-          }
-        >
-          3Y
-        </Text>
-      </TouchableOpacity>
     </View>
     <View
       style={
