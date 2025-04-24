@@ -84,6 +84,10 @@ const ProtectYourWallet = ({
     openSRPQuiz();
   };
 
+  const onProtectYourWalletPressed = () => {
+    navigation.navigate('ProtectYourWallet');
+  };
+
   return (
     <View style={[styles.setting, styles.firstSetting]}>
       <Text variant={TextVariant.BodyLGMedium}>
@@ -109,6 +113,23 @@ const ProtectYourWallet = ({
           label={strings('app_settings.learn_more')}
         />
       )}
+      <Banner
+        variant={BannerVariant.Alert}
+        severity={BannerAlertSeverity.Success}
+        title={strings('app_settings.social_login_linked')}
+        description={
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            yourusername@gmail.com
+          </Text>
+        }
+        style={styles.accessory}
+      />
+      <Banner
+        variant={BannerVariant.Alert}
+        severity={BannerAlertSeverity.Error}
+        title={strings('app_settings.social_login_linked')}
+        style={styles.accessory}
+      />
       {srpBackedup ? (
         <Banner
           variant={BannerVariant.Alert}
@@ -154,6 +175,15 @@ const ProtectYourWallet = ({
           testID={SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON}
         />
       )}
+      <Button
+        label={strings('app_settings.protect_title')}
+        width={ButtonWidthTypes.Full}
+        variant={ButtonVariants.Primary}
+        size={ButtonSize.Lg}
+        onPress={onProtectYourWalletPressed}
+        style={styles.accessory}
+        testID={SecurityPrivacyViewSelectorsIDs.PROTECT_YOUR_WALLET}
+      />
     </View>
   );
 };

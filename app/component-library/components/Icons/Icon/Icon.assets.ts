@@ -173,6 +173,8 @@ import eyeSlashSolidSVG from './assets/eye-slash-solid.svg';
 import eyeSolidSVG from './assets/eye-solid.svg';
 import dangerSolidSVG from './assets/danger-solid.svg';
 import successSolidSVG from './assets/success.svg';
+import accountSVG from './assets/account.svg';
+import accountTypeSVG from './assets/account-type.svg';
 
 /**
  * Asset stored by icon name
@@ -347,4 +349,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.EyeSolid]: eyeSolidSVG,
   [IconName.DangerSolid]: dangerSolidSVG,
   [IconName.SuccessSolid]: successSolidSVG,
+  [IconName.Account]: accountSVG,
+  [IconName.AccountType]: accountTypeSVG,
 };

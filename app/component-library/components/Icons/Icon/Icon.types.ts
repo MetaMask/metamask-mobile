@@ -239,4 +239,6 @@ export enum IconName {
   EyeSolid = 'EyeSolid',
   DangerSolid = 'DangerSolid',
   SuccessSolid = 'SuccessSolid',
+  Account = 'Account',
+  AccountType = 'AccountType',
 }
