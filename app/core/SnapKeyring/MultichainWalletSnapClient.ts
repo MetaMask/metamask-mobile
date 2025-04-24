@@ -72,6 +72,15 @@ export abstract class MultichainWalletSnapClient {
   abstract getScopes(): CaipChainId[];
   protected abstract getSnapSender(): Sender;
 
+  /**
+   * Executes a callback function with a SnapKeyring instance.
+   * This method ensures proper initialization of the SnapKeyring and provides a safe way to interact with it.
+   *
+   * @param callback - An async function that receives a SnapKeyring instance and performs operations with it
+   * @returns A Promise that resolves when the callback execution is complete
+   * @throws Error if the SnapKeyring cannot be initialized or if the callback execution fails
+   *
+   */
   protected async withSnapKeyring(
     callback: (keyring: SnapKeyring) => Promise<void>,
   ) {
@@ -87,6 +96,15 @@ export abstract class MultichainWalletSnapClient {
     );
   }
 
+  /**
+   * Creates a new account using the SnapKeyring.
+   * This method wraps the account creation process with proper SnapKeyring initialization and error handling.
+   *
+   * @param options - Configuration options for creating the multichain wallet account
+   * @returns A Promise that resolves when the account creation is complete
+   * @throws Error if the account creation fails or if the SnapKeyring cannot be accessed
+   *
+   */
   async createAccount(options: MultichainWalletSnapOptions) {
     return await this.withSnapKeyring(async (keyring) => {
       (keyring as unknown as SnapKeyring).createAccount(
@@ -97,6 +115,15 @@ export abstract class MultichainWalletSnapClient {
     });
   }
 
+  /**
+   * Discovers accounts for the specified scopes using the provided entropy source.
+   *
+   * @param scopes - Array of CAIP-2 chain IDs to discover accounts for
+   * @param entropySource - The source of entropy to use for account discovery
+   * @param groupIndex - The index of the account group to discover
+   * @returns A Promise that resolves with the discovered accounts
+   * @throws Error if account discovery fails
+   */
   async discoverAccounts(
     scopes: CaipChainId[],
     entropySource: EntropySourceId,
@@ -111,6 +138,14 @@ export abstract class MultichainWalletSnapClient {
     );
   }
 
+  /**
+   * Adds discovered accounts to the SnapKeyring.
+   * This method discovers accounts for the configured scopes and adds them to the keyring.
+   *
+   * @param entropySource - The source of entropy to use for account discovery
+   * @returns A Promise that resolves when all accounts have been added
+   * @throws Error if account discovery or addition fails
+   */
   async addDiscoveredAccounts(entropySource: EntropySourceId) {
     const discoveredAccounts = await this.discoverAccounts(
       this.getScopes(),

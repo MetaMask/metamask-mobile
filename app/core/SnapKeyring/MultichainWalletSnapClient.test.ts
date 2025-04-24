@@ -240,7 +240,6 @@ describe('MultichainWalletSnapClient', () => {
         mockOptions,
       );
 
-      // Access the protected property through a type assertion
       expect(snapClient.snapKeyringOptions).toStrictEqual(mockOptions);
     });
   });
