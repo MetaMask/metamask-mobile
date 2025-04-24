@@ -2,7 +2,12 @@ import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Hex, CaipAssetId } from '@metamask/utils';
+import {
+  Hex,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  CaipAssetId,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -64,7 +69,9 @@ import {
 } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { TraceName, endTrace } from '../../../util/trace';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../selectors/multichain';
+///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 
 interface AssetOverviewProps {
@@ -111,10 +118,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
   const multichainAssetRates =
     multichainAssetsRates?.[asset.address as CaipAssetId];
+  ///: END:ONLY_INCLUDE_IF
 
   const currentAddress = asset.address as Hex;
 
@@ -316,12 +325,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     asset.isETH ? asset.ticker : asset.symbol
   }`;
 
-  const convertedMultichainAssetRates = multichainAssetRates
-    ? {
-        rate: Number(multichainAssetRates.rate),
-        marketData: undefined,
-      }
-    : undefined;
+  const convertedMultichainAssetRates =
+    !isEvmSelected && multichainAssetRates
+      ? {
+          rate: Number(multichainAssetRates.rate),
+          marketData: undefined,
+        }
+      : undefined;
 
   let currentPrice = 0;
   let priceDiff = 0;
@@ -364,8 +374,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             comparePrice={comparePrice}
             isLoading={isLoading}
             timePeriod={timePeriod}
-            isEvmNetworkSelected={isEvmSelected}
+            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
             multichainAssetsRates={multichainAssetsRates}
+            ///: END:ONLY_INCLUDE_IF
+            isEvmNetworkSelected={isEvmSelected}
           />
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}

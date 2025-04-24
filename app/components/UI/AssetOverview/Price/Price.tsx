@@ -19,8 +19,10 @@ import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { TokenI } from '../../Tokens/types';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipAssetId } from '@metamask/utils';
 import { AssetConversion } from '@metamask/snaps-sdk';
+///: END:ONLY_INCLUDE_IF
 
 interface PriceProps {
   asset: TokenI;
@@ -31,8 +33,10 @@ interface PriceProps {
   comparePrice: number;
   isLoading: boolean;
   timePeriod: TimePeriod;
-  isEvmNetworkSelected: boolean;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainAssetsRates: Record<CaipAssetId, AssetConversion>;
+  ///: END:ONLY_INCLUDE_IF
+  isEvmNetworkSelected: boolean;
 }
 
 const Price = ({
@@ -44,11 +48,15 @@ const Price = ({
   comparePrice,
   isLoading,
   timePeriod,
-  isEvmNetworkSelected,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainAssetsRates,
+  ///: END:ONLY_INCLUDE_IF
+  isEvmNetworkSelected,
 }: PriceProps) => {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multichainAssetRates =
     multichainAssetsRates[asset.address as CaipAssetId];
+  ///: END:ONLY_INCLUDE_IF
 
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 

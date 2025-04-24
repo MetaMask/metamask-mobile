@@ -1,7 +1,9 @@
 import { CaipAssetId, Hex } from '@metamask/utils';
 import { getDecimalChainId } from '../../util/networks';
 import { useState, useEffect } from 'react';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainHistoricalPrices } from '../../selectors/multichain';
+///: END:ONLY_INCLUDE_IF
 import { useSelector } from 'react-redux';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
 import Engine from '../../core/Engine';
@@ -55,9 +57,11 @@ const useTokenHistoricalPrices = ({
   isLoading: boolean;
   error: Error | undefined;
 } => {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multichainHistoricalPrices = useSelector(
     selectMultichainHistoricalPrices,
   );
+  ///: END:ONLY_INCLUDE_IF
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const [prices, setPrices] = useState<TokenPrice[]>(placeholderPrices);
   const [isLoading, setIsLoading] = useState(true);
@@ -122,7 +126,9 @@ const useTokenHistoricalPrices = ({
     vsCurrency,
     isEvmSelected,
     asset.address,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     multichainHistoricalPrices,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   return { data: prices, isLoading, error };
