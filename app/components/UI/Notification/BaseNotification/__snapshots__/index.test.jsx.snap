@@ -643,7 +643,7 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
             ]
           }
         >
-          ?
+          
         </Text>
       </View>
       <View
@@ -809,7 +809,7 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
             ]
           }
         >
-          ?
+          
         </Text>
       </View>
       <View
@@ -975,7 +975,7 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
             ]
           }
         >
-          ?
+          
         </Text>
       </View>
       <View
@@ -1141,7 +1141,7 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
             ]
           }
         >
-          ?
+          
         </Text>
       </View>
       <View
@@ -1307,7 +1307,7 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
             ]
           }
         >
-          ?
+          
         </Text>
       </View>
       <View
