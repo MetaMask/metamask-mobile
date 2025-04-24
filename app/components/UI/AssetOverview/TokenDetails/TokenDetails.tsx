@@ -1,4 +1,3 @@
-import { zeroAddress } from 'ethereumjs-util';
 import { CaipAssetId, Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 import React, { useMemo } from 'react';
@@ -75,6 +74,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     : asset.address;
 
   const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
+
   const multichainAssetRates =
     allMultichainAssetsRates[asset.address as CaipAssetId];
 
@@ -121,7 +121,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
       ? evmMarketData?.marketData
       : nonEvmMarketData;
   }
-
   const tokenDetails = useMemo(
     () =>
       getTokenDetails(
@@ -134,7 +133,12 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   );
 
   const marketDetails = useMemo(() => {
-    if (!marketData) return null;
+    if (!marketData) return;
+
+    if (!conversionRate || conversionRate < 0) {
+      Logger.log('invalid conversion rate');
+      return;
+    }
 
     return formatMarketDetails(
       {
@@ -165,11 +169,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
       },
     );
   }, [marketData, currentCurrency, isEvmNetworkSelected, conversionRate]);
-
-  if (!conversionRate || conversionRate < 0) {
-    Logger.log('invalid conversion rate');
-    return null;
-  }
 
   const hasAssetBalance =
     asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
