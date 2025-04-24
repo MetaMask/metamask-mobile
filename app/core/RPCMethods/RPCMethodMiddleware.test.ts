@@ -63,13 +63,18 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import { CaveatTypes } from '../Permissions/constants';
+import { getCaip25PermissionFromLegacyPermissions, requestPermittedChainsPermissionIncremental } from '../../util/permissions';
 import { toHex } from '@metamask/controller-utils';
+
+jest.mock('../../util/permissions', () => ({
+  __esModule: true,
+  getCaip25PermissionFromLegacyPermissions: jest.fn(),
+  requestPermittedChainsPermissionIncremental: jest.fn(),
+}));
 
 jest.mock('./spam');
 
 jest.mock('../Engine', () => ({
-  getCaip25PermissionFromLegacyPermissions: jest.fn(),
-  requestPermittedChainsPermissionIncremental: jest.fn(),
   rejectOriginPendingApprovals: jest.fn(),
   controllerMessenger: {
     call: { bind: jest.fn() },
@@ -302,8 +307,8 @@ function setupGlobalState({
     .mockImplementation(() => ({
       browser: activeTab
         ? {
-            activeTab,
-          }
+          activeTab,
+        }
         : {},
       engine: {
         backgroundState: {
@@ -801,7 +806,7 @@ describe('getRpcMethodMiddleware', () => {
           },
         ],
       );
-      MockEngine.getCaip25PermissionFromLegacyPermissions.mockReturnValue(
+      (getCaip25PermissionFromLegacyPermissions as jest.Mock).mockReturnValue(
         mockPermission,
       );
 
@@ -1847,17 +1852,18 @@ describe('getRpcMethodMiddlewareHooks', () => {
   });
 
   describe('requestPermittedChainsPermissionIncrementalForOrigin', () => {
-    it('should call Engine.requestPermittedChainsPermissionIncremental with correct params', () => {
+    it('should call requestPermittedChainsPermissionIncremental with correct params', () => {
       const options = {
         origin: 'https://other-origin.com', // This should be overridden
         chainId: toHex('0x1'),
         autoApprove: true,
       };
 
+      const mockRequestPermittedChainsPermissionIncremental = requestPermittedChainsPermissionIncremental as jest.Mock;
       hooks.requestPermittedChainsPermissionIncrementalForOrigin(options);
 
       expect(
-        Engine.requestPermittedChainsPermissionIncremental,
+        mockRequestPermittedChainsPermissionIncremental,
       ).toHaveBeenCalledWith({
         ...options,
         origin: testOrigin,

@@ -12,6 +12,7 @@ import {
   TokenRatesController,
   TokensController,
   CodefiTokenPricesServiceV2,
+  TokenSearchDiscoveryDataController,
 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import { AddressBookController } from '@metamask/address-book-controller';
@@ -102,7 +103,6 @@ import { createUserStorageController } from './controllers/identity/create-user-
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
-  PermissionKeys,
   unrestrictedMethods,
 } from '../Permissions/specifications.js';
 import { backupVault } from '../BackupVault';
@@ -172,11 +172,11 @@ import {
   EngineState,
   EngineContext,
   StatefulControllers,
-  LegacyPermissions,
 } from './types';
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
   STATELESS_NON_CONTROLLER_NAMES,
+  swapsSupportedChainIds,
 } from './constants';
 import {
   getGlobalChainId,
@@ -197,18 +197,9 @@ import { currencyRateControllerInit } from './controllers/currency-rate-controll
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import { SignatureControllerInit } from './controllers/signature-controller';
-import {
-  Caip25CaveatType,
-  Caip25EndowmentPermissionName,
-  setEthAccounts,
-  setPermittedEthChainIds,
-} from '@metamask/chain-agnostic-permission';
-import { isSnapId } from '@metamask/snaps-utils';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
-import { pick } from 'lodash';
-import { CaveatTypes } from '../Permissions/constants';
 import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
 import {
@@ -1009,6 +1000,20 @@ export class Engine {
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
+    const tokenSearchDiscoveryDataController = new TokenSearchDiscoveryDataController({
+      tokenPricesService: codefiTokenApiV2,
+      swapsSupportedChainIds,
+      fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+      fetchTokens: swapsUtils.fetchTokens,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'TokenSearchDiscoveryDataController',
+        allowedActions: [
+          'CurrencyRateController:getState'
+        ],
+        allowedEvents: [],
+      }),
+    });
+
     /* bridge controller Initialization */
     const bridgeController = new BridgeController({
       messenger: this.controllerMessenger.getRestricted({
@@ -1043,6 +1048,9 @@ export class Engine {
       config: {
         customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
       },
+      trackMetaMetricsFn: () => {
+        //TODO: Implement trackMetaMetricsFn
+      },
     });
 
     const bridgeStatusController = new BridgeStatusController({
@@ -1057,7 +1065,6 @@ export class Engine {
           'BridgeController:getBridgeERC20Allowance',
           'GasFeeController:getState',
           'AccountsController:getAccountByAddress',
-          'PreferencesController:getState',
           'SnapController:handleRequest',
           'TransactionController:getState',
         ],
@@ -1066,15 +1073,19 @@ export class Engine {
       state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
       fetchFn: handleFetch,
-      addTransactionFn: (...args: Parameters<typeof this.transactionController.addTransaction>) =>
-        this.transactionController.addTransaction(...args),
-      estimateGasFeeFn: (...args: Parameters<typeof this.transactionController.estimateGasFee>) =>
-        this.transactionController.estimateGasFee(...args),
+      addTransactionFn: (
+        ...args: Parameters<typeof this.transactionController.addTransaction>
+      ) => this.transactionController.addTransaction(...args),
+      estimateGasFeeFn: (
+        ...args: Parameters<typeof this.transactionController.estimateGasFee>
+      ) => this.transactionController.estimateGasFee(...args),
       addUserOperationFromTransactionFn: (...args: unknown[]) =>
         // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
-        this.userOperationController?.addUserOperationFromTransaction?.(...args),
+        this.userOperationController?.addUserOperationFromTransaction?.(
+          ...args,
+        ),
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
       },
     });
 
@@ -1384,18 +1395,7 @@ export class Engine {
           AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
         fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
         fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-        supportedChainIds: [
-          swapsUtils.ETH_CHAIN_ID,
-          swapsUtils.BSC_CHAIN_ID,
-          swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-          swapsUtils.POLYGON_CHAIN_ID,
-          swapsUtils.AVALANCHE_CHAIN_ID,
-          swapsUtils.ARBITRUM_CHAIN_ID,
-          swapsUtils.OPTIMISM_CHAIN_ID,
-          swapsUtils.ZKSYNC_ERA_CHAIN_ID,
-          swapsUtils.LINEA_CHAIN_ID,
-          swapsUtils.BASE_CHAIN_ID,
-        ],
+        supportedChainIds: swapsSupportedChainIds,
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
@@ -1474,6 +1474,7 @@ export class Engine {
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
@@ -1515,7 +1516,7 @@ export class Engine {
       (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
-            NetworkStatus.Available &&
+          NetworkStatus.Available &&
           getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
@@ -1659,7 +1660,7 @@ export class Engine {
       const chainIdHex = toHexadecimal(chainId);
       const tokens =
         TokensController.state.allTokens?.[chainIdHex]?.[
-          selectedInternalAccount.address
+        selectedInternalAccount.address
         ] || [];
       const { marketData } = TokenRatesController.state;
       const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
@@ -1672,7 +1673,7 @@ export class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectedInternalAccountFormattedAddress
+        selectedInternalAccountFormattedAddress
         ]
       ) {
         const balanceHex =
@@ -1713,7 +1714,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-            chainId
+          chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1724,9 +1725,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address as Hex],
-                    item.decimals,
-                  )
+                  tokenBalances[item.address as Hex],
+                  item.decimals,
+                )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
@@ -2000,149 +2001,6 @@ export class Engine {
     PreferencesController.setAccountLabel(address, label);
   }
 
-  /**
-   * Requests user approval for the CAIP-25 permission for the specified origin
-   * and returns a granted permissions object.
-   *
-   * @param {string} origin - The origin to request approval for.
-   * @param requestedPermissions - The legacy permissions to request approval for.
-   * @returns the approved permissions object.
-   */
-  getCaip25PermissionFromLegacyPermissions(
-    origin: string,
-    requestedPermissions: LegacyPermissions,
-  ) {
-    const permissions = pick(requestedPermissions, [
-      PermissionKeys.eth_accounts,
-      PermissionKeys.permittedChains,
-    ]);
-
-    if (!permissions[PermissionKeys.eth_accounts]) {
-      permissions[PermissionKeys.eth_accounts] = {};
-    }
-
-    if (!permissions[PermissionKeys.permittedChains]) {
-      permissions[PermissionKeys.permittedChains] = {};
-    }
-
-    if (isSnapId(origin)) {
-      delete permissions[PermissionKeys.permittedChains];
-    }
-
-    const requestedAccounts =
-      permissions[PermissionKeys.eth_accounts]?.caveats?.find(
-        (caveat) => caveat.type === CaveatTypes.restrictReturnedAccounts,
-      )?.value ?? [];
-
-    const requestedChains =
-      permissions[PermissionKeys.permittedChains]?.caveats?.find(
-        (caveat) => caveat.type === CaveatTypes.restrictNetworkSwitching,
-      )?.value ?? [];
-
-    const newCaveatValue = {
-      requiredScopes: {},
-      optionalScopes: {
-        'wallet:eip155': {
-          accounts: [],
-        },
-      },
-      isMultichainOrigin: false,
-      sessionProperties: {},
-    };
-
-    const caveatValueWithChains = setPermittedEthChainIds(
-      newCaveatValue,
-      isSnapId(origin) ? [] : requestedChains,
-    );
-
-    const caveatValueWithAccountsAndChains = setEthAccounts(
-      caveatValueWithChains,
-      requestedAccounts,
-    );
-
-    return {
-      [Caip25EndowmentPermissionName]: {
-        caveats: [
-          {
-            type: Caip25CaveatType,
-            value: caveatValueWithAccountsAndChains,
-          },
-        ],
-      },
-    };
-  }
-
-  /**
-   * Requests incremental permittedChains permission for the specified origin.
-   * and updates the existing CAIP-25 permission.
-   * Allows for granting without prompting for user approval which
-   * would be used as part of flows like `wallet_addEthereumChain`
-   * requests where the addition of the network and the permitting
-   * of the chain are combined into one approval.
-   *
-   * @param {object} options - The options object
-   * @param {string} options.origin - The origin to request approval for.
-   * @param {Hex} options.chainId - The chainId to add to the existing permittedChains.
-   * @param {boolean} options.autoApprove - If the chain should be granted without prompting for user approval.
-   */
-  async requestPermittedChainsPermissionIncremental({
-    origin,
-    chainId,
-    autoApprove,
-  }: {
-    origin: string;
-    chainId: Hex;
-    autoApprove: boolean;
-  }) {
-    if (isSnapId(origin)) {
-      throw new Error(
-        `Cannot request permittedChains permission for Snaps with origin "${origin}"`,
-      );
-    }
-
-    const permissionController = this.context.PermissionController;
-    const caveatValueWithChains = setPermittedEthChainIds(
-      {
-        requiredScopes: {},
-        optionalScopes: {},
-        isMultichainOrigin: false,
-        sessionProperties: {},
-      },
-      [chainId],
-    );
-
-    if (!autoApprove) {
-      await permissionController.requestPermissionsIncremental(
-        { origin },
-        {
-          [Caip25EndowmentPermissionName]: {
-            caveats: [
-              {
-                type: Caip25CaveatType,
-                value: caveatValueWithChains,
-              },
-            ],
-          },
-        },
-      );
-      return;
-    }
-
-    await permissionController.grantPermissionsIncremental({
-      subject: { origin },
-      approvedPermissions: {
-        [Caip25EndowmentPermissionName]: {
-          caveats: [
-            {
-              type: Caip25CaveatType,
-              value: caveatValueWithChains,
-            },
-          ],
-        },
-      },
-    });
-  }
-
   rejectOriginPendingApprovals(origin: string) {
     const deleteInterface = (id: string) =>
       this.controllerMessenger.call(
@@ -2229,6 +2087,7 @@ export default {
       MultichainAssetsRatesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController,
       MultichainNetworkController,
       BridgeController,
       BridgeStatusController,
@@ -2278,6 +2137,7 @@ export default {
       MultichainAssetsRatesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController,
       MultichainNetworkController,
       BridgeController,
       BridgeStatusController,
@@ -2335,21 +2195,6 @@ export default {
       logErrors?: boolean;
     } = {},
   ) => instance?.rejectPendingApproval(id, reason, opts),
-
-  getCaip25PermissionFromLegacyPermissions: (
-    origin: string,
-    requestedPermissions: LegacyPermissions,
-  ) =>
-    instance?.getCaip25PermissionFromLegacyPermissions(
-      origin,
-      requestedPermissions,
-    ),
-
-  requestPermittedChainsPermissionIncremental: (options: {
-    origin: string;
-    chainId: Hex;
-    autoApprove: boolean;
-  }) => instance?.requestPermittedChainsPermissionIncremental(options),
 
   setSelectedAddress: (address: string) => {
     assertEngineExists(instance);

@@ -574,7 +574,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                   }
                 }
               >
-                0x519d...9CC7
+                0x519d2...c9CC7
               </Text>
               <View
                 style={

@@ -42,6 +42,10 @@ import {
   RatesController,
   RatesControllerEvents,
   RatesControllerActions,
+  TokenSearchDiscoveryDataController,
+  TokenSearchDiscoveryDataControllerState,
+  TokenSearchDiscoveryDataControllerActions,
+  TokenSearchDiscoveryDataControllerEvents,
   MultichainAssetsController,
   MultichainAssetsControllerState,
   MultichainAssetsControllerEvents,
@@ -206,7 +210,6 @@ import {
 } from '@metamask/accounts-controller';
 import {
   getPermissionSpecifications,
-  PermissionKeys,
 } from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
@@ -266,7 +269,6 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
-import { CaveatTypes } from '../Permissions/constants';
 
 /**
  * Controllers that area always instantiated
@@ -347,6 +349,7 @@ type GlobalActions =
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
   | TokenSearchDiscoveryControllerActions
+  | TokenSearchDiscoveryDataControllerActions
   | MultichainNetworkControllerActions
   | BridgeControllerActions
   | BridgeStatusControllerActions
@@ -396,6 +399,7 @@ type GlobalEvents =
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
   | TokenSearchDiscoveryControllerEvents
+  | TokenSearchDiscoveryDataControllerEvents
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents
   | BridgeControllerEvents
@@ -470,6 +474,7 @@ export type Controllers = {
   MultichainAssetsController: MultichainAssetsController;
   MultichainTransactionsController: MultichainTransactionsController;
   ///: END:ONLY_INCLUDE_IF
+  TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
@@ -532,6 +537,7 @@ export type EngineState = {
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   MultichainTransactionsController: MultichainTransactionsControllerState;
   ///: END:ONLY_INCLUDE_IF
+  TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
   MultichainNetworkController: MultichainNetworkControllerState;
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
@@ -702,18 +708,3 @@ export type InitModularizedControllersFunction = (request: {
 }) => {
   controllersByName: ControllerByName;
 };
-
-export interface LegacyPermissions {
-  [PermissionKeys.eth_accounts]?: {
-    caveats?: {
-      type: keyof typeof CaveatTypes;
-      value: Hex[];
-    }[];
-  };
-  [PermissionKeys.permittedChains]?: {
-    caveats?: {
-      type: keyof typeof CaveatTypes;
-      value: Hex[];
-    }[];
-  };
-}

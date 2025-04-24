@@ -4,6 +4,11 @@ import Engine from '../Engine';
 import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193MethodMiddleware';
 import createEthAccountsMethodMiddleware from '../RPCMethods/createEthAccountsMethodMiddleware';
 import { getPermittedAccounts } from '../Permissions';
+import { getCaip25PermissionFromLegacyPermissions } from '../../util/permissions';
+
+jest.mock('../../util/permissions', () => ({
+  getCaip25PermissionFromLegacyPermissions: jest.fn(),
+}));
 
 jest.mock('../Permissions', () => ({
   ...jest.requireActual('../Permissions'),
@@ -120,9 +125,10 @@ describe('BackgroundBridge', () => {
       eip1193MethodMiddlewareHooks.getCaip25PermissionFromLegacyPermissionsForOrigin(
         requestedPermissions,
       );
-      expect(
-        Engine.getCaip25PermissionFromLegacyPermissions,
-      ).toHaveBeenCalledWith(origin, requestedPermissions);
+      expect(getCaip25PermissionFromLegacyPermissions).toHaveBeenCalledWith(
+        origin,
+        requestedPermissions,
+      );
 
       // Assert getPermissionsForOrigin
       eip1193MethodMiddlewareHooks.getPermissionsForOrigin();
