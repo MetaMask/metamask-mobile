@@ -6,8 +6,8 @@ import Logger from '../../util/Logger';
 import ReduxService from '../redux';
 
 import { UserActionType } from '../../actions/user';
-import { HandleOauth2LoginResult, AuthConnection, GroupedAuthConnectionId, AuthConnectionId, AuthResponse } from './Oauth2loginInterface';
-import { jwtDecode, JwtPayload } from 'jwt-decode';
+import { HandleOauth2LoginResult, AuthConnection, GroupedAuthConnectionId, AuthConnectionId, AuthResponse, OAuthUserInfo } from './Oauth2loginInterface';
+import { jwtDecode } from 'jwt-decode';
 import { TOPRFNetwork } from '../Engine/controllers/seedless-onboarding-controller';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { AuthServerUrl, createLoginHandler, getAuthTokens } from './Oauth2LoginHandler';
@@ -78,7 +78,7 @@ export class Oauth2LoginService {
         });
     };
 
-    handleSeedlessAuthenticate = async (data : AuthResponse ) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean, accountName?: string}> => {
+    handleSeedlessAuthenticate = async (data : AuthResponse, authConnection: AuthConnection) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean, accountName?: string}> => {
         try {
             if (!data.jwt_tokens.metamask) {
                 throw new Error('No token found');
@@ -94,9 +94,11 @@ export class Oauth2LoginService {
 
             const result = await Engine.context.SeedlessOnboardingController.authenticate({
                 idTokens: Object.values(data.jwt_tokens),
+                authConnection,
                 authConnectionId: this.config.authConnectionId,
                 groupedAuthConnectionId: this.config.groupedAuthConnectionId,
                 userId,
+                socialLoginEmail : accountName,
             });
             Logger.log('handleCodeFlow: result', result);
             return {type: 'success', existingUser: !result.isNewUser, accountName};
@@ -108,7 +110,7 @@ export class Oauth2LoginService {
         }
     };
 
-    handleOauth2Login = async (provider: AuthConnection) : Promise<HandleOauth2LoginResult> => {
+    handleOauth2Login = async (authConnection: AuthConnection) : Promise<HandleOauth2LoginResult> => {
         const web3AuthNetwork = this.config.web3AuthNetwork;
 
         if (this.localState.loginInProgress) {
@@ -117,13 +119,13 @@ export class Oauth2LoginService {
         this.#dispatchLogin();
 
         try {
-            const loginHandler = createLoginHandler(Platform.OS, provider);
+            const loginHandler = createLoginHandler(Platform.OS, authConnection);
             const result = await loginHandler.login();
 
             Logger.log('handleOauth2Login: result', result);
             if (result) {
                 const data = await getAuthTokens( {...result, web3AuthNetwork}, this.config.authServerUrl);
-                const handleCodeFlowResult = await this.handleSeedlessAuthenticate(data);
+                const handleCodeFlowResult = await this.handleSeedlessAuthenticate(data, authConnection);
                 this.#dispatchPostLogin(handleCodeFlowResult);
                 return handleCodeFlowResult;
             }

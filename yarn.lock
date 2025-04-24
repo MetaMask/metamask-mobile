@@ -4753,9 +4753,9 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/auth-network-utils@./auth-network-utils.tgz", "@metamask/auth-network-utils@^0.0.0", "@metamask/auth-network-utils@https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/auth-network-utils.tgz":
+"@metamask/auth-network-utils@./auth-network-utils.tgz", "@metamask/auth-network-utils@^0.0.0", "@metamask/auth-network-utils@https://github.com/MetaMask/core/raw/92525ee78f060cc7c7dec5bdc34c1b709a5b4faf/packages/seedless-onboarding-controller/auth-network-utils.tgz":
   version "0.0.0"
-  resolved "https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/auth-network-utils.tgz#1d7067597cc391c90e091af7b9170a9e08f98085"
+  resolved "https://github.com/MetaMask/core/raw/92525ee78f060cc7c7dec5bdc34c1b709a5b4faf/packages/seedless-onboarding-controller/auth-network-utils.tgz#96ab0a3fef49ae4882acc427aac7c1efc504db56"
   dependencies:
     "@noble/curves" "^1.8.1"
     "@noble/hashes" "^1.7.1"
@@ -5605,9 +5605,9 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/seedless-onboarding-controller.tgz":
+"@metamask/seedless-onboarding-controller@https://github.com/MetaMask/metamask-mobile/raw/7ad5fd450155534d38a085f7f093c9085cf7c770/seedless-onboarding-controller.tgz":
   version "0.0.0"
-  resolved "https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/seedless-onboarding-controller.tgz#c8fb57d471b0f07bf9b42e12c07f8992a56d82a2"
+  resolved "https://github.com/MetaMask/metamask-mobile/raw/7ad5fd450155534d38a085f7f093c9085cf7c770/seedless-onboarding-controller.tgz#cdadccaa3dcf50ec7c4bc2980b2b617625a6fe00"
   dependencies:
     "@metamask/auth-network-utils" "./auth-network-utils.tgz"
     "@metamask/base-controller" "^8.0.0"
@@ -5856,9 +5856,9 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.1.0"
 
-"@metamask/toprf-secure-backup@./toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/toprf-secure-backup.tgz":
+"@metamask/toprf-secure-backup@./toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@https://github.com/MetaMask/core/raw/92525ee78f060cc7c7dec5bdc34c1b709a5b4faf/packages/seedless-onboarding-controller/toprf-secure-backup.tgz":
   version "0.0.0"
-  resolved "https://github.com/MetaMask/metamask-mobile/raw/73c36ccc2f3bc7245430d75bd736d68b81d41f7e/toprf-secure-backup.tgz#c39674559959c317cd3c1e8990e9afa4f0e9443a"
+  resolved "https://github.com/MetaMask/core/raw/92525ee78f060cc7c7dec5bdc34c1b709a5b4faf/packages/seedless-onboarding-controller/toprf-secure-backup.tgz#8738631035d1abff09bea183425a6e9718f63114"
   dependencies:
     "@metamask/auth-network-utils" "^0.0.0"
     "@noble/ciphers" "^1.2.1"
