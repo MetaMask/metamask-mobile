@@ -85,7 +85,6 @@ const createStyles = (colors) =>
     },
     wrapper: {
       flex: 1,
-      marginTop: 50,
     },
     scrollableWrapper: {
       flex: 1,
@@ -164,6 +163,9 @@ const createStyles = (colors) =>
       flexDirection: 'column',
       gap: 16,
       marginVertical: 16,
+    },
+    label: {
+      marginBottom: -4,
     },
   });
 
@@ -636,8 +638,9 @@ class ChoosePassword extends PureComponent {
                 <View style={styles.passwordContainer}>
                   <View style={styles.field}>
                     <Label
-                      variant={TextVariant.BodyMD}
+                      variant={TextVariant.BodyMDMedium}
                       color={TextColor.Default}
+                      style={styles.label}
                     >
                       {strings('choose_password.password')}
                     </Label>
@@ -686,8 +689,9 @@ class ChoosePassword extends PureComponent {
 
                   <View style={styles.field}>
                     <Label
-                      variant={TextVariant.BodyMD}
+                      variant={TextVariant.BodyMDMedium}
                       color={TextColor.Default}
+                      style={styles.label}
                     >
                       {strings('choose_password.confirm_password')}
                     </Label>

@@ -91,6 +91,7 @@ import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
+import Routes from '../../../constants/navigation/Routes';
 
 const Stack = createStackNavigator();
 
@@ -210,6 +211,20 @@ const Main = (props) => {
 
   const toggleRemindLater = () => {
     setShowRemindLaterModal(!showRemindLaterModal);
+    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
+      params: {
+        onConfirm: () => {
+          props.navigation.navigate('SetPasswordFlow', {
+            screen: 'AccountBackupStep1B',
+            params: { ...props.route.params },
+          });
+        },
+        onCancel: () => {
+          toggleRemindLater();
+        },
+      },
+    });
   };
 
   const toggleSkipCheckbox = () => {
@@ -435,21 +450,21 @@ const Main = (props) => {
         <Notification navigation={props.navigation} />
         <RampOrders />
         <SwapsLiveness />
-        <BackupAlert
+        {/* <BackupAlert
           onDismiss={toggleRemindLater}
           navigation={props.navigation}
-        />
+        /> */}
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,
         )}
-        <SkipAccountSecurityModal
+        {/* <SkipAccountSecurityModal
           modalVisible={showRemindLaterModal}
           onCancel={skipAccountModalSecureNow}
           onConfirm={skipAccountModalSkip}
           skipCheckbox={skipCheckbox}
           toggleSkipCheckbox={toggleSkipCheckbox}
-        />
+        /> */}
         <ProtectYourWalletModal navigation={props.navigation} />
         <RootRPCMethodsUI navigation={props.navigation} />
       </View>

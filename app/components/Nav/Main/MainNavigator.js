@@ -206,7 +206,10 @@ const TransactionsHome = () => (
       name={Routes.RAMP.SEND_TRANSACTION}
       component={SendTransaction}
     />
-    <Stack.Screen name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS} component={BridgeTransactionDetails} />
+    <Stack.Screen
+      name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
+      component={BridgeTransactionDetails}
+    />
   </Stack.Navigator>
 );
 
@@ -721,11 +724,7 @@ const Swaps = () => (
 );
 
 const SetPasswordFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerTransparent: true,
-    }}
-  >
+  <Stack.Navigator>
     <Stack.Screen
       name="ChoosePassword"
       component={ChoosePassword}

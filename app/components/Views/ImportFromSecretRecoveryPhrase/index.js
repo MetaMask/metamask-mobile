@@ -597,6 +597,12 @@ const ImportFromSecretRecoveryPhrase = ({
     return isValid;
   };
 
+  const showWhatIsSeedPhrase = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SEEDPHRASE_MODAL,
+    });
+  };
+
   return (
     <SafeAreaView style={styles.root}>
       <KeyboardAwareScrollView
@@ -629,9 +635,7 @@ const ImportFromSecretRecoveryPhrase = ({
                       'import_from_seed.enter_your_secret_recovery_phrase',
                     )}
                   </Text>
-                  <TouchableOpacity
-                    onPress={() => setWhatIsSeedPhraseModal(true)}
-                  >
+                  <TouchableOpacity onPress={showWhatIsSeedPhrase}>
                     <Icon
                       name={IconName.Info}
                       size={IconSize.Md}
@@ -696,14 +700,17 @@ const ImportFromSecretRecoveryPhrase = ({
                                     item &&
                                     (showAllSeedPhrase
                                       ? false
-                                      : seedPhraseInputFocusedIndex !== index)
+                                      : seedPhraseInputFocusedIndex !==
+                                        index) &&
+                                    isValidSeed(item)
                                       ? '***'
                                       : item
                                   }
                                   secureTextEntry={
-                                    showAllSeedPhrase
+                                    isValidSeed(item) &&
+                                    (showAllSeedPhrase
                                       ? false
-                                      : seedPhraseInputFocusedIndex !== index
+                                      : seedPhraseInputFocusedIndex !== index)
                                   }
                                   onFocus={() =>
                                     setSeedPhraseInputFocusedIndex(index)
@@ -801,7 +808,11 @@ const ImportFromSecretRecoveryPhrase = ({
 
               <View style={styles.passwordContainer}>
                 <View style={styles.field}>
-                  <Label variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  <Label
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
+                    style={styles.label}
+                  >
                     {strings('import_from_seed.new_password')}
                   </Label>
                   <TextField
@@ -848,7 +859,11 @@ const ImportFromSecretRecoveryPhrase = ({
                 </View>
 
                 <View style={styles.field}>
-                  <Label variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  <Label
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
+                    style={styles.label}
+                  >
                     {strings('import_from_seed.confirm_password')}
                   </Label>
                   <TextField
@@ -939,10 +954,6 @@ const ImportFromSecretRecoveryPhrase = ({
           )}
         </View>
       </KeyboardAwareScrollView>
-      <SeedphraseModal
-        showWhatIsSeedphraseModal={showWhatIsSeedPhraseModal}
-        hideWhatIsSeedphrase={hideWhatIsSeedPhrase}
-      />
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

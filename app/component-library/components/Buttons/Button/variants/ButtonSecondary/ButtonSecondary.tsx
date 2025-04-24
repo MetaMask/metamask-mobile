@@ -26,6 +26,7 @@ const ButtonSecondary = ({
   onPressOut,
   isDanger = false,
   label,
+  overridePressedColor = 'transparent',
   ...props
 }: ButtonSecondaryProps) => {
   const [pressed, setPressed] = useState(false);
@@ -33,6 +34,7 @@ const ButtonSecondary = ({
     style,
     isDanger,
     pressed,
+    overridePressedColor,
   });
 
   const triggerOnPressedIn = useCallback(
@@ -72,9 +74,12 @@ const ButtonSecondary = ({
       label
     );
 
-    const renderLoading = () => (
-      <ActivityIndicator size="small" color={DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT} />
-    );
+  const renderLoading = () => (
+    <ActivityIndicator
+      size="small"
+      color={DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT}
+    />
+  );
 
   return (
     <Button

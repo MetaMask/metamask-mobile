@@ -403,7 +403,7 @@
     "pass_flow": "Continue with Flow",
     "step": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match. Try again.",
-    "spellcheck_error": "Entered words are not valid. Please check your phrase and try again."
+    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again."
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -499,6 +499,10 @@
     "multisrp": {
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
+    },
+    "secure": {
+      "title": "A new way to secure your wallet",
+      "subtitle": "Link your Apple or Google account."
     }
   },
   "wallet": {

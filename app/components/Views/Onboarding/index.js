@@ -22,7 +22,6 @@ import {
   colors as importedColors,
 } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import ButtonRN from '@metamask/react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
@@ -48,25 +47,19 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 // import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import Oauth2loginService from '../../../core/Oauth2Login/Oauth2loginService';
-import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
-import ErrorSheet from '../ErrorSheet';
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     scroll: {
       flex: 1,
-      marginTop: 100,
+      // marginTop: 100,
     },
     wrapper: {
       flex: 1,
@@ -352,7 +345,7 @@ class Onboarding extends PureComponent {
     this.setState({ bottomSheetVisible: false });
     this.props.oauth2LoginReset();
     const action = async () => {
-      this.props.navigation.push(
+      this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
       );
       this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
@@ -432,10 +425,13 @@ class Onboarding extends PureComponent {
   };
 
   handleCtaActions = (actionType) => {
-    this.setState({
-      bottomSheetVisible: true,
-      existingWallet: actionType === 'existing',
-      createWallet: actionType === 'create',
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ONBOARDING_SHEET,
+      params: {
+        onPressCreate: this.onPressCreate,
+        onPressImport: this.onPressImport,
+        createWallet: actionType === 'create',
+      },
     });
   };
 
@@ -575,7 +571,7 @@ class Onboarding extends PureComponent {
           onConfirmPress={this.toggleWarningModal}
         /> */}
 
-        {this.state.bottomSheetVisible && !loading && (
+        {/* {this.state.bottomSheetVisible && (
           <BottomSheet
             shouldNavigateBack={false}
             onClose={() =>
@@ -672,15 +668,15 @@ class Onboarding extends PureComponent {
               </View>
             </View>
           </BottomSheet>
-        )}
+        )} */}
 
-        <ErrorSheet
+        {/* <ErrorSheet
           open={this.state.errorSheetVisible}
           onClose={() => this.setState({ errorSheetVisible: false })}
           onNext={() => this.setState({ errorSheetVisible: false })}
           errorTitle={strings('error_sheet.still_there_title')}
           errorDescription={strings('error_sheet.still_there_description')}
-        />
+        /> */}
       </View>
     );
   }

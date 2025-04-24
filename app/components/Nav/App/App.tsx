@@ -136,6 +136,10 @@ import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
 import AccountStatus from '../../Views/AccountStatus';
+import OnboardingSheet from '../../Views/OnboardingSheet';
+import SeedphraseModal from '../../UI/SeedphraseModal';
+import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
+import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -213,12 +217,7 @@ const OnboardingSuccessFlow = () => (
  * Create Wallet and Import from Secret Recovery Phrase
  */
 const OnboardingNav = () => (
-  <Stack.Navigator
-    initialRouteName="OnboardingCarousel"
-    screenOptions={{
-      headerTransparent: true,
-    }}
-  >
+  <Stack.Navigator initialRouteName="OnboardingCarousel">
     <Stack.Screen name="Onboarding" component={Onboarding} />
     <Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
@@ -349,6 +348,22 @@ const RootModalFlow = (
     <Stack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
       component={ModalMandatory}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ONBOARDING_SHEET}
+      component={OnboardingSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SEEDPHRASE_MODAL}
+      component={SeedphraseModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL}
+      component={SkipAccountSecurityModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SUCCESS_ERROR_SHEET}
+      component={SuccessErrorSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
