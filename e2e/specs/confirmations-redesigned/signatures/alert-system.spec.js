@@ -80,6 +80,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       });
     });
 
+    // TODO: [ffmcgee] uncomment once https://github.com/MetaMask/metamask-mobile/pull/14836 is merged, will fix mock issue causing this test to fail
     it.skip('should show security alert for malicious request, acknowledge and confirm the signature', async () => {
       const testSpecificMock = {
         POST: [
