@@ -184,8 +184,7 @@ import { createTokenSearchDiscoveryController } from './controllers/TokenSearchD
 import {
   BRIDGE_DEV_API_BASE_URL,
   BridgeClientId,
-  BridgeController,
-  UNIFIED_SWAP_BRIDGE_EVENT_CATEGORY,
+  BridgeController
 } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
