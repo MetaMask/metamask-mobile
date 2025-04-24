@@ -24,6 +24,13 @@ jest.mock('../../../../core/Engine', () => ({
     MultichainBalancesController: {
       updateBalance: jest.fn(),
     },
+    NetworkController: {
+      state: {
+        networkConfigurationsByChainId: {
+          '0x1': { chainId: '0x1' as Hex, nativeCurrency: 'ETH' },
+        },
+      },
+    },
   },
 }));
 
