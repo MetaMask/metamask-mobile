@@ -14,6 +14,10 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 describe('useCurrencyRatePolling', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('Should poll by the native currencies in network state', async () => {
     const state = {
       engine: {
