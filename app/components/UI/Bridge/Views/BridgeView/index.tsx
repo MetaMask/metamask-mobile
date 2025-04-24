@@ -28,14 +28,13 @@ import {
   selectSelectedDestChainId,
   setSourceAmount,
   resetBridgeState,
-  setSourceToken,
-  setDestToken,
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
   selectIsEvmSolanaBridge,
   selectIsSolanaSwap,
   setSlippage,
+  selectIsSolanaToEvm,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import {
@@ -69,6 +68,7 @@ import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/us
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { BridgeViewMode } from '../../types';
+import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -104,9 +104,11 @@ const BridgeView = () => {
   const { quoteRequest, quotesLastFetched } = useSelector(
     selectBridgeControllerState,
   );
+  const { handleSwitchTokens } = useSwitchTokens();
+
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
-
+  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
   // The ref is typed to only expose the blur method we need
@@ -250,6 +252,11 @@ const BridgeView = () => {
   const handleContinue = async () => {
     if (activeQuote) {
       setIsSubmittingTx(true);
+      // TEMPORARY: If tx originates from Solana, navigate to transactions view BEFORE submitting the tx
+      // Necessary because snaps prevents navigation after tx is submitted
+      if (isSolanaSwap || isSolanaToEvm) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      }
       await submitBridgeTx({
         quoteResponse: activeQuote,
       });
@@ -259,14 +266,6 @@ const BridgeView = () => {
 
   const handleTermsPress = () => {
     // TODO: Implement terms and conditions navigation
-  };
-
-  const handleArrowPress = () => {
-    // Switch tokens
-    if (sourceToken && destToken) {
-      dispatch(setSourceToken(destToken));
-      dispatch(setDestToken(sourceToken));
-    }
   };
 
   const handleSourceTokenPress = () =>
@@ -292,17 +291,6 @@ const BridgeView = () => {
   };
 
   const renderBottomContent = () => {
-    if (isError) {
-      return (
-        <Box style={styles.buttonContainer}>
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            description={strings('bridge.error_banner_description')}
-          />
-        </Box>
-      );
-    }
-
     if (!hasValidBridgeInputs || isInputFocused) {
       return (
         <Box style={styles.buttonContainer}>
@@ -323,29 +311,39 @@ const BridgeView = () => {
       );
     }
 
-    if (!activeQuote && !quotesLastFetched) {
-      return;
+    if (isError) {
+      return (
+        <Box style={styles.buttonContainer}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            description={strings('bridge.error_banner_description')}
+          />
+        </Box>
+      );
     }
 
     return (
-      <Box style={styles.buttonContainer}>
-        <Button
-          variant={ButtonVariants.Primary}
-          label={getButtonLabel()}
-          onPress={handleContinue}
-          style={styles.button}
-          isDisabled={hasInsufficientBalance || isSubmittingTx}
-        />
-        <Button
-          variant={ButtonVariants.Link}
-          label={
-            <Text color={TextColor.Alternative}>
-              {strings('bridge.terms_and_conditions')}
-            </Text>
-          }
-          onPress={handleTermsPress}
-        />
-      </Box>
+      activeQuote &&
+      quotesLastFetched && (
+        <Box style={styles.buttonContainer}>
+          <Button
+            variant={ButtonVariants.Primary}
+            label={getButtonLabel()}
+            onPress={handleContinue}
+            style={styles.button}
+            isDisabled={hasInsufficientBalance || isSubmittingTx}
+          />
+          <Button
+            variant={ButtonVariants.Link}
+            label={
+              <Text color={TextColor.Alternative}>
+                {strings('bridge.terms_and_conditions')}
+              </Text>
+            }
+            onPress={handleTermsPress}
+          />
+        </Box>
+      )
     );
   };
 
@@ -380,7 +378,7 @@ const BridgeView = () => {
               <Box style={styles.arrowCircle}>
                 <ButtonIcon
                   iconName={IconName.Arrow2Down}
-                  onPress={handleArrowPress}
+                  onPress={handleSwitchTokens}
                   disabled={!destChainId || !destToken}
                   testID="arrow-button"
                 />

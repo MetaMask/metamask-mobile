@@ -36,6 +36,7 @@ import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
 } from '../../UI/Ramp/routes/utils';
+import { trace, TraceName } from '../../../util/trace';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
@@ -53,6 +54,7 @@ import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { RampType } from '../../../reducers/fiatOrders/types';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -146,6 +148,13 @@ const WalletActions = () => {
         })
         .build(),
     );
+
+    trace({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: RampType.BUY,
+      },
+    });
   }, [
     closeBottomSheetAndNavigate,
     navigate,
@@ -168,6 +177,13 @@ const WalletActions = () => {
         })
         .build(),
     );
+
+    trace({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: RampType.SELL,
+      },
+    });
   }, [
     closeBottomSheetAndNavigate,
     navigate,
