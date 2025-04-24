@@ -1679,6 +1679,38 @@ exports[`BridgeView renders 1`] = `
                                 </View>
                               </View>
                             </View>
+                            <View
+                              style={
+                                [
+                                  {},
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#ffffff",
+                                    "gap": 12,
+                                    "justifyContent": "center",
+                                    "paddingBottom": 24,
+                                    "paddingHorizontal": 16,
+                                    "width": "100%",
+                                  },
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#4459ff",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Select amount
+                              </Text>
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>

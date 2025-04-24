@@ -285,9 +285,6 @@ const BridgeView = () => {
   };
 
   const renderBottomContent = () => {
-    if (!activeQuote && !quotesLastFetched) {
-      return;
-    }
     if (!hasValidBridgeInputs || isInputFocused) {
       return (
         <Box style={styles.buttonContainer}>
@@ -320,24 +317,27 @@ const BridgeView = () => {
     }
 
     return (
-      <Box style={styles.buttonContainer}>
-        <Button
-          variant={ButtonVariants.Primary}
-          label={getButtonLabel()}
-          onPress={handleContinue}
-          style={styles.button}
-          isDisabled={hasInsufficientBalance || isSubmittingTx}
-        />
-        <Button
-          variant={ButtonVariants.Link}
-          label={
-            <Text color={TextColor.Alternative}>
-              {strings('bridge.terms_and_conditions')}
-            </Text>
-          }
-          onPress={handleTermsPress}
-        />
-      </Box>
+      activeQuote &&
+      quotesLastFetched && (
+        <Box style={styles.buttonContainer}>
+          <Button
+            variant={ButtonVariants.Primary}
+            label={getButtonLabel()}
+            onPress={handleContinue}
+            style={styles.button}
+            isDisabled={hasInsufficientBalance || isSubmittingTx}
+          />
+          <Button
+            variant={ButtonVariants.Link}
+            label={
+              <Text color={TextColor.Alternative}>
+                {strings('bridge.terms_and_conditions')}
+              </Text>
+            }
+            onPress={handleTermsPress}
+          />
+        </Box>
+      )
     );
   };
 
