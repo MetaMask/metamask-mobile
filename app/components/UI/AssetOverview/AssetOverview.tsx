@@ -108,6 +108,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const ticker = nativeCurrency;
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const tokenResult = useSelector((state: RootState) =>
+    selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
+  );
+  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+
+  const multichainAssetRates =
+    multichainAssetsRates?.[asset.address as CaipAssetId];
 
   const currentAddress = asset.address as Hex;
 
@@ -309,13 +316,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     asset.isETH ? asset.ticker : asset.symbol
   }`;
 
-  const tokenResult = useSelector((state: RootState) =>
-    selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
-  );
-  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
-
-  const multichainAssetRates =
-    multichainAssetsRates?.[asset.address as CaipAssetId];
   const convertedMultichainAssetRates = multichainAssetRates
     ? {
         rate: Number(multichainAssetRates.rate),
@@ -364,6 +364,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             comparePrice={comparePrice}
             isLoading={isLoading}
             timePeriod={timePeriod}
+            isEvmNetworkSelected={isEvmSelected}
+            multichainAssetsRates={multichainAssetsRates}
           />
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}

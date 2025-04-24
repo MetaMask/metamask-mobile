@@ -19,10 +19,8 @@ import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { TokenI } from '../../Tokens/types';
-import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
-import { useSelector } from 'react-redux';
-import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { CaipAssetId } from '@metamask/utils';
+import { AssetConversion } from '@metamask/snaps-sdk';
 
 interface PriceProps {
   asset: TokenI;
@@ -33,6 +31,8 @@ interface PriceProps {
   comparePrice: number;
   isLoading: boolean;
   timePeriod: TimePeriod;
+  isEvmNetworkSelected: boolean;
+  multichainAssetsRates: Record<CaipAssetId, AssetConversion>;
 }
 
 const Price = ({
@@ -44,11 +44,9 @@ const Price = ({
   comparePrice,
   isLoading,
   timePeriod,
+  isEvmNetworkSelected,
+  multichainAssetsRates,
 }: PriceProps) => {
-  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
-
-  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
-
   const multichainAssetRates =
     multichainAssetsRates[asset.address as CaipAssetId];
 
