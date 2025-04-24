@@ -8,6 +8,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
+import { useSelector } from 'react-redux';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -23,7 +24,13 @@ jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
   return {
-    getTotalFiatAccountBalance: jest.fn(),
+    getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
+      totalNativeTokenBalance: { amount: '1', unit: 'ETH' },
+      totalBalanceFiat: 3200,
+      balances: {
+        '0x0': { amount: '1', unit: 'ETH' },
+      },
+    }),
     context: {
       NftController: {
         allNfts: {
@@ -101,6 +108,13 @@ const mockInitialState = {
       TokensController: {
         ...backgroundState.TokensController,
         detectedTokens: [{ address: '0x123' }],
+        allDetectedTokens: {
+          '0x1': {
+            '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': [
+              { address: '0x123' },
+            ],
+          },
+        },
       },
     },
   },
@@ -228,5 +242,16 @@ describe('Wallet', () => {
     render(Wallet);
 
     expect(mockedAddTokens.addTokens).toHaveBeenCalledTimes(1);
+  });
+
+  it('should render correctly when Solana support is enabled', () => {
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+    //@ts-expect-error we are ignoring the navigation params on purpose
+    const wrapper = render(Wallet);
+    expect(wrapper.toJSON()).toMatchSnapshot();
   });
 });

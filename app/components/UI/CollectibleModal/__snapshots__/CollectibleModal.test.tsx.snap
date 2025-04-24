@@ -16,7 +16,7 @@ exports[`CollectibleModal should render correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#00000099",
+          "backgroundColor": "#00000066",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -112,7 +112,7 @@ exports[`CollectibleModal should render correctly 1`] = `
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f2f4f6",
+                  "backgroundColor": "#f3f5f9",
                   "borderRadius": 8,
                   "justifyContent": "flex-start",
                 },
@@ -144,8 +144,8 @@ exports[`CollectibleModal should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 30,
                     "fontWeight": "400",
                     "marginVertical": 2,
@@ -215,12 +215,12 @@ exports[`CollectibleModal should render correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
@@ -276,7 +276,7 @@ exports[`CollectibleModal should render correctly 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#848c96",
+                "backgroundColor": "#b7bbc8",
                 "borderRadius": 4,
                 "height": 5,
                 "width": 48,
@@ -300,8 +300,8 @@ exports[`CollectibleModal should render correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 30,
                       "fontWeight": "400",
                       "marginVertical": 2,
@@ -309,7 +309,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontWeight": "600",
                     },
                     undefined,
@@ -320,7 +320,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                     },
                     undefined,
                     undefined,
@@ -349,8 +349,8 @@ exports[`CollectibleModal should render correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 30,
                       "fontWeight": "400",
                       "marginVertical": 2,
@@ -366,7 +366,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                     },
                     undefined,
                     undefined,
@@ -420,7 +420,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                       },
                       {
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#0376c9",
+                        "borderColor": "#4459ff",
                         "borderWidth": 1,
                         "padding": 8,
                       },
@@ -444,8 +444,8 @@ exports[`CollectibleModal should render correctly 1`] = `
                   style={
                     [
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
@@ -470,7 +470,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "color": "#0376c9",
+                        "color": "#4459ff",
                       },
                       undefined,
                       undefined,
@@ -526,8 +526,8 @@ exports[`CollectibleModal should render correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 30,
                       "fontWeight": "400",
                       "marginVertical": 2,
@@ -535,19 +535,19 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontWeight": "600",
                     },
                     undefined,
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                     },
                     undefined,
                     undefined,
                     undefined,
                     undefined,
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                     },
                     undefined,
                     undefined,
@@ -581,8 +581,8 @@ exports[`CollectibleModal should render correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 30,
                       "fontWeight": "400",
                       "marginVertical": 2,
@@ -611,7 +611,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                     },
                     undefined,
                     undefined,
@@ -624,7 +624,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                   ]
                 }
               >
-                0x123...x123
+                0x123...0x123
               </Text>
             </View>
           </View>

@@ -98,6 +98,14 @@ class TestDApp {
       TestDappSelectorsWebIDs.PERMIT_SIGN,
     );
   }
+
+  get siweBadDomainButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ETHEREUM_SIGN_BAD_DOMAIN,
+    );
+  }
+
   // This taps on the transfer tokens button under the "SEND TOKENS section"
   get nftTransferFromTokensButton() {
     return Matchers.getElementByWebID(
@@ -203,6 +211,10 @@ class TestDApp {
 
   async tapPermitSignButton() {
     await this.tapButton(this.permitSignButton);
+  }
+
+  async tapSIWEBadDomainButton() {
+    await this.tapButton(this.siweBadDomainButton);
   }
 
   async tapERC20TransferButton() {

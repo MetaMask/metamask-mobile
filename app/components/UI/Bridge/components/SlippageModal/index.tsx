@@ -19,6 +19,11 @@ import { SlippageOption } from './SlippageModal.types';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import SegmentedControl from '../../../../../component-library/components-temp/SegmentedControl';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  selectSlippage,
+  setSlippage,
+} from '../../../../../core/redux/slices/bridge';
 
 const SLIPPAGE_OPTIONS: SlippageOption[] = [
   { label: '0.5%', value: '0.5' },
@@ -27,18 +32,11 @@ const SLIPPAGE_OPTIONS: SlippageOption[] = [
   { label: '10%', value: '10' },
 ];
 
-interface SlippageModalProps {
-  route: {
-    params: {
-      selectedSlippage: string;
-      onSelectSlippage: (slippage: string) => void;
-    };
-  };
-}
+export const SlippageModal = () => {
+  const dispatch = useDispatch();
 
-export const SlippageModal = ({ route }: SlippageModalProps) => {
-  const { selectedSlippage, onSelectSlippage } = route.params;
-  const [selectedValue, setSelectedValue] = useState(selectedSlippage);
+  const slippage = useSelector(selectSlippage);
+  const [selectedValue, setSelectedValue] = useState(slippage || '');
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
@@ -49,7 +47,7 @@ export const SlippageModal = ({ route }: SlippageModalProps) => {
   };
 
   const handleApply = () => {
-    onSelectSlippage(selectedValue);
+    dispatch(setSlippage(selectedValue));
     navigation.goBack();
   };
 
@@ -81,6 +79,7 @@ export const SlippageModal = ({ route }: SlippageModalProps) => {
             onValueChange={handleOptionSelected}
             size={ButtonSize.Sm}
             isButtonWidthFlexible={false}
+            style={styles.segmentedControl}
           />
         </View>
         <BottomSheetFooter

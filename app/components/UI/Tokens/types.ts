@@ -11,7 +11,7 @@ export interface TokenI {
   name: string;
   symbol: string;
   balance: string;
-  balanceFiat: string;
+  balanceFiat?: string;
   logo: string | undefined;
   isETH: boolean | undefined;
   hasBalanceError?: boolean;

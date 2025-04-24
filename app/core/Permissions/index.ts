@@ -4,6 +4,8 @@ import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
 import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
+import { PermissionKeys } from './specifications';
+import { KnownCaipNamespace } from '@metamask/utils';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -205,13 +207,113 @@ export const getPermittedAccounts = async (
         hostname,
         RestrictedMethods.eth_accounts,
       );
+    Logger.log('getPermittedAccounts', accounts);
     return accounts;
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.code === rpcErrorCodes.provider.unauthorized) {
+      Logger.log('getPermittedAccounts', 'Unauthorized');
       return [];
     }
     throw error;
   }
+};
+
+/**
+ * Add a permitted chain for the given the host.
+ * 
+ * @param hostname - Subject to add permitted chain. Ex: A Dapp is a subject
+ * @param chainId - ChainId to add.
+ */
+export const addPermittedChain = async (hostname: string, chainId: string) => {
+  const { PermissionController } = Engine.context;
+
+  const caveat = PermissionController.getCaveat(
+    hostname,
+    PermissionKeys.permittedChains,
+    CaveatTypes.restrictNetworkSwitching
+  );
+
+  const currentPermittedChains = caveat.value;
+  if (currentPermittedChains.includes(chainId)) {
+    return;
+  }
+
+  const newPermittedChains = [...currentPermittedChains, chainId];
+
+  await PermissionController.grantPermissions({
+    approvedPermissions: {
+      [PermissionKeys.permittedChains]: {
+        caveats: [
+          { type: CaveatTypes.restrictNetworkSwitching, value: newPermittedChains },
+        ],
+      },
+    },
+    subject: {
+      origin: hostname,
+    },
+    preserveExistingPermissions: true,
+  });
+};
+
+/**
+ * Remove a permitted chain for the given the host.
+ * 
+ * @param hostname - Subject to remove permitted chain. Ex: A Dapp is a subject
+ * @param chainId - ChainId to remove.
+ */
+export const removePermittedChain = async (hostname: string, chainId: string) => {
+  const { PermissionController } = Engine.context;
+  const caveat = PermissionController.getCaveat(
+    hostname,
+    PermissionKeys.permittedChains,
+    CaveatTypes.restrictNetworkSwitching
+  );
+
+  const currentPermittedChains = caveat.value;
+  if (!currentPermittedChains.includes(chainId)) {
+    return;
+  }
+
+  const newPermittedChains = currentPermittedChains.filter((chain: string) => chain !== chainId);
+
+  await PermissionController.grantPermissions({
+    approvedPermissions: {
+      [PermissionKeys.permittedChains]: {
+        caveats: [
+          { type: CaveatTypes.restrictNetworkSwitching, value: newPermittedChains },
+        ],
+      },
+    },
+    subject: {
+      origin: hostname,
+    },
+    preserveExistingPermissions: true,
+  });
+}
+
+/**
+ * Get permitted chains for the given the host.
+ *
+ * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
+ * @returns An array containing permitted chains for the specified host.
+ */
+export const getPermittedChains = async (hostname: string): Promise<string[]> => {
+  const { PermissionController } = Engine.context;
+  const caveat = PermissionController.getCaveat(
+    hostname,
+    PermissionKeys.permittedChains,
+    CaveatTypes.restrictNetworkSwitching
+  );
+
+  if (Array.isArray(caveat?.value)) {
+    const chains = caveat.value
+      .filter((item: unknown): item is string => typeof item === 'string' && !isNaN(parseInt(item)))
+      .map((chainId: string) => `${KnownCaipNamespace.Eip155}:${parseInt(chainId)}`);
+
+    return chains;
+  }
+
+  return [];
 };

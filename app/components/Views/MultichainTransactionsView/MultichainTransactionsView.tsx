@@ -1,22 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  ActivityIndicator,
-} from 'react-native';
+import React, { useMemo } from 'react';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
-import { ThemeColors } from '@metamask/design-tokens';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import { fontStyles, baseStyles } from '../../../styles/common';
+import Text from '../../../component-library/components/Texts/Text';
+import { baseStyles } from '../../../styles/common';
 import {
   getAddressUrl,
   nonEvmNetworkChainIdByAccountAddress,
@@ -25,73 +20,31 @@ import { selectSolanaAccountTransactions } from '../../../selectors/multichain/m
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import { getBlockExplorerName } from '../../../util/networks';
-
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-    wrapper: {
-      flex: 1,
-    },
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 20,
-    },
-    emptyText: {
-      fontSize: 20,
-      color: colors.text.muted,
-      ...fontStyles.normal,
-    },
-    viewMoreWrapper: {
-      padding: 16,
-    },
-    viewMoreButton: {
-      width: '100%',
-    },
-    loader: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-  });
+import styles from './MultichainTransactionsView.styles';
+import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 
 const MultichainTransactionsView = () => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const style = styles(colors);
   const navigation = useNavigation();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
   const solanaAccountTransactions = useSelector(
     selectSolanaAccountTransactions,
   );
 
-  useEffect(() => {
-    setLoading(true);
+  const transactions = useMemo(
+    () => solanaAccountTransactions?.transactions,
+    [solanaAccountTransactions],
+  );
 
-    // use the selector selectSolanaAccountTransactions
-    // simple timeout to simulate loading
-    const timer = setTimeout(() => {
-      // check if solanaAccountTransactions is an object with transactions property
-      if (
-        solanaAccountTransactions &&
-        'transactions' in solanaAccountTransactions
-      ) {
-        setTransactions(solanaAccountTransactions.transactions);
-      } else {
-        setTransactions([]);
-      }
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [solanaAccountTransactions]);
+  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const renderEmptyList = () => (
-    <View style={styles.emptyContainer}>
-      <Text style={[styles.emptyText, { color: colors.text.default }]}>
+    <View style={style.emptyContainer}>
+      <Text style={[style.emptyText, { color: colors.text.default }]}>
         {strings('wallet.no_transactions')}
       </Text>
     </View>
@@ -102,14 +55,14 @@ const MultichainTransactionsView = () => {
     const url = getAddressUrl(selectedAddress || '', chainId as CaipChainId);
 
     return (
-      <View style={styles.viewMoreWrapper}>
+      <View style={style.viewMoreWrapper}>
         <Button
           variant={ButtonVariants.Link}
           size={ButtonSize.Lg}
           label={`${strings(
             'transactions.view_full_history_on',
           )} ${getBlockExplorerName(url)}`}
-          style={styles.viewMoreButton}
+          style={style.viewMoreButton}
           onPress={() => {
             navigation.navigate('Webview', {
               screen: 'SimpleWebview',
@@ -121,35 +74,29 @@ const MultichainTransactionsView = () => {
     );
   };
 
-  const renderTransactionItem = ({ item }: { item: Transaction }) => (
-    <MultichainTransactionListItem
-      transaction={item}
-      selectedAddress={selectedAddress || ''}
-      navigation={navigation}
-    />
-  );
+  const renderTransactionItem = ({ item }: { item: Transaction }) => {
+    const srcTxHash = item.id;
+    const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
-  if (loading) {
     return (
-      <View style={styles.loader}>
-        <ActivityIndicator
-          size="large"
-          color={colors.primary.default}
-          testID={`transactions-loading-indicator`}
-        />
-      </View>
+      <MultichainTransactionListItem
+        transaction={item}
+        bridgeHistoryItem={bridgeHistoryItem}
+        selectedAddress={selectedAddress || ''}
+        navigation={navigation}
+      />
     );
-  }
+  };
 
   return (
-    <View style={styles.wrapper}>
+    <View style={style.wrapper}>
       <FlashList
         data={transactions}
         renderItem={renderTransactionItem}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyList}
         style={baseStyles.flexGrow}
-        ListFooterComponent={transactions.length > 0 ? renderViewMore() : null}
+        ListFooterComponent={transactions?.length > 0 ? renderViewMore() : null}
         estimatedItemSize={200}
       />
     </View>

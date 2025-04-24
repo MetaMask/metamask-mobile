@@ -8,7 +8,6 @@
     "logs": {}
   },
   "AccountTrackerController": {
-    "accounts": {},
     "accountsByChainId": {
       "0x1": {}
     }
@@ -22,21 +21,23 @@
   "AddressBookController": {
     "addressBook": {}
   },
+  "AppMetadataController": {
+    "currentAppVersion": "",
+    "currentMigrationVersion": 0,
+    "previousAppVersion": "",
+    "previousMigrationVersion": 0
+  },
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
     "ignoredNfts": []
   },
   "TokensController": {
-    "tokens": [],
-    "ignoredTokens": [],
-    "detectedTokens": [],
     "allTokens": {},
     "allIgnoredTokens": {},
     "allDetectedTokens": {}
   },
   "TokenListController": {
-    "tokenList": {},
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
@@ -68,7 +69,24 @@
           {
             "networkClientId": "mainnet",
             "type": "infura",
-            "url": "https://mainnet.infura.io/v3/{infuraProjectId}"
+            "url": "https://mainnet.infura.io/v3/{infuraProjectId}",
+            "failoverUrls": []
+          }
+        ]
+      },
+      "0x18c6": {
+        "blockExplorerUrls": ["https://megaexplorer.xyz"],
+        "chainId": "0x18c6",
+        "defaultRpcEndpointIndex": 0,
+        "defaultBlockExplorerUrlIndex": 0,
+        "name": "Mega Testnet",
+        "nativeCurrency": "MegaETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "megaeth-testnet",
+            "type": "custom",
+            "url": "https://carrot.megaeth.com/rpc",
+            "failoverUrls": []
           }
         ]
       },
@@ -82,7 +100,8 @@
           {
             "networkClientId": "sepolia",
             "type": "infura",
-            "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
+            "url": "https://sepolia.infura.io/v3/{infuraProjectId}",
+            "failoverUrls": []
           }
         ]
       },
@@ -96,7 +115,8 @@
           {
             "networkClientId": "linea-sepolia",
             "type": "infura",
-            "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}"
+            "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}",
+            "failoverUrls": []
           }
         ]
       },
@@ -110,7 +130,8 @@
           {
             "networkClientId": "linea-mainnet",
             "type": "infura",
-            "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
+            "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}",
+            "failoverUrls": []
           }
         ]
       }
@@ -179,6 +200,10 @@
   "TokenSearchDiscoveryController": {
     "lastSearchTimestamp": null,
     "recentSearches": []
+  },
+  "TokenSearchDiscoveryDataController": {
+    "swapsTokenAddressesByChainId": {},
+    "tokenDisplayData": []
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
@@ -260,7 +285,6 @@
     "approvalTransaction": null,
     "aggregatorMetadataLastFetched": 0,
     "quotesLastFetched": 0,
-    "topAssetsLastFetched": 0,
     "error": {
       "key": null,
       "description": null
@@ -337,7 +361,8 @@
     "isAccountSyncingReadyToBeDispatched": false,
     "isAccountSyncingInProgress": false,
     "isProfileSyncingEnabled": true,
-    "isProfileSyncingUpdateLoading": false
+    "isProfileSyncingUpdateLoading": false,
+    "isAccountSyncingEnabled": true
   },
   "MultichainBalancesController": {
     "balances": {}
@@ -382,6 +407,7 @@
     "assetsMetadata": {}
   },
   "BridgeController": {
+    "assetExchangeRates": {},
     "bridgeFeatureFlags": {
       "extensionConfig": {
         "chains": {},
@@ -398,7 +424,6 @@
     },
     "quoteFetchError": null,
     "quoteRequest": {
-      "slippage": 0.5,
       "srcTokenAddress": "0x0000000000000000000000000000000000000000"
     },
     "quotes": [],
@@ -411,7 +436,8 @@
     "txHistory": {}
   },
   "MultichainAssetsRatesController": {
-    "conversionRates": {}
+    "conversionRates": {},
+    "historicalPrices": {}
   },
   "CronjobController": {
     "events": {},

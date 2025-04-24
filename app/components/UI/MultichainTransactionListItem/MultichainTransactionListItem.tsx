@@ -1,143 +1,58 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
-  StyleSheet,
   Image,
   TouchableHighlight,
-  ImageStyle,
   TextStyle,
+  useColorScheme,
 } from 'react-native';
-import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { capitalize } from 'lodash';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
-import { fontStyles } from '../../../styles/common';
 import { getTransactionIcon } from '../../../util/transaction-icons';
 import { toDateFormat } from '../../../util/date';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
-
-const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
-  StyleSheet.create({
-    row: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-      borderBottomWidth: 1,
-    },
-    actionContainerStyle: {
-      height: 25,
-      padding: 0,
-    },
-    speedupActionContainerStyle: {
-      marginRight: 10,
-    },
-    actionStyle: {
-      fontSize: 10,
-      padding: 0,
-      paddingHorizontal: 10,
-    },
-    icon: {
-      width: 32,
-      height: 32,
-    } as ImageStyle,
-    summaryWrapper: {
-      padding: 15,
-    },
-    fromDeviceText: {
-      color: colors.text.alternative,
-      fontSize: 14,
-      marginBottom: 10,
-      ...fontStyles.normal,
-    },
-    importText: {
-      color: colors.text.alternative,
-      fontSize: 14,
-      ...fontStyles.bold,
-      alignContent: 'center',
-    },
-    importRowBody: {
-      alignItems: 'center',
-      backgroundColor: colors.background.alternative,
-      paddingTop: 10,
-    },
-    listItemDate: {
-      marginBottom: 10,
-      paddingBottom: 0,
-    },
-    listItemContent: {
-      alignItems: 'flex-start',
-      marginTop: 0,
-      paddingTop: 0,
-    },
-    listItemTitle: {
-      ...typography.sBodyLGMedium,
-      marginTop: 0,
-    },
-    listItemStatus: {
-      ...(typography.sBodyMDBold as TextStyle),
-    },
-    listItemFiatAmount: {
-      ...(typography.sBodyLGMedium as TextStyle),
-      marginTop: 0,
-    },
-    listItemAmount: {
-      ...(typography.sBodyMD as TextStyle),
-      color: colors.text.alternative,
-    },
-    itemContainer: {
-      padding: 0,
-      borderBottomWidth: 1,
-    },
-    typeContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    typeIcon: {
-      marginRight: 8,
-    },
-    typeText: {
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    statusText: {
-      fontSize: 12,
-    },
-    addressText: {
-      fontSize: 14,
-    },
-    amountText: {
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    dateText: {
-      fontSize: 12,
-    },
-    feeContainer: {
-      marginTop: 4,
-    },
-    feeText: {
-      fontSize: 12,
-    },
-  });
+import styles from './MultichainTransactionListItem.styles';
+import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
+import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
+import Routes from '../../../constants/navigation/Routes';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../reducers';
 
 const MultichainTransactionListItem = ({
   transaction,
+  bridgeHistoryItem,
   selectedAddress,
   navigation,
 }: {
   transaction: Transaction;
+  bridgeHistoryItem?: BridgeHistoryItem;
   selectedAddress: string;
   navigation: NavigationProp<ParamListBase>;
 }) => {
   const { colors, typography } = useTheme();
+  const osColorScheme = useColorScheme();
+  const appTheme = useSelector((state: RootState) => state.user.appTheme);
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { type, status, to, from, asset } = useMultichainTransactionDisplay({
     transaction,
     userAddress: selectedAddress,
+    bridgeHistoryItem,
   });
+
+  const isBridgeTx = type === TransactionType.Send && bridgeHistoryItem;
+  const isBridgeComplete = bridgeHistoryItem
+    ? Boolean(
+        bridgeHistoryItem?.status.srcChain.txHash &&
+          bridgeHistoryItem.status.destChain?.txHash,
+      )
+    : null;
 
   let title = capitalize(type);
 
@@ -148,26 +63,41 @@ const MultichainTransactionListItem = ({
     const fromUnit = fromAsset?.fungible ? fromAsset.unit : '';
     const toUnit = toAsset?.fungible ? toAsset.unit : '';
 
-    title = `${strings('swap')} ${fromUnit} ${strings('to')} ${toUnit}`;
+    title = `${strings('transactions.swap')} ${fromUnit} ${strings(
+      'transactions.to',
+    )} ${toUnit}`;
+  } else if (isBridgeTx) {
+    title = getBridgeTxActivityTitle(bridgeHistoryItem) ?? strings('bridge.title');
   }
 
-  const styles = createStyles(colors, typography);
+  const style = styles(colors, typography);
 
   const handlePress = () => {
-    setIsModalVisible(true);
+    if (isBridgeTx) {
+      navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
+        multiChainTx: transaction,
+      });
+    } else {
+      setIsModalVisible(true);
+    }
   };
 
   const renderTxElementIcon = (transactionType: string) => {
     const isFailedTransaction = status === 'failed';
-    const icon = getTransactionIcon(transactionType, isFailedTransaction);
-    return <Image source={icon} style={styles.icon} resizeMode="stretch" />;
+    const icon = getTransactionIcon(
+      transactionType,
+      isFailedTransaction,
+      appTheme,
+      osColorScheme,
+    );
+    return <Image source={icon} style={style.icon} resizeMode="stretch" />;
   };
 
   return (
     <>
       <TouchableHighlight
         style={[
-          styles.itemContainer,
+          style.itemContainer,
           { borderBottomColor: colors.border.muted },
         ]}
         onPress={handlePress}
@@ -176,28 +106,38 @@ const MultichainTransactionListItem = ({
         testID={`transaction-list-item-${transaction.id}`}
       >
         <ListItem>
-          <ListItem.Date style={styles.listItemDate}>
+          <ListItem.Date style={style.listItemDate}>
             {transaction.timestamp &&
               toDateFormat(new Date(transaction.timestamp * 1000))}
           </ListItem.Date>
-          <ListItem.Content style={styles.listItemContent}>
-            <ListItem.Icon>{renderTxElementIcon(type)}</ListItem.Icon>
+          <ListItem.Content style={style.listItemContent}>
+            <ListItem.Icon>
+              {renderTxElementIcon(isBridgeTx ? 'bridge' : type)}
+            </ListItem.Icon>
             <ListItem.Body>
               <ListItem.Title
                 numberOfLines={1}
-                style={styles.listItemTitle as TextStyle}
+                style={style.listItemTitle as TextStyle}
               >
                 {title}
               </ListItem.Title>
-              <StatusText
-                testID={`transaction-status-${transaction.id}`}
-                status={status}
-                style={styles.listItemStatus as TextStyle}
-                context="transaction"
-              />
+              {isBridgeTx && !isBridgeComplete && (
+                <BridgeActivityItemTxSegments
+                  bridgeTxHistoryItem={bridgeHistoryItem}
+                  transactionStatus={transaction.status}
+                />
+              )}
+              {(!isBridgeTx || (isBridgeTx && isBridgeComplete)) && (
+                <StatusText
+                  testID={`transaction-status-${transaction.id}`}
+                  status={status}
+                  style={style.listItemStatus as TextStyle}
+                  context="transaction"
+                />
+              )}
             </ListItem.Body>
             {Boolean(asset?.amount) && (
-              <ListItem.Amount style={styles.listItemAmount as TextStyle}>
+              <ListItem.Amount style={style.listItemAmount as TextStyle}>
                 {asset?.amount} {asset?.unit}
               </ListItem.Amount>
             )}

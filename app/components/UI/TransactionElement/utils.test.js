@@ -11,36 +11,42 @@ jest.mock('../../../core/Engine', () => ({
     },
     TokenListController: {
       state: {
-        tokenList: {
-          '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f': {
-            address: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
-            symbol: 'SNX',
-            decimals: 18,
-            name: 'Synthetix Network Token',
-            iconUrl:
-              'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
-            type: 'erc20',
-            aggregators: [
-              'Aave',
-              'Bancor',
-              'CMC',
-              'Crypto.com',
-              'CoinGecko',
-              '1inch',
-              'PMM',
-              'Synthetix',
-              'Zerion',
-              'Lifi',
+        tokensChainsCache: {
+          '0x1': {
+            data: [
+              {
+                '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f': {
+                  address: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
+                  symbol: 'SNX',
+                  decimals: 18,
+                  name: 'Synthetix Network Token',
+                  iconUrl:
+                    'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
+                  type: 'erc20',
+                  aggregators: [
+                    'Aave',
+                    'Bancor',
+                    'CMC',
+                    'Crypto.com',
+                    'CoinGecko',
+                    '1inch',
+                    'PMM',
+                    'Synthetix',
+                    'Zerion',
+                    'Lifi',
+                  ],
+                  occurrences: 10,
+                  fees: {
+                    '0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f': 0,
+                    '0xda4ef8520b1a57d7d63f1e249606d1a459698876': 0,
+                  },
+                },
+              },
             ],
-            occurrences: 10,
-            fees: {
-              '0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f': 0,
-              '0xda4ef8520b1a57d7d63f1e249606d1a459698876': 0,
-            },
           },
         },
       },
-      tokensChainsCache: {},
+
       preventPollingOnNetworkRestart: false,
     },
   },
@@ -71,6 +77,12 @@ describe('Utils', () => {
         primaryCurrency: 'ETH',
         selectedAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
         ticker: 'ETH',
+        txChainId: '0x1',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        },
       };
 
       // Act
@@ -98,6 +110,7 @@ describe('Utils', () => {
         summaryFee: '< 0.00001 ETH',
         summaryTotalAmount: '5.43 USDT / < 0.00001 ETH',
         summarySecondaryTotalAmount: undefined,
+        txChainId: '0x1',
       });
     });
 
@@ -124,6 +137,12 @@ describe('Utils', () => {
         primaryCurrency: 'ETH',
         selectedAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
         ticker: 'ETH',
+        txChainId: '0x1',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        },
       };
 
       // Act
@@ -151,6 +170,7 @@ describe('Utils', () => {
         summaryFee: '< 0.00001 ETH',
         summaryTotalAmount: '1000 USDT / < 0.00001 ETH',
         summarySecondaryTotalAmount: undefined,
+        txChainId: '0x1',
       });
     });
   });
@@ -168,6 +188,7 @@ describe('Utils', () => {
       summaryFee: '0.00002 ETH',
       summarySecondaryTotalAmount: undefined,
       summaryTotalAmount: '0.00002 ETH',
+      txChainId: '0x1',
     };
 
     const txParamsMock = {
@@ -193,6 +214,12 @@ describe('Utils', () => {
         primaryCurrency: 'ETH',
         selectedAddress: '0x1234567890abcdef1234567890abcdef12345678',
         ticker: 'ETH',
+        txChainId: '0x1',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        },
       };
 
       const result = await decodeTransaction(args);
@@ -230,6 +257,12 @@ describe('Utils', () => {
         primaryCurrency: 'ETH',
         selectedAddress: '0x1234567890abcdef1234567890abcdef12345678',
         ticker: 'ETH',
+        txChainId: '0x1',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        },
       };
 
       const result = await decodeTransaction(args);
@@ -266,6 +299,12 @@ describe('Utils', () => {
         primaryCurrency: 'ETH',
         selectedAddress: '0x1234567890abcdef1234567890abcdef12345678',
         ticker: 'ETH',
+        txChainId: '0x1',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        },
       };
 
       const result = await decodeTransaction(args);

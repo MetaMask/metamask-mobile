@@ -33,7 +33,6 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { ButtonSize } from '../../../component-library/components/Buttons/Button';
-import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { isValidMnemonic } from '../../../util/validators';
 import useCopyClipboard from '../Notifications/Details/hooks/useCopyClipboard';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -46,6 +45,14 @@ import {
 } from '../../../component-library/components/Toast';
 import { useSelector } from 'react-redux';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
+import {
+  validateSRP,
+  validateCompleteness,
+  validateCase,
+  validateWords,
+  validateMnemonic,
+} from './validation';
+import { AppThemeKey } from '../../../util/theme/models';
 
 const defaultNumberOfWords = 12;
 
@@ -105,9 +112,6 @@ const ImportNewSecretRecoveryPhrase = () => {
     }
   }, [inputWidth]);
 
-  const hasUpperCase = (draftSrp: string) =>
-    draftSrp !== draftSrp.toLowerCase();
-
   const hasEmptySrp = useMemo(
     () => secretRecoveryPhrase.every((word) => word === ''),
     [secretRecoveryPhrase],
@@ -135,121 +139,38 @@ const ImportNewSecretRecoveryPhrase = () => {
 
   const onSrpChange = useCallback(
     (newDraftSrp: string[]) => {
-      const validateSRP = (phrase: string[], words: boolean[]) => {
-        if (!phrase.some((word) => word !== '')) {
-          return { error: '', words };
-        }
-
-        const state = {
-          error: '',
-          words: phrase.map((word) => !wordlist.includes(word)),
-        };
-
-        return state;
-      };
-
-      const validateCompleteness = (
+      const hideErrorIfSrpIsEmpty = (
         state: { error: string; words: boolean[] },
         phrase: string[],
       ) => {
-        if (state.error) {
-          return state;
-        }
-        if (phrase.some((word) => word === '')) {
+        if (phrase.every((word) => word === '')) {
           return {
-            ...state,
-            error: strings(
-              'import_new_secret_recovery_phrase.error_number_of_words_error_message',
-            ),
+            words: Array(phrase.length).fill(false),
+            error: '',
           };
         }
+
         return state;
       };
 
-      const validateCase = (
-        state: { error: string; words: boolean[] },
-        phrase: string,
-      ) => {
-        if (state.error) {
-          return state;
-        }
-        if (hasUpperCase(phrase)) {
-          return {
-            ...state,
-            error: strings(
-              'import_new_secret_recovery_phrase.error_srp_is_case_sensitive',
-            ),
-          };
-        }
-        return state;
-      };
+      const numberOfFilledWords = newDraftSrp.filter(
+        (word) => word !== '',
+      ).length;
 
-      const validateWords = (state: { error: string; words: boolean[] }) => {
-        if (state.error) {
-          return state;
-        }
-
-        const invalidWordIndices = state.words
-          .map((invalid, index) => (invalid ? index + 1 : 0))
-          .filter((index) => index !== 0);
-
-        if (invalidWordIndices.length === 0) {
-          return state;
-        }
-        if (invalidWordIndices.length === 1) {
-          return {
-            ...state,
-            error: `${strings(
-              'import_new_secret_recovery_phrase.error_srp_word_error_1',
-            )}${invalidWordIndices[0]}${strings(
-              'import_new_secret_recovery_phrase.error_srp_word_error_2',
-            )}`,
-          };
-        }
-
-        const lastIndex = invalidWordIndices.pop();
-        const firstPart = invalidWordIndices.join(', ');
-        return {
-          ...state,
-          error: `${strings(
-            'import_new_secret_recovery_phrase.error_multiple_srp_word_error_1',
-          )}${firstPart}${strings(
-            'import_new_secret_recovery_phrase.error_multiple_srp_word_error_2',
-          )}${lastIndex}${strings(
-            'import_new_secret_recovery_phrase.error_multiple_srp_word_error_3',
-          )}`,
-        };
-      };
-
-      const validateMnemonic = (
-        state: { error: string; words: boolean[] },
-        phrase: string,
-      ) => {
-        if (state.error) {
-          return state;
-        }
-        if (!isValidMnemonic(phrase)) {
-          return {
-            ...state,
-            error: strings(
-              'import_new_secret_recovery_phrase.error_invalid_srp',
-            ),
-          };
-        }
-        return state;
-      };
-
-      const joinedDraftSrp = newDraftSrp.join(' ').trim();
-      const invalidWords = Array(newDraftSrp.length).fill(false);
-      let validationResult = validateSRP(newDraftSrp, invalidWords);
-      validationResult = validateCompleteness(validationResult, newDraftSrp);
-      validationResult = validateCase(validationResult, joinedDraftSrp);
-      validationResult = validateWords(validationResult);
-      validationResult = validateMnemonic(validationResult, joinedDraftSrp);
+      if (numberOfFilledWords === 12 || numberOfFilledWords === 24) {
+        const joinedDraftSrp = newDraftSrp.join(' ').trim();
+        const invalidWords = Array(newDraftSrp.length).fill(false);
+        let validationResult = validateSRP(newDraftSrp, invalidWords);
+        validationResult = validateCompleteness(validationResult, newDraftSrp);
+        validationResult = validateCase(validationResult, joinedDraftSrp);
+        validationResult = validateWords(validationResult);
+        validationResult = validateMnemonic(validationResult, joinedDraftSrp);
+        validationResult = hideErrorIfSrpIsEmpty(validationResult, newDraftSrp);
+        setSrpError(validationResult.error);
+        setInvalidSRPWords(validationResult.words);
+      }
 
       setSecretRecoveryPhrase(newDraftSrp);
-      setSrpError(validationResult.error);
-      setInvalidSRPWords(validationResult.words);
     },
     [setSrpError, setSecretRecoveryPhrase],
   );
@@ -316,10 +237,18 @@ const ImportNewSecretRecoveryPhrase = () => {
       });
       navigation.navigate('WalletView');
     } catch (e) {
-      Alert.alert(
-        strings('import_new_secret_recovery_phrase.error_title'),
-        strings('import_new_secret_recovery_phrase.error_message'),
-      );
+      if (
+        (e as Error)?.message === 'This mnemonic has already been imported.'
+      ) {
+        Alert.alert(
+          strings('import_new_secret_recovery_phrase.error_duplicate_srp'),
+        );
+      } else {
+        Alert.alert(
+          strings('import_new_secret_recovery_phrase.error_title'),
+          strings('import_new_secret_recovery_phrase.error_message'),
+        );
+      }
       setLoading(false);
     }
   };
@@ -378,6 +307,10 @@ const ImportNewSecretRecoveryPhrase = () => {
                     borderColor: invalidSRPWords[index]
                       ? colors.error.default
                       : colors.border.muted,
+                    color:
+                      themeAppearance === AppThemeKey.light
+                        ? colors.text.default
+                        : colors.text.alternative,
                   }}
                   autoCapitalize="none"
                   keyboardAppearance={themeAppearance}
@@ -406,7 +339,10 @@ const ImportNewSecretRecoveryPhrase = () => {
           </View>
         </View>
         {srpError && (
-          <BannerAlert severity={BannerAlertSeverity.Error}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            testID={ImportSRPIDs.SRP_ERROR}
+          >
             <Text>{srpError}</Text>
           </BannerAlert>
         )}
@@ -415,7 +351,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             containerStyle={styles.button}
             type={'confirm'}
             onPress={onSubmit}
-            disabled={srpError || !isValidSrp}
+            disabled={Boolean(srpError) || !isValidSrp}
             testID={ImportSRPIDs.IMPORT_BUTTON}
           >
             {loading ? (

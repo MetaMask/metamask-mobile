@@ -2,42 +2,33 @@ import reducer, {
   initialState,
   setSourceAmount,
   setDestAmount,
-  setDestChainId,
   resetBridgeState,
-  switchTokens,
+  setSlippage,
 } from '.';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { TokenI } from '../../../../components/UI/Tokens/types';
+import { BridgeToken } from '../../../../components/UI/Bridge/types';
+import { Hex } from '@metamask/utils';
 
 describe('bridge slice', () => {
-  const mockToken: TokenI = {
+  const mockToken: BridgeToken = {
     address: '0x123',
     symbol: 'ETH',
     decimals: 18,
     image: 'https://example.com/eth.png',
-    chainId: 'eip155:1' as SupportedCaipChainId,
-    aggregators: [],
+    chainId: '0x1' as Hex,
     name: 'Ethereum',
     balance: '100',
     balanceFiat: '100',
-    isETH: true,
-    isNative: true,
-    logo: 'https://example.com/eth.png',
   };
 
-  const mockDestToken: TokenI = {
+  const mockDestToken: BridgeToken = {
     address: '0x456',
     symbol: 'USDC',
     decimals: 6,
     image: 'https://example.com/usdc.png',
-    chainId: 'eip155:2' as SupportedCaipChainId,
-    aggregators: [],
+    chainId: '0x2' as Hex,
     name: 'USDC',
     balance: '100',
     balanceFiat: '100',
-    isETH: false,
-    isNative: false,
-    logo: 'https://example.com/usdc.png',
   };
 
   describe('initial state', () => {
@@ -48,6 +39,7 @@ describe('bridge slice', () => {
         destChainId: undefined,
         sourceToken: undefined,
         destToken: undefined,
+        slippage: '0.5',
       });
     });
   });
@@ -69,6 +61,16 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('setSlippage', () => {
+    it('should set the slippage', () => {
+      const slippage = '0.5';
+      const action = setSlippage(slippage);
+      const state = reducer(initialState, action);
+
+      expect(state.slippage).toBe(slippage);
+    });
+  });
+
   describe('setDestAmount', () => {
     it('should set the destination amount', () => {
       const amount = '100';
@@ -86,23 +88,6 @@ describe('bridge slice', () => {
     });
   });
 
-  describe('setDestChainId', () => {
-    it('should set the destination chain ID', () => {
-      const chainId = 'eip155:2' as SupportedCaipChainId;
-      const action = setDestChainId(chainId);
-      const state = reducer(initialState, action);
-
-      expect(state.destChainId).toBe(chainId);
-    });
-
-    it('should set dest chain ID to undefined', () => {
-      const action = setDestChainId(undefined);
-      const state = reducer(initialState, action);
-
-      expect(state.destChainId).toBeUndefined();
-    });
-  });
-
   describe('resetBridgeState', () => {
     it('should reset the state to initial state', () => {
       const state = {
@@ -117,60 +102,6 @@ describe('bridge slice', () => {
       const newState = reducer(state, action);
 
       expect(newState).toEqual(initialState);
-    });
-  });
-
-  describe('switchTokens', () => {
-    it('should switch source and destination tokens when both are defined', () => {
-      const state = {
-        ...initialState,
-        sourceToken: mockToken,
-        destToken: mockDestToken,
-        destChainId: 'eip155:2' as SupportedCaipChainId,
-        sourceAmount: '1.5',
-        destAmount: '100',
-      };
-
-      const action = switchTokens();
-      const newState = reducer(state, action);
-
-      expect(newState.sourceToken).toEqual(mockDestToken);
-      expect(newState.destToken).toEqual(mockToken);
-      expect(newState.destChainId).toBe('eip155:2');
-      expect(newState.sourceAmount).toBeUndefined();
-      expect(newState.destAmount).toBeUndefined();
-    });
-
-    it('should not switch tokens when destination token is undefined', () => {
-      const state = {
-        ...initialState,
-        sourceToken: mockToken,
-        destToken: undefined,
-        destChainId: undefined,
-        sourceAmount: '1.5',
-        destAmount: undefined,
-      };
-
-      const action = switchTokens();
-      const newState = reducer(state, action);
-
-      expect(newState).toEqual(state);
-    });
-
-    it('should not switch tokens when destination chain is undefined', () => {
-      const state = {
-        ...initialState,
-        sourceToken: mockToken,
-        destToken: mockDestToken,
-        destChainId: undefined,
-        sourceAmount: '1.5',
-        destAmount: '100',
-      };
-
-      const action = switchTokens();
-      const newState = reducer(state, action);
-
-      expect(newState).toEqual(state);
     });
   });
 });

@@ -37,6 +37,12 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
   }
 
+  get notificationBellIcon() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON,
+    );
+  }
+
   get navbarNetworkText() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT);
   }
@@ -187,6 +193,10 @@ class WalletView {
     await Gestures.waitAndTap(this.accountIcon);
   }
 
+  async tapBellIcon() {
+    await Gestures.waitAndTap(this.notificationBellIcon);
+  }
+
   async tapNetworksButtonOnNavBar() {
     await TestHelpers.tap(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
   }
@@ -210,7 +220,7 @@ class WalletView {
   get testCollectible() {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
+      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE,1);
   }
 
   async tapOnNftName() {

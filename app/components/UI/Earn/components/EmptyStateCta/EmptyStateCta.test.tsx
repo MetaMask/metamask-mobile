@@ -13,7 +13,7 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 // eslint-disable-next-line import/no-namespace
 import * as StakeConstants from '../../../Stake/constants';
 // eslint-disable-next-line import/no-namespace
-import * as useEarnTokenDetails from '../../../Stake/hooks/useEarnTokenDetails';
+import * as useEarnTokenDetails from '../../../Earn/hooks/useEarnTokenDetails';
 
 jest.mock('../../../../hooks/useMetrics');
 
@@ -73,10 +73,12 @@ describe('EmptyStateCta', () => {
     jest.spyOn(useEarnTokenDetails, 'useEarnTokenDetails').mockReturnValue({
       getTokenWithBalanceAndApr: () => ({
         ...MOCK_USDC_MAINNET_ASSET,
-        tokenBalanceFormatted: '$100 USDC',
-        balanceFiat: '$100',
         apr: '4.5',
         estimatedAnnualRewardsFormatted: '$5',
+        balanceFiat: '$100',
+        balanceFormatted: '$100 USDC',
+        balanceMinimalUnit: '100',
+        balanceFiatNumber: 100,
       }),
     });
   });
@@ -101,7 +103,7 @@ describe('EmptyStateCta', () => {
       params: {
         action: 'LEND',
         token: {
-          address: '0xabc',
+          address: MOCK_USDC_MAINNET_ASSET.address,
           aggregators: [],
           balance: '',
           balanceFiat: '',

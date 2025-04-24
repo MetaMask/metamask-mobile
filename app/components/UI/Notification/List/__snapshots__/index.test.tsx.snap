@@ -22,7 +22,7 @@ exports[`NotificationsList renders correctly 1`] = `
     }
   >
     <ActivityIndicator
-      color="#0376c9"
+      color="#4459ff"
       size="large"
     />
   </View>
@@ -91,7 +91,7 @@ exports[`NotificationsList renders empty state 1`] = `
         testID="no-notifications-container"
       >
         <SvgMock
-          color="#141618"
+          color="#121314"
           height={32}
           name="Notification"
           style={
@@ -109,8 +109,8 @@ exports[`NotificationsList renders empty state 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 18,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -127,12 +127,12 @@ exports[`NotificationsList renders empty state 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginBottom": 8,
               "paddingHorizontal": 32,
               "textAlign": "center",

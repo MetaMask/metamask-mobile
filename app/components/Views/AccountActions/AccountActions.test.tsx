@@ -12,7 +12,13 @@ import Routes from '../../../constants/navigation/Routes';
 import AccountActions from './AccountActions';
 import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import {
+  createMockInternalAccount,
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+} from '../../../util/test/accountsControllerTestUtils';
+import { BITCOIN_WALLET_SNAP_ID } from '../../../core/SnapKeyring/BitcoinWalletSnap';
+import { SOLANA_WALLET_SNAP_ID } from '../../../core/SnapKeyring/SolanaWalletSnap';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 import { strings } from '../../../../locales/i18n';
 import { act } from '@testing-library/react-hooks';
@@ -74,6 +80,20 @@ const initialState = {
   },
 };
 
+const generateInitialStateWithSelectedAccount = (account: InternalAccount) =>
+  ({
+    ...initialState,
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        AccountsController: {
+          internalAccounts: [account],
+          selectedAccountAddress: account.id,
+        },
+      },
+    },
+  } as unknown as RootState);
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     PreferencesController: {
@@ -112,7 +132,7 @@ const MOCK_ACCOUNT = {
     name: 'Account 2',
     importTime: 1684232000456,
     keyring: {
-      type: 'HD Key Tree',
+      type: KeyringTypes.hd,
     },
   },
   options: {},
@@ -135,10 +155,15 @@ const MOCK_BTC_ACCOUNT = {
     name: 'Bitcoin Account',
     importTime: 1684232000456,
     keyring: {
-      type: 'HD Key Tree',
+      type: KeyringTypes.snap,
+    },
+    snap: {
+      id: BITCOIN_WALLET_SNAP_ID,
     },
   },
-  options: {},
+  options: {
+    entropySource: 'mock-id',
+  },
   methods: ['send_bitcoin'],
   type: 'p2wpkh',
   scopes: ['bip122:000000000019d6689c085ae165831e93'],
@@ -152,10 +177,15 @@ const MOCK_SOLANA_ACCOUNT = {
     name: 'Solana Account',
     importTime: 1684232000456,
     keyring: {
-      type: 'HD Key Tree',
+      type: KeyringTypes.snap,
+    },
+    snap: {
+      id: SOLANA_WALLET_SNAP_ID,
     },
   },
-  options: {},
+  options: {
+    entropySource: 'mock-id',
+  },
   methods: ['send_and_confirm_transaction'],
   type: 'data_account',
   scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
@@ -177,6 +207,7 @@ jest.mock('@react-navigation/native', () => {
 // Import the mocked module to set implementation
 import { useRoute } from '@react-navigation/native';
 import { RootState } from '../../../reducers';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Set the implementation after the mock is defined
 const mockedUseRoute = jest.mocked(useRoute);
@@ -227,7 +258,7 @@ jest.mock('../../../util/networks', () => {
       if (account.type === 'p2wpkh') {
         return 'https://mempool.space/address/bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
       } else if (account.type === 'data_account') {
-        return 'https://explorer.solana.com/address/7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+        return 'https://solscan.io/account/7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
       }
       return '';
     }),
@@ -235,7 +266,7 @@ jest.mock('../../../util/networks', () => {
     getBlockExplorerName: jest.fn((url) => {
       if (url.includes('etherscan')) return 'etherscan.io';
       if (url.includes('mempool.space')) return 'mempool.space';
-      if (url.includes('explorer.solana.com')) return 'explorer.solana.com';
+      if (url.includes('solscan.io')) return 'solscan.io';
       if (url.includes('custom-explorer.com')) return 'custom-explorer.com';
       return 'Block Explorer';
     }),
@@ -421,8 +452,8 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://explorer.solana.com/address/7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
-        title: 'explorer.solana.com',
+        url: 'https://solscan.io/account/7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
+        title: 'solscan.io',
       },
     });
   });
@@ -516,6 +547,84 @@ describe('AccountActions', () => {
       await waitFor(() => {
         expect(getByText(strings('common.please_wait'))).toBeDefined();
       });
+    });
+  });
+
+  describe('export srp', () => {
+    it.each([
+      { account: MOCK_ACCOUNT },
+      { account: MOCK_BTC_ACCOUNT },
+      { account: MOCK_SOLANA_ACCOUNT },
+    ])(
+      'reveal for $account.metadata.keyring.type and $account.metadata.snap?.id',
+      ({ account }) => {
+        mockedUseRoute.mockImplementation(() => ({
+          key: 'mock-key',
+          name: 'mock-route',
+          params: {
+            selectedAccount: account,
+          },
+        }));
+        const state = generateInitialStateWithSelectedAccount(
+          account as InternalAccount,
+        );
+
+        const { queryByTestId } = renderWithProvider(<AccountActions />, {
+          state,
+        });
+
+        const revealButton = queryByTestId(
+          AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
+        );
+
+        expect(revealButton).toBeDefined();
+      },
+    );
+
+    it.each([
+      {
+        accountType: KeyringTypes.lattice,
+      },
+      {
+        accountType: KeyringTypes.ledger,
+      },
+      {
+        accountType: KeyringTypes.oneKey,
+      },
+      {
+        accountType: KeyringTypes.qr,
+      },
+      {
+        accountType: KeyringTypes.trezor,
+      },
+      // This is a non first party snap
+      {
+        accountType: KeyringTypes.snap,
+      },
+    ])('is not shown $accountType', ({ accountType }) => {
+      const mockAccount = createMockInternalAccount(
+        '0x123',
+        'Test Account',
+        accountType,
+      ) as InternalAccount;
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          selectedAccount: mockAccount,
+        },
+      }));
+      const state = generateInitialStateWithSelectedAccount(mockAccount);
+
+      const { queryByTestId } = renderWithProvider(<AccountActions />, {
+        state,
+      });
+
+      const revealButton = queryByTestId(
+        AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
+      );
+
+      expect(revealButton).toBeNull();
     });
   });
 });

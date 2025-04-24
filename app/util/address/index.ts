@@ -3,7 +3,6 @@ import {
   isValidAddress,
   addHexPrefix,
   isValidChecksumAddress,
-  //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
   isHexPrefixed,
 } from 'ethereumjs-util';
 import punycode from 'punycode/punycode';
@@ -33,17 +32,22 @@ import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
 import Logger from '../../../app/util/Logger';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AddressBookControllerState } from '@metamask/address-book-controller';
-import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
-import { NetworkClientId, NetworkState } from '@metamask/network-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { AddressBookControllerState } from '@metamask/address-book-controller';
+import {
+  type NetworkType,
+  toChecksumHexAddress,
+} from '@metamask/controller-utils';
+import type {
+  NetworkClientId,
+  NetworkState,
+} from '@metamask/network-controller';
 import {
   AccountImportStrategy,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   KeyringTypes,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
-import { Hex, isHexString } from '@metamask/utils';
+import { type Hex, isHexString } from '@metamask/utils';
+import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -97,10 +101,10 @@ export function toFormattedAddress(address: string) {
  *
  * @param {String} address - String corresponding to an address
  * @param {Number} chars - Number of characters to show at the end and beginning.
- * Defaults to 4.
+ * Defaults to 5.
  * @returns {String} - String corresponding to short address format
  */
-export function renderShortAddress(address: string, chars = 4) {
+export function renderShortAddress(address: string, chars = 5) {
   if (!address) return address;
   const formattedAddress = toFormattedAddress(address);
   return `${formattedAddress.substr(0, chars + 2)}...${formattedAddress.substr(
@@ -169,6 +173,27 @@ export async function importAccountFromPrivateKey(private_key: string) {
     );
   const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
   Engine.setSelectedAddress(checksummedAddress);
+}
+
+export function isHDOrFirstPartySnapAccount(account: InternalAccount) {
+  if (
+    account.metadata.keyring.type !== KeyringTypes.snap &&
+    account.metadata.keyring.type !== KeyringTypes.hd
+  ) {
+    return false;
+  }
+
+  if (
+    account.metadata.keyring.type === KeyringTypes.snap &&
+    !PREINSTALLED_SNAPS.some(
+      (snap) => snap.snapId === account.metadata.snap?.id,
+    ) &&
+    !account.options?.entropySource
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -265,7 +290,7 @@ export function isEthAddress(address: string): boolean {
  * @param {String} address - String corresponding to an address
  * @returns {InternalAccount | undefined} - Returns the internal account by address
  */
-function getInternalAccountByAddress(
+export function getInternalAccountByAddress(
   address: string,
 ): InternalAccount | undefined {
   const { accounts } = Engine.context.AccountsController.state.internalAccounts;

@@ -13,7 +13,7 @@ const useLimits = () => {
   const [{ data: limits }] = useSDKMethod(
     isBuy ? 'getLimits' : 'getSellLimits',
     selectedRegion?.id,
-    selectedPaymentMethodId,
+    selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
     selectedAsset?.id,
     selectedFiatCurrencyId,
   );

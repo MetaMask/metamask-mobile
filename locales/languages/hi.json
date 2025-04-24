@@ -1,4 +1,34 @@
 {
+  "alert_system": {
+    "alert_modal": {
+      "title": "एलर्ट",
+      "checkbox_label": "मैंने जोखिम को स्वीकार कर लिया है और इसके बावजूद आगे बढ़ना चाहता हूँ",
+      "got_it_btn": "समझ गए",
+      "alert_details": "एलर्ट संबंधी विवरण"
+    },
+    "confirm_modal": {
+      "title": "उच्च जोखिम संबंधी अनुरोध",
+      "checkbox_label": "मैंने एलर्ट को स्वीकार कर लिया है और इसके बावजूद आगे बढ़ना चाहता हूँ",
+      "review_alerts": "सभी एलर्ट की समीक्षा करें",
+      "message": "हमारा सुझाव है कि आप इस अनुरोध को रिजेक्ट करें। यदि आप जारी रखते हैं, तो आप अपनी एसेट्स को जोखिम में डाल सकते हैं।",
+      "title_blockaid": "आपकी एसेट्स खतरे में हो सकती है",
+      "blockaid": {
+        "message": "यदि आप इस अनुरोध को कन्फर्म करते हैं, तो आप अपनी एसेट्स खो सकते हैं। हम सुझाव देते हैं कि आप इस अनुरोध को कैंसिल कर दें।",
+        "message1": "यदि आप इस अनुरोध को कन्फर्म करते हैं, तो आप एक स्कैमर को अपनी एसेट्स निकालने और खर्च करने की अनुमति दे रहे हैं। आपको वे वापस नहीं मिलेंगे।",
+        "message2": "आप अपनी एसेट्स किसी स्कैमर को भेज रहे हैं। अगर आप ऐसा करना जारी रखेंगे, तो आप उन एसेट्स को खो देंगे।",
+        "message3": "अगर आप ऐसा करना जारी रखते हैं, तो OpenSea पर आपके द्वारा सूचीबद्ध सभी एसेट्स खतरे में पड़ सकती हैं।",
+        "message4": "अगर आप ऐसा करना जारी रखते हैं, तो Blur पर आपके द्वारा सूचीबद्ध सभी एसेट्स खतरे में पड़ सकती हैं।",
+        "message5": "आप एक बुरी नीयत वाली साइट के साथ इंटरैक्ट कर रहे हैं। अगर आप ऐसा करना जारी रखेंगे, तो आप अपनी एसेट्स खो देंगे।"
+      }
+    },
+    "inline_alert_label": "एलर्ट",
+    "review_alerts": "एलर्ट की समीक्षा करें",
+    "review_alert": "एलर्ट की समीक्षा करें",
+    "domain_mismatch": {
+      "title": "संदिग्ध साइन-इन अनुरोध",
+      "message": "अनुरोध करने वाली साइट वह साइट नहीं है जिस पर आप साइन इन कर रहे हैं। यह आपके लॉगिन क्रेडेंशियल चुराने का प्रयास हो सकता है।"
+    }
+  },
   "blockaid_banner": {
     "approval_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो स्कैम के लिए मशहूर कोई तृतीय पक्ष आपके सारे एसेट चुरा सकती है।",
     "blur_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो कोई Blur पर लिस्टेड आपके सारे एसेट चुरा सकता है।",
@@ -382,32 +412,35 @@
     "description": "अब हम एक ही नेटवर्क के लिए कई RPC को सपोर्ट करते हैं। विरोधाभासी जानकारी को हल करने के लिए आपके सबसे हाल के RPC को डिफ़ॉल्ट के रूप में चुना गया है",
     "accept": "स्वीकार करें"
   },
-  "nft_details": {
-    "bought_for": "के लिए खरीदा गया",
-    "highest_floor_price": "सबसे बड़ी फ्लोर प्राइस",
-    "data_unavailable": "डेटा अनुपलब्ध है",
-    "price_unavailable": "प्राइस अनुपलब्ध है",
-    "rank": "रैंक",
-    "contract_address": "कॉन्ट्रैक्ट का एड्रेस",
-    "token_id": "टोकन ID",
-    "token_symbol": "टोकन सिंबल",
-    "token_standard": "टोकन स्टैंडर्ड",
-    "date_created": "बनाने की तारीख",
-    "unique_token_holders": "अद्वितीय टोकन धारक",
-    "tokens_in_collection": "संग्रह में टोकन",
-    "creator_address": "निर्माता का एड्रेस",
-    "last_sold": "पिछली बार बेचा गया",
-    "highest_current_bid": "सबसे बड़ी वर्तमान बिड",
-    "options": {
-      "view_on_os": "Opensea पर देखें",
-      "remove_nft": "NFT हटाएं"
-    },
-    "attributes": "विशेषताएं",
-    "disclaimer": "अस्वीकरण: MetaMask मीडिया फ़ाइल को स्रोत URL से खींचता है। यह URL कभी-कभी मार्केटप्लेस द्वारा बदल दिया जाता है जिस पर NFT को मिंट किया गया था।"
-  },
   "qr_tab_switcher": {
     "scanner_tab": "QR कोड स्कैन करें",
     "receive_tab": "आपका QR कोड"
+  },
+  "banner": {
+    "bridge": {
+      "title": "ब्रिज करने के लिए तैयार हैं?",
+      "subtitle": "9 चेन पर जाएं, सब आपके वॉलेट में"
+    },
+    "card": {
+      "title": "MetaMask कार्ड",
+      "subtitle": "चुनिंदा क्षेत्रों में उपलब्ध है"
+    },
+    "fund": {
+      "title": "अपने वॉलेट को फंड करें",
+      "subtitle": "शूर करने के लिए टोकन जोड़ें या स्थानांतरित करें"
+    },
+    "cashout": {
+      "title": "MetaMask के साथ कैश आउट करें",
+      "subtitle": "कैश के लिए अपने क्रिप्टो बेचें"
+    },
+    "aggregated": {
+      "title": "आपका बैलेंस एकत्रित कर ली गई है",
+      "subtitle": "सेटिंग्स में अपना बैलेंस व्यू नियंत्रित करें"
+    },
+    "multisrp": {
+      "title": "Add multiple Secret Recovery Phrases",
+      "subtitle": "Import and use multiple wallets in MetaMask"
+    }
   },
   "wallet": {
     "title": "वॉलेट",
@@ -524,6 +557,29 @@
       "token_details": "टोकन विवरण",
       "remove_token": "टोकन हटाएं"
     }
+  },
+  "nft_details": {
+    "bought_for": "के लिए खरीदा गया",
+    "highest_floor_price": "सबसे बड़ी फ्लोर प्राइस",
+    "data_unavailable": "डेटा अनुपलब्ध है",
+    "price_unavailable": "प्राइस अनुपलब्ध है",
+    "rank": "रैंक",
+    "contract_address": "कॉन्ट्रैक्ट का एड्रेस",
+    "token_id": "टोकन ID",
+    "token_symbol": "टोकन सिंबल",
+    "token_standard": "टोकन स्टैंडर्ड",
+    "date_created": "बनाने की तारीख",
+    "unique_token_holders": "अद्वितीय टोकन धारक",
+    "tokens_in_collection": "संग्रह में टोकन",
+    "creator_address": "निर्माता का एड्रेस",
+    "last_sold": "पिछली बार बेचा गया",
+    "highest_current_bid": "सबसे बड़ी वर्तमान बिड",
+    "options": {
+      "view_on_os": "Opensea पर देखें",
+      "remove_nft": "NFT हटाएं"
+    },
+    "attributes": "विशेषताएं",
+    "disclaimer": "अस्वीकरण: MetaMask मीडिया फ़ाइल को स्रोत URL से खींचता है। यह URL कभी-कभी मार्केटप्लेस द्वारा बदल दिया जाता है जिस पर NFT को मिंट किया गया था।"
   },
   "activity_view": {
     "title": "गतिविधि"
@@ -693,6 +749,7 @@
     "select_accounts_description": "इस साइट पर इस्तेमाल करने के लिए अकाउंट (एकाउंट्स) को चुनें",
     "connect_multiple_accounts": "एक से अधिक खाते को कनेक्ट करें",
     "connect_more_accounts": "अधिक खाते को कनेक्ट करें",
+    "add": "जोड़ें",
     "cancel": "रद्द करें",
     "connect": "कनेक्ट करें",
     "connect_with_count": "{{countLabel}} को कनेक्ट करें",
@@ -720,7 +777,15 @@
     "potential_threat": "बड़े ख़तरों में शामिल हैं",
     "fake_metamask": "MetaMask के नकली वर्जन",
     "srp_theft": "सीक्रेट रिकवरी फ्रेज़ या पासवर्ड की चोरी",
-    "malicious_transactions": "बुरी नीयत वाले ट्रांसेक्शन जिनके कारण एसेट चोरी हो जाते हैं"
+    "malicious_transactions": "बुरी नीयत वाले ट्रांसेक्शन जिनके कारण एसेट चोरी हो जाते हैं",
+    "secret_recovery_phrase": "सीक्रेट रिकवरी फ्रेज़",
+    "account_name": "अकाउंट का नाम",
+    "select_secret_recovery_phrase": "सीक्रेट रिकवरी फ्रेज़ चुनें",
+    "reveal_secret_recovery_phrase": "सीक्रेट रिकवरी फ्रेज़ दिखाएं",
+    "add_new_hd_account_helper_text": "सीक्रेट रिकवरी फ्रेज़ जिससे आपका नया अकाउंट जनरेट होगा",
+    "accounts": "एकाउंट्स",
+    "show_accounts": "दिखाएं",
+    "hide_accounts": "छुपाएं"
   },
   "toast": {
     "connected_and_active": "कनेक्ट किया हुआ और सक्रिय।",
@@ -773,7 +838,8 @@
   },
   "app_settings": {
     "enabling_notifications": "नोटिफिकेशंस चालू किया जा रहा है...",
-    "disabling_notifications": "नोटिफिकेशंस बंद किया जा रहा है...",
+    "updating_notifications": "नोटिफिकेशंस अपडेट किया जा रहा है...",
+    "updating_account_settings": "अकाउंट सेटिंग्स अपडेट किया जा रहा है...",
     "reset_notifications_title": "नोटीफिकेशंस रीसेट करें",
     "reset_notifications_description": "नोटीफिकेशंस को रीसेट करने का मतलब है कि आप अपनी नोटीफिकेशंस स्टोरेज कीज़ डिलीट कर रहे हैं और अपने सभी नोटीफिकेशंस इतिहास को रीसेट कर रहे हैं। क्या आप वास्तव में इसे करना चाहते हैं?",
     "reset_notifications": "नोटीफिकेशंस रीसेट करें",
@@ -864,6 +930,7 @@
     "notifications_title": "नोटिफिकेशंस",
     "notifications_desc": "अपने नोटिफिकेशंस मैनेज करें",
     "allow_notifications": "नोटिफिकेशंस की अनुमति दें",
+    "enable_push_notifications": "पुश नोटिफिकेशंस को चालू करें",
     "allow_notifications_desc": "नोटिफिकेशंस के साथ आपके वॉलेट में क्या हो रहा है, इसकी जानकारी रखें। नोटिफिकेशंस का उपयोग करने के लिए, हम आपके डिवाइस में कुछ सेटिंग्स को सिंक करने के लिए एक प्रोफ़ाइल का उपयोग करते हैं।",
     "notifications_opts": {
       "customize_session_title": "अपने नोटिफिकेशंस कस्टमाइज़ करें",
@@ -899,9 +966,11 @@
     "networks_desc": "कस्टम RPC नेटवर्क को जोड़ें और संपादित करें",
     "network_name_label": "नेटवर्क का नाम",
     "network_name_placeholder": "नेटवर्क का नाम (वैकल्पिक)",
-    "network_rpc_url_label": "RPC Url",
+    "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC नाम",
     "network_rpc_placeholder": "नया RPC नेटवर्क ",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "चेन ID",
     "network_chain_id_placeholder": "चेन ID",
     "network_symbol_label": "प्रतीक",
@@ -918,6 +987,7 @@
     "remove_network": "हटाएं",
     "cancel_remove_network": "रद्द करें",
     "info_title": "MetaMask के बारे में",
+    "info_title_beta": "MetaMask Beta के बारे में",
     "info_title_flask": "MetaMask Flask के बारे में",
     "experimental_title": "प्रायोगिक",
     "experimental_desc": "वॉलेटकनेक्ट और अधिक...",
@@ -1118,6 +1188,7 @@
     "security_alerts": "सुरक्षा एलर्ट",
     "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।",
     "smart_transactions_opt_in_heading": "स्मार्ट ट्रांसेक्शन",
+    "smart_transactions_opt_in_desc_supported_networks": "समर्थित नेटवर्क पर अधिक विश्वसनीय और सुरक्षित ट्रांसेक्शन के लिए स्मार्ट ट्रांसेक्शन चालू करें।",
     "smart_transactions_learn_more": "अधिक जानें।",
     "simulation_details": "बैलेंस अमाउंट में बदलावों का अनुमान लगाएं",
     "simulation_details_description": "ट्रांसेक्शन को कन्फर्म करने से पहले बैलेंस अमाउंट में बदलाव का अनुमान लगाने के लिए इसे चालू करें। यह आपके ट्रांसेक्शन के फाइनल आउटकम की गारंटी नहीं देता है। ",
@@ -1280,8 +1351,8 @@
       "swap": "इस अकाउंट के लिए स्वैप करना सपोर्ट नहीं करती है",
       "bridge": "इस अकाउंट के लिए ब्रिज करना सपोर्ट नहीं करती है",
       "send": "इस अकाउंट के लिए भेजना सपोर्ट नहीं करती है",
-      "earn": "इस अकाउंट के लिए कमाना सपोर्टेड नहीं है",
-      "action": "यह एक्शन इस अकाउंट के लिए सपोर्ट नहीं करती है"
+      "action": "यह एक्शन इस अकाउंट के लिए सपोर्ट नहीं करती है",
+      "earn": "इस अकाउंट के लिए कमाना सपोर्टेड नहीं है"
     },
     "description": "विवरण",
     "totalSupply": "कुल आपूर्ति",
@@ -1617,6 +1688,9 @@
     "tabs_done": "सम्पन्न",
     "no_tabs_title": "कोई खुला टैब नहीं",
     "no_tabs_desc": "विकेन्द्रीकृत वेब ब्राउज करने के लिए, एक नया टैब जोड़ें",
+    "got_it": "समझ गए",
+    "max_tabs_title": "अधिकतम टैब की सीमा पूरी हो गई",
+    "max_tabs_desc": "हम वर्तमान में एक बार में केवल 5 ओपन टैब सपोर्ट करते हैं। कृपया नए टैब जोड़ने से पहले मौजूदा टैब बंद करें।",
     "failed_to_resolve_ens_name": "हम उस  ENS नाम को सुलझा नहीं सके",
     "remove_bookmark_title": "पसंदीदा हटाएं",
     "remove_bookmark_msg": "क्या आप वास्तव में इस साइट को अपने पसंदीदा से हटाना चाहते हैं?",
@@ -1682,6 +1756,9 @@
     "sent_collectible": "संग्रहणीय वस्तु भेजी गई",
     "sent": "भेजा गया",
     "received": "प्राप्त किया",
+    "receive": "प्राप्त करें",
+    "swap": "स्वैप",
+    "send": "भेजें",
     "contract_deploy": "अनुबंध परिनियोजन",
     "to_contract": "नया अनुबंध",
     "tx_details_free": "मुफ्त",
@@ -1705,6 +1782,7 @@
     "gas_price": "गैस की कीमत (GWEI)",
     "base_fee": "बेस फी (GWEI)",
     "priority_fee": "प्रायोरिटी फी (GWEI)",
+    "multichain_priority_fee": "प्रायोरिटी फी",
     "max_fee": "प्रति गैस अधिकतम फीस",
     "total": "कुल",
     "view_on": "देखें",
@@ -1728,7 +1806,9 @@
     "sign_description_1": "अपने हार्डवेयर वॉलेट के साथ साइन करने के बाद,",
     "sign_description_2": "गेट सिग्नेचर पर टैप करें",
     "sign_get_signature": "हस्ताक्षर प्राप्त करें",
-    "network_fee": "नेटवर्क फीस"
+    "transaction_id": "ट्रांसेक्शन आईडी",
+    "network_fee": "नेटवर्क फीस",
+    "network_fee_tooltip": "नेटवर्क पर ट्रांसेक्शन को प्रोसेस करने के लिए भुगतान की गई राशि।"
   },
   "smart_transactions": {
     "status_submitting_header": "आपका ट्रांसेक्शन सबमिट कर रहे हैं",
@@ -1840,6 +1920,7 @@
     "you_can": "या आप",
     "add_network": "मैन्युअल रूप से अधिक नेटवर्क जोड़ें।",
     "add_specific_network": "{{network_name}} जोड़ें",
+    "update_network": "{{network_name}} अपडेट करें",
     "select_network": "एक नेटवर्क चुनें",
     "enabled_networks": "चालू किए गए नेटवर्क",
     "additional_networks": "अतिरिक्त नेटवर्क",
@@ -1875,7 +1956,8 @@
     "this_site_cant": "इस साइट का उपयोग आपके वर्तमान नेटवर्क के साथ नहीं किया जा सकता। नेटवर्क अनुमतियाँ जोड़ें या पहले से अनुमत नेटवर्क चुनें।",
     "non_permitted_network_description": "इस साइट का उपयोग आपके वर्तमान नेटवर्क के साथ नहीं किया जा सकता। नेटवर्क अनुमतियाँ जोड़ें या पहले से अनुमत नेटवर्क चुनें।",
     "edit_permissions": "अनुमतियाँ बदलें",
-    "permitted_networks_info_sheet_description": "यह उन नेटवर्कों की सूची है जिन्हें आपने पहले इस साइट पर उपयोग करने की अनुमति दी है। सूची में से किसी एक का चयन करें या इस साइट के लिए नेटवर्क अनुमतियाँ बदलें।"
+    "permitted_networks_info_sheet_description": "यह उन नेटवर्कों की सूची है जिन्हें आपने पहले इस साइट पर उपयोग करने की अनुमति दी है। सूची में से किसी एक का चयन करें या इस साइट के लिए नेटवर्क अनुमतियाँ बदलें।",
+    "connect_an_account": "किसी अकाउंट को कनेक्ट करें"
   },
   "select": {
     "cancel": "रद्द करें",
@@ -1966,6 +2048,31 @@
     "title": "अकाउंट सफलतापूर्वक इम्पोर्ट किया गया!",
     "description_one": "अब आप अपने अकाउंट को MetaMask में देखने में सक्षम हो पाएंगे।"
   },
+  "import_new_secret_recovery_phrase": {
+    "title": "सीक्रेट रिकवरी फ्रेज़ इंपोर्ट करें",
+    "description": "अपने वॉलेट का सीक्रेट रिकवरी फ्रेज़ दर्ज करें। आप कोई भी Ethereum, Solana या Bitcoin सीक्रेट रिकवरी फ्रेज़ इंपोर्ट कर सकते हैं।",
+    "subtitle": "अपना सीक्रेट रिकवरी फ्रेज़ पेस्ट करें",
+    "cta_text": "जारी रखें",
+    "paste": "पेस्ट करें",
+    "clear": "सभी हटाएं",
+    "srp_number_of_words_option_title": "शब्दों की संख्या",
+    "12_word_option": "मेरे पास 12 शब्दों का एक वाक्यांश है",
+    "24_word_option": "मेरे पास 24 शब्दों का एक वाक्यांश है",
+    "error_title": "कुछ गलत हो गया",
+    "error_message": "हम उस सीक्रेट रिकवरी फ्रेज़ को इम्पोर्ट नहीं कर सके। कृपया सुनिश्चित करें कि आपने इसे सही ढंग से दर्ज किया है।",
+    "error_empty_message": "आपको अपना सीक्रेट रिकवरी फ्रेज़ दर्ज करना होगा।",
+    "error_number_of_words_error_message": "सीक्रेट रिकवरी फ्रेज़ में 12, या 24 शब्द होते हैं",
+    "error_srp_is_case_sensitive": "ग़लत इनपुट! सीक्रेट रिकवरी फ्रेज़ केस सेंसिटिव है।",
+    "error_srp_word_error_1": "शब्द ",
+    "error_srp_word_error_2": " गलत है या इसकी स्पेलिंग गलत है।",
+    "error_multiple_srp_word_error_1": "शब्द ",
+    "error_multiple_srp_word_error_2": " और ",
+    "error_multiple_srp_word_error_3": " गलत हैं या उनकी स्पेलिंग गलत है।",
+    "error_invalid_srp": "ग़लत सीक्रेट रिकवरी फ्रेज़",
+    "error_duplicate_srp": "यह सीक्रेट रिकवरी फ्रेज़ पहले ही इंपोर्ट किया जा चुका है।",
+    "success_1": "सीक्रेट रिकवरी फ्रेज़",
+    "success_2": "इंपोर्ट किया गया"
+  },
   "first_incoming_transaction": {
     "title": "{{asset}} आपके अकाउंट में जमा कर दी गई थी",
     "amount": "रकम:",
@@ -1982,7 +2089,8 @@
     "info_text_1": "अपने MetaMask वॉलेट की सेटिंग को पूरा करने के लिए कुछ समय निकालें।",
     "info_text_2": "यह आश्वस्त करेगा कि केवल आप ही अपने फंड तक पहुंच सकें और यदि आप अपनी डिवाइस खो देते हैं तो ये आपको आपका वॉलेट रिकवर करने देगा।",
     "cta_text": "पासवर्ड बनाएं",
-    "creating_password": "पासवर्ड बना रहे हैं..."
+    "creating_password": "पासवर्ड बना रहे हैं...",
+    "srp_list_selection": "Select Secret Recovery Phrase"
   },
   "account_backup_step_1": {
     "remind_me_later": "मुझे बाद में याद दिलाएं",
@@ -2136,7 +2244,15 @@
     "continue_on_your_own": "अपने खुद के जोखिम पर जारी रखते हुए।",
     "file_an_issue_intro": "यदि आप सोचते हैं कि यह डोमेन गलत तरीके से फ्लैग किया गया है या एक ब्लॉक की गई वैध वेबसाइट ने इसके सुरक्षा मुद्दों को सुलझा लिया है,",
     "file_an_issue": "कृपया एक मुद्दा दायर करें।",
-    "back_to_safety": "सुरक्षा पर वापस जाएं"
+    "back_to_safety": "सुरक्षा पर वापस जाएं",
+    "site_might_be_harmful": "यह वेबसाइट हानिकारक हो सकती है",
+    "metamask_flagged_site": "MetaMask ने उस साइट को संभावित रूप से भ्रामक के रूप में फ्लैग किया है जिस पर आप जाने का प्रयास कर रहे हैं। हमला करने वाले आपको कुछ खतरनाक काम करने के लिए उकसा सकते हैं।",
+    "you_may_proceed_anyway": "आप",
+    "proceed_anyway": "फिर भी आगे बढ़ सकते हैं",
+    "but_please_do_so_at_your_own_risk": "लेकिन कृपया ऐसा अपने जोखिम पर करें।",
+    "report_detection_problem": "पहचान संबंधी समस्या की रिपोर्ट करें",
+    "share_on_twitter": "यदि आपको यह उपयोगी लगा तो इसे X पर साझा करें!",
+    "share_text": "MetaMask ने मुझे संभावित रूप से हानिकारक साइट पर जाने से बचाया: {{url}}। सुरक्षित रहें!"
   },
   "notifications": {
     "timeout": "टाइमआउट",
@@ -2227,7 +2343,7 @@
     "lido_stake_completed_title": "स्टेक पूरा हुआ",
     "lido_withdrawal_requested_title": "विदड्रॉवल का अनुरोध किया गया",
     "lido_withdrawal_completed_title": "विदड्रॉवल पूरा हुआ",
-    "lido_stake_ready_to_be_withdrawn_title": "स्टेक विदड्रॉवल के लिए तैयार है ",
+    "lido_stake_ready_to_be_withdrawn_title": "स्टेक विदड्रॉवल के लिए तैयार है",
     "erc721_sent_title": "NFT भेजा गया",
     "erc721_received_title": "NFT प्राप्त किया गया",
     "erc1155_sent_title": "NFT भेजा गया",
@@ -2261,36 +2377,30 @@
     "lido_withdrawal_completed_message": "अनस्टेकिंग पूरा हुआ",
     "lido_stake_ready_to_be_withdrawn_message": "विदड्रॉवल का अनुरोध किया गया",
     "push_notification_content": {
+      "funds_sent_title": "फंड भेजे गए",
+      "funds_sent_description": "आपने सफलतापूर्वक {{amount}} {{symbol}} भेज दिया",
+      "funds_sent_default_description": "आपने कुछ टोकन सफलतापूर्वक भेज दिए",
+      "funds_received_title": "फंड प्राप्त किए गए",
+      "funds_received_description": "आपने {{amount}} {{symbol}} प्राप्त किया",
+      "funds_received_default_description": "आपको कुछ टोकन प्राप्त हुए",
       "metamask_swap_completed_title": "स्वैप पूरा हुआ",
       "metamask_swap_completed_description": "आपका MetaMask स्वैप सफल रहा",
-      "erc20_sent_title": "फंड भेजे गए",
-      "erc20_sent_description": "आपने सफलतापूर्वक {{amount}} {{token}} भेज दिया",
-      "erc20_received_title": "फंड प्राप्त किए गए",
-      "erc20_received_description": "आपने {{amount}} {{token}} प्राप्त किया",
-      "eth_sent_title": "फंड भेजे गए",
-      "eth_sent_description": "आपने सफलतापूर्वक {{amount}} ETH भेज दिया",
-      "eth_received_title": "फंड प्राप्त किए गए",
-      "eth_received_description": "आपने {{amount}} {{token}} प्राप्त किया",
+      "nft_sent_title": "NFT भेजा गया",
+      "nft_sent_description": "आपने सफलतापूर्वक NFT भेज दिया है",
+      "nft_received_title": "NFT प्राप्त किया गया",
+      "nft_received_description": "आपको नए NFTs प्राप्त हुए",
       "rocketpool_stake_completed_title": "स्टेक पूरा हुआ",
       "rocketpool_stake_completed_description": "आपका रॉकेटपूल स्टेक सफल रहा",
       "rocketpool_unstake_completed_title": "अनस्टेक पूरा हुआ",
       "rocketpool_unstake_completed_description": "आपकी रॉकेटपूल अनस्टेक सफल रहा",
       "lido_stake_completed_title": "स्टेक पूरा हुआ",
       "lido_stake_completed_description": "आपका Lido स्टेक सफल रहा",
+      "lido_stake_ready_to_be_withdrawn_title": "स्टेक विदड्रॉवल के लिए तैयार है",
+      "lido_stake_ready_to_be_withdrawn_description": "आपकी Lido स्टेक अब विदड्रॉवल के लिए तैयार है",
       "lido_withdrawal_requested_title": "विदड्रॉवल का अनुरोध किया गया",
       "lido_withdrawal_requested_description": "आपका Lido विदड्रॉवल अनुरोध सबमिट कर दिया गया",
       "lido_withdrawal_completed_title": "विदड्रॉवल पूरा हुआ",
-      "lido_withdrawal_completed_description": "आपकी Lido विदड्रॉवल सफल रहा",
-      "lido_stake_ready_to_be_withdrawn_title": "स्टेक विदड्रॉवल के लिए तैयार है ",
-      "lido_stake_ready_to_be_withdrawn_description": "आपकी Lido स्टेक अब विदड्रॉवल के लिए तैयार है",
-      "erc721_sent_title": "NFT भेजा गया",
-      "erc721_sent_description": "आपने सफलतापूर्वक NFT भेज दिया है",
-      "erc721_received_title": "NFT प्राप्त किया गया",
-      "erc721_received_description": "आपको एक नया NFT प्राप्त हुआ",
-      "erc1155_sent_title": "NFT भेजा गया",
-      "erc1155_sent_description": "आपने सफलतापूर्वक NFT भेज दिया है",
-      "erc1155_received_title": "NFT प्राप्त किया गया",
-      "erc1155_received_description": "आपको एक नया NFT प्राप्त हुआ"
+      "lido_withdrawal_completed_description": "आपकी Lido विदड्रॉवल सफल रहा"
     },
     "prompt_title": "पुश नोटिफिकेशन को प्राप्त करें",
     "notifications_enabled_error_title": "कुछ गलत हो गया",
@@ -2588,6 +2698,8 @@
     "one_more_option": "1 और विकल्प",
     "more_options": "{{count}} ज़्यादा विकल्प",
     "previously_used": "पहले इस्तेमाल किया गया",
+    "best_rate": "सबसे अच्छी रेट",
+    "most_reliable": "सबसे विश्वसनीय",
     "quotes_timeout": "उद्धरण समयबाह्य",
     "request_new_quotes": "नवीनतम सर्वोत्तम दर प्राप्त करने के लिए कृपया नए उद्धरणों का रिक्वेस्ट करें।",
     "terms_of_service": "सेवा की शर्तें",
@@ -2602,6 +2714,7 @@
     "done": "पूर्ण",
     "fetching_quotes": "उद्धरण प्राप्त करना",
     "select_a_quote": "कोई उद्धरण चुनें",
+    "recommended_quote": "अनुशंसित कोटेशन",
     "select_a_cryptocurrency": "क्रिप्टोक्यूरेंसी चुनें",
     "select_a_cryptocurrency_description": "{{network}} पर उपलब्ध टोकन की सूची में से चुनें।",
     "search_by_cryptocurrency": "क्रिप्टोकरेंसी के अनुसार खोजें",
@@ -2618,6 +2731,7 @@
     "minimum": "न्यूनतम जमा राशि है",
     "maximum": "अधिकतम जमा राशि है",
     "insufficient_balance": "यह राशि आपकी शेष बैलेंस से अधिक है",
+    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
     "enter_larger_amount": "जारी रखने के लिए बड़ी राशि दर्ज करें",
     "enter_smaller_amount": "जारी रखने के लिए छोटी राशि दर्ज करें",
     "enter_lower_gas_fees": "गैस फीस भरने के लिए कोई कम अमाउंट डालें",
@@ -2764,7 +2878,7 @@
     "token_to_verify": "सत्यापित करने के लिए कि यही वह टोकन है जिसकी आप तलाश कर रहे हैं।",
     "continue": "जारी रखें",
     "select_a_token": "एक टोकन चुनें",
-    "search_token": "टोकन के लिए खोजें",
+    "search_token": "टोकन का नाम दर्ज करें या एड्रेस पेस्ट करें",
     "no_tokens_result": "“{{searchString}}” से कोई टोकन मेल नहीं खाता",
     "find_token_address": "टोकन का पता ढ़ूंढ़ें",
     "cant_find_token": "एक टोकन नहीं मिल सकता?",
@@ -2816,9 +2930,12 @@
     "n_quotes": "{{numberOfQuotes}} कोटेशन्स",
     "view_details": "विवरण देखें",
     "estimated_gas_fee": "अनुमानित गैस शुल्क",
+    "gas_fee": "गैस फीस",
+    "included": "शामिल किया गया",
     "max_gas_fee": "अधिकतम गैस शुल्क",
     "edit": "संपादित करें",
     "quotes_include_fee": "उद्धरण में एक {{fee}}% MetaMask शुल्क शामिल है",
+    "quotes_include_gas_and_metamask_fee": "कोटेशन में गैस और{{fee}}% MetaMask शुल्क शामिल है",
     "tap_to_swap": "स्वैप करने के लिए टैप करें",
     "swipe_to_swap": "स्वैप करने के लिए स्वाइप करें",
     "swipe_to": "स्वाइप करें",
@@ -2888,6 +3005,8 @@
     "high_recommendation": "स्वैप विशिष्ट रुप से समय के प्रति संवेदनशील होते हैं। बाजार की स्थिति में बदलाव की वजह से होने वाले संभावित नुकसान से बचने में  “उच्च” मदद करेगा।",
     "recommended": "अनुशंसित",
     "recommended_gas": "अनुशंसित गैस शुल्क",
+    "gas_included_tooltip_explanation": "यह कोटेशन भेजे गए या प्राप्त किए गए टोकन राशि को समायोजित करके गैस फीस को शामिल करता है। आप अपनी गतिविधि सूची में एक अलग ट्रांसेक्शन में ETH प्राप्त कर सकते हैं।",
+    "gas_included_tooltip_explanation_link_text": "गैस फीस के बारे में और अधिक जानें",
     "gas_education_title": "अनुमानित गैस शुल्क",
     "gas_education_1": "गैस शुल्क का भुगतान क्रिप्टो खनिकों को किया जाता है जो लेन-देन को संसाधित करते हैं",
     "gas_education_2_ethereum": "Ethereum नेटवर्क।",
@@ -2976,6 +3095,8 @@
     "title_new_network": "नया नेटवर्क जोड़ा गया",
     "switch_warning": "इससे चुना गया नेटवर्क को MetaMask के भीतर पहले से जोड़े गए नेटवर्क में बदल दिया जाएगा:",
     "add_network_and_give_dapp_permission_warning": "आप इस नेटवर्क को MetaMask में जोड़ रहे हैं और {{dapp_origin}} को इसका उपयोग करने की अनुमति दे रहे हैं।",
+    "update_network_and_give_dapp_permission_warning": "आप इस नेटवर्क को MetaMask में अपडेट कर रहे हैं और {{dapp_origin}} को इसका उपयोग करने की अनुमति दे रहे हैं।",
+    "request_update_network_url": "{{dapp_origin}} आपके डिफॉल्ट नेटवर्क URL को अपडेट करने का अनुरोध कर रहा है। आप किसी भी समय डिफॉल्ट और नेटवर्क संबंधी जानकारी एडिट कर सकते हैं।",
     "available": "नेटवर्क चयनकर्ता में अब उपलब्ध है।",
     "cancel": "रद्द करें",
     "switch": "नेटवर्क बदलें"
@@ -3138,7 +3259,9 @@
     "enable_token_detection": "ऑटो टोकन डिटेक्शन सक्षम करें",
     "token_detection_mainnet_title": "टोकन डिटेक्शन एनेबल किया हुआ है इसलिए आपके वॉलेट में कई टोकन अपने आप दिखाई देंगे।",
     "token_detection_mainnet_link": "आप मैन्युअल रूप से टोकन भी जोड़ सकते हैं।",
-    "or": "या"
+    "or": "या",
+    "non_evm_first_description": "इस नेटवर्क पर मूल एसेट {{ticker}} है। इसका उपयोग ट्रांसेक्शन ट्रांसेक्शन फीस के लिए किया जाता है।",
+    "non_evm_second_description": "यदि आप अपनी एसेट्स को किसी अन्य नेटवर्क से या किसी अन्य नेटवर्क पर भेजने का प्रयास करेंगे तो आप उन्हें खो देंगे।"
   },
   "download_files": {
     "error": "अटैचमेंट डाउनलोड करने में विफल।",
@@ -3356,13 +3479,17 @@
   "account_actions": {
     "edit_name": "खाते का नाम संपादित करें",
     "add_account_or_hardware_wallet": "खाता या हार्डवेयर वॉलेट जोड़ें",
-    "add_account": "खाता जोड़ें",
-    "add_new_account": "नया खाता जोड़ें",
-    "add_hardware_wallet": "हार्डवेयर वॉलेट जोड़ें",
-    "import_account": "अकाउंट इम्पोर्ट करें",
-    "add_bitcoin_account_testnet": "एक नया Bitcoin अकाउंट - टैस्टनेट (testnet) जोड़ें",
-    "add_bitcoin_account_mainnet": "एक नया Bitcoin अकाउंट (बीटा) जोड़ें",
-    "add_solana_account": "एक नया Solana अकाउंट (बीटा) जोड़ें"
+    "connect_hardware_wallet": "किसी अकाउंट को कनेक्ट करें",
+    "import_wallet_or_account": "किसी वॉलेट या अकाउंट को इंपोर्ट करें",
+    "add_account": "एक नया अकाउंट बनाएं",
+    "create_an_account": "एक नया अकाउंट बनाएं",
+    "add_new_account": "Ethereum अकाउंट",
+    "import_srp": "सीक्रेट रिकवरी फ्रेज़",
+    "add_hardware_wallet": "हार्डवेयर वॉलेट",
+    "import_account": "प्राइवेट की (key)",
+    "add_bitcoin_account_testnet": "Bitcoin टैस्टनेट (testnet) अकाउंट",
+    "add_bitcoin_account_mainnet": "Bitcoin अकाउंट",
+    "add_solana_account": "Solana अकाउंट"
   },
   "show_nft": {
     "show_nft_title": "NFT दिखाएं",
@@ -3380,6 +3507,18 @@
     "show_display_nft_media_content_3": "NFT मीडिया और डेटा दिखाने से आपका आईपी एड्रेस OpenSea या अन्य तृतीय पक्ष के सामने आ जाता है। NFT ऑटोडिटेक्शन की सुविधा इस फ़ीचर पर निर्भर करती है और इस फ़ीचर को बंद किए जाने पर उपलब्ध नहीं रहेगी।",
     "show_display_nft_media_content_4": "आप इसमें 'NFT मीडिया दिखाएं' को बंद कर सकते हैं",
     "show_display_nft_media_content_5": "सेटिंग्स > सुरक्षा और गोपनीयता।"
+  },
+  "solana_new_feature_content": {
+    "title": "MetaMask पर Solana",
+    "create_solana_account": "Solana अकाउंट बनाएं",
+    "not_now": "अभी नहीं",
+    "got_it": "समझ गए",
+    "feature_1_title": "टोकन भेजें, प्राप्त करें और स्वैप करें",
+    "feature_1_description": "SOL, USDC आदि जैसे टोकन के साथ ट्रांसफर और लेन-देन करें।",
+    "feature_2_title": "Solana एकाउंट्स इम्पोर्ट करें",
+    "feature_2_description": "अपने Solana अकाउंट को किसी अन्य वॉलेट से स्थानांतरित करने के लिए एक सीक्रेट रिकवरी फ्रेज़ इंपोर्ट करें।",
+    "feature_3_title": "अधिक फीचर्स जल्द ही आ रहे हैं",
+    "feature_3_description": "Solana dapps, NFTs, हार्डवेयर वॉलेट सपोर्ट और बहुत कुछ जल्द ही आने वाला है।"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS गेटवे",
@@ -3407,6 +3546,14 @@
     "error_title": "इंस्टॉल नहीं हो पाया",
     "error_description": "{{snap}} का इंस्टॉलेशन नहीं हो पाया।"
   },
+  "earn": {
+    "empty_state_cta": {
+      "heading": "{{tokenSymbol}} उधार दें और कमाएं",
+      "body_prefix": "आप  तक कमा सकते हैं",
+      "body_suffix": "प्रति वर्ष अपना {{tokenSymbol}} उधार देकर।",
+      "start_earning": "कमाना शुरु करें"
+    }
+  },
   "stake": {
     "stake": "हिस्सेदारी",
     "earn": "कमाएं",
@@ -3425,17 +3572,23 @@
       "stake_annual_rate_tooltip": "वार्षिक रेट टूलटिप"
     },
     "estimated_annual_rewards": "अनुमानित वार्षिक पुरस्कार",
+    "estimated_annual_reward": "अनुमानित वार्षिक रिवॉर्ड",
+    "reward_frequency": "रिवॉर्ड आवृत्ति",
+    "reward_frequency_tooltip": "नए रिवॉर्ड का हिसाब-किताब रखने के लिए आपका स्टेक किया बैलेंस हर {{frequency}} में अपडेट होता है।",
+    "withdrawal_time": "विदड्रॉवल का समय",
     "metamask_pool": "MetaMask पूल",
     "enter_amount": "रकम डालें",
     "review": "समीक्षा करें",
     "not_enough_eth": "पर्याप्त ETH नहीं",
+    "not_enough_token": "पर्याप्त {{ticker}} नहीं",
     "balance": "बैलेंस",
     "stake_eth_and_earn": "ETH स्टेक करें और कमाएं",
-    "stake_any_amount_of_eth": "ETH की किसी भी राशि को स्टेक करें",
+    "how_it_works": "ये कैसे काम करता है",
+    "stake_any_amount_of_eth": "ETH की किसी भी राशि को स्टेक करें।",
     "no_minimum_required": "कोई न्यूनतम आवश्यक नहीं।",
-    "earn_eth_rewards": "ETH पुरस्कार अर्जित करें",
+    "earn_eth_rewards": "ETH पुरस्कार अर्जित करें।",
     "earn_eth_rewards_description": "स्टेक करते ही कमाई शुरू करें। पुरस्कार स्वचालित रूप से संयोजित होते हैं।",
-    "flexible_unstaking": "लचीला अनस्टेकिंग",
+    "flexible_unstaking": "लचीला अनस्टेकिंग।",
     "flexible_unstaking_description": "कभी भी अनस्टेक करें। आमतौर पर 3 दिन से कम समय लगता है, लेकिन प्रोसेस होने में 11 दिन तक का समय लग सकता है।",
     "disclaimer": "स्टेकिंग पुरस्कार की गारंटी नहीं देती है और इसमें धन की हानि सहित जोखिम शामिल होते हैं।",
     "learn_more": "ज़्यादा जानें",
@@ -3475,6 +3628,8 @@
     "unstake_input_banner_description": "औसतन, अनस्टेक किए गए ETH को क्लेम करने योग्य होने में 3 दिन से कम का समय लगता है, लेकिन 11 दिन तक का समय लग सकता है।",
     "max": "अधिकतम",
     "staking_from": "से स्टेक किया जा रहा है",
+    "advanced_details": "एडवांस्ड विवरण",
+    "ethereum_mainnet": "एथेरियम मेननेट",
     "interacting_with": "के साथ इंटरैक्ट कर रहा है",
     "12_hours": "12 घंटे",
     "terms_of_service": "सेवा की शर्तें",
@@ -3486,15 +3641,40 @@
     "you_receive": "आप प्राप्त करते हैं",
     "up_to_n": "{{count}} तक",
     "unstaking_to": "इसपर अनस्टेक किया जा रहा है",
+    "claiming_to": "को क्लेम किया जा रहा है",
     "max_modal": {
       "title": "मैक्स",
-      "description": "मैक्स आपके पास मौजूद ETH की कुल राशि है, जिसमें स्टेक करने के लिए आवश्यक गैस फीस घटा दिया गया है। भविष्य के ट्रांसेक्शन के लिए अपने वॉलेट में कुछ अतिरिक्त ETH रखना एक अच्छा विचार है।"
+      "eth": {
+        "description": "मैक्स आपके पास मौजूद ETH की कुल राशि है, जिसमें स्टेक करने के लिए आवश्यक गैस फीस घटा दिया गया है। भविष्य के ट्रांसेक्शन के लिए अपने वॉलेट में कुछ अतिरिक्त ETH रखना एक अच्छा विचार है।"
+      }
     },
     "use_max": "मैक्स का उपयोग करें",
     "estimated_unstaking_time": "1 से 11 दिन",
     "proceed_anyway": "कैसे भी आगे बढ़ें",
     "gas_cost_impact": "गैस लागत संबंधी प्रभाव",
-    "gas_cost_impact_warning": "चेतावनी: ट्रांसेक्शन गैस लागत आपकी डिपॉज़िट की 30% से अधिक होगी।"
+    "select_a_token": "एक टोकन चुनें",
+    "you_could_earn": "आप कमा सकते हैं",
+    "per_year_on_your_tokens": "अपने टोकन पर प्रति वर्ष",
+    "deposit": "जमा करें",
+    "gas_cost_impact_warning": "चेतावनी: ट्रांसेक्शन गैस लागत आपकी डिपॉज़िट की {{percentOverDeposit}}% से अधिक होगी।",
+    "view_earnings_history": "कमाई का इतिहास देखें",
+    "earnings_history_title": "{{ticker}} कमाई",
+    "earnings_history_list_title": "भुगतान इतिहास",
+    "apr": "APR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7 दिन",
+        "1M": "1 महीना",
+        "3M": "3 महीने",
+        "6M": "6 महीने"
+      }
+    },
+    "today": "आज",
+    "one_week_average": "1 सप्ताह का औसत",
+    "one_month_average": "1 महीने का औसत",
+    "three_month_average": "3 महीने का औसत",
+    "six_month_average": "6 महीने का औसत",
+    "one_year_average": "1 साल का औसत"
   },
   "default_settings": {
     "title": "आपका वॉलेट तैयार है",
@@ -3576,26 +3756,63 @@
     }
   },
   "confirm": {
-    "reject": "रिजेक्ट करें",
+    "cancel": "कैंसिल करें",
     "confirm": "कन्फर्म करें",
+    "staking_footer": {
+      "part1": "जारी रखकर, आप हमारी ",
+      "terms_of_use": "उपयोग की शर्तों",
+      "part2": " और ",
+      "risk_disclosure": "जोखिम प्रकटीकरण",
+      "part3": "से सहमत हैं।"
+    },
+    "label": {
+      "account": "अकाउंट",
+      "balance": "बैलेंस",
+      "interacting_with": "के साथ इंटरैक्ट कर रहा है",
+      "network": "नेटवर्क",
+      "primary_type": "प्राइमरी प्रकार",
+      "request_from": "इनसे मिला अनुरोध",
+      "signing_in_with": "के साथ साइन इन किया जा रहा है",
+      "spender": "खर्च करने वाला"
+    },
     "title": {
-      "signature": "हस्ताक्षर का अनुरोध"
+      "signature": "हस्ताक्षर का अनुरोध",
+      "permit": "खर्च करने की सीमा का अनुरोध",
+      "permit_revoke": "अनुमति हटाएं",
+      "permit_NFTs": "विदड्रॉवल का अनुरोध",
+      "signature_siwe": "साइन-इन का अनुरोध"
     },
     "sub_title": {
-      "signature": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।"
+      "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
+      "permit_NFTs": "यह साइट आपके NFTs को निकालने की अनुमति चाहती है।",
+      "signature": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।",
+      "signature_siwe": "एक साइट चाहती है कि आप यह साबित करने के लिए साइन इन करें कि यह अकाउंट आपका है।"
     },
     "request_from": "इनसे मिला अनुरोध",
+    "staking_from": "से स्टेक किया जा रहा है",
+    "signing_in_with": "के साथ साइन इन किया जा रहा है",
     "message": "संदेश",
-    "primary_type": "प्राइमरी प्रकार",
     "personal_sign_tooltip": "यह साइट आपका सिग्नेचर मांग रही है",
     "details": "विवरण",
-    "account": "अकाउंट",
-    "balance": "बैलेंस",
-    "network": "नेटवर्क",
+    "qr_get_sign": "सिग्नेचर प्राप्त करें",
+    "qr_scan_text": "अपने हार्डवेयर वॉलेट के साथ स्कैन करें",
+    "sign_with_ledger": "Ledger के साथ साइन करें",
+    "siwe_message": {
+      "url": "URL",
+      "network": "नेटवर्क",
+      "account": "अकाउंट",
+      "version": "वर्शन",
+      "chain_id": "चेन ID",
+      "nonce": "Nonce",
+      "issued": "जारी किया गया",
+      "requestId": "रिक्वेस्ट ID",
+      "resources": "संसाधन"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "बिड स्वीकार होने पर NFT आपके वॉलेट में दिखाई देगा।",
       "decoded_tooltip_list_nft": "बदलाव की उम्मीद तभी करें जब कोई आपके NFTs खरीद ले।",
       "info_permit": "आप खर्च करने वाले को अपने अकाउंट से इतने सारे टोकन खर्च करने की अनुमति दे रहे हैं।",
+      "info_revoke": "आप अपने अकाउंट से किसी की टोकन खर्च करने की अनुमति हटा रहे हैं।",
       "label_change_type_bidding": "आप बिड करते हैं",
       "label_change_type_listing": "आप लिस्ट करते हैं",
       "label_change_type_nft_listing": "लिस्टिंग प्राइस",
@@ -3610,7 +3827,7 @@
       "unavailable": "अनुपलब्ध"
     },
     "unlimited": "असीमित",
-    "none": "None"
+    "none": "कोई नहीं"
   },
   "change_in_simulation_modal": {
     "title": "परिणाम बदल गए हैं",
@@ -3623,5 +3840,34 @@
     "input_title": "अकाउंट का नाम",
     "add_account_button": "अकाउंट जोड़ें",
     "name_taken_message": "यह अकाउंट नाम पहले से मौजूद है"
+  },
+  "smart_transactions_migration": {
+    "title": "ट्रांसेक्शन अब और भी स्मार्ट हो गया",
+    "link": "उच्च सफलता दर",
+    "description": " और MEV सुरक्षा। अब डिफॉल्ट रूप से चालू है।"
+  },
+  "bridge": {
+    "continue": "जारी रखें",
+    "terms_and_conditions": "नियम और शर्त",
+    "select_token": "टोकन चुनें",
+    "select_network": "नेटवर्क चुनें",
+    "all_networks": "सभी नेटवर्क",
+    "num_networks": "{{numNetworks}} नेटवर्क",
+    "one_network": "1 नेटवर्क",
+    "select_all_networks": "सभी को चुनें",
+    "deselect_all_networks": "सभी को अचयनित करें",
+    "see_all": "सभी को देखें",
+    "apply": "लागू करें",
+    "slippage": "स्लिपेज (slippage)",
+    "slippage_info": "यदि आपके ऑर्डर लगाए जाने और पुष्टि किए जाने के बीच कीमत में बदलाव होता है तो इसे \"स्लिपेज (slippage)\" कहा जाता है। यदि स्लिपेज (slippage) आपके द्वारा यहां निर्धारित सहनशीलता से अधिक हो जाता है तो आपका स्वैप स्वचालित रूप से कैंसिल हो जाएगा।",
+    "network_fee": "नेटवर्क फीस",
+    "estimated_time": "अनुमानित समय",
+    "quote": "कोटेशन",
+    "quote_details": "कोटेशन का विवरण",
+    "price_impact": "कीमत का प्रभाव",
+    "time": "समय",
+    "quote_info_content": "यह कोटेशन हमारी खोज से सबसे अच्छा रिटर्न प्रदान करता है। यह स्वैप दर पर आधारित है, जिसमें ब्रिजिंग फीस और 0.875% MetaMask शुल्क शामिल है, लेकिन गैस फीस नहीं। गैस फीस नेटवर्क गतिविधि और ट्रांसेक्शन जटिलता के साथ अलग-अलग होता है।",
+    "quote_info_title": "हम इस कोटेशन का सुझाव क्यों देते हैं",
+    "see_other_quotes": "अन्य कोटेशन देखें"
   }
 }

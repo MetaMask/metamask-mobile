@@ -8,8 +8,7 @@ import { selectInternalAccounts } from '../../../../selectors/accountsController
 import { renderAccountName } from '../../../../util/address';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { formatWithThreshold } from '../../../../util/assets';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import I18n from 'i18n-js';
+import I18n from '../../../../../locales/i18n';
 
 const useAccountInfo = (address: string) => {
   const internalAccounts = useSelector(selectInternalAccounts);
@@ -19,7 +18,7 @@ const useAccountInfo = (address: string) => {
     address,
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const balance = Engine.getTotalFiatAccountBalance();
+  const balance = Engine.getTotalEvmFiatAccountBalance();
   const accountFiatBalance = `${formatWithThreshold(
     balance.tokenFiat,
     0,
