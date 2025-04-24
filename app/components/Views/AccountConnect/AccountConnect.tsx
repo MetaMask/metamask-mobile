@@ -297,10 +297,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     let isMounted = true;
 
     const checkOrigin = async () => {
-      console.log(
-        `${Date.now().toLocaleString()}[AccountConnect] dapp scanning for: `,
-        url,
-      );
       const scanResult = await getPhishingTestResultAsync(
         prefixUrlWithProtocol(url),
       );
