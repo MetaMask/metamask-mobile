@@ -3,6 +3,7 @@ import fs from 'fs';
 import { $ } from 'execa';
 import { Listr } from 'listr2';
 import path from 'path';
+import envinfo from 'envinfo';
 
 const IS_CI = process.env.CI;
 const IS_OSX = process.platform === 'darwin';
@@ -331,6 +332,42 @@ const generateTermsOfUseTask = {
     ),
 };
 
+const toolchainCompatValidation = {
+  title: 'Toolchain compatibility',
+  task: async (_, task) => {
+    if (IS_CI) {
+      return task.skip('CI Detected. Skipping');
+    }
+
+    const versions = {
+      Java: {
+        required: '17.0.11',
+        installed: (await envinfo.helpers.getJavaInfo())[1],
+      },
+      Xcode: {
+        required: '16.2/16C5032a',
+        installed: (await envinfo.helpers.getXcodeInfo())[1],
+      },
+    };
+
+    const error = Object.keys(versions).reduce((errorString, toolName) => {
+      const { required, installed } = versions[toolName];
+      if (installed !== required) {
+        const errorMsg =
+          `${errorString}\n\n- ${toolName} version ${installed} icompatible. Project requires ${toolName} version ${required}`
+
+      return errorMsg;
+      }
+      return errorString;
+    }, '');
+
+    if (error.length > 0) {
+      throw new Error(error);
+    }
+
+  },
+}
+
 /**
  * Tasks that changes node modules and should run sequentially
  */
@@ -370,7 +407,7 @@ const concurrentTasks = {
     }),
 };
 
-const tasks = new Listr([prepareDependenciesTask, concurrentTasks], {
+const tasks = new Listr([toolchainCompatValidation, prepareDependenciesTask, concurrentTasks], {
   concurrent: false,
   exitOnError: true,
   rendererOptions,
