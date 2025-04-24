@@ -42,6 +42,7 @@ import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMe
 import createEthAccountsMethodMiddleware from '../RPCMethods/createEthAccountsMethodMiddleware';
 import createTracingMiddleware from '../createTracingMiddleware';
 import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193MethodMiddleware';
+import { getCaip25PermissionFromLegacyPermissions } from '../../util/permissions';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -444,7 +445,7 @@ export class BackgroundBridge extends EventEmitter {
         getCaip25PermissionFromLegacyPermissionsForOrigin: (
           requestedPermissions,
         ) =>
-          Engine.getCaip25PermissionFromLegacyPermissions(
+          getCaip25PermissionFromLegacyPermissions(
             origin,
             requestedPermissions,
           ),
