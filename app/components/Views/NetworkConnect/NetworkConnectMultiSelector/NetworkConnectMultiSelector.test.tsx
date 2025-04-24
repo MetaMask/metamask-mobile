@@ -37,7 +37,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../core/Permissions', () => ({
   ...jest.requireActual('../../../../core/Permissions'),
-  addPermittedChains: jest.fn(),
+  updatePermittedChains: jest.fn(),
 }));
 
 const mockAddPermittedChains = updatePermittedChains as jest.Mock;

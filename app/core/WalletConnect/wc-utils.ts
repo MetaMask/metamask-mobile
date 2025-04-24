@@ -307,7 +307,6 @@ export const checkWCPermissions = async ({
         hooks: getRpcMethodMiddlewareHooks(origin),
       });
     } catch (error) {
-      console.log('catching', error)
       DevLogger.log(
         `WC::checkWCPermissions error switching to network:`,
         error,
