@@ -435,6 +435,7 @@ export class BackgroundBridge extends EventEmitter {
     // Handle unsupported RPC Methods
     engine.push(createUnsupportedMethodMiddleware());
 
+    // Unrestricted/permissionless RPC method implementations.
     engine.push(
       createEip1193MethodMiddleware({
         // Permission-related
