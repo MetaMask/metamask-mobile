@@ -3,17 +3,16 @@ import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
   Web3AuthNetwork,
+  getDefaultSeedlessOnboardingControllerState,
   type SeedlessOnboardingControllerMessenger,
 } from '@metamask/seedless-onboarding-controller';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 
-export const TOPRFNetwork = Web3AuthNetwork.Devnet;
+export const web3AuthNetwork = process.env.Web3AuthNetwork as Web3AuthNetwork;
 
-export const getDefaultSeedlessOnboardingControllerState = () : SeedlessOnboardingControllerState => ({
-  vault: undefined,
-  nodeAuthTokens: undefined,
-  backupHashes: [],
-});
+if (!web3AuthNetwork) {
+  throw new Error('Missing environment variables');
+}
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -32,15 +31,16 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
   const { controllerMessenger, persistedState } = request;
 
   const seedlessOnboardingControllerState =
-    persistedState.SeedlessOnboardingController ?? getDefaultSeedlessOnboardingControllerState();
+    persistedState.SeedlessOnboardingController ??
+    getDefaultSeedlessOnboardingControllerState();
 
   const controller = new SeedlessOnboardingController({
     messenger: controllerMessenger,
-    state: seedlessOnboardingControllerState as SeedlessOnboardingControllerState,
+    state:
+      seedlessOnboardingControllerState as SeedlessOnboardingControllerState,
     encryptor,
-    network: TOPRFNetwork
+    network: web3AuthNetwork,
   });
-
 
   return { controller };
 };

@@ -9,8 +9,8 @@ jest.mock('@metamask/seedless-onboarding-controller', () => {
     const actualSeedlessOnboardingController = jest.requireActual('@metamask/seedless-onboarding-controller');
     return {
       controllerName: actualSeedlessOnboardingController.controllerName,
-      // getDefaultSeedlessOnboardingControllerState,
-        // actualSeedlessOnboardingController.getDefaultSeedlessOnboardingControllerState,
+      getDefaultSeedlessOnboardingControllerState:
+        actualSeedlessOnboardingController.getDefaultSeedlessOnboardingControllerState,
       SeedlessOnboardingController: jest.fn(),
       Web3AuthNetwork : actualSeedlessOnboardingController.Web3AuthNetwork
     };
@@ -51,7 +51,6 @@ describe('seedless onboarding controller init', () => {
       const initialSeedlessOnboardingControllerState: Partial<SeedlessOnboardingControllerState> = {
         vault: undefined,
         nodeAuthTokens: undefined,
-        backupHashes: [],
       };
 
       initRequestMock.persistedState = {
