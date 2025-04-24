@@ -27,6 +27,7 @@ import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import Routes from '../../../constants/navigation/Routes';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -203,7 +204,6 @@ const createStyles = (colors) =>
 const AccountBackupStep1B = (props) => {
   const { navigation, route } = props;
   const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
-  const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -220,7 +220,10 @@ const AccountBackupStep1B = (props) => {
   }, [navigation, route, colors, styles.headerLeft]);
 
   const goNext = () => {
-    props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
+    props.navigation.navigate('ManualBackupStep1', {
+      ...props.route.params,
+      settingsBackup: true,
+    });
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
@@ -244,8 +247,11 @@ const AccountBackupStep1B = (props) => {
   const showWhySecureWallet = () => setWhySecureWalletModal(true);
   const hideWhySecureWallet = () => setWhySecureWalletModal(false);
 
-  const showWhatIsSeedphrase = () => setWhatIsSeedphraseModal(true);
-  const hideWhatIsSeedphrase = () => setWhatIsSeedphraseModal(false);
+  const showWhatIsSeedphrase = () => {
+    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SEEDPHRASE_MODAL,
+    });
+  };
 
   return (
     <SafeAreaView style={styles.mainWrapper}>
@@ -385,10 +391,6 @@ const AccountBackupStep1B = (props) => {
           </View>
         </View>
       </ActionModal>
-      <SeedphraseModal
-        showWhatIsSeedphraseModal={showWhatIsSeedphraseModal}
-        hideWhatIsSeedphrase={hideWhatIsSeedphrase}
-      />
     </SafeAreaView>
   );
 };

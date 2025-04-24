@@ -67,7 +67,8 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
   const { colors, themeAppearance } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const backupFlow = route.params?.backupFlow || false;
+  const backupFlow = route?.params?.backupFlow || false;
+  const settingsBackup = route?.params?.settingsBackup || false;
 
   const steps = MANUAL_BACKUP_STEPS;
 
@@ -146,6 +147,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       words,
       steps,
       backupFlow,
+      settingsBackup,
     });
   };
 

@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { scale } from 'react-native-size-matters';
 import { fontStyles } from '../../../styles/common';
 // import Device from '../../../util/device';
@@ -135,7 +135,7 @@ const createStyles = (colors: any) =>
       color: colors.success.default,
     },
     input: {
-      paddingVertical: 4,
+      paddingVertical: Platform.OS === 'ios' ? 4 : 0,
       paddingHorizontal: 8,
       borderRadius: 8,
       backgroundColor: colors.background.default,

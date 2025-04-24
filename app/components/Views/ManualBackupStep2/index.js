@@ -33,11 +33,12 @@ import Text, {
 import Routes from '../../../constants/navigation/Routes';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
-  const words = route.params?.words;
-  const backupFlow = route.params?.backupFlow;
+  const words = route?.params?.words;
+  const backupFlow = route?.params?.backupFlow;
+  const settingsBackup = route?.params?.settingsBackup;
 
   // eslint-disable-next-line no-console
-  console.log('backupFlow', backupFlow);
+  console.log('settingsBackup', settingsBackup);
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -86,24 +87,30 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   }, [route.params?.words, gridWords]);
 
   const goNext = () => {
+    // eslint-disable-next-line no-console
+    console.log('goNext', validateWords());
     if (validateWords()) {
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(async () => {
-        backupFlow
-          ? navigation.navigate('OptinMetrics', {
-              onContinue: () => {
-                navigation.reset({ routes: [{ name: 'HomeNav' }] });
-              },
-            })
-          : navigation.navigate('OptinMetrics', {
-              steps: route.params?.steps,
-              words,
-              onContinue: () => {
-                navigation.navigate('OnboardingSuccess', {
-                  showPasswordHint: true,
-                });
-              },
-            });
+        if (backupFlow) {
+          navigation.navigate('OptinMetrics', {
+            onContinue: () => {
+              navigation.reset({ routes: [{ name: 'HomeNav' }] });
+            },
+          });
+        } else if (settingsBackup) {
+          navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
+        } else {
+          navigation.navigate('OptinMetrics', {
+            steps: route.params?.steps,
+            words,
+            onContinue: () => {
+              navigation.navigate('OnboardingSuccess', {
+                showPasswordHint: true,
+              });
+            },
+          });
+        }
         trackOnboarding(
           MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
