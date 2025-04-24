@@ -34,7 +34,8 @@ export const validateAccountsController: ValidationCheck = (rootState) => {
   const { selectedAccount, accounts } = accountsState.internalAccounts;
 
   // 2. Confirm there is at least one account
-  if (!accounts || Object.keys(accounts).length === 0) {
+  const hasAccounts = accounts && Object.keys(accounts).length > 0;
+  if (!hasAccounts) {
     errors.push(
       `${LOG_TAG}: AccountsController No accounts found in internalAccounts.accounts.`,
     );
@@ -49,7 +50,7 @@ export const validateAccountsController: ValidationCheck = (rootState) => {
   }
 
   // 4. Confirm the selectedAccount ID exists in internalAccounts.accounts
-  if (!accounts[selectedAccount]) {
+  if (hasAccounts && !accounts[selectedAccount]) {
     errors.push(
       `${LOG_TAG}: AccountsController The selectedAccount '${selectedAccount}' does not exist in the accounts record.`,
     );
