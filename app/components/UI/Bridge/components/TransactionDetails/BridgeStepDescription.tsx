@@ -1,20 +1,10 @@
 import React from 'react';
-import { NetworkConfiguration } from '@metamask/network-controller';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import {
-  ActionTypes,
-  BridgeHistoryItem,
-  StatusTypes,
-} from '@metamask/bridge-status-controller';
-import { decimalToPrefixedHex } from '../../../../../util/conversions';
-import {
-  AllowedBridgeChainIds,
-  NETWORK_TO_SHORT_NETWORK_NAME_MAP,
-} from '../../../../../constants/bridge';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import Text, {
@@ -23,7 +13,15 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { StyleSheet } from 'react-native';
-import { Step } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  isSolanaChainId,
+  formatChainIdToHex,
+  StatusTypes,
+  Step,
+  ActionTypes,
+} from '@metamask/bridge-controller';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 
 /**
  * bridge actions will have step.srcChainId !== step.destChainId
@@ -34,22 +32,19 @@ import { Step } from '@metamask/bridge-controller';
  * @param step - The step to be rendered
  * @param networkConfigurationsByChainId - The network configurations by chain id
  */
-const getBridgeActionText = (
-  stepStatus: StatusTypes | null,
-  step: Step,
-  networkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
-) => {
-  const hexDestChainId = step.destChainId
-    ? decimalToPrefixedHex(step.destChainId)
-    : undefined;
-  const destNetworkConfiguration = hexDestChainId
-    ? networkConfigurationsByChainId[hexDestChainId as Hex]
-    : undefined;
+const getBridgeActionText = (stepStatus: StatusTypes | null, step: Step) => {
+  let destChainId: CaipChainId | Hex | undefined;
+  if (step.destChainId) {
+    if (isSolanaChainId(step.destChainId)) {
+      destChainId = formatChainIdToCaip(step.destChainId);
+    } else {
+      destChainId = formatChainIdToHex(step.destChainId);
+    }
+  }
 
-  const destChainName =
-    NETWORK_TO_SHORT_NETWORK_NAME_MAP[
-      destNetworkConfiguration?.chainId as AllowedBridgeChainIds
-    ];
+  const destChainName = destChainId
+    ? NETWORK_TO_SHORT_NETWORK_NAME_MAP[destChainId]
+    : undefined;
 
   const destSymbol = step.destAsset?.symbol;
   // If the destination asset symbol is not available, we cannot display meaningful
@@ -162,7 +157,6 @@ const styles = StyleSheet.create({
 
 interface BridgeStepProps {
   step: Step;
-  networkConfigurationsByChainId: Record<`0x${string}`, NetworkConfiguration>;
   time?: string;
   stepStatus: StatusTypes | null;
 }
@@ -173,7 +167,6 @@ interface BridgeStepProps {
 // 3. Swap > Bridge > Swap: e.g. Optimism ETH to Avalanche USDC
 export default function BridgeStepDescription({
   step,
-  networkConfigurationsByChainId,
   time,
   stepStatus,
 }: BridgeStepProps) {
@@ -199,7 +192,7 @@ export default function BridgeStepDescription({
       >
         {time && `${time} `}
         {step.action === ActionTypes.BRIDGE &&
-          getBridgeActionText(stepStatus, step, networkConfigurationsByChainId)}
+          getBridgeActionText(stepStatus, step)}
         {step.action === ActionTypes.SWAP &&
           getSwapActionText(stepStatus, step)}
       </Text>

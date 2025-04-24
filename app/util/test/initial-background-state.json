@@ -8,7 +8,6 @@
     "logs": {}
   },
   "AccountTrackerController": {
-    "accounts": {},
     "accountsByChainId": {
       "0x1": {}
     }
@@ -34,15 +33,11 @@
     "ignoredNfts": []
   },
   "TokensController": {
-    "tokens": [],
-    "ignoredTokens": [],
-    "detectedTokens": [],
     "allTokens": {},
     "allIgnoredTokens": {},
     "allDetectedTokens": {}
   },
   "TokenListController": {
-    "tokenList": {},
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
@@ -205,6 +200,10 @@
   "TokenSearchDiscoveryController": {
     "lastSearchTimestamp": null,
     "recentSearches": []
+  },
+  "TokenSearchDiscoveryDataController": {
+    "swapsTokenAddressesByChainId": {},
+    "tokenDisplayData": []
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
@@ -409,6 +408,7 @@
     "assetsMetadata": {}
   },
   "BridgeController": {
+    "assetExchangeRates": {},
     "bridgeFeatureFlags": {
       "extensionConfig": {
         "chains": {},
@@ -437,7 +437,8 @@
     "txHistory": {}
   },
   "MultichainAssetsRatesController": {
-    "conversionRates": {}
+    "conversionRates": {},
+    "historicalPrices": {}
   },
   "CronjobController": {
     "events": {},

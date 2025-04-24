@@ -101,10 +101,10 @@ export function toFormattedAddress(address: string) {
  *
  * @param {String} address - String corresponding to an address
  * @param {Number} chars - Number of characters to show at the end and beginning.
- * Defaults to 4.
+ * Defaults to 5.
  * @returns {String} - String corresponding to short address format
  */
-export function renderShortAddress(address: string, chars = 4) {
+export function renderShortAddress(address: string, chars = 5) {
   if (!address) return address;
   const formattedAddress = toFormattedAddress(address);
   return `${formattedAddress.substr(0, chars + 2)}...${formattedAddress.substr(

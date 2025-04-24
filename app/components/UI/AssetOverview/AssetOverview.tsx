@@ -52,10 +52,15 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
+import { isAssetFromSearch, selectTokenDisplayData } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { formatWithThreshold } from '../../../util/assets';
-import { useSwapBridgeNavigation, SwapBridgeNavigationLocation } from '../Bridge/hooks/useSwapBridgeNavigation';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../Bridge/hooks/useSwapBridgeNavigation';
 import { swapsUtils } from '@metamask/swaps-controller';
+import { TraceName, endTrace } from '../../../util/trace';
 interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
@@ -107,10 +112,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     vsCurrency: currentCurrency,
   });
 
-  const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
+  const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: 'MainView',
     token: {
+      ...asset,
       address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: asset.chainId as Hex,
       decimals: asset.decimals,
@@ -122,6 +128,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    endTrace({ name: TraceName.AssetDetails });
+  }, []);
 
   useEffect(() => {
     const { SwapsController } = Engine.context;
@@ -289,15 +299,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     asset.isETH ? asset.ticker : asset.symbol
   }`;
 
+  const tokenResult = useSelector((state: RootState) => selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex));
+
   let currentPrice = 0;
   let priceDiff = 0;
 
-  const tickerConversionRate =
-    conversionRateByTicker?.[nativeCurrency]?.conversionRate ?? 0;
-  currentPrice =
-    exchangeRate && tickerConversionRate
-      ? exchangeRate * tickerConversionRate
-      : 0;
+  if (isAssetFromSearch(asset) && tokenResult?.found) {
+    currentPrice = tokenResult.price?.price || 0;
+  } else {
+    const tickerConversionRate =
+      conversionRateByTicker?.[nativeCurrency]?.conversionRate ?? 0;
+    currentPrice =
+      exchangeRate && tickerConversionRate
+        ? exchangeRate * tickerConversionRate
+        : 0;
+  }
 
   const comparePrice = prices[0]?.[1] || 0;
   if (currentPrice !== undefined && currentPrice !== null) {
@@ -346,6 +362,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           {/* <View style={styles.aboutWrapper}>
             // <AboutAsset asset={asset} chainId={chainId} />
           </View> */}
+          {networkModal}
         </View>
       )}
     </View>

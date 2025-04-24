@@ -129,12 +129,13 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user/selectors';
-import { Confirm } from '../../Views/confirmations/Confirm';
+import { Confirm } from '../../Views/confirmations/components/confirm';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
+import AddNewAccount from '../../Views/AddNewAccount';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -336,6 +337,7 @@ const RootModalFlow = (
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
+    <Stack.Screen name={Routes.SHEET.ADD_ACCOUNT} component={AddNewAccount} />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
       name={Routes.SHEET.SDK_FEEDBACK}
