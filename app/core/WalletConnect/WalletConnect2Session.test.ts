@@ -647,4 +647,44 @@ describe('WalletConnect2Session', () => {
       expect((session as any).requestsToRedirect['789']).toBe(true);
     });
   });
+
+  it('handles wallet_switchEthereumChain correctly', async () => {
+    // Setup spies
+    const handleChainChangeSpy = jest.spyOn(session as any, 'handleChainChange');
+    const approveRequestSpy = jest.spyOn(session, 'approveRequest');
+
+    // Create a mock switch chain request
+    const chainIdHex = '0x89'; // Polygon
+    const switchChainRequest = {
+      id: '42',
+      topic: mockSession.topic,
+      params: {
+        request: {
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: chainIdHex }],
+        },
+        chainId: 'eip155:1', // Current chain before switch
+      },
+      verifyContext: {
+        verified: {
+          origin: 'https://example.com'
+        }
+      },
+    };
+
+    // Store the request ID in the topicByRequestId map
+    (session as any).topicByRequestId[switchChainRequest.id] = switchChainRequest.topic;
+
+    // Call handleRequest with the switchChainRequest
+    await session.handleRequest(switchChainRequest as any);
+
+    // Verify handleChainChange was called with the decimal chain ID
+    expect(handleChainChangeSpy).toHaveBeenCalledWith(parseInt(chainIdHex, 16)); // 137 in decimal
+
+    // Verify approveRequest was called with the correct parameters
+    expect(approveRequestSpy).toHaveBeenCalledWith({ 
+      id: switchChainRequest.id + '', 
+      result: true 
+    });
+  });
 });

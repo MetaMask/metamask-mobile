@@ -1,2 +1,5 @@
 # https://github.com/advisories/GHSA-c76h-2ccp-4975 This is temporarily ignored, will be fixed by updating yarn to v3 in this PR: https://github.com/MetaMask/metamask-mobile/pull/14477
 GHSA-c76h-2ccp-4975
+
+# Advisory exclusions
+GHSA-h9w6-f932-gq62

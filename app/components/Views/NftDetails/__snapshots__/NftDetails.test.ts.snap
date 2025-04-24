@@ -881,7 +881,7 @@ exports[`NftDetails should render correctly 1`] = `
                                         }
                                       }
                                     >
-                                      0x7c3E...0B18
+                                      0x7c3Ea...00B18
                                     </Text>
                                   </TouchableOpacity>
                                   <RNGestureHandlerButton

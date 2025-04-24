@@ -11,6 +11,7 @@ import { Hex } from '@metamask/utils';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const networkConfigurationsPopularNetworks = useSelector(
@@ -18,6 +19,7 @@ const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   );
   const currentChainId = useSelector(selectEvmChainId);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const useTokenDetection = useSelector(selectUseTokenDetection);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
@@ -43,14 +45,15 @@ const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
       TokenDetectionController.stopPollingByPollingToken.bind(
         TokenDetectionController,
       ),
-    input: useTokenDetection
-      ? [
-          {
-            chainIds: chainIdsToPoll as Hex[],
-            address: selectedAccount?.address as Hex,
-          },
-        ]
-      : [],
+    input:
+      useTokenDetection && isEvmSelected
+        ? [
+            {
+              chainIds: chainIdsToPoll as Hex[],
+              address: selectedAccount?.address as Hex,
+            },
+          ]
+        : [],
   });
 
   return {};

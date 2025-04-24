@@ -112,6 +112,13 @@ const mockInitialState = {
       TokensController: {
         ...backgroundState.TokensController,
         detectedTokens: [{ address: '0x123' }],
+        allDetectedTokens: {
+          '0x1': {
+            '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': [
+              { address: '0x123' },
+            ],
+          },
+        },
       },
     },
   },

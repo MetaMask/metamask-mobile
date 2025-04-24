@@ -11,6 +11,7 @@ import { createBridgeTestState } from '../../testUtils';
 import { initialState } from '../../_mocks_/initialState';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
+import { SolScope } from '@metamask/keyring-api';
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
@@ -22,7 +23,51 @@ jest.mock('../../../../../core/Engine', () => ({
       fetchTopAssetsWithCache: jest.fn(),
       fetchTokenWithCache: jest.fn(),
     },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x1234567890123456789012345678901234567890'],
+            type: 'HD Key Tree',
+          },
+        ],
+      },
+    },
+    GasFeeController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
+    NetworkController: {
+      getNetworkConfigurationByNetworkClientId: jest.fn(),
+    },
+    BridgeStatusController: {
+      submitTx: jest.fn().mockResolvedValue({ success: true }),
+    },
+    BridgeController: {
+      resetState: jest.fn(),
+      setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
+      updateBridgeQuoteRequestParams: jest.fn(),
+    },
   },
+  getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
+    balance: '1000000000000000000', // 1 ETH
+    fiatBalance: '2000', // $2000
+  }),
+}));
+
+// Mock useAccounts hook
+jest.mock('../../../../hooks/useAccounts', () => ({
+  useAccounts: () => ({
+    accounts: [
+      {
+        address: '0x1234567890123456789012345678901234567890',
+        name: 'Account 1',
+        type: 'HD Key Tree',
+        yOffset: 0,
+        isSelected: true,
+      },
+    ],
+  }),
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => {
@@ -73,6 +118,11 @@ jest.mock('../../hooks/useLatestBalance', () => ({
   }),
 }));
 
+// Mock Skeleton component to prevent animation
+jest.mock('../../../../../component-library/components/Skeleton', () => ({
+  Skeleton: () => null,
+}));
+
 describe('BridgeView', () => {
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
 
@@ -88,6 +138,7 @@ describe('BridgeView', () => {
       },
       { state: initialState },
     );
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -236,8 +287,54 @@ describe('BridgeView', () => {
     );
   });
 
+  describe('Solana Swap', () => {
+    it('should set slippage to undefined when isSolanaSwap is true', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+          sourceToken: {
+            address: 'So11111111111111111111111111111111111111112',
+            chainId: SolScope.Mainnet,
+            decimals: 9,
+            image: '',
+            name: 'Solana',
+            symbol: 'SOL',
+          },
+          destToken: {
+            address: 'So11111111111111111111111111111111111111112',
+            chainId: SolScope.Mainnet,
+            decimals: 9,
+            image: '',
+            name: 'Solana',
+            symbol: 'SOL',
+          },
+        },
+      });
+
+      const { store } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Wait for the useEffect to run and update the state
+      await waitFor(() => {
+        expect(store.getState().bridge.slippage).toBeUndefined();
+      });
+    });
+  });
+
   describe('Bottom Content', () => {
-    it('should show "Select amount" when no amount is entered', () => {
+    it('displays "Select amount" when no amount is entered', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
@@ -249,7 +346,7 @@ describe('BridgeView', () => {
       expect(getByText('Select amount')).toBeTruthy();
     });
 
-    it('should show "Select amount" when amount is zero', () => {
+    it('displays "Select amount" when amount is zero', () => {
       const stateWithZeroAmount = {
         ...initialState,
         bridge: {
@@ -269,7 +366,7 @@ describe('BridgeView', () => {
       expect(getByText('Select amount')).toBeTruthy();
     });
 
-    it('should show "Insufficient balance" when amount exceeds balance', () => {
+    it('displays "Insufficient funds" when amount exceeds balance', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
@@ -291,7 +388,26 @@ describe('BridgeView', () => {
       expect(getByText('Insufficient funds')).toBeTruthy();
     });
 
-    it('should show Continue button and Terms link when amount is valid', () => {
+    it('displays "Fetching quote" when quotes are loading', () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.LOADING,
+          quotesLastFetched: null,
+        },
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      expect(getByText('Fetching quote')).toBeTruthy();
+    });
+
+    it('displays Continue button and Terms link when amount is valid', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {

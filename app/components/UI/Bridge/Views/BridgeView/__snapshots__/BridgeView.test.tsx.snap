@@ -404,10 +404,12 @@ exports[`BridgeView renders 1`] = `
                                       >
                                         <TextInput
                                           autoFocus={true}
+                                          caretHidden={false}
                                           editable={true}
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="0"
+                                          showSoftInputOnFocus={false}
                                           style={
                                             {
                                               "backgroundColor": "#ffffff",
@@ -784,10 +786,12 @@ exports[`BridgeView renders 1`] = `
                                       >
                                         <TextInput
                                           autoFocus={true}
+                                          caretHidden={false}
                                           editable={false}
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="0"
+                                          showSoftInputOnFocus={false}
                                           style={
                                             {
                                               "backgroundColor": "#ffffff",
@@ -863,18 +867,11 @@ exports[`BridgeView renders 1`] = `
                                 style={
                                   [
                                     {},
-                                    [
-                                      {
-                                        "flex": 1,
-                                        "justifyContent": "flex-start",
-                                        "paddingBottom": 12,
-                                      },
-                                      {
-                                        "flex": 1,
-                                        "justifyContent": "flex-start",
-                                        "paddingBottom": 12,
-                                      },
-                                    ],
+                                    {
+                                      "flex": 1,
+                                      "justifyContent": "flex-start",
+                                      "paddingBottom": 12,
+                                    },
                                   ]
                                 }
                               >
@@ -897,8 +894,9 @@ exports[`BridgeView renders 1`] = `
                                           "flex": 1,
                                           "justifyContent": "flex-end",
                                           "paddingBottom": 36,
+                                          "paddingTop": 8,
                                         },
-                                        undefined,
+                                        false,
                                       ],
                                     ]
                                   }

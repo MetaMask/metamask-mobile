@@ -161,7 +161,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
             }
           }
         >
-          0xToke...ress
+          0xToken...dress
         </Text>
         <Text
           allowFontScaling={false}
@@ -433,7 +433,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
             }
           }
         >
-          0xToke...ress
+          0xToken...dress
         </Text>
         <Text
           allowFontScaling={false}
@@ -705,7 +705,7 @@ exports[`Token Component renders correctly 1`] = `
             }
           }
         >
-          0xToke...ress
+          0xToken...dress
         </Text>
         <Text
           allowFontScaling={false}
@@ -977,7 +977,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
             }
           }
         >
-          0xToke...ress
+          0xToken...dress
         </Text>
         <Text
           allowFontScaling={false}
