@@ -21,9 +21,11 @@ import {
 import {
   mockHDKeyringAddress,
   mockQrKeyringAddress,
+  mockSecondHDKeyringAddress,
   mockSimpleKeyringAddress,
   mockSnapAddress1,
   mockSnapAddress2,
+  mockSolanaAddress,
 } from '../test/keyringControllerTestUtils';
 import {
   internalAccount1,
@@ -43,6 +45,9 @@ jest.mock('../../core/Engine', () => {
         ...MOCK_KEYRING_CONTROLLER_STATE,
         state: {
           keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings],
+          keyringsMetadata: [
+            ...MOCK_KEYRING_CONTROLLER_STATE.state.keyringsMetadata,
+          ],
         },
       },
       AccountsController: {
@@ -423,6 +428,14 @@ describe('getLabelTextByAddress,', () => {
     expect(
       getLabelTextByAddress('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBe(null);
+  });
+
+  it('returns srp label for hd accounts when there are multiple hd keyrings', () => {
+    expect(getLabelTextByAddress(mockSecondHDKeyringAddress)).toBe('SRP #2');
+  });
+
+  it('returns srp label for snap accounts that uses hd keyring for its entropy source', () => {
+    expect(getLabelTextByAddress(mockSolanaAddress)).toBe('SRP #1');
   });
 });
 describe('getAddressAccountType', () => {

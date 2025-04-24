@@ -39,12 +39,18 @@ const mockAccount: Account = {
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  const { MOCK_KEYRING_CONTROLLER_STATE: mockKeyringControllerState } =
+    jest.requireActual('../../../util/test/keyringControllerTestUtils');
   return {
     context: {
       AccountsController: {
         ...mockAccountsControllerState,
         state: mockAccountsControllerState,
       },
+    },
+    KeyringController: {
+      ...mockKeyringControllerState,
+      state: mockKeyringControllerState,
     },
   };
 });

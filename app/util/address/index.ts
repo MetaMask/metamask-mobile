@@ -44,6 +44,7 @@ import type {
 } from '@metamask/network-controller';
 import {
   AccountImportStrategy,
+  KeyringObject,
   KeyringTypes,
 } from '@metamask/keyring-controller';
 import { type Hex, isHexString } from '@metamask/utils';
@@ -307,10 +308,31 @@ export function getInternalAccountByAddress(
  */
 export function getLabelTextByAddress(address: string) {
   if (!address) return null;
+  console.log('Engine', Engine);
+  const { KeyringController } = Engine.context;
+  const { keyrings, keyringsMetadata } = KeyringController.state;
   const internalAccount = getInternalAccountByAddress(address);
+  const hdKeyringsWithMetadata = keyrings
+    .map((keyring, index) => ({
+      ...keyring,
+      metadata: keyringsMetadata[index],
+    }))
+    .filter((keyring) => keyring.type === ExtendedKeyringTypes.hd);
   const keyring = internalAccount?.metadata?.keyring;
+
   if (keyring) {
     switch (keyring.type) {
+      case ExtendedKeyringTypes.hd:
+        if (hdKeyringsWithMetadata.length > 1) {
+          const hdKeyringIndex = hdKeyringsWithMetadata.findIndex(
+            (kr: KeyringObject) => kr.accounts.includes(address.toLowerCase()),
+          );
+          // -1 means the address is not found in any of the hd keyrings
+          if (hdKeyringIndex !== -1) {
+            return strings('accounts.srp_index', { index: hdKeyringIndex + 1 }); // Add 1 to make it 1-indexed
+          }
+        }
+        break;
       case ExtendedKeyringTypes.ledger:
         return strings('accounts.ledger');
       case ExtendedKeyringTypes.qr:
@@ -318,11 +340,26 @@ export function getLabelTextByAddress(address: string) {
       case ExtendedKeyringTypes.simple:
         return strings('accounts.imported');
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      case KeyringTypes.snap:
-        return (
-          internalAccount?.metadata.snap?.name ||
-          strings('accounts.snap_account_tag')
+      case KeyringTypes.snap: {
+        const { entropySource } = internalAccount?.options || {};
+        if (entropySource) {
+          const hdKeyringIndex = hdKeyringsWithMetadata.findIndex(
+            (kr) => kr.metadata.id === entropySource,
+          );
+          // -1 means the address is not found in any of the hd keyrings
+          if (hdKeyringIndex !== -1) {
+            return strings('accounts.srp_index', { index: hdKeyringIndex + 1 });
+          }
+        }
+
+        const isPreinstalledSnap = PREINSTALLED_SNAPS.some(
+          (snap) => snap.snapId === internalAccount?.metadata.snap?.id,
         );
+
+        if (!isPreinstalledSnap) {
+          return strings('accounts.snap_account_tag');
+        }
+      }
       ///: END:ONLY_INCLUDE_IF
     }
   }

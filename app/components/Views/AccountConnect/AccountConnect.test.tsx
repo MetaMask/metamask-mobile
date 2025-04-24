@@ -65,6 +65,7 @@ jest.mock('../../../core/Engine', () => {
     [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
     MOCK_ADDRESS_1,
   );
+  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
 
   return {
     context: {
@@ -80,6 +81,22 @@ jest.mock('../../../core/Engine', () => {
       },
       AccountsController: {
         state: mockAccountsState,
+      },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              type: KeyringTypes.hd,
+              accounts: [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
+            },
+          ],
+          keyringsMetadata: [
+            {
+              id: '01JNG71B7GTWH0J1TSJY9891S0',
+              name: '',
+            },
+          ],
+        },
       },
     },
   };
