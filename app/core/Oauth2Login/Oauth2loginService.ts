@@ -124,7 +124,7 @@ export class Oauth2LoginService {
 
             Logger.log('handleOauth2Login: result', result);
             if (result) {
-                const data = await getAuthTokens( {...result, web3AuthNetwork}, this.config.authServerUrl);
+                const data = await getAuthTokens( {...result, web3AuthNetwork}, loginHandler.authServerPath, this.config.authServerUrl);
                 const handleCodeFlowResult = await this.handleSeedlessAuthenticate(data, authConnection);
                 this.#dispatchPostLogin(handleCodeFlowResult);
                 return handleCodeFlowResult;

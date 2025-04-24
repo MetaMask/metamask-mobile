@@ -21,6 +21,11 @@ export class IosGoogleLoginHandler implements LoginHandler {
     get scope() {
         return this.#scope;
     }
+
+    get authServerPath() {
+        return 'api/v1/oauth/token';
+    }
+
     constructor( params : IosGoogleLoginHandlerParams){
         this.clientId = params.clientId;
         this.redirectUri = params.redirecUri;

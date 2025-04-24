@@ -12,7 +12,11 @@ export class IosAppleLoginHandler implements LoginHandler {
     }
     
     get scope() {
-        return this.#scope;
+        return this.#scope.map(scope => scope.toString());
+    }
+
+    get authServerPath() {
+        return 'api/v1/oauth/id_token';
     }
 
     constructor(params: {clientId: string}) {

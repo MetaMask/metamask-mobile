@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { AuthResponse, HandleFlowParams, LoginHandlerCodeResult, LoginHandlerIdTokenResult, AuthConnection, OAuthUserInfo } from '../Oauth2loginInterface';
+import { AuthResponse, HandleFlowParams, LoginHandlerCodeResult, LoginHandlerIdTokenResult, AuthConnection } from '../Oauth2loginInterface';
 import { IosGoogleLoginHandler } from './ios/google';
 import { IosAppleLoginHandler } from './ios/apple';
 import { AndroidGoogleLoginHandler } from './android/google';
@@ -56,24 +56,19 @@ export function createLoginHandler(
     }
 }
 
-export async function getAuthTokens (params : HandleFlowParams , authServerUrl?: string) : Promise<AuthResponse> {
+export async function getAuthTokens (params : HandleFlowParams, pathname: string, authServerUrl: string) : Promise<AuthResponse> {
     const {authConnection, clientId, redirectUri, codeVerifier, web3AuthNetwork} = params;
     const {code} = params as LoginHandlerCodeResult;
     const {idToken} = params as LoginHandlerIdTokenResult;
 
-    const pathname = code ? 'api/v1/oauth/token' : 'api/v1/oauth/id_token';
-    const body = code ? {
+    const body = {
         code,
+        id_token: idToken,
         client_id: clientId,
         login_provider: authConnection,
         network: web3AuthNetwork,
         redirect_uri: redirectUri,
         code_verifier: codeVerifier,
-    } : {
-        id_token: idToken,
-        client_id: clientId,
-        login_provider: authConnection,
-        network: web3AuthNetwork,
     };
 
     const res = await fetch(`${authServerUrl}/${pathname}`, {

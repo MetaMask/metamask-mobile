@@ -16,6 +16,10 @@ export class AndroidGoogleLoginHandler implements LoginHandler {
         return this.#scope;
     }
 
+    get authServerPath() {
+        return 'api/v1/oauth/id_token';
+    }
+    
     constructor(params: {clientId: string}) {
         this.clientId = params.clientId
     }
