@@ -32,12 +32,20 @@ jest.mock('../../../../../core/Engine', () => ({
         ],
       },
     },
+    GasFeeController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
+    NetworkController: {
+      getNetworkConfigurationByNetworkClientId: jest.fn(),
+    },
     BridgeStatusController: {
       submitTx: jest.fn().mockResolvedValue({ success: true }),
     },
     BridgeController: {
       resetState: jest.fn(),
       setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
+      updateBridgeQuoteRequestParams: jest.fn(),
     },
   },
 }));
@@ -88,6 +96,11 @@ jest.mock('../../hooks/useLatestBalance', () => ({
       atomicBalance: actualEthers.BigNumber.from('2000000000000000000'), // 2 ETH
     };
   }),
+}));
+
+// Mock Skeleton component to prevent animation
+jest.mock('../../../../../component-library/components/Skeleton', () => ({
+  Skeleton: () => null,
 }));
 
 describe('BridgeView', () => {
@@ -313,6 +326,7 @@ describe('BridgeView', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.LOADING,
+          quotesLastFetched: null,
         },
       });
 
