@@ -34,6 +34,8 @@ import {
   selectSourceToken,
   selectBridgeControllerState,
   selectIsEvmSolanaBridge,
+  selectIsSolanaSwap,
+  setSlippage,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import {
@@ -103,6 +105,7 @@ const BridgeView = () => {
     selectBridgeControllerState,
   );
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
+  const isSolanaSwap = useSelector(selectIsSolanaSwap);
 
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -113,6 +116,13 @@ const BridgeView = () => {
 
   useInitialSourceToken();
   useInitialDestToken();
+
+  // Set slippage to undefined for Solana swaps
+  useEffect(() => {
+    if (isSolanaSwap) {
+      dispatch(setSlippage(undefined));
+    }
+  }, [isSolanaSwap, dispatch]);
 
   const hasDestinationPicker = isEvmSolanaBridge;
 
