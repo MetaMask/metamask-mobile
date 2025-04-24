@@ -14,6 +14,19 @@ const initialState = {
   experimentalSettings: {
     securityAlertsEnabled: true,
   },
+  performance: {
+    sessionId: 'test-session-id',
+    startTime: 1713120000,
+    metrics: [],
+    environment: {
+      branch: 'main',
+      commitHash: '1234567890',
+      platform: 'ios',
+      appVersion: '1.0.0',
+    },
+    activeTraces: {},
+    isInitialized: true,
+  },
   engine: {
     backgroundState,
   },
