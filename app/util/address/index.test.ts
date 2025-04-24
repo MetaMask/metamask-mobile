@@ -24,7 +24,6 @@ import {
   mockSecondHDKeyringAddress,
   mockSimpleKeyringAddress,
   mockSnapAddress1,
-  mockSnapAddress2,
   mockSolanaAddress,
 } from '../test/keyringControllerTestUtils';
 import {
