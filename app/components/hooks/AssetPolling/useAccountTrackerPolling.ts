@@ -42,6 +42,10 @@ const useAccountTrackerPolling = ({
 
   const { AccountTrackerController } = Engine.context;
 
+  const input = chainIdsToPoll.map((chainId) => ({
+    networkClientIds: [chainId.networkClientId],
+  }));
+
   usePolling({
     startPolling: AccountTrackerController.startPolling.bind(
       AccountTrackerController,
@@ -50,7 +54,7 @@ const useAccountTrackerPolling = ({
       AccountTrackerController.stopPollingByPollingToken.bind(
         AccountTrackerController,
       ),
-    input: chainIdsToPoll,
+    input,
   });
 
   return {
