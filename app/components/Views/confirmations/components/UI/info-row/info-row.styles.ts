@@ -29,6 +29,10 @@ const styleSheet = (params: { theme: Theme }) => {
       ...fontStyles.normal,
       fontSize: 14,
     },
+    valueOnNewLineContainer: {
+      paddingBottom: 8,
+      paddingHorizontal: 8,
+    },
   });
 };
 
