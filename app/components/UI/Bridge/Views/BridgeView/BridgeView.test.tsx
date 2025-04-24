@@ -11,6 +11,7 @@ import { createBridgeTestState } from '../../testUtils';
 import { initialState } from '../../_mocks_/initialState';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
+import { SolScope } from '@metamask/keyring-api';
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
@@ -48,6 +49,25 @@ jest.mock('../../../../../core/Engine', () => ({
       updateBridgeQuoteRequestParams: jest.fn(),
     },
   },
+  getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
+    balance: '1000000000000000000', // 1 ETH
+    fiatBalance: '2000', // $2000
+  }),
+}));
+
+// Mock useAccounts hook
+jest.mock('../../../../hooks/useAccounts', () => ({
+  useAccounts: () => ({
+    accounts: [
+      {
+        address: '0x1234567890123456789012345678901234567890',
+        name: 'Account 1',
+        type: 'HD Key Tree',
+        yOffset: 0,
+        isSelected: true,
+      },
+    ],
+  }),
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => {
@@ -265,6 +285,52 @@ describe('BridgeView', () => {
     expect(setDestToken).toHaveBeenCalledWith(
       initialStateWithTokens.bridge.sourceToken,
     );
+  });
+
+  describe('Solana Swap', () => {
+    it('should set slippage to undefined when isSolanaSwap is true', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+          sourceToken: {
+            address: 'So11111111111111111111111111111111111111112',
+            chainId: SolScope.Mainnet,
+            decimals: 9,
+            image: '',
+            name: 'Solana',
+            symbol: 'SOL',
+          },
+          destToken: {
+            address: 'So11111111111111111111111111111111111111112',
+            chainId: SolScope.Mainnet,
+            decimals: 9,
+            image: '',
+            name: 'Solana',
+            symbol: 'SOL',
+          },
+        },
+      });
+
+      const { store } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Wait for the useEffect to run and update the state
+      await waitFor(() => {
+        expect(store.getState().bridge.slippage).toBeUndefined();
+      });
+    });
   });
 
   describe('Bottom Content', () => {

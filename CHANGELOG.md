@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- feat(bridge): use dynamic slippage for single-chain Solana swaps ([#14805](https://github.com/MetaMask/metamask-mobile/pull/14805))
+
 ### Added
 
 - feat: migrate eth_accounts and permittedChains to CAIP-25 endowment ([#13970](https://github.com/MetaMask/metamask-mobile/pull/13970))
