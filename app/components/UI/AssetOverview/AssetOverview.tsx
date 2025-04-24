@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -260,13 +260,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     </View>
   );
 
+  const charNavigationButtons: TimePeriod[] = useMemo(() => {
+    return isEvmSelected
+      ? ['1d', '1w', '1m', '3m', '1y', '3y']
+      : ['1d', '1w', '1m', '3m', '1y'];
+  }, [isEvmSelected]);
+
   const handleSelectTimePeriod = useCallback((_timePeriod: TimePeriod) => {
     setTimePeriod(_timePeriod);
   }, []);
 
   const renderChartNavigationButton = useCallback(
     () =>
-      (['1d', '1w', '1m', '3m', '1y', '3y'] as TimePeriod[]).map((label) => (
+      charNavigationButtons.map((label) => (
         <ChartNavigationButton
           key={label}
           label={strings(
