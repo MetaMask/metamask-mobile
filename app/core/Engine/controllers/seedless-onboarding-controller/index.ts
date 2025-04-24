@@ -3,17 +3,12 @@ import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
   Web3AuthNetwork,
+  getDefaultSeedlessOnboardingControllerState,
   type SeedlessOnboardingControllerMessenger,
 } from '@metamask/seedless-onboarding-controller';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 
 export const TOPRFNetwork = Web3AuthNetwork.Devnet;
-
-export const getDefaultSeedlessOnboardingControllerState = () : SeedlessOnboardingControllerState => ({
-  vault: undefined,
-  nodeAuthTokens: undefined,
-  backupHashes: [],
-});
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
