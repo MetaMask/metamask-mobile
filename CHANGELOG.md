@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - fix(multi-srp): allow a user to select srp when creating a multichain account ([#14644](https://github.com/MetaMask/metamask-mobile/pull/14644))
 - fix(multi-srp): display errors only after all the words are have been entered ([#14607](https://github.com/MetaMask/metamask-mobile/pull/14607))
+- feat: update address truncation format from 4 to 5 characters to match extension ([#14744](https://github.com/MetaMask/metamask-mobile/pull/14744))
 - fix(multi-srp): display errors only after all the words are have been entered ([#14607](https://github.com/MetaMask/metamask-mobile/pull/14607))
 - fix(wallet-ux): increased touchable area for account picker so it is easier to select ([#14762](https://github.com/MetaMask/metamask-mobile/pull/14762))
 - fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- feat(ramp): auto-select region ([#14780](https://github.com/MetaMask/metamask-mobile/pull/14780))
 - feat(bridge): add solana chain support and improve bridge state management ([#14713](https://github.com/MetaMask/metamask-mobile/pull/14713))
 - feat(bridge): add error handling and input management for bridge quotes ([#14693](https://github.com/MetaMask/metamask-mobile/pull/14693))
 - feat(multi-srp): enable multi-srp in main and beta ([#14558](https://github.com/MetaMask/metamask-mobile/pull/14558))
