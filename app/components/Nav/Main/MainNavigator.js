@@ -90,6 +90,7 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import { AssetLoader } from '../../Views/AssetLoader';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 
@@ -211,7 +212,8 @@ const TransactionsHome = () => (
   </Stack.Navigator>
 );
 
-const BrowserFlow = () => (
+/* eslint-disable react/prop-types */
+const BrowserFlow = (props) => (
   <Stack.Navigator
     initialRouteName={Routes.BROWSER.VIEW}
     mode={'modal'}
@@ -223,6 +225,26 @@ const BrowserFlow = () => (
       name={Routes.BROWSER.VIEW}
       component={Browser}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.BROWSER.ASSET_LOADER}
+      component={AssetLoader}
+      options={{ headerShown: false, animationEnabled: false }}
+    />
+    <Stack.Screen
+      name={Routes.BROWSER.ASSET_VIEW}
+      component={Asset}
+      initialParams={props.route.params}
+    />
+    <Stack.Screen
+      name="SwapsAmountView"
+      component={SwapsAmountView}
+      options={SwapsAmountView.navigationOptions}
+    />
+    <Stack.Screen
+      name="SwapsQuotesView"
+      component={SwapsQuotesView}
+      options={SwapsQuotesView.navigationOptions}
     />
   </Stack.Navigator>
 );
