@@ -33,7 +33,7 @@ import AggregatedPercentageCrossChains from '../../../../../component-library/co
 import { useMultichainBalances } from '../../../../hooks/useMultichainBalances';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
-import { selectSelectedNonEvmNetworkChainId } from '../../../../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
 
 export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
@@ -48,7 +48,7 @@ export const PortfolioBalance = React.memo(() => {
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
   const { selectedAccountMultichainBalance } = useMultichainBalances();
-  const nonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const onOpenPortfolio = useCallback(() => {
     const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
@@ -110,7 +110,7 @@ export const PortfolioBalance = React.memo(() => {
     ) {
       return null;
     }
-    if (nonEvmChainId) {
+    if (!isEvmSelected) {
       return <NonEvmAggregatedPercentage privacyMode={privacyMode} />;
     }
 
