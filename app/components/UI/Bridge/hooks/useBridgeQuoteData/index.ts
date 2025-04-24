@@ -36,7 +36,7 @@ export const useBridgeQuoteData = () => {
   const slippage = useSelector(selectSlippage);
   const locale = I18n.locale;
   const fiatFormatter = useFiatFormatter();
-  const primaryCurrency = useSelector(selectPrimaryCurrency);
+  const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
   const ticker = useSelector(selectTicker);
 
   const quotes = useSelector(selectBridgeQuotes);
@@ -86,7 +86,7 @@ export const useBridgeQuoteData = () => {
       : Number(destTokenAmount) / Number(sourceAmount);
 
   const getNetworkFee = useCallback(() => {
-    if (!activeQuote) return '-';
+    if (!activeQuote?.totalNetworkFee) return '-';
 
     const { totalNetworkFee } = activeQuote;
 
