@@ -13,8 +13,8 @@ jest.mock('expo-apple-authentication', () => ({
 }));
 
 // const actualSeedlessOnboardingController = jest.requireActual('./Oauth2LoginHandler');
-jest.mock('./android/google', () => {
-  const actual = jest.requireActual('./android/google');
+jest.mock('./androidHandlers/google', () => {
+  const actual = jest.requireActual('./androidHandlers/google');
   return {
     AndroidGoogleLoginHandler: () => ({
       ...actual.AndroidGoogleLoginHandler,
@@ -27,8 +27,8 @@ jest.mock('./android/google', () => {
     }),
   };
 });
-jest.mock('./android/apple', () => {
-  const actual = jest.requireActual('./android/apple');
+jest.mock('./androidHandlers/apple', () => {
+  const actual = jest.requireActual('./androidHandlers/apple');
   return {
     AndroidAppleLoginHandler: () => ({
       ...actual.AndroidAppleLoginHandler,
@@ -41,8 +41,8 @@ jest.mock('./android/apple', () => {
     }),
   };
 });
-jest.mock('./ios/google', () => {
-  const actual = jest.requireActual('./ios/google');
+jest.mock('./iosHandlers/google', () => {
+  const actual = jest.requireActual('./iosHandlers/google');
   return {
     IosGoogleLoginHandler: () => ({
       ...actual.IosGoogleLoginHandler,
@@ -55,8 +55,8 @@ jest.mock('./ios/google', () => {
     }),
   };
 });
-jest.mock('./ios/apple', () => {
-  const actual = jest.requireActual('./ios/apple');
+jest.mock('./iosHandlers/apple', () => {
+  const actual = jest.requireActual('./iosHandlers/apple');
   return {
     IosAppleLoginHandler: () => ({
       ...actual.IosAppleLoginHandler,

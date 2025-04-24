@@ -7,8 +7,6 @@ import { UserActionType } from '../../actions/user';
 import {
   HandleOauth2LoginResult,
   AuthConnection,
-  GroupedAuthConnectionId,
-  AuthConnectionId,
   AuthResponse,
   OAuthUserInfo,
 } from './Oauth2loginInterface';
@@ -16,6 +14,9 @@ import { web3AuthNetwork as currentWeb3AuthNetwork } from '../Engine/controllers
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { createLoginHandler } from './Oauth2LoginHandler';
 import { AuthServerUrl } from './Oauth2LoginHandler/constants';
+
+export const AuthConnectionId = process.env.AuthConnectionId;
+export const GroupedAuthConnectionId = process.env.GroupedAuthConnectionId;
 
 export interface Oauth2LoginServiceConfig {
   authConnectionId: string;
@@ -210,7 +211,7 @@ export class Oauth2LoginService {
   };
 }
 
-if (!AuthServerUrl) {
+if (!AuthServerUrl || !AuthConnectionId || !GroupedAuthConnectionId) {
   throw new Error('Missing environment variables');
 }
 

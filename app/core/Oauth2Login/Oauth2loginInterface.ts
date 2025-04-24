@@ -58,6 +58,3 @@ export interface LoginHandler {
   login(): Promise<LoginHandlerResult>;
 }
 
-// TODO: change to env variables
-export const AuthConnectionId = 'byoa-server';
-export const GroupedAuthConnectionId = 'mm-seedless-onboarding';
