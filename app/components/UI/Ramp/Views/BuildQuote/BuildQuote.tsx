@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { BackHandler, Pressable, View } from 'react-native';
+import { Pressable, View, BackHandler } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -60,14 +60,14 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
-import { QuickAmount, RampType, Region, ScreenLocation } from '../../types';
+import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectTicker } from '../../../../../selectors/networkController';
 
 import styleSheet from './BuildQuote.styles';
 import {
-  fromTokenMinimalUnitString,
   toTokenMinimalUnit,
+  fromTokenMinimalUnitString,
 } from '../../../../../util/number';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
@@ -83,7 +83,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
-import { trace, TraceName } from '../../../../../util/trace';
+import { trace, endTrace, TraceName } from '../../../../../util/trace';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -567,7 +567,7 @@ const BuildQuote = () => {
       trace({
         name: TraceName.RampQuoteLoading,
         tags: {
-          rampType: isBuy ? RampType.BUY : RampType.SELL,
+          rampType,
         },
       });
       if (isBuy) {
@@ -641,6 +641,23 @@ const BuildQuote = () => {
     errorPaymentMethods,
     errorCryptoCurrencies,
   ]);
+
+  const [shouldEndTrace, setShouldEndTrace] = useState(true);
+  useEffect(() => {
+    if (
+      shouldEndTrace &&
+      !sdkError &&
+      !error &&
+      !isFetching &&
+      cryptoCurrencies &&
+      cryptoCurrencies.length > 0
+    ) {
+      endTrace({
+        name: TraceName.LoadRampExperience,
+      });
+      setShouldEndTrace(false);
+    }
+  }, [cryptoCurrencies, error, isFetching, rampType, sdkError, shouldEndTrace]);
 
   if (sdkError) {
     return (

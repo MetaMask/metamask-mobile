@@ -25,7 +25,7 @@ import { toTokenMinimalUnit } from '../../../../../util/number';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
-import { trace, TraceName } from '../../../../../util/trace';
+import { trace, endTrace, TraceName } from '../../../../../util/trace';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -219,6 +219,7 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedNetworkName: 'Ethereum',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
+  rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
 };
@@ -265,8 +266,10 @@ jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('../../../../../util/trace', () => ({
   trace: jest.fn(),
+  endTrace: jest.fn(),
   TraceName: {
     RampQuoteLoading: 'Ramp Quote Loading',
+    LoadRampExperience: 'Load Ramp Experience',
   },
 }));
 
@@ -279,6 +282,7 @@ describe('BuildQuote View', () => {
     mockPop.mockClear();
     mockTrackEvent.mockClear();
     (mockUseRampSDKInitialValues.setSelectedRegion as jest.Mock).mockClear();
+    jest.clearAllMocks();
   });
 
   beforeEach(() => {
@@ -367,14 +371,14 @@ describe('BuildQuote View', () => {
 
   it('calls setOptions when rendering', async () => {
     render(BuildQuote);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalled();
 
     mockSetOptions.mockReset();
 
     mockUseRampSDKValues.isBuy = false;
     mockUseRampSDKValues.isSell = true;
     render(BuildQuote);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalled();
   });
 
   it('navigates and tracks event on cancel button press', async () => {
@@ -399,6 +403,33 @@ describe('BuildQuote View', () => {
       chain_id_source: '1',
       location: 'Amount to Sell Screen',
     });
+  });
+
+  it('calls endTrace when the conditions are met', () => {
+    render(BuildQuote);
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.LoadRampExperience,
+    });
+  });
+
+  it('does not call endTrace if conditions are not met', () => {
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      sdkError: new Error('sdkError'),
+    };
+    render(BuildQuote);
+    expect(endTrace).not.toHaveBeenCalled();
+  });
+
+  it('only calls endTrace once', () => {
+    render(BuildQuote);
+    act(() => {
+      mockUseRegionsValues = {
+        ...mockUseRegionsInitialValues,
+        isFetching: true,
+      };
+    });
+    expect(endTrace).toHaveBeenCalledTimes(1);
   });
 
   describe('Regions data', () => {
@@ -834,6 +865,7 @@ describe('BuildQuote View', () => {
   });
 
   it('Directs the user to the sell quotes page with correct parameters', () => {
+    mockUseRampSDKValues.rampType = RampType.SELL;
     mockUseRampSDKValues.isBuy = false;
     mockUseRampSDKValues.isSell = true;
     render(BuildQuote);
