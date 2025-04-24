@@ -8,6 +8,7 @@ const ReactNativePostMessageStream = require('./ReactNativePostMessageStream');
 const INPAGE = 'metamask-inpage';
 const CONTENT_SCRIPT = 'metamask-contentscript';
 const PROVIDER = 'metamask-provider';
+const MULTICHAIN_PROVIDER = 'metamask-multichain-provider';
 
 // Setup stream for content script communication
 const metamaskStream = new ReactNativePostMessageStream({
@@ -24,7 +25,8 @@ const init = () => {
       uuid: uuid(),
       name: process.env.METAMASK_BUILD_NAME,
       icon: process.env.METAMASK_BUILD_ICON,
-      rdns: process.env.METAMASK_BUILD_APP_ID,
+      // rdns: process.env.METAMASK_BUILD_APP_ID,
+      rdns: 'io.metamask.flask',
     },
   });
 
@@ -74,6 +76,7 @@ function setupProviderStreams() {
 
   // forward communication across inpage-background for these channels only
   forwardTrafficBetweenMuxes(PROVIDER, pageMux, appMux);
+  forwardTrafficBetweenMuxes(MULTICHAIN_PROVIDER, pageMux, appMux);
 
   // add web3 shim
   shimWeb3(window.ethereum);

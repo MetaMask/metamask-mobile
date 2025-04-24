@@ -190,6 +190,13 @@ export class BackgroundBridge extends EventEmitter {
       ),
     );
 
+    // Handle the multichain provider channel from inpage
+    const multichainChannel = mux.createStream('metamask-multichain-provider');
+    multichainChannel.on('data', (data) => {
+      DevLogger.log('BackgroundBridge received on metamask-multichain-provider:', data);
+      multichainChannel.write({ greeting: 'hello world', receivedData: data });
+    });
+
     Engine.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
@@ -388,6 +395,7 @@ export class BackgroundBridge extends EventEmitter {
       AccountsController,
       PermissionController,
       SnapController,
+      TransactionController,
     } = Engine.context;
 
     controllerMessenger.subscribe(
@@ -402,7 +410,7 @@ export class BackgroundBridge extends EventEmitter {
       }, PreferencesController.state),
     );
 
-    this.controllerMessenger.subscribe(
+    controllerMessenger.subscribe(
       `${AccountsController.name}:selectedAccountChange`,
       async (account) => {
         if (account.address && account.address !== lastSelectedAddress) {
@@ -515,7 +523,7 @@ export class BackgroundBridge extends EventEmitter {
 
       // wallet_notify for solana accountChanged when permission changes
       controllerMessenger.subscribe(
-        `${this.permissionController.name}:stateChange`,
+        `${PermissionController.name}:stateChange`,
         async (currentValue, previousValue) => {
           const origins = uniq([
             ...previousValue.keys(),
