@@ -12,6 +12,9 @@ import { SwapsControllerState } from '@metamask/swaps-controller';
 import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
+
+const MAX_TOP_TOKENS = 30;
+
 interface UseTopTokensProps {
   chainId?: Hex | CaipChainId;
 }
@@ -102,53 +105,53 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
 
   // Merge the top assets from the Swaps API with the token data from the bridge API
   const topTokens = useMemo(() => {
-    const swapsTopAssetsAddrs = swapsTopAssets?.map((asset) => asset.address);
-
-    // Prioritize top assets from feature flags
-    const topAssetAddrs = topAssetsFromFeatureFlags || swapsTopAssetsAddrs;
-
-    if (!bridgeTokens || !topAssetAddrs) {
+    if (!bridgeTokens) {
       return [];
     }
 
-    const top = topAssetAddrs.map((topAssetAddr) => {
-      // Note that Solana addresses are CASE-SENSITIVE, EVM addresses are NOT
-      const candidateBridgeToken =
-        bridgeTokens[topAssetAddr]
-        || bridgeTokens[topAssetAddr.toLowerCase()]
-        || bridgeTokens[toChecksumHexAddress(topAssetAddr)];
+    const result: BridgeToken[] = [];
+    const addedAddresses = new Set<string>();
+    const topAssetAddrs = topAssetsFromFeatureFlags || swapsTopAssets?.map((asset) => asset.address) || [];
 
-      return candidateBridgeToken;
-    })
-    .filter(Boolean) as BridgeToken[];
-
-    // Create a Set of normalized addresses for O(1) lookups
-    const topTokenAddresses = new Set(
-      top.map(token =>
-        isSolanaChainId(token.chainId)
-          ? token.address // Solana addresses are case-sensitive
-          : token.address.toLowerCase() // EVM addresses are case-insensitive
-      )
-    );
-
-    // Create a new object with only non-top tokens
-    const nonTopBridgeTokens: Record<string, BridgeToken> = {};
-    for (const [address, token] of Object.entries(bridgeTokens)) {
+    // Helper function to add a token if it's not already added and we haven't reached the limit
+    const addTokenIfNotExists = (token: BridgeToken) => {
+      if (result.length >= MAX_TOP_TOKENS) return false;
+      
       const normalizedAddress = isSolanaChainId(token.chainId)
-        ? address // Solana addresses are case-sensitive
-        : address.toLowerCase(); // EVM addresses are case-insensitive
+        ? token.address // Solana addresses are case-sensitive
+        : token.address.toLowerCase(); // EVM addresses are case-insensitive
 
-      if (!topTokenAddresses.has(normalizedAddress)) {
-        nonTopBridgeTokens[address] = token;
+      if (!addedAddresses.has(normalizedAddress)) {
+        addedAddresses.add(normalizedAddress);
+        result.push(token);
+        return true;
+      }
+      return false;
+    };
+
+    // First add top assets from feature flags or swaps
+    for (const topAssetAddr of topAssetAddrs) {
+      if (result.length >= MAX_TOP_TOKENS) break;
+
+      const candidateBridgeToken =
+        bridgeTokens[topAssetAddr] ||
+        bridgeTokens[topAssetAddr.toLowerCase()] ||
+        bridgeTokens[toChecksumHexAddress(topAssetAddr)];
+
+      if (candidateBridgeToken) {
+        addTokenIfNotExists(candidateBridgeToken);
       }
     }
 
-    // Append unique bridge tokens to the top tokens
-    Object.values(nonTopBridgeTokens).forEach((token) => {
-      top.push(token);
-    });
+    // Then add remaining unique bridge tokens until we reach the limit
+    if (result.length < MAX_TOP_TOKENS) {
+      for (const token of Object.values(bridgeTokens)) {
+        if (result.length >= MAX_TOP_TOKENS) break;
+        addTokenIfNotExists(token);
+      }
+    }
 
-    return top;
+    return result;
   }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
 
   return { topTokens, pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false };
