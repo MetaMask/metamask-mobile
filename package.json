@@ -99,11 +99,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "prettier --write",
-      "eslint"
-    ],
-    "*.json": [
-      "prettier --write"
+      "eslint '**/*.{js,ts,tsx}'"
     ]
   },
   "resolutions": {
@@ -152,7 +148,7 @@
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
-    "@consensys/on-ramp-sdk": "^2.0.14",
+    "@consensys/on-ramp-sdk": "^2.1.5",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "@keystonehq/ur-decoder": "^0.12.2",
@@ -164,8 +160,8 @@
     "@metamask/assets-controllers": "^58.0.0",
     "@metamask/base-controller": "^8.0.0",
     "@metamask/bitcoin-wallet-snap": "^0.9.0",
-    "@metamask/bridge-controller": "^15.0.0",
-    "@metamask/bridge-status-controller": "^13.1.0",
+    "@metamask/bridge-controller": "^17.0.0",
+    "@metamask/bridge-status-controller": "^14.0.0",
     "@metamask/composable-controller": "^11.0.0",
     "@metamask/controller-utils": "^11.7.0",
     "@metamask/design-tokens": "^7.0.0",
@@ -186,7 +182,7 @@
     "@metamask/json-rpc-middleware-stream": "^8.0.7",
     "@metamask/key-tree": "^10.1.1",
     "@metamask/keyring-api": "^17.4.0",
-    "@metamask/keyring-controller": "^21.0.1",
+    "@metamask/keyring-controller": "^21.0.4",
     "@metamask/keyring-internal-api": "^4.0.3",
     "@metamask/keyring-snap-client": "^4.0.1",
     "@metamask/logging-controller": "^6.0.4",
@@ -215,7 +211,7 @@
     "@metamask/signature-controller": "^27.1.0",
     "@metamask/slip44": "^4.1.0",
     "@metamask/smart-transactions-controller": "^16.2.0",
-    "@metamask/snaps-controllers": "^11.2.1",
+    "@metamask/snaps-controllers": "^11.2.2",
     "@metamask/snaps-execution-environments": "^7.2.1",
     "@metamask/snaps-rpc-methods": "^12.1.0",
     "@metamask/snaps-sdk": "^6.22.0",
@@ -224,7 +220,7 @@
     "@metamask/stake-sdk": "^1.0.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^13.1.0",
-    "@metamask/token-search-discovery-controller": "^2.1.0",
+    "@metamask/token-search-discovery-controller": "^3.1.0",
     "@metamask/transaction-controller": "54.0.0",
     "@metamask/utils": "^11.2.0",
     "@ngraveio/bc-ur": "^1.1.6",

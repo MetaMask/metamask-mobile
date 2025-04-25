@@ -188,6 +188,30 @@ describe('Blockaid util', () => {
         security_alert_reason: Reason.notApplicable,
       });
     });
+
+    it('should return additionalParams object when result_type is RequestInProgress', async () => {
+      const securityAlertResponse: SecurityAlertResponse & { source: string } =
+        {
+          result_type: ResultType.RequestInProgress,
+          reason: Reason.notApplicable,
+          source: SecurityAlertSource.API,
+          providerRequestsCount: {
+            eth_call: 5,
+            eth_getCode: 3,
+          },
+          features: [],
+        };
+
+      const result = getBlockaidMetricsParams(securityAlertResponse);
+      expect(result).toEqual({
+        ui_customizations: ['security_alert_loading'],
+        security_alert_response: 'loading',
+        security_alert_reason: Reason.notApplicable,
+        security_alert_source: SecurityAlertSource.API,
+        ppom_eth_call_count: 5,
+        ppom_eth_getCode_count: 3,
+      });
+    });
   });
 
   describe('isBlockaidFeatureEnabled', () => {
