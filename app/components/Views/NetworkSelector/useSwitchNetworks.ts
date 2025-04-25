@@ -50,6 +50,8 @@ interface UseSwitchNetworksProps {
   closeRpcModal?: () => void;
   parentSpan?: unknown;
   source?: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dispatch: Dispatch<any>;
 }
 

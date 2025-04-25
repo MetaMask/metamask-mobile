@@ -19,6 +19,7 @@ import {
   setTransactionObject,
   resetTransaction,
   setMaxValueMode,
+  setTransactionSendFlowContextualChainId,
 } from '../../../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../../../UI/Navbar';
 import StyledButton from '../../../../../UI/StyledButton';
@@ -109,11 +110,11 @@ import {
 } from '../../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import { isNativeToken } from '../../../utils/generic';
-import { selectSendFlowContextualChainId } from '../../../../../selectors/transaction';
-import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
-import { selectAllTokens } from '../../../../../selectors/tokensController';
-import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
-import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
+import { selectSendFlowContextualChainId } from '../../../../../../selectors/transaction';
+import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
+import { selectAllTokens } from '../../../../../../selectors/tokensController';
+import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
+import { selectAllTokenBalances } from '../../../../../../selectors/tokenBalancesController';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -1670,7 +1671,7 @@ Amount.contextType = ThemeContext;
 
 const mapStateToProps = (state, ownProps) => {
   const transaction = ownProps.transaction || state.transaction;
-  const globalChainId = selectChainId(state);
+  const globalChainId = selectEvmChainId(state);
   const globalNetworkClientId = selectNetworkClientId(state);
   const sendFlowContextualChainId = selectSendFlowContextualChainId(state);
   const sendFlowContextualNetworkConfiguration =

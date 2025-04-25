@@ -20,6 +20,7 @@ import {
   balanceToFiat,
   isDecimal,
   hexToBN,
+  toHexadecimal,
 } from '../../../../../../util/number';
 import {
   getTicker,
@@ -141,11 +142,12 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { updateTransactionToMaxValue } from './utils';
 import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../../utils/generic';
-import { setTransactionSendFlowContextualChainId } from '../../../../../actions/transaction';
-import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
-import { selectAllTokens } from '../../../../../selectors/tokensController';
-import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
-import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
+import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/transaction';
+import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
+import { selectAllTokens } from '../../../../../../selectors/tokensController';
+import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
+import { selectAllTokenBalances } from '../../../../../../selectors/tokenBalancesController';
+import { selectSendFlowContextualChainId } from '../../../../../../selectors/transaction';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -279,10 +281,6 @@ class Confirm extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
-    /**
-     * Object containing transaction metrics by id
-     */
-    transactionMetricsById: PropTypes.object,
     /**
      * Transaction metadata from the transaction controller
      */
@@ -889,17 +887,18 @@ class Confirm extends PureComponent {
    */
   validateAmount = ({ transaction }) => {
     const {
-      contractBalances,
       selectedAsset,
       ticker,
       transactionState: {
         transaction: { value },
       },
-      updateTransactionMetrics,
+      updateConfirmationMetric,
       allTokenBalances,
       accountsByChainId,
       sendFlowContextualChainId,
     } = this.props;
+    const account =
+      accountsByChainId?.[sendFlowContextualChainId]?.[transaction?.from];
     const { EIP1559GasTransaction, legacyGasTransaction, transactionMeta } =
       this.state;
     const { id: transactionId } = transactionMeta;
@@ -913,7 +912,10 @@ class Confirm extends PureComponent {
     const transactionValueHex = hexToBN(value);
 
     const totalTransactionValue = transactionValueHex.add(transactionFeeMax);
-
+    const tokenBalances =
+      allTokenBalances?.[transaction?.from.toLowerCase()]?.[
+        sendFlowContextualChainId
+      ];
     const selectedAddress = transaction?.from;
     const weiBalance = hexToBN(account?.balance);
 
@@ -1678,7 +1680,6 @@ const mapStateToProps = (state) => {
     ),
     // TODO: confirm if the line below should be used or     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-    transactionMetricsById: selectTransactionMetrics(state),
     confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),

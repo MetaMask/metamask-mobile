@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useRef, useState, useEffect } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -29,8 +29,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
-  selectNetworkConfigurations,
-  selectChainId,
 } from '../../../selectors/networkController';
 import {
   selectShowTestNetworks,
@@ -100,7 +98,6 @@ import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
-import { setTransactionSendFlowContextualChainId } from '../../../actions/transaction';
 import { selectSendFlowContextualChainId } from '../../../selectors/transaction';
 
 interface infuraNetwork {
@@ -168,7 +165,7 @@ const NetworkSelector = () => {
   });
 
   // Get both chain IDs
-  const globalChainId = useSelector(selectChainId);
+  // const globalChainId = useSelector(selectChainId);
   const contextualChainId = useSelector(selectSendFlowContextualChainId);
 
   const {
@@ -182,13 +179,7 @@ const NetworkSelector = () => {
     route.params?.source === 'SendFlow' && contextualChainId
       ? contextualChainId
       : perDappChainId;
-  // Use contextual chain ID for SendFlow, otherwise use global
-  const effectiveChainId =
-    route.params?.source === 'SendFlow' && contextualChainId
-      ? contextualChainId
-      : globalChainId;
 
-  const KEYBOARD_OFFSET = 120;
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
     ? 'networks.additional_network_information_title'

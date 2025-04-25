@@ -66,8 +66,8 @@ import { selectAddressBook } from '../../../../../../selectors/addressBookContro
 import { selectSendFlowContextualChainId } from '../../../../../../selectors/transaction';
 import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/transaction';
 import { store } from '../../../../../../store';
-import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
-import { toHexadecimal } from '../../../../../../../util/number';
+import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
+import { toHexadecimal } from '../../../../../../util/number';
 
 const dummy = () => true;
 
@@ -714,7 +714,7 @@ class SendFlow extends PureComponent {
 SendFlow.contextType = ThemeContext;
 
 const mapStateToProps = (state) => {
-  const globalChainId = selectChainId(state);
+  const globalChainId = selectEvmChainId(state);
 
   return {
     addressBook: selectAddressBook(state),
