@@ -298,7 +298,7 @@ describe('Transaction Controller Init', () => {
     );
 
     // Non-redesigned transaction types
-    expect(isEnabledFn({ type: TransactionType.simpleSend })).toBe(false);
+    expect(isEnabledFn({ type: TransactionType.bridge })).toBe(false);
   });
 
   it('gets network state from network controller on option getNetworkState', () => {

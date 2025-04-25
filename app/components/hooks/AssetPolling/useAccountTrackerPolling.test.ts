@@ -212,4 +212,29 @@ describe('useAccountTrackerPolling', () => {
       mockedAccountTrackerController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
   });
+
+  it('Should not poll when evm is not selected', async () => {
+    renderHookWithProvider(() => useAccountTrackerPolling(), {
+      state: {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            MultichainNetworkController: {
+              ...state.engine.backgroundState.MultichainNetworkController,
+              isEvmSelected: false,
+            },
+          },
+        },
+      },
+    });
+
+    const mockedAccountTrackerController = jest.mocked(
+      Engine.context.AccountTrackerController,
+    );
+    expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledTimes(
+      0,
+    );
+  });
 });

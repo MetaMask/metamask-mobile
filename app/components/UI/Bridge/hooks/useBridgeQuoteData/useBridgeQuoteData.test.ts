@@ -73,6 +73,8 @@ describe('useBridgeQuoteData', () => {
       isLoading: false,
       quoteFetchError: null,
       isNoQuotesAvailable: false,
+      isExpired: false,
+      willRefresh: undefined,
     });
   });
 
@@ -106,6 +108,8 @@ describe('useBridgeQuoteData', () => {
       isLoading: false,
       quoteFetchError: null,
       isNoQuotesAvailable: true,
+      isExpired: false,
+      willRefresh: undefined,
     });
   });
 
@@ -140,6 +144,8 @@ describe('useBridgeQuoteData', () => {
       isLoading: false,
       quoteFetchError: null,
       isNoQuotesAvailable: false,
+      isExpired: true,
+      willRefresh: undefined,
     });
   });
 
@@ -170,6 +176,8 @@ describe('useBridgeQuoteData', () => {
       isLoading: true,
       quoteFetchError: null,
       isNoQuotesAvailable: false,
+      isExpired: false,
+      willRefresh: undefined,
     });
   });
 
@@ -201,6 +209,8 @@ describe('useBridgeQuoteData', () => {
       isLoading: false,
       quoteFetchError: error,
       isNoQuotesAvailable: false,
+      isExpired: false,
+      willRefresh: undefined,
     });
   });
 
