@@ -91,10 +91,11 @@ function createMockState(
 }
 
 describe('Migration #036', () => {
+  beforeEach(() => {
+    mockedCaptureException.mockReset();
+  });
+
   describe('createDefaultAccountsController', () => {
-    beforeEach(() => {
-      mockedCaptureException.mockReset();
-    });
     it('should throw if state.engine is not defined', () => {
       const newState = migrate({});
       expect(newState).toStrictEqual({});
@@ -455,6 +456,48 @@ describe('Migration #036', () => {
           },
         },
       });
+    });
+
+    it('should capture exception if internalAccount.id is undefined', () => {
+      // Mock getUUIDFromAddressOfNormalAccount to return undefined
+      jest
+        .spyOn(
+          require('@metamask/accounts-controller'),
+          'getUUIDFromAddressOfNormalAccount',
+        )
+        .mockReturnValue(undefined);
+
+      const oldState = createMockState(
+        createMockPreferenceControllerState(
+          [{ name: 'Account 1', address: MOCK_ADDRESS_1 }],
+          undefined,
+        ),
+      );
+      migrate(oldState);
+      expect(mockedCaptureException.mock.calls[1][0].message).toBe(
+        `Migration 36: selectedAccount will be undefined because internalAccount.id is undefined.`,
+      );
+    });
+
+    it('should capture exception if selectedAccount.id is undefined', () => {
+      // Mock getUUIDFromAddressOfNormalAccount to return undefined
+      jest
+        .spyOn(
+          require('@metamask/accounts-controller'),
+          'getUUIDFromAddressOfNormalAccount',
+        )
+        .mockReturnValue(undefined);
+
+      const oldState = createMockState(
+        createMockPreferenceControllerState(
+          [{ name: 'Account 1', address: MOCK_ADDRESS_1 }],
+          MOCK_ADDRESS_1,
+        ),
+      );
+      migrate(oldState);
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        `Migration 36: selectedAccount will be undefined because selectedAccount.id is undefined.`,
+      );
     });
   });
 });

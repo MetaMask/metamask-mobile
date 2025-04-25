@@ -170,11 +170,12 @@ function createSelectedAccountForAccountsController(
       state.engine.backgroundState.PreferencesController?.identities,
     );
     const internalAccount = findInternalAccountByAddress(state, firstAddress);
+
     if (internalAccount) {
       if (internalAccount.id === undefined) {
         captureException(
           new Error(
-            `Migration 36: selectedAccount will be undefined because internalAccount.id is undefined: 'internalAccount: ${internalAccount}'.`,
+            `Migration 36: selectedAccount will be undefined because internalAccount.id is undefined.`,
           ),
         );
       }
@@ -191,7 +192,7 @@ function createSelectedAccountForAccountsController(
     if (selectedAccount.id === undefined) {
       captureException(
         new Error(
-          `Migration 36: selectedAccount will be undefined because selectedAccount.id is undefined: 'selectedAccount: ${selectedAccount}'.`,
+          `Migration 36: selectedAccount will be undefined because selectedAccount.id is undefined.`,
         ),
       );
     }
