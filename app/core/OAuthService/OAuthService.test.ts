@@ -54,7 +54,7 @@ describe('OAuth login service', () => {
     mockLoginHandlerResponse = () => {
       throw new OAuthError('Login dismissed', OAuthErrorType.UserDismissed);
     };
-    const result = OAuthLoginService.handleOAuth2Login(AuthConnection.Google);
+    const result = OAuthLoginService.handleOAuthLogin(AuthConnection.Google);
 
     await expect(result).rejects.toThrow(OAuthError);
 
@@ -63,7 +63,7 @@ describe('OAuth login service', () => {
     };
 
     await expect(
-      OAuthLoginService.handleOAuth2Login(AuthConnection.Google),
+      OAuthLoginService.handleOAuthLogin(AuthConnection.Google),
     ).rejects.toThrow(OAuthError);
   });
 
@@ -80,7 +80,7 @@ describe('OAuth login service', () => {
       web3AuthNetwork: Web3AuthNetwork.Mainnet,
     });
 
-    const finalResult = await OAuthLoginService.handleOAuth2Login(
+    const finalResult = await OAuthLoginService.handleOAuthLogin(
       AuthConnection.Google,
     );
     expect(finalResult).toBeDefined();

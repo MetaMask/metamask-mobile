@@ -118,18 +118,18 @@ const userReducer = (
         appServicesReady: true,
       };
 
-    case UserActionType.OAUTH2_LOGIN_SUCCESS:
+    case UserActionType.OAUTH_LOGIN_SUCCESS:
       return {
         ...state,
         oauthLoginSuccess: true,
       };
-    case UserActionType.OAUTH2_LOGIN_ERROR:
+    case UserActionType.OAUTH_LOGIN_ERROR:
       return {
         ...state,
         oauthLoginSuccess: false,
         oauthLoginError: action.payload.error,
       };
-    case UserActionType.OAUTH2_LOGIN_RESET:
+    case UserActionType.OAUTH_LOGIN_RESET:
       return {
         ...state,
         oauthLoginSuccess: false,
