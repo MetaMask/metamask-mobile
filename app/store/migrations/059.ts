@@ -53,7 +53,7 @@ export default function migrate(state: unknown) {
         if (firstAccount.id === undefined) {
           captureException(
             new Error(
-              `Migration 59: selectedAccount will be undefined because firstAccount.id is undefined: 'firstAccount: ${firstAccount}'.`,
+              `Migration 59: selectedAccount will be undefined because firstAccount.id is undefined.`,
             ),
           );
         }
