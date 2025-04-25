@@ -261,24 +261,7 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       goToBridgeBase();
     });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BRIDGE_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Bridge',
-          tokenSymbol: '',
-          location: 'TabBar',
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [
-    closeBottomSheetAndNavigate,
-    goToBridgeBase,
-    trackEvent,
-    chainId,
-    createEventBuilder,
-  ]);
+  }, [closeBottomSheetAndNavigate, goToBridgeBase]);
 
   const sendIconStyle = useMemo(
     () => ({
