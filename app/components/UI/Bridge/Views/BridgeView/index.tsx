@@ -36,7 +36,6 @@ import {
   setSlippage,
   selectIsSolanaToEvm,
 } from '../../../../../core/redux/slices/bridge';
-import { ethers } from 'ethers';
 import {
   useNavigation,
   useRoute,
