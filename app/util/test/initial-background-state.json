@@ -484,5 +484,8 @@
         }
       ]
     }
+  },
+  "SeedlessOnboardingController": {
+    "socialBackupsMetadata": []
   }
 }
