@@ -37,6 +37,8 @@ import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { ESTIMATED_CELL_ITEM_HEIGHT } from '../../Views/AccountSelector/AccountSelector.styles';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -228,7 +230,6 @@ const AccountSelectorList = ({
 
       return (
         <Cell
-          key={address}
           onLongPress={() => {
             onLongPress({
               address,
@@ -305,9 +306,10 @@ const AccountSelectorList = ({
       data={accounts}
       keyExtractor={getKeyExtractor}
       renderItem={renderAccountItem}
-      estimatedItemSize={80}
+      estimatedItemSize={ESTIMATED_CELL_ITEM_HEIGHT}
       // Increasing number of items at initial render fixes scroll issue.
       // initialNumToRender={999}
+      renderScrollComponent={ScrollView}
       {...props}
     />
   );

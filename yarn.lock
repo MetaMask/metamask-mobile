@@ -7542,10 +7542,10 @@
   dependencies:
     "@sentry/types" "7.119.1"
 
-"@shopify/flash-list@^1.7.6":
-  version "1.7.6"
-  resolved "https://registry.yarnpkg.com/@shopify/flash-list/-/flash-list-1.7.6.tgz#367e76866c71d1f1be0ff70f0b28be4bbfbcf595"
-  integrity sha512-0kuuAbWgy4YSlN05mt0ScvxK8uiDixMsICWvDed+LTxvZ5+5iRyt3M8cRLUroB8sfiZlJJZWlxHrx0frBpsYOQ==
+"@shopify/flash-list@^1.8.0":
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/@shopify/flash-list/-/flash-list-1.8.0.tgz#d271d3ca49acf9f53812594f0c4d24a994eb95e5"
+  integrity sha512-APZ48kceCCJobUimmI2594io+HujELK60HFKgzIyIdHGX5ySR5YfvsPy3PKtPwHHDtIMFNaq3U/BY3qZocOhCA==
   dependencies:
     recyclerlistview "4.2.3"
     tslib "2.8.1"
