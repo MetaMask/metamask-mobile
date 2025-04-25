@@ -3857,7 +3857,8 @@
     "unlimited": "Unlimited",
     "none": "None",
     "advanced_details": "Advanced details",
-    "interacting_with": "Interacting with"
+    "interacting_with": "Interacting with",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
