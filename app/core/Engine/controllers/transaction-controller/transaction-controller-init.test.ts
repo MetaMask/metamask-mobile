@@ -246,6 +246,12 @@ describe('Transaction Controller Init', () => {
     const MOCK_TRANSACTION_META = {
       id: '123',
       chainId: '0x1',
+      status: 'approved',
+      time: 123,
+      txParams: {
+        from: '0x123',
+      },
+      networkClientId: 'selectedNetworkClientId',
     } as TransactionMeta;
 
     const hooks = testConstructorOption('hooks');
