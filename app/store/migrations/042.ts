@@ -94,7 +94,7 @@ function mergeInternalAccounts(state: ValidState) {
   if (newSelectedAccountId === undefined) {
     captureException(
       new Error(
-        `Migration 42: selectedAccount will be undefined because newSelectedAccountId is undefined: 'addressMap: ${addressMap}, mergedAccounts: ${mergedAccounts}, selectedAddress: ${selectedAddress}'.`,
+        `Migration 42: selectedAccount will be undefined because newSelectedAccountId is undefined. selectedAddress: ${selectedAddress}, addressMap[selectedAddress]: ${addressMap[selectedAddress]}`,
       ),
     );
   }
