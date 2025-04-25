@@ -6,7 +6,7 @@ import { CaipChainId } from '@metamask/utils';
  */
 export interface NetworkConnectMultiSelectorProps {
   isLoading?: boolean;
-  onSubmit: (selectedChainIds: string[]) => void
+  onSubmit: (selectedChainIds: CaipChainId[]) => void
   hostname: string;
   onBack: () => void;
   isRenderedAsBottomSheet?: boolean;

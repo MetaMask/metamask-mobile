@@ -77,7 +77,7 @@ import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
@@ -88,6 +88,7 @@ import {
 import { getPhishingTestResult } from '../../../util/phishingDetection';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 import { toHex } from '@metamask/controller-utils';
+import { CaipAccountId, CaipChainId } from '@metamask/utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -115,7 +116,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
+  // Make this CaipAccountId
+  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(
     selectedWalletAddress && isEvmSelected
       ? [selectedWalletAddress]
       : [
@@ -157,7 +159,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
   const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
+    selectNetworkConfigurationsByCaipChainId,
   );
 
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
@@ -220,18 +222,10 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { chainId } = useNetworkInfo(hostname);
 
-  const [selectedChainIds, setSelectedChainIds] = useState<string[]>(() => {
+  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(() => {
     // Get all enabled network chain IDs from networkConfigurations
     const enabledChainIds = Object.values(networkConfigurations).map(
-      (network) => network.chainId,
-    );
-    return enabledChainIds;
-  });
-
-  const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>(() => {
-    // Initialize with all enabled network chain IDs
-    const enabledChainIds = Object.values(networkConfigurations).map(
-      (network) => network.chainId,
+      (network) => network.caipChainId,
     );
     return enabledChainIds;
   });
@@ -243,7 +237,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         size: AvatarSize.Xs,
         name: network.name || '',
         // @ts-expect-error getNetworkImageSource not yet typed
-        imageSource: getNetworkImageSource({ chainId: network.chainId }),
+        imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
       }),
     );
 
@@ -512,9 +506,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleNetworksSelected = useCallback(
-    (newSelectedChainIds: string[]) => {
+    (newSelectedChainIds: CaipChainId[]) => {
       setSelectedChainIds(newSelectedChainIds);
-      setSelectedNetworkIds(newSelectedChainIds);
 
       const newNetworkAvatars = newSelectedChainIds.map(
         (newSelectedChainId) => ({
@@ -754,24 +747,18 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderMultiConnectNetworkSelectorScreen = useCallback(
     () => (
       <NetworkConnectMultiSelector
-        onSelectNetworkIds={setSelectedAddresses}
+        onSubmit={handleNetworksSelected}
         isLoading={isLoading}
-        onUserAction={setUserIntent}
-        urlWithProtocol={urlWithProtocol}
         hostname={new URL(urlWithProtocol).hostname}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
-        onNetworksSelected={handleNetworksSelected}
-        initialChainId={chainId}
-        selectedChainIds={selectedNetworkIds}
-        isInitializedWithPermittedChains={false}
+        defaultSelectedChainIds={selectedChainIds}
       />
     ),
     [
       isLoading,
       urlWithProtocol,
-      chainId,
       handleNetworksSelected,
-      selectedNetworkIds,
+      selectedChainIds,
     ],
   );
 

@@ -670,10 +670,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const renderConnectNetworksScreen = useCallback(
     () => (
       <NetworkConnectMultiSelector
-        onSelectNetworkIds={setSelectedAddresses}
+        // fix this
+        onSubmit={setSelectedAddresses}
         isLoading={isLoading}
-        onUserAction={setNetworkSelectorUserIntent}
-        urlWithProtocol={urlWithProtocol}
         hostname={hostname}
         onBack={() =>
           setPermissionsScreen(
@@ -683,6 +682,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           )
         }
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
+        // fix this
+        defaultSelectedChainIds={[]}
       />
     ),
     [
