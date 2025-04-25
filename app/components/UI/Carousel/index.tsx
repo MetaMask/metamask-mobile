@@ -66,34 +66,23 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
 
   const visibleSlides = useMemo(
     () =>
-      slidesConfig
-        .filter((slide) => {
-          ///: BEGIN:ONLY_INCLUDE_IF(solana)
-          if (
-            slide.id === 'solana' &&
-            selectedAccount?.type === SolAccountType.DataAccount
-          ) {
-            return false;
-          }
-          ///: END:ONLY_INCLUDE_IF
-
-          if (slide.id === 'fund' && isZeroBalance) {
-            return true;
-          }
-          return !dismissedBanners.includes(slide.id);
-        })
+      slidesConfig.filter((slide) => {
         ///: BEGIN:ONLY_INCLUDE_IF(solana)
-        // prioritize Solana slide
-        .sort((a, b) => {
-          if (a.id === 'solana' && b.id !== 'solana') {
-            return -1;
-          }
-          return 1;
-        }),
-    ///: END:ONLY_INCLUDE_IF
+        if (
+          slide.id === 'solana' &&
+          selectedAccount?.type === SolAccountType.DataAccount
+        ) {
+          return false;
+        }
+        ///: END:ONLY_INCLUDE_IF
+
+        if (slide.id === 'fund' && isZeroBalance) {
+          return true;
+        }
+        return !dismissedBanners.includes(slide.id);
+      }),
     [slidesConfig, isZeroBalance, dismissedBanners, selectedAccount],
   );
-
   const isSingleSlide = visibleSlides.length === 1;
 
   const openUrl =
