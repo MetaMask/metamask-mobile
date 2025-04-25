@@ -1,20 +1,14 @@
 // External dependencies.
-import { USER_INTENT } from '../../../../constants/permissions';
+import { CaipChainId } from '@metamask/utils';
 
 /**
  * NetworkConnectMultiSelector props.
  */
 export interface NetworkConnectMultiSelectorProps {
-  selectedNetworkIdentifiers?: string[];
-  onSelectNetworkIds?: (ids: string[]) => void;
   isLoading?: boolean;
-  onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
-  urlWithProtocol: string;
+  onSubmit: (selectedChainIds: string[]) => void
   hostname: string;
   onBack: () => void;
   isRenderedAsBottomSheet?: boolean;
-  onNetworksSelected?: (selectedChainIds: string[]) => void;
-  initialChainId?: string;
-  selectedChainIds?: string[];
-  isInitializedWithPermittedChains?: boolean;
+  defaultSelectedChainIds: CaipChainId[];
 }
