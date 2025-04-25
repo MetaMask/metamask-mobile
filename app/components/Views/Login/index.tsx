@@ -412,7 +412,7 @@ const Login: React.FC = () => {
   const getHint = async () => {
     const hint = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints = await JSON.parse(hint);
-    setHintText(parsedHints?.manualBackup || 'mom’s home');
+    setHintText(parsedHints?.manualBackup || '');
   };
 
   const toggleHint = () => {
@@ -478,7 +478,7 @@ const Login: React.FC = () => {
               </View>
               <TextField
                 size={TextFieldSize.Lg}
-                placeholder={strings('login.password')}
+                placeholder={strings('login.password_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 returnKeyType={'done'}

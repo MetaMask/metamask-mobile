@@ -206,7 +206,6 @@ const ImportFromSecretRecoveryPhrase = ({
                 name={IconName.ArrowLeft}
                 size={24}
                 color={colors.text.default}
-                onPress={() => navigation.goBack()}
                 style={styles.headerLeft}
               />
             </TouchableOpacity>

@@ -271,7 +271,7 @@
   "login": {
     "title": "Welcome Back!",
     "password": "Password",
-    "password_placeholder": "Enter your password",
+    "password_placeholder": "Enter password",
     "unlock_button": "Unlock",
     "show_hint": "Show hint",
     "hide_hint": "Hide hint",
