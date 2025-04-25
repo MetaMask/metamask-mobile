@@ -1,9 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
-import {
-  isSolanaChainId,
-  type GenericQuoteRequest,
-} from '@metamask/bridge-controller';
+import { type GenericQuoteRequest } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import {
   selectSourceAmount,
@@ -12,11 +9,14 @@ import {
   selectSelectedDestChainId,
   selectSlippage,
   selectDestAddress,
+  selectIsEvmToSolana,
+  selectIsSolanaToEvm,
 } from '../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
 import { debounce } from 'lodash';
+import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 
 /**
  * Hook for handling bridge quote request updates
@@ -30,7 +30,9 @@ export const useBridgeQuoteRequest = () => {
   const slippage = useSelector(selectSlippage);
   const walletAddress = useSelector(selectSelectedInternalAccountAddress);
   const destAddress = useSelector(selectDestAddress);
-
+  const isEvmToSolana = useSelector(selectIsEvmToSolana);
+  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
+  const context = useUnifiedSwapBridgeContext();
   /**
    * Updates quote parameters in the bridge controller
    */
@@ -59,15 +61,15 @@ export const useBridgeQuoteRequest = () => {
       destChainId: getDecimalChainId(destChainId),
       destTokenAddress: destToken.address,
       srcTokenAmount: normalizedSourceAmount,
-      slippage: Number(slippage),
+      slippage: slippage ? Number(slippage) : undefined,
       walletAddress,
-      destWalletAddress: isSolanaChainId(destChainId)
-        ? destAddress
-        : walletAddress,
+      destWalletAddress:
+        isEvmToSolana || isSolanaToEvm ? destAddress : walletAddress,
     };
 
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
       params,
+      context,
     );
   }, [
     sourceToken,
@@ -77,6 +79,9 @@ export const useBridgeQuoteRequest = () => {
     slippage,
     walletAddress,
     destAddress,
+    isEvmToSolana,
+    isSolanaToEvm,
+    context,
   ]);
 
   // Create a stable debounced function that persists across renders

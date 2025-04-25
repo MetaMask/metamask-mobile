@@ -277,6 +277,8 @@ enum EVENT_NAME {
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
+  BRIDGE_PAGE_VIEWED = 'Bridge Page Viewed',
+  SWAP_PAGE_VIEWED = 'Swap Page Viewed', // Temporary event until unified swap/bridge is done
 
   // Earn
   EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
@@ -1037,6 +1039,10 @@ const events = {
   CAROUSEL_BANNER_CLICKED: generateOpt(EVENT_NAME.CAROUSEL_BANNER_CLICKED),
   CAROUSEL_BANNER_CLOSE_ALL: generateOpt(EVENT_NAME.CAROUSEL_BANNER_CLOSE_ALL),
   CAROUSEL_BANNER_NAVIGATE: generateOpt(EVENT_NAME.CAROUSEL_BANNER_NAVIGATE),
+
+  // Bridge
+  BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),
+  SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
 };
 
 /**
