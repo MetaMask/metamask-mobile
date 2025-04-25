@@ -44,13 +44,12 @@ export const validateAccountsController: ValidationCheck = (rootState) => {
   // 3. Check that selectedAccount is non-empty
   if (selectedAccount === undefined || selectedAccount === '') {
     errors.push(
-      `${LOG_TAG}: AccountsController selectedAccount is missing or empty.`,
+      `${LOG_TAG}: AccountsController selectedAccount is missing or empty. selectedAccount: ${selectedAccount}`,
     );
-    return errors;
   }
 
   // 4. Confirm the selectedAccount ID exists in internalAccounts.accounts
-  if (hasAccounts && !accounts[selectedAccount]) {
+  if (hasAccounts && selectedAccount && !accounts[selectedAccount]) {
     errors.push(
       `${LOG_TAG}: AccountsController The selectedAccount '${selectedAccount}' does not exist in the accounts record.`,
     );

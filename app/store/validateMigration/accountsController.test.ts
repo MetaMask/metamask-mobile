@@ -107,7 +107,7 @@ describe('validateAccountsController', () => {
       }) as RootState,
     );
     expect(errors).toEqual([
-      `${LOG_TAG}: AccountsController selectedAccount is missing or empty.`,
+      `${LOG_TAG}: AccountsController selectedAccount is missing or empty. selectedAccount: `,
     ]);
   });
 
@@ -138,7 +138,7 @@ describe('validateAccountsController', () => {
       }) as RootState,
     );
     expect(errors).toEqual([
-      `${LOG_TAG}: AccountsController selectedAccount is missing or empty.`,
+      `${LOG_TAG}: AccountsController selectedAccount is missing or empty. selectedAccount: undefined`,
     ]);
   });
 
