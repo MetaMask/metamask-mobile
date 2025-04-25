@@ -543,12 +543,10 @@ exports[`SnapUIForm will render with fields 1`] = `
                       [
                         {
                           "flexDirection": "column",
-                          "textAlign": "right",
                         },
                         undefined,
                       ]
                     }
-                    textAlign="right"
                   >
                     <Text
                       accessibilityRole="text"
@@ -561,6 +559,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
+                          "textAlign": "right",
                         }
                       }
                     >
@@ -577,6 +576,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
+                          "textAlign": "right",
                         }
                       }
                     >
@@ -980,12 +980,10 @@ exports[`SnapUIForm will render with fields 1`] = `
                                   [
                                     {
                                       "flexDirection": "column",
-                                      "textAlign": "right",
                                     },
                                     undefined,
                                   ]
                                 }
-                                textAlign="right"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -998,6 +996,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "right",
                                     }
                                   }
                                 >
@@ -1014,6 +1013,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "right",
                                     }
                                   }
                                 >
@@ -1130,12 +1130,10 @@ exports[`SnapUIForm will render with fields 1`] = `
                                   [
                                     {
                                       "flexDirection": "column",
-                                      "textAlign": "right",
                                     },
                                     undefined,
                                   ]
                                 }
-                                textAlign="right"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -1148,6 +1146,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "right",
                                     }
                                   }
                                 >
@@ -1164,6 +1163,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "right",
                                     }
                                   }
                                 >
