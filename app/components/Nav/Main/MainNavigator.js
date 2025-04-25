@@ -43,6 +43,7 @@ import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import Amount from '../../Views/confirmations/legacy/SendFlow/Amount';
 import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
+import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
@@ -656,6 +657,10 @@ const SendFlowView = () => (
       name={Routes.SEND_FLOW.CONFIRM}
       component={Confirm}
       options={Confirm.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.STANDALONE_CONFIRMATIONS.TRANSFER}
+      component={RedesignedConfirm}
     />
   </Stack.Navigator>
 );

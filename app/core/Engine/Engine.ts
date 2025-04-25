@@ -1000,19 +1000,18 @@ export class Engine {
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
-    const tokenSearchDiscoveryDataController = new TokenSearchDiscoveryDataController({
-      tokenPricesService: codefiTokenApiV2,
-      swapsSupportedChainIds,
-      fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-      fetchTokens: swapsUtils.fetchTokens,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'TokenSearchDiscoveryDataController',
-        allowedActions: [
-          'CurrencyRateController:getState'
-        ],
-        allowedEvents: [],
-      }),
-    });
+    const tokenSearchDiscoveryDataController =
+      new TokenSearchDiscoveryDataController({
+        tokenPricesService: codefiTokenApiV2,
+        swapsSupportedChainIds,
+        fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+        fetchTokens: swapsUtils.fetchTokens,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokenSearchDiscoveryDataController',
+          allowedActions: ['CurrencyRateController:getState'],
+          allowedEvents: [],
+        }),
+      });
 
     /* bridge controller Initialization */
     const bridgeController = new BridgeController({
@@ -1048,8 +1047,16 @@ export class Engine {
       config: {
         customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
       },
-      trackMetaMetricsFn: () => {
-        //TODO: Implement trackMetaMetricsFn
+      trackMetaMetricsFn: (event, properties) => {
+        const metricsEvent = MetricsEventBuilder.createEventBuilder({
+          // category property here maps to event name
+          category: event,
+        })
+          .addProperties({
+            ...(properties ?? {}),
+          })
+          .build();
+        MetaMetrics.getInstance().trackEvent(metricsEvent);
       },
     });
 
@@ -1063,6 +1070,7 @@ export class Engine {
           'NetworkController:getState',
           'TokensController:addDetectedTokens',
           'BridgeController:getBridgeERC20Allowance',
+          'BridgeController:trackUnifiedSwapBridgeEvent',
           'GasFeeController:getState',
           'AccountsController:getAccountByAddress',
           'SnapController:handleRequest',
