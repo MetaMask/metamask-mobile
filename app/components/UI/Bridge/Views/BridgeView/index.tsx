@@ -151,7 +151,8 @@ const BridgeView = () => {
   const hasInsufficientBalance = quoteRequest?.insufficientBal;
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
-  const shouldDisplayKeypad = isInputFocused || !hasValidBridgeInputs;
+  const shouldDisplayKeypad =
+    isInputFocused || !hasValidBridgeInputs || !activeQuote;
   const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
 
   // Compute error state directly from dependencies
