@@ -17,18 +17,33 @@ interface RenderInterfaceOptions {
   contentBackgroundColor?: string;
   state?: Record<string, unknown>;
   stateSettings?: Record<string, unknown>;
+  backgroundState?: Record<string, unknown>;
 }
 
 const noOp = () => {
   // no-op
 };
 
+
+/**
+ * Renders a Snap UI interface.
+ *
+ * @param content - The content to render.
+ * @param options - The options for the render.
+ * @param options.useFooter - Whether to use the footer.
+ * @param options.onCancel - The function to call when the cancel button is pressed.
+ * @param options.state - The state to render.
+ * @param options.backgroundState - The background state to render.
+ * @param options.stateSettings - The state settings to render.
+ * @returns The rendered interface.
+ */
 export function renderInterface(
   content: JSXElement | null,
   {
     useFooter = false,
     onCancel = noOp,
     state = {},
+    backgroundState = {},
     stateSettings = {},
   }: RenderInterfaceOptions = {},
 ) {
@@ -36,6 +51,7 @@ export function renderInterface(
     settings: stateSettings,
     engine: {
       backgroundState: {
+        ...backgroundState,
         SubjectMetadataController: {
           subjectMetadata: {
             'npm:@metamask/test-snap-bip44': {
