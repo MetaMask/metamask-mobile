@@ -25,8 +25,7 @@ const init = () => {
       uuid: uuid(),
       name: process.env.METAMASK_BUILD_NAME,
       icon: process.env.METAMASK_BUILD_ICON,
-      // rdns: process.env.METAMASK_BUILD_APP_ID,
-      rdns: 'io.metamask.flask',
+      rdns: process.env.METAMASK_BUILD_APP_ID,
     },
   });
 
