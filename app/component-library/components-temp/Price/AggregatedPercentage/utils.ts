@@ -30,3 +30,16 @@ export const getPercentageTextColor = (
   }
   return percentageTextColor;
 };
+
+export const getFormattedPercentageChange = (percentageChange: number) =>
+  `(${percentageChange >= 0 ? '+' : ''}${percentageChange.toFixed(2)}%)`;
+
+export const getFormattedValuePrice = (
+  amountChange: number,
+  currentCurrency: string,
+) =>
+  `${amountChange >= 0 ? '+' : ''}${renderFiat(
+    amountChange,
+    currentCurrency,
+    DECIMALS_TO_SHOW,
+  )} `;

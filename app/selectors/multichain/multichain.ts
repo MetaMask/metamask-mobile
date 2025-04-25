@@ -22,7 +22,7 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
-import { parseCaipAssetType } from '@metamask/utils';
+import { CaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -31,6 +31,7 @@ import {
   MultichainBalancesControllerState,
 } from '@metamask/assets-controllers';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { createSelector } from 'reselect';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -194,6 +195,7 @@ export const selectMultichainTransactions = createDeepEqualSelector(
     multichainTransactionsControllerState.nonEvmTransactions,
 );
 
+// TODO: refactor this file to use createDeepEqualSelector
 export function selectMultichainAssets(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsController.accountsAssets;
 }
@@ -202,10 +204,20 @@ export function selectMultichainAssetsMetadata(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsController.assetsMetadata;
 }
 
-export function selectMultichainAssetsRates(state: RootState) {
+export function selectMultichainAssetsRatesState(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
     .conversionRates;
 }
+
+export const selectMultichainAssetsRatesDeepSelector = createDeepEqualSelector(
+  selectMultichainAssetsRatesState,
+  (conversionRates) => conversionRates,
+);
+
+export const selectMultichainAssetsRates = createSelector(
+  selectMultichainAssetsRatesDeepSelector,
+  (conversionRates) => conversionRates,
+);
 
 export function selectMultichainHistoricalPrices(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
@@ -296,6 +308,7 @@ export interface MultichainNetworkAggregatedBalance {
   totalNativeTokenBalance: Balance | undefined;
   totalBalanceFiat: number | undefined;
   balances: Record<string, Balance> | undefined;
+  fiatBalances: Record<CaipAssetType, string> | undefined;
 }
 
 export const getMultichainNetworkAggregatedBalance = (
@@ -314,6 +327,7 @@ export const getMultichainNetworkAggregatedBalance = (
   // Default values for native token
   let totalNativeTokenBalance: Balance | undefined;
   let totalBalanceFiat: BigNumber | undefined;
+  const fiatBalances: Record<string, string> = {};
 
   for (const assetId of assetIds) {
     const { chainId } = parseCaipAssetType(assetId);
@@ -330,6 +344,7 @@ export const getMultichainNetworkAggregatedBalance = (
       balance.amount && rate
         ? new BigNumber(balance.amount).times(rate)
         : new BigNumber(0);
+    fiatBalances[assetId] = balanceInFiat.toString();
 
     // Only update native token balance if this is the native asset
     if (assetId === nativeAsset) {
@@ -350,6 +365,7 @@ export const getMultichainNetworkAggregatedBalance = (
       ? totalBalanceFiat.toNumber()
       : undefined,
     balances,
+    fiatBalances,
   };
 };
 
@@ -372,6 +388,7 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
           totalNativeTokenBalance: undefined,
           totalBalanceFiat: undefined,
           balances: {},
+          fiatBalances: {},
         };
       }
       return getMultichainNetworkAggregatedBalance(
