@@ -1,4 +1,4 @@
-import { JSXElement } from '@metamask/snaps-sdk/dist/jsx/index.cjs';
+import { JSXElement } from '@metamask/snaps-sdk/jsx';
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { RootState } from '../../../reducers';
