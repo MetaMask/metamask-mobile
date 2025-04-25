@@ -19,6 +19,7 @@
     "lint:tsc": "tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
     "setup": "yarn clean && node scripts/setup.mjs",
+    "setup:flask": "export METAMASK_BUILD_TYPE='flask' && yarn setup",
     "setup:expo": "yarn clean && node scripts/setup.mjs --no-build-ios --no-build-android",
     "setup:e2e": "cd wdio && yarn install",
     "start:ios": "./scripts/build.sh ios debug",

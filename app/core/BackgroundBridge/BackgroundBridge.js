@@ -153,8 +153,8 @@ export class BackgroundBridge extends EventEmitter {
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
-      ? new WalletConnectPort(wcRequestActions)
-      : new Port(this._webviewRef, isMainFrame);
+        ? new WalletConnectPort(wcRequestActions)
+        : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
     this.multichainSubscriptionManager = null;
@@ -216,6 +216,13 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     if (process.env.MULTICHAIN_API) {
+      // Handle the multichain provider channel from inpage
+      const multichainChannel = mux.createStream('metamask-multichain-provider');
+      multichainChannel.on('data', (data) => {
+        DevLogger.log('BackgroundBridge received on metamask-multichain-provider:', data);
+        multichainChannel.write({ greeting: 'hello world', receivedData: data });
+      });
+
       this.multichainSubscriptionManager = new MultichainSubscriptionManager({
         getNetworkClientById:
           Engine.context.NetworkController.getNetworkClientById.bind(
@@ -389,6 +396,7 @@ export class BackgroundBridge extends EventEmitter {
       AccountsController,
       PermissionController,
       SnapController,
+      TransactionController,
     } = Engine.context;
 
     controllerMessenger.subscribe(
@@ -403,7 +411,7 @@ export class BackgroundBridge extends EventEmitter {
       }, PreferencesController.state),
     );
 
-    this.controllerMessenger.subscribe(
+    controllerMessenger.subscribe(
       `${AccountsController.name}:selectedAccountChange`,
       async (account) => {
         if (account.address && account.address !== lastSelectedAddress) {
@@ -516,7 +524,7 @@ export class BackgroundBridge extends EventEmitter {
 
       // wallet_notify for solana accountChanged when permission changes
       controllerMessenger.subscribe(
-        `${this.permissionController.name}:stateChange`,
+        `${PermissionController.name}:stateChange`,
         async (currentValue, previousValue) => {
           const origins = uniq([
             ...previousValue.keys(),
@@ -528,12 +536,12 @@ export class BackgroundBridge extends EventEmitter {
 
             const previousSolanaAccountChangedNotificationsEnabled = Boolean(
               previousCaveatValue?.sessionProperties?.[
-                KnownSessionProperties.SolanaAccountChangedNotifications
+              KnownSessionProperties.SolanaAccountChangedNotifications
               ],
             );
             const currentSolanaAccountChangedNotificationsEnabled = Boolean(
               currentCaveatValue?.sessionProperties?.[
-                KnownSessionProperties.SolanaAccountChangedNotifications
+              KnownSessionProperties.SolanaAccountChangedNotifications
               ],
             );
 
@@ -546,10 +554,10 @@ export class BackgroundBridge extends EventEmitter {
 
             const previousSolanaCaipAccountIds = previousCaveatValue
               ? getPermittedAccountsForScopes(previousCaveatValue, [
-                  MultichainNetworks.SOLANA,
-                  MultichainNetworks.SOLANA_DEVNET,
-                  MultichainNetworks.SOLANA_TESTNET,
-                ])
+                MultichainNetworks.SOLANA,
+                MultichainNetworks.SOLANA_DEVNET,
+                MultichainNetworks.SOLANA_TESTNET,
+              ])
               : [];
             const previousNonUniqueSolanaHexAccountAddresses =
               previousSolanaCaipAccountIds.map((caipAccountId) => {
@@ -566,10 +574,10 @@ export class BackgroundBridge extends EventEmitter {
 
             const currentSolanaCaipAccountIds = currentCaveatValue
               ? getPermittedAccountsForScopes(currentCaveatValue, [
-                  MultichainNetworks.SOLANA,
-                  MultichainNetworks.SOLANA_DEVNET,
-                  MultichainNetworks.SOLANA_TESTNET,
-                ])
+                MultichainNetworks.SOLANA,
+                MultichainNetworks.SOLANA_DEVNET,
+                MultichainNetworks.SOLANA_TESTNET,
+              ])
               : [];
             const currentNonUniqueSolanaHexAccountAddresses =
               currentSolanaCaipAccountIds.map((caipAccountId) => {
@@ -1425,10 +1433,10 @@ export class BackgroundBridge extends EventEmitter {
         params:
           newAccounts.length < 2
             ? // If the length is 1 or 0, the accounts are sorted by definition.
-              newAccounts
+            newAccounts
             : // If the length is 2 or greater, we have to execute
-              // `eth_accounts` vi this method.
-              this.getPermittedAccounts(origin),
+            // `eth_accounts` vi this method.
+            this.getPermittedAccounts(origin),
       },
       API_TYPE.EIP1193,
     );
