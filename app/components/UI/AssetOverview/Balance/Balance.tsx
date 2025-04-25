@@ -91,7 +91,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         <NetworkAssetLogo
           chainId={asset.chainId as Hex}
           style={styles.ethLogo}
-          ticker={asset.symbol}
+          ticker={asset.ticker ?? asset.symbol}
           big={false}
           biggest={false}
           testID={'PLACE HOLDER'}
@@ -106,13 +106,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         size={AvatarSize.Md}
       />
     );
-  }, [
-    asset.image,
-    asset.symbol,
-    asset.isNative,
-    asset.chainId,
-    styles.ethLogo,
-  ]);
+  }, [asset, styles.ethLogo]);
 
   return (
     <View style={styles.wrapper}>
