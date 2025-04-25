@@ -124,6 +124,6 @@ export const BANNER_IMAGES: Record<SlideId, ImageSourcePropType> = {
   multisrp: multiSrpImage,
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  solana: solanaImage as ImageSourcePropType,
+  solana: solanaImage,
   ///: END:ONLY_INCLUDE_IF
 };

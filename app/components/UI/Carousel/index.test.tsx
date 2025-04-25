@@ -5,6 +5,7 @@ import { Linking } from 'react-native';
 import Carousel from './';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { SolAccountType } from '@metamask/keyring-api';
 
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
@@ -254,5 +255,37 @@ describe('Carousel', () => {
     });
 
     expect(flatList).toBeTruthy();
+  });
+
+  it('should not render solana banner if user has a solana account', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) =>
+      selector({
+        banners: {
+          dismissedBanners: [],
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '1',
+                accounts: {
+                  '1': {
+                    address: '0xSomeAddress',
+                    type: SolAccountType.DataAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    const { queryByTestId } = render(<Carousel />);
+    const solanaBanner = queryByTestId(
+      WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE,
+    );
+    expect(solanaBanner).toBeNull();
   });
 });
