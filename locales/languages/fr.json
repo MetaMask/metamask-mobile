@@ -29,9 +29,9 @@
       "message": "Le site à l’origine de la demande n’est pas celui auquel vous essayez de vous connecter. Il peut s’agir d’une tentative de vol de vos identifiants de connexion."
     },
     "insufficient_balance": {
-      "title": "Insufficient funds",
-      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
-      "buy_action": "Buy %{nativeCurrency}"
+      "title": "Fonds insuffisants",
+      "message": "Vous n’avez pas assez de %{nativeCurrency} sur votre compte pour payer les frais de réseau.",
+      "buy_action": "Achetez %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -83,11 +83,11 @@
     "connector": "à"
   },
   "autocomplete": {
-    "placeholder": "Search by token, site or address",
+    "placeholder": "Recherche par jeton, site ou adresse",
     "recents": "Récents",
     "favorites": "Favoris",
     "sites": "Sites",
-    "tokens": "Tokens"
+    "tokens": "Jetons"
   },
   "navigation": {
     "back": "Retour",
@@ -444,8 +444,8 @@
       "subtitle": "Contrôlez l’affichage de votre solde dans les paramètres"
     },
     "multisrp": {
-      "title": "Add multiple Secret Recovery Phrases",
-      "subtitle": "Import and use multiple wallets in MetaMask"
+      "title": "Ajoutez plusieurs phrases secrètes de récupération",
+      "subtitle": "Importez et utilisez plusieurs portefeuilles dans MetaMask"
     }
   },
   "wallet": {
@@ -793,14 +793,14 @@
     "show_accounts": "Afficher",
     "hide_accounts": "Masquer",
     "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
-      "bitcoin_account_name": "Bitcoin Account",
-      "solana_devnet_account_name": "Solana Devnet Account",
-      "solana_testnet_account_name": "Solana Testnet Account",
-      "solana_account_name": "Solana Account"
+      "bitcoin_testnet_account_name": "Compte Bitcoin testnet",
+      "bitcoin_account_name": "Compte Bitcoin",
+      "solana_devnet_account_name": "Compte Solana devnet",
+      "solana_testnet_account_name": "Compte Solana testnet",
+      "solana_account_name": "Compte Solana"
     },
     "error_messages": {
-      "failed_to_create_account": "Failed to create {{clientType}} account"
+      "failed_to_create_account": "La création du compte {{clientType}} a échoué"
     }
   },
   "toast": {
@@ -982,11 +982,11 @@
     "networks_desc": "Ajouter et modifier des réseaux RPC personnalisés",
     "network_name_label": "Nom du réseau",
     "network_name_placeholder": "Nom du réseau (facultatif)",
-    "network_rpc_url_label": "RPC URL",
+    "network_rpc_url_label": "URL de l’appel de procédure à distance",
     "network_rpc_name_label": "Nom du RPC",
     "network_rpc_placeholder": "Nouveau réseau RPC",
-    "network_failover_rpc_url_label": "Failover RPC URL",
-    "failover": "Failover",
+    "network_failover_rpc_url_label": "Basculement vers l’URL de l’appel de procédure à distance",
+    "failover": "Basculement",
     "network_chain_id_label": "ID de chaîne",
     "network_chain_id_placeholder": "ID de chaîne",
     "network_symbol_label": "Symbole",
@@ -1135,7 +1135,7 @@
       "description": "Aperçu et gestion de vos Snaps",
       "snap_ui": {
         "link": {
-          "accessibilityHint": "Opens in a new tab"
+          "accessibilityHint": "S’ouvre dans un nouvel onglet"
         }
       },
       "snap_settings": {
@@ -1508,7 +1508,7 @@
     "gas_fee_slow": "LENT",
     "hex_data": "Données hexadécimales",
     "custom_nonce": "Nonce",
-    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
+    "custom_nonce_tooltip": "Il s’agit du numéro de transaction d’un compte. Le nonce de la première transaction est 0 et il augmente de manière séquentielle.",
     "this_is_an_advanced": "Il s’agit d’une fonction avancée utilisée pour annuler ou accélérer toute transaction en attente.",
     "current_suggested_nonce": "Nonce actuel suggéré :",
     "edit_transaction_nonce": "Personnaliser le nonce de transaction",
@@ -1787,7 +1787,7 @@
     "tx_details_not_available": "Non disponible",
     "smart_contract_interaction": "Interaction de contrats intelligents",
     "swaps_transaction": "Transaction de swap",
-    "bridge_transaction": "Bridge",
+    "bridge_transaction": "Passerelle",
     "approve": "Approuver",
     "increase_allowance": "Augmenter la provision",
     "set_approval_for_all": "Définir l’approbation pour tous",
@@ -2113,7 +2113,7 @@
     "info_text_2": "Vous serez ainsi le seul à pouvoir accéder à vos fonds et à pouvoir récupérer votre portefeuille en cas de perte ou de dysfonctionnement de votre appareil.",
     "cta_text": "Créer un mot de passe",
     "creating_password": "Création du mot de passe…",
-    "srp_list_selection": "Select Secret Recovery Phrase"
+    "srp_list_selection": "Sélectionner la phrase secrète de récupération"
   },
   "account_backup_step_1": {
     "remind_me_later": "Me le rappeler plus tard",
@@ -2754,7 +2754,7 @@
     "minimum": "Le dépôt minimum est de",
     "maximum": "Le dépôt maximum est de",
     "insufficient_balance": "Ce montant est supérieur à votre solde",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "Vous n’avez pas assez de {{currency}} pour couvrir les frais de gaz.",
     "enter_larger_amount": "Saisissez un montant plus élevé pour continuer",
     "enter_smaller_amount": "Saisissez un montant inférieur pour continuer",
     "enter_lower_gas_fees": "Saisissez un montant inférieur pour payer les frais de gaz",
@@ -3805,21 +3805,21 @@
       "permit_revoke": "Supprimer l’autorisation",
       "permit_NFTs": "Demande de retrait",
       "signature_siwe": "Demande de connexion",
-      "contract_interaction": "Transaction request"
+      "contract_interaction": "Demande de transaction"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",
       "permit_NFTs": "Ce site demande l’autorisation de retirer vos jetons.",
       "signature": "Vérifiez les détails de la demande avant de la confirmer.",
       "signature_siwe": "Un site vous demande de vous connecter pour prouver que vous êtes le titulaire de ce compte.",
-      "contract_interaction": "Review request details before you confirm."
+      "contract_interaction": "Vérifiez les détails de la demande avant de la confirmer."
     },
     "request_from": "Demande de",
     "staking_from": "Staking à partir de",
     "signing_in_with": "Se connecter avec",
     "message": "Message",
     "personal_sign_tooltip": "Ce site demande votre signature",
-    "transaction_tooltip": "This site is asking for your transaction",
+    "transaction_tooltip": "Ce site demande votre transaction",
     "details": "Détails",
     "qr_get_sign": "Obtenir la signature",
     "qr_scan_text": "Scannez avec votre portefeuille matériel",
@@ -3855,8 +3855,9 @@
     },
     "unlimited": "Illimité",
     "none": "Aucun",
-    "advanced_details": "Advanced details",
-    "interacting_with": "Interacting with"
+    "advanced_details": "Détails avancés",
+    "interacting_with": "Interagissant avec",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "Les résultats ont changé",
@@ -3898,28 +3899,33 @@
     "quote_info_content": "D’après nos recherches, cette cotation offre le meilleur rendement. Elle prend en compte le taux de change, les frais d’établissement d’une passerelle et les frais de MetaMask de 0,875 %, mais pas les frais de gaz. Les frais de gaz varient en fonction de l’activité du réseau et de la complexité de la transaction.",
     "quote_info_title": "Pourquoi nous recommandons cette cotation",
     "see_other_quotes": "Voir d’autres cotations",
-    "receive_at": "Receive at",
-    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
-    "insufficient_funds": "Insufficient funds",
-    "select_amount": "Select amount",
-    "bridge_to": "Bridge to",
-    "title": "Bridge",
-    "submitting_transaction": "Submitting",
-    "fetching_quote": "Fetching quote"
+    "receive_at": "Recevoir à",
+    "error_banner_description": "Cette voie d’échange n’est pas disponible pour le moment. Essayez de modifier le montant, le réseau ou le jeton, et nous trouverons la meilleure option.",
+    "insufficient_funds": "Fonds insuffisants",
+    "select_amount": "Sélectionnez le montant",
+    "bridge_to": "Établir une passerelle vers",
+    "title": "Passerelle",
+    "submitting_transaction": "En train d’envoyer",
+    "fetching_quote": "Récupération de la cotation"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
   },
   "bridge_transaction_details": {
-    "status": "Status",
+    "status": "État",
     "date": "Date",
-    "total_gas_fee": "Total gas fee",
-    "estimated_completion": "Est. completion",
-    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
-    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
-    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
-    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
-    "view_on_block_explorer": "View on Block Explorer",
-    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
-    "transaction_details": "Transaction Details",
-    "bridge_to_chain": "Bridge to {{chainName}}",
-    "recipient": "Recipient"
+    "total_gas_fee": "Montant total des frais de gaz",
+    "estimated_completion": "Temps estimé pour la réalisation de l’opération",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} reçu sur {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Recevoir {{destSymbol}} sur {{destChainName}}",
+    "bridge_step_action_swap_complete": "A échangé {{srcSymbol}} contre {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Échanger {{srcSymbol}} contre {{destSymbol}}",
+    "view_on_block_explorer": "Afficher sur l’explorateur de blocs",
+    "block_explorer_description": "Cette transaction se déroule sur deux réseaux. Le premier lien indique la source ; le second indique la destination une fois qu’elle est confirmée.",
+    "transaction_details": "Détails de la transaction",
+    "bridge_to_chain": "Établir une passerelle vers {{chainName}}",
+    "recipient": "Destinataire"
   }
 }
