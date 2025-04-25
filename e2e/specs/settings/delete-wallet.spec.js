@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { SmokeCore } from '../../tags';
+import { Regression } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import LoginView from '../../pages/wallet/LoginView';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -15,7 +15,7 @@ import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
 
 describe(
-  SmokeCore('Log in into the app, change password then delete wallet flow'),
+  Regression('Log in into the app, change password then delete wallet flow'),
   () => {
     const PASSWORD = '123123123';
 

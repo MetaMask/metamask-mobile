@@ -193,6 +193,7 @@ describe('BridgeSourceTokenSelector', () => {
   });
 
   it('displays empty state when no tokens match search', async () => {
+    jest.useFakeTimers();
     const { getByTestId, getByText } = renderScreen(
       BridgeSourceTokenSelector,
       {

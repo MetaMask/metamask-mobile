@@ -277,6 +277,8 @@ enum EVENT_NAME {
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
+  BRIDGE_PAGE_VIEWED = 'Bridge Page Viewed',
+  SWAP_PAGE_VIEWED = 'Swap Page Viewed', // Temporary event until unified swap/bridge is done
 
   // Earn
   EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
@@ -364,6 +366,7 @@ enum EVENT_NAME {
   ACTIONS_BUTTON_CLICKED = 'Global Actions Button Clicked',
   RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
   SWAP_BUTTON_CLICKED = 'Swaps Button Clicked',
+  BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
   SEND_BUTTON_CLICKED = 'Send Button Clicked',
   EARN_BUTTON_CLICKED = 'Earn Button Clicked',
   // Edit account name
@@ -837,6 +840,7 @@ const events = {
   ACTIONS_BUTTON_CLICKED: generateOpt(EVENT_NAME.ACTIONS_BUTTON_CLICKED),
   RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
+  BRIDGE_BUTTON_CLICKED: generateOpt(EVENT_NAME.BRIDGE_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
   EARN_BUTTON_CLICKED: generateOpt(EVENT_NAME.EARN_BUTTON_CLICKED),
   NETWORK_SELECTOR_PRESSED: generateOpt(EVENT_NAME.NETWORK_SELECTOR),
@@ -1025,6 +1029,10 @@ const events = {
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
   RPC_SERVICE_DEGRADED: generateOpt(EVENT_NAME.RPC_SERVICE_DEGRADED),
+
+  // Bridge
+  BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),
+  SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
 };
 
 /**
