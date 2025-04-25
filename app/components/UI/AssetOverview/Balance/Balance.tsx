@@ -94,7 +94,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           ticker={asset.ticker ?? asset.symbol}
           big={false}
           biggest={false}
-          testID={'PLACE HOLDER'}
+          testID={asset.name}
         />
       );
     }
