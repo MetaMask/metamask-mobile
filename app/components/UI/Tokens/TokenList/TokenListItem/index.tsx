@@ -357,10 +357,6 @@ export const TokenListItem = React.memo(
       isStakingSupportedChain,
     ]);
 
-    if (asset.chainId === '0xe708' && asset.isNative) {
-      console.log(asset);
-    }
-
     return (
       <AssetElement
         // assign staked asset a unique key
