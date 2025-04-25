@@ -83,10 +83,11 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "Search by site or address",
+    "placeholder": "Search by token, site or address",
     "recents": "Recents",
     "favorites": "Favorites",
-    "sites": "Sites"
+    "sites": "Sites",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Back",
@@ -1507,6 +1508,7 @@
     "gas_fee_slow": "SLOW",
     "hex_data": "Hex Data",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "This is an advanced feature used to cancel or speed up any pending transactions.",
     "current_suggested_nonce": "Current suggested nonce:",
     "edit_transaction_nonce": "Edit transaction nonce",
@@ -3853,7 +3855,10 @@
       "unavailable": "Unavailable"
     },
     "unlimited": "Unlimited",
-    "none": "None"
+    "none": "None",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -3904,6 +3909,11 @@
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote"
   },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+  },
   "bridge_transaction_details": {
     "status": "Status",
     "date": "Date",
@@ -3914,6 +3924,9 @@
     "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
     "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
     "view_on_block_explorer": "View on Block Explorer",
-    "transaction_details": "Transaction Details"
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
   }
 }

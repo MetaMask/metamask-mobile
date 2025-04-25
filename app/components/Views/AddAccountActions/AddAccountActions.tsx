@@ -58,7 +58,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const [isLoading, setIsLoading] = useState(false);
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const hdKeyrings = useSelector(selectHDKeyrings);
-  const useCreateAccountWithSrps = hdKeyrings.length > 1;
+  const hasMultipleSRPs = hdKeyrings.length > 1;
   ///: END:ONLY_INCLUDE_IF
 
   const openImportAccount = useCallback(() => {
@@ -87,7 +87,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
   const createNewAccount = useCallback(async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-    if (useCreateAccountWithSrps) {
+    if (hasMultipleSRPs) {
       navigate(Routes.SHEET.ADD_ACCOUNT, {});
       return;
     }
@@ -112,13 +112,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
       setIsLoading(false);
     }
-  }, [
-    useCreateAccountWithSrps,
-    navigate,
-    trackEvent,
-    createEventBuilder,
-    onBack,
-  ]);
+  }, [hasMultipleSRPs, navigate, trackEvent, createEventBuilder, onBack]);
 
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const isBtcMainnetAccountAlreadyCreated = useSelector(

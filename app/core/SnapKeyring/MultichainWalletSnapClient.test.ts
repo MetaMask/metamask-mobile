@@ -1,10 +1,16 @@
-import { MultichainWalletSnapClient } from './MultichainWalletSnapClient';
+import {
+  BitcoinWalletSnapClient,
+  MultichainWalletSnapClient,
+  MultichainWalletSnapFactory,
+  SolanaWalletSnapClient,
+  WalletClientType,
+} from './MultichainWalletSnapClient';
 import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../Engine';
 import { Sender } from '@metamask/keyring-snap-client';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 
 jest.mock('../Engine', () => ({
   controllerMessenger: {
@@ -48,7 +54,7 @@ describe('MultichainWalletSnapClient', () => {
       super(mockSnapId, mockSnapName, mockSnapKeyringOptions);
     }
 
-    protected getScope(): CaipChainId {
+    getScope(): CaipChainId {
       return SolScope.Mainnet;
     }
 
@@ -196,6 +202,68 @@ describe('MultichainWalletSnapClient', () => {
         },
         mockSnapKeyringOptions,
       );
+    });
+  });
+
+  describe('MultichainWalletSnapFactory', () => {
+    it('creates a BitcoinWalletSnapClient', () => {
+      const bitcoinClient = MultichainWalletSnapFactory.createClient(
+        WalletClientType.Bitcoin,
+      );
+
+      expect(bitcoinClient).toBeInstanceOf(BitcoinWalletSnapClient);
+    });
+
+    it('creates a SolanaWalletSnapClient', () => {
+      const solanaClient = MultichainWalletSnapFactory.createClient(
+        WalletClientType.Solana,
+      );
+      expect(solanaClient).toBeInstanceOf(SolanaWalletSnapClient);
+    });
+
+    it('throws if an invalid wallet type is provided', () => {
+      expect(() =>
+        MultichainWalletSnapFactory.createClient('invalid' as WalletClientType),
+      ).toThrow('Unsupported client type: invalid');
+    });
+
+    it('passes options to the client', () => {
+      const mockOptions = {
+        displayConfirmation: true,
+        displayAccountNameSuggestion: true,
+        setSelectedAccount: false,
+      };
+
+      const snapClient = MultichainWalletSnapFactory.createClient(
+        WalletClientType.Bitcoin,
+        mockOptions,
+      );
+
+      expect(snapClient.snapKeyringOptions).toStrictEqual(mockOptions);
+    });
+  });
+
+  describe('BitcoinWalletSnapClient', () => {
+    it('should create a BitcoinWalletSnapClient', () => {
+      const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
+      expect(bitcoinClient).toBeDefined();
+    });
+
+    it('getScope returns bitcoin network', () => {
+      const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
+      expect(bitcoinClient.getScope()).toEqual(BtcScope.Mainnet);
+    });
+  });
+
+  describe('SolanaWalletSnapClient', () => {
+    it('should create a SolanaWalletSnapClient', () => {
+      const solanaClient = new SolanaWalletSnapClient(mockSnapKeyringOptions);
+      expect(solanaClient).toBeDefined();
+    });
+
+    it('getScope returns solana network', () => {
+      const solanaClient = new SolanaWalletSnapClient(mockSnapKeyringOptions);
+      expect(solanaClient.getScope()).toEqual(SolScope.Mainnet);
     });
   });
 });

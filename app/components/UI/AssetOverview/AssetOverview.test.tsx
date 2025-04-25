@@ -17,6 +17,7 @@ import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
+import { swapsUtils } from '@metamask/swaps-controller';
 import {
   BALANCE_TEST_ID,
   SECONDARY_BALANCE_TEST_ID,
@@ -61,6 +62,20 @@ const mockInitialState = {
           usdConversionRate: 3432.53,
         },
       },
+    },
+    TokenSearchDiscoveryDataController: {
+      tokenDisplayData: [
+        {
+          chainId: MOCK_CHAIN_ID,
+          address: '0x123',
+          currency: 'ETH',
+          found: true,
+          logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
+          name: 'Ethereum',
+          symbol: 'ETH',
+          price: {},
+        },
+      ],
     },
   },
   settings: {
@@ -114,6 +129,16 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+const mockAddPopularNetwork = jest
+  .fn()
+  .mockImplementation(() => Promise.resolve());
+jest.mock('../../../components/hooks/useAddNetwork', () => ({
+  useAddNetwork: jest.fn().mockImplementation(() => ({
+    addPopularNetwork: mockAddPopularNetwork,
+    networkModal: null,
+  })),
+}));
+
 const asset = {
   balance: '400',
   balanceFiat: '1500',
@@ -127,6 +152,11 @@ const asset = {
   address: '0x123',
   aggregators: [],
   image: '',
+};
+
+const assetFromSearch = {
+  ...asset,
+  isFromSearch: true,
 };
 
 describe('AssetOverview', () => {
@@ -409,6 +439,7 @@ describe('AssetOverview', () => {
       <AssetOverview
         asset={{
           ...asset,
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
           chainId: SolScope.Mainnet,
           isNative: true,
         }}
@@ -427,6 +458,13 @@ describe('AssetOverview', () => {
               MultichainNetworkController: {
                 selectedMultichainNetworkChainId: SolScope.Mainnet,
               },
+              MultichainAssetsRatesController: {
+                conversionRates: {
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+                    rate: '151.23',
+                  },
+                },
+              },
             },
           },
         },
@@ -434,6 +472,62 @@ describe('AssetOverview', () => {
     );
 
     expect(container).toMatchSnapshot();
+  });
+
+  it('should swap into the asset when coming from search', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={assetFromSearch}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      { state: mockInitialState },
+    );
+
+    const swapButton = getByTestId('token-swap-button');
+    fireEvent.press(swapButton);
+
+    // Wait for all promises to resolve
+    await Promise.resolve();
+
+    expect(navigate).toHaveBeenCalledWith('Swaps', {
+      screen: 'SwapsAmountView',
+      params: {
+        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        destinationToken: assetFromSearch.address,
+        sourcePage: 'MainView',
+        chainId: assetFromSearch.chainId,
+      },
+    });
+  });
+
+  it('should prompt to add the network if coming from search and on a different chain', async () => {
+    (
+      Engine.context.NetworkController
+        .getNetworkConfigurationByChainId as jest.Mock
+    ).mockReturnValueOnce(null);
+    const differentChainAssetFromSearch = {
+      ...assetFromSearch,
+      chainId: '0xa',
+    };
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={differentChainAssetFromSearch}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      { state: mockInitialState },
+    );
+
+    const swapButton = getByTestId('token-swap-button');
+    fireEvent.press(swapButton);
+
+    // Wait for all promises to resolve
+    await Promise.resolve();
+
+    expect(mockAddPopularNetwork).toHaveBeenCalled();
   });
 
   describe('Portfolio view network switching', () => {

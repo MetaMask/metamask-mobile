@@ -34,7 +34,7 @@ describe('BlockExplorersModal', () => {
   const mockProps = {
     route: {
       params: {
-        tx: mockTx,
+        evmTxMeta: mockTx,
       },
     },
   };
