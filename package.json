@@ -99,11 +99,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "prettier --write",
-      "eslint"
-    ],
-    "*.json": [
-      "prettier --write"
+      "eslint '**/*.{js,ts,tsx}'"
     ]
   },
   "resolutions": {
@@ -152,7 +148,7 @@
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
-    "@consensys/on-ramp-sdk": "^2.0.14",
+    "@consensys/on-ramp-sdk": "^2.1.5",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "@keystonehq/ur-decoder": "^0.12.2",
@@ -188,7 +184,7 @@
     "@metamask/json-rpc-middleware-stream": "^8.0.7",
     "@metamask/key-tree": "^10.1.1",
     "@metamask/keyring-api": "^17.4.0",
-    "@metamask/keyring-controller": "^21.0.1",
+    "@metamask/keyring-controller": "^21.0.4",
     "@metamask/keyring-internal-api": "^4.0.3",
     "@metamask/keyring-snap-client": "^4.0.1",
     "@metamask/logging-controller": "^6.0.4",
