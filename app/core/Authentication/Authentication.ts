@@ -62,9 +62,9 @@ class AuthenticationService {
     ReduxService.store.dispatch(logOut());
   }
 
-  private dispatchOauth2Reset(): void {
+  private dispatchOauthReset(): void {
     ReduxService.store.dispatch({
-      type: UserActionType.OAUTH2_LOGIN_RESET,
+      type: UserActionType.OAUTH_LOGIN_RESET,
     });
   }
 
@@ -494,7 +494,7 @@ class AuthenticationService {
         password,
         seedPhrase,
       );
-      this.dispatchOauth2Reset();
+      this.dispatchOauthReset();
     } catch (error) {
       await this.newWalletAndKeychain(`${Date.now()}`, {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
@@ -536,7 +536,7 @@ class AuthenticationService {
         }
         this.dispatchLogin();
         this.dispatchPasswordSet();
-        this.dispatchOauth2Reset();
+        this.dispatchOauthReset();
       } else {
         throw new Error('No account data found');
       }

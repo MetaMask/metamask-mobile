@@ -390,7 +390,7 @@ class Onboarding extends PureComponent {
   onPressContinueWithApple = async () => {
     this.props.navigation.navigate('Onboarding');
     const action = async () => {
-      const result = await OAuthLoginService.handleOAuth2Login('apple').catch(
+      const result = await OAuthLoginService.handleOAuthLogin('apple').catch(
         (e) => {
           DevLogger.log(e);
           return { type: 'error', error: e, existingUser: false };
@@ -405,7 +405,7 @@ class Onboarding extends PureComponent {
   onPressContinueWithGoogle = async () => {
     this.props.navigation.navigate('Onboarding');
     const action = async () => {
-      const result = await OAuthLoginService.handleOAuth2Login('google').catch(
+      const result = await OAuthLoginService.handleOAuthLogin('google').catch(
         (e) => {
           DevLogger.log(e);
           return { type: 'error', error: e, existingUser: false };
@@ -712,7 +712,7 @@ const mapDispatchToProps = (dispatch) => ({
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  oauth2LoginReset: () => dispatch({ type: UserActionType.OAUTH2_LOGIN_RESET }),
+  oauth2LoginReset: () => dispatch({ type: UserActionType.OAUTH_LOGIN_RESET }),
 });
 
 export default connect(

@@ -257,7 +257,7 @@ const Login: React.FC = () => {
       screen: 'OnboardingNav',
       params: { screen: 'Onboarding' },
     });
-    dispatch({ type: UserActionType.OAUTH2_LOGIN_RESET });
+    dispatch({ type: UserActionType.OAUTH_LOGIN_RESET });
   };
 
   const onLogin = async () => {
