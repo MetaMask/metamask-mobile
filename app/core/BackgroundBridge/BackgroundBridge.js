@@ -37,7 +37,6 @@ import {
   walletGetSession,
   walletInvokeMethod,
   walletRevokeSession,
-  MultichainApiNotifications,
 } from '@metamask/multichain-api-middleware';
 
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
