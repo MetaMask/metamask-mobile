@@ -1,5 +1,4 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -48,12 +47,14 @@ describe('QuoteInfoModal', () => {
     expect(getByText(strings('bridge.quote_info_content'))).toBeDefined();
   });
 
-  it('closes modal when footer button is pressed', () => {
-    const { getByText } = renderQuoteInfoModal();
+  //TODO: Add tests when footer button for more quotes is added later
 
-    const closeButton = getByText(strings('bridge.see_other_quotes'));
-    fireEvent.press(closeButton);
+  // it('closes modal when footer button is pressed', () => {
+  //   const { getByText } = renderQuoteInfoModal();
 
-    expect(mockGoBack).toHaveBeenCalled();
-  });
+  //   const closeButton = getByText(strings('bridge.see_other_quotes'));
+  //   fireEvent.press(closeButton);
+
+  //   expect(mockGoBack).toHaveBeenCalled();
+  // });
 });

@@ -36,6 +36,7 @@ import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
 } from '../../UI/Ramp/routes/utils';
+import { trace, TraceName } from '../../../util/trace';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
@@ -49,7 +50,11 @@ import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 ///: END:ONLY_INCLUDE_IF
-import { useSwapBridgeNavigation, SwapBridgeNavigationLocation } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { RampType } from '../../../reducers/fiatOrders/types';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -67,10 +72,11 @@ const WalletActions = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TabBar,
-    sourcePage: 'MainView',
-  });
+  const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } =
+    useSwapBridgeNavigation({
+      location: SwapBridgeNavigationLocation.TabBar,
+      sourcePage: 'MainView',
+    });
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -142,6 +148,13 @@ const WalletActions = () => {
         })
         .build(),
     );
+
+    trace({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: RampType.BUY,
+      },
+    });
   }, [
     closeBottomSheetAndNavigate,
     navigate,
@@ -164,6 +177,13 @@ const WalletActions = () => {
         })
         .build(),
     );
+
+    trace({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: RampType.SELL,
+      },
+    });
   }, [
     closeBottomSheetAndNavigate,
     navigate,
@@ -261,24 +281,7 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       goToBridgeBase();
     });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Bridge',
-          tokenSymbol: '',
-          location: 'TabBar',
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [
-    closeBottomSheetAndNavigate,
-    goToBridgeBase,
-    trackEvent,
-    chainId,
-    createEventBuilder,
-  ]);
+  }, [closeBottomSheetAndNavigate, goToBridgeBase]);
 
   const sendIconStyle = useMemo(
     () => ({
