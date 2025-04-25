@@ -35,7 +35,7 @@ import {
   selectEvmTokenFiatBalances,
   selectEvmTokens,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  selectMultichainTokenList,
+  selectMultichainTokenListForAccountId,
   ///: END:ONLY_INCLUDE_IF
 } from '../../../selectors/multichain';
 import { TraceName, endTrace, trace } from '../../../util/trace';
@@ -45,6 +45,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { RootState } from '../../../reducers';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -74,12 +75,15 @@ const Tokens = memo(() => {
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   // non-evm
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const nonEvmTokens = useSelector(selectMultichainTokenList);
+ const nonEvmTokens = useSelector((state: RootState) =>
+  selectMultichainTokenListForAccountId(state, selectedAccount?.id),
+);
   ///: END:ONLY_INCLUDE_IF
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
+
 
   const tokenListData = isEvmSelected ? evmTokens : nonEvmTokens;
 
