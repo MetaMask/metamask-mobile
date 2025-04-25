@@ -101,12 +101,14 @@ describe('SolanaNewFeatureContent', () => {
     });
   });
 
-  it('shows the "got it" button for existing users', async () => {
+  it('shows the "view solana account" button for existing users', async () => {
     (useSelector as jest.Mock).mockReturnValue(true);
     const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
-      expect(getByText('solana_new_feature_content.got_it')).toBeTruthy();
+      expect(
+        getByText('solana_new_feature_content.view_solana_account'),
+      ).toBeTruthy();
     });
   });
 
