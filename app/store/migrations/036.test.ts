@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import migrate, { Identity } from './036';
