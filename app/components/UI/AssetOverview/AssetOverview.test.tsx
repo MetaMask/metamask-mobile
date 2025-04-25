@@ -464,6 +464,7 @@ describe('AssetOverview', () => {
                     rate: '151.23',
                   },
                 },
+                historicalPrices: {},
               },
             },
           },
