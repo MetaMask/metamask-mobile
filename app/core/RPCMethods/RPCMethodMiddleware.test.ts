@@ -70,6 +70,7 @@ jest.mock('../../util/permissions', () => ({
   __esModule: true,
   getCaip25PermissionFromLegacyPermissions: jest.fn(),
   requestPermittedChainsPermissionIncremental: jest.fn(),
+  rejectOriginPendingApprovals: jest.fn(),
 }));
 
 jest.mock('./spam');
