@@ -74,7 +74,7 @@ export class AndroidAppleLoginHandler
       provider: this.authConnection,
       client_redirect_back_uri: this.appRedirectUri,
       redirectUri: this.redirectUri,
-      clientId: this.appRedirectUri,
+      clientId: this.clientId,
       random: this.nonce,
     });
     const authRequest = new AuthRequest({
