@@ -1,4 +1,3 @@
-import { Json } from '@metamask/utils';
 import {
   AccountsController,
   AccountsControllerMessenger,
@@ -35,12 +34,6 @@ import { multichainAssetsRatesControllerInit } from '../controllers/multichain-a
 import { multichainBalancesControllerInit } from '../controllers/multichain-balances-controller/multichain-balances-controller-init';
 import { multichainNetworkControllerInit } from '../controllers/multichain-network-controller/multichain-network-controller-init';
 import { multichainTransactionsControllerInit } from '../controllers/multichain-transactions-controller/multichain-transactions-controller-init';
-import {
-  ApprovalController,
-  ApprovalRequest,
-} from '@metamask/approval-controller';
-import { ApprovalType } from '@metamask/controller-utils';
-import { providerErrors } from '@metamask/rpc-errors';
 import { notificationServicesControllerInit } from '../controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from '../controllers/notifications/notification-services-push-controller-init';
 import { SignatureControllerInit } from '../controllers/signature-controller';
@@ -53,7 +46,7 @@ import {
 } from '../controllers/snaps';
 import { TransactionControllerInit } from '../controllers/transaction-controller';
 import { createMockControllerInitFunction } from './test-utils';
-import { getControllerOrThrow, initModularizedControllers, rejectOriginApprovals } from './utils';
+import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { AppMetadataController } from '@metamask/app-metadata-controller';
 import { appMetadataControllerInit } from '../controllers/app-metadata-controller';
 
@@ -300,45 +293,5 @@ describe('getControllerOrThrow', () => {
         name: 'AccountsController',
       }),
     ).not.toThrow();
-  });
-});
-
-describe('rejectOriginApprovals', () => {
-  const ID_MOCK = '123';
-  const ID_MOCK_2 = '456';
-
-  function createApprovalControllerMock(
-    pendingApprovals: Partial<ApprovalRequest<Record<string, Json>>>[],
-  ) {
-    return {
-      state: {
-        pendingApprovals,
-      },
-      accept: jest.fn(),
-      reject: jest.fn(),
-    } as unknown as jest.Mocked<ApprovalController>;
-  }
-  it('rejects approval requests from given origin', () => {
-    const origin = 'https://example.com';
-    const approvalController = createApprovalControllerMock([
-      { id: ID_MOCK, origin, type: ApprovalType.Transaction },
-      {
-        id: ID_MOCK_2,
-        origin: 'www.test.com',
-        type: ApprovalType.EthSignTypedData,
-      },
-    ]);
-
-    rejectOriginApprovals({
-      approvalController,
-      deleteInterface: () => undefined,
-      origin,
-    });
-
-    expect(approvalController.reject).toHaveBeenCalledTimes(1);
-    expect(approvalController.reject).toHaveBeenCalledWith(
-      ID_MOCK,
-      providerErrors.userRejectedRequest(),
-    );
   });
 });
