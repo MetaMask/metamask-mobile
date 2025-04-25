@@ -31,7 +31,6 @@ import {
   MultichainBalancesControllerState,
 } from '@metamask/assets-controllers';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { createSelector } from 'reselect';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -209,13 +208,8 @@ export function selectMultichainAssetsRatesState(state: RootState) {
     .conversionRates;
 }
 
-export const selectMultichainAssetsRatesDeepSelector = createDeepEqualSelector(
+export const selectMultichainAssetsRates = createDeepEqualSelector(
   selectMultichainAssetsRatesState,
-  (conversionRates) => conversionRates,
-);
-
-export const selectMultichainAssetsRates = createSelector(
-  selectMultichainAssetsRatesDeepSelector,
   (conversionRates) => conversionRates,
 );
 
@@ -307,7 +301,7 @@ export const selectMultichainTokenList = createDeepEqualSelector(
 export interface MultichainNetworkAggregatedBalance {
   totalNativeTokenBalance: Balance | undefined;
   totalBalanceFiat: number | undefined;
-  balances: Record<string, Balance> | undefined;
+  tokenBalances: Record<string, Balance> | undefined;
   fiatBalances: Record<CaipAssetType, string> | undefined;
 }
 
@@ -364,7 +358,7 @@ export const getMultichainNetworkAggregatedBalance = (
     totalBalanceFiat: totalBalanceFiat
       ? totalBalanceFiat.toNumber()
       : undefined,
-    balances,
+    tokenBalances: balances,
     fiatBalances,
   };
 };
@@ -387,7 +381,7 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
         return {
           totalNativeTokenBalance: undefined,
           totalBalanceFiat: undefined,
-          balances: {},
+          tokenBalances: {},
           fiatBalances: {},
         };
       }

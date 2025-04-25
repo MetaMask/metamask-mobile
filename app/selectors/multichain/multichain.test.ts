@@ -785,7 +785,7 @@ describe('MultichainNonEvm Selectors', () => {
       // Should return undefined values since there are no Solana assets
       expect(result.totalNativeTokenBalance).toBeUndefined();
       expect(result.totalBalanceFiat).toBeUndefined();
-      expect(result.balances).toEqual({
+      expect(result.tokenBalances).toEqual({
         [btcNativeAssetId]: { amount: '0.5', unit: 'BTC' },
       });
     });

@@ -13,7 +13,7 @@ import * as multichain from '../../../../selectors/multichain/multichain';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain/multichain';
 
 const mockGetMultichainNetworkAggregatedBalance = {
-  balances: {
+  tokenBalances: {
     'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
       amount: '1',
       unit: 'SOL',
