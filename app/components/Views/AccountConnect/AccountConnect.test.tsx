@@ -80,7 +80,7 @@ jest.mock('../../../core/Engine', () => {
           return { result: false };
         }),
         scanUrl: jest.fn(async (url: string) => {
-          if (url === 'phishing.com') {
+          if (url === 'https://phishing.com') {
             return { recommendedAction: 'BLOCK' };
           }
           return { recommendedAction: 'NONE' };
@@ -288,62 +288,70 @@ describe('AccountConnect', () => {
   });
 
   describe('Phishing detection', () => {
-    it('should show phishing modal for phishing URLs', async () => {
-      const { findByText } = renderWithProvider(
-        <AccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'phishing.com',
-                },
-                permissions: {
-                  eth_accounts: {
-                    parentCapability: 'eth_accounts',
+    describe('dapp scanning is enabled', () => {
+      it('should show phishing modal for phishing URLs', async () => {
+        const { findByText } = renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: 'phishing.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
                   },
                 },
+                permissionRequestId: 'test',
               },
-              permissionRequestId: 'test',
-            },
-          }}
-        />,
-        { state: mockInitialState },
-      );
+            }}
+          />,
+          { state: mockInitialState },
+        );
 
-      const warningText = await findByText(
-        `MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.`,
-      );
-      expect(warningText).toBeTruthy();
-    });
+        const warningText = await findByText(
+          `MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.`,
+        );
+        expect(warningText).toBeTruthy();
+        expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
+          'https://phishing.com',
+        );
+      });
 
-    it('should not show phishing modal for safe URLs', async () => {
-      const { queryByText } = renderWithProvider(
-        <AccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'safe-site.com',
-                },
-                permissions: {
-                  eth_accounts: {
-                    parentCapability: 'eth_accounts',
+      it('should not show phishing modal for safe URLs', async () => {
+        const { queryByText } = renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: 'safe-site.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
                   },
                 },
+                permissionRequestId: 'test',
               },
-              permissionRequestId: 'test',
-            },
-          }}
-        />,
-        { state: mockInitialState },
-      );
+            }}
+          />,
+          { state: mockInitialState },
+        );
 
-      const warningText = queryByText(
-        `MetaMask flagged the site you're trying to visit as potentially deceptive.`,
-      );
-      expect(warningText).toBeNull();
+        const warningText = queryByText(
+          `MetaMask flagged the site you're trying to visit as potentially deceptive.`,
+        );
+        expect(warningText).toBeNull();
+        expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
+          'https://safe-site.com',
+        );
+      });
     });
   });
 
