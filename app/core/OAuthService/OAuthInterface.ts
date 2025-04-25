@@ -42,9 +42,8 @@ export interface OAuthUserInfo {
 
 export interface AuthResponse {
   id_token: string;
-  verifier: string;
-  verifier_id: string;
-  indexes: Record<string, number>;
+  refresh_token?: string;
+  indexes: number[];
   endpoints: Record<string, string>;
   success: boolean;
   message: string;

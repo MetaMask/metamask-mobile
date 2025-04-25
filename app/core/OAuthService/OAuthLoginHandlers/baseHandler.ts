@@ -95,12 +95,17 @@ export async function getAuthTokens(
   });
 
   if (res.status === 200) {
-    const data = (await res.json()) as AuthResponse;
-    return data;
+    const data = (await res.json()) satisfies AuthResponse;
+    if (data.success) {
+      return data;
+    }
+    throw new OAuthError(data.message, OAuthErrorType.AuthServerError);
   }
 
   throw new OAuthError(
-    `AuthServer Error : ${await res.text()}`,
+    `AuthServer Error, request failed with status: [${
+      res.status
+    }]: ${await res.text()}`,
     OAuthErrorType.AuthServerError,
   );
 }

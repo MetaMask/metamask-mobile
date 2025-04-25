@@ -45,7 +45,4 @@ describe('OAuth login handlers', () => {
       }
     }
   });
-
-  //   it('should return valid byoa response', async () => {
-  //   });
 });
