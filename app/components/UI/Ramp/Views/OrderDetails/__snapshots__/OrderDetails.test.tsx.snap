@@ -733,7 +733,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                 numberOfLines={1}
                                                 style={null}
                                               >
-                                                0xC495...D272
+                                                0xC4955...4D272
                                               </Text>
                                               )
                                             </Text>
@@ -2238,7 +2238,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                 numberOfLines={1}
                                                 style={null}
                                               >
-                                                0xC495...D272
+                                                0xC4955...4D272
                                               </Text>
                                               )
                                             </Text>
@@ -3757,7 +3757,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                 numberOfLines={1}
                                                 style={null}
                                               >
-                                                0xC495...D272
+                                                0xC4955...4D272
                                               </Text>
                                               )
                                             </Text>
@@ -5191,7 +5191,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                 numberOfLines={1}
                                                 style={null}
                                               >
-                                                0xC495...D272
+                                                0xC4955...4D272
                                               </Text>
                                               )
                                             </Text>
@@ -6710,7 +6710,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                 numberOfLines={1}
                                                 style={null}
                                               >
-                                                0xC495...D272
+                                                0xC4955...4D272
                                               </Text>
                                               )
                                             </Text>
@@ -9267,7 +9267,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                 numberOfLines={1}
                                                 style={null}
                                               >
-                                                0xC495...D272
+                                                0xC4955...4D272
                                               </Text>
                                               )
                                             </Text>
@@ -10813,7 +10813,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                 numberOfLines={1}
                                                 style={null}
                                               >
-                                                0xC495...D272
+                                                0xC4955...4D272
                                               </Text>
                                               )
                                             </Text>
@@ -12352,7 +12352,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                 numberOfLines={1}
                                                 style={null}
                                               >
-                                                0xC495...D272
+                                                0xC4955...4D272
                                               </Text>
                                               )
                                             </Text>
@@ -13834,7 +13834,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                 numberOfLines={1}
                                                 style={null}
                                               >
-                                                0xC495...D272
+                                                0xC4955...4D272
                                               </Text>
                                               )
                                             </Text>

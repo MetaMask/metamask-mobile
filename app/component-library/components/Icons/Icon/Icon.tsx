@@ -64,7 +64,6 @@ const Icon = ({
     default:
       iconColor = color;
   }
-  const filteredProps = { ...props, hitSlop: undefined };
   return (
     <SVG
       color={iconColor}
@@ -73,7 +72,7 @@ const Icon = ({
       height={sizeAsNum}
       // This prop it's for testing purposes
       name={name}
-      {...filteredProps}
+      {...props}
     />
   );
 };

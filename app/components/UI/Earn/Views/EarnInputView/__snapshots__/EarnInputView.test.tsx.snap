@@ -1540,7 +1540,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                ?
+                                
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -3146,7 +3146,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   ]
                                 }
                               >
-                                ?
+                                
                               </Text>
                             </TouchableOpacity>
                           </View>

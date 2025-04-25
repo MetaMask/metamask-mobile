@@ -94,7 +94,7 @@ const KeypadDeleteButton = ({ style, icon, ...props }) => {
       {icon || (
         <IonicIcon
           style={[styles.keypadButtonText, styles.deleteIcon]}
-          name="md-arrow-back"
+          name="arrow-back"
         />
       )}
     </TouchableOpacity>

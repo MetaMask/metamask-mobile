@@ -332,7 +332,7 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                           }
                         }
                       >
-                        0xd8dA...6045
+                        0xd8dA6...96045
                       </Text>
                       <Text
                         accessibilityRole="text"

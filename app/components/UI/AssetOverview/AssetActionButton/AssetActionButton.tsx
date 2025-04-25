@@ -55,7 +55,7 @@ const AssetActionButton = ({
       }
       case 'information': {
         return (
-          <Ionicon name="md-information" size={30} style={styles.buttonIcon} />
+          <Ionicon name="information" size={30} style={styles.buttonIcon} />
         );
       }
       case 'swap': {

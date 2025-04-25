@@ -876,7 +876,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                 ]
                               }
                             >
-                              ?
+                              
                             </Text>
                             <View
                               style={

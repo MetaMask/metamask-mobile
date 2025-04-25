@@ -77,7 +77,7 @@ export const getIcon = (status, colors, styles) => {
         <IonicIcon
           color={colors.success.default}
           size={36}
-          name="md-checkmark"
+          name="checkmark"
           style={styles.checkIcon}
         />
       );
@@ -96,7 +96,7 @@ export const getIcon = (status, colors, styles) => {
         <IonicIcon
           color={colors.background.default}
           size={36}
-          name="md-checkmark"
+          name="checkmark"
           style={styles.checkIcon}
         />
       );
@@ -199,11 +199,7 @@ const BaseNotification = ({
           <View>
             {autoDismiss && (
               <TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
-                <IonicIcon
-                  name="close"
-                  size={36}
-                  style={styles.closeIcon}
-                />
+                <IonicIcon name="close" size={36} style={styles.closeIcon} />
               </TouchableOpacity>
             )}
           </View>
