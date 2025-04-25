@@ -183,7 +183,7 @@ import {
   getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
-import { initModularizedControllers, rejectOriginApprovals } from './utils';
+import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 import {
@@ -2008,20 +2008,6 @@ export class Engine {
     AccountsController.setAccountName(accountToBeNamed.id, label);
     PreferencesController.setAccountLabel(address, label);
   }
-
-  rejectOriginPendingApprovals(origin: string) {
-    const deleteInterface = (id: string) =>
-      this.controllerMessenger.call(
-        'SnapInterfaceController:deleteInterface',
-        id,
-      );
-
-    rejectOriginApprovals({
-      approvalController: this.context.ApprovalController,
-      deleteInterface,
-      origin,
-    });
-  }
 }
 
 /**
@@ -2213,9 +2199,6 @@ export default {
     assertEngineExists(instance);
     instance.setAccountLabel(address, label);
   },
-
-  rejectOriginPendingApprovals: (origin: string) =>
-    instance?.rejectOriginPendingApprovals(origin),
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   getSnapKeyring: () => {

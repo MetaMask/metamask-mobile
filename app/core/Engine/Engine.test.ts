@@ -12,7 +12,6 @@ import { mockNetworkState } from '../../util/test/network';
 import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { backupVault } from '../BackupVault';
-import { rejectOriginApprovals } from './utils';
 
 jest.mock('../BackupVault', () => ({
   backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
@@ -577,34 +576,6 @@ describe('Engine', () => {
         ticker: 'ETH',
         totalNativeTokenBalance: '1',
       });
-    });
-  });
-
-  describe('rejectOriginPendingApprovals', () => {
-    const engine = Engine.init({});
-    it('should call rejectOriginApprovals with expected arguments', () => {
-      const origin = 'https://test.com';
-      engine.rejectOriginPendingApprovals(origin);
-      expect(rejectOriginApprovals).toHaveBeenCalledWith({
-        approvalController: engine.context.ApprovalController,
-        deleteInterface: expect.any(Function),
-        origin,
-      });
-    });
-    it('deleteInterface should call controllerMessenger with expected arguments', () => {
-      const origin = 'https://test.com';
-      jest
-        .spyOn(engine.controllerMessenger, 'call')
-        .mockImplementation(jest.fn());
-      engine.rejectOriginPendingApprovals(origin);
-
-      const { deleteInterface } = (rejectOriginApprovals as jest.Mock).mock
-        .calls[0][0];
-      deleteInterface('id');
-      expect(engine.controllerMessenger.call).toHaveBeenCalledWith(
-        'SnapInterfaceController:deleteInterface',
-        'id',
-      );
     });
   });
 });
