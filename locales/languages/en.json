@@ -3857,7 +3857,8 @@
     "unlimited": "Unlimited",
     "none": "None",
     "advanced_details": "Advanced details",
-    "interacting_with": "Interacting with"
+    "interacting_with": "Interacting with",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -3907,6 +3908,11 @@
     "title": "Bridge",
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
   },
   "bridge_transaction_details": {
     "status": "Status",
