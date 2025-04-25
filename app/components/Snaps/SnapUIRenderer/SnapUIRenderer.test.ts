@@ -115,7 +115,7 @@ describe('SnapUIRenderer', () => {
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
-        origin: '',
+        origin: 'metamask',
         request: {
           jsonrpc: '2.0',
           method: ' ',

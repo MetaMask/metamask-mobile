@@ -96,7 +96,7 @@ describe('SnapUIForm', () => {
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
-        origin: '',
+        origin: 'metamask',
         request: {
           jsonrpc: '2.0',
           method: ' ',
@@ -124,7 +124,7 @@ describe('SnapUIForm', () => {
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
-        origin: '',
+        origin: 'metamask',
         request: {
           jsonrpc: '2.0',
           method: ' ',
@@ -155,7 +155,7 @@ describe('SnapUIForm', () => {
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
-        origin: '',
+        origin: 'metamask',
         request: {
           jsonrpc: '2.0',
           method: ' ',
@@ -181,7 +181,7 @@ describe('SnapUIForm', () => {
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
-        origin: '',
+        origin: 'metamask',
         request: {
           jsonrpc: '2.0',
           method: ' ',
@@ -200,7 +200,7 @@ describe('SnapUIForm', () => {
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
-        origin: '',
+        origin: 'metamask',
         request: {
           jsonrpc: '2.0',
           method: ' ',
