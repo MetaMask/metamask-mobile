@@ -164,22 +164,27 @@ export abstract class MultichainWalletSnapClient {
       );
 
       // We stop discovering accounts if none got discovered for that index.
+      // No accounts discovered
       if (discoveredAccounts.length === 0) {
-        // default create 1 account
-        await this.createAccount(
-          {
-            scope: this.getScope(),
-          },
-          {
-            displayConfirmation: false,
-            displayAccountNameSuggestion: false,
-            setSelectedAccount: false,
-          },
-        );
+        // For the first index, create a default account
+        if (index === 0) {
+          await this.createAccount(
+            {
+              scope: this.getScope(),
+            },
+            {
+              displayConfirmation: false,
+              displayAccountNameSuggestion: false,
+              setSelectedAccount: false,
+            },
+          );
+        }
+        // Stop discovering accounts when none are found
         break;
       }
 
-      return await this.withSnapKeyring(async (keyring) => {
+      // Add all discovered accounts to the keyring
+      await this.withSnapKeyring(async (keyring) => {
         await Promise.allSettled(
           discoveredAccounts.map(async (account) => {
             keyring.createAccount(
