@@ -6,9 +6,12 @@ import {
   Linking,
   Image,
   FlatList,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import debounce from 'lodash/debounce';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { styleSheet } from './styles';
 import { CarouselProps, CarouselSlide, NavigationAction } from './types';
@@ -23,6 +26,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
 import { selectDismissedBanners } from '../../../selectors/banner';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 export const Carousel: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -77,12 +81,11 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   const handleSlideClick = useCallback(
     (slideId: string, navigation: NavigationAction) => {
       trackEvent(
-        createEventBuilder({
-          category: 'Banner Select',
-          properties: {
-            name: slideId,
-          },
-        }).build(),
+        createEventBuilder(MetaMetricsEvents.CAROUSEL_BANNER_CLICKED)
+          .addProperties({
+            bannerName: slideId,
+          })
+          .build(),
       );
 
       if (navigation.type === 'url') {
@@ -102,77 +105,106 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
 
   const handleClose = useCallback(
     (slideId: string) => {
+      const isLastVisibleBanner = visibleSlides.length === 1;
       dispatch(dismissBanner(slideId));
+
+      if (isLastVisibleBanner) {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.CAROUSEL_BANNER_CLOSE_ALL,
+          ).build(),
+        );
+      }
     },
-    [dispatch],
+    [dispatch, trackEvent, createEventBuilder, visibleSlides.length],
+  );
+
+  const handleNavigationChange = useCallback(
+    (newIndex: number) => {
+      if (newIndex !== selectedIndex && newIndex < visibleSlides.length) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CAROUSEL_BANNER_NAVIGATE)
+            .addProperties({
+              from_banner: visibleSlides[selectedIndex]?.id,
+              to_banner: visibleSlides[newIndex]?.id,
+              navigation_method: 'swipe',
+            })
+            .build(),
+        );
+        setSelectedIndex(newIndex);
+      }
+    },
+    [selectedIndex, visibleSlides, trackEvent, createEventBuilder],
+  );
+
+  const debouncedHandleNavigationChange = useMemo(
+    () => debounce(handleNavigationChange, 50),
+    [handleNavigationChange],
+  );
+
+  const handleMomentumScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offset = event.nativeEvent.contentOffset.x;
+      const width = event.nativeEvent.layoutMeasurement.width;
+      const newIndex = Math.round(offset / width);
+      debouncedHandleNavigationChange(newIndex);
+    },
+    [debouncedHandleNavigationChange],
   );
 
   const renderBannerSlides = useCallback(
-    ({ item: slide }: { item: CarouselSlide }) => {
-      trackEvent(
-        createEventBuilder({
-          category: 'Banner Display',
-          properties: {
-            name: slide.id,
-          },
-        }).build(),
-      );
-
-      return (
-        <Pressable
-          key={slide.id}
-          testID={slide.testID}
-          style={[
-            styles.slideContainer,
-            pressedSlideId === slide.id && styles.slideContainerPressed,
-          ]}
-          onPress={() => handleSlideClick(slide.id, slide.navigation)}
-          onPressIn={() => setPressedSlideId(slide.id)}
-          onPressOut={() => setPressedSlideId(null)}
-        >
-          <View style={styles.slideContent}>
-            <View style={styles.imageContainer}>
-              <Image
-                source={BANNER_IMAGES[slide.id]}
-                style={styles.bannerImage}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.textContainer}>
-              <View style={styles.textWrapper}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  style={styles.title}
-                  testID={slide.testIDTitle}
-                >
-                  {slide.title}
-                </Text>
-                <Text variant={TextVariant.BodySM} style={styles.description}>
-                  {slide.description}
-                </Text>
-              </View>
-            </View>
-            {!slide.undismissable && (
-              <TouchableOpacity
-                testID={slide.testIDCloseButton}
-                style={styles.closeButton}
-                onPress={() => handleClose(slide.id)}
-              >
-                <Icon name="close" size={18} color={colors.icon.default} />
-              </TouchableOpacity>
-            )}
+    ({ item: slide }: { item: CarouselSlide }) => (
+      <Pressable
+        key={slide.id}
+        testID={slide.testID}
+        style={[
+          styles.slideContainer,
+          pressedSlideId === slide.id && styles.slideContainerPressed,
+        ]}
+        onPress={() => handleSlideClick(slide.id, slide.navigation)}
+        onPressIn={() => setPressedSlideId(slide.id)}
+        onPressOut={() => setPressedSlideId(null)}
+      >
+        <View style={styles.slideContent}>
+          <View style={styles.imageContainer}>
+            <Image
+              source={BANNER_IMAGES[slide.id]}
+              style={styles.bannerImage}
+              resizeMode="contain"
+            />
           </View>
-        </Pressable>
-      );
-    },
+          <View style={styles.textContainer}>
+            <View style={styles.textWrapper}>
+              <Text
+                variant={TextVariant.BodyMD}
+                style={styles.title}
+                testID={slide.testIDTitle}
+              >
+                {slide.title}
+              </Text>
+              <Text variant={TextVariant.BodySM} style={styles.description}>
+                {slide.description}
+              </Text>
+            </View>
+          </View>
+          {!slide.undismissable && (
+            <TouchableOpacity
+              testID={slide.testIDCloseButton}
+              style={styles.closeButton}
+              onPress={() => handleClose(slide.id)}
+            >
+              <Icon name="close" size={18} color={colors.icon.default} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </Pressable>
+    ),
     [
       styles,
       handleSlideClick,
       handleClose,
       colors.icon.default,
       pressedSlideId,
-      trackEvent,
-      createEventBuilder,
     ],
   );
 
@@ -218,13 +250,7 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(event) => {
-            const newIndex = Math.round(
-              event.nativeEvent.contentOffset.x /
-                event.nativeEvent.layoutMeasurement.width,
-            );
-            setSelectedIndex(newIndex);
-          }}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
         />
       </View>
       {!isSingleSlide && renderProgressDots}
