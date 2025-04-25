@@ -9,7 +9,6 @@ import {
 } from './mockVaultRewards';
 import { AreaChart } from 'react-native-svg-charts';
 import { fireLayoutEvent } from '../../../../../util/testUtils/react-native-svg-charts';
-import { screen } from '@testing-library/react-native';
 import { INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID } from './InteractiveTimespanChart';
 
 jest.mock('@react-navigation/native', () => {
@@ -70,8 +69,6 @@ describe('PoolStakingLearnMoreModal', () => {
     );
 
     fireLayoutEvent(areaChart);
-
-    screen.debug();
 
     expect(toJSON()).toMatchSnapshot();
   });
