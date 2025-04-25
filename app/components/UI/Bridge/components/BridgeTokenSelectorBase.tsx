@@ -59,14 +59,19 @@ const createStyles = (params: { theme: Theme }) => {
     skeletonCircle: {
       borderRadius: 15,
     },
+    skeletonItemContainer: {
+      paddingLeft: 18,
+      paddingRight: 10,
+      paddingVertical: 12,
+    },
     // Need the flex 1 to make sure this doesn't disappear when FlexDirection.Row is used
-    skeletonItem: {
+    skeletonItemRows: {
       flex: 1,
     },
   });
 };
 
-const SkeletonItem = () => {
+export const SkeletonItem = () => {
   const { styles } = useStyles(createStyles, {});
 
   return (
@@ -74,27 +79,23 @@ const SkeletonItem = () => {
       gap={16}
       flexDirection={FlexDirection.Row}
       alignItems={AlignItems.center}
+      style={styles.skeletonItemContainer}
     >
       <Skeleton height={30} width={30} style={styles.skeletonCircle} />
 
-      <Box gap={4} style={styles.skeletonItem}>
+      <Box gap={4} style={styles.skeletonItemRows}>
         <Skeleton height={24} width={'96%'} />
         <Skeleton height={24} width={'37%'} />
       </Box>
-
-      <Icon name={IconName.Info} />
     </Box>
   );
 };
 
-const LoadingSkeleton = () => {
+export const LoadingSkeleton = () => {
   const { styles } = useStyles(createStyles, {});
 
   return (
     <Box style={styles.loadingSkeleton} gap={20}>
-      <SkeletonItem />
-      <SkeletonItem />
-      <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
@@ -108,7 +109,11 @@ const LoadingSkeleton = () => {
 
 interface BridgeTokenSelectorBaseProps {
   networksBar: React.ReactNode;
-  renderTokenItem: ({ item }: { item: BridgeToken }) => React.JSX.Element;
+  renderTokenItem: ({
+    item,
+  }: {
+    item: BridgeToken | null;
+  }) => React.JSX.Element;
   tokensList: BridgeToken[];
   pending?: boolean;
   chainIdToFetchMetadata?: Hex | CaipChainId;
@@ -155,7 +160,8 @@ export const BridgeTokenSelectorBase: React.FC<
   }, [searchString, searchResults, tokensList, unlistedAssetMetadata]);
 
   const keyExtractor = useCallback(
-    (token: BridgeToken) => `${token.chainId}-${token.address}`,
+    (token: BridgeToken | null, index: number) =>
+      token ? `${token.chainId}-${token.address}` : `skeleton-${index}`,
     [],
   );
 
@@ -170,7 +176,9 @@ export const BridgeTokenSelectorBase: React.FC<
     () => (
       <Box style={styles.emptyList}>
         <Text color={TextColor.Alternative}>
-          {strings('swaps.no_tokens_result', { searchString: debouncedSearchString })}
+          {strings('swaps.no_tokens_result', {
+            searchString: debouncedSearchString,
+          })}
         </Text>
       </Box>
     ),
@@ -182,10 +190,18 @@ export const BridgeTokenSelectorBase: React.FC<
     modalRef.current?.onCloseBottomSheet();
   };
 
-  const shouldRenderLoading = useMemo(
-    () => pending || unlistedAssetMetadataPending,
-    [pending, unlistedAssetMetadataPending],
+  const shouldRenderOverallLoading = useMemo(
+    () => (pending && tokensList?.length === 0) || unlistedAssetMetadataPending,
+    [pending, unlistedAssetMetadataPending, tokensList],
   );
+
+  const tokensToRenderWithSkeletons: (BridgeToken | null)[] = useMemo(() => {
+    if (pending && tokensToRender?.length > 0) {
+      return [...tokensToRender, ...Array(4).fill(null)];
+    }
+
+    return tokensToRender;
+  }, [pending, tokensToRender]);
 
   return (
     <BottomSheet isFullscreen ref={modalRef}>
@@ -228,11 +244,11 @@ export const BridgeTokenSelectorBase: React.FC<
         </Box>
 
         <FlatList
-          data={shouldRenderLoading ? [] : tokensToRender}
+          data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
           renderItem={renderTokenItem}
           keyExtractor={keyExtractor}
           ListEmptyComponent={
-            debouncedSearchString && !shouldRenderLoading
+            debouncedSearchString && !shouldRenderOverallLoading
               ? renderEmptyList
               : LoadingSkeleton
           }
