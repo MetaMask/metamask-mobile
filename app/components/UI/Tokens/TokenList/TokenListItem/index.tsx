@@ -323,12 +323,12 @@ export const TokenListItem = React.memo(
         />
       );
     }, [
-      asset.ticker,
-      asset.image,
-      asset.symbol,
       asset.isNative,
-      styles.ethLogo,
+      asset.symbol,
+      asset.image,
+      asset.ticker,
       chainId,
+      styles.ethLogo,
     ]);
 
     const renderEarnCta = useCallback(() => {
@@ -356,6 +356,10 @@ export const TokenListItem = React.memo(
       isStablecoinLendingEnabled,
       isStakingSupportedChain,
     ]);
+
+    if (asset.chainId === '0xe708' && asset.isNative) {
+      console.log(asset);
+    }
 
     return (
       <AssetElement
