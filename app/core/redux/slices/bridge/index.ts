@@ -30,7 +30,7 @@ export interface BridgeState {
   destAddress: string | undefined;
   selectedSourceChainIds: (Hex | CaipChainId)[] | undefined;
   selectedDestChainId: Hex | CaipChainId | undefined;
-  slippage: string;
+  slippage: string | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -78,7 +78,7 @@ const slice = createSlice({
     setDestAddress: (state, action: PayloadAction<string | undefined>) => {
       state.destAddress = action.payload;
     },
-    setSlippage: (state, action: PayloadAction<string>) => {
+    setSlippage: (state, action: PayloadAction<string | undefined>) => {
       state.slippage = action.payload;
     },
   },
@@ -250,6 +250,14 @@ export const selectIsSolanaToEvm = createSelector(
   (sourceToken, destToken) =>
     sourceToken?.chainId && isSolanaChainId(sourceToken.chainId) &&
     destToken?.chainId && !isSolanaChainId(destToken.chainId)
+);
+
+export const selectIsSolanaSwap = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId && isSolanaChainId(sourceToken.chainId) &&
+    destToken?.chainId && isSolanaChainId(destToken.chainId)
 );
 
 export const selectIsEvmSolanaBridge = createSelector(

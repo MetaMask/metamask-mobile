@@ -655,7 +655,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                         }
                                       }
                                     >
-                                      0xB374...2389
+                                      0xB374C...62389
                                     </Text>
                                     <View
                                       style={

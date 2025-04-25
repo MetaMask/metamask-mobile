@@ -6,6 +6,8 @@ import {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
+import { AssetConversion } from '@metamask/snaps-sdk';
+import { CaipAssetId } from '@metamask/utils';
 
 const mockAsset: TokenI = {
   name: 'Ethereum',
@@ -36,6 +38,8 @@ const mockProps: {
   comparePrice: number;
   isLoading: boolean;
   timePeriod: TimePeriod;
+  isEvmNetworkSelected: boolean;
+  multichainAssetsRates: Record<CaipAssetId, AssetConversion>;
 } = {
   asset: mockAsset,
   prices: mockPrices,
@@ -45,6 +49,8 @@ const mockProps: {
   comparePrice: 100,
   isLoading: false,
   timePeriod: '1d',
+  isEvmNetworkSelected: true,
+  multichainAssetsRates: {},
 };
 
 describe('Price Component', () => {

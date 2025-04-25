@@ -5,10 +5,8 @@ import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import {
-  BridgeHistoryItem,
-  StatusTypes,
-} from '@metamask/bridge-status-controller';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { StatusTypes } from '@metamask/bridge-controller';
 
 describe('BridgeActivityItemTxSegments', () => {
   it('should render with basic props', () => {
@@ -17,7 +15,9 @@ describe('BridgeActivityItemTxSegments', () => {
     } as TransactionMeta;
 
     const { getByText } = render(
-      <BridgeActivityItemTxSegments transactionStatus={mockTransaction.status} />,
+      <BridgeActivityItemTxSegments
+        transactionStatus={mockTransaction.status}
+      />,
     );
 
     expect(getByText('Transaction 2 of 2')).toBeTruthy();
@@ -29,7 +29,9 @@ describe('BridgeActivityItemTxSegments', () => {
     } as TransactionMeta;
 
     const { getByText } = render(
-      <BridgeActivityItemTxSegments transactionStatus={mockTransaction.status} />,
+      <BridgeActivityItemTxSegments
+        transactionStatus={mockTransaction.status}
+      />,
     );
 
     expect(getByText('Transaction 1 of 2')).toBeTruthy();

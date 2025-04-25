@@ -469,6 +469,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastSearchTimestamp": null,
         "recentSearches": [],
       },
+      "TokenSearchDiscoveryDataController": {
+        "swapsTokenAddressesByChainId": {},
+        "tokenDisplayData": [],
+      },
       "TransactionController": {
         "lastFetchedBlockNumbers": {},
         "methodData": {},
