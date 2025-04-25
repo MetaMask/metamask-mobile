@@ -5,10 +5,10 @@ const selectUserState = (state: RootState) => state.user;
 
 export const selectOAuthLoginSuccess = createSelector(
   selectUserState,
-  (userState) => userState.oauth2LoginSuccess,
+  (userState) => userState.oauthLoginSuccess,
 );
 
 export const selectOAuthLoginError = createSelector(
   selectUserState,
-  (userState) => userState.oauth2LoginError,
+  (userState) => userState.oauthLoginError,
 );

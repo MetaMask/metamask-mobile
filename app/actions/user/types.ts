@@ -25,9 +25,9 @@ export enum UserActionType {
   CHECKED_AUTH = 'CHECKED_AUTH',
   SET_APP_SERVICES_READY = 'SET_APP_SERVICES_READY',
 
-  OAUTH2_LOGIN_RESET = 'OAUTH2_LOGIN_RESET',
-  OAUTH2_LOGIN_SUCCESS = 'OAUTH2_LOGIN_SUCCESS',
-  OAUTH2_LOGIN_ERROR = 'OAUTH2_LOGIN_ERROR',
+  OAUTH_LOGIN_RESET = 'OAUTH_LOGIN_RESET',
+  OAUTH_LOGIN_SUCCESS = 'OAUTH_LOGIN_SUCCESS',
+  OAUTH_LOGIN_ERROR = 'OAUTH_LOGIN_ERROR',
 }
 
 // User actions
@@ -93,12 +93,16 @@ export type CheckedAuthAction = Action<UserActionType.CHECKED_AUTH> & {
 export type SetAppServicesReadyAction =
   Action<UserActionType.SET_APP_SERVICES_READY>;
 
+export type OAuthLoginSuccessAction =
+  Action<UserActionType.OAUTH_LOGIN_SUCCESS> & {
+    payload: { existingUser: boolean };
+  };
 
-export type OAuth2LoginSuccessAction = Action<UserActionType.OAUTH2_LOGIN_SUCCESS> & { payload: { existingUser: boolean } };
+export type OAuthLoginErrorAction = Action<UserActionType.OAUTH_LOGIN_ERROR> & {
+  payload: { error: string };
+};
 
-export type OAuth2LoginErrorAction = Action<UserActionType.OAUTH2_LOGIN_ERROR> & { payload: { error: string } };
-
-export type OAuth2LoginResetAction = Action<UserActionType.OAUTH2_LOGIN_RESET>;
+export type OAuthLoginResetAction = Action<UserActionType.OAUTH_LOGIN_RESET>;
 
 /**
  * User actions union type
@@ -125,6 +129,6 @@ export type UserAction =
   | SetAppThemeAction
   | CheckedAuthAction
   | SetAppServicesReadyAction
-  | OAuth2LoginSuccessAction
-  | OAuth2LoginErrorAction
-  | OAuth2LoginResetAction;
+  | OAuthLoginSuccessAction
+  | OAuthLoginErrorAction
+  | OAuthLoginResetAction;

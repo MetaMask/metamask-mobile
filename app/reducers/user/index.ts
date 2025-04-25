@@ -23,8 +23,8 @@ export const userInitialState: UserState = {
   appTheme: AppThemeKey.os,
   ambiguousAddressEntries: {},
   appServicesReady: false,
-  oauth2LoginSuccess: false,
-  oauth2LoginError: null,
+  oauthLoginSuccess: false,
+  oauthLoginError: null,
 };
 
 /**
@@ -118,22 +118,22 @@ const userReducer = (
         appServicesReady: true,
       };
 
-     case UserActionType.OAUTH2_LOGIN_SUCCESS:
+    case UserActionType.OAUTH_LOGIN_SUCCESS:
       return {
         ...state,
-        oauth2LoginSuccess: true,
+        oauthLoginSuccess: true,
       };
-    case UserActionType.OAUTH2_LOGIN_ERROR:
+    case UserActionType.OAUTH_LOGIN_ERROR:
       return {
         ...state,
-        oauth2LoginSuccess: false,
-        oauth2LoginError: action.payload.error,
+        oauthLoginSuccess: false,
+        oauthLoginError: action.payload.error,
       };
-    case UserActionType.OAUTH2_LOGIN_RESET:
+    case UserActionType.OAUTH_LOGIN_RESET:
       return {
         ...state,
-        oauth2LoginSuccess: false,
-        oauth2LoginError: null,
+        oauthLoginSuccess: false,
+        oauthLoginError: null,
       };
     default:
       return state;

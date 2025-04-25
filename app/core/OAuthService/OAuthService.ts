@@ -69,7 +69,7 @@ export class OAuthService {
     this.updateLocalState({ loginInProgress: false });
     if (result.type === 'success') {
       ReduxService.store.dispatch({
-        type: UserActionType.OAUTH2_LOGIN_SUCCESS,
+        type: UserActionType.OAUTH_LOGIN_SUCCESS,
         payload: {
           existingUser: result.existingUser,
         },
@@ -77,14 +77,14 @@ export class OAuthService {
     } else if (result.type === 'error' && 'error' in result) {
       this.clearVerifierDetails();
       ReduxService.store.dispatch({
-        type: UserActionType.OAUTH2_LOGIN_ERROR,
+        type: UserActionType.OAUTH_LOGIN_ERROR,
         payload: {
           error: result.error,
         },
       });
     } else {
       ReduxService.store.dispatch({
-        type: UserActionType.OAUTH2_LOGIN_RESET,
+        type: UserActionType.OAUTH_LOGIN_RESET,
       });
     }
     ReduxService.store.dispatch({
@@ -127,7 +127,7 @@ export class OAuthService {
     }
   };
 
-  handleOAuth2Login = async (
+  handleOAuthLogin = async (
     authConnection: AuthConnection,
   ): Promise<HandleOAuthLoginResult> => {
     const web3AuthNetwork = this.config.web3AuthNetwork;
