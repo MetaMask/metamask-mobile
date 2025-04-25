@@ -85,6 +85,7 @@ export const migration52 = (state: unknown, migrationNumber: number) => {
     accountsControllerState.internalAccounts;
 
   // Set selectedAccount by default if selectedAccount is undefined or account no longer exists for the selectedAccount
+  // console.log('WOASHHH3', accounts, selectedAccount);
   if (
     Object.values(accounts).length > 0 &&
     (!selectedAccount || (selectedAccount && !accounts[selectedAccount]))
@@ -92,7 +93,7 @@ export const migration52 = (state: unknown, migrationNumber: number) => {
     if (Object.values(accounts)[0].id === undefined) {
       captureException(
         new Error(
-          `Migration 52: selectedAccount will be undefined because Object.values(accounts)[0].id is undefined: 'accounts: ${accounts}'.`,
+          `Migration 52: selectedAccount will be undefined because Object.values(accounts)[0].id is undefined.`,
         ),
       );
     }
