@@ -25,6 +25,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CaipAssetType } from '@metamask/keyring-api';
 import { getCalculatedTokenAmount1dAgo } from './AggregatedPercentageCrossChains';
 import { getFormattedPercentageChange, getFormattedValuePrice } from './utils';
+import i18n from '../../../../../locales/i18n';
 
 const isValidAmount = (amount: number | null | undefined): boolean =>
   amount !== null && amount !== undefined && !Number.isNaN(amount);
@@ -109,7 +110,7 @@ const NonEvmAggregatedPercentage = ({
   }
 
   const formattedPercentage = isValidAmount(percentageChange)
-    ? getFormattedPercentageChange(percentageChange)
+    ? getFormattedPercentageChange(percentageChange, i18n.locale)
     : '';
 
   const formattedValuePrice = isValidAmount(amountChange)

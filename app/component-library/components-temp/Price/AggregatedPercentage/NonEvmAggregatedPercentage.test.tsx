@@ -127,9 +127,9 @@ describe('NonEvmAggregatedPercentage', () => {
     const { getByText } = render(<NonEvmAggregatedPercentage />);
 
     expect(getByText('(+1.25%)')).toBeTruthy();
-    expect(getByText('+0.2 USD')).toBeTruthy();
+    expect(getByText('+$0.20')).toBeTruthy();
 
-    expect(getByText('(+1.25%)').props.style).toMatchObject({
+     expect(getByText('(+1.25%)').props.style).toMatchObject({
       color: mockTheme.colors.success.default,
     });
   });
@@ -146,7 +146,7 @@ describe('NonEvmAggregatedPercentage', () => {
     const { getByText } = render(<NonEvmAggregatedPercentage />);
 
     expect(getByText('(-1.27%)')).toBeTruthy();
-    expect(getByText('-0.21 USD')).toBeTruthy();
+    expect(getByText('-$0.21')).toBeTruthy();
 
     expect(getByText('(-1.27%)').props.style).toMatchObject({
       color: mockTheme.colors.error.default,
