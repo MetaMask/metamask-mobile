@@ -42,12 +42,23 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
     return 'api/v1/oauth/token';
   }
 
+  /**
+   * IosGoogleLoginHandler constructor.
+   *
+   * @param params.clientId - The iOS clientId for the Google login.
+   * @param params.redirectUri - The iOS redirectUri for the Google login.
+   */
   constructor(params: IosGoogleLoginHandlerParams) {
     super();
     this.clientId = params.clientId;
     this.redirectUri = params.redirectUri;
   }
 
+  /**
+   * This method is used to login with Google via expo-auth-session.
+   *
+   * @returns LoginHandlerCodeResult
+   */
   async login(): Promise<LoginHandlerCodeResult> {
     const state = JSON.stringify({
       random: this.nonce,

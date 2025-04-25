@@ -38,8 +38,14 @@ function padBase64String(input: string) {
 /**
  * Get the auth tokens from the auth server
  *
- * @param params - The params from the login handler
- * @param pathname - The pathname of the auth server
+ * @param params - The params required to get the auth tokens
+ * @param params.authConnection - The auth connection type (Google, Apple, etc.)
+ * @param params.clientId - The client id of the app ( clientId for Google, Service ID or Bundle ID for Apple)
+ * @param params.redirectUri - The redirect uri of the app used for the login
+ * @param params.codeVerifier - The PKCE code verifier if PKCE is used
+ * @param params.web3AuthNetwork - The web3 auth network (sapphire_mainnet, sapphire_devnet, etc.)
+ *
+ * @param pathname - The pathname(endpoint) of the auth server
  * @param authServerUrl - The url of the auth server
  */
 export async function getAuthTokens(
