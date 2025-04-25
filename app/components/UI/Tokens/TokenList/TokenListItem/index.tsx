@@ -59,6 +59,12 @@ import { TraceName, trace } from '../../../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain/multichain';
 ///: END:ONLY_INCLUDE_IF
+import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
+
 interface TokenListItemProps {
   asset: TokenI;
   showScamWarningModal: boolean;
@@ -100,6 +106,14 @@ export const TokenListItem = React.memo(
     const multiChainTokenBalance = useSelector(selectTokensBalances);
     const multiChainMarketData = useSelector(selectTokenMarketData);
     const multiChainCurrencyRates = useSelector(selectCurrencyRates);
+
+    const earnTokens = useEarnTokens();
+
+    // Earn feature flags
+    const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+    const isStablecoinLendingEnabled = useSelector(
+      selectStablecoinLendingEnabledFlag,
+    );
 
     const styles = createStyles(colors);
 
@@ -331,6 +345,32 @@ export const TokenListItem = React.memo(
       chainId,
     ]);
 
+    const renderEarnCta = useCallback(() => {
+      const isCurrentAssetEth = asset?.isETH && !asset?.isStaked;
+      const shouldShowPooledStakingCta =
+        isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
+
+      const isAssetSupportedStablecoin = earnTokens.find(
+        (token) =>
+          token.symbol === asset.symbol &&
+          asset.chainId === token?.chainId &&
+          !asset?.isStaked,
+      );
+      const shouldShowStablecoinLendingCta =
+        isAssetSupportedStablecoin && isStablecoinLendingEnabled;
+
+      if (shouldShowPooledStakingCta || shouldShowStablecoinLendingCta) {
+        // TODO: Rename to EarnCta
+        return <StakeButton asset={asset} />;
+      }
+    }, [
+      asset,
+      earnTokens,
+      isPooledStakingEnabled,
+      isStablecoinLendingEnabled,
+      isStakingSupportedChain,
+    ]);
+
     return (
       <AssetElement
         // assign staked asset a unique key
@@ -364,9 +404,7 @@ export const TokenListItem = React.memo(
               {asset.name || asset.symbol}
             </Text>
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
-            {asset.isETH && isStakingSupportedChain && !asset.isStaked && (
-              <StakeButton asset={asset} />
-            )}
+            {renderEarnCta()}
           </View>
           {!isTestNet(chainId) && showPercentageChange ? (
             <PercentageChange value={pricePercentChange1d} />
