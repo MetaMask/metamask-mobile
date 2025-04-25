@@ -40,7 +40,7 @@ export const useBridgeQuoteRequest = () => {
     if (
       !sourceToken ||
       !destToken ||
-      !sourceAmount ||
+      sourceAmount === undefined ||
       !destChainId ||
       !walletAddress
     ) {
