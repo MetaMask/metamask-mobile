@@ -13,6 +13,7 @@ import {
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 // Polls native currency prices across networks.
 const useCurrencyRatePolling = () => {
@@ -26,6 +27,7 @@ const useCurrencyRatePolling = () => {
   const currentChainId = useSelector(selectEvmChainId);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   // Selectors returning state updated by the polling
   const conversionRate = useSelector(selectConversionRate);
@@ -59,7 +61,7 @@ const useCurrencyRatePolling = () => {
       CurrencyRateController.stopPollingByPollingToken.bind(
         CurrencyRateController,
       ),
-    input: [{ nativeCurrencies }],
+    input: isEvmSelected ? [{ nativeCurrencies }] : [],
   });
 
   return {
