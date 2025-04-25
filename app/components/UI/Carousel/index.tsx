@@ -27,8 +27,10 @@ import {
   selectSelectedInternalAccount,
   selectLastSelectedSolanaAccount,
 } from '../../../selectors/accountsController';
+///: BEGIN:ONLY_INCLUDE_IF(solana)
 import { SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
+///: END:ONLY_INCLUDE_IF
 
 export const Carousel: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -96,9 +98,8 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
     (slideId: string, navigation: NavigationAction) => {
       const extraProperties: Record<string, string> = {};
 
-      const isSolanaBanner = slideId === 'solana';
-
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      const isSolanaBanner = slideId === 'solana';
       if (isSolanaBanner && lastSelectedSolanaAccount) {
         extraProperties.action = 'redirect-solana-account';
       } else if (isSolanaBanner && !lastSelectedSolanaAccount) {
@@ -134,7 +135,14 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
         return navigate(navigation.route);
       }
     },
-    [trackEvent, createEventBuilder, lastSelectedSolanaAccount, navigate],
+    [
+      trackEvent,
+      createEventBuilder,
+      navigate,
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      lastSelectedSolanaAccount,
+      ///: END:ONLY_INCLUDE_IF
+    ],
   );
 
   const handleClose = useCallback(
