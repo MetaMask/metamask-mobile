@@ -195,6 +195,8 @@ export const BridgeTokenSelectorBase: React.FC<
     [pending, unlistedAssetMetadataPending, tokensList],
   );
 
+  // We show the tokens with balance immediately, but we need to wait for the top tokens to load
+  // So we show a few skeletons for the top tokens
   const tokensToRenderWithSkeletons: (BridgeToken | null)[] = useMemo(() => {
     if (pending && tokensToRender?.length > 0) {
       return [...tokensToRender, ...Array(4).fill(null)];
