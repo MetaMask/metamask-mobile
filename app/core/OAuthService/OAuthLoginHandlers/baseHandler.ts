@@ -100,7 +100,7 @@ export async function getAuthTokens(
   }
 
   throw new OAuthError(
-    `AuthServer Error : ${await res.text()}`,
+     `AuthServer Error, request failed with status: [${res.status}]: ${await res.text()}`,
     OAuthErrorType.AuthServerError,
   );
 }
