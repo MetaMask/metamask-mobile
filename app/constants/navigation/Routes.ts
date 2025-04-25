@@ -154,6 +154,7 @@ const Routes = {
       DEST_NETWORK_SELECTOR: 'BridgeDestNetworkSelector',
       QUOTE_INFO_MODAL: 'QuoteInfoModal',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
+      QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
