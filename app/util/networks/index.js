@@ -8,10 +8,15 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
-  MEGAETH_TESTNET
+  MEGAETH_TESTNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { BlockExplorerUrl, ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import {
+  BlockExplorerUrl,
+  ChainId,
+  NetworkType,
+  toHex,
+} from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
@@ -592,20 +597,19 @@ export const isChainPermissionsFeatureEnabled = true;
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
-export const isPerDappSelectedNetworkEnabled = () =>
-  process.env.MM_PER_DAPP_SELECTED_NETWORK === 'true';
+export const isPerDappSelectedNetworkEnabled = () => true;
 
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';
 
-export const isMultichainV1Enabled = () => process.env.MULTICHAIN_V1 === 'true';
+export const isMultichainV1Enabled = () => true;
 
 // The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
-export const WHILELIST_NETWORK_NAME  = {
-  [ChainId.mainnet] : 'Mainnet',
-  [ChainId['linea-mainnet']] : 'Linea Mainnet',
-  [ChainId['megaeth-testnet']] : 'Mega Testnet',
-}
+export const WHILELIST_NETWORK_NAME = {
+  [ChainId.mainnet]: 'Mainnet',
+  [ChainId['linea-mainnet']]: 'Linea Mainnet',
+  [ChainId['megaeth-testnet']]: 'Mega Testnet',
+};
 
 /**
  * Checks if the network name is valid for the given chain ID.
@@ -618,10 +622,5 @@ export const WHILELIST_NETWORK_NAME  = {
  * @param {string} nickname - The nickname of the network.
  * @returns A boolean indicating whether the network name is valid for the given chain ID.
  */
-export const isValidNetworkName = (
-  chainId,
-  networkName,
-  nickname,
-) =>
-  networkName === nickname ||
-  WHILELIST_NETWORK_NAME[chainId] === nickname;
+export const isValidNetworkName = (chainId, networkName, nickname) =>
+  networkName === nickname || WHILELIST_NETWORK_NAME[chainId] === nickname;
