@@ -20,6 +20,15 @@ jest.mock('../../../../core/Engine', () => ({
     TokenRatesController: {
       updateExchangeRatesByChainId: jest.fn(),
     },
+    NetworkController: {
+      state: {
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1',
+          },
+        },
+      },
+    },
   },
 }));
 

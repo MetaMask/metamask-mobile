@@ -51,11 +51,7 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
             chainIds: chainIdsToPoll as Hex[],
           },
         ]
-      : [
-          {
-            chainIds: [],
-          },
-        ],
+      : [],
   });
 
   return {
