@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "可疑登录请求",
       "message": "发起请求的网站并非您要登录的网站。可能试图窃取您的登录凭据。"
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "于"
   },
   "autocomplete": {
-    "placeholder": "按网站或地址搜索",
+    "placeholder": "Search by token, site or address",
     "recents": "最近",
     "favorites": "收藏",
-    "sites": "网站"
+    "sites": "网站",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "返回",
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "用于生成您的新账户的私钥助记词",
     "accounts": "账户",
     "show_accounts": "显示",
-    "hide_accounts": "隐藏"
+    "hide_accounts": "隐藏",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
+      "bitcoin_account_name": "Bitcoin Account",
+      "solana_devnet_account_name": "Solana Devnet Account",
+      "solana_testnet_account_name": "Solana Testnet Account",
+      "solana_account_name": "Solana Account"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Failed to create {{clientType}} account"
+    }
   },
   "toast": {
     "connected_and_active": "已连接且处于活动状态。",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snap",
       "description": "查看和管理 Snap",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "去除 Snap",
         "remove_snap_section_description": "此操作将会删除 Snap 及其数据，并撤销您获授予的许可。",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "慢",
     "hex_data": "十六进制数据",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "这是一个高级功能，用于取消或加快任何未完成交易。",
     "current_suggested_nonce": "目前建议的 nonce：",
     "edit_transaction_nonce": "编辑交易 nonce",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "不可用",
     "smart_contract_interaction": "智能合约交互",
     "swaps_transaction": "兑换交易",
+    "bridge_transaction": "Bridge",
     "approve": "批准",
     "increase_allowance": "增加限额",
     "set_approval_for_all": "设置批准所有",
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "获取",
       "best_price": "来自",
@@ -3780,19 +3804,22 @@
       "permit": "支出上限请求",
       "permit_revoke": "去除许可",
       "permit_NFTs": "提取请求",
-      "signature_siwe": "登录请求"
+      "signature_siwe": "登录请求",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "该网站想获得花费您的代币的许可。",
       "permit_NFTs": "该网站想获得提取您的 NFT 的许可。",
       "signature": "在确认之前检查请求详情。",
-      "signature_siwe": "一个网站需要您登录来证明您拥有此账户。"
+      "signature_siwe": "一个网站需要您登录来证明您拥有此账户。",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "请求来自",
     "staking_from": "质押提供商",
     "signing_in_with": "使用以下方式登录",
     "message": "消息",
     "personal_sign_tooltip": "此网站要求您签名",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "详情",
     "qr_get_sign": "获取签名",
     "qr_scan_text": "使用您的硬件钱包扫描",
@@ -3827,7 +3854,9 @@
       "unavailable": "不可用"
     },
     "unlimited": "无限制",
-    "none": "无"
+    "none": "无",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with"
   },
   "change_in_simulation_modal": {
     "title": "结果已发生变化",
@@ -3868,6 +3897,29 @@
     "time": "时间",
     "quote_info_content": "此报价是我们搜索中能为您提供的最优回报。其基于当前兑换汇率计算，包含桥接费用及 0.875% 的 MetaMask 手续费，但不含燃料费。燃料费根据网络活动及交易复杂度动态变化。",
     "quote_info_title": "我们推荐此报价的原因",
-    "see_other_quotes": "查看其他报价"
+    "see_other_quotes": "查看其他报价",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge",
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
   }
 }
