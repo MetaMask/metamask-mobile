@@ -1,14 +1,8 @@
-import { AuthConnection, LoginHandlerResult } from './Oauth2loginInterface';
+import { AuthConnection, LoginHandlerResult } from './Oauth2LoginInterface';
 import Oauth2LoginService from './Oauth2loginService';
 import ReduxService, { ReduxStore } from '../redux';
 import { Oauth2LoginError, Oauth2LoginErrors } from './error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
-
-jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-  getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-  dispatch: jest.fn(),
-} as unknown as ReduxStore);
-// const actualSeedlessOnboardingController = jest.requireActual('./Oauth2LoginHandler');
 
 const OAUTH_AUD = 'metamask';
 const MOCK_USER_ID = 'user-id';
@@ -17,72 +11,81 @@ const MOCK_JWT_TOKEN =
 
 let mockLoginHandlerResponse: () => LoginHandlerResult | undefined = () =>
   undefined;
-jest.mock('./Oauth2LoginHandler', () => {
-  const actualOauth2LoginHandler = jest.requireActual('./Oauth2LoginHandler');
-  return {
-    ...actualOauth2LoginHandler,
-    createLoginHandler: () => ({
-      login: () => mockLoginHandlerResponse(),
-      getAuthTokens: () => ({}),
+jest.mock('./Oauth2LoginHandler', () => ({
+  createLoginHandler: () => ({
+    login: () => mockLoginHandlerResponse(),
+    getAuthTokens: () => ({
+      verifier_id: MOCK_USER_ID,
+      jwt_tokens: {
+        [OAUTH_AUD]: MOCK_JWT_TOKEN,
+      },
     }),
-  };
-});
+    decodeIdToken: () =>
+      JSON.stringify({
+        email: 'swnam909@gmail.com',
+        sub: 'swnam909@gmail.com',
+        iss: 'metamask',
+        aud: 'metamask',
+        iat: 1745207566,
+        eat: 1745207866,
+        exp: 1745207866,
+      }),
+  }),
+}));
+
+jest.mock('../Engine', () => ({
+  context: {
+    SeedlessOnboardingController: {
+      authenticate: jest.fn().mockImplementation(() => ({
+        nodeAuthTokens: [],
+        isNewUser: false,
+      })),
+    },
+  },
+}));
 
 describe('Oauth2 login service', () => {
-  it('should return a type dismiss', async () => {
-    const result = Oauth2LoginService.handleOauth2Login(AuthConnection.Google);
+  it('should throw on Error or dismiss', async () => {
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      dispatch: jest.fn(),
+    } as unknown as ReduxStore);
 
-    try {
-      await result;
-    } catch (error) {
-      expect(error).toBeInstanceOf(Oauth2LoginError);
-      expect((error as Oauth2LoginError).code).toBe(
+    mockLoginHandlerResponse = () => {
+      throw new Oauth2LoginError(
+        'Login dismissed',
         Oauth2LoginErrors.UserDismissed,
       );
-    }
+    };
+    const result = Oauth2LoginService.handleOauth2Login(AuthConnection.Google);
+
+    await expect(result).rejects.toThrow(Oauth2LoginError);
 
     mockLoginHandlerResponse = () => {
       throw new Oauth2LoginError('Login error', Oauth2LoginErrors.LoginError);
     };
 
-    const result2 = Oauth2LoginService.handleOauth2Login(AuthConnection.Google);
-    try {
-      await result2;
-    } catch (error) {
-      expect(error).toBeInstanceOf(Oauth2LoginError);
-      expect((error as Oauth2LoginError).code).toBe(
-        Oauth2LoginErrors.LoginError,
-      );
-    }
+    await expect(
+      Oauth2LoginService.handleOauth2Login(AuthConnection.Google),
+    ).rejects.toThrow(Oauth2LoginError);
+  });
+
+  it('should return a type success', async () => {
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      dispatch: jest.fn(),
+    } as unknown as ReduxStore);
 
     mockLoginHandlerResponse = () => ({
-      idToken: 'empty token',
+      idToken: MOCK_JWT_TOKEN,
       authConnection: AuthConnection.Google,
       clientId: 'clientId',
       web3AuthNetwork: Web3AuthNetwork.Mainnet,
     });
 
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-      status: 200,
-      json: jest.fn().mockResolvedValue({
-        verifier_id: MOCK_USER_ID,
-        jwt_tokens: {
-          [OAUTH_AUD]: MOCK_JWT_TOKEN,
-        },
-      }),
-    } as unknown as Response);
-
-
-    try {
-      const result3 = Oauth2LoginService.handleOauth2Login(
-        AuthConnection.Google,
-      );
-      await result3;
-    } catch (error) {
-      expect(error).toBeInstanceOf(Oauth2LoginError);
-      expect((error as Oauth2LoginError).code).toBe(
-        Oauth2LoginErrors.LoginError,
-      );
-    }
+    const finalResult = await Oauth2LoginService.handleOauth2Login(
+      AuthConnection.Google,
+    );
+    expect(finalResult).toBeDefined();
   });
 });
