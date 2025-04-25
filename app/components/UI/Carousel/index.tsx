@@ -23,11 +23,11 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
 import { selectDismissedBanners } from '../../../selectors/banner';
+///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
   selectSelectedInternalAccount,
   selectLastSelectedSolanaAccount,
 } from '../../../selectors/accountsController';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
 import { SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
@@ -42,10 +42,12 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, { style });
   const dismissedBanners = useSelector(selectDismissedBanners);
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const lastSelectedSolanaAccount = useSelector(
     selectLastSelectedSolanaAccount,
   );
+  ///: END:ONLY_INCLUDE_IF
   const isZeroBalance =
     selectedAccountMultichainBalance?.totalFiatBalance === 0;
 
@@ -83,7 +85,14 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
         }
         return !dismissedBanners.includes(slide.id);
       }),
-    [slidesConfig, isZeroBalance, dismissedBanners, selectedAccount],
+    [
+      slidesConfig,
+      isZeroBalance,
+      dismissedBanners,
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      selectedAccount,
+      ///: END:ONLY_INCLUDE_IF
+    ],
   );
   const isSingleSlide = visibleSlides.length === 1;
 
