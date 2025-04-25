@@ -28,13 +28,13 @@ const noOp = () => {
 /**
  * Renders a Snap UI interface.
  *
- * @param content - The content to render.
- * @param options - The options for the render.
- * @param options.useFooter - Whether to use the footer.
- * @param options.onCancel - The function to call when the cancel button is pressed.
- * @param options.state - The state to render.
- * @param options.backgroundState - The background state to render.
- * @param options.stateSettings - The state settings to render.
+ * @param content - The JSXElement to render.
+ * @param options - The options for rendering the interface.
+ * @param options.useFooter - Whether to render the footer.
+ * @param options.onCancel - The function to call when the interface is cancelled.
+ * @param options.state - The state of the interface.
+ * @param options.backgroundState - The initial background state.
+ * @param options.stateSettings - The initial state settings.
  * @returns The rendered interface.
  */
 export function renderInterface(
