@@ -23,6 +23,12 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
 import { selectDismissedBanners } from '../../../selectors/banner';
+import {
+  selectSelectedInternalAccount,
+  selectLastSelectedSolanaAccount,
+} from '../../../selectors/accountsController';
+import { SolAccountType } from '@metamask/keyring-api';
+import Engine from '../../../core/Engine';
 
 export const Carousel: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -34,6 +40,10 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, { style });
   const dismissedBanners = useSelector(selectDismissedBanners);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const lastSelectedSolanaAccount = useSelector(
+    selectLastSelectedSolanaAccount,
+  );
   const isZeroBalance =
     selectedAccountMultichainBalance?.totalFiatBalance === 0;
 
@@ -56,13 +66,32 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
 
   const visibleSlides = useMemo(
     () =>
-      slidesConfig.filter((slide) => {
-        if (slide.id === 'fund' && isZeroBalance) {
-          return true;
-        }
-        return !dismissedBanners.includes(slide.id);
-      }),
-    [slidesConfig, isZeroBalance, dismissedBanners],
+      slidesConfig
+        .filter((slide) => {
+          ///: BEGIN:ONLY_INCLUDE_IF(solana)
+          if (
+            slide.id === 'solana' &&
+            selectedAccount?.type === SolAccountType.DataAccount
+          ) {
+            return false;
+          }
+          ///: END:ONLY_INCLUDE_IF
+
+          if (slide.id === 'fund' && isZeroBalance) {
+            return true;
+          }
+          return !dismissedBanners.includes(slide.id);
+        })
+        ///: BEGIN:ONLY_INCLUDE_IF(solana)
+        // prioritize Solana slide
+        .sort((a, b) => {
+          if (a.id === 'solana' && b.id !== 'solana') {
+            return -1;
+          }
+          return 1;
+        }),
+    ///: END:ONLY_INCLUDE_IF
+    [slidesConfig, isZeroBalance, dismissedBanners, selectedAccount],
   );
 
   const isSingleSlide = visibleSlides.length === 1;
@@ -76,14 +105,33 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
 
   const handleSlideClick = useCallback(
     (slideId: string, navigation: NavigationAction) => {
+      const extraProperties: Record<string, string> = {};
+
+      const isSolanaBanner = slideId === 'solana';
+
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      if (isSolanaBanner && lastSelectedSolanaAccount) {
+        extraProperties.action = 'redirect-solana-account';
+      } else if (isSolanaBanner && !lastSelectedSolanaAccount) {
+        extraProperties.action = 'create-solana-account';
+      }
+      ///: END:ONLY_INCLUDE_IF
+
       trackEvent(
         createEventBuilder({
           category: 'Banner Select',
           properties: {
             name: slideId,
+            ...extraProperties,
           },
         }).build(),
       );
+
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      if (isSolanaBanner && lastSelectedSolanaAccount) {
+        return Engine.setSelectedAddress(lastSelectedSolanaAccount.address);
+      }
+      ///: END:ONLY_INCLUDE_IF
 
       if (navigation.type === 'url') {
         return openUrl(navigation.href)();
@@ -97,7 +145,7 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
         return navigate(navigation.route);
       }
     },
-    [navigate, trackEvent, createEventBuilder],
+    [trackEvent, createEventBuilder, lastSelectedSolanaAccount, navigate],
   );
 
   const handleClose = useCallback(
