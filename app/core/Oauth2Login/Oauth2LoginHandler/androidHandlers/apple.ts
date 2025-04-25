@@ -9,6 +9,7 @@ import {
   LoginHandlerCodeResult,
 } from '../../Oauth2loginInterface';
 import { BaseLoginHandler } from '../baseHandler';
+import { Oauth2LoginErrors, Oauth2LoginError } from '../../error';
 export interface AndroidAppleLoginHandlerParams {
   clientId: string;
   redirectUri: string;
@@ -98,20 +99,31 @@ export class AndroidAppleLoginHandler
     }
     if (result.type === 'error') {
       if (result.error) {
-        throw result.error;
+        throw new Oauth2LoginError(
+          result.error.message,
+          Oauth2LoginErrors.LoginError,
+        );
       }
-      throw new Error('handleAndroidAppleLogin: Unknown error');
+      throw new Oauth2LoginError(
+        'handleAndroidAppleLogin: Unknown error',
+        Oauth2LoginErrors.UnknownError,
+      );
     }
     if (result.type === 'cancel') {
-      throw new Error(
+      throw new Oauth2LoginError(
         'handleAndroidAppleLogin: User cancelled the login process',
+        Oauth2LoginErrors.UserCancelled,
       );
     }
     if (result.type === 'dismiss') {
-      throw new Error(
+      throw new Oauth2LoginError(
         'handleAndroidAppleLogin: User dismissed the login process',
+        Oauth2LoginErrors.UserDismissed,
       );
     }
-    throw new Error('handleAndroidAppleLogin: Unknown error');
+    throw new Oauth2LoginError(
+      'handleAndroidAppleLogin: Unknown error',
+      Oauth2LoginErrors.UnknownError,
+    );
   }
 }

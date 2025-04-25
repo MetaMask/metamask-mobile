@@ -1,9 +1,13 @@
-import { getAuthTokens } from '.';
+import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import {
   AuthConnection,
+  AuthResponse,
   HandleFlowParams,
+  LoginHandlerCodeResult,
+  LoginHandlerIdTokenResult,
   LoginHandlerResult,
 } from '../Oauth2loginInterface';
+import { Oauth2LoginError, Oauth2LoginErrors } from '../error';
 
 /**
  * Pads a string to a length of 4 characters
@@ -31,6 +35,73 @@ function padBase64String(input: string) {
   return buffer.toString();
 }
 
+/**
+ * Get the auth tokens from the auth server
+ *
+ * @param params - The params from the login handler
+ * @param pathname - The pathname of the auth server
+ * @param authServerUrl - The url of the auth server
+ */
+export async function getAuthTokens(
+  params: HandleFlowParams,
+  pathname: string,
+  authServerUrl: string,
+): Promise<AuthResponse> {
+  const {
+    authConnection,
+    clientId,
+    redirectUri,
+    codeVerifier,
+    web3AuthNetwork,
+  } = params;
+
+  // Type guard to check if params has a code property
+  const hasCode = (
+    p: HandleFlowParams,
+  ): p is LoginHandlerCodeResult & { web3AuthNetwork: Web3AuthNetwork } =>
+    'code' in p;
+
+  // Type guard to check if params has an idToken property
+  const hasIdToken = (
+    p: HandleFlowParams,
+  ): p is LoginHandlerIdTokenResult & { web3AuthNetwork: Web3AuthNetwork } =>
+    'idToken' in p;
+
+  const code = hasCode(params) ? params.code : undefined;
+  const idToken = hasIdToken(params) ? params.idToken : undefined;
+
+  const body = {
+    code,
+    id_token: idToken,
+    client_id: clientId,
+    login_provider: authConnection,
+    network: web3AuthNetwork,
+    redirect_uri: redirectUri,
+    code_verifier: codeVerifier,
+  };
+
+  const res = await fetch(`${authServerUrl}/${pathname}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (res.status === 200) {
+    const data = (await res.json()) as AuthResponse;
+    return data;
+  }
+
+  throw new Oauth2LoginError(
+    `AuthServer Error : ${await res.text()}`,
+    Oauth2LoginErrors.AuthServerError,
+  );
+}
+
+/**
+ * Base class for the login handlers
+ */
 export abstract class BaseLoginHandler {
   public nonce: string;
 
@@ -46,6 +117,12 @@ export abstract class BaseLoginHandler {
     this.nonce = this.#generateNonce();
   }
 
+  /**
+   * Get the auth tokens from the auth server
+   *
+   * @param params - The params from the login handler
+   * @param authServerUrl - The url of the auth server
+   */
   getAuthTokens(params: HandleFlowParams, authServerUrl: string) {
     return getAuthTokens(params, this.authServerPath, authServerUrl);
   }

@@ -21,6 +21,7 @@ import {
   IosAppleClientId,
   AppleServerRedirectUri,
 } from './constants';
+import { Oauth2LoginErrors, Oauth2LoginError } from '../error';
 
 export function createLoginHandler(
   platformOS: Platform['OS'],
@@ -48,7 +49,10 @@ export function createLoginHandler(
         case AuthConnection.Apple:
           return new IosAppleLoginHandler({ clientId: IosAppleClientId });
         default:
-          throw new Error('Invalid provider');
+          throw new Oauth2LoginError(
+            'Invalid provider',
+            Oauth2LoginErrors.InvalidProvider,
+          );
       }
     case 'android':
       switch (provider) {
@@ -63,10 +67,16 @@ export function createLoginHandler(
             appRedirectUri: AppRedirectUri,
           });
         default:
-          throw new Error('Invalid provider');
+          throw new Oauth2LoginError(
+            'Invalid provider',
+            Oauth2LoginErrors.InvalidProvider,
+          );
       }
     default:
-      throw new Error('Unsupported Platform');
+      throw new Oauth2LoginError(
+        'Unsupported Platform',
+        Oauth2LoginErrors.UnsupportedPlatform,
+      );
   }
 }
 

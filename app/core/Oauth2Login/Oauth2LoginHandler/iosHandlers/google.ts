@@ -8,12 +8,19 @@ import {
   ResponseType,
 } from 'expo-auth-session';
 import { BaseLoginHandler } from '../baseHandler';
+import { Oauth2LoginErrors, Oauth2LoginError } from '../../error';
 
+/**
+ * IosGoogleLoginHandlerParams is the params for the Google login handler
+ */
 export interface IosGoogleLoginHandlerParams {
   clientId: string;
   redirectUri: string;
 }
 
+/**
+ * IosGoogleLoginHandler is the login handler for the Google login
+ */
 export class IosGoogleLoginHandler extends BaseLoginHandler {
   public readonly OAUTH_SERVER_URL =
     'https://accounts.google.com/o/oauth2/v2/auth';
@@ -72,16 +79,31 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
     }
     if (result.type === 'error') {
       if (result.error) {
-        throw result.error;
+        throw new Oauth2LoginError(
+          result.error.message,
+          Oauth2LoginErrors.LoginError,
+        );
       }
-      throw new Error('handleIosGoogleLogin: Unknown error');
+      throw new Oauth2LoginError(
+        'handleIosGoogleLogin: Unknown error',
+        Oauth2LoginErrors.UnknownError,
+      );
     }
     if (result.type === 'cancel') {
-      throw new Error('handleIosGoogleLogin: User cancelled the login process');
+      throw new Oauth2LoginError(
+        'handleIosGoogleLogin: User cancelled the login process',
+        Oauth2LoginErrors.UserCancelled,
+      );
     }
     if (result.type === 'dismiss') {
-      throw new Error('handleIosGoogleLogin: User dismissed the login process');
+      throw new Oauth2LoginError(
+        'handleIosGoogleLogin: User dismissed the login process',
+        Oauth2LoginErrors.UserDismissed,
+      );
     }
-    throw new Error('handleIosGoogleLogin: Unknown error');
+    throw new Oauth2LoginError(
+      'handleIosGoogleLogin: Unknown error',
+      Oauth2LoginErrors.UnknownError,
+    );
   }
 }

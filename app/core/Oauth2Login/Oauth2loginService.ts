@@ -14,6 +14,7 @@ import { web3AuthNetwork as currentWeb3AuthNetwork } from '../Engine/controllers
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { createLoginHandler } from './Oauth2LoginHandler';
 import { AuthServerUrl } from './Oauth2LoginHandler/constants';
+import { Oauth2LoginError, Oauth2LoginErrors } from './error';
 
 export const AuthConnectionId = process.env.AUTH_CONNECTION_ID;
 export const GroupedAuthConnectionId = process.env.GROUPED_AUTH_CONNECTION_ID;
@@ -122,11 +123,7 @@ export class Oauth2LoginService {
       Logger.error(error as Error, {
         message: 'handleCodeFlow',
       });
-      return {
-        type: 'error',
-        existingUser: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
+      throw error;
     }
   };
 
@@ -136,7 +133,10 @@ export class Oauth2LoginService {
     const web3AuthNetwork = this.config.web3AuthNetwork;
 
     if (this.localState.loginInProgress) {
-      throw new Error('Login already in progress');
+      throw new Oauth2LoginError(
+        'Login already in progress',
+        Oauth2LoginErrors.LoginInProgress,
+      );
     }
     this.#dispatchLogin();
 
@@ -153,7 +153,10 @@ export class Oauth2LoginService {
         const audience = 'metamask';
 
         if (!data.jwt_tokens[audience]) {
-          throw new Error('No token found');
+          throw new Oauth2LoginError(
+            'No token found',
+            Oauth2LoginErrors.LoginError,
+          );
         }
 
         const jwtPayload = JSON.parse(
@@ -176,19 +179,18 @@ export class Oauth2LoginService {
       this.#dispatchPostLogin({ type: 'dismiss', existingUser: false });
       return { type: 'dismiss', existingUser: false };
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'handleOauth2Login',
-      });
       this.#dispatchPostLogin({
         type: 'error',
         existingUser: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-      return {
-        type: 'error',
-        existingUser: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
+      if (error instanceof Oauth2LoginError) {
+        throw error;
+      }
+      throw new Oauth2LoginError(
+        error instanceof Error ? error : 'Unknown error',
+        Oauth2LoginErrors.LoginError,
+      );
     }
   };
 
