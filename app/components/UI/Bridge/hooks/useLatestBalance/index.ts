@@ -4,7 +4,12 @@ import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Web3Provider } from '@ethersproject/providers';
 import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccount, selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectSelectedInternalAccount,
+  ///: END:ONLY_INCLUDE_IF
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../../../selectors/accountsController';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
@@ -67,11 +72,10 @@ export const useLatestBalance = (
   const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
   const previousToken = usePrevious(token);
 
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
-
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Returns native SOL and SPL tokens, contains balance and fiat values
   // Balance and fiat values are not truncated
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
   const nonEvmTokens = useSelector((state: RootState) =>
     selectMultichainTokenListForAccountId(state, selectedAccount?.id),
   );
