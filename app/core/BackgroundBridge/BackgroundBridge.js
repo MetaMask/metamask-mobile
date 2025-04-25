@@ -66,9 +66,7 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
   getEthAccounts,
-  getPermittedAccountsForScopes,
   getSessionScopes,
-  KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
 import {
   makeMethodMiddlewareMaker,
@@ -76,27 +74,19 @@ import {
 } from '../RPCMethods/utils';
 import { ERC1155, ERC20, ERC721 } from '@metamask/controller-utils';
 import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
-import { MultichainNetworks } from '../Multichain/constants';
 import {
   diffMap,
   getChangedAuthorizations,
   getRemovedAuthorizations,
+  getCaip25PermissionFromLegacyPermissions,
 } from '../../util/permissions';
 import {
   getAuthorizedScopesByOrigin,
-  getOriginsWithSessionProperty,
   getPermittedAccountsByOrigin,
-  getPermittedAccountsForScopesByOrigin,
   getPermittedChainsByOrigin,
 } from '../../selectors/permissions';
 import { previousValueComparator } from '../../util/validators';
-import { uniq } from 'lodash';
-import {
-  hexToBigInt,
-  parseCaipAccountId,
-  toCaipChainId,
-} from '@metamask/utils';
-import { SolAccountType } from '@metamask/keyring-api';
+import { hexToBigInt, toCaipChainId } from '@metamask/utils';
 import { TransactionController } from '@metamask/transaction-controller';
 
 // Types of APIs
@@ -104,7 +94,6 @@ const API_TYPE = {
   EIP1193: 'eip-1193',
   CAIP_MULTICHAIN: 'caip-multichain',
 };
-import { getCaip25PermissionFromLegacyPermissions } from '../../util/permissions';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -215,7 +204,7 @@ export class BackgroundBridge extends EventEmitter {
       this.onUnlock.bind(this),
     );
 
-    if (process.env.MULTICHAIN_API) {
+    if (AppConstants.MULTICHAIN_API) {
       this.multichainSubscriptionManager = new MultichainSubscriptionManager({
         getNetworkClientById:
           Engine.context.NetworkController.getNetworkClientById.bind(
@@ -367,19 +356,6 @@ export class BackgroundBridge extends EventEmitter {
    */
   setupControllerEventSubscriptions() {
     let lastSelectedAddress;
-    let lastSelectedSolanaAccountAddress;
-
-    if (AppConstants.MULTICHAIN_API) {
-      // this throws if there is no solana account... perhaps we should handle this better at the controller level
-      try {
-        lastSelectedSolanaAccountAddress =
-          this.accountsController.getSelectedMultichainAccount(
-            MultichainNetworks.SOLANA,
-          )?.address;
-      } catch {
-        // noop
-      }
-    }
 
     const { controllerMessenger } = Engine;
     const {
@@ -388,7 +364,6 @@ export class BackgroundBridge extends EventEmitter {
       PreferencesController,
       AccountsController,
       PermissionController,
-      SnapController,
     } = Engine.context;
 
     controllerMessenger.subscribe(
@@ -403,7 +378,7 @@ export class BackgroundBridge extends EventEmitter {
       }, PreferencesController.state),
     );
 
-    this.controllerMessenger.subscribe(
+    controllerMessenger.subscribe(
       `${AccountsController.name}:selectedAccountChange`,
       async (account) => {
         if (account.address && account.address !== lastSelectedAddress) {
@@ -429,7 +404,7 @@ export class BackgroundBridge extends EventEmitter {
 
     // This handles CAIP-25 authorization changes every time relevant permission state
     // changes, for any reason.
-    if (process.env.MULTICHAIN_API) {
+    if (AppConstants.MULTICHAIN_API) {
       // wallet_sessionChanged and eth_subscription setup/teardown
       controllerMessenger.subscribe(
         `${PermissionController.name}:stateChange`,
@@ -512,139 +487,6 @@ export class BackgroundBridge extends EventEmitter {
           }
         },
         getAuthorizedScopesByOrigin,
-      );
-
-      // wallet_notify for solana accountChanged when permission changes
-      controllerMessenger.subscribe(
-        `${this.permissionController.name}:stateChange`,
-        async (currentValue, previousValue) => {
-          const origins = uniq([
-            ...previousValue.keys(),
-            ...currentValue.keys(),
-          ]);
-          origins.forEach((origin) => {
-            const previousCaveatValue = previousValue.get(origin);
-            const currentCaveatValue = currentValue.get(origin);
-
-            const previousSolanaAccountChangedNotificationsEnabled = Boolean(
-              previousCaveatValue?.sessionProperties?.[
-                KnownSessionProperties.SolanaAccountChangedNotifications
-              ],
-            );
-            const currentSolanaAccountChangedNotificationsEnabled = Boolean(
-              currentCaveatValue?.sessionProperties?.[
-                KnownSessionProperties.SolanaAccountChangedNotifications
-              ],
-            );
-
-            if (
-              !previousSolanaAccountChangedNotificationsEnabled &&
-              !currentSolanaAccountChangedNotificationsEnabled
-            ) {
-              return;
-            }
-
-            const previousSolanaCaipAccountIds = previousCaveatValue
-              ? getPermittedAccountsForScopes(previousCaveatValue, [
-                  MultichainNetworks.SOLANA,
-                  MultichainNetworks.SOLANA_DEVNET,
-                  MultichainNetworks.SOLANA_TESTNET,
-                ])
-              : [];
-            const previousNonUniqueSolanaHexAccountAddresses =
-              previousSolanaCaipAccountIds.map((caipAccountId) => {
-                const { address } = parseCaipAccountId(caipAccountId);
-                return address;
-              });
-            const previousSolanaHexAccountAddresses = uniq(
-              previousNonUniqueSolanaHexAccountAddresses,
-            );
-            const [previousSelectedSolanaAccountAddress] =
-              this.sortMultichainAccountsByLastSelected(
-                previousSolanaHexAccountAddresses,
-              );
-
-            const currentSolanaCaipAccountIds = currentCaveatValue
-              ? getPermittedAccountsForScopes(currentCaveatValue, [
-                  MultichainNetworks.SOLANA,
-                  MultichainNetworks.SOLANA_DEVNET,
-                  MultichainNetworks.SOLANA_TESTNET,
-                ])
-              : [];
-            const currentNonUniqueSolanaHexAccountAddresses =
-              currentSolanaCaipAccountIds.map((caipAccountId) => {
-                const { address } = parseCaipAccountId(caipAccountId);
-                return address;
-              });
-            const currentSolanaHexAccountAddresses = uniq(
-              currentNonUniqueSolanaHexAccountAddresses,
-            );
-            const [currentSelectedSolanaAccountAddress] =
-              this.sortMultichainAccountsByLastSelected(
-                currentSolanaHexAccountAddresses,
-              );
-
-            if (
-              previousSelectedSolanaAccountAddress !==
-              currentSelectedSolanaAccountAddress
-            ) {
-              // TODO: [ffmcgee] implement notifySolanaAccountChange ?
-              // this._notifySolanaAccountChange(
-              //   origin,
-              //   currentSelectedSolanaAccountAddress
-              //     ? [currentSelectedSolanaAccountAddress]
-              //     : [],
-              // );
-            }
-          });
-        },
-        getAuthorizedScopesByOrigin,
-      );
-
-      // wallet_notify for solana accountChanged when selected account changes
-      controllerMessenger.subscribe(
-        `${AccountsController.name}:selectedAccountChange`,
-        async (account) => {
-          if (
-            account.type === SolAccountType.DataAccount &&
-            account.address !== lastSelectedSolanaAccountAddress
-          ) {
-            lastSelectedSolanaAccountAddress = account.address;
-
-            const originsWithSolanaAccountChangedNotifications =
-              getOriginsWithSessionProperty(
-                PermissionController.state,
-                KnownSessionProperties.SolanaAccountChangedNotifications,
-              );
-
-            // returns a map of origins to permitted solana accounts
-            const solanaAccounts = getPermittedAccountsForScopesByOrigin(
-              PermissionController.state,
-              [
-                MultichainNetworks.SOLANA,
-                MultichainNetworks.SOLANA_DEVNET,
-                MultichainNetworks.SOLANA_TESTNET,
-              ],
-            );
-
-            if (solanaAccounts.size > 0) {
-              for (const [origin, accounts] of solanaAccounts.entries()) {
-                const parsedSolanaAddresses = accounts.map((caipAccountId) => {
-                  const { address } = parseCaipAccountId(caipAccountId);
-                  return address;
-                });
-
-                if (
-                  parsedSolanaAddresses.includes(account.address) &&
-                  originsWithSolanaAccountChangedNotifications[origin]
-                ) {
-                  // TODO: [ffmcgee] implement notifySolanaAccountChange ?
-                  // this._notifySolanaAccountChange(origin, [account.address]);
-                }
-              }
-            }
-          }
-        },
       );
     }
 
@@ -1454,8 +1296,9 @@ export class BackgroundBridge extends EventEmitter {
    */
   getPermittedAccounts(origin, { ignoreLock } = {}) {
     let caveat;
+    const { PermissionController } = Engine.context;
     try {
-      caveat = this.permissionController.getCaveat(
+      caveat = PermissionController.getCaveat(
         origin,
         Caip25EndowmentPermissionName,
         Caip25CaveatType,
@@ -1478,11 +1321,11 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   _restartSmartTransactionPoller() {
-    if (
-      Engine.context.PreferencesController.state.useExternalServices === true
-    ) {
-      Engine.context.TransactionController.stopIncomingTransactionPolling();
-      Engine.context.TransactionController.startIncomingTransactionPolling();
+    const { PreferencesController, TransactionController } = Engine.context;
+
+    if (PreferencesController.state.useExternalServices === true) {
+      TransactionController.stopIncomingTransactionPolling();
+      TransactionController.startIncomingTransactionPolling();
     }
   }
 
