@@ -361,6 +361,8 @@ describe('TokenDetails', () => {
           return { ticker: 'ETH' };
         case selectEvmTicker:
           return 'ETH';
+        case selectMultichainAssetsRates:
+          return {};
         case selectStablecoinLendingEnabledFlag:
           return true;
         default:
