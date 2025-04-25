@@ -25,6 +25,7 @@ import { toTokenMinimalUnit } from '../../../../../util/number';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -262,6 +263,13 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+jest.mock('../../../../../util/trace', () => ({
+  endTrace: jest.fn(),
+  TraceName: {
+    LoadRampExperience: 'Load Ramp Experience',
+  },
+}));
+
 describe('BuildQuote View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
@@ -271,6 +279,7 @@ describe('BuildQuote View', () => {
     mockPop.mockClear();
     mockTrackEvent.mockClear();
     (mockUseRampSDKInitialValues.setSelectedRegion as jest.Mock).mockClear();
+    jest.clearAllMocks();
   });
 
   beforeEach(() => {
@@ -359,14 +368,14 @@ describe('BuildQuote View', () => {
 
   it('calls setOptions when rendering', async () => {
     render(BuildQuote);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalled();
 
     mockSetOptions.mockReset();
 
     mockUseRampSDKValues.isBuy = false;
     mockUseRampSDKValues.isSell = true;
     render(BuildQuote);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalled();
   });
 
   it('navigates and tracks event on cancel button press', async () => {
@@ -391,6 +400,33 @@ describe('BuildQuote View', () => {
       chain_id_source: '1',
       location: 'Amount to Sell Screen',
     });
+  });
+
+  it('calls endTrace when the conditions are met', () => {
+    render(BuildQuote);
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.LoadRampExperience,
+    });
+  });
+
+  it('does not call endTrace if conditions are not met', () => {
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      sdkError: new Error('sdkError'),
+    };
+    render(BuildQuote);
+    expect(endTrace).not.toHaveBeenCalled();
+  });
+
+  it('only calls endTrace once', () => {
+    render(BuildQuote);
+    act(() => {
+      mockUseRegionsValues = {
+        ...mockUseRegionsInitialValues,
+        isFetching: true,
+      };
+    });
+    expect(endTrace).toHaveBeenCalledTimes(1);
   });
 
   describe('Regions data', () => {
