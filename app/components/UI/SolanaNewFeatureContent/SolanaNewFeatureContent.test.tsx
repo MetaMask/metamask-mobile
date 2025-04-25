@@ -5,6 +5,10 @@ import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import { KeyringClient } from '@metamask/keyring-snap-client';
 import SolanaNewFeatureContent from './SolanaNewFeatureContent';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { SolAccountType } from '@metamask/keyring-api';
+import { Linking } from 'react-native';
+import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
@@ -143,5 +147,44 @@ describe('SolanaNewFeatureContent', () => {
     await waitFor(() => {
       expect(queryByText('solana_new_feature_content.title')).toBeNull();
     });
+  });
+
+  it('navigates to solana account if user has a solana account ', async () => {
+    const mockNavigate = jest.fn();
+    Linking.openURL = mockNavigate;
+
+    (useSelector as jest.Mock).mockImplementation((selector) =>
+      selector({
+        banners: {
+          dismissedBanners: [],
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '1',
+                accounts: {
+                  '1': {
+                    address: '0xSomeAddress',
+                    type: SolAccountType.DataAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
+
+    await waitFor(() => {
+      expect(getByText('solana_new_feature_content.learn_more')).toBeTruthy();
+    });
+    fireEvent.press(getByText('solana_new_feature_content.learn_more'));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE,
+    );
   });
 });
