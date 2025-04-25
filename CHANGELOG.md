@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- feat(bridge): implement quote expiration handling in Bridge feature ([#14872](https://github.com/MetaMask/metamask-mobile/pull/14872))
 - feat(bridge): use dynamic slippage for single-chain Solana swaps ([#14805](https://github.com/MetaMask/metamask-mobile/pull/14805))
 - feat(bridge): enhance bridging with network fee estimation and UI improvements ([#14786](https://github.com/MetaMask/metamask-mobile/pull/14786))
 - feat(ramp): auto-select region ([#14780](https://github.com/MetaMask/metamask-mobile/pull/14780))
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(multi-srp): add e2e tests ([#14583](https://github.com/MetaMask/metamask-mobile/pull/14583))
 - feat(bridge): fetch token metadata for Bridge token pickers if not already available ([#14699](https://github.com/MetaMask/metamask-mobile/pull/14699))
 - feat(bridge): use `BridgeStatusController` for EVM and Solana Bridge transaction submission ([#14708](https://github.com/MetaMask/metamask-mobile/pull/14708))
+- feat(multi-srp): add discover accounts to MultichainWalletSnapClient ([#14727](https://github.com/MetaMask/metamask-mobile/pull/14727))
 - feat: real time dapp scanning BrowserTab ([#14515](https://github.com/MetaMask/metamask-mobile/pull/14515))
 
 ### Changed

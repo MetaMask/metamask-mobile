@@ -9,6 +9,7 @@ export type ConfirmationRedesignRemoteFlags = {
   signatures: boolean;
   staking_confirmations: boolean;
   contract_interaction: boolean;
+  transfer: boolean;
 };
 
 const isRemoteFeatureFlagValuesValid = (
@@ -24,6 +25,7 @@ const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags =
     signatures: true,
     staking_confirmations: false,
     contract_interaction: false,
+    transfer: false,
   };
 
 export const selectConfirmationRedesignFlags = createSelector(
@@ -52,10 +54,16 @@ export const selectConfirmationRedesignFlags = createSelector(
       confirmationRedesignFlags.contract_interaction,
     );
 
+    // TODO: This will be pick up values from the remote feature flag once the feature is ready
+    // Task is created but still in draft
+    const isTransferEnabled =
+      process.env.FEATURE_FLAG_REDESIGNED_TRANSFER === 'true';
+
     return {
       signatures: isSignaturesEnabled,
       staking_confirmations: isStakingConfirmationsEnabled,
       contract_interaction: isContractInteractionEnabled,
+      transfer: isTransferEnabled,
     };
   },
 );
