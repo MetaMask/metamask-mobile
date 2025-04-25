@@ -16,6 +16,8 @@ const mockGetKeyringsByType = jest.fn();
 const mockGetAccounts = jest.fn();
 const mockAddAccounts = jest.fn();
 const mockSetAccountLabel = jest.fn();
+const mockControllerMessenger = jest.fn();
+const mockAddDiscoveredAccounts = jest.fn();
 
 const hdKeyring = {
   getAccounts: () => {
@@ -27,6 +29,17 @@ const hdKeyring = {
     return ['0x123'];
   },
 };
+
+const mockSnapClient = {
+  addDiscoveredAccounts: mockAddDiscoveredAccounts,
+};
+
+jest.mock('../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
+  ...jest.requireActual('../../core/SnapKeyring/MultichainWalletSnapClient'),
+  MultichainWalletSnapFactory: {
+    createClient: jest.fn().mockImplementation(() => mockSnapClient),
+  },
+}));
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -41,6 +54,7 @@ jest.mock('../../core/Engine', () => ({
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
   setAccountLabel: (address: string, label: string) =>
     mockSetAccountLabel(address, label),
+  controllerMessenger: mockControllerMessenger,
 }));
 
 jest.mocked(Engine);
@@ -66,6 +80,7 @@ describe('MultiSRP Actions', () => {
         numberOfAccounts: 1,
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+      expect(mockAddDiscoveredAccounts).toHaveBeenCalled();
     });
 
     it('throws error if SRP already imported', async () => {
