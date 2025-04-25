@@ -228,24 +228,39 @@ const AccountSelectorList = ({
         cellStyle.alignItems = 'center';
       }
 
+      const handleLongPress = () => {
+        onLongPress({
+          address,
+          isAccountRemoveable:
+            type === KeyringTypes.simple || type === KeyringTypes.snap,
+          isSelected: isSelectedAccount,
+          index,
+        });
+      };
+
+      const handlePress = () => {
+        onSelectAccount?.(address, isSelectedAccount);
+      };
+
+      const handleButtonClick = () => {
+        onNavigateToAccountActions(address);
+      };
+
+      const buttonProps = {
+        onButtonClick: handleButtonClick,
+        buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
+      };
+
       return (
         <Cell
-          onLongPress={() => {
-            onLongPress({
-              address,
-              isAccountRemoveable:
-                type === KeyringTypes.simple || type === KeyringTypes.snap,
-              isSelected: isSelectedAccount,
-              index,
-            });
-          }}
+          onLongPress={handleLongPress}
           variant={cellVariant}
           isSelected={isSelectedAccount}
           title={accountName}
           secondaryText={shortAddress}
           showSecondaryTextIcon={false}
           tertiaryText={balanceError}
-          onPress={() => onSelectAccount?.(address, isSelectedAccount)}
+          onPress={handlePress}
           avatarProps={{
             variant: AvatarVariant.Account,
             type: accountAvatarType,
@@ -254,10 +269,7 @@ const AccountSelectorList = ({
           tagLabel={tagLabel}
           disabled={isDisabled}
           style={cellStyle}
-          buttonProps={{
-            onButtonClick: () => onNavigateToAccountActions(address),
-            buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
-          }}
+          buttonProps={buttonProps}
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets && renderAccountBalances(assets, address))}
