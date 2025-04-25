@@ -198,7 +198,6 @@ const Wallet = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
-
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,

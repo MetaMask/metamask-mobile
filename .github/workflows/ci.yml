@@ -1,7 +1,7 @@
 name: ci
 on:
   push:
-    branches: main
+    branches: upgrade/react-native/0.76.6
   pull_request:
   merge_group:
     types: [checks_requested]
@@ -11,7 +11,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -34,7 +36,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -52,7 +56,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -71,7 +77,9 @@ jobs:
           - test:tgz-check
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -93,7 +101,9 @@ jobs:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -126,7 +136,9 @@ jobs:
     needs: unit-tests
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -159,7 +171,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -202,9 +216,10 @@ jobs:
     needs: merge-unit-tests
     steps:
       - uses: actions/checkout@v3
+      - name: Enable Corepack
         with:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
       - uses: actions/download-artifact@v4
@@ -243,6 +258,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Enable Corepack
+        run: corepack enable
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         env:

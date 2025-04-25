@@ -9,18 +9,13 @@ RUN apt-get update \
   && sed -i '/en_US.UTF-8/s/^# //' /etc/locale.gen \
   && locale-gen
 
-ENV YARN_VERSION 1.22.22
-# replace base image yarn 1.19
-# checksums and sigs for 1.22 not available as of now...
-# https://github.com/nodejs/docker-node/blob/07bd7414c9eeb7a134951122e1105e8c849f770e/Dockerfile-debian.template
-COPY scripts/docker/yarn-v$YARN_VERSION.tar.gz.sha256 .
-RUN curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz" \
-  && sha256sum yarn-v$YARN_VERSION.tar.gz.sha256 \
-  && tar -xzf yarn-v$YARN_VERSION.tar.gz -C /opt/ \
-  && ln -sf /opt/yarn-v$YARN_VERSION/bin/yarn /usr/local/bin/yarn \
-  && ln -sf /opt/yarn-v$YARN_VERSION/bin/yarnpkg /usr/local/bin/yarnpkg \
-  && rm yarn-v$YARN_VERSION.tar.gz.sha256 yarn-v$YARN_VERSION.tar.gz \
-  && yarn --version
+ENV YARN_VERSION 3.8.7
+
+# Install corepack (bundled with newer Node versions), which manages Yarn versions
+RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
+# Optionally verify the installed version
+RUN yarn --version
+
 
 ARG UID=1000
 ARG GID=1000

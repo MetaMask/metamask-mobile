@@ -115,6 +115,13 @@ ppom/node_modules
 ppom/dist
 ppom/package-lock.json
 app/lib/ppom/ppom.html.js
+ppom/.pnp.*
+ppom/.yarn/*
+ppom/.yarn/patches
+ppom/.yarn/plugins
+ppom/.yarn/releases
+ppom/.yarn/sdks
+ppom/.yarn/versions
 
 # ccache
 ccache
@@ -142,3 +149,13 @@ github-tools/
 
 # API Monitor logs
 api-monitor-logs/
+
+
+# Yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
