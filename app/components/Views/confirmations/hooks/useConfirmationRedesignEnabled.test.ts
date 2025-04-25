@@ -8,8 +8,17 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import {
   personalSignatureConfirmationState,
   stakingDepositConfirmationState,
+  transferConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
 import { useConfirmationRedesignEnabled } from './useConfirmationRedesignEnabled';
+import { selectConfirmationRedesignFlags } from '../../../../selectors/featureFlagController/confirmations';
+
+const disabledFeatureFlags = {
+  signatures: false,
+  staking_confirmations: false,
+  contract_interaction: false,
+  transfer: false,
+};
 
 jest.mock('../../../../util/address', () => ({
   ...jest.requireActual('../../../../util/address'),
@@ -18,7 +27,7 @@ jest.mock('../../../../util/address', () => ({
 }));
 
 jest.mock('../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     KeyringController: {
       state: {
@@ -32,9 +41,20 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../selectors/featureFlagController/confirmations');
+
 describe('useConfirmationRedesignEnabled', () => {
+  const confirmationRedesignFlagsMock = jest.mocked(
+    selectConfirmationRedesignFlags,
+  );
+
   describe('signature confirmations', () => {
     it('returns true for personal sign request', async () => {
+      confirmationRedesignFlagsMock.mockReturnValue({
+        ...disabledFeatureFlags,
+        signatures: true,
+      });
+
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
         {
@@ -46,25 +66,12 @@ describe('useConfirmationRedesignEnabled', () => {
     });
 
     it('returns false when remote flag is disabled', async () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            ...personalSignatureConfirmationState.engine.backgroundState,
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                confirmation_redesign: {
-                  signatures: false,
-                },
-              },
-            },
-          },
-        },
-      };
+      confirmationRedesignFlagsMock.mockReturnValue(disabledFeatureFlags);
 
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
         {
-          state,
+          state: personalSignatureConfirmationState,
         },
       );
 
@@ -81,6 +88,11 @@ describe('useConfirmationRedesignEnabled', () => {
         });
 
         it('returns true when enabled', async () => {
+          confirmationRedesignFlagsMock.mockReturnValue({
+            ...disabledFeatureFlags,
+            staking_confirmations: true,
+          });
+
           const { result } = renderHookWithProvider(
             useConfirmationRedesignEnabled,
             {
@@ -92,13 +104,15 @@ describe('useConfirmationRedesignEnabled', () => {
         });
 
         it('returns false when remote flag is disabled', async () => {
-          const withDisabledFlag = cloneDeep(stakingDepositConfirmationState);
-          withDisabledFlag.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.confirmation_redesign.staking_confirmations =
-            false;
+          confirmationRedesignFlagsMock.mockReturnValue({
+            ...disabledFeatureFlags,
+            signatures: true,
+          });
+
           const { result } = renderHookWithProvider(
             useConfirmationRedesignEnabled,
             {
-              state: withDisabledFlag,
+              state: stakingDepositConfirmationState,
             },
           );
 
@@ -106,6 +120,12 @@ describe('useConfirmationRedesignEnabled', () => {
         });
 
         it('returns false when transactionMeta is not present', async () => {
+          confirmationRedesignFlagsMock.mockReturnValue({
+            ...disabledFeatureFlags,
+            signatures: true,
+            staking_confirmations: true,
+          });
+
           const withoutTransactions = cloneDeep(
             stakingDepositConfirmationState,
           );
@@ -123,6 +143,12 @@ describe('useConfirmationRedesignEnabled', () => {
         });
 
         it('returns false when approval type is not transaction', async () => {
+          confirmationRedesignFlagsMock.mockReturnValue({
+            ...disabledFeatureFlags,
+            signatures: true,
+            staking_confirmations: true,
+          });
+
           const approvalId =
             stakingDepositConfirmationState.engine.backgroundState
               .TransactionController.transactions[0].id;
@@ -152,6 +178,12 @@ describe('useConfirmationRedesignEnabled', () => {
         });
 
         it('returns false when from address is external hardware account', async () => {
+          confirmationRedesignFlagsMock.mockReturnValue({
+            ...disabledFeatureFlags,
+            signatures: true,
+            staking_confirmations: true,
+          });
+
           (isHardwareAccount as jest.Mock).mockReturnValue(true);
           const { result } = renderHookWithProvider(
             useConfirmationRedesignEnabled,
@@ -164,6 +196,12 @@ describe('useConfirmationRedesignEnabled', () => {
         });
 
         it('only redesign if transactions is staking deposit', async () => {
+          confirmationRedesignFlagsMock.mockReturnValue({
+            ...disabledFeatureFlags,
+            signatures: true,
+            staking_confirmations: true,
+          });
+
           const withBridgeTransaction = cloneDeep(
             stakingDepositConfirmationState,
           );
@@ -179,6 +217,37 @@ describe('useConfirmationRedesignEnabled', () => {
 
           expect(result.current.isRedesignedEnabled).toBe(false);
         });
+      });
+    });
+
+    describe('transfer confirmations', () => {
+      it('returns true when flag is enabled', async () => {
+        confirmationRedesignFlagsMock.mockReturnValue({
+          ...disabledFeatureFlags,
+          transfer: true,
+        });
+
+        const { result } = renderHookWithProvider(
+          useConfirmationRedesignEnabled,
+          {
+            state: transferConfirmationState,
+          },
+        );
+
+        expect(result.current.isRedesignedEnabled).toBe(true);
+      });
+
+      it('returns false when approval type is not transaction', async () => {
+        confirmationRedesignFlagsMock.mockReturnValue(disabledFeatureFlags);
+
+        const { result } = renderHookWithProvider(
+          useConfirmationRedesignEnabled,
+          {
+            state: personalSignatureConfirmationState,
+          },
+        );
+
+        expect(result.current.isRedesignedEnabled).toBe(false);
       });
     });
   });

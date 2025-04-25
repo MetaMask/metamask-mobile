@@ -9,8 +9,6 @@ const Routes = {
     BUY: 'RampBuy',
     SELL: 'RampSell',
     GET_STARTED: 'GetStarted',
-    PAYMENT_METHOD: 'PaymentMethod',
-    PAYMENT_METHOD_HAS_STARTED: 'PaymentMethodHasStarted',
     BUILD_QUOTE: 'BuildQuote',
     BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
     QUOTES: 'Quotes',
@@ -89,6 +87,7 @@ const Routes = {
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
+    ADD_ACCOUNT: 'AddAccount',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     PROFILE_SYNCING: 'ProfileSyncing',
@@ -123,6 +122,8 @@ const Routes = {
   BROWSER: {
     HOME: 'BrowserTabHome',
     VIEW: 'BrowserView',
+    ASSET_LOADER: 'AssetLoader',
+    ASSET_VIEW: 'AssetView',
   },
   WEBVIEW: {
     MAIN: 'Webview',
@@ -141,6 +142,7 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   EDIT_NETWORK: 'EditNetwork',
   SWAPS: 'Swaps',
+  SWAPS_AMOUNT_VIEW: 'SwapsAmountView',
   BRIDGE: {
     ROOT: 'Bridge',
     MODALS: {
@@ -151,11 +153,14 @@ const Routes = {
       DEST_TOKEN_SELECTOR: 'BridgeDestTokenSelector',
       DEST_NETWORK_SELECTOR: 'BridgeDestNetworkSelector',
       QUOTE_INFO_MODAL: 'QuoteInfoModal',
+      TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
+      QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
     },
+    BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
   LOCK_SCREEN: 'LockScreen',
-  CONFIRM_FLAT_PAGE: 'Confirmation Flat Page',
-  CONFIRM_MODAL: 'Confirmation Modal',
+  CONFIRMATION_REQUEST_FLAT: 'ConfirmationRequestFlat',
+  CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
@@ -180,6 +185,7 @@ const Routes = {
     STAKE_DEPOSIT: 'RedesignedStakeDeposit',
     STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
     STAKE_CLAIM: 'RedesignedStakeClaim',
+    TRANSFER: 'RedesignedTransfer',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   MULTI_SRP: {

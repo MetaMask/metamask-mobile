@@ -55,6 +55,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { CustomNetworkNativeImgMapping } from './CustomNetworkNativeImgMapping';
+import { TraceName, trace } from '../../../../../util/trace';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -100,7 +101,9 @@ export const TokenListItem = React.memo(
 
     const styles = createStyles(colors);
 
-    const itemAddress = safeToChecksumAddress(asset.address);
+    const itemAddress = isEvmNetworkSelected
+      ? safeToChecksumAddress(asset.address)
+      : asset.address;
 
     // Choose values based on multichain or legacy
     const exchangeRates = multiChainMarketData?.[chainId as Hex];
@@ -251,7 +254,7 @@ export const TokenListItem = React.memo(
     );
 
     const onItemPress = (token: TokenI) => {
-      // Track the event
+      trace({ name: TraceName.AssetDetails });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
           .addProperties({
@@ -261,13 +264,6 @@ export const TokenListItem = React.memo(
           })
           .build(),
       );
-
-      // Token details are currently only supported for EVM networks.
-      // This early return prevents navigation to token details for non-EVM networks.
-      // TODO: Remove this when shipping the multichain token details feature, which is slated for 7.45 RC
-      if (!isEvmNetworkSelected) {
-        return;
-      }
 
       // if the asset is staked, navigate to the native asset details
       if (asset.isStaked) {

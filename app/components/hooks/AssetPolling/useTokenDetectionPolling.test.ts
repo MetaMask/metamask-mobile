@@ -124,6 +124,31 @@ describe('useTokenDetectionPolling', () => {
     ).toHaveBeenCalledTimes(0);
   });
 
+  it('Should not poll when evm is not selected', async () => {
+    renderHookWithProvider(() => useTokenDetectionPolling(), {
+      state: {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            MultichainNetworkController: {
+              ...state.engine.backgroundState.MultichainNetworkController,
+              isEvmSelected: false,
+            },
+          },
+        },
+      },
+    });
+
+    const mockedTokenDetectionController = jest.mocked(
+      Engine.context.TokenDetectionController,
+    );
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
+      0,
+    );
+  });
+
   it('Should poll with specific chainIds when provided', async () => {
     jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
 
