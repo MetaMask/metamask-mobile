@@ -63,7 +63,7 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import { CaveatTypes } from '../Permissions/constants';
-import { getCaip25PermissionFromLegacyPermissions, requestPermittedChainsPermissionIncremental } from '../../util/permissions';
+import { getCaip25PermissionFromLegacyPermissions, rejectOriginPendingApprovals, requestPermittedChainsPermissionIncremental } from '../../util/permissions';
 import { toHex } from '@metamask/controller-utils';
 
 jest.mock('../../util/permissions', () => ({
@@ -75,7 +75,6 @@ jest.mock('../../util/permissions', () => ({
 jest.mock('./spam');
 
 jest.mock('../Engine', () => ({
-  rejectOriginPendingApprovals: jest.fn(),
   controllerMessenger: {
     call: { bind: jest.fn() },
   },
@@ -1923,10 +1922,10 @@ describe('getRpcMethodMiddlewareHooks', () => {
   });
 
   describe('rejectApprovalRequestsForOrigin', () => {
-    it('should call Engine.rejectOriginPendingApprovals with correct origin', () => {
+    it('should call "rejectOriginPendingApprovals" with correct origin', () => {
       hooks.rejectApprovalRequestsForOrigin();
 
-      expect(Engine.rejectOriginPendingApprovals).toHaveBeenCalledWith(
+      expect(rejectOriginPendingApprovals).toHaveBeenCalledWith(
         testOrigin,
       );
     });

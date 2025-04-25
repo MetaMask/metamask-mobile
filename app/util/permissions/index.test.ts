@@ -4,11 +4,22 @@ import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain
 import { PermissionKeys } from '../../core/Permissions/specifications';
 import { pick } from 'lodash';
 import { CaveatTypes } from '../../core/Permissions/constants';
-import { getCaip25PermissionFromLegacyPermissions, requestPermittedChainsPermissionIncremental } from './index';
-
+import { getCaip25PermissionFromLegacyPermissions, rejectOriginApprovals, requestPermittedChainsPermissionIncremental } from './index';
+import { providerErrors } from '@metamask/rpc-errors';
+import { ApprovalRequest } from '@metamask/approval-controller';
+import { Json } from '@metamask/utils';
 
 jest.mock('../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
   context: {
+    ApprovalController: {
+      reject: jest.fn(),
+      state: {
+        pendingApprovals: {}
+      }
+    },
     PermissionController: {
       requestPermissionsIncremental: jest.fn(),
       grantPermissionsIncremental: jest.fn(),
@@ -18,6 +29,7 @@ jest.mock('../../core/Engine', () => ({
 
 const mockRequestPermissionsIncremental = Engine.context.PermissionController.requestPermissionsIncremental as jest.Mock;
 const mockGrantPermissionsIncremental = Engine.context.PermissionController.grantPermissionsIncremental as jest.Mock;
+const mockReject = Engine.context.ApprovalController.reject as jest.Mock;
 
 describe('Permission Utils', () => {
   afterEach(() => {
@@ -564,4 +576,30 @@ describe('Permission Utils', () => {
     });
   });
 
+  describe('rejectOriginApprovals', () => {
+    const id = '123';
+    const origin = 'https://example.com';
+
+    beforeEach(() => {
+      Engine.context.ApprovalController.state.pendingApprovals = { [id]: { id, origin } as ApprovalRequest<Record<string, Json>> };
+    });
+
+    afterEach(() => {
+      Engine.context.ApprovalController.state.pendingApprovals = {};
+    });
+
+    it('rejects approval requests from given origin', () => {
+      const mockId = '123';
+      rejectOriginApprovals({
+        deleteInterface: () => undefined,
+        origin: 'https://example.com',
+      });
+
+      expect(mockReject).toHaveBeenCalledTimes(1);
+      expect(mockReject).toHaveBeenCalledWith(
+        mockId,
+        providerErrors.userRejectedRequest(),
+      );
+    });
+  });
 });
