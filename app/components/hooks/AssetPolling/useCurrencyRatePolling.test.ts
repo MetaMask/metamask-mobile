@@ -14,6 +14,10 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 describe('useCurrencyRatePolling', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('Should poll by the native currencies in network state', async () => {
     const state = {
       engine: {
@@ -112,5 +116,56 @@ describe('useCurrencyRatePolling', () => {
     expect(
       jest.mocked(Engine.context.CurrencyRateController.startPolling),
     ).toHaveBeenCalledWith({ nativeCurrencies: ['SCROLL'] });
+  });
+
+  it('Should not poll when evm is not selected', async () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          MultichainNetworkController: {
+            isEvmSelected: false,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+            multichainNetworkConfigurationsByChainId: {},
+          },
+          NetworkController: {
+            selectedNetworkClientId: 'selectedNetworkClientId',
+            networkConfigurationsByChainId: {
+              '0x82750': {
+                nativeCurrency: 'SCROLL',
+                chainId: '0x82750',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'selectedNetworkClientId',
+                  },
+                ],
+              },
+              '0x89': {
+                chainId: '0x89',
+                nativeCurrency: 'POL',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'selectedNetworkClientId2',
+                  },
+                ],
+              },
+            },
+          },
+          PreferencesController: {
+            tokenNetworkFilter: {
+              '0x82750': true,
+              '0x89': true,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    renderHookWithProvider(() => useCurrencyRatePolling(), { state });
+
+    const mockedCurrencyRateController = jest.mocked(
+      Engine.context.CurrencyRateController,
+    );
+    expect(mockedCurrencyRateController.startPolling).toHaveBeenCalledTimes(0);
   });
 });
