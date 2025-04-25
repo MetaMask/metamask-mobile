@@ -3577,6 +3577,9 @@
       "body_prefix": "You could earn up to",
       "body_suffix": "per year by lending your {{tokenSymbol}}.",
       "start_earning": "Start earning"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "We're down for maintenance. We'll be back online soon!"
     }
   },
   "stake": {
