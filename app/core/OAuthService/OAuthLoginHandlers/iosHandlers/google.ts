@@ -1,7 +1,4 @@
-import {
-  LoginHandlerCodeResult,
-  AuthConnection,
-} from '../../Oauth2loginInterface';
+import { LoginHandlerCodeResult, AuthConnection } from '../../OAuthInterface';
 import {
   AuthRequest,
   CodeChallengeMethod,

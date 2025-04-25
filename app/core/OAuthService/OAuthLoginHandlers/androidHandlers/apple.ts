@@ -7,7 +7,7 @@ import {
   AuthConnection,
   LoginHandler,
   LoginHandlerCodeResult,
-} from '../../Oauth2loginInterface';
+} from '../../OAuthInterface';
 import { BaseLoginHandler } from '../baseHandler';
 import { Oauth2LoginErrors, Oauth2LoginError } from '../../error';
 export interface AndroidAppleLoginHandlerParams {

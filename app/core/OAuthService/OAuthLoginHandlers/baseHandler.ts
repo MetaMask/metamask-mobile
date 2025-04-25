@@ -6,7 +6,7 @@ import {
   LoginHandlerCodeResult,
   LoginHandlerIdTokenResult,
   LoginHandlerResult,
-} from '../Oauth2loginInterface';
+} from '../OAuthInterface';
 import { Oauth2LoginError, Oauth2LoginErrors } from '../error';
 
 /**

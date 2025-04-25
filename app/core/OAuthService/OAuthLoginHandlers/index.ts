@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { AuthConnection } from '../Oauth2loginInterface';
+import { AuthConnection } from '../OAuthInterface';
 import { IosGoogleLoginHandler } from './iosHandlers/google';
 import { IosAppleLoginHandler } from './iosHandlers/apple';
 import { AndroidGoogleLoginHandler } from './androidHandlers/google';

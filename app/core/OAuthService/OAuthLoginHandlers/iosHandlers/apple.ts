@@ -1,7 +1,7 @@
 import {
   LoginHandlerIdTokenResult,
   AuthConnection,
-} from '../../Oauth2loginInterface';
+} from '../../OAuthInterface';
 import {
   signInAsync,
   AppleAuthenticationScope,

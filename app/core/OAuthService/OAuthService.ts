@@ -9,11 +9,11 @@ import {
   AuthConnection,
   AuthResponse,
   OAuthUserInfo,
-} from './Oauth2loginInterface';
+} from './OAuthInterface';
 import { web3AuthNetwork as currentWeb3AuthNetwork } from '../Engine/controllers/seedless-onboarding-controller';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
-import { createLoginHandler } from './Oauth2LoginHandler';
-import { AuthServerUrl } from './Oauth2LoginHandler/constants';
+import { createLoginHandler } from './OAuthLoginHandlers';
+import { AuthServerUrl } from './OAuthLoginHandlers/constants';
 import { Oauth2LoginError, Oauth2LoginErrors } from './error';
 
 export const AuthConnectionId = process.env.AUTH_CONNECTION_ID;

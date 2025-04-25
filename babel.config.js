@@ -49,7 +49,7 @@ module.exports = {
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
     {
-      test: './app/core/Oauth2Login/Oauth2LoginHandler',
+      test: './app/core/OAuthService/OAuthLoginHandlers',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
   ],

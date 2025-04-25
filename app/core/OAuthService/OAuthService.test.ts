@@ -1,5 +1,5 @@
-import { AuthConnection, LoginHandlerResult } from './Oauth2LoginInterface';
-import Oauth2LoginService from './Oauth2loginService';
+import { AuthConnection, LoginHandlerResult } from './OAuthInterface';
+import Oauth2LoginService from './OAuthService';
 import ReduxService, { ReduxStore } from '../redux';
 import { Oauth2LoginError, Oauth2LoginErrors } from './error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
@@ -11,7 +11,7 @@ const MOCK_JWT_TOKEN =
 
 let mockLoginHandlerResponse: () => LoginHandlerResult | undefined = () =>
   undefined;
-jest.mock('./Oauth2LoginHandler', () => ({
+jest.mock('./OAuthLoginHandlers', () => ({
   createLoginHandler: () => ({
     login: () => mockLoginHandlerResponse(),
     getAuthTokens: () => ({

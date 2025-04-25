@@ -2,7 +2,7 @@ import Logger from '../../../../util/Logger';
 import {
   LoginHandlerIdTokenResult,
   AuthConnection,
-} from '../../Oauth2loginInterface';
+} from '../../OAuthInterface';
 import { signInWithGoogle } from 'react-native-google-acm';
 import { BaseLoginHandler } from '../baseHandler';
 import { Oauth2LoginErrors, Oauth2LoginError } from '../../error';

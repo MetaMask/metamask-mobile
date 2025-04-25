@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { AuthConnection } from '../Oauth2loginInterface';
+import { AuthConnection } from '../OAuthInterface';
 import { createLoginHandler } from './index';
 
 const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
@@ -23,9 +23,9 @@ const mockSignInAsync = jest.fn().mockResolvedValue({
   identityToken: 'appleIdToken',
 });
 jest.mock('expo-apple-authentication', () => ({
-    signInAsync: () => mockSignInAsync(),
-    AppleAuthenticationScope: jest.fn(),
-  }));
+  signInAsync: () => mockSignInAsync(),
+  AppleAuthenticationScope: jest.fn(),
+}));
 
 const mockSignInWithGoogle = jest.fn().mockResolvedValue({
   type: 'google-signin',
