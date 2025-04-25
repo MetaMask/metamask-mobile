@@ -67,7 +67,6 @@ export const BridgeDestTokenSelector: React.FC = () => {
         networkName={networkName}
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         networkImageSource={getNetworkImageSource({ chainId: item.chainId as Hex })}
-        shouldShowBalance={false}
         isSelected={
           selectedDestToken?.address === item.address &&
           selectedDestToken?.chainId === item.chainId
