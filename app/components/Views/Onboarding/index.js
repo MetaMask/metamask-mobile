@@ -31,7 +31,11 @@ import {
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
-import { loadingSet, loadingUnset, UserActionType } from '../../../actions/user';
+import {
+  loadingSet,
+  loadingUnset,
+  UserActionType,
+} from '../../../actions/user';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
@@ -52,7 +56,7 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import Oauth2loginService from '../../../core/Oauth2Login/Oauth2loginService';
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 
 const createStyles = (colors) =>
@@ -386,10 +390,12 @@ class Onboarding extends PureComponent {
   onPressContinueWithApple = async () => {
     this.props.navigation.navigate('Onboarding');
     const action = async () => {
-      const result = await Oauth2loginService.handleOauth2Login('apple').catch((e) => {
-        DevLogger.log(e);
-        return {type: 'error', error: e, existingUser: false};
-      });
+      const result = await OAuthLoginService.handleOAuth2Login('apple').catch(
+        (e) => {
+          DevLogger.log(e);
+          return { type: 'error', error: e, existingUser: false };
+        },
+      );
 
       this.handlePostSocialLogin(result);
     };
@@ -399,10 +405,12 @@ class Onboarding extends PureComponent {
   onPressContinueWithGoogle = async () => {
     this.props.navigation.navigate('Onboarding');
     const action = async () => {
-      const result = await Oauth2loginService.handleOauth2Login('google').catch((e) => {
-        DevLogger.log(e);
-        return {type: 'error', error: e, existingUser: false};
-      });
+      const result = await OAuthLoginService.handleOAuth2Login('google').catch(
+        (e) => {
+          DevLogger.log(e);
+          return { type: 'error', error: e, existingUser: false };
+        },
+      );
 
       this.handlePostSocialLogin(result);
     };

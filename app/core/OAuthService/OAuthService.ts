@@ -12,7 +12,10 @@ import {
 } from './OAuthInterface';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { createLoginHandler } from './OAuthLoginHandlers';
-import { AuthServerUrl } from './OAuthLoginHandlers/constants';
+import {
+  AuthServerUrl,
+  web3AuthNetwork as currentWeb3AuthNetwork,
+} from './OAuthLoginHandlers/constants';
 import { OAuthError, OAuthErrorType } from './error';
 
 export const AuthConnectionId = process.env.AUTH_CONNECTION_ID;
@@ -214,7 +217,7 @@ if (!AuthServerUrl || !AuthConnectionId || !GroupedAuthConnectionId) {
 }
 
 export default new OAuthService({
-  web3AuthNetwork: currentWeb3AuthNetwork,
+  web3AuthNetwork: currentWeb3AuthNetwork as Web3AuthNetwork,
   authConnectionId: AuthConnectionId,
   groupedAuthConnectionId: GroupedAuthConnectionId,
   authServerUrl: AuthServerUrl,

@@ -478,51 +478,60 @@ class AuthenticationService {
   getType = async (): Promise<AuthData> =>
     await this.checkAuthenticationMethod();
 
-  createAndBackupSeedPhrase = async(
-    password: string,
-  ): Promise<void> => {
+  createAndBackupSeedPhrase = async (password: string): Promise<void> => {
     const { SeedlessOnboardingController } = Engine.context;
     // rollback on fail ( reset wallet )
     await this.createWalletVaultAndKeychain(password);
     try {
-      const seedPhrase =  await getSeedPhrase(password);
+      const seedPhrase = await getSeedPhrase(password);
 
-      Logger.log('SeedlessOnboardingController state', SeedlessOnboardingController.state);
+      Logger.log(
+        'SeedlessOnboardingController state',
+        SeedlessOnboardingController.state,
+      );
 
       await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
         password,
         seedPhrase,
       );
       this.dispatchOauth2Reset();
-    } catch(error) {
-        await this.newWalletAndKeychain(`${Date.now()}`, {
-          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
-        });
-        await resetVaultBackup();
-        throw error;
+    } catch (error) {
+      await this.newWalletAndKeychain(`${Date.now()}`, {
+        currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+      });
+      await resetVaultBackup();
+      throw error;
     }
 
-    Logger.log('SeedlessOnboardingController state', SeedlessOnboardingController.state);
+    Logger.log(
+      'SeedlessOnboardingController state',
+      SeedlessOnboardingController.state,
+    );
   };
 
-  rehydrateSeedPhrase = async(
+  rehydrateSeedPhrase = async (
     password: string,
     authData: AuthData,
   ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
 
-      const result = await SeedlessOnboardingController.fetchAllSeedPhrases(password);
+      const result = await SeedlessOnboardingController.fetchAllSeedPhrases(
+        password,
+      );
 
       if (result !== null && result.length > 0) {
-        const seedPhrase = uint8ArrayToMnemonic(result.at(-1) ?? new Uint8Array(), wordlist);
+        const seedPhrase = uint8ArrayToMnemonic(
+          result.at(-1) ?? new Uint8Array(),
+          wordlist,
+        );
         await this.newWalletAndRestore(password, authData, seedPhrase, false);
         // add in more srps
         if (result.length > 1) {
           // for (const item of result.slice(0, -1)) {
-            // vault add new seedphrase
-            // const { KeyringController } = Engine.context;
-            // await KeyringController.addSRP(item, password);
+          // vault add new seedphrase
+          // const { KeyringController } = Engine.context;
+          // await KeyringController.addSRP(item, password);
           // }
         }
         this.dispatchLogin();
@@ -531,7 +540,7 @@ class AuthenticationService {
       } else {
         throw new Error('No account data found');
       }
-    } catch(error) {
+    } catch (error) {
       Logger.error(error as Error, {
         message: 'rehydrateSeedPhrase',
       });

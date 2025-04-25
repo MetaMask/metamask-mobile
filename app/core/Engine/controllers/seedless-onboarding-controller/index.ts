@@ -7,7 +7,7 @@ import {
   type SeedlessOnboardingControllerMessenger,
 } from '@metamask/seedless-onboarding-controller';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
-import { web3AuthNetwork } from '../../../Oauth2Login/Oauth2LoginHandler/constants';
+import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
 
 // const web3AuthNetwork = process.env.Web3AuthNetwork as Web3AuthNetwork;
 

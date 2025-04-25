@@ -94,7 +94,7 @@ import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
 import { UserActionType } from '../../../actions/user';
-import { selectOauth2LoginSuccess } from '../../../selectors/oauthServices';
+import { selectOAuthLoginSuccess } from '../../../selectors/oauthServices';
 
 /**
  * View where returning users can authenticate
@@ -140,7 +140,7 @@ const Login: React.FC = () => {
     return false;
   };
 
-  const oauth2LoginSuccess = useSelector(selectOauth2LoginSuccess);
+  const oauthLoginSuccess = useSelector(selectOAuthLoginSuccess);
 
   useEffect(() => {
     trace({
@@ -253,8 +253,11 @@ const Login: React.FC = () => {
   };
 
   const handleUseOtherMethod = () => {
-    navigation.navigate('OnboardingRootNav', { screen: 'OnboardingNav', params: { screen: 'Onboarding' } });
-    dispatch({type: UserActionType.OAUTH2_LOGIN_RESET});
+    navigation.navigate('OnboardingRootNav', {
+      screen: 'OnboardingNav',
+      params: { screen: 'Onboarding' },
+    });
+    dispatch({ type: UserActionType.OAUTH2_LOGIN_RESET });
   };
 
   const onLogin = async () => {
@@ -275,9 +278,8 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
-      if (oauth2LoginSuccess) {
+      if (oauthLoginSuccess) {
         await Authentication.rehydrateSeedPhrase(password, authType);
-
       } else {
         await trace(
           {
@@ -565,7 +567,7 @@ const Login: React.FC = () => {
                 isDisabled={password.length === 0}
               />
 
-              { !oauth2LoginSuccess && (
+              {!oauthLoginSuccess && (
                 <Button
                   style={styles.goBack}
                   variant={ButtonVariants.Link}
@@ -576,17 +578,17 @@ const Login: React.FC = () => {
               )}
             </View>
 
-            { oauth2LoginSuccess && (
-                <View style={styles.footer}>
-                  <Button
-                    style={styles.goBack}
-                    variant={ButtonVariants.Link}
-                    onPress={handleUseOtherMethod}
-                    testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
-                    label={strings('login.other_methods')}
-                  />
-                </View>
-              )}
+            {oauthLoginSuccess && (
+              <View style={styles.footer}>
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={handleUseOtherMethod}
+                  testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+                  label={strings('login.other_methods')}
+                />
+              </View>
+            )}
             {/* <View style={styles.footer}>
               <Text variant={TextVariant.HeadingSMRegular} style={styles.cant}>
                 {strings('login.go_back')}
