@@ -7,7 +7,7 @@ import {
   LoginHandlerIdTokenResult,
   LoginHandlerResult,
 } from '../OAuthInterface';
-import { Oauth2LoginError, Oauth2LoginErrors } from '../error';
+import { OAuthError, OAuthErrorType } from '../error';
 
 /**
  * Pads a string to a length of 4 characters
@@ -99,9 +99,9 @@ export async function getAuthTokens(
     return data;
   }
 
-  throw new Oauth2LoginError(
+  throw new OAuthError(
     `AuthServer Error : ${await res.text()}`,
-    Oauth2LoginErrors.AuthServerError,
+    OAuthErrorType.AuthServerError,
   );
 }
 

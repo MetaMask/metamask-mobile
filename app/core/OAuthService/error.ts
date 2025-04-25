@@ -1,4 +1,4 @@
-export enum Oauth2LoginErrors {
+export enum OAuthErrorType {
   UnknownError = 'UnknownError',
   UserCancelled = 'UserCancelled',
   UserDismissed = 'UserDismissed',
@@ -9,10 +9,10 @@ export enum Oauth2LoginErrors {
   AuthServerError = 'AuthServerError',
 }
 
-export class Oauth2LoginError extends Error {
-    public readonly code: Oauth2LoginErrors;
-    constructor(message: string | Error, code: Oauth2LoginErrors) {
-      super(message instanceof Error ? message.message : message);
-      this.code = code;
-    }
+export class OAuthError extends Error {
+  public readonly code: OAuthErrorType;
+  constructor(message: string | Error, code: OAuthErrorType) {
+    super(message instanceof Error ? message.message : message);
+    this.code = code;
+  }
 }

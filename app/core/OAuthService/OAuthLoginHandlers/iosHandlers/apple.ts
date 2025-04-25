@@ -7,7 +7,7 @@ import {
   AppleAuthenticationScope,
 } from 'expo-apple-authentication';
 import { BaseLoginHandler } from '../baseHandler';
-import { Oauth2LoginErrors, Oauth2LoginError } from '../../error';
+import { OAuthErrorType, OAuthError } from '../../error';
 
 /**
  * IosAppleLoginHandler is the login handler for the Apple login on ios.
@@ -59,9 +59,9 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
         clientId: this.clientId,
       };
     }
-    throw new Oauth2LoginError(
+    throw new OAuthError(
       'handleIosAppleLogin: Unknown error',
-      Oauth2LoginErrors.UnknownError,
+      OAuthErrorType.UnknownError,
     );
   }
 }

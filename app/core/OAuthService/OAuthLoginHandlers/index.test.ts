@@ -35,7 +35,7 @@ jest.mock('react-native-google-acm', () => ({
   signInWithGoogle: () => mockSignInWithGoogle(),
 }));
 
-describe('Oauth2 login service', () => {
+describe('OAuth login handlers', () => {
   it('should return a type dismiss', async () => {
     for (const os of ['ios', 'android']) {
       for (const provider of Object.values(AuthConnection)) {

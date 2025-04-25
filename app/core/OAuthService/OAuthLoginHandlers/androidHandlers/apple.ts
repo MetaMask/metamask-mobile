@@ -9,7 +9,7 @@ import {
   LoginHandlerCodeResult,
 } from '../../OAuthInterface';
 import { BaseLoginHandler } from '../baseHandler';
-import { Oauth2LoginErrors, Oauth2LoginError } from '../../error';
+import { OAuthError, OAuthErrorType } from '../../error';
 export interface AndroidAppleLoginHandlerParams {
   clientId: string;
   redirectUri: string;
@@ -121,31 +121,28 @@ export class AndroidAppleLoginHandler
     }
     if (result.type === 'error') {
       if (result.error) {
-        throw new Oauth2LoginError(
-          result.error.message,
-          Oauth2LoginErrors.LoginError,
-        );
+        throw new OAuthError(result.error.message, OAuthErrorType.LoginError);
       }
-      throw new Oauth2LoginError(
+      throw new OAuthError(
         'handleAndroidAppleLogin: Unknown error',
-        Oauth2LoginErrors.UnknownError,
+        OAuthErrorType.UnknownError,
       );
     }
     if (result.type === 'cancel') {
-      throw new Oauth2LoginError(
+      throw new OAuthError(
         'handleAndroidAppleLogin: User cancelled the login process',
-        Oauth2LoginErrors.UserCancelled,
+        OAuthErrorType.UserCancelled,
       );
     }
     if (result.type === 'dismiss') {
-      throw new Oauth2LoginError(
+      throw new OAuthError(
         'handleAndroidAppleLogin: User dismissed the login process',
-        Oauth2LoginErrors.UserDismissed,
+        OAuthErrorType.UserDismissed,
       );
     }
-    throw new Oauth2LoginError(
+    throw new OAuthError(
       'handleAndroidAppleLogin: Unknown error',
-      Oauth2LoginErrors.UnknownError,
+      OAuthErrorType.UnknownError,
     );
   }
 }

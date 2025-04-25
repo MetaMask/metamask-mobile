@@ -14,7 +14,7 @@ import {
   IosAppleClientId,
   AppleServerRedirectUri,
 } from './constants';
-import { Oauth2LoginErrors, Oauth2LoginError } from '../error';
+import { OAuthErrorType, OAuthError } from '../error';
 
 /**
  * This factory pattern function is used to create a login handler based on the platform and provider.
@@ -49,9 +49,9 @@ export function createLoginHandler(
         case AuthConnection.Apple:
           return new IosAppleLoginHandler({ clientId: IosAppleClientId });
         default:
-          throw new Oauth2LoginError(
+          throw new OAuthError(
             'Invalid provider',
-            Oauth2LoginErrors.InvalidProvider,
+            OAuthErrorType.InvalidProvider,
           );
       }
     case 'android':
@@ -67,15 +67,15 @@ export function createLoginHandler(
             appRedirectUri: AppRedirectUri,
           });
         default:
-          throw new Oauth2LoginError(
+          throw new OAuthError(
             'Invalid provider',
-            Oauth2LoginErrors.InvalidProvider,
+            OAuthErrorType.InvalidProvider,
           );
       }
     default:
-      throw new Oauth2LoginError(
+      throw new OAuthError(
         'Unsupported Platform',
-        Oauth2LoginErrors.UnsupportedPlatform,
+        OAuthErrorType.UnsupportedPlatform,
       );
   }
 }

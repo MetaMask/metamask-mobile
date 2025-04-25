@@ -5,7 +5,7 @@ import {
 } from '../../OAuthInterface';
 import { signInWithGoogle } from 'react-native-google-acm';
 import { BaseLoginHandler } from '../baseHandler';
-import { Oauth2LoginErrors, Oauth2LoginError } from '../../error';
+import { OAuthErrorType, OAuthError } from '../../error';
 
 /**
  * AndroidGoogleLoginHandler is the login handler for the Google login on android.
@@ -59,9 +59,9 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
         clientId: this.clientId,
       };
     }
-    throw new Oauth2LoginError(
+    throw new OAuthError(
       'handleGoogleLogin: Unknown error',
-      Oauth2LoginErrors.UnknownError,
+      OAuthErrorType.UnknownError,
     );
   }
 }

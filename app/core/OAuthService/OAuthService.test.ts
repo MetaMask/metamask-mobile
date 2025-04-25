@@ -1,7 +1,7 @@
 import { AuthConnection, LoginHandlerResult } from './OAuthInterface';
-import Oauth2LoginService from './OAuthService';
+import OAuthLoginService from './OAuthService';
 import ReduxService, { ReduxStore } from '../redux';
-import { Oauth2LoginError, Oauth2LoginErrors } from './error';
+import { OAuthError, OAuthErrorType } from './error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 
 const OAUTH_AUD = 'metamask';
@@ -44,7 +44,7 @@ jest.mock('../Engine', () => ({
   },
 }));
 
-describe('Oauth2 login service', () => {
+describe('OAuth login service', () => {
   it('should throw on Error or dismiss', async () => {
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({ security: { allowLoginWithRememberMe: true } }),
@@ -52,22 +52,19 @@ describe('Oauth2 login service', () => {
     } as unknown as ReduxStore);
 
     mockLoginHandlerResponse = () => {
-      throw new Oauth2LoginError(
-        'Login dismissed',
-        Oauth2LoginErrors.UserDismissed,
-      );
+      throw new OAuthError('Login dismissed', OAuthErrorType.UserDismissed);
     };
-    const result = Oauth2LoginService.handleOauth2Login(AuthConnection.Google);
+    const result = OAuthLoginService.handleOAuth2Login(AuthConnection.Google);
 
-    await expect(result).rejects.toThrow(Oauth2LoginError);
+    await expect(result).rejects.toThrow(OAuthError);
 
     mockLoginHandlerResponse = () => {
-      throw new Oauth2LoginError('Login error', Oauth2LoginErrors.LoginError);
+      throw new OAuthError('Login error', OAuthErrorType.LoginError);
     };
 
     await expect(
-      Oauth2LoginService.handleOauth2Login(AuthConnection.Google),
-    ).rejects.toThrow(Oauth2LoginError);
+      OAuthLoginService.handleOAuth2Login(AuthConnection.Google),
+    ).rejects.toThrow(OAuthError);
   });
 
   it('should return a type success', async () => {
@@ -83,7 +80,7 @@ describe('Oauth2 login service', () => {
       web3AuthNetwork: Web3AuthNetwork.Mainnet,
     });
 
-    const finalResult = await Oauth2LoginService.handleOauth2Login(
+    const finalResult = await OAuthLoginService.handleOAuth2Login(
       AuthConnection.Google,
     );
     expect(finalResult).toBeDefined();
