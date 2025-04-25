@@ -58,7 +58,7 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
    */
   async login(): Promise<LoginHandlerCodeResult> {
     const state = JSON.stringify({
-      random: this.nonce,
+      nonce: this.nonce,
     });
     const authRequest = new AuthRequest({
       clientId: this.clientId,
@@ -68,9 +68,6 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
       codeChallengeMethod: CodeChallengeMethod.S256,
       usePKCE: true,
       state,
-      //   extraParams: {
-      //     access_type: 'offline',
-      //   },
     });
     const result = await authRequest.promptAsync({
       authorizationEndpoint: this.OAUTH_SERVER_URL,
@@ -84,15 +81,6 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
         redirectUri: this.redirectUri,
         codeVerifier: authRequest.codeVerifier,
       };
-    }
-    if (result.type === 'error') {
-      if (result.error) {
-        throw new OAuthError(result.error.message, OAuthErrorType.LoginError);
-      }
-      throw new OAuthError(
-        'handleIosGoogleLogin: Unknown error',
-        OAuthErrorType.UnknownError,
-      );
     }
     if (result.type === 'cancel') {
       throw new OAuthError(
