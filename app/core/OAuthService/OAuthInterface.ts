@@ -1,7 +1,7 @@
 import { AuthSessionResult } from 'expo-auth-session';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 
-export type HandleOauth2LoginResult =
+export type HandleOAuthLoginResult =
   | { type: 'pending' }
   | { type: AuthSessionResult['type']; existingUser: boolean }
   | { type: 'error'; error: string };
@@ -57,4 +57,3 @@ export interface LoginHandler {
   get authServerPath(): string;
   login(): Promise<LoginHandlerResult>;
 }
-

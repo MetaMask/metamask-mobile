@@ -2,10 +2,14 @@ import Logger from '../../../../util/Logger';
 import {
   LoginHandlerIdTokenResult,
   AuthConnection,
-} from '../../Oauth2loginInterface';
+} from '../../OAuthInterface';
 import { signInWithGoogle } from 'react-native-google-acm';
 import { BaseLoginHandler } from '../baseHandler';
+import { OAuthErrorType, OAuthError } from '../../error';
 
+/**
+ * AndroidGoogleLoginHandler is the login handler for the Google login on android.
+ */
 export class AndroidGoogleLoginHandler extends BaseLoginHandler {
   readonly #scope = ['email', 'profile'];
 
@@ -23,11 +27,22 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
     return 'api/v1/oauth/id_token';
   }
 
+  /**
+   * This constructor is used to initialize the clientId.
+   *
+   * @param params.clientId - The web clientId for the Google login.
+   * Note: The android clientId must be created from the same OAuth clientId in the web.
+   */
   constructor(params: { clientId: string }) {
     super();
     this.clientId = params.clientId;
   }
 
+  /**
+   * This method is used to login with google seemsless via react-native-google-acm.
+   *
+   * @returns LoginHandlerIdTokenResult
+   */
   async login(): Promise<LoginHandlerIdTokenResult> {
     const result = await signInWithGoogle({
       serverClientId: this.clientId,
@@ -44,6 +59,9 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
         clientId: this.clientId,
       };
     }
-    throw new Error('handleGoogleLogin: Unknown error');
+    throw new OAuthError(
+      'handleGoogleLogin: Unknown error',
+      OAuthErrorType.UnknownError,
+    );
   }
 }

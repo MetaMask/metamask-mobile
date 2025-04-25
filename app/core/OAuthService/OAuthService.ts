@@ -5,31 +5,36 @@ import ReduxService from '../redux';
 
 import { UserActionType } from '../../actions/user';
 import {
-  HandleOauth2LoginResult,
+  HandleOAuthLoginResult,
   AuthConnection,
   AuthResponse,
   OAuthUserInfo,
-} from './Oauth2loginInterface';
+} from './OAuthInterface';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
-import { createLoginHandler } from './Oauth2LoginHandler';
-import { AuthServerUrl, web3AuthNetwork as currentWeb3AuthNetwork, GroupedAuthConnectionId, AuthConnectionId } from './Oauth2LoginHandler/constants';
-export interface Oauth2LoginServiceConfig {
+import { createLoginHandler } from './OAuthLoginHandlers';
+import { AuthServerUrl } from './OAuthLoginHandlers/constants';
+import { OAuthError, OAuthErrorType } from './error';
+
+export const AuthConnectionId = process.env.AUTH_CONNECTION_ID;
+export const GroupedAuthConnectionId = process.env.GROUPED_AUTH_CONNECTION_ID;
+
+export interface OAuthServiceConfig {
   authConnectionId: string;
   groupedAuthConnectionId?: string;
   web3AuthNetwork: Web3AuthNetwork;
   authServerUrl: string;
 }
 
-export class Oauth2LoginService {
+export class OAuthService {
   public localState: {
     loginInProgress: boolean;
     userId?: string;
     accountName?: string;
   };
 
-  public config: Oauth2LoginServiceConfig;
+  public config: OAuthServiceConfig;
 
-  constructor(config: Oauth2LoginServiceConfig) {
+  constructor(config: OAuthServiceConfig) {
     const {
       authServerUrl,
       web3AuthNetwork,
@@ -59,7 +64,7 @@ export class Oauth2LoginService {
     });
   };
 
-  #dispatchPostLogin = (result: HandleOauth2LoginResult) => {
+  #dispatchPostLogin = (result: HandleOAuthLoginResult) => {
     this.updateLocalState({ loginInProgress: false });
     if (result.type === 'success') {
       ReduxService.store.dispatch({
@@ -117,21 +122,20 @@ export class Oauth2LoginService {
       Logger.error(error as Error, {
         message: 'handleCodeFlow',
       });
-      return {
-        type: 'error',
-        existingUser: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
+      throw error;
     }
   };
 
-  handleOauth2Login = async (
+  handleOAuth2Login = async (
     authConnection: AuthConnection,
-  ): Promise<HandleOauth2LoginResult> => {
+  ): Promise<HandleOAuthLoginResult> => {
     const web3AuthNetwork = this.config.web3AuthNetwork;
 
     if (this.localState.loginInProgress) {
-      throw new Error('Login already in progress');
+      throw new OAuthError(
+        'Login already in progress',
+        OAuthErrorType.LoginInProgress,
+      );
     }
     this.#dispatchLogin();
 
@@ -139,7 +143,7 @@ export class Oauth2LoginService {
       const loginHandler = createLoginHandler(Platform.OS, authConnection);
       const result = await loginHandler.login();
 
-      Logger.log('handleOauth2Login: result', result);
+      Logger.log('handleOAuthLogin: result', result);
       if (result) {
         const data = await loginHandler.getAuthTokens(
           { ...result, web3AuthNetwork },
@@ -148,7 +152,7 @@ export class Oauth2LoginService {
         const audience = 'metamask';
 
         if (!data.jwt_tokens[audience]) {
-          throw new Error('No token found');
+          throw new OAuthError('No token found', OAuthErrorType.LoginError);
         }
 
         const jwtPayload = JSON.parse(
@@ -171,23 +175,22 @@ export class Oauth2LoginService {
       this.#dispatchPostLogin({ type: 'dismiss', existingUser: false });
       return { type: 'dismiss', existingUser: false };
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'handleOauth2Login',
-      });
       this.#dispatchPostLogin({
         type: 'error',
         existingUser: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-      return {
-        type: 'error',
-        existingUser: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
+      if (error instanceof OAuthError) {
+        throw error;
+      }
+      throw new OAuthError(
+        error instanceof Error ? error : 'Unknown error',
+        OAuthErrorType.LoginError,
+      );
     }
   };
 
-  updateLocalState = (newState: Partial<Oauth2LoginService['localState']>) => {
+  updateLocalState = (newState: Partial<OAuthService['localState']>) => {
     this.localState = {
       ...this.localState,
       ...newState,
@@ -210,8 +213,8 @@ if (!AuthServerUrl || !AuthConnectionId || !GroupedAuthConnectionId) {
   throw new Error('Missing environment variables');
 }
 
-export default new Oauth2LoginService({
-  web3AuthNetwork : currentWeb3AuthNetwork as Web3AuthNetwork,
+export default new OAuthService({
+  web3AuthNetwork: currentWeb3AuthNetwork,
   authConnectionId: AuthConnectionId,
   groupedAuthConnectionId: GroupedAuthConnectionId,
   authServerUrl: AuthServerUrl,

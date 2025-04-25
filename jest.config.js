@@ -12,6 +12,20 @@ process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
 
+
+process.env.Web3AuthNetwork = 'sapphire_devnet';
+process.env.AUTH_SERVER_URL = 'https://api-develop-torus-byoa.web3auth.io';
+
+process.env.IOS_GOOGLE_CLIENT_ID = '882363291751-nbbp9n0o307cfil1lup766g1s99k0932.apps.googleusercontent.com';
+process.env.IOS_GOOGLE_REDIRECT_URI = 'com.googleusercontent.apps.882363291751-nbbp9n0o307cfil1lup766g1s99k0932:/oauth2redirect/google';
+process.env.IOS_APPLE_CLIENT_ID = 'io.metamask.MetaMask';
+
+process.env.ANDROID_WEB_GOOGLE_CLIENT_ID = '882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com';
+process.env.ANDROID_WEB_APPLE_CLIENT_ID = 'com.web3auth.appleloginextension';
+
+process.env.AUTH_CONNECTION_ID = 'byoa-server';
+process.env.GROUPED_AUTH_CONNECTION_ID = 'mm-seedless-onboarding';
+
 const config = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],

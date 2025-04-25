@@ -1,19 +1,23 @@
-import {
-  LoginHandlerCodeResult,
-  AuthConnection,
-} from '../../Oauth2loginInterface';
+import { LoginHandlerCodeResult, AuthConnection } from '../../OAuthInterface';
 import {
   AuthRequest,
   CodeChallengeMethod,
   ResponseType,
 } from 'expo-auth-session';
 import { BaseLoginHandler } from '../baseHandler';
+import { OAuthErrorType, OAuthError } from '../../error';
 
+/**
+ * IosGoogleLoginHandlerParams is the params for the Google login handler
+ */
 export interface IosGoogleLoginHandlerParams {
   clientId: string;
   redirectUri: string;
 }
 
+/**
+ * IosGoogleLoginHandler is the login handler for the Google login
+ */
 export class IosGoogleLoginHandler extends BaseLoginHandler {
   public readonly OAUTH_SERVER_URL =
     'https://accounts.google.com/o/oauth2/v2/auth';
@@ -35,12 +39,23 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
     return 'api/v1/oauth/token';
   }
 
+  /**
+   * IosGoogleLoginHandler constructor.
+   *
+   * @param params.clientId - The iOS clientId for the Google login.
+   * @param params.redirectUri - The iOS redirectUri for the Google login.
+   */
   constructor(params: IosGoogleLoginHandlerParams) {
     super();
     this.clientId = params.clientId;
     this.redirectUri = params.redirectUri;
   }
 
+  /**
+   * This method is used to login with Google via expo-auth-session.
+   *
+   * @returns LoginHandlerCodeResult
+   */
   async login(): Promise<LoginHandlerCodeResult> {
     const state = JSON.stringify({
       random: this.nonce,
@@ -72,16 +87,28 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
     }
     if (result.type === 'error') {
       if (result.error) {
-        throw result.error;
+        throw new OAuthError(result.error.message, OAuthErrorType.LoginError);
       }
-      throw new Error('handleIosGoogleLogin: Unknown error');
+      throw new OAuthError(
+        'handleIosGoogleLogin: Unknown error',
+        OAuthErrorType.UnknownError,
+      );
     }
     if (result.type === 'cancel') {
-      throw new Error('handleIosGoogleLogin: User cancelled the login process');
+      throw new OAuthError(
+        'handleIosGoogleLogin: User cancelled the login process',
+        OAuthErrorType.UserCancelled,
+      );
     }
     if (result.type === 'dismiss') {
-      throw new Error('handleIosGoogleLogin: User dismissed the login process');
+      throw new OAuthError(
+        'handleIosGoogleLogin: User dismissed the login process',
+        OAuthErrorType.UserDismissed,
+      );
     }
-    throw new Error('handleIosGoogleLogin: Unknown error');
+    throw new OAuthError(
+      'handleIosGoogleLogin: Unknown error',
+      OAuthErrorType.UnknownError,
+    );
   }
 }

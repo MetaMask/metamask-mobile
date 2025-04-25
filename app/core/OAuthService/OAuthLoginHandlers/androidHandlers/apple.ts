@@ -7,14 +7,18 @@ import {
   AuthConnection,
   LoginHandler,
   LoginHandlerCodeResult,
-} from '../../Oauth2loginInterface';
+} from '../../OAuthInterface';
 import { BaseLoginHandler } from '../baseHandler';
+import { OAuthError, OAuthErrorType } from '../../error';
 export interface AndroidAppleLoginHandlerParams {
   clientId: string;
   redirectUri: string;
   appRedirectUri: string;
 }
 
+/**
+ * AndroidAppleLoginHandler is the login handler for the Apple login on android.
+ */
 export class AndroidAppleLoginHandler
   extends BaseLoginHandler
   implements LoginHandler
@@ -39,6 +43,13 @@ export class AndroidAppleLoginHandler
     return 'api/v1/oauth/token';
   }
 
+  /**
+   * AndroidAppleLoginHandler constructor.
+   *
+   * @param params.clientId - The Service ID from the apple developer account for the app.
+   * @param params.redirectUri - The server redirectUri for the Apple login to handle rest api login.
+   * @param params.appRedirectUri - The Android App redirectUri for the customChromeTab to handle auth-session login.
+   */
   constructor(params: AndroidAppleLoginHandlerParams) {
     super();
     const { appRedirectUri, redirectUri, clientId } = params;
@@ -47,6 +58,17 @@ export class AndroidAppleLoginHandler
     this.appRedirectUri = appRedirectUri;
   }
 
+  /**
+   * This method is used to login with apple via customChromeTab via expo-auth-session.
+   * It generates the auth url with server redirect uri and state.
+   * It creates a client auth request instance so that the auth-session can return result on appRedirectUrl.
+   * It then prompts the auth request via the client auth request instance with auth url generated with server redirect uri and state.
+   *
+   * Data flow:
+   * App -> Apple -> AuthServer -> App
+   *
+   * @returns LoginHandlerCodeResult
+   */
   async login(): Promise<LoginHandlerCodeResult> {
     const state = JSON.stringify({
       provider: this.authConnection,
@@ -61,7 +83,7 @@ export class AndroidAppleLoginHandler
       scopes: this.#scope,
       responseType: ResponseType.Code,
       codeChallengeMethod: CodeChallengeMethod.S256,
-      usePKCE: false,
+      usePKCE: true,
       state,
       extraParams: {
         response_mode: 'form_post',
@@ -99,20 +121,28 @@ export class AndroidAppleLoginHandler
     }
     if (result.type === 'error') {
       if (result.error) {
-        throw result.error;
+        throw new OAuthError(result.error.message, OAuthErrorType.LoginError);
       }
-      throw new Error('handleAndroidAppleLogin: Unknown error');
+      throw new OAuthError(
+        'handleAndroidAppleLogin: Unknown error',
+        OAuthErrorType.UnknownError,
+      );
     }
     if (result.type === 'cancel') {
-      throw new Error(
+      throw new OAuthError(
         'handleAndroidAppleLogin: User cancelled the login process',
+        OAuthErrorType.UserCancelled,
       );
     }
     if (result.type === 'dismiss') {
-      throw new Error(
+      throw new OAuthError(
         'handleAndroidAppleLogin: User dismissed the login process',
+        OAuthErrorType.UserDismissed,
       );
     }
-    throw new Error('handleAndroidAppleLogin: Unknown error');
+    throw new OAuthError(
+      'handleAndroidAppleLogin: Unknown error',
+      OAuthErrorType.UnknownError,
+    );
   }
 }
