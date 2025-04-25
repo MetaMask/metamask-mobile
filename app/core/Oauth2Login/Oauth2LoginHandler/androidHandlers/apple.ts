@@ -37,7 +37,7 @@ export class AndroidAppleLoginHandler
   }
 
   get authServerPath() {
-    return 'api/v1/oauth/id_token';
+    return 'api/v1/oauth/token';
   }
 
   constructor(params: AndroidAppleLoginHandlerParams) {
@@ -62,7 +62,7 @@ export class AndroidAppleLoginHandler
       scopes: this.#scope,
       responseType: ResponseType.Code,
       codeChallengeMethod: CodeChallengeMethod.S256,
-      usePKCE: false,
+      usePKCE: true,
       state,
       extraParams: {
         response_mode: 'form_post',
@@ -77,6 +77,7 @@ export class AndroidAppleLoginHandler
     const authRequestClient = new AuthRequest({
       clientId: this.clientId,
       redirectUri: this.appRedirectUri,
+      state,
     });
 
     // prompt the auth request using generated auth url instead of the client auth request instance
