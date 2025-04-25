@@ -20,7 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - feat(bridge): Handle Solana vs EVM swap and bridge routing ([#14614](https://github.com/MetaMask/metamask-mobile/pull/14614))
-- chore: bump `@metamask/keyring-controller` to `^21.0.3` ([#14702](https://github.com/MetaMask/metamask-mobile/pull/14702))
 
 ## [7.44.0]
 
