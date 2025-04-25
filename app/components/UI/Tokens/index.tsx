@@ -45,7 +45,9 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { RootState } from '../../../reducers';
+///: END:ONLY_INCLUDE_IF
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
