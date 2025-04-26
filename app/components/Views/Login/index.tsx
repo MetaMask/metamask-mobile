@@ -297,11 +297,27 @@ const Login: React.FC = () => {
       // Get onboarding wizard state
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (onboardingWizard) {
-        navigation.replace(Routes.ONBOARDING.HOME_NAV);
+        if (oauthLoginSuccess) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
+        } else {
+          navigation.replace(Routes.ONBOARDING.HOME_NAV);
+        }
       } else {
         setOnboardingWizardStep(1);
-        navigation.replace(Routes.ONBOARDING.HOME_NAV);
+
+        if (oauthLoginSuccess) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
+        } else {
+          navigation.replace(Routes.ONBOARDING.HOME_NAV);
+        }
       }
+
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setPassword('');
       setLoading(false);
