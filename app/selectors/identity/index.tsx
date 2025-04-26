@@ -4,6 +4,7 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
+import { createDeepEqualSelector } from '../util';
 
 type AuthenticationState =
   AuthenticationController.AuthenticationControllerState;
@@ -25,7 +26,7 @@ export const selectIsSignedIn = createSelector(
 );
 
 // User Storage
-export const selectIsProfileSyncingEnabled = createSelector(
+export const selectIsProfileSyncingEnabled = createDeepEqualSelector(
   selectUserStorageControllerState,
   (userStorageControllerState: UserStorageState) =>
     userStorageControllerState?.isProfileSyncingEnabled,

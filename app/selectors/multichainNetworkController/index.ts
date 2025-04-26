@@ -10,7 +10,7 @@ import { createDeepEqualSelector } from '../util';
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
 
-export const selectIsEvmNetworkSelected = createSelector(
+export const selectIsEvmNetworkSelected = createDeepEqualSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
     multichainNetworkControllerState.isEvmSelected,

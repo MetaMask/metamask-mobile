@@ -211,7 +211,7 @@ export const selectNativeNetworkCurrencies = createDeepEqualSelector(
   },
 );
 
-export const selectNetworkClientId = createSelector(
+export const selectNetworkClientId = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState.selectedNetworkClientId,
@@ -247,7 +247,7 @@ export const selectAllPopularNetworkConfigurations = createSelector(
   },
 );
 
-export const selectIsPopularNetwork = createSelector(
+export const selectIsPopularNetwork = createDeepEqualSelector(
   selectChainId,
   (chainId) =>
     chainId === CHAIN_IDS.MAINNET ||
@@ -255,7 +255,7 @@ export const selectIsPopularNetwork = createSelector(
     PopularList.some((network) => network.chainId === chainId),
 );
 
-export const selectIsAllNetworks = createSelector(
+export const selectIsAllNetworks = createDeepEqualSelector(
   selectAllPopularNetworkConfigurations,
   (state: RootState) => selectTokenNetworkFilter(state),
   (popularNetworkConfigurations, tokenNetworkFilter) => {

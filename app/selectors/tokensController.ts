@@ -68,7 +68,7 @@ export const selectIgnoreTokens = createSelector(
     ],
 );
 
-export const selectDetectedTokens = createSelector(
+export const selectDetectedTokens = createDeepEqualSelector(
   selectTokensControllerState,
   selectEvmChainId,
   selectSelectedInternalAccountAddress,
@@ -152,7 +152,7 @@ export const selectAllDetectedTokensForSelectedAddress = createSelector(
   },
 );
 
-export const selectAllDetectedTokensFlat = createSelector(
+export const selectAllDetectedTokensFlat = createDeepEqualSelector(
   selectAllDetectedTokensForSelectedAddress,
   (detectedTokensByChain: { [chainId: string]: Token[] }) => {
     if (Object.keys(detectedTokensByChain).length === 0) {

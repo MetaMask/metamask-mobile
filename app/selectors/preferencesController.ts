@@ -26,7 +26,7 @@ export const selectShowMultiRpcModal = createSelector(
     preferencesControllerState.showMultiRpcModal,
 );
 
-export const selectUseTokenDetection = createSelector(
+export const selectUseTokenDetection = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.useTokenDetection,
@@ -50,7 +50,7 @@ export const selectTokenSortConfig = createSelector(
     preferencesControllerState.tokenSortConfig,
 );
 
-export const selectTokenNetworkFilter = createSelector(
+export const selectTokenNetworkFilter = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.tokenNetworkFilter,
@@ -150,11 +150,13 @@ export const selectPrivacyMode = createSelector(
 export const selectSmartTransactionsMigrationApplied = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.featureFlags?.smartTransactionsMigrationApplied ?? false,
+    preferencesControllerState.featureFlags
+      ?.smartTransactionsMigrationApplied ?? false,
 );
 
 export const selectSmartTransactionsBannerDismissed = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.featureFlags?.smartTransactionsBannerDismissed ?? false,
+    preferencesControllerState.featureFlags?.smartTransactionsBannerDismissed ??
+    false,
 );

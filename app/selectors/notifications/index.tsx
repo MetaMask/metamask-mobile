@@ -23,52 +23,53 @@ const selectNotificationServicesPushControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NotificationServicesPushController ??
   pushControllerDefaultState;
 
-export const selectIsMetamaskNotificationsEnabled = createSelector(
+export const selectIsMetamaskNotificationsEnabled = createDeepEqualSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.isNotificationServicesEnabled,
 );
-export const selectIsMetaMaskPushNotificationsEnabled = createSelector(
+export const selectIsMetaMaskPushNotificationsEnabled = createDeepEqualSelector(
   selectNotificationServicesPushControllerState,
   (state: NotificationServicesPushControllerState) =>
     Boolean(state.isPushEnabled),
 );
-export const selectIsMetaMaskPushNotificationsLoading = createSelector(
+export const selectIsMetaMaskPushNotificationsLoading = createDeepEqualSelector(
   selectNotificationServicesPushControllerState,
   (state: NotificationServicesPushControllerState) => state.isUpdatingFCMToken,
 );
 
-export const selectIsMetamaskNotificationsFeatureSeen = createSelector(
+export const selectIsMetamaskNotificationsFeatureSeen = createDeepEqualSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.isMetamaskNotificationsFeatureSeen,
 );
-export const selectIsUpdatingMetamaskNotifications = createSelector(
+export const selectIsUpdatingMetamaskNotifications = createDeepEqualSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.isUpdatingMetamaskNotifications,
 );
-export const selectIsFetchingMetamaskNotifications = createSelector(
+export const selectIsFetchingMetamaskNotifications = createDeepEqualSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.isFetchingMetamaskNotifications,
 );
-export const selectIsFeatureAnnouncementsEnabled = createSelector(
+export const selectIsFeatureAnnouncementsEnabled = createDeepEqualSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.isFeatureAnnouncementsEnabled,
 );
-export const selectIsUpdatingMetamaskNotificationsAccount = createSelector(
-  selectNotificationServicesControllerState,
-  (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.isUpdatingMetamaskNotificationsAccount,
-);
-export const selectIsCheckingAccountsPresence = createSelector(
+export const selectIsUpdatingMetamaskNotificationsAccount =
+  createDeepEqualSelector(
+    selectNotificationServicesControllerState,
+    (notificationServicesControllerState: NotificationServicesState) =>
+      notificationServicesControllerState.isUpdatingMetamaskNotificationsAccount,
+  );
+export const selectIsCheckingAccountsPresence = createDeepEqualSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.isCheckingAccountsPresence,
 );
-export const getmetamaskNotificationsReadList = createSelector(
+export const getmetamaskNotificationsReadList = createDeepEqualSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.metamaskNotificationsReadList,
@@ -79,32 +80,33 @@ export const getNotificationsList = createDeepEqualSelector(
     notificationServicesControllerState.metamaskNotificationsList,
 );
 
-export const getMetamaskNotificationsUnreadCount = createSelector(
+export const getMetamaskNotificationsUnreadCount = createDeepEqualSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
     ).filter((notification: INotification) => !notification.isRead).length,
 );
-export const getMetamaskNotificationsReadCount = createSelector(
+export const getMetamaskNotificationsReadCount = createDeepEqualSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
     ).filter((notification: INotification) => notification.isRead).length,
 );
-export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
-  selectNotificationServicesControllerState,
-  (notificationServicesControllerState: NotificationServicesState) =>
-    (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter(
-      (notification: INotification) =>
-        !notification.isRead &&
-        notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
-    ).length,
-);
-export const getValidNotificationAccounts = createSelector(
+export const getOnChainMetamaskNotificationsUnreadCount =
+  createDeepEqualSelector(
+    selectNotificationServicesControllerState,
+    (notificationServicesControllerState: NotificationServicesState) =>
+      (
+        notificationServicesControllerState.metamaskNotificationsList ?? []
+      ).filter(
+        (notification: INotification) =>
+          !notification.isRead &&
+          notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
+      ).length,
+  );
+export const getValidNotificationAccounts = createDeepEqualSelector(
   [selectNotificationServicesControllerState],
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.subscriptionAccountsSeen,
