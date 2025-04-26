@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
 import { Alert, View, ViewStyle } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, shallowEqual } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
@@ -39,6 +39,7 @@ import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wa
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { ESTIMATED_CELL_ITEM_HEIGHT } from '../../Views/AccountSelector/AccountSelector.styles';
 import { ScrollView } from 'react-native-gesture-handler';
+import { RootState } from '../../../reducers';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -60,12 +61,12 @@ const AccountSelectorList = ({
   const accountListRef = useRef<FlashList<Account>>(null);
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
+  const accountAvatarType = useSelector(
+    (state: RootState) =>
+      state.settings.useBlockieIcon
+        ? AvatarAccountType.Blockies
+        : AvatarAccountType.JazzIcon,
+    shallowEqual,
   );
 
   const internalAccounts = useSelector(selectInternalAccounts);
@@ -291,23 +292,12 @@ const AccountSelectorList = ({
   );
 
   const onContentSizeChanged = useCallback(() => {
-    // Handle auto scroll to account
+    // Handle auto scroll to account - only needed for when accounts change after initial render
     if (!accounts.length || !isAutoScrollEnabled) return;
     if (accountsLengthRef.current !== accounts.length) {
-      const selectedAddressOverride = selectedAddresses?.[0];
-      const account = accounts.find(({ isSelected, address }) =>
-        selectedAddressOverride
-          ? safeToChecksumAddress(selectedAddressOverride) ===
-            safeToChecksumAddress(address)
-          : isSelected,
-      );
-      accountListRef?.current?.scrollToOffset({
-        offset: account?.yOffset ?? 0,
-        animated: false,
-      });
       accountsLengthRef.current = accounts.length;
     }
-  }, [accounts, selectedAddresses, isAutoScrollEnabled]);
+  }, [accounts, isAutoScrollEnabled]);
 
   return (
     <FlashList
@@ -317,8 +307,6 @@ const AccountSelectorList = ({
       keyExtractor={getKeyExtractor}
       renderItem={renderAccountItem}
       estimatedItemSize={ESTIMATED_CELL_ITEM_HEIGHT}
-      // Increasing number of items at initial render fixes scroll issue.
-      // initialNumToRender={999}
       renderScrollComponent={ScrollView}
       {...props}
     />
