@@ -241,4 +241,5 @@ export enum IconName {
   SuccessSolid = 'SuccessSolid',
   Account = 'Account',
   AccountType = 'AccountType',
+  RichDanger = 'RichDanger',
 }

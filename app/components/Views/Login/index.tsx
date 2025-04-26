@@ -45,7 +45,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+// import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -138,6 +138,17 @@ const Login: React.FC = () => {
     return false;
   };
 
+  const getHint = async () => {
+    const hint = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
+    const parsedHints = await JSON.parse(hint);
+    setHintText(parsedHints?.manualBackup || '');
+  };
+
+  const toggleHint = () => {
+    setShowHint(!showHint);
+    getHint();
+  };
+
   useEffect(() => {
     trace({
       name: TraceName.LoginUserInteraction,
@@ -185,6 +196,8 @@ const Login: React.FC = () => {
     };
 
     getUserAuthPreferences();
+
+    getHint();
 
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
@@ -376,23 +389,23 @@ const Login: React.FC = () => {
     });
   };
 
-  const renderSwitch = () => {
-    const handleUpdateRememberMe = (rememberMeChoice: boolean) => {
-      setRememberMe(rememberMeChoice);
-    };
+  const shouldRenderBiometricLogin =
+    biometryType && !biometryPreviouslyDisabled ? biometryType : null;
 
-    const shouldRenderBiometricLogin =
-      biometryType && !biometryPreviouslyDisabled ? biometryType : null;
+  // const renderSwitch = () => {
+  //   const handleUpdateRememberMe = (rememberMeChoice: boolean) => {
+  //     setRememberMe(rememberMeChoice);
+  //   };
 
-    return (
-      <LoginOptionsSwitch
-        shouldRenderBiometricOption={shouldRenderBiometricLogin}
-        biometryChoiceState={biometryChoice}
-        onUpdateBiometryChoice={updateBiometryChoice}
-        onUpdateRememberMe={handleUpdateRememberMe}
-      />
-    );
-  };
+  //   return (
+  //     <LoginOptionsSwitch
+  //       shouldRenderBiometricOption={shouldRenderBiometricLogin}
+  //       biometryChoiceState={biometryChoice}
+  //       onUpdateBiometryChoice={updateBiometryChoice}
+  //       onUpdateRememberMe={handleUpdateRememberMe}
+  //     />
+  //   );
+  // };
 
   const handleDownloadStateLogs = () => {
     const fullState = ReduxService.store.getState();
@@ -408,17 +421,6 @@ const Login: React.FC = () => {
     biometryType &&
     hasBiometricCredentials
   );
-
-  const getHint = async () => {
-    const hint = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
-    const parsedHints = await JSON.parse(hint);
-    setHintText(parsedHints?.manualBackup || '');
-  };
-
-  const toggleHint = () => {
-    setShowHint(!showHint);
-    getHint();
-  };
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
@@ -465,16 +467,18 @@ const Login: React.FC = () => {
                 >
                   {strings('login.password')}
                 </Label>
-                <Button
-                  variant={ButtonVariants.Link}
-                  onPress={toggleHint}
-                  testID={LoginViewSelectors.SHOW_HINT_BUTTON}
-                  label={
-                    showHint
-                      ? strings('login.hide_hint')
-                      : strings('login.show_hint')
-                  }
-                />
+                {showHint && (
+                  <Button
+                    variant={ButtonVariants.Link}
+                    onPress={toggleHint}
+                    testID={LoginViewSelectors.SHOW_HINT_BUTTON}
+                    label={
+                      showHint
+                        ? strings('login.hide_hint')
+                        : strings('login.show_hint')
+                    }
+                  />
+                )}
               </View>
               <TextField
                 size={TextFieldSize.Lg}
@@ -492,14 +496,14 @@ const Login: React.FC = () => {
                   <BiometryButton
                     onPress={tryBiometric}
                     hidden={shouldHideBiometricAccessoryButton}
-                    biometryType={biometryType}
+                    biometryType={biometryType as BIOMETRY_TYPE}
                   />
                 }
                 keyboardAppearance={themeAppearance}
               />
             </View>
 
-            {renderSwitch()}
+            {/* {renderSwitch()} */}
 
             <View style={styles.helperTextContainer}>
               {showHint && (
@@ -527,11 +531,13 @@ const Login: React.FC = () => {
               style={styles.ctaWrapper}
               testID={LoginViewSelectors.LOGIN_BUTTON_ID}
             >
-              <SecurityOptionToggle
-                title={strings('import_from_seed.unlock_with_face_id')}
-                value={biometryChoice}
-                onOptionUpdated={updateBiometryChoice}
-              />
+              {shouldRenderBiometricLogin && (
+                <SecurityOptionToggle
+                  title={strings('import_from_seed.unlock_with_face_id')}
+                  value={biometryChoice}
+                  onOptionUpdated={updateBiometryChoice}
+                />
+              )}
 
               <Button
                 variant={ButtonVariants.Primary}

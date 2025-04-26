@@ -154,15 +154,19 @@ const createStyles = (colors: any) =>
     },
     learnMoreContainer: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'flex-start',
       gap: 8,
+      marginTop: 8,
+      marginBottom: 16,
     },
     learnMoreTextContainer: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'flex-start',
       gap: 1,
+      width: '100%',
+      flexWrap: 'wrap',
     },
     headerLeft: {
       marginLeft: 16,

@@ -175,6 +175,7 @@ import dangerSolidSVG from './assets/danger-solid.svg';
 import successSolidSVG from './assets/success.svg';
 import accountSVG from './assets/account.svg';
 import accountTypeSVG from './assets/account-type.svg';
+import richDangerSVG from './assets/rich-danger.svg';
 
 /**
  * Asset stored by icon name
@@ -351,4 +352,5 @@ export const assetByIconName: AssetByIconName = {
   [IconName.SuccessSolid]: successSolidSVG,
   [IconName.Account]: accountSVG,
   [IconName.AccountType]: accountTypeSVG,
+  [IconName.RichDanger]: richDangerSVG,
 };

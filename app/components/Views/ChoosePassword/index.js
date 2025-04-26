@@ -138,16 +138,19 @@ const createStyles = (colors) =>
     },
     learnMoreContainer: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'flex-start',
       gap: 8,
       marginTop: 8,
+      marginBottom: 16,
     },
     learnMoreTextContainer: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'flex-start',
       gap: 1,
+      width: '100%',
+      flexWrap: 'wrap',
     },
     headerLeft: {
       marginLeft: 16,
@@ -162,6 +165,9 @@ const createStyles = (colors) =>
     },
     label: {
       marginBottom: -4,
+    },
+    checkbox: {
+      alignItems: 'flex-start',
     },
   });
 
@@ -499,20 +505,20 @@ class ChoosePassword extends PureComponent {
     this.setState({ biometryChoice });
   };
 
-  renderSwitch = () => {
-    const { biometryType, biometryChoice } = this.state;
-    const handleUpdateRememberMe = (rememberMe) => {
-      this.setState({ rememberMe });
-    };
-    return (
-      <LoginOptionsSwitch
-        shouldRenderBiometricOption={biometryType}
-        biometryChoiceState={biometryChoice}
-        onUpdateBiometryChoice={this.updateBiometryChoice}
-        onUpdateRememberMe={handleUpdateRememberMe}
-      />
-    );
-  };
+  // renderSwitch = () => {
+  //   const { biometryType, biometryChoice } = this.state;
+  //   const handleUpdateRememberMe = (rememberMe) => {
+  //     this.setState({ rememberMe });
+  //   };
+  //   return (
+  //     <LoginOptionsSwitch
+  //       shouldRenderBiometricOption={biometryType}
+  //       biometryChoiceState={biometryChoice}
+  //       onUpdateBiometryChoice={this.updateBiometryChoice}
+  //       onUpdateRememberMe={handleUpdateRememberMe}
+  //     />
+  //   );
+  // };
 
   onPasswordChange = (val) => {
     const passInfo = zxcvbn(val);
@@ -726,11 +732,13 @@ class ChoosePassword extends PureComponent {
                     )}
                   </View>
 
-                  <SecurityOptionToggle
-                    title={strings('import_from_seed.unlock_with_face_id')}
-                    value={this.state.biometryChoice}
-                    onOptionUpdated={this.updateBiometryChoice}
-                  />
+                  {this.state.biometryType && (
+                    <SecurityOptionToggle
+                      title={strings('import_from_seed.unlock_with_face_id')}
+                      value={this.state.biometryChoice}
+                      onOptionUpdated={this.updateBiometryChoice}
+                    />
+                  )}
                 </View>
 
                 <View style={styles.learnMoreContainer}>
@@ -743,13 +751,14 @@ class ChoosePassword extends PureComponent {
                     accessibilityLabel={
                       ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
                     }
+                    style={styles.checkbox}
                     label={
                       <View style={styles.learnMoreTextContainer}>
                         <Text
                           variant={TextVariant.BodySM}
                           color={TextColor.Default}
                         >
-                          {strings('import_from_seed.learn_more')}
+                          {strings('import_from_seed.learn_more')}{' '}
                         </Text>
                         <Text
                           variant={TextVariant.BodySM}
@@ -763,7 +772,7 @@ class ChoosePassword extends PureComponent {
                   />
                 </View>
 
-                <View>{this.renderSwitch()}</View>
+                {/* <View>{this.renderSwitch()}</View> */}
 
                 {!!error && <Text color={TextColor.Error}>{error}</Text>}
               </View>

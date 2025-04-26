@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, SafeAreaView } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -20,6 +20,7 @@ import { SEED_PHRASE_HINTS } from '../../../constants/storage';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const PasswordHint = () => {
   const navigation = useNavigation();
@@ -28,9 +29,17 @@ const PasswordHint = () => {
   const { toastRef } = useContext(ToastContext);
 
   const styles = StyleSheet.create({
-    root: {
+    wrapper: {
+      flex: 1,
+    },
+    contentContainer: {
       flex: 1,
       padding: 16,
+      flexDirection: 'column',
+      rowGap: 16,
+    },
+    root: {
+      flex: 1,
       flexDirection: 'column',
       rowGap: 16,
     },
@@ -98,36 +107,44 @@ const PasswordHint = () => {
   };
 
   return (
-    <View style={styles.root}>
-      <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
-        {strings('password_hint.title')}
-      </Text>
+    <SafeAreaView style={styles.wrapper}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.contentContainer}
+        resetScrollToCoords={{ x: 0, y: 0 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.root}>
+          <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
+            {strings('password_hint.title')}
+          </Text>
 
-      <View style={styles.textContainer}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('password_hint.description')}
-        </Text>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('password_hint.description2')}
-        </Text>
-      </View>
+          <View style={styles.textContainer}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('password_hint.description')}
+            </Text>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('password_hint.description2')}
+            </Text>
+          </View>
 
-      <TextField
-        placeholder={strings('password_hint.placeholder')}
-        size={TextFieldSize.Lg}
-        value={savedHint}
-        onChangeText={setSavedHint}
-      />
+          <TextField
+            placeholder={strings('password_hint.placeholder')}
+            size={TextFieldSize.Lg}
+            value={savedHint}
+            onChangeText={setSavedHint}
+          />
 
-      <Button
-        label={strings('password_hint.saved')}
-        variant={ButtonVariants.Primary}
-        size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
-        onPress={handleSave}
-        style={styles.buttonContainer}
-      />
-    </View>
+          <Button
+            label={strings('password_hint.saved')}
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            onPress={handleSave}
+            style={styles.buttonContainer}
+          />
+        </View>
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
   );
 };
 
