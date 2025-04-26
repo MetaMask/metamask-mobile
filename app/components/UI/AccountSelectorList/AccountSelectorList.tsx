@@ -321,4 +321,4 @@ const AccountSelectorList = ({
   );
 };
 
-export default AccountSelectorList;
+export default React.memo(AccountSelectorList);
