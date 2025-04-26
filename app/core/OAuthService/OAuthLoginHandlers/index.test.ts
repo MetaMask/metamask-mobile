@@ -36,13 +36,50 @@ jest.mock('react-native-google-acm', () => ({
 }));
 
 describe('OAuth login handlers', () => {
-  it('should return a type dismiss', async () => {
-    for (const os of ['ios', 'android']) {
-      for (const provider of Object.values(AuthConnection)) {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  for (const os of ['ios', 'android']) {
+    for (const provider of Object.values(AuthConnection)) {
+      it(`should create the correct login handler for ${os} and ${provider}`, async () => {
         const handler = createLoginHandler(os as Platform['OS'], provider);
         const result = await handler.login();
         expect(result?.authConnection).toBe(provider);
-      }
+
+        switch (os) {
+          case 'ios': {
+            switch (provider) {
+              case AuthConnection.Apple:
+                expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
+                expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
+                expect(mockSignInAsync).toHaveBeenCalledTimes(1);
+                break;
+              case AuthConnection.Google:
+                expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
+                expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
+                expect(mockSignInAsync).toHaveBeenCalledTimes(0);
+                break;
+            }
+            break;
+          }
+          case 'android': {
+            switch (provider) {
+              case AuthConnection.Apple:
+                expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
+                expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
+                expect(mockSignInAsync).toHaveBeenCalledTimes(0);
+                break;
+              case AuthConnection.Google:
+                expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
+                expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
+                expect(mockSignInAsync).toHaveBeenCalledTimes(0);
+                break;
+            }
+            break;
+          }
+        }
+      });
     }
-  });
+  }
 });

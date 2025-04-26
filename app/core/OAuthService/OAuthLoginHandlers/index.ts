@@ -15,6 +15,7 @@ import {
   AppleServerRedirectUri,
 } from './constants';
 import { OAuthErrorType, OAuthError } from '../error';
+import { BaseLoginHandler } from './baseHandler';
 
 /**
  * This factory pattern function is used to create a login handler based on the platform and provider.
@@ -26,7 +27,7 @@ import { OAuthErrorType, OAuthError } from '../error';
 export function createLoginHandler(
   platformOS: Platform['OS'],
   provider: AuthConnection,
-) {
+): BaseLoginHandler {
   if (
     !AuthServerUrl ||
     !AppRedirectUri ||
