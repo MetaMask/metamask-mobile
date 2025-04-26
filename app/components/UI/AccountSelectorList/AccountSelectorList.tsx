@@ -2,7 +2,7 @@
 import React, { useCallback, useRef } from 'react';
 import { Alert, ListRenderItem, View, ViewStyle } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { useSelector } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
@@ -37,6 +37,7 @@ import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { RootState } from '../../../reducers';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -55,17 +56,16 @@ const AccountSelectorList = ({
   ...props
 }: AccountSelectorListProps) => {
   const { navigate } = useNavigation();
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountListRef = useRef<any>(null);
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
+
+  const accountAvatarType = useSelector(
+    (state: RootState) =>
+      state.settings.useBlockieIcon
+        ? AvatarAccountType.Blockies
+        : AvatarAccountType.JazzIcon,
+    shallowEqual,
   );
 
   const internalAccounts = useSelector(selectInternalAccounts);
