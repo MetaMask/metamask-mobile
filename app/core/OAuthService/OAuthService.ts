@@ -13,13 +13,12 @@ import {
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { createLoginHandler } from './OAuthLoginHandlers';
 import {
+  AuthConnectionId,
   AuthServerUrl,
   web3AuthNetwork as currentWeb3AuthNetwork,
+  GroupedAuthConnectionId,
 } from './OAuthLoginHandlers/constants';
 import { OAuthError, OAuthErrorType } from './error';
-
-export const AuthConnectionId = process.env.AUTH_CONNECTION_ID;
-export const GroupedAuthConnectionId = process.env.GROUPED_AUTH_CONNECTION_ID;
 
 export interface OAuthServiceConfig {
   authConnectionId: string;
