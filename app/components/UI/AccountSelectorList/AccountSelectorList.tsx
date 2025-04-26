@@ -6,11 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
-import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useStyles } from '../../../component-library/hooks';
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
@@ -68,8 +66,6 @@ const AccountSelectorList = ({
         : AvatarAccountType.JazzIcon,
     shallowEqual,
   );
-
-  const internalAccounts = useSelector(selectInternalAccounts);
   const getKeyExtractor = ({ address }: Account) => address;
 
   const renderAccountBalances = useCallback(
@@ -177,10 +173,8 @@ const AccountSelectorList = ({
 
   const onNavigateToAccountActions = useCallback(
     (selectedAccount: string) => {
-      const account = internalAccounts.find(
-        (accountData: InternalAccount) =>
-          accountData.address.toLowerCase() === selectedAccount.toLowerCase(),
-      );
+      const account =
+        Engine.context.AccountsController.getAccountByAddress(selectedAccount);
 
       if (!account) return;
 
@@ -189,7 +183,7 @@ const AccountSelectorList = ({
         params: { selectedAccount: account },
       });
     },
-    [navigate, internalAccounts],
+    [navigate],
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
