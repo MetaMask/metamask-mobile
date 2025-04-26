@@ -57,9 +57,7 @@ const AccountSelectorList = ({
   ...props
 }: AccountSelectorListProps) => {
   const { navigate } = useNavigation();
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountListRef = useRef<any>(null);
+  const accountListRef = useRef<FlashList<Account>>(null);
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
   // TODO: Replace "any" with type
@@ -304,7 +302,7 @@ const AccountSelectorList = ({
           : isSelected,
       );
       accountListRef?.current?.scrollToOffset({
-        offset: account?.yOffset,
+        offset: account?.yOffset ?? 0,
         animated: false,
       });
       accountsLengthRef.current = accounts.length;
