@@ -357,9 +357,9 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
-  handlePostSocialLogin = (result) => {
+  handlePostSocialLogin = (result, createWallet) => {
     if (result.type === 'success') {
-      if (this.state.createWallet) {
+      if (createWallet) {
         if (result.existingUser) {
           this.props.navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
@@ -370,7 +370,7 @@ class Onboarding extends PureComponent {
           });
           this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
         }
-      } else if (!this.state.createWallet) {
+      } else if (!createWallet) {
         if (result.existingUser) {
           this.props.navigation.push('Login', {
             [PREVIOUS_SCREEN]: ONBOARDING,
@@ -387,7 +387,7 @@ class Onboarding extends PureComponent {
     }
   };
 
-  onPressContinueWithApple = async () => {
+  onPressContinueWithApple = async (createWallet) => {
     this.props.navigation.navigate('Onboarding');
     const action = async () => {
       const result = await OAuthLoginService.handleOAuthLogin('apple').catch(
@@ -396,13 +396,12 @@ class Onboarding extends PureComponent {
           return { type: 'error', error: e, existingUser: false };
         },
       );
-
-      this.handlePostSocialLogin(result);
+      this.handlePostSocialLogin(result, createWallet);
     };
     this.handleExistingUser(action);
   };
 
-  onPressContinueWithGoogle = async () => {
+  onPressContinueWithGoogle = async (createWallet) => {
     this.props.navigation.navigate('Onboarding');
     const action = async () => {
       const result = await OAuthLoginService.handleOAuthLogin('google').catch(
@@ -411,8 +410,7 @@ class Onboarding extends PureComponent {
           return { type: 'error', error: e, existingUser: false };
         },
       );
-
-      this.handlePostSocialLogin(result);
+      this.handlePostSocialLogin(result, createWallet);
     };
     this.handleExistingUser(action);
   };

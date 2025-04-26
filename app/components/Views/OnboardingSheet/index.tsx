@@ -23,8 +23,8 @@ import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onbo
 export interface OnboardingSheetParams {
   onPressCreate?: () => void;
   onPressImport?: () => void;
-  onPressContinueWithGoogle?: () => void;
-  onPressContinueWithApple?: () => void;
+  onPressContinueWithGoogle?: (createWallet: boolean) => void;
+  onPressContinueWithApple?: (createWallet: boolean) => void;
   createWallet?: boolean;
 }
 
@@ -99,13 +99,13 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
 
   const onPressContinueWithGoogleAction = () => {
     if (onPressContinueWithGoogle) {
-      onPressContinueWithGoogle();
+      onPressContinueWithGoogle(createWallet);
     }
   };
 
   const onPressContinueWithAppleAction = () => {
     if (onPressContinueWithApple) {
-      onPressContinueWithApple();
+      onPressContinueWithApple(createWallet);
     }
   };
 
