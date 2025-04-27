@@ -84,6 +84,18 @@ const ProtectYourWallet = ({
     openSRPQuiz();
   };
 
+  const checkMultiplePurchases = () => {
+    // Add logic to check if multiple purchases are authorized by PayPal
+  };
+
+  const checkPaymentServiceAbuse = () => {
+    // Add logic to check if the payment service is wide open for abuse
+  };
+
+  const checkSmartContractsAndScreenReaders = () => {
+    // Add logic to check if smart contracts and screen readers cause financial loss
+  };
+
   return (
     <View style={[styles.setting, styles.firstSetting]}>
       <Text variant={TextVariant.BodyLGMedium}>
