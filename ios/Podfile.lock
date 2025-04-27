@@ -636,10 +636,10 @@ PODS:
     - React-Core
   - react-native-quick-base64 (2.0.8):
     - React-Core
-  - react-native-quick-crypto (0.6.1):
+  - react-native-quick-crypto (0.7.12):
     - OpenSSL-Universal
+    - RCT-Folly (= 2021.07.22.00)
     - React
-    - React-callinvoker
     - React-Core
   - react-native-randombytes (3.6.1):
     - React-Core
@@ -1381,7 +1381,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: 26560022f28c06d8ef00a9ff1e03beefbbb60c2d
   react-native-performance: 125a96c145e29918b55b45ce25cbba54f1e24dcd
   react-native-quick-base64: daf67f19ee076b77f0755bf4056f3425f164e1d8
-  react-native-quick-crypto: eff065b704d3f1c6e336cfc612dce63228ab3482
+  react-native-quick-crypto: 4755d026098f779cc2bb14efb6674ab6fe68828b
   react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: 667324e20fb3dd9c39c12d6036675ed90099bcd5
