@@ -833,10 +833,12 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1051,7 +1053,38 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               },
                                             ]
                                           }
-                                        />
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            $200000
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            2 HELLO
+                                          </Text>
+                                        </View>
                                       </View>
                                     </TouchableOpacity>
                                     <TouchableOpacity
@@ -1095,10 +1128,12 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1313,7 +1348,38 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               },
                                             ]
                                           }
-                                        />
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            $20000
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            1 TOKEN1
+                                          </Text>
+                                        </View>
                                       </View>
                                     </TouchableOpacity>
                                     <TouchableOpacity
@@ -1357,10 +1423,12 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1607,7 +1675,38 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               },
                                             ]
                                           }
-                                        />
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            $6000
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            3 ETH
+                                          </Text>
+                                        </View>
                                       </View>
                                     </TouchableOpacity>
                                     <TouchableOpacity

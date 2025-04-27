@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`StakeInputView render matches snapshot 1`] = `
+exports[`EarnInputView render matches snapshot 1`] = `
 <View
   style={
     {
@@ -1606,7 +1606,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
 </View>
 `;
 
-exports[`StakeInputView when values are entered in the keypad updates ETH and fiat values 1`] = `
+exports[`EarnInputView when values are entered in the keypad updates ETH and fiat values 1`] = `
 <View
   style={
     {

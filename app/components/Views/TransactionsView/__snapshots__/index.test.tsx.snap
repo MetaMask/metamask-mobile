@@ -350,6 +350,8 @@ exports[`TransactionsView renders correctly and matches snapshot 1`] = `
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 20,
                                       "fontWeight": "400",
+                                      "marginLeft": 6,
+                                      "marginRight": 6,
                                       "textAlign": "center",
                                     }
                                   }
@@ -442,6 +444,8 @@ exports[`TransactionsView renders correctly and matches snapshot 1`] = `
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 20,
                                         "fontWeight": "400",
+                                        "marginLeft": 6,
+                                        "marginRight": 6,
                                         "textAlign": "center",
                                       }
                                     }

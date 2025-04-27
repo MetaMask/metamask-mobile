@@ -11,7 +11,7 @@ import {
   toTokenMinimalUnit,
 } from '../../../../util/number';
 import { selectChainId } from '../../../../selectors/networkController';
-import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
+import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
 
 export interface InputHandlerParams {
   balance: string;
@@ -45,6 +45,10 @@ const useInputHandler = ({
   const currentCurrency = useSelector(selectCurrentCurrency);
   // the current selected chain id
   const chainId = useSelector(selectChainId);
+  // Stablecoin lending feature flag
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
 
   const isNonZeroAmount = useMemo(
     () => amountTokenMinimalUnit.gt(new BN4(0)),
@@ -177,8 +181,6 @@ const useInputHandler = ({
     },
     [conversionRate, decimals, exchangeRate],
   );
-
-  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
 
   const currencyToggleValue = useMemo(() => {
     const upperCaseCurrentCurrency = currentCurrency.toUpperCase();
