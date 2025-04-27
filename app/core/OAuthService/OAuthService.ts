@@ -28,9 +28,12 @@ export interface OAuthServiceConfig {
 
 export class OAuthService {
   public localState: {
-    loginInProgress: boolean;
     userId?: string;
     accountName?: string;
+
+    loginInProgress: boolean;
+    oauthLoginSuccess: boolean;
+    oauthLoginError: string | null;
   };
 
   public config: OAuthServiceConfig;
@@ -46,6 +49,8 @@ export class OAuthService {
       loginInProgress: false,
       userId: undefined,
       accountName: undefined,
+      oauthLoginSuccess: false,
+      oauthLoginError: null,
     };
     this.config = {
       authConnectionId,
@@ -66,27 +71,20 @@ export class OAuthService {
   };
 
   #dispatchPostLogin = (result: HandleOAuthLoginResult) => {
-    this.updateLocalState({ loginInProgress: false });
+    const stateToUpdate: Partial<OAuthService['localState']> = {
+      loginInProgress: false,
+    };
     if (result.type === 'success') {
-      ReduxService.store.dispatch({
-        type: UserActionType.OAUTH_LOGIN_SUCCESS,
-        payload: {
-          existingUser: result.existingUser,
-        },
-      });
+      stateToUpdate.oauthLoginSuccess = true;
+      stateToUpdate.oauthLoginError = null;
     } else if (result.type === 'error' && 'error' in result) {
-      this.clearVerifierDetails();
-      ReduxService.store.dispatch({
-        type: UserActionType.OAUTH_LOGIN_ERROR,
-        payload: {
-          error: result.error,
-        },
-      });
+      stateToUpdate.oauthLoginSuccess = false;
+      stateToUpdate.oauthLoginError = result.error;
     } else {
-      ReduxService.store.dispatch({
-        type: UserActionType.OAUTH_LOGIN_RESET,
-      });
+      stateToUpdate.oauthLoginSuccess = false;
+      stateToUpdate.oauthLoginError = null;
     }
+    this.updateLocalState(stateToUpdate);
     ReduxService.store.dispatch({
       type: UserActionType.LOADING_UNSET,
     });
@@ -198,15 +196,25 @@ export class OAuthService {
     };
   };
 
-  getVerifierDetails = () => ({
+  getAuthDetails = () => ({
     authConnectionId: this.config.authConnectionId,
     groupedAuthConnectionId: this.config.groupedAuthConnectionId,
     userId: this.localState.userId,
   });
 
-  clearVerifierDetails = () => {
-    this.localState.userId = undefined;
-    this.localState.accountName = undefined;
+  clearAuthDetails = () => {
+    this.updateLocalState({
+      userId: undefined,
+      accountName: undefined,
+    });
+  };
+
+  resetOauthState = () => {
+    this.updateLocalState({
+      loginInProgress: false,
+      oauthLoginSuccess: false,
+      oauthLoginError: null,
+    });
   };
 }
 

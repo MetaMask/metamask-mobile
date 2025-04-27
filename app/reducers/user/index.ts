@@ -23,8 +23,6 @@ export const userInitialState: UserState = {
   appTheme: AppThemeKey.os,
   ambiguousAddressEntries: {},
   appServicesReady: false,
-  oauthLoginSuccess: false,
-  oauthLoginError: null,
 };
 
 /**
@@ -116,24 +114,6 @@ const userReducer = (
       return {
         ...state,
         appServicesReady: true,
-      };
-
-    case UserActionType.OAUTH_LOGIN_SUCCESS:
-      return {
-        ...state,
-        oauthLoginSuccess: true,
-      };
-    case UserActionType.OAUTH_LOGIN_ERROR:
-      return {
-        ...state,
-        oauthLoginSuccess: false,
-        oauthLoginError: action.payload.error,
-      };
-    case UserActionType.OAUTH_LOGIN_RESET:
-      return {
-        ...state,
-        oauthLoginSuccess: false,
-        oauthLoginError: null,
       };
     default:
       return state;
