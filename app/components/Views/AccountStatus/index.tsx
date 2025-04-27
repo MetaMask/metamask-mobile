@@ -5,9 +5,13 @@ import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text/Text.types';
-import { StackActions, useNavigation, useRoute } from '@react-navigation/native';
+import {
+  StackActions,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
-import { getOnboardingNavbarOptions  } from '../../UI/Navbar';
+import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
 import styles from './index.styles';
 import Button, {
@@ -15,7 +19,10 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import Icon , { IconName, IconSize } from '../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -30,17 +37,17 @@ interface AccountStatusProps {
 
 interface AccountRouteParams {
   accountName?: string;
-  onContinue?: () => void;
+  oauthLoginSuccess?: boolean;
 }
 
-const AccountStatus = ({
-  type = 'not_exist',
-}: AccountStatusProps) => {
+const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
   const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useTheme();
 
   const accountName = (route.params as AccountRouteParams)?.accountName;
+  const oauthLoginSuccess = (route.params as AccountRouteParams)
+    ?.oauthLoginSuccess;
 
   useLayoutEffect(() => {
     const marginLeft = 16;
@@ -55,29 +62,41 @@ const AccountStatus = ({
       </TouchableOpacity>
     );
 
-    const headerRight = () => (
-      <View />
-    );
+    const headerRight = () => <View />;
 
-    navigation.setOptions(getOnboardingNavbarOptions(route, {
-      headerLeft,
-      headerRight,
-    },
-    colors,
-    false,));
+    navigation.setOptions(
+      getOnboardingNavbarOptions(
+        route,
+        {
+          headerLeft,
+          headerRight,
+        },
+        colors,
+        false,
+      ),
+    );
   }, [navigation, colors, route]);
 
   const track = (event: IMetaMetricsEvent) => {
     trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
   };
 
-  const navigateNextScreen = (targetRoute: string, previousScreen: string, metricEvent: string) => {
-      navigation.dispatch(
-        StackActions.replace(targetRoute, {
-          [PREVIOUS_SCREEN]: previousScreen,
-        })
-      );
-      track(metricEvent === 'import' ? MetaMetricsEvents.WALLET_IMPORT_STARTED : MetaMetricsEvents.WALLET_SETUP_STARTED);
+  const navigateNextScreen = (
+    targetRoute: string,
+    previousScreen: string,
+    metricEvent: string,
+  ) => {
+    navigation.dispatch(
+      StackActions.replace(targetRoute, {
+        [PREVIOUS_SCREEN]: previousScreen,
+        oauthLoginSuccess,
+      }),
+    );
+    track(
+      metricEvent === 'import'
+        ? MetaMetricsEvents.WALLET_IMPORT_STARTED
+        : MetaMetricsEvents.WALLET_SETUP_STARTED,
+    );
   };
 
   return (

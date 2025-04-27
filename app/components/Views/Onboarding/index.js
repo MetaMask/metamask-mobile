@@ -56,7 +56,9 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import OAuthLoginService from '../../../core/OAuthService/OAuthService';
+import OAuthLoginService, {
+  OAuthService,
+} from '../../../core/OAuthService/OAuthService';
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 
 const createStyles = (colors) =>
@@ -206,10 +208,6 @@ class Onboarding extends PureComponent {
      */
     unsetLoading: PropTypes.func,
     /**
-     * oauth2LoginReset
-     */
-    oauth2LoginReset: PropTypes.func,
-    /**
      * loadings msg
      */
     loadingMsg: PropTypes.string,
@@ -334,7 +332,7 @@ class Onboarding extends PureComponent {
 
   onPressCreate = () => {
     this.setState({ bottomSheetVisible: false });
-    this.props.oauth2LoginReset();
+    OAuthService.resetOauthState();
     const action = () => {
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -347,7 +345,7 @@ class Onboarding extends PureComponent {
 
   onPressImport = () => {
     this.setState({ bottomSheetVisible: false });
-    this.props.oauth2LoginReset();
+    OAuthService.resetOauthState();
     const action = async () => {
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
@@ -363,10 +361,12 @@ class Onboarding extends PureComponent {
         if (result.existingUser) {
           this.props.navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
+            oauthLoginSuccess: true,
           });
         } else {
           this.props.navigation.push('ChoosePassword', {
             [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
           });
           this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
         }
@@ -374,11 +374,13 @@ class Onboarding extends PureComponent {
         if (result.existingUser) {
           this.props.navigation.push('Login', {
             [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
           });
           this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,
+            oauthLoginSuccess: true,
           });
         }
       }
@@ -710,7 +712,6 @@ const mapDispatchToProps = (dispatch) => ({
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  oauth2LoginReset: () => dispatch({ type: UserActionType.OAUTH_LOGIN_RESET }),
 });
 
 export default connect(

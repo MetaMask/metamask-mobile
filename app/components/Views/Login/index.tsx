@@ -25,7 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -93,8 +93,7 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
-import { UserActionType } from '../../../actions/user';
-import { selectOAuthLoginSuccess } from '../../../selectors/oauthServices';
+import OAuthService from '../../../core/OAuthService/OAuthService';
 
 /**
  * View where returning users can authenticate
@@ -123,7 +122,12 @@ const Login: React.FC = () => {
   const [hintText, setHintText] = useState('');
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route =
-    useRoute<RouteProp<{ params: { locked: boolean } }, 'params'>>();
+    useRoute<
+      RouteProp<
+        { params: { locked: boolean; oauthLoginSuccess: boolean } },
+        'params'
+      >
+    >();
   const {
     styles,
     theme: { colors, themeAppearance },
@@ -140,7 +144,7 @@ const Login: React.FC = () => {
     return false;
   };
 
-  const oauthLoginSuccess = useSelector(selectOAuthLoginSuccess);
+  const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
   useEffect(() => {
     trace({
@@ -257,7 +261,7 @@ const Login: React.FC = () => {
       screen: 'OnboardingNav',
       params: { screen: 'Onboarding' },
     });
-    dispatch({ type: UserActionType.OAUTH_LOGIN_RESET });
+    OAuthService.resetOauthState();
   };
 
   const onLogin = async () => {

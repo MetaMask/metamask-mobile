@@ -13,7 +13,6 @@ import {
   logIn,
   logOut,
   passwordSet,
-  UserActionType,
 } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -37,6 +36,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { resetVaultBackup } from '../BackupVault/backupVault';
+import OAuthService from '../OAuthService/OAuthService';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -63,9 +63,7 @@ class AuthenticationService {
   }
 
   private dispatchOauthReset(): void {
-    ReduxService.store.dispatch({
-      type: UserActionType.OAUTH_LOGIN_RESET,
-    });
+    OAuthService.resetOauthState();
   }
 
   /**

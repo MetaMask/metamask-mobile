@@ -62,6 +62,7 @@ export class OAuthService {
   }
 
   #dispatchLogin = () => {
+    this.resetOauthState();
     this.updateLocalState({ loginInProgress: true });
     ReduxService.store.dispatch({
       type: UserActionType.LOADING_SET,
