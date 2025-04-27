@@ -204,7 +204,9 @@ import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/util
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
+///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1113,7 +1115,9 @@ export class Engine {
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
+        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        ///: END:ONLY_INCLUDE_IF
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1125,7 +1129,10 @@ export class Engine {
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
-    const seedlessOnboardingController = controllersByName.SeedlessOnboardingController;
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+    const seedlessOnboardingController =
+      controllersByName.SeedlessOnboardingController;
+    ///: END:ONLY_INCLUDE_IF
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1476,7 +1483,9 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController: seedlessOnboardingController,
+      ///: END:ONLY_INCLUDE_IF
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2074,7 +2083,9 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController,
+      ///: END:ONLY_INCLUDE_IF
     } = instance.datamodel.state;
 
     return {
@@ -2124,7 +2135,9 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController,
+      ///: END:ONLY_INCLUDE_IF
     };
   },
 

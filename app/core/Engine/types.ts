@@ -253,11 +253,13 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
   SeedlessOnboardingControllerEvents,
 } from '@metamask/seedless-onboarding-controller';
+///: END:ONLY_INCLUDE_IF
 
 import { Hex } from '@metamask/utils';
 
@@ -403,8 +405,10 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
-  | AppMetadataControllerEvents
-  | SeedlessOnboardingControllerEvents;
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  | SeedlessOnboardingControllerEvents
+  ///: END:ONLY_INCLUDE_IF
+  | AppMetadataControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -477,7 +481,9 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   SeedlessOnboardingController: SeedlessOnboardingController;
+  ///: END:ONLY_INCLUDE_IF
 };
 
 /**
@@ -540,7 +546,9 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
+  ///: END:ONLY_INCLUDE_IF
 };
 
 /** Controller names */
@@ -593,7 +601,10 @@ export type ControllersToInitialize =
   | 'TransactionController'
   | 'GasFeeController'
   | 'SignatureController'
-  | 'SeedlessOnboardingController';
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  | 'SeedlessOnboardingController'
+  ///: END:ONLY_INCLUDE_IF
+  | 'AppMetadataController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
