@@ -11,7 +11,7 @@ import type {
   EncryptionResult,
   KeyDerivationOptions,
 } from './types';
-import { getEncryptionLibrary } from './lib';
+import { quickCryptoLib, getEncryptionLibrary } from './lib';
 
 // Add these interfaces near the top with the other types
 interface DetailedDecryptResult {
@@ -117,30 +117,11 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     opts: KeyDerivationOptions = this.keyDerivationOptions,
     lib = ENCRYPTION_LIBRARY.original,
   ): Promise<EncryptionKey> => {
-    const passBuffer = Buffer.from(password, 'utf-8');
-    // This should be decoded from base64, but it wasn't in the previous implementation.
-    const saltBuffer = Buffer.from(salt, 'utf-8');
-
-    const key = await Crypto.subtle.importKey(
-      'raw',
-      passBuffer,
-      { name: 'PBKDF2' },
-      false,
-      ['deriveBits', 'deriveKey'],
-    );
-  
-    const derivedBits = await Crypto.subtle.deriveBits(
-      { name: 'PBKDF2', salt: saltBuffer, iterations: opts.params.iterations, hash: 'SHA-512' },
-      key,
-      256
-    );
-
-    const derivedKey = await Crypto.subtle.importKey(
-      'raw', 
-      derivedBits,
-      { name: 'AES-CBC', length: 256 },
+    const derivedKey = await quickCryptoLib.deriveKey(
+      password,
+      salt,
       exportable,
-      ['encrypt', 'decrypt']
+      opts,
     );
 
     return {
@@ -165,16 +146,13 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   ): Promise<EncryptionResult> => {
     const text = JSON.stringify(data);
 
-    const lib = getEncryptionLibrary(key.lib);
-
-    const iv = Crypto.getRandomValues(new Uint8Array(16));
-    const dataBuffer = Buffer.from(text, 'utf-8');
-    const result = await Crypto.subtle.encrypt(
-      { name: 'AES-CBC', iv },
+    const iv = await quickCryptoLib.generateIV(16);
+    const result = await quickCryptoLib.encrypt(
+      text,
       key.key,
-      dataBuffer,
+      iv,
     );
-
+    
     const cipher = Buffer.from(result).toString('base64');
 
     return {
@@ -199,15 +177,10 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   ): Promise<unknown> => {
     // TODO: Check for key and payload compatibility?
 
-    // We assume that both `payload.lib` and `key.lib` are the same here!
-    const lib = getEncryptionLibrary(payload.lib);
-    const encryptedData = Buffer.from(payload.cipher, 'base64');
-    const vector = Buffer.from(payload.iv, 'hex');
-
-    const result = await Crypto.subtle.decrypt(
-      { name: 'AES-CBC', iv: vector },
+    const result = await quickCryptoLib.decrypt(
+      payload.cipher,
       key.key,
-      encryptedData,
+      payload.iv,
     );
 
     const text = Buffer.from(result).toString('utf-8');
@@ -304,7 +277,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       throw new Error('Key is not exportable');
     }
 
-    const exportedKey = await Crypto.subtle.exportKey('jwk', key.key);
+    const exportedKey = await quickCryptoLib.exportKey();
 
     const json = JSON.stringify({ ...key, key: exportedKey });
     return Buffer.from(json).toString('base64');
