@@ -1,5 +1,4 @@
 import Crypto from 'react-native-quick-crypto';
-import { ShaAlgorithm } from './constants';
 import { bytesLengthToBitsLength } from '../../util/bytes';
 
 /**

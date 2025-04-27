@@ -48,6 +48,8 @@ export enum CipherAlgorithm {
  */
 export const ENCRYPTION_LIBRARY = {
   original: 'original',
+  forked: 'forked',
+  quickCrypto: 'quick-crypto',
 };
 
 /**
