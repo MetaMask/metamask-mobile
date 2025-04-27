@@ -24,10 +24,6 @@ export enum UserActionType {
   SET_APP_THEME = 'SET_APP_THEME',
   CHECKED_AUTH = 'CHECKED_AUTH',
   SET_APP_SERVICES_READY = 'SET_APP_SERVICES_READY',
-
-  OAUTH_LOGIN_RESET = 'OAUTH_LOGIN_RESET',
-  OAUTH_LOGIN_SUCCESS = 'OAUTH_LOGIN_SUCCESS',
-  OAUTH_LOGIN_ERROR = 'OAUTH_LOGIN_ERROR',
 }
 
 // User actions
@@ -93,17 +89,6 @@ export type CheckedAuthAction = Action<UserActionType.CHECKED_AUTH> & {
 export type SetAppServicesReadyAction =
   Action<UserActionType.SET_APP_SERVICES_READY>;
 
-export type OAuthLoginSuccessAction =
-  Action<UserActionType.OAUTH_LOGIN_SUCCESS> & {
-    payload: { existingUser: boolean };
-  };
-
-export type OAuthLoginErrorAction = Action<UserActionType.OAUTH_LOGIN_ERROR> & {
-  payload: { error: string };
-};
-
-export type OAuthLoginResetAction = Action<UserActionType.OAUTH_LOGIN_RESET>;
-
 /**
  * User actions union type
  */
@@ -128,7 +113,4 @@ export type UserAction =
   | SetGasEducationCarouselSeenAction
   | SetAppThemeAction
   | CheckedAuthAction
-  | SetAppServicesReadyAction
-  | OAuthLoginSuccessAction
-  | OAuthLoginErrorAction
-  | OAuthLoginResetAction;
+  | SetAppServicesReadyAction;
