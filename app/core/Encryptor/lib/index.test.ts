@@ -1,9 +1,10 @@
-import { getEncryptionLibrary, AesLib, AesForkedLib } from './lib';
+import { getEncryptionLibrary } from './index';
+import { AesLib, AesForkedLib } from './aes-native';
 import {
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
   DERIVATION_OPTIONS_MINIMUM_OWASP2023,
-} from './constants';
+} from '../constants';
 
 const mockPassword = 'mockPassword';
 const mockSalt = '00112233445566778899001122334455';
@@ -33,7 +34,7 @@ describe('lib', () => {
           lib.deriveKey(mockPassword, mockSalt, {
             ...LEGACY_DERIVATION_OPTIONS,
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
+            // @ts-expect-error - testing invalid algorithm
             algorithm: 'NotAValidKDFAlgorithm',
           }),
         ).rejects.toThrow('Unsupported KDF algorithm');
