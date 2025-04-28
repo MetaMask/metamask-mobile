@@ -30,7 +30,6 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
-import useSelectedAccount from '../Tabs/TabThumbnail/useSelectedAccount';
 import styleSheet from './PermissionsSummary.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
@@ -76,7 +75,6 @@ const PermissionsSummary = ({
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
-  const selectedAccount = useSelectedAccount();
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
 
@@ -220,9 +218,6 @@ const PermissionsSummary = ({
 
   const getAccountLabel = useCallback(() => {
     if (isAlreadyConnected) {
-      if (accountAddresses.length === 0 && selectedAccount) {
-        return `${strings('permissions.connected_to')} ${selectedAccount.name}`;
-      }
       if (accountAddresses.length === 1) {
         const matchedConnectedAccount = accounts.find(
           (account) => account.address === accountAddresses[0],
@@ -245,18 +240,14 @@ const PermissionsSummary = ({
       }`;
     }
 
-    if (accountAddresses.length === 0 && selectedAccount) {
-      return `${strings('permissions.requesting_for')}${selectedAccount?.name}`;
-    }
-
-    if (!selectedAccount) {
+    if (accountAddresses.length === 0) {
       return `${strings('permissions.connect_an_account')}`;
     }
 
     return strings('permissions.requesting_for_accounts', {
       numberOfAccounts: accountAddresses.length,
     });
-  }, [accountAddresses, isAlreadyConnected, selectedAccount, accounts]);
+  }, [accountAddresses, isAlreadyConnected, accounts]);
 
   const getNetworkLabel = useCallback(() => {
     if (isAlreadyConnected) {
@@ -313,7 +304,7 @@ const PermissionsSummary = ({
                 </TextComponent>
               </View>
               <View style={styles.avatarGroup}>
-                {accountAddresses.length > 0 ? (
+                {accountAddresses.length > 0 && (
                   <AvatarGroup
                     avatarPropsList={accountAddresses.map((address) => ({
                       variant: AvatarVariant.Account,
@@ -321,14 +312,6 @@ const PermissionsSummary = ({
                       size: AvatarSize.Xs,
                     }))}
                   />
-                ) : (
-                  selectedAccount?.address && (
-                    <Avatar
-                      size={AvatarSize.Xs}
-                      variant={AvatarVariant.Account}
-                      accountAddress={selectedAccount.address}
-                    />
-                  )
                 )}
               </View>
             </View>
@@ -488,7 +471,7 @@ const PermissionsSummary = ({
               <StyledButton
                 type={'confirm'}
                 onPress={confirm}
-                disabled={!selectedAccount && accountAddresses.length === 0}
+                disabled={accountAddresses.length === 0 || networkAvatars.length === 0}
                 containerStyle={[
                   styles.buttonPositioning,
                   styles.confirmButton,
