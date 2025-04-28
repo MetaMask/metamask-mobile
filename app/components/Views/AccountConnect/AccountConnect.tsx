@@ -140,6 +140,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const internalAccounts = useSelector(selectInternalAccounts);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
+  const isMountedRef = useRef(true);
 
   const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
     {
@@ -297,21 +298,20 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   useEffect(() => {
     let url = dappUrl || channelIdOrHostname || '';
-    let isMounted = true;
 
     const checkOrigin = async () => {
       if (isProductSafetyDappScanningEnabled()) {
         url = prefixUrlWithProtocol(url);
       }
       const scanResult = await getPhishingTestResultAsync(url);
-      if (scanResult.result && isMounted) {
+      if (scanResult.result && isMountedRef.current) {
         setBlockedUrl(dappUrl);
         setShowPhishingModal(true);
       }
     };
     checkOrigin();
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
     };
   }, [dappUrl, channelIdOrHostname]);
 
