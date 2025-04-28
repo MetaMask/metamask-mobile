@@ -32,7 +32,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         mockEvents.GET.suggestedGasFeesApiGanache
       ],
     };
-    
+
     await withFixtures(
       {
         dapp: true,
