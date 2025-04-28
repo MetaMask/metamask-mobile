@@ -133,11 +133,17 @@ const initialState = {
       TokenBalancesController: {
         tokenBalances: {},
       },
+      MultichainNetworkController: {
+        isEvmSelected: true,
+      },
     },
   },
   settings: {
     primaryCurrency: 'usd',
     hideZeroBalanceTokens: true,
+  },
+  browser: {
+    tabs: [],
   },
   security: {
     dataCollectionForMarketing: true,
