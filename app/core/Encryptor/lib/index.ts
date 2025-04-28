@@ -1,5 +1,5 @@
 import { AesLib, AesForkedLib } from './aes-native';
-import { quickCryptoLib } from './quick-crypto';
+import { QuickCryptoLib } from './quick-crypto';
 import { ENCRYPTION_LIBRARY } from '../constants';
 import { EncryptionLibrary } from '../types';
 
@@ -12,6 +12,6 @@ function getEncryptionLibrary(
 export {
   AesLib,
   AesForkedLib,
-  quickCryptoLib,
+  QuickCryptoLib,
   getEncryptionLibrary,
 };

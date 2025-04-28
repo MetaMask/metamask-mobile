@@ -10,7 +10,6 @@ Enzyme.configure({ adapter: new Adapter() });
 
 jest.mock('react-native-quick-crypto', () => ({
   getRandomValues: jest.fn((array) => {
-    // Fill the array with random values
     for (let i = 0; i < array.length; i++) {
       array[i] = Math.floor(Math.random() * 256);
     }
@@ -18,7 +17,6 @@ jest.mock('react-native-quick-crypto', () => ({
   }),
   subtle: {
     importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) => {
-      // Simulate a key object
       return Promise.resolve({
         format,
         keyData,
@@ -28,7 +26,6 @@ jest.mock('react-native-quick-crypto', () => ({
       });
     }),
     deriveBits: jest.fn((algorithm, baseKey, length) => {
-      // Simulate derived bits as a Uint8Array
       const derivedBits = new Uint8Array(length);
       for (let i = 0; i < length; i++) {
         derivedBits[i] = Math.floor(Math.random() * 256);
@@ -36,16 +33,21 @@ jest.mock('react-native-quick-crypto', () => ({
       return Promise.resolve(derivedBits);
     }),
     exportKey: jest.fn((format, key) => {
-      // Simulate exporting a key
-      return Promise.resolve(new Uint8Array([1, 2, 3, 4])); // Example byte array
+      return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
     }),
     encrypt: jest.fn((algorithm, key, data) => {
-      // Simulate encryption by returning a modified version of the input data
-      const encryptedData = new Uint8Array(data.length);
-      for (let i = 0; i < data.length; i++) {
-        encryptedData[i] = data[i] ^ 0xFF; // Example simple encryption
-      }
-      return Promise.resolve(encryptedData);
+      return Promise.resolve(new Uint8Array([
+        123,  34, 116, 101, 115,
+        116,  34,  58,  34, 100,
+         97, 116,  97,  34, 125
+      ]));
+    }),
+    decrypt: jest.fn((algorithm, key, data) => {
+      return Promise.resolve(new Uint8Array([
+        123,  34, 116, 101, 115,
+        116,  34,  58,  34, 100,
+         97, 116,  97,  34, 125
+      ]));
     }),
   },
 }));

@@ -11,7 +11,7 @@ import type {
   EncryptionResult,
   KeyDerivationOptions,
 } from './types';
-import { quickCryptoLib, getEncryptionLibrary } from './lib';
+import { QuickCryptoLib } from './lib';
 
 // Add these interfaces near the top with the other types
 interface DetailedDecryptResult {
@@ -117,8 +117,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     opts: KeyDerivationOptions = this.keyDerivationOptions,
     lib = ENCRYPTION_LIBRARY.original,
   ): Promise<EncryptionKey> => {
-    const derivedKey = await quickCryptoLib.deriveKey(password, salt, opts);
-
+    const derivedKey = await QuickCryptoLib.deriveKey(password, salt, opts);
     return {
       key: derivedKey,
       keyMetadata: opts,
@@ -142,8 +141,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const text = JSON.stringify(data);
 
     const iv = Crypto.getRandomValues(new Uint8Array(16));
-    const result = await quickCryptoLib.encrypt(text, key.key, iv);
-
+    const result = await QuickCryptoLib.encrypt(text, key.key, iv);
     const cipher = Buffer.from(result).toString('base64');
 
     return {
@@ -166,8 +164,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     key: EncryptionKey,
     payload: EncryptionResult,
   ): Promise<unknown> => {
-    const result = await quickCryptoLib.decrypt(payload.cipher, key.key, payload.iv);
-
+    const result = await QuickCryptoLib.decrypt(payload.cipher, key.key, payload.iv);
     const text = Buffer.from(result).toString('utf-8');
 
     return JSON.parse(text);
@@ -278,7 +275,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     try {
       const json = Buffer.from(keyString, 'base64').toString();
       key = JSON.parse(json);
-      key.key = await Crypto.subtle.importKey('jwk', key.key, 'AES-CBC', true, ['encrypt', 'decrypt']);
     } catch (error) {
       throw new Error('Invalid exported key serialization format');
     }
