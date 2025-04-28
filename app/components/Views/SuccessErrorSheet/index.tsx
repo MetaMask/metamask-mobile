@@ -27,6 +27,7 @@ export interface SuccessErrorSheetParams {
   description: string | React.ReactNode;
   buttonLabel: string | React.ReactNode;
   type: 'success' | 'error';
+  icon: IconName;
 }
 
 export interface SuccessErrorSheetProps {
@@ -41,6 +42,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     description,
     buttonLabel,
     type = 'success',
+    icon,
   } = route.params;
 
   const { colors } = useTheme();
@@ -60,11 +62,18 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     }
   };
 
+  const getIcon = () => {
+    if (icon) {
+      return icon;
+    }
+    return type === 'success' ? IconName.SuccessSolid : IconName.CircleX;
+  };
+
   return (
     <BottomSheet ref={sheetRef} onClose={handleClose}>
       <View style={styles.statusContainer}>
         <Icon
-          name={type === 'success' ? IconName.SuccessSolid : IconName.CircleX}
+          name={getIcon()}
           size={IconSize.Xl}
           color={
             type === 'success' ? colors.success.default : colors.error.default

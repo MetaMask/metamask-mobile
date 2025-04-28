@@ -271,7 +271,7 @@
   "login": {
     "title": "Welcome Back!",
     "password": "Password",
-    "password_placeholder": "Enter your password",
+    "password_placeholder": "Enter password",
     "unlock_button": "Unlock",
     "show_hint": "Show hint",
     "hide_hint": "Hide hint",
@@ -279,7 +279,7 @@
     "go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
     "reset_wallet": "Erase wallet",
     "cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
-    "invalid_password": "Invalid password",
+    "invalid_password": "Password is incorrect, try again.",
     "type_delete": "Type ‘%{delete}’ to confirm",
     "delete_my": "Yes, erase wallet",
     "cancel": "Cancel",
@@ -373,7 +373,7 @@
     "confirm_btn": "Confirm",
     "warning_password_change_title": "Warning: Wallets will be locked from all devices",
     "warning_password_change_description": "For safety, this action will lock wallet access on any other device you're currently signed into. To regain access, you'll need to log in again with your new password.",
-    "warning_password_change_button": "Change password",
+    "warning_password_change_button": "Confirm",
     "warning_password_cancel_button": "Cancel"
   },
   "import_from_seed": {
@@ -396,7 +396,7 @@
     "re_enter_password": "Re-enter your password",
     "use_at_least_8_characters": "Use at least 8 characters",
     "unlock_with_face_id": "Unlock with Face ID?",
-    "learn_more": "MetaMask can’t recover this password.",
+    "learn_more": "MetaMask can’t reset this password if you forget it",
     "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
     "continue": "Continue",
     "clear_all": "Clear all",

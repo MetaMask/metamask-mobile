@@ -26,7 +26,7 @@ const ButtonSecondary = ({
   onPressOut,
   isDanger = false,
   label,
-  overridePressedColor = 'transparent',
+  overridePressedColor,
   ...props
 }: ButtonSecondaryProps) => {
   const [pressed, setPressed] = useState(false);

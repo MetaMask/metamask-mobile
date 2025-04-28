@@ -125,6 +125,10 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     modalRef.current?.dismissModal(onAccept);
   };
 
+  const onClose = () => {
+    modalRef.current?.dismissModal();
+  };
+
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.headerEmpty} />
@@ -133,7 +137,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
       </Text>
       <ButtonIcon
         testID={TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON}
-        onPress={onPress}
+        onPress={onClose}
         iconName={IconName.Close}
         hitSlop={12}
       />

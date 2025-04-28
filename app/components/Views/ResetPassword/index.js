@@ -40,6 +40,7 @@ import {
 import {
   getPasswordStrengthWord,
   passwordRequirementsMet,
+  MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import {
@@ -274,6 +275,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       gap: 16,
       width: '100%',
+      marginTop: 16,
     },
     warningButton: {
       flex: 1,
@@ -640,6 +642,7 @@ class ResetPassword extends PureComponent {
           'reset_password.warning_password_change_description',
         ),
         type: 'error',
+        icon: IconName.RichDanger,
         buttonLabel: (
           <View style={styles.warningButtonsWrapper}>
             <Button
@@ -664,6 +667,13 @@ class ResetPassword extends PureComponent {
         ),
       },
     });
+  };
+
+  isError = () => {
+    const { password, confirmPassword } = this.state;
+    return (
+      password !== '' && confirmPassword !== '' && password !== confirmPassword
+    );
   };
 
   renderResetPassword() {
@@ -826,12 +836,20 @@ class ResetPassword extends PureComponent {
                       />
                     }
                   />
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('reset_password.must_be_at_least', { number: 8 })}
-                  </Text>
+                  {!this.isError() ? (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('choose_password.must_be_at_least', {
+                        number: MIN_PASSWORD_LENGTH,
+                      })}
+                    </Text>
+                  ) : (
+                    <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                      {strings('choose_password.password_error')}
+                    </Text>
+                  )}
                 </View>
 
                 {/* <View>{this.renderSwitch()}</View> */}
@@ -872,11 +890,13 @@ class ResetPassword extends PureComponent {
                 {!!error && <Text color={TextColor.Error}>{error}</Text>}
               </View>
 
-              <SecurityOptionToggle
-                title={strings('import_from_seed.unlock_with_face_id')}
-                value={this.state.biometryChoice}
-                onOptionUpdated={this.updateBiometryChoice}
-              />
+              {this.state.biometryType && (
+                <SecurityOptionToggle
+                  title={strings('import_from_seed.unlock_with_face_id')}
+                  value={this.state.biometryChoice}
+                  onOptionUpdated={this.updateBiometryChoice}
+                />
+              )}
 
               <View style={styles.ctaWrapper}>
                 <Button

@@ -43,7 +43,7 @@ import { setLockTime } from '../../../actions/settings';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+// import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   BIOMETRY_CHOICE_DISABLED,
@@ -148,7 +148,7 @@ const ImportFromSecretRecoveryPhrase = ({
     seedPhraseLength !== 21 &&
     seedPhraseLength !== 24;
 
-  const hideWhatIsSeedPhrase = () => setWhatIsSeedPhraseModal(false);
+  // const hideWhatIsSeedPhrase = () => setWhatIsSeedPhraseModal(false);
 
   const handleLayout = (event) => {
     setContainerWidth(event.nativeEvent.layout.width);
@@ -206,7 +206,6 @@ const ImportFromSecretRecoveryPhrase = ({
                 name={IconName.ArrowLeft}
                 size={24}
                 color={colors.text.default}
-                onPress={() => navigation.goBack()}
                 style={styles.headerLeft}
               />
             </TouchableOpacity>
@@ -344,29 +343,34 @@ const ImportFromSecretRecoveryPhrase = ({
     current && current.focus();
   };
 
-  const renderSwitch = () => {
-    const handleUpdateRememberMe = (rememberMe) => {
-      setRememberMe(rememberMe);
-    };
-    return (
-      <LoginOptionsSwitch
-        shouldRenderBiometricOption={biometryType}
-        biometryChoiceState={biometryChoice}
-        onUpdateBiometryChoice={updateBiometryChoice}
-        onUpdateRememberMe={handleUpdateRememberMe}
-      />
-    );
-  };
+  // const renderSwitch = () => {
+  //   const handleUpdateRememberMe = (rememberMe) => {
+  //     setRememberMe(rememberMe);
+  //   };
+  //   return (
+  //     <LoginOptionsSwitch
+  //       shouldRenderBiometricOption={biometryType}
+  //       biometryChoiceState={biometryChoice}
+  //       onUpdateBiometryChoice={updateBiometryChoice}
+  //       onUpdateRememberMe={handleUpdateRememberMe}
+  //     />
+  //   );
+  // };
 
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
   const handleSeedPhraseChange = (text, index) => {
     setError('');
-    setSeedPhrase((prev) => {
-      const newSeedPhrase = [...prev];
-      newSeedPhrase[index] = text.trim();
-      return newSeedPhrase;
-    });
+    if (text.includes(' ')) {
+      const splitArray = text.trim().split(/\s+/); // split by any spaces
+      setSeedPhrase(splitArray);
+    } else {
+      setSeedPhrase((prev) => {
+        const newSeedPhrase = [...prev];
+        newSeedPhrase[index] = text.trim();
+        return newSeedPhrase;
+      });
+    }
   };
 
   const handleKeyPress = (e, index, enterPressed = false) => {
@@ -600,6 +604,16 @@ const ImportFromSecretRecoveryPhrase = ({
   const showWhatIsSeedPhrase = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
+    });
+  };
+
+  const learnMoreLink = () => {
+    navigation.push('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        title: 'support.metamask.io',
+      },
     });
   };
 
@@ -908,11 +922,14 @@ const ImportFromSecretRecoveryPhrase = ({
                     </Text>
                   )}
                 </View>
-                <SecurityOptionToggle
-                  title={strings('import_from_seed.unlock_with_face_id')}
-                  value={biometryChoice}
-                  onOptionUpdated={updateBiometryChoice}
-                />
+
+                {biometryType && (
+                  <SecurityOptionToggle
+                    title={strings('import_from_seed.unlock_with_face_id')}
+                    value={biometryChoice}
+                    onOptionUpdated={updateBiometryChoice}
+                  />
+                )}
               </View>
 
               <View style={styles.learnMoreContainer}>
@@ -925,14 +942,14 @@ const ImportFromSecretRecoveryPhrase = ({
                         variant={TextVariant.BodySM}
                         color={TextColor.Default}
                       >
-                        {strings('import_from_seed.learn_more')}
+                        {strings('import_from_seed.learn_more')}{' '}
                       </Text>
                       <Text
                         variant={TextVariant.BodySM}
                         color={TextColor.Primary}
-                        onPress={() => setLearnMore(!learnMore)}
+                        onPress={learnMoreLink}
                       >
-                        {' ' + strings('import_from_seed.learn_more_link')}
+                        {' ' + strings('reset_password.learn_more')}
                       </Text>
                     </View>
                   }

@@ -17,5 +17,5 @@ export type ButtonSecondaryStyleSheetVars = Pick<
 > & {
   isDanger: boolean;
   pressed: boolean;
-  overridePressedColor: string;
+  overridePressedColor?: string;
 };
