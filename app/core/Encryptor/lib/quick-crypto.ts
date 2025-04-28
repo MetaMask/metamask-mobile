@@ -2,11 +2,9 @@ import Crypto from 'react-native-quick-crypto';
 import { bytesToHex, remove0x } from '@metamask/utils';
 import { EncryptionLibrary, KeyDerivationOptions } from './../types';
 
-class QuickCryptoLib implements EncryptionLibrary {
+class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
   /**
    * Generates a random IV (Initialization Vector) of the specified size.
-   * Naming isn't perfect here, but this is how the library generates random IV (and encodes it the right way).
-   * See: https://www.npmjs.com/package/react-native-aes-crypto#example
    * @param size - The size of the IV in bytes.
    * @returns A promise that resolves to the generated IV as a hex string.
    */
@@ -130,4 +128,4 @@ class QuickCryptoLib implements EncryptionLibrary {
   };
 }
 
-export const quickCryptoLib = new QuickCryptoLib();
+export const QuickCryptoLib = new QuickCryptoEncryptionLibrary();
