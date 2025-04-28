@@ -4495,6 +4495,13 @@
   dependencies:
     resolve "1.22.8"
 
+"@lavamoat/aa@^4.3.2":
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/@lavamoat/aa/-/aa-4.3.2.tgz#bbd37a262a206d2eaa0d447303a25a4b3a2fc939"
+  integrity sha512-x1DCkrxTPhXaXBiG85FeDdNlWgPQ8AvgNJyrNs826nmmy7qs/GYQ4eNcteaqLKM+U2sHY2e/TWN3P+iILAgUBg==
+  dependencies:
+    resolve "1.22.10"
+
 "@lavamoat/allow-scripts@^3.0.4":
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/@lavamoat/allow-scripts/-/allow-scripts-3.0.4.tgz#0e1fe6ebf061470bc88c2468d31aafb0af394e82"
@@ -4504,6 +4511,18 @@
     "@npmcli/run-script" "7.0.4"
     bin-links "4.0.3"
     npm-normalize-package-bin "3.0.1"
+    yargs "17.7.2"
+
+"@lavamoat/allow-scripts@^3.3.2":
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/@lavamoat/allow-scripts/-/allow-scripts-3.3.2.tgz#e70e5af8d8708d6f2114d1589f044e9b2f96e7c3"
+  integrity sha512-h8yghfzUO+uBu0t+6OYHCY7bdddrSyaM4uJ54eUklQADlHe94Bo5OLdQ2RBRhVB0/yrNb2+Qzi2PDY43RwKFLw==
+  dependencies:
+    "@lavamoat/aa" "^4.3.2"
+    "@npmcli/run-script" "8.1.0"
+    bin-links "4.0.4"
+    npm-normalize-package-bin "3.0.1"
+    type-fest "4.30.0"
     yargs "17.7.2"
 
 "@lavamoat/git-safe-dependencies@^0.2.1":
@@ -4516,12 +4535,25 @@
     js-yaml "4.1.0"
     lockfile-lint-api "5.9.1"
 
+"@lavamoat/preinstall-always-fail@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@lavamoat/preinstall-always-fail/-/preinstall-always-fail-2.1.0.tgz#048d71940d83d424e2ef625a8b81c4dc6d64645c"
+  integrity sha512-9xSsxxryPMyBWxfV+Ver7FZhvC1PhE1wDCsYFwsiqZzmeWH8e7Y7gWRFJqPw4M8WNbfeuPhKbLdCK3GsPz9gKg==
+
 "@ledgerhq/cryptoassets-evm-signatures@^13.5.2":
   version "13.5.2"
   resolved "https://registry.yarnpkg.com/@ledgerhq/cryptoassets-evm-signatures/-/cryptoassets-evm-signatures-13.5.2.tgz#1c31cb1d0b5f95e0c7a7d47af0b8f78bb9efbc7f"
   integrity sha512-OjjzuiMMEIYEbXeueJB6mXwlvYhru28b43buAVOeggZ2XmdlT0kBvt7Cjn4bDPqff/glWR7vQdytIr7b77m2EQ==
   dependencies:
     "@ledgerhq/live-env" "^2.4.1"
+    axios "1.7.7"
+
+"@ledgerhq/cryptoassets-evm-signatures@^13.5.6":
+  version "13.5.6"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/cryptoassets-evm-signatures/-/cryptoassets-evm-signatures-13.5.6.tgz#c697cec688bd771a9251313d5d04e346b129e867"
+  integrity sha512-BWHu2jhBtspzR2aNcjU4V2mYjc5rqQijXx51EQjmLBJWeV4pEb+CLvyRz6FN12TBUJkpseNmYHof8EcCeNz2yg==
+  dependencies:
+    "@ledgerhq/live-env" "^2.8.0"
     axios "1.7.7"
 
 "@ledgerhq/devices@^8.4.2", "@ledgerhq/devices@^8.4.4":
@@ -4607,6 +4639,14 @@
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/@ledgerhq/live-env/-/live-env-2.4.1.tgz#37022d8eb20f08f1d98961f83d8f33084b537160"
   integrity sha512-ZiVUfN1F5rnj6g3IUqOsHvitiKd7rtGy7FY7VBOXbG9qN7XLeLfmJhnzh/5yjX14dXhVOeAlPd1UzmmpxkRU6A==
+  dependencies:
+    rxjs "^7.8.1"
+    utility-types "^3.10.0"
+
+"@ledgerhq/live-env@^2.8.0":
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/live-env/-/live-env-2.8.0.tgz#ce833c28e8e5879f3220ea094520265f3decccaf"
+  integrity sha512-Zk93FDXLtwI4nY99ulLOXAiYa+hdPOV5IpAXm1XCW/q5H3JauzlT8Xr2RJqD/W2+oAjJCpr8tbYtamoCDwVV+A==
   dependencies:
     rxjs "^7.8.1"
     utility-types "^3.10.0"
@@ -4753,7 +4793,7 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.0.3", "@metamask/base-controller@^7.1.1":
+"@metamask/base-controller@^7.0.0", "@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.0.3", "@metamask/base-controller@^7.1.1":
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.1.1.tgz#837216ee099563b2106202fa0ed376dc909dfbb9"
   integrity sha512-4nbA6RL9y0SdHdn4MmMTREX6ISJL7OGHn0GXXszv0tp1fdjsn+SBs28uu1a9ceg1J7R/lO6JH7jAAz8zRtt8Nw==
@@ -4845,6 +4885,19 @@
   dependencies:
     "@metamask/utils" "^8.2.0"
     "@types/eslint" "^8.44.7"
+
+"@metamask/card-controller@file:../core/packages/card-controller/package.tgz":
+  version "0.0.0"
+  resolved "file:../core/packages/card-controller/package.tgz#d5311ddc1454c678b94d6d9494de0cae33e6b273"
+  dependencies:
+    "@ethersproject/contracts" "^5.7.0"
+    "@ethersproject/providers" "^5.7.2"
+    "@lavamoat/allow-scripts" "^3.3.2"
+    "@lavamoat/preinstall-always-fail" "^2.1.0"
+    "@metamask/base-controller" "^7.0.0"
+    "@metamask/network-controller" "23.2.0"
+    "@metamask/utils" "^8.3.0"
+    "@ts-bridge/cli" "^0.6.3"
 
 "@metamask/composable-controller@^11.0.0":
   version "11.0.0"
@@ -5305,7 +5358,7 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^23.2.0":
+"@metamask/network-controller@23.2.0", "@metamask/network-controller@^23.2.0":
   version "23.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-23.2.0.tgz#02b0641bcf4e8ca35005f945bc4943a3baf949e3"
   integrity sha512-DnsMUtBxDQm4tk+2+bMbEgbUEgWS2xGmN6JqA47AXGBjzpnUUKQolcyJuPX0jJA+qUSnMG9jQjuMJBf1RHSR5Q==
@@ -5887,7 +5940,7 @@
     semver "^7.5.4"
     uuid "^9.0.1"
 
-"@metamask/utils@^8.2.0":
+"@metamask/utils@^8.2.0", "@metamask/utils@^8.3.0":
   version "8.5.0"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-8.5.0.tgz#ddd0d4012d5191809404c97648a837ea9962cceb"
   integrity sha512-I6bkduevXb72TIM9q2LRO63JSsF9EXduh3sBr9oybNX2hNNpr/j1tEjXrsG0Uabm4MJ1xkGAQEMwifvKZIkyxQ==
@@ -6118,6 +6171,18 @@
     "@npmcli/package-json" "^5.0.0"
     "@npmcli/promise-spawn" "^7.0.0"
     node-gyp "^10.0.0"
+    which "^4.0.0"
+
+"@npmcli/run-script@8.1.0":
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@npmcli/run-script/-/run-script-8.1.0.tgz#a563e5e29b1ca4e648a6b1bbbfe7220b4bfe39fc"
+  integrity sha512-y7efHHwghQfk28G2z3tlZ67pLG0XdfYbcVG26r7YIXALRsrVQcTq4/tdenSmdOrEsNahIYA/eh8aEVROWGFUDg==
+  dependencies:
+    "@npmcli/node-gyp" "^3.0.0"
+    "@npmcli/package-json" "^5.0.0"
+    "@npmcli/promise-spawn" "^7.0.0"
+    node-gyp "^10.0.0"
+    proc-log "^4.0.0"
     which "^4.0.0"
 
 "@octokit/auth-token@^5.0.0":
@@ -9389,6 +9454,21 @@
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@trysound/sax/-/sax-0.2.0.tgz#cccaab758af56761eb7bf37af6f03f326dd798ad"
   integrity sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==
+
+"@ts-bridge/cli@^0.6.3":
+  version "0.6.3"
+  resolved "https://registry.yarnpkg.com/@ts-bridge/cli/-/cli-0.6.3.tgz#22ae4784aa39280695e7b1b32c4044374a7d4452"
+  integrity sha512-HHg3c2ItJNPHq/L0ohpytlF9mv306Z4EhjDAf9W65n4KHi4/seSL8+oxnTB8AUDhInj0G2e6lUNiX3raSqYBRg==
+  dependencies:
+    "@ts-bridge/resolver" "^0.2.0"
+    chalk "^5.3.0"
+    cjs-module-lexer "^1.3.1"
+    yargs "^17.7.2"
+
+"@ts-bridge/resolver@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@ts-bridge/resolver/-/resolver-0.2.0.tgz#b35bf236c0f4c3c6a3f10f1c539507d3cd551f19"
+  integrity sha512-QREzG0agVI5a47yAcVE5Qc00nFV0Nm7L4JoEVmrJN1yxPCIU7gdz3aDSjpjFEztjXi4iFfZdrGxEh4ufvoyoTQ==
 
 "@tsconfig/node14@14.1.2":
   version "14.1.2"
@@ -12751,6 +12831,16 @@ bin-links@4.0.3:
     read-cmd-shim "^4.0.0"
     write-file-atomic "^5.0.0"
 
+bin-links@4.0.4:
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/bin-links/-/bin-links-4.0.4.tgz#c3565832b8e287c85f109a02a17027d152a58a63"
+  integrity sha512-cMtq4W5ZsEwcutJrVId+a/tjt8GSbS+h0oNkdl6+6rBuEv8Ot33Bevj5KPm40t309zuhVic8NjpuL42QCiJWWA==
+  dependencies:
+    cmd-shim "^6.0.0"
+    npm-normalize-package-bin "^3.0.0"
+    read-cmd-shim "^4.0.0"
+    write-file-atomic "^5.0.0"
+
 binary-extensions@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-2.2.0.tgz#75f502eeaf9ffde42fc98829645be4ea76bd9e2d"
@@ -13604,6 +13694,11 @@ cjs-module-lexer@^1.0.0:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/cjs-module-lexer/-/cjs-module-lexer-1.2.2.tgz#9f84ba3244a512f3a54e5277e8eef4c489864e40"
   integrity sha512-cOU9usZw8/dXIXKtwa8pM0OTJQuJkxMN6w30csNRUerHfeQ5R6U3kkU/FtJeIf3M202OHfY2U8ccInBG7/xogA==
+
+cjs-module-lexer@^1.3.1:
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/cjs-module-lexer/-/cjs-module-lexer-1.4.3.tgz#0f79731eb8cfe1ec72acd4066efac9d61991b00d"
+  integrity sha512-9z8TZaGM1pfswYeXrUpzPrkx8UnWYdhJclsiYMm6x/w5+nN+8Tf/LnAgfLGQCm59qAOxU8WwHEq2vNwF6i4j+Q==
 
 class-is@^1.1.0:
   version "1.1.0"
@@ -19050,6 +19145,13 @@ is-core-module@^2.11.0, is-core-module@^2.12.0, is-core-module@^2.12.1, is-core-
   integrity sha512-hHrIjvZsftOsvKSn2TRYl63zvxsgE0K+0mYMoH6gD4omR5IWB2KynivBQczo3+wF1cCkjzvptnI9Q0sPU66ilw==
   dependencies:
     hasown "^2.0.0"
+
+is-core-module@^2.16.0:
+  version "2.16.1"
+  resolved "https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.16.1.tgz#2a98801a849f43e2add644fbb6bc6229b19a4ef4"
+  integrity sha512-UfoeMA6fIJ8wTYFEUjelnaGI67v6+N7qXJEvQuIGa99l4xsCruSYOVSQ0uPANn4dAzm8lkYPaKLrrijLq7x23w==
+  dependencies:
+    hasown "^2.0.2"
 
 is-data-view@^1.0.1:
   version "1.0.1"
@@ -25501,6 +25603,15 @@ resolve.exports@^2.0.0:
   resolved "https://registry.yarnpkg.com/resolve.exports/-/resolve.exports-2.0.2.tgz#f8c934b8e6a13f539e38b7098e2e36134f01e800"
   integrity sha512-X2UW6Nw3n/aMgDVy+0rSqgHlv39WZAlZrXCdnbyEiKm17DSqHX4MmQMaST3FbeWR5FTuRcUwYAziZajji0Y7mg==
 
+resolve@1.22.10:
+  version "1.22.10"
+  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.22.10.tgz#b663e83ffb09bbf2386944736baae803029b8b39"
+  integrity sha512-NPRy+/ncIMeDlTAsuqwKIiferiawhefFJtkNSW0qZJEqMEb+qBt/77B/jGeeek+F0uOeN05CDa6HXbbIgtVX4w==
+  dependencies:
+    is-core-module "^2.16.0"
+    path-parse "^1.0.7"
+    supports-preserve-symlinks-flag "^1.0.0"
+
 resolve@1.22.8, resolve@^1.1.7, resolve@^1.10.0, resolve@^1.14.2, resolve@^1.20.0, resolve@^1.22.1, resolve@^1.22.2, resolve@^1.22.3, resolve@^1.22.8:
   version "1.22.8"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.22.8.tgz#b6c87a9f2aa06dfab52e3d70ac8cde321fa5a48d"
@@ -27536,6 +27647,11 @@ type-fest@4.26.1, type-fest@^4.12.0:
   version "4.26.1"
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-4.26.1.tgz#a4a17fa314f976dd3e6d6675ef6c775c16d7955e"
   integrity sha512-yOGpmOAL7CkKe/91I5O3gPICmJNLJ1G4zFYVAsRHg7M64biSnPtRj0WNQt++bRkjYOqjWXrhnUw1utzmVErAdg==
+
+type-fest@4.30.0:
+  version "4.30.0"
+  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-4.30.0.tgz#cf411e7630578ad9e9884951dfaeef6588f970fe"
+  integrity sha512-G6zXWS1dLj6eagy6sVhOMQiLtJdxQBHIA9Z6HFUNLOlr6MFOgzV8wvmidtPONfPtEUv0uZsy77XJNzTAfwPDaA==
 
 type-fest@^0.12.0:
   version "0.12.0"

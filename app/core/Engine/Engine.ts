@@ -204,6 +204,8 @@ import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/util
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
+import { CardController } from '@metamask/card-controller';
+import { cardControllerInit } from './controllers/card-controller/card-controller-init';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -253,6 +255,7 @@ export class Engine {
   keyringController: KeyringController;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
+  cardController: CardController;
 
   /**
    * Creates a CoreController instance
@@ -1246,6 +1249,29 @@ export class Engine {
       }),
     });
 
+    // Initialize the card controller
+    const { controller: cardController } = cardControllerInit({
+      controllerMessenger: this.controllerMessenger.getRestricted({
+        name: 'CardController',
+        allowedActions: ['CardController:isCardHolder'],
+        allowedEvents: [],
+      }),
+      getController: () => {
+        throw new Error('Controller access not needed for CardController initialization');
+      },
+      getGlobalChainId,
+      getState: () => store.getState(),
+      initMessenger: undefined,
+      persistedState: initialState,
+    });
+
+    this.cardController = cardController;
+    // Add to context
+    this.context = {
+      ...this.context,
+      CardController: this.cardController,
+    };
+
     this.context = {
       KeyringController: this.keyringController,
       AccountTrackerController: accountTrackerController,
@@ -1474,6 +1500,7 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
+      CardController: this.cardController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2071,6 +2098,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      CardController,
     } = instance.datamodel.state;
 
     return {
@@ -2120,6 +2148,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      CardController,
     };
   },
 

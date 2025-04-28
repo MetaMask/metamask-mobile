@@ -10,10 +10,10 @@ import { RatesControllerStateChangeEvent } from './controllers/RatesController/c
  * TODO: Replace with type guard once consistent inheritance for non-controllers is implemented. See: https://github.com/MetaMask/decisions/pull/41
  */
 export const STATELESS_NON_CONTROLLER_NAMES = [
-  'AssetsContractController',
-  'ExecutionService',
   'NftDetectionController',
   'TokenDetectionController',
+  'AssetsContractController',
+  'CardController',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [

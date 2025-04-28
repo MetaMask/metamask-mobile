@@ -263,6 +263,8 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
+import { CardController, CardControllerState } from '@metamask/card-controller';
+import { CardControllerActions, CardControllerEvents } from './controllers/card-controller/types';
 
 /**
  * Controllers that area always instantiated
@@ -314,6 +316,7 @@ type GlobalActions =
   | PermissionControllerActions
   | SignatureControllerActions
   | LoggingControllerActions
+  | CardControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
   | SnapInterfaceControllerActions
@@ -361,6 +364,7 @@ type GlobalEvents =
   | KeyringControllerEvents
   | NetworkControllerEvents
   | PermissionControllerEvents
+  | CardControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
   | SnapInterfaceControllerEvents
@@ -470,6 +474,7 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  CardController: CardController;
 };
 
 /**
@@ -532,6 +537,7 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  CardController: CardControllerState;
 };
 
 /** Controller names */
@@ -583,7 +589,8 @@ export type ControllersToInitialize =
   | 'MultichainNetworkController'
   | 'TransactionController'
   | 'GasFeeController'
-  | 'SignatureController';
+  | 'SignatureController'
+  | 'CardController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

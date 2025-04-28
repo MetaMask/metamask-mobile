@@ -11,6 +11,7 @@ import {
   View,
   TextStyle,
   Linking,
+  SafeAreaView,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector } from 'react-redux';
@@ -74,10 +75,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
-  TextColor,
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -103,7 +101,6 @@ import { selectIsProfileSyncingEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
 
-import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
@@ -114,8 +111,9 @@ import {
 import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
 import { Nft, Token } from '@metamask/assets-controllers';
-import { Carousel } from '../../UI/Carousel';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import {
+  selectIsEvmNetworkSelected,
+} from '../../../selectors/multichainNetworkController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
 ///: END:ONLY_INCLUDE_IF
@@ -127,6 +125,9 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
+import CardHolderButton from '../../UI/CardHolderButton';
+import AccountOverview from '../../UI/AccountOverview';
+import Collectibles from '../../UI/Collectibles';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -168,6 +169,9 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     carouselContainer: {
       marginTop: 12,
+    },
+    tabContent: {
+      flex: 1,
     },
   });
 
@@ -742,36 +746,62 @@ const Wallet = ({
     }
 
     return (
-      <View
+      <SafeAreaView
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
-        {!basicFunctionalityEnabled ? (
-          <View style={styles.banner}>
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              title={strings('wallet.banner.title')}
-              description={
-                <Text color={TextColor.Info} onPress={turnOnBasicFunctionality}>
-                  {strings('wallet.banner.link')}
-                </Text>
-              }
-            />
-          </View>
-        ) : null}
-        <>
-          <PortfolioBalance />
-          <Carousel style={styles.carouselContainer} />
-          {renderTokensContent()}
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-            <SolanaNewFeatureContent />
-            ///: END:ONLY_INCLUDE_IF
-          }
-        </>
-      </View>
+        <View style={styles.wrapper}>
+          <ScrollableTabView
+            renderTabBar={renderTabBar}
+            onChangeTab={onChangeTab}
+            initialPage={0}
+          >
+            <View
+              {...{ tabLabel: strings('wallet.tokens') } as any}
+              key="tokens-tab"
+              style={styles.tabContent}
+            >
+              <AccountOverview account={accountName} />
+              
+              {(() => {
+                try {
+                  return (
+                    <CardHolderButton
+                      onPress={() => {
+                        // Handle button press - navigate to a card details screen
+                        // You can add navigation here in the future
+                      }}
+                    />
+                  );
+                } catch (error) {
+                  Logger.error(
+                    error instanceof Error ? error : new Error(String(error)),
+                    'Error rendering CardHolderButton'
+                  );
+                  return null;
+                }
+              })()}
+              
+              {renderTokensContent()}
+            </View>
+            <View
+              {...{ tabLabel: strings('wallet.collectibles') } as any}
+              key="collectibles-tab"
+              style={styles.tabContent}
+              testID={WalletViewSelectorsIDs.NFT_TAB_CONTAINER}
+            >
+              <AccountOverview account={accountName} />
+              <Collectibles
+                currentAddress={selectedAddress}
+                chainId={chainId}
+                selectedNetworkClientId={selectedNetworkClientId}
+                chainIdsToDetectNftsFor={chainIdsToDetectNftsFor}
+              />
+            </View>
+          </ScrollableTabView>
+        </View>
+      </SafeAreaView>
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tokens,
     accountBalanceByChainId,
