@@ -446,6 +446,10 @@
     "multisrp": {
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
+    },
+    "solana": {
+      "title": "Solana is now supported",
+      "subtitle": "Create a Solana account to get started"
     }
   },
   "wallet": {

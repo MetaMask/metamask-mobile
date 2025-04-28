@@ -1,12 +1,21 @@
 import { ViewStyle } from 'react-native';
-
-export type SlideId = 'card' | 'fund' | 'cashout' | 'aggregated' | 'multisrp';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { CaipChainId } from '@metamask/utils';
+export type SlideId =
+  | 'card'
+  | 'fund'
+  | 'cashout'
+  | 'aggregated'
+  | 'multisrp'
+  | 'solana';
 
 interface NavigationParams {
   address?: string;
   chainId?: string;
   amount?: string;
   currency?: string;
+  clientType?: WalletClientType;
+  scope?: CaipChainId;
 }
 
 interface NavigationScreen {
