@@ -23,7 +23,7 @@ class Assertions {
       return false;
     }
   }
-  
+
 
   /**
    * Check if an element with the specified web selector exists.
