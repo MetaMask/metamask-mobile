@@ -4,6 +4,11 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+}));
+
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
@@ -14,6 +19,10 @@ jest.mock('../../../core/Engine', () => {
         test: jest.fn((url: string) => {
           if (url === 'phishing.com') return { result: true };
           return { result: false };
+        }),
+        scanUrl: jest.fn((url: string) => {
+          if (url === 'phishing.com') return { recommendedAction: 'BLOCK' };
+          return { recommendedAction: 'NONE' };
         }),
       },
       KeyringController: {
@@ -33,14 +42,6 @@ jest.mock('../../../core/Engine', () => {
     },
   };
 });
-
-jest.mock('../../../util/phishingDetection', () => ({
-  getPhishingTestResult: jest.fn((url) => {
-    if (url === 'phishing.com') return { result: true };
-    return { result: false };
-  }),
-  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
-}));
 
 const mockInitialState = {
   engine: {
@@ -79,14 +80,15 @@ describe('AccountApproval', () => {
     expect(container).toMatchSnapshot();
   });
 
-  it('should render a warning banner if the hostname is included in phishing list', () => {
-    const { getByText } = renderWithProvider(
+  it('should render a warning banner if the hostname is included in phishing list', async () => {
+    const { findByText } = renderWithProvider(
       <AccountApproval
         currentPageInformation={{ icon: '', url: 'phishing.com', title: '' }}
       />,
       { state: mockInitialState },
     );
-
-    expect(getByText('Deceptive site ahead')).toBeTruthy();
+    // Need to await for the async phishing check to complete
+    const warningText = await findByText('Deceptive site ahead');
+    expect(warningText).toBeTruthy();
   });
 });
