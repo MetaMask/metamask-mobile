@@ -1097,7 +1097,6 @@ export class Engine {
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
-          'TokensController:addDetectedTokens',
           'BridgeController:getBridgeERC20Allowance',
           'BridgeController:trackUnifiedSwapBridgeEvent',
           'GasFeeController:getState',
