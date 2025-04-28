@@ -6,6 +6,7 @@ import Carousel from './';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { SolAccountType } from '@metamask/keyring-api';
+import Engine from '../../../core/Engine';
 
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
@@ -48,6 +49,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
+  setSelectedAddress: jest.fn(),
 }));
 
 const selectShowFiatInTestnets = jest.fn();
@@ -257,7 +259,7 @@ describe('Carousel', () => {
     expect(flatList).toBeTruthy();
   });
 
-  it('should not render solana banner if user has a solana account', () => {
+  it('does not render solana banner if user has a solana account', () => {
     (useSelector as jest.Mock).mockImplementation((selector) =>
       selector({
         banners: {
@@ -287,5 +289,42 @@ describe('Carousel', () => {
       WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE,
     );
     expect(solanaBanner).toBeNull();
+  });
+
+  it('changes to a solana address if user has a solana account', async () => {
+    (useSelector as jest.Mock).mockImplementation((selector) =>
+      selector({
+        banners: {
+          dismissedBanners: [],
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '1',
+                accounts: {
+                  '1': {
+                    address: '0xSomeAddress',
+                  },
+                  '2': {
+                    address: 'SomeSolanaAddress',
+                    type: SolAccountType.DataAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    const { getByTestId } = render(<Carousel />);
+    const solanaBanner = getByTestId(
+      WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE,
+    );
+    fireEvent.press(solanaBanner);
+
+    expect(Engine.setSelectedAddress).toHaveBeenCalledWith('SomeSolanaAddress');
   });
 });
