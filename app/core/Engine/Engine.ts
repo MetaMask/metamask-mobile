@@ -944,19 +944,18 @@ export class Engine {
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
-    const tokenSearchDiscoveryDataController = new TokenSearchDiscoveryDataController({
-      tokenPricesService: codefiTokenApiV2,
-      swapsSupportedChainIds,
-      fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-      fetchTokens: swapsUtils.fetchTokens,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'TokenSearchDiscoveryDataController',
-        allowedActions: [
-          'CurrencyRateController:getState'
-        ],
-        allowedEvents: [],
-      }),
-    });
+    const tokenSearchDiscoveryDataController =
+      new TokenSearchDiscoveryDataController({
+        tokenPricesService: codefiTokenApiV2,
+        swapsSupportedChainIds,
+        fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+        fetchTokens: swapsUtils.fetchTokens,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokenSearchDiscoveryDataController',
+          allowedActions: ['CurrencyRateController:getState'],
+          allowedEvents: [],
+        }),
+      });
 
     /* bridge controller Initialization */
     const bridgeController = new BridgeController({
@@ -992,6 +991,17 @@ export class Engine {
       config: {
         customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
       },
+      trackMetaMetricsFn: (event, properties) => {
+        const metricsEvent = MetricsEventBuilder.createEventBuilder({
+          // category property here maps to event name
+          category: event,
+        })
+          .addProperties({
+            ...(properties ?? {}),
+          })
+          .build();
+        MetaMetrics.getInstance().trackEvent(metricsEvent);
+      },
     });
 
     const bridgeStatusController = new BridgeStatusController({
@@ -1004,9 +1014,9 @@ export class Engine {
           'NetworkController:getState',
           'TokensController:addDetectedTokens',
           'BridgeController:getBridgeERC20Allowance',
+          'BridgeController:trackUnifiedSwapBridgeEvent',
           'GasFeeController:getState',
           'AccountsController:getAccountByAddress',
-          'PreferencesController:getState',
           'SnapController:handleRequest',
           'TransactionController:getState',
         ],
@@ -1015,15 +1025,19 @@ export class Engine {
       state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
       fetchFn: handleFetch,
-      addTransactionFn: (...args: Parameters<typeof this.transactionController.addTransaction>) =>
-        this.transactionController.addTransaction(...args),
-      estimateGasFeeFn: (...args: Parameters<typeof this.transactionController.estimateGasFee>) =>
-        this.transactionController.estimateGasFee(...args),
+      addTransactionFn: (
+        ...args: Parameters<typeof this.transactionController.addTransaction>
+      ) => this.transactionController.addTransaction(...args),
+      estimateGasFeeFn: (
+        ...args: Parameters<typeof this.transactionController.estimateGasFee>
+      ) => this.transactionController.estimateGasFee(...args),
       addUserOperationFromTransactionFn: (...args: unknown[]) =>
         // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
-        this.userOperationController?.addUserOperationFromTransaction?.(...args),
+        this.userOperationController?.addUserOperationFromTransaction?.(
+          ...args,
+        ),
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
       },
     });
 

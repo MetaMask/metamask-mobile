@@ -109,7 +109,7 @@ export const selectMultichainShouldShowFiat = createDeepEqualSelector(
   selectMultichainIsMainnet,
   selectIsEvmNetworkSelected,
   selectShowFiatInTestnets,
-  (multichainIsMainnet, isEvmSelected, shouldShowFiatOnTestnets) => {
+  (multichainIsMainnet, isEvmSelected, shouldShowFiatOnTestnets): boolean => {
     const isTestnet = !multichainIsMainnet;
     if (isEvmSelected) {
       return isTestnet ? shouldShowFiatOnTestnets : true; // Is it safe to assume that we default show fiat for mainnet?
@@ -283,15 +283,6 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
     return tokens;
   },
 );
-
-export const selectMultichainTokenList = createDeepEqualSelector(
-  (state: RootState) => state,
-  selectSelectedInternalAccount,
-  (state, selectedAccount) => {
-    return selectMultichainTokenListForAccountId(state, selectedAccount?.id);
-  },
-);
-
 export interface MultichainNetworkAggregatedBalance {
   totalNativeTokenBalance: Balance | undefined;
   totalBalanceFiat: number | undefined;
