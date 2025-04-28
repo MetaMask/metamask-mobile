@@ -138,7 +138,7 @@ export function renderAccountName(
   internalAccounts: InternalAccount[],
 ) {
   const chainId = selectChainId(store.getState());
-  address = toChecksumHexAddress(address);
+  address = toFormattedAddress(address);
   const account = internalAccounts.find((acc) =>
     toLowerCaseEquals(acc.address, address),
   );

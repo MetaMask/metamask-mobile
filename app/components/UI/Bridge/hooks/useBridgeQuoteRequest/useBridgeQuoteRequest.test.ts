@@ -19,6 +19,10 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../useUnifiedSwapBridgeContext', () => ({
+  useUnifiedSwapBridgeContext: jest.fn(),
+}));
+
 jest.useFakeTimers();
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
@@ -159,6 +163,7 @@ describe('useBridgeQuoteRequest', () => {
       expect.objectContaining({
         srcTokenAmount: '1500000000000000000', // 1.5 ETH in wei
       }),
+      undefined,
     );
   });
 
@@ -182,6 +187,7 @@ describe('useBridgeQuoteRequest', () => {
       expect.objectContaining({
         srcTokenAmount: '0',
       }),
+      undefined,
     );
   });
 
@@ -216,6 +222,7 @@ describe('useBridgeQuoteRequest', () => {
       expect.objectContaining({
         srcTokenAmount: '1000500000', // 1000.5 with 6 decimals
       }),
+      undefined,
     );
   });
 
@@ -251,7 +258,9 @@ describe('useBridgeQuoteRequest', () => {
     const destSolanaAddress = 'FakeS0LanaAddr3ss111111111111111111111111111';
 
     // Mock isSolanaChainId to return true for Solana chain ID and false for EVM chain ID
-    (isSolanaChainId as jest.Mock).mockImplementation((chainId) => chainId === solanaDestChainId);
+    (isSolanaChainId as jest.Mock).mockImplementation(
+      (chainId) => chainId === solanaDestChainId,
+    );
 
     const testState = createBridgeTestState({
       bridgeReducerOverrides: {
@@ -287,6 +296,7 @@ describe('useBridgeQuoteRequest', () => {
       expect.objectContaining({
         destWalletAddress: destSolanaAddress,
       }),
+      undefined,
     );
 
     // Reset mock
