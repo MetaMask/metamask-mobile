@@ -77,6 +77,8 @@ export const SnapUIInput = ({
         onChangeText={handleChange}
         autoCapitalize="none"
         autoCorrect={false}
+        // eslint-disable-next-line react-native/no-inline-styles
+        inputStyle={{ maxHeight: 58, height: '100%' }}
       />
       {error && (
         // eslint-disable-next-line react-native/no-inline-styles
