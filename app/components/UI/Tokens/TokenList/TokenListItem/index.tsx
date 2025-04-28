@@ -221,8 +221,6 @@ export const TokenListItem = React.memo(
             }
           | undefined;
 
-        console.log('defaultNetwork ..........', defaultNetwork);
-
         if (defaultNetwork) {
           return defaultNetwork.imageSource;
         }
