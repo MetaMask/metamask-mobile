@@ -10,7 +10,7 @@ import { isAddress as isSolanaAddress } from '@solana/addresses';
 import Engine from '../Engine';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { validate, Network } from 'bitcoin-address-validation';
-import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from './constants';
+import { CHAIN_ID_TO_NETWORK_IMAGE_URL_MAP, MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP, MULTICHAIN_TOKEN_IMAGE_MAP } from './constants';
 import { formatAddress } from '../../util/address';
 import {
   formatBlockExplorerAddressUrl,
@@ -201,4 +201,12 @@ export const getAddressUrl = (
 export function shortenTransactionId(txId: string) {
   // For transactions we use a similar output for now, but shortenTransactionId will be added later.
   return formatAddress(txId, 'short');
+}
+
+
+export function getImageForChainId(chainId: string): string | undefined {
+  return {
+    ...CHAIN_ID_TO_NETWORK_IMAGE_URL_MAP,
+    ...MULTICHAIN_TOKEN_IMAGE_MAP,
+  }[chainId];
 }
