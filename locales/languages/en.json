@@ -1136,6 +1136,9 @@
       "snap_ui": {
         "link": {
           "accessibilityHint": "Opens in a new tab"
+        },
+        "asset_selector": {
+          "title": "Select an asset"
         }
       },
       "snap_settings": {
