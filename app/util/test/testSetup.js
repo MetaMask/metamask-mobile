@@ -5,6 +5,7 @@ import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
+import '@shopify/flash-list/jestSetup';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -190,7 +191,6 @@ jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
 jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 );
-require('@shopify/flash-list/jestSetup');
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock(
   '@react-native-async-storage/async-storage',
