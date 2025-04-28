@@ -31,7 +31,6 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
-import { getSeedPhrase } from '../Vault';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
@@ -62,9 +61,11 @@ class AuthenticationService {
     ReduxService.store.dispatch(logOut());
   }
 
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   private dispatchOauthReset(): void {
     OAuthService.resetOauthState();
   }
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
   /**
    * This method recreates the vault upon login if user is new and is not using the latest encryption lib
@@ -476,12 +477,20 @@ class AuthenticationService {
   getType = async (): Promise<AuthData> =>
     await this.checkAuthenticationMethod();
 
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   createAndBackupSeedPhrase = async (password: string): Promise<void> => {
-    const { SeedlessOnboardingController } = Engine.context;
+    const { SeedlessOnboardingController, KeyringController } = Engine.context;
     // rollback on fail ( reset wallet )
     await this.createWalletVaultAndKeychain(password);
     try {
-      const seedPhrase = await getSeedPhrase(password);
+      const keyringMetadata = KeyringController.state.keyringsMetadata.at(0);
+      if (!keyringMetadata) {
+        throw new Error('No keyring metadata found');
+      }
+      const seedPhrase = await KeyringController.exportSeedPhrase(
+        password,
+        keyringMetadata.id,
+      );
 
       Logger.log(
         'SeedlessOnboardingController state',
@@ -491,7 +500,9 @@ class AuthenticationService {
       await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
         password,
         seedPhrase,
+        keyringMetadata.id,
       );
+
       this.dispatchOauthReset();
     } catch (error) {
       await this.newWalletAndKeychain(`${Date.now()}`, {
@@ -545,6 +556,7 @@ class AuthenticationService {
       throw error;
     }
   };
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 }
 
 export const Authentication = new AuthenticationService();

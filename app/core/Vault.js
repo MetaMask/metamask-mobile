@@ -58,7 +58,7 @@ export const recreateVaultWithNewPassword = async (
   newPassword,
   selectedAddress,
 ) => {
-  const { KeyringController } = Engine.context;
+  const { KeyringController, SeedlessOnboardingController } = Engine.context;
   const seedPhrase = await getSeedPhrase(password);
 
   let importedAccounts = [];
@@ -102,6 +102,7 @@ export const recreateVaultWithNewPassword = async (
 
   // Recreate keyring with password given to this method
   await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
+  await SeedlessOnboardingController.changePassword(newPassword, password);
 
   if (serializedQrKeyring !== undefined) {
     await restoreQRKeyring(serializedQrKeyring);
