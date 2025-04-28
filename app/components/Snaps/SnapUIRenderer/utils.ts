@@ -24,6 +24,7 @@ export interface MapToTemplateParams {
   element: JSXElement;
   form?: string;
   useFooter?: boolean;
+  parentIsFlexRow?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
   t?: (key: string) => string;
@@ -49,6 +50,7 @@ export const FIELD_ELEMENT_TYPES = [
   'Checkbox',
   'Selector',
   'AddressInput',
+  'AssetSelector',
 ];
 
 /**

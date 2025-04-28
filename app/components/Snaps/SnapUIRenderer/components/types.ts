@@ -17,6 +17,7 @@ export interface UIComponentParams<T extends JSXElement> {
   textVariant?: string;
   textFontWeight?: string;
   textAlignment?: string;
+  parentIsFlexRow?: boolean;
 }
 
 export interface UIComponent {
