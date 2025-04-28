@@ -40,7 +40,7 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
 // Internal dependencies.
 import {
@@ -67,9 +67,10 @@ import NetworkPermissionsConnected from './NetworkPermissionsConnected';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { Hex } from '@metamask/utils';
+import Routes from '../../../constants/navigation/Routes';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
-  const navigation = useNavigation();
+  const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const {
     hostInfo: {
@@ -85,7 +86,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       : AvatarAccountType.JazzIcon,
   );
 
-  const accountsLength = useSelector(selectAccountsLength);
+  const permittedChains: string[] = [];
+  // rename this to permittedAddresses
+  const selectedAddresses: string[] = [];
+  const setSelectedAddresses = () => {};
+  const accountsLength = 0
+  // const accountsLength = useSelector(selectAccountsLength);
+
+  const currentChainId = useSelector(selectEvmChainId);
 
   const nonTestnetNetworks = useSelector(
     (state: RootState) =>
@@ -113,7 +121,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     permittedAccountsList,
     hostname,
   );
-  const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
   const [networkAvatars, setNetworkAvatars] = useState<
     ({ name: string; imageSource: string } | null)[]
   >([]);
@@ -231,23 +238,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     isRenderedAsBottomSheet,
   ]);
 
-  // Refreshes selected addresses based on the addition and removal of accounts.
-  useEffect(() => {
-    // Extract the address list from the internalAccounts array
-    const accountsAddressList = internalAccounts.map((account) =>
-      account.address.toLowerCase(),
-    );
-
-    if (previousIdentitiesListSize.current !== accountsAddressList.length) {
-      // Clean up selected addresses that are no longer part of accounts.
-      const updatedSelectedAddresses = selectedAddresses.filter((address) =>
-        accountsAddressList.includes(address.toLowerCase()),
-      );
-      setSelectedAddresses(updatedSelectedAddresses);
-      previousIdentitiesListSize.current = accountsAddressList.length;
-    }
-  }, [internalAccounts, selectedAddresses]);
-
   const accountsFilteredByPermissions = useMemo(() => {
     const accountsByPermittedStatus: Record<
       'permitted' | 'unpermitted',
@@ -269,6 +259,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     return accountsByPermittedStatus;
   }, [accounts, permittedAccountsByHostname]);
 
+  // todo: handle adding created account here
   const handleCreateAccount = useCallback(
     async () => {
       const { KeyringController } = Engine.context;
@@ -297,6 +288,65 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     /* eslint-disable-next-line */
     [setIsLoading],
   );
+
+  const onRevokeAllHandler = useCallback(async () => {
+    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    navigate('PermissionsManager');
+  }, [hostname, navigate]);
+
+  const toggleRevokeAllNetworkPermissionsModal = useCallback(() => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
+      params: {
+        hostInfo: {
+          metadata: {
+            origin: urlWithProtocol && new URL(urlWithProtocol).hostname,
+          },
+        },
+        onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
+      },
+    });
+  }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
+
+  const handleSelectChainIds = useCallback(async (chainIds: string[]) => {
+    if (chainIds.length === 0) {
+      toggleRevokeAllNetworkPermissionsModal()
+      return;
+    }
+
+      // Check if current network was originally permitted and is now being removed
+      const wasCurrentNetworkOriginallyPermitted =
+        permittedChains.includes(currentChainId);
+      const isCurrentNetworkStillPermitted =
+        chainIds.includes(currentChainId);
+
+      if (
+        wasCurrentNetworkOriginallyPermitted &&
+        !isCurrentNetworkStillPermitted
+      ) {
+        // Find the network configuration for the first permitted chain
+        const networkToSwitch = Object.entries(networkConfigurations).find(
+          ([, { chainId }]) => chainId === chainIds[0],
+        );
+
+        if (networkToSwitch) {
+          const [, config] = networkToSwitch;
+          const { rpcEndpoints, defaultRpcEndpointIndex } = config;
+          const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+
+          // Switch to the network using networkClientId
+          await Engine.context.MultichainNetworkController.setActiveNetwork(
+            networkClientId,
+          );
+        }
+      }
+
+      // is this needed?...
+      const hexSelectedChainIds = chainIds.map(toHex);
+      const removeExistingChainPermissions = true;
+      updatePermittedChains(hostname, hexSelectedChainIds, removeExistingChainPermissions);
+      setUserIntent(USER_INTENT.Confirm);
+  }, [])
 
   const handleConnect = useCallback(() => {
     try {
@@ -478,7 +528,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           break;
         }
         case USER_INTENT.Import: {
-          navigation.navigate('ImportPrivateKeyView');
+          navigate('ImportPrivateKeyView');
           // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
           trackEvent(
             createEventBuilder(
@@ -489,7 +539,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           break;
         }
         case USER_INTENT.ConnectHW: {
-          navigation.navigate('ConnectQRHardwareFlow');
+          navigate('ConnectQRHardwareFlow');
           // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
           trackEvent(
             createEventBuilder(
@@ -506,7 +556,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
     setUserIntent(USER_INTENT.None);
   }, [
-    navigation,
+    navigate,
     userIntent,
     sheetRef,
     hideSheet,
@@ -572,7 +622,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       onBack: () =>
         isRenderedAsBottomSheet
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
-          : navigation.navigate('PermissionsManager'),
+          : navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
       accountAddresses: checksummedPermittedAddresses,
       accounts,
@@ -582,7 +632,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [
     isRenderedAsBottomSheet,
-    navigation,
+    navigate,
     permittedAccountsByHostname,
     setSelectedAddresses,
     networkAvatars,
@@ -654,7 +704,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     () => (
       <NetworkConnectMultiSelector
         // fix this
-        onSubmit={setSelectedAddresses}
+        // add user intent
+        onSubmit={handleSelectChainIds}
         isLoading={isLoading}
         hostname={hostname}
         onBack={() =>
@@ -793,7 +844,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       onBack: () =>
         isRenderedAsBottomSheet
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
-          : navigation.navigate('PermissionsManager'),
+          : navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
       accountAddresses: permittedAccountsByHostname.map(toChecksumHexAddress),
       accounts,
@@ -814,7 +865,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     faviconSource,
     urlWithProtocol,
     isRenderedAsBottomSheet,
-    navigation,
+    navigate,
     permittedAccountsByHostname,
     setSelectedAddresses,
     networkAvatars,
