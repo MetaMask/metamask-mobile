@@ -26,7 +26,7 @@ import {
   BridgeSourceNetworksBar,
   MAX_NETWORK_ICONS,
 } from '../BridgeSourceNetworksBar';
-import { BridgeTokenSelectorBase } from '../BridgeTokenSelectorBase';
+import { BridgeTokenSelectorBase, SkeletonItem } from '../BridgeTokenSelectorBase';
 import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
@@ -87,7 +87,13 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   });
 
   const renderItem = useCallback(
-    ({ item }: { item: BridgeToken }) => {
+    ({ item }: { item: BridgeToken | null }) => {
+      // This is to support a partial loading state for top tokens
+      // We can show tokens with balance immediately, but we need to wait for the top tokens to load
+      if (!item) {
+        return <SkeletonItem />;
+      }
+
       const handleTokenPress = async (token: BridgeToken) => {
         dispatch(setSourceToken(token));
 

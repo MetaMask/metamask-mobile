@@ -61,7 +61,10 @@ const PickerAccount: React.ForwardRefRenderFunction<
   );
 
   return (
-    <View style={styles.pickerAccountContainer}>
+    <TouchableOpacity
+      style={styles.pickerAccountContainer}
+      onPress={props.onPress}
+    >
       <PickerBase
         iconSize={IconSize.Xs}
         style={styles.base}
@@ -79,7 +82,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
           {shortenedAddress}
         </Text>
       )}
-    </View>
+    </TouchableOpacity>
   );
 };
 

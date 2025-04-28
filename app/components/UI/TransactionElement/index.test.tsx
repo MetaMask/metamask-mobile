@@ -22,7 +22,11 @@ jest.mock('../../../core/Engine', () => ({
     },
     TokenListController: {
       state: {
-        tokenList: [],
+        tokensChainsCache: {
+          '0x1': {
+            data: [],
+          },
+        },
       },
     },
   },

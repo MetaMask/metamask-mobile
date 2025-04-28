@@ -16,9 +16,8 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { TokenI } from '../../../Tokens/types';
 import { Box } from '../../../Box/Box';
-import { Hex } from '@metamask/utils';
+import { Hex, CaipChainId } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   AllowedBridgeChainIds,
@@ -26,6 +25,8 @@ import {
 } from '../../../../../constants/bridge';
 import { StyleSheet } from 'react-native';
 import TokenIcon from '../../../Swaps/components/TokenIcon';
+import { BridgeToken } from '../../types';
+import { ethers } from 'ethers';
 
 const styles = StyleSheet.create({
   tokenIcon: {
@@ -49,9 +50,9 @@ const styles = StyleSheet.create({
   });
 
 interface TransactionAssetProps {
-  token: TokenI;
+  token: BridgeToken;
   tokenAmount: string;
-  chainId: Hex;
+  chainId: Hex | CaipChainId;
 }
 
 const TransactionAsset = ({
@@ -63,6 +64,10 @@ const TransactionAsset = ({
     NETWORK_TO_SHORT_NETWORK_NAME_MAP[chainId as AllowedBridgeChainIds];
   //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
   const networkImageSource = getNetworkImageSource({ chainId });
+
+  // Solana native SOL will also be the zero address for quote data from Bridge API only!
+  // Other formats might look like solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+  const isNative = token.address === ethers.constants.AddressZero;
 
   return (
     <Box
@@ -81,7 +86,7 @@ const TransactionAsset = ({
           />
         }
       >
-        {token.isNative ? (
+        {isNative ? (
           <TokenIcon
             symbol={token.symbol}
             icon={token.image}
