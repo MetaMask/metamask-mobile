@@ -941,182 +941,26 @@ export const generateContractInteractionState = {
   },
 };
 
-
-const transferConfirmationBaseState = {
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-      ApprovalController: {
-        pendingApprovals: {
-          '699ca2f0-e459-11ef-b6f6-d182277cf5e1': {
-            expectsResult: true,
-            id: '699ca2f0-e459-11ef-b6f6-d182277cf5e1',
-            origin: 'metamask',
-            requestData: { txId: '699ca2f0-e459-11ef-b6f6-d182277cf5e1' },
-            requestState: null,
-            time: 1738825814816,
-            type: 'transaction',
-          },
-        },
-        pendingApprovalCount: 1,
-        approvalFlows: [],
-      },
-      CurrencyRateController: {
-        currentCurrency: 'usd',
-        currencyRates: {
-          ETH: {
-            conversionDate: 1732887955.694,
-            conversionRate: 3596.25,
-            usdConversionRate: 3596.25,
-          },
-          LineaETH: {
-            conversionDate: 1732887955.694,
-            conversionRate: 3596.25,
-            usdConversionRate: 3596.25,
-          },
-        },
-      },
-      TransactionController: {
-        transactions: [
-          {
-            actionId: undefined,
-            chainId: '0x1',
-            dappSuggestedGasFees: undefined,
-            defaultGasEstimates: {
-              estimateType: 'medium',
-              gas: '0x1a5bd',
-              gasPrice: undefined,
-              maxFeePerGas: '0x74594b20',
-              maxPriorityFeePerGas: '0x1dcd6500',
-            },
-            deviceConfirmedOn: 'metamask_mobile',
-            gasLimitNoBuffer: '0x11929',
-            id: '699ca2f0-e459-11ef-b6f6-d182277cf5e1',
-            isFirstTimeInteraction: undefined,
-            networkClientId: 'mainnet',
-            origin: 'metamask',
-            originalGasEstimate: '0x1a5bd',
-            securityAlertResponse: undefined,
-            simulationFails: undefined,
-            status: 'unapproved',
-            time: 1738825814687,
-            txParams: {
-              from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
-              gas: '0x1a5bd',
-              maxFeePerGas: '0x84594b20',
-              maxPriorityFeePerGas: '0x4dcd6500',
-              to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
-              value: '0x5af3107a4000',
-              type: TransactionEnvelopeType.feeMarket,
-            },
-            type: TransactionType.simpleSend,
-            userEditedGasLimit: false,
-            userFeeLevel: 'medium',
-            verifiedOnBlockchain: false,
-            gasFeeEstimates: {
-              high: {
-                maxFeePerGas: '0xd0f5f04a',
-                maxPriorityFeePerGas: '0x77359400',
-              },
-              low: {
-                maxFeePerGas: '0x274d76df',
-                maxPriorityFeePerGas: '0x47be0d',
-              },
-              medium: {
-                maxFeePerGas: '0x559ab26a',
-                maxPriorityFeePerGas: '0x1dcd6500',
-              },
-              type: 'fee-market',
-            },
-          },
-        ],
-      } as unknown as TransactionControllerState,
-      RemoteFeatureFlagController: {
-        ...confirmationRedesignRemoteFlagsState,
-      },
-      NetworkController: {
-        networksMetadata: {
-          mainnet: {
-            EIPS: { 1559: true },
-          },
-          sepolia: {
-            EIPS: { 1559: true },
-          },
-        },
-        networkConfigurationsByChainId: {
-          '0x1': {
-            nativeCurrency: 'ETH',
-            rpcEndpoints: [
-              {
-                networkClientId: 'mainnet',
-                url: 'https://mainnet.infura.io/v3/1234567890',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-          },
-          '0xaa36a7': {
-            nativeCurrency: 'ETH',
-            rpcEndpoints: [
-              {
-                networkClientId: 'sepolia',
-                url: 'https://sepolia.infura.io/v3/1234567890',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-          },
-        },
-        selectedNetworkClientId: 'mainnet',
-      },
-      GasFeeController: {
-        gasFeeEstimatesByChainId: {
-          '0x1': {
-            gasEstimateType: 'fee-market',
-            gasFeeEstimates: {
-              baseFeeTrend: 'down',
-              estimatedBaseFee: '0.657622129',
-              high: {
-                maxWaitTimeEstimate: 30000,
-                minWaitTimeEstimate: 15000,
-                suggestedMaxFeePerGas: '3.554606064',
-                suggestedMaxPriorityFeePerGas: '2',
-              },
-              historicalBaseFeeRange: ['0.570409997', '0.742901351'],
-              historicalPriorityFeeRange: ['0.0001', '40.023291076'],
-              latestPriorityFeeRange: ['0.001014498', '3'],
-              low: {
-                maxWaitTimeEstimate: 60000,
-                minWaitTimeEstimate: 15000,
-                suggestedMaxFeePerGas: '0.750628835',
-                suggestedMaxPriorityFeePerGas: '0.006017503',
-              },
-              medium: {
-                maxWaitTimeEstimate: 45000,
-                minWaitTimeEstimate: 15000,
-                suggestedMaxFeePerGas: '1.65994205',
-                suggestedMaxPriorityFeePerGas: '0.5',
-              },
-              networkCongestion: 0.10665,
-              priorityFeeTrend: 'up',
-            },
-          },
-        },
-      } as unknown as GasFeeState,
-    },
-  },
-  settings: {
-    showFiatOnTestnets: true,
-  },
-};
-
 export const transferConfirmationState = merge(
   {},
-  transferConfirmationBaseState,
+  stakingConfirmationBaseState,
   {
     engine: {
       backgroundState: {
         TransactionController: {
           transactions: [
-            { type: TransactionType.simpleSend },
+            { 
+              type: TransactionType.simpleSend,
+              txParams: {
+                from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
+                gas: '0x1a5bd',
+                maxFeePerGas: '0x84594b20',
+                maxPriorityFeePerGas: '0x4dcd6500',
+                to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+                value: '0x5af3107a4000',
+                type: TransactionEnvelopeType.feeMarket,
+              },
+            },
           ],
         } as Pick<TransactionControllerState, 'transactions'>,
       },
