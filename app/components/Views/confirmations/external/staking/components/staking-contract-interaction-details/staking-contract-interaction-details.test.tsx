@@ -12,7 +12,7 @@ jest.mock('../../../../../../../core/Engine', () => ({
 }));
 
 describe('StakingContractInteractionDetails', () => {
-  it('should render correctly with staking deposit variant', () => {
+  it('renders staking deposit variant', () => {
     const { getByText } = renderWithProvider(<StakingContractInteractionDetails />, {
       state: stakingDepositConfirmationState,
     });
@@ -22,7 +22,7 @@ describe('StakingContractInteractionDetails', () => {
     expect(getByText('Ethereum Mainnet')).toBeDefined();
   });
 
-  it('should render correctly with staking withdrawal variant', () => {
+  it('renders staking withdrawal variant', () => {
     const { getByText } = renderWithProvider(<StakingContractInteractionDetails />, {
       state: stakingWithdrawalConfirmationState,
     });
