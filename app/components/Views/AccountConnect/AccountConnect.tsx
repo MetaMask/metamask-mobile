@@ -77,7 +77,7 @@ import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
@@ -116,8 +116,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  // Make this CaipAccountId
-  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(
+  const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
     selectedWalletAddress && isEvmSelected
       ? [selectedWalletAddress]
       : [
@@ -159,7 +158,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
   const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
+    selectEvmNetworkConfigurationsByChainId,
   );
 
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
@@ -222,10 +221,10 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { chainId } = useNetworkInfo(hostname);
 
-  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(() => {
+  const [selectedChainIds, setSelectedChainIds] = useState<string[]>(() => {
     // Get all enabled network chain IDs from networkConfigurations
     const enabledChainIds = Object.values(networkConfigurations).map(
-      (network) => network.caipChainId,
+      (network) => network.chainId,
     );
     return enabledChainIds;
   });
@@ -237,7 +236,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         size: AvatarSize.Xs,
         name: network.name || '',
         // @ts-expect-error getNetworkImageSource not yet typed
-        imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
+        imageSource: getNetworkImageSource({ chainId: network.chainId }),
       }),
     );
 
@@ -506,7 +505,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleNetworksSelected = useCallback(
-    (newSelectedChainIds: CaipChainId[]) => {
+    (newSelectedChainIds: string[]) => {
       setSelectedChainIds(newSelectedChainIds);
 
       const newNetworkAvatars = newSelectedChainIds.map(

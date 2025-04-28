@@ -21,8 +21,8 @@ import { CaipAccountId } from '@metamask/utils';
  */
 export interface AccountConnectMultiSelectorProps
   extends Omit<UseAccounts, 'evmAccounts'> {
-  defaultSelectedAccountIds: CaipAccountId[];
-  onSubmit: (addresses: CaipAccountId[]) => void;
+  defaultSelectedAddresses: string[];
+  onSubmit: (addresses: string[]) => void;
   isLoading?: boolean;
   hostname: string;
   isAutoScrollEnabled?: boolean;

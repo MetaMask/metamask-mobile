@@ -31,17 +31,14 @@ import {
   AccountConnectMultiSelectorProps,
   AccountConnectMultiSelectorScreens,
 } from './AccountConnectMultiSelector.types';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { CaipAccountId } from '@metamask/utils';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 
 const AccountConnectMultiSelector = ({
   accounts,
   ensByAccountAddress,
-  defaultSelectedAccountIds,
+  defaultSelectedAddresses,
   onSubmit,
   isLoading,
   isAutoScrollEnabled = true,
@@ -57,32 +54,32 @@ const AccountConnectMultiSelector = ({
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
   );
 
-  const [selectedAccountIds, setSelectedAccountIds] = useState<CaipAccountId[]>([]);
+  const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
 
   useEffect(() => {
-    setSelectedAccountIds(defaultSelectedAccountIds);
+    setSelectedAddresses(defaultSelectedAddresses);
   }, [
     // TODO: Fix the source of this prop value to be the same array instance each render
-    JSON.stringify(defaultSelectedAccountIds),
+    JSON.stringify(defaultSelectedAddresses),
   ]);
 
   const onSelectAccount = useCallback(
     (caipAccountId) => {
-      const updatedSelectedAccountAddresses = selectedAccountIds.filter(
+      const updatedSelectedAccountAddresses = selectedAddresses.filter(
         (selectedAccountId) => {
           return !isEqualCaseInsensitive(selectedAccountId, caipAccountId);
         },
       );
 
       if (
-        updatedSelectedAccountAddresses.length === selectedAccountIds.length
+        updatedSelectedAccountAddresses.length === selectedAddresses.length
       ) {
-        setSelectedAccountIds([...selectedAccountIds, caipAccountId]);
+        setSelectedAddresses([...selectedAddresses, caipAccountId]);
       } else {
-        setSelectedAccountIds(updatedSelectedAccountAddresses);
+        setSelectedAddresses(updatedSelectedAccountAddresses);
       }
     },
-    [accounts, selectedAccountIds, setSelectedAccountIds],
+    [accounts, selectedAddresses, setSelectedAddresses],
   );
 
   const areAllAccountsSelected = accounts
@@ -185,7 +182,7 @@ const AccountConnectMultiSelector = ({
   }, [
     areAnyAccountsSelected,
     isLoading,
-    selectedAccountIds,
+    selectedAddresses,
     styles,
     areNoAccountsSelected,
     hostname,

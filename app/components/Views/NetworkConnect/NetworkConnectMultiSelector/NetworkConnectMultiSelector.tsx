@@ -22,14 +22,13 @@ import { NetworkConnectMultiSelectorProps } from './NetworkConnectMultiSelector.
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
 import {
-  EvmAndMultichainNetworkConfigurationsWithCaipChainId,
-  selectNetworkConfigurationsByCaipChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 
-import { CaipChainId } from '@metamask/utils';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -40,9 +39,9 @@ const NetworkConnectMultiSelector = ({
   defaultSelectedChainIds,
 }: NetworkConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
-  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>([]);
+  const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
   const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
+    selectEvmNetworkConfigurationsByChainId,
   );
 
   useEffect(() => {
@@ -60,17 +59,16 @@ const NetworkConnectMultiSelector = ({
   ]);
   // TODO: [SOLANA]  When we support non evm networks, refactor this
   const networks = Object.entries(networkConfigurations).map(
-    ([key, network]: [string, EvmAndMultichainNetworkConfigurationsWithCaipChainId]) => ({
+    ([key, network]: [string, NetworkConfiguration]) => ({
       id: key,
       name: network.name,
-      // rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
-      rpcUrl: '',
+      rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
       isSelected: false,
       //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       imageSource: getNetworkImageSource({
-        chainId: network.caipChainId,
+        chainId: network.chainId,
       }),
-      caipChainId: network.caipChainId
+      chainId: network.chainId,
     }),
   );
 
@@ -85,7 +83,7 @@ const NetworkConnectMultiSelector = ({
   }, [selectedChainIds, setSelectedChainIds]);
 
   const areAllNetworksSelected = networks
-    .every(({ caipChainId }) => selectedChainIds.includes(caipChainId));
+    .every(({ chainId }) => selectedChainIds.includes(chainId));
   const areAnyNetworksSelected = selectedChainIds.length !== 0;
   const areNoNetworksSelected = selectedChainIds.length === 0;
 
@@ -95,7 +93,7 @@ const NetworkConnectMultiSelector = ({
 
     const selectAll = () => {
       if (isLoading) return;
-      const allSelectedChainIds = networks.map(({ caipChainId }) => caipChainId);
+      const allSelectedChainIds = networks.map(({ chainId }) => chainId);
       setSelectedChainIds(allSelectedChainIds);
     };
 
