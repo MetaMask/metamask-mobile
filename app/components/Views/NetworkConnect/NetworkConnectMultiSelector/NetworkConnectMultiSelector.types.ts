@@ -1,6 +1,3 @@
-// External dependencies.
-import { CaipChainId } from '@metamask/utils';
-
 /**
  * NetworkConnectMultiSelector props.
  */

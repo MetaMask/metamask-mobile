@@ -441,6 +441,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     faviconSource,
     toastRef,
     isNonDappNetworkSwitch,
+    setNetworkSelectorUserIntent,
+    urlWithProtocol
   ]);
 
   useEffect(() => {
@@ -579,14 +581,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [
-    faviconSource,
-    urlWithProtocol,
     isRenderedAsBottomSheet,
     navigation,
     permittedAccountsByHostname,
     setSelectedAddresses,
     networkAvatars,
     accounts,
+    faviconSource,
+    urlWithProtocol
   ]);
 
   const renderEditAccountsPermissionsScreen = useCallback(
@@ -594,22 +596,15 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       <AccountConnectMultiSelector
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={selectedAddresses}
-        onSelectAddress={(checkedAddresses) => {
+        defaultSelectedAddresses={selectedAddresses}
+        onSubmit={(checkedAddresses) => {
           setSelectedAddresses(checkedAddresses);
         }}
         isLoading={isLoading}
-        onUserAction={setUserIntent}
-        favicon={faviconSource}
-        urlWithProtocol={urlWithProtocol}
         hostname={hostname}
-        secureIcon={secureIcon}
         isAutoScrollEnabled={false}
         onBack={() =>
           setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary)
-        }
-        onPrimaryActionButtonPress={() =>
-          setUserIntent(USER_INTENT.EditMultiple)
         }
         screenTitle={strings('accounts.edit_accounts_title')}
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
@@ -619,10 +614,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       ensByAccountAddress,
       selectedAddresses,
       isLoading,
-      setUserIntent,
-      faviconSource,
-      urlWithProtocol,
-      secureIcon,
       hostname,
       isRenderedAsBottomSheet,
       accounts,
@@ -634,19 +625,15 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       <AccountConnectMultiSelector
         accounts={accountsFilteredByPermissions.unpermitted}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={selectedAddresses}
-        onSelectAddress={(checkedAddresses) => {
+        defaultSelectedAddresses={selectedAddresses}
+        onSubmit={(checkedAddresses) => {
           setSelectedAddresses([
             ...checkedAddresses,
             ...permittedAccountsByHostname,
           ]);
         }}
         isLoading={isLoading}
-        onUserAction={setUserIntent}
-        favicon={faviconSource}
-        urlWithProtocol={urlWithProtocol}
         hostname={hostname}
-        secureIcon={secureIcon}
         isAutoScrollEnabled={false}
         onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
         screenTitle={strings('accounts.connect_more_accounts')}
@@ -658,10 +645,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       selectedAddresses,
       isLoading,
       accountsFilteredByPermissions,
-      setUserIntent,
-      faviconSource,
-      urlWithProtocol,
-      secureIcon,
       hostname,
       permittedAccountsByHostname,
     ],
@@ -688,8 +671,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ),
     [
       isLoading,
-      setNetworkSelectorUserIntent,
-      urlWithProtocol,
       hostname,
       isRenderedAsBottomSheet,
       isNonDappNetworkSwitch,

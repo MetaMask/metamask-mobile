@@ -1,7 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, SafeAreaView } from 'react-native';
-import { isEqual } from 'lodash';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
@@ -15,12 +14,10 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import { USER_INTENT } from '../../../../constants/permissions';
 import AccountSelectorList from '../../../UI/AccountSelectorList';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../../component-library/components/Form/HelpText';
-import Engine from '../../../../core/Engine';
 
 // Internal dependencies.
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
@@ -59,16 +56,14 @@ const AccountConnectMultiSelector = ({
   useEffect(() => {
     setSelectedAddresses(defaultSelectedAddresses);
   }, [
-    // TODO: Fix the source of this prop value to be the same array instance each render
-    JSON.stringify(defaultSelectedAddresses),
+    setSelectedAddresses,
+    defaultSelectedAddresses,
   ]);
 
   const onSelectAccount = useCallback(
     (caipAccountId) => {
       const updatedSelectedAccountAddresses = selectedAddresses.filter(
-        (selectedAccountId) => {
-          return !isEqualCaseInsensitive(selectedAccountId, caipAccountId);
-        },
+        (selectedAccountId) => !isEqualCaseInsensitive(selectedAccountId, caipAccountId),
       );
 
       if (
@@ -79,7 +74,7 @@ const AccountConnectMultiSelector = ({
         setSelectedAddresses(updatedSelectedAccountAddresses);
       }
     },
-    [accounts, selectedAddresses, setSelectedAddresses],
+    [selectedAddresses, setSelectedAddresses],
   );
 
   const areAllAccountsSelected = accounts
@@ -97,12 +92,12 @@ const AccountConnectMultiSelector = ({
       const allSelectedAccountAddresses = accounts.map(
         ({ address }) => address,
       );
-      onSelectAddress(allSelectedAccountAddresses);
+      setSelectedAddresses(allSelectedAccountAddresses);
     };
 
     const unselectAll = () => {
       if (isLoading) return;
-      onSelectAddress([]);
+      setSelectedAddresses([]);
     };
 
     const onPress = () => {
@@ -125,12 +120,10 @@ const AccountConnectMultiSelector = ({
     areAnyAccountsSelected,
     accounts,
     isLoading,
-    onSubmit,
     styles.selectAll,
   ]);
 
-  const renderCtaButtons = useCallback(() => {
-    return (
+  const renderCtaButtons = useCallback(() => (
       <View style={styles.ctaButtonsContainer}>
         <View style={styles.connectOrUpdateButtonContainer}>
           {areAnyAccountsSelected && (
@@ -139,7 +132,7 @@ const AccountConnectMultiSelector = ({
               label={strings('networks.update')}
               onPress={() => {
                 // fix this
-                onSubmit()
+                onSubmit(selectedAddresses);
               }}
               size={ButtonSize.Lg}
               style={{
@@ -167,7 +160,9 @@ const AccountConnectMultiSelector = ({
                 label={strings('accounts.disconnect')}
                 testID={ConnectedAccountsSelectorsIDs.DISCONNECT}
                 // fix this
-                onPress={() => {}}
+                onPress={() => {
+                  onSubmit([]);
+                }}
                 isDanger
                 size={ButtonSize.Lg}
                 style={{
@@ -178,8 +173,7 @@ const AccountConnectMultiSelector = ({
           </View>
         )}
       </View>
-    );
-  }, [
+    ), [
     areAnyAccountsSelected,
     isLoading,
     selectedAddresses,

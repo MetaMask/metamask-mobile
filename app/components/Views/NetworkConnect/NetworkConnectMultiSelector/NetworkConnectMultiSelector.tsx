@@ -47,12 +47,12 @@ const NetworkConnectMultiSelector = ({
   useEffect(() => {
     setSelectedChainIds(defaultSelectedChainIds);
   }, [
-    // TODO: Fix the source of this prop value to be the same array instance each render
-    JSON.stringify(defaultSelectedChainIds),
+    setSelectedChainIds,
+    defaultSelectedChainIds
   ]);
 
   const handleUpdateNetworkPermissions = useCallback(async () => {
-    onSubmit(selectedChainIds)
+    onSubmit(selectedChainIds);
   }, [
     onSubmit,
     selectedChainIds,

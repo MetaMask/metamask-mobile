@@ -77,7 +77,7 @@ import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
@@ -88,7 +88,6 @@ import {
 import { getPhishingTestResult } from '../../../util/phishingDetection';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 import { toHex } from '@metamask/controller-utils';
-import { CaipAccountId, CaipChainId } from '@metamask/utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -127,8 +126,6 @@ const AccountConnect = (props: AccountConnectProps) => {
             : '',
         ],
   );
-  const [confirmedAddresses, setConfirmedAddresses] =
-    useState<string[]>(selectedAddresses);
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
@@ -667,7 +664,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
-      accountAddresses: confirmedAddresses,
+      accountAddresses: selectedAddresses,
       accounts,
       // @ts-expect-error imageSource not yet typed
       networkAvatars: selectedNetworkAvatars,
@@ -676,7 +673,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [
     faviconSource,
     urlWithProtocol,
-    confirmedAddresses,
+    selectedAddresses,
     selectedNetworkAvatars,
     accounts,
   ]);
@@ -709,23 +706,14 @@ const AccountConnect = (props: AccountConnectProps) => {
       <AccountConnectMultiSelector
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={selectedAddresses}
-        onSelectAddress={setSelectedAddresses}
+        defaultSelectedAddresses={selectedAddresses}
+        onSubmit={setSelectedAddresses}
         isLoading={isLoading}
-        favicon={faviconSource}
-        secureIcon={secureIcon}
-        urlWithProtocol={urlWithProtocol}
-        onUserAction={setUserIntent}
         onBack={() => {
-          setSelectedAddresses(confirmedAddresses);
           setScreen(AccountConnectScreens.SingleConnect);
         }}
         connection={sdkConnection}
         hostname={hostname}
-        onPrimaryActionButtonPress={() => {
-          setConfirmedAddresses(selectedAddresses);
-          setScreen(AccountConnectScreens.SingleConnect);
-        }}
         screenTitle={strings('accounts.edit_accounts_title')}
       />
     ),
@@ -733,11 +721,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       accounts,
       ensByAccountAddress,
       selectedAddresses,
-      confirmedAddresses,
       isLoading,
-      faviconSource,
-      secureIcon,
-      urlWithProtocol,
       sdkConnection,
       hostname,
     ],

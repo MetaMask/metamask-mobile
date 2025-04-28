@@ -1,6 +1,3 @@
-// Third party dependencies.
-import { ImageSourcePropType } from 'react-native';
-
 /**
  * Enum to track states of the account connect multi selector screen.
  */
@@ -12,9 +9,6 @@ export enum AccountConnectMultiSelectorScreens {
 // External dependencies.
 import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
 import { UseAccounts } from '../../../hooks/useAccounts';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { USER_INTENT } from '../../../../constants/permissions';
-import { CaipAccountId } from '@metamask/utils';
 
 /**
  * AccountConnectMultiSelector props.
