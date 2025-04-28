@@ -17,6 +17,7 @@ import {
   isSnapAccount,
   toFormattedAddress,
   isHDOrFirstPartySnapAccount,
+  renderAccountName,
 } from '.';
 import {
   mockHDKeyringAddress,
@@ -30,6 +31,22 @@ import {
   MOCK_SOLANA_ACCOUNT,
 } from '../test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
+
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn().mockReturnValue({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            provider: {
+              chainId: '0x1',
+            },
+          },
+        },
+      },
+    }),
+  },
+}));
 
 jest.mock('../../core/Engine', () => {
   const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
@@ -52,6 +69,17 @@ jest.mock('../../core/Engine', () => {
     },
   };
 });
+
+// Mock the selectors used in renderAccountName
+jest.mock('../../selectors/networkController', () => ({
+  selectChainId: jest.fn().mockReturnValue('0x1'),
+}));
+
+// Mock the ENS utils
+jest.mock('../../util/ENSUtils', () => ({
+  getCachedENSName: jest.fn().mockReturnValue(''),
+  isDefaultAccountName: jest.fn().mockReturnValue(false),
+}));
 
 describe('isENS', () => {
   it('should return false by default', () => {
@@ -109,6 +137,43 @@ describe('renderSlightlyLongAddress', () => {
       expect(beforeEllipsis.length).toBe(15); // Custom initialChars (10) + chars (5)
       expect(afterEllipsis.length).toBe(5);
       expect(result).toBe('bc1qxy2kgdygjrs...x0wlh');
+    });
+  });
+});
+
+describe('renderAccountName', () => {
+  describe('with Ethereum accounts', () => {
+    it('returns the account name for a known Ethereum account', () => {
+      const ethAddress = internalAccount1.address;
+      const accounts = [internalAccount1];
+      expect(renderAccountName(ethAddress, accounts)).toBe('Account 1');
+    });
+
+    it('returns a shortened address for unknown Ethereum accounts', () => {
+      const unknownAddress = '0x1234567890123456789012345678901234567890';
+      const accounts = [internalAccount1];
+      // The shortened address format is first 7 chars + ... + last 5 chars
+      expect(renderAccountName(unknownAddress, accounts)).toBe(
+        '0x12345...67890',
+      );
+    });
+  });
+
+  describe('with Solana accounts', () => {
+    it('returns the account name for a known Solana account', () => {
+      const solanaAddress = MOCK_SOLANA_ACCOUNT.address;
+      const accounts = [MOCK_SOLANA_ACCOUNT];
+      expect(renderAccountName(solanaAddress, accounts)).toBe('Solana Account');
+    });
+
+    it('returns a shortened address for unknown Solana accounts', () => {
+      const unknownSolanaAddress =
+        '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+      const accounts = [internalAccount1]; // Only contains Ethereum account
+      // The shortened address format is first 7 chars + ... + last 5 chars
+      expect(renderAccountName(unknownSolanaAddress, accounts)).toBe(
+        '7EcDhSY...CFLtV',
+      );
     });
   });
 });

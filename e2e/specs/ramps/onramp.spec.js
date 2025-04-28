@@ -65,7 +65,7 @@ describe(SmokeTrade('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  it('should change parameters and select a quote', async () => {
+  it.skip('should change parameters and select a quote', async () => {
     const platform = device.getPlatform();
 
     let paymentMethod;

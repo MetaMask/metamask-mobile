@@ -124,14 +124,14 @@ export const MOCK_USDC_MAINNET_ASSET = createMockToken(
   ),
 );
 
-const MOCK_USDT_MAINNET_ASSET = createMockToken(
+export const MOCK_USDT_MAINNET_ASSET = createMockToken(
   getCreateMockTokenOptions(
     CHAIN_IDS.MAINNET,
     TOKENS_WITH_DEFAULT_OPTIONS.USDT,
   ),
 );
 
-const MOCK_DAI_MAINNET_ASSET = createMockToken(
+export const MOCK_DAI_MAINNET_ASSET = createMockToken(
   getCreateMockTokenOptions(CHAIN_IDS.MAINNET, TOKENS_WITH_DEFAULT_OPTIONS.DAI),
 );
 

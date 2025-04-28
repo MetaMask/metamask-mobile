@@ -6,15 +6,15 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import PulsingCircle from './PulsingCircle';
-import { StatusTypes } from '@metamask/bridge-status-controller';
 import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import { Theme } from '@metamask/design-tokens';
 import { useStyles } from '../../../../../component-library/hooks';
+import { StatusTypes } from '@metamask/bridge-controller';
 
 const ICON_SIZE = IconSize.Xs;
 
-const styleSheet = (params: { theme: Theme, vars: { color: IconColor } }) => {
+const styleSheet = (params: { theme: Theme; vars: { color: IconColor } }) => {
   let lineColor = params.theme.colors.primary.default;
   if (params.vars.color === IconColor.Muted) {
     lineColor = params.theme.colors.icon.muted;
