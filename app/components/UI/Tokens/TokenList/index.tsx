@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, FlatList, RefreshControl } from 'react-native';
+import { View, RefreshControl } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
@@ -49,7 +50,7 @@ export const TokenList = ({
   };
 
   return tokens?.length ? (
-    <FlatList
+    <FlashList
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokens}
       renderItem={({ item }) => (

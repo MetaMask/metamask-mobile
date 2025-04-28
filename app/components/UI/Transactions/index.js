@@ -1,9 +1,9 @@
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
+import { FlashList } from '@shopify/flash-list';
 import {
   ActivityIndicator,
-  FlatList,
   InteractionManager,
   RefreshControl,
   StyleSheet,
@@ -812,7 +812,7 @@ class Transactions extends PureComponent {
       <View style={styles.wrapper}>
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
-            <FlatList
+            <FlashList
               testID={ActivitiesViewSelectorsIDs.CONTAINER}
               ref={this.flatList}
               getItemLayout={this.getItemLayout}
