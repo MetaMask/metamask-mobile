@@ -1,4 +1,3 @@
-import { NETWORKS_CHAIN_ID } from '../constants/network';
 import { selectSmartTransactionsOptInStatus } from './preferencesController';
 import { RootState } from '../reducers';
 import { swapsSmartTxFlagEnabled } from '../reducers/swaps';
@@ -47,7 +46,7 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
     transactionChainId,
     providerConfigRpcUrl,
     smartTransactionsFeatureFlagEnabled,
-    smartTransactionsLiveness,
+    _smartTransactionsLiveness,
   ) => {
     const effectiveChainId = transactionChainId || globalChainId;
     const addressIsHardwareAccount = selectedAddress
