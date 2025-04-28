@@ -1,10 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import { FlashList } from '@shopify/flash-list';
 import {
   Alert,
   ScrollView,
   RefreshControl,
-  FlatList,
   StyleSheet,
   Text,
   View,
@@ -194,7 +194,7 @@ export default class Collectibles extends PureComponent {
     const { collectibles } = this.props;
 
     return (
-      <FlatList
+      <FlashList
         data={collectibles}
         extraData={this.state}
         keyExtractor={this.keyExtractor}

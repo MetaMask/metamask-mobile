@@ -325,100 +325,16 @@ exports[`TransactionsView renders correctly and matches snapshot 1`] = `
                             }
                           }
                         >
-                          <RCTScrollView
-                            ListFooterComponent={
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                    "paddingBottom": 24,
-                                  }
-                                }
-                              >
-                                <Text
-                                  style={
-                                    {
-                                      "color": "#9ca1af",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 20,
-                                      "fontWeight": "400",
-                                      "textAlign": "center",
-                                    }
-                                  }
-                                >
-                                  Please switch network to view transactions
-                                </Text>
-                              </View>
-                            }
-                            data={[]}
-                            extraData={
-                              {
-                                "cancel1559IsOpen": false,
-                                "cancelConfirmDisabled": false,
-                                "cancelIsOpen": false,
-                                "errorMsg": undefined,
-                                "isLedgerAccount": undefined,
-                                "isQRHardwareAccount": undefined,
-                                "ready": true,
-                                "refreshing": false,
-                                "retryIsOpen": false,
-                                "rpcBlockExplorer": undefined,
-                                "selectedTx": Map {},
-                                "speedUp1559IsOpen": false,
-                                "speedUpConfirmDisabled": false,
-                                "speedUpIsOpen": false,
-                              }
-                            }
-                            getItem={[Function]}
-                            getItemCount={[Function]}
-                            getItemLayout={[Function]}
-                            initialNumToRender={10}
-                            keyExtractor={[Function]}
-                            maxToRenderPerBatch={2}
-                            onContentSizeChange={[Function]}
-                            onEndReachedThreshold={0.5}
-                            onLayout={[Function]}
-                            onMomentumScrollBegin={[Function]}
-                            onMomentumScrollEnd={[Function]}
-                            onScroll={[Function]}
-                            onScrollBeginDrag={[Function]}
-                            onScrollEndDrag={[Function]}
-                            refreshControl={
-                              <RefreshControlMock
-                                colors={
-                                  [
-                                    "#4459ff",
-                                  ]
-                                }
-                                onRefresh={[Function]}
-                                refreshing={false}
-                                tintColor="#121314"
-                              />
-                            }
-                            removeClippedSubviews={false}
-                            renderItem={[Function]}
-                            scrollEnabled={true}
-                            scrollEventThrottle={50}
-                            scrollIndicatorInsets={
-                              {
-                                "right": 1,
-                              }
-                            }
-                            stickyHeaderIndices={[]}
+                          <View
                             style={
                               {
                                 "flex": 1,
+                                "overflow": "hidden",
                               }
                             }
-                            testID="transactions-container"
-                            viewabilityConfigCallbackPairs={[]}
                           >
-                            <RCTRefreshControl />
-                            <View>
-                              <View
-                                onLayout={[Function]}
-                              >
+                            <RCTScrollView
+                              ListFooterComponent={
                                 <View
                                   style={
                                     {
@@ -442,9 +358,395 @@ exports[`TransactionsView renders correctly and matches snapshot 1`] = `
                                     Please switch network to view transactions
                                   </Text>
                                 </View>
+                              }
+                              applyWindowCorrection={[Function]}
+                              canChangeSize={true}
+                              contentContainerStyle={
+                                {
+                                  "backgroundColor": undefined,
+                                  "minHeight": 1,
+                                  "minWidth": 1,
+                                  "paddingLeft": 0,
+                                  "paddingRight": 0,
+                                }
+                              }
+                              contentHeight={0}
+                              contentWidth={0}
+                              data={[]}
+                              dataProvider={
+                                DataProvider {
+                                  "_data": [],
+                                  "_firstIndexToProcess": 0,
+                                  "_hasStableIds": true,
+                                  "_requiresDataChangeHandling": false,
+                                  "_size": 0,
+                                  "getStableId": [Function],
+                                  "rowHasChanged": [Function],
+                                }
+                              }
+                              disableRecycling={false}
+                              extendedState={
+                                {
+                                  "value": {
+                                    "cancel1559IsOpen": false,
+                                    "cancelConfirmDisabled": false,
+                                    "cancelIsOpen": false,
+                                    "errorMsg": undefined,
+                                    "isLedgerAccount": undefined,
+                                    "isQRHardwareAccount": undefined,
+                                    "ready": true,
+                                    "refreshing": false,
+                                    "retryIsOpen": false,
+                                    "rpcBlockExplorer": undefined,
+                                    "selectedTx": Map {},
+                                    "speedUp1559IsOpen": false,
+                                    "speedUpConfirmDisabled": false,
+                                    "speedUpIsOpen": false,
+                                  },
+                                }
+                              }
+                              externalScrollView={[Function]}
+                              extraData={
+                                {
+                                  "cancel1559IsOpen": false,
+                                  "cancelConfirmDisabled": false,
+                                  "cancelIsOpen": false,
+                                  "errorMsg": undefined,
+                                  "isLedgerAccount": undefined,
+                                  "isQRHardwareAccount": undefined,
+                                  "ready": true,
+                                  "refreshing": false,
+                                  "retryIsOpen": false,
+                                  "rpcBlockExplorer": undefined,
+                                  "selectedTx": Map {},
+                                  "speedUp1559IsOpen": false,
+                                  "speedUpConfirmDisabled": false,
+                                  "speedUpIsOpen": false,
+                                }
+                              }
+                              finalRenderAheadOffset={250}
+                              forceNonDeterministicRendering={true}
+                              getItemLayout={[Function]}
+                              horizontal={false}
+                              initialNumToRender={10}
+                              initialOffset={0}
+                              initialRenderIndex={0}
+                              isHorizontal={false}
+                              keyExtractor={[Function]}
+                              layoutProvider={
+                                GridLayoutProviderWithProps {
+                                  "_acceptableRelayoutDelta": 1,
+                                  "_getHeightOrWidth": [Function],
+                                  "_getLayoutTypeForIndex": [Function],
+                                  "_getSpan": [Function],
+                                  "_hasExpired": false,
+                                  "_isHorizontal": false,
+                                  "_lastLayoutManager": GridLayoutManager {
+                                    "_acceptableRelayoutDelta": 1,
+                                    "_getSpan": [Function],
+                                    "_isGridHorizontal": false,
+                                    "_isHorizontal": false,
+                                    "_layoutProvider": [Circular],
+                                    "_layouts": [],
+                                    "_maxSpan": 1,
+                                    "_renderWindowSize": {
+                                      "height": 900,
+                                      "width": 400,
+                                    },
+                                    "_totalHeight": 0,
+                                    "_totalWidth": 400,
+                                    "_window": {
+                                      "height": 900,
+                                      "width": 400,
+                                    },
+                                  },
+                                  "_maxSpan": 1,
+                                  "_renderWindowSize": {
+                                    "height": 900,
+                                    "width": 400,
+                                  },
+                                  "_setLayoutForType": [Function],
+                                  "_tempDim": {
+                                    "height": 0,
+                                    "width": 0,
+                                  },
+                                  "averageWindow": AverageWindow {
+                                    "currentAverage": 100,
+                                    "currentCount": 1,
+                                    "inputValues": [
+                                      100,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                      ,
+                                    ],
+                                    "nextIndex": 1,
+                                  },
+                                  "defaultEstimatedItemSize": 100,
+                                  "layoutObject": {
+                                    "size": undefined,
+                                    "span": undefined,
+                                  },
+                                  "props": {
+                                    "ListFooterComponent": <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "justifyContent": "center",
+                                          "paddingBottom": 24,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        style={
+                                          {
+                                            "color": "#9ca1af",
+                                            "fontFamily": "CentraNo1-Book",
+                                            "fontSize": 20,
+                                            "fontWeight": "400",
+                                            "textAlign": "center",
+                                          }
+                                        }
+                                      >
+                                        Please switch network to view transactions
+                                      </Text>
+                                    </View>,
+                                    "ListHeaderComponent": undefined,
+                                    "data": [],
+                                    "extraData": {
+                                      "cancel1559IsOpen": false,
+                                      "cancelConfirmDisabled": false,
+                                      "cancelIsOpen": false,
+                                      "errorMsg": undefined,
+                                      "isLedgerAccount": undefined,
+                                      "isQRHardwareAccount": undefined,
+                                      "ready": true,
+                                      "refreshing": false,
+                                      "retryIsOpen": false,
+                                      "rpcBlockExplorer": undefined,
+                                      "selectedTx": Map {},
+                                      "speedUp1559IsOpen": false,
+                                      "speedUpConfirmDisabled": false,
+                                      "speedUpIsOpen": false,
+                                    },
+                                    "getItemLayout": [Function],
+                                    "initialNumToRender": 10,
+                                    "keyExtractor": [Function],
+                                    "maxToRenderPerBatch": 2,
+                                    "numColumns": 1,
+                                    "onEndReachedThreshold": 0.5,
+                                    "onScroll": [Function],
+                                    "refreshControl": <RefreshControlMock
+                                      colors={
+                                        [
+                                          "#4459ff",
+                                        ]
+                                      }
+                                      onRefresh={[Function]}
+                                      refreshing={false}
+                                      tintColor="#121314"
+                                    />,
+                                    "renderItem": [Function],
+                                    "scrollEnabled": true,
+                                    "scrollIndicatorInsets": {
+                                      "right": 1,
+                                    },
+                                    "style": {
+                                      "flex": 1,
+                                    },
+                                    "testID": "transactions-container",
+                                  },
+                                  "renderWindowInsets": {
+                                    "height": 0,
+                                    "width": 0,
+                                  },
+                                  "shouldRefreshWithAnchoring": true,
+                                }
+                              }
+                              maxRenderAhead={750}
+                              maxToRenderPerBatch={2}
+                              numColumns={1}
+                              onEndReached={[Function]}
+                              onEndReachedThreshold={0}
+                              onEndReachedThresholdRelative={0.5}
+                              onItemLayout={[Function]}
+                              onLayout={[Function]}
+                              onScroll={[Function]}
+                              onScrollBeginDrag={[Function]}
+                              onSizeChanged={[Function]}
+                              onVisibleIndicesChanged={[Function]}
+                              refreshControl={
+                                <RefreshControlMock
+                                  colors={
+                                    [
+                                      "#4459ff",
+                                    ]
+                                  }
+                                  onRefresh={[Function]}
+                                  refreshing={false}
+                                  tintColor="#121314"
+                                />
+                              }
+                              removeClippedSubviews={false}
+                              renderAheadOffset={0}
+                              renderAheadStep={250}
+                              renderContentContainer={[Function]}
+                              renderItem={[Function]}
+                              renderItemContainer={[Function]}
+                              rowRenderer={[Function]}
+                              scrollEnabled={true}
+                              scrollEventThrottle={16}
+                              scrollIndicatorInsets={
+                                {
+                                  "right": 1,
+                                }
+                              }
+                              scrollThrottle={16}
+                              scrollViewProps={
+                                {
+                                  "contentContainerStyle": {
+                                    "backgroundColor": undefined,
+                                    "minHeight": 1,
+                                    "minWidth": 1,
+                                    "paddingLeft": 0,
+                                    "paddingRight": 0,
+                                  },
+                                  "onLayout": [Function],
+                                  "onScrollBeginDrag": [Function],
+                                  "refreshControl": <RefreshControlMock
+                                    colors={
+                                      [
+                                        "#4459ff",
+                                      ]
+                                    }
+                                    onRefresh={[Function]}
+                                    refreshing={false}
+                                    tintColor="#121314"
+                                  />,
+                                  "style": {
+                                    "minHeight": 1,
+                                    "minWidth": 1,
+                                  },
+                                }
+                              }
+                              style={
+                                {
+                                  "minHeight": 1,
+                                  "minWidth": 1,
+                                }
+                              }
+                              suppressBoundedSizeException={true}
+                              testID="transactions-container"
+                              windowCorrectionConfig={
+                                {
+                                  "applyToInitialOffset": true,
+                                  "applyToItemScroll": true,
+                                  "value": {
+                                    "endCorrection": 0,
+                                    "startCorrection": 0,
+                                    "windowShift": -0,
+                                  },
+                                }
+                              }
+                            >
+                              <RCTRefreshControl />
+                              <View>
+                                <View
+                                  style={
+                                    {
+                                      "flexDirection": "column",
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "paddingLeft": 0,
+                                        "paddingTop": 0,
+                                      }
+                                    }
+                                  />
+                                  <View
+                                    style={
+                                      [
+                                        undefined,
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                  <AutoLayoutView
+                                    enableInstrumentation={false}
+                                    horizontal={false}
+                                    onBlankAreaEvent={[Function]}
+                                    onLayout={[Function]}
+                                    renderAheadOffset={0}
+                                    scrollOffset={0}
+                                    style={
+                                      {
+                                        "height": 0,
+                                        "width": 0,
+                                      }
+                                    }
+                                    windowSize={0}
+                                  />
+                                  <CellContainer
+                                    index={-1}
+                                    style={
+                                      [
+                                        undefined,
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "justifyContent": "center",
+                                          "paddingBottom": 24,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        style={
+                                          {
+                                            "color": "#9ca1af",
+                                            "fontFamily": "CentraNo1-Book",
+                                            "fontSize": 20,
+                                            "fontWeight": "400",
+                                            "textAlign": "center",
+                                          }
+                                        }
+                                      >
+                                        Please switch network to view transactions
+                                      </Text>
+                                    </View>
+                                  </CellContainer>
+                                  <View
+                                    style={
+                                      {
+                                        "paddingBottom": 0,
+                                        "paddingRight": 0,
+                                      }
+                                    }
+                                  />
+                                </View>
                               </View>
-                            </View>
-                          </RCTScrollView>
+                            </RCTScrollView>
+                          </View>
                         </View>
                       </View>
                       <Modal
