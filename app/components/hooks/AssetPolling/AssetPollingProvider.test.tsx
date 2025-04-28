@@ -12,11 +12,7 @@ jest.mock('./useAccountTrackerPolling', () => jest.fn());
 
 describe('AssetPollingProvider', () => {
   it('should call all polling hooks', () => {
-    render(
-      <AssetPollingProvider>
-        <div></div>
-      </AssetPollingProvider>,
-    );
+    render(<AssetPollingProvider />);
 
     expect(jest.requireMock('./useCurrencyRatePolling')).toHaveBeenCalled();
     expect(jest.requireMock('./useTokenRatesPolling')).toHaveBeenCalled();
