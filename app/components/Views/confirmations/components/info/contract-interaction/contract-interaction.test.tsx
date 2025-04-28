@@ -1,8 +1,4 @@
-import {
-  TransactionMeta,
-  TransactionStatus,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta, TransactionStatus, TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
 import { generateContractInteractionState } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
