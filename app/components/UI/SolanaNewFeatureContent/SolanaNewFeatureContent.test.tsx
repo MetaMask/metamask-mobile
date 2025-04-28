@@ -4,6 +4,12 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import SolanaNewFeatureContent from './SolanaNewFeatureContent';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { SolAccountType } from '@metamask/keyring-api';
+import { Linking } from 'react-native';
+import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
+import Engine from '../../../core/Engine';
+import { MOCK_SOLANA_ACCOUNT } from '../../../util/test/accountsControllerTestUtils';
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
@@ -45,6 +51,10 @@ jest.mock('@react-navigation/native', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
   }),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  setSelectedAddress: jest.fn(),
 }));
 
 const initialMetrics: Metrics = {
@@ -107,12 +117,14 @@ describe('SolanaNewFeatureContent', () => {
     });
   });
 
-  it('shows the "got it" button for existing users', async () => {
+  it('shows the "view solana account" button for existing users', async () => {
     (useSelector as jest.Mock).mockReturnValue(true);
     const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
-      expect(getByText('solana_new_feature_content.got_it')).toBeTruthy();
+      expect(
+        getByText('solana_new_feature_content.view_solana_account'),
+      ).toBeTruthy();
     });
   });
 
@@ -135,6 +147,47 @@ describe('SolanaNewFeatureContent', () => {
     );
   });
 
+  it('shows "view solana account" button and navigates to solana account if user has a solana account', async () => {
+    (useSelector as jest.Mock).mockImplementation((selector) =>
+      selector({
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '1',
+                accounts: {
+                  '1': {
+                    address: '0xSomeAddress',
+                  },
+                  '2': {
+                    address: MOCK_SOLANA_ACCOUNT.address,
+                    type: SolAccountType.DataAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
+
+    await waitFor(() => {
+      expect(
+        getByText('solana_new_feature_content.view_solana_account'),
+      ).toBeTruthy();
+    });
+
+    fireEvent.press(
+      getByText('solana_new_feature_content.view_solana_account'),
+    );
+    expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
+      MOCK_SOLANA_ACCOUNT.address,
+    );
+  });
+
   it('does not render when modal has been shown before', async () => {
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue('true');
     const { queryByText } = renderWithProviders(<SolanaNewFeatureContent />);
@@ -142,5 +195,44 @@ describe('SolanaNewFeatureContent', () => {
     await waitFor(() => {
       expect(queryByText('solana_new_feature_content.title')).toBeNull();
     });
+  });
+
+  it('navigates to learn more page when "learn more" button is pressed', async () => {
+    const mockNavigate = jest.fn();
+    Linking.openURL = mockNavigate;
+
+    (useSelector as jest.Mock).mockImplementation((selector) =>
+      selector({
+        banners: {
+          dismissedBanners: [],
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '2',
+                accounts: {
+                  '2': {
+                    address: 'SomeSolanaAddress',
+                    type: SolAccountType.DataAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
+
+    await waitFor(() => {
+      expect(getByText('solana_new_feature_content.learn_more')).toBeTruthy();
+    });
+    fireEvent.press(getByText('solana_new_feature_content.learn_more'));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE,
+    );
   });
 });
