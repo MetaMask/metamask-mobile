@@ -732,6 +732,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       isLoading,
       sdkConnection,
       hostname,
+      handleAccountsSelected
     ],
   );
 

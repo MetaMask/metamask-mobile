@@ -117,7 +117,7 @@ export const getPermittedAccountsByHostname = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
   hostname: string,
-) => {
+): string[] => {
   const subjects = state.subjects;
   const accountsByHostname = Object.keys(subjects).reduce(
     // TODO: Replace "any" with type
@@ -135,6 +135,44 @@ export const getPermittedAccountsByHostname = (
   return accountsByHostname?.[hostname] || [];
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getPermittedChainIdsFromSubject(subject: any) {
+  const caveats =
+    subject.permissions?.[Caip25EndowmentPermissionName]?.caveats || [];
+
+  const caveat = caveats.find(
+    ({ type }: CaveatConstraint) => type === Caip25CaveatType,
+  );
+  if (caveat) {
+    return getPermittedEthChainIds(caveat.value);
+  }
+
+  return [];
+}
+
+export const getPermittedChainIdsByHostname = (
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  state: any,
+  hostname: string,
+): string[] => {
+  const subjects = state.subjects;
+  const chainIdsByHostname = Object.keys(subjects).reduce(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (acc: any, subjectKey) => {
+      const chainIds = getPermittedChainIdsFromSubject(subjects[subjectKey]);
+      if (chainIds.length > 0) {
+        acc[subjectKey] = chainIds;
+      }
+      return acc;
+    },
+    {},
+  );
+
+  return chainIdsByHostname?.[hostname] || [];
+};
 
 /**
  * Returns a default CAIP-25 caveat value.
