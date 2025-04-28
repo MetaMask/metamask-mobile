@@ -11,7 +11,7 @@ import type {
   EncryptionResult,
   KeyDerivationOptions,
 } from './types';
-import { quickCryptoLib, getEncryptionLibrary } from './lib';
+import { QuickCryptoLib } from './lib';
 
 // Add these interfaces near the top with the other types
 interface DetailedDecryptResult {
