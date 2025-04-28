@@ -14,6 +14,7 @@ const newOverrides = [
       'app/store/migrations/**',
       'app/core/Engine/controllers/network-controller/messenger-action-handlers.test.ts',
       'app/util/networks/customNetworks.tsx',
+      'app/components/UI/Earn/selectors/featureFlags/index.ts',
     ],
     plugins: ['transform-inline-environment-variables'],
   },
