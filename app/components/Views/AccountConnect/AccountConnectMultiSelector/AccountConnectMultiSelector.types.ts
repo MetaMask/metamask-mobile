@@ -14,21 +14,17 @@ import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
 import { UseAccounts } from '../../../hooks/useAccounts';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { USER_INTENT } from '../../../../constants/permissions';
+import { CaipAccountId } from '@metamask/utils';
 
 /**
  * AccountConnectMultiSelector props.
  */
 export interface AccountConnectMultiSelectorProps
   extends Omit<UseAccounts, 'evmAccounts'> {
-  selectedAddresses: string[];
-  onSelectAddress: (addresses: string[]) => void;
+  defaultSelectedAccountIds: CaipAccountId[];
+  onSubmit: (addresses: CaipAccountId[]) => void;
   isLoading?: boolean;
-  onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
-  onPrimaryActionButtonPress?: () => void;
-  urlWithProtocol: string;
   hostname: string;
-  favicon: ImageSourcePropType;
-  secureIcon: IconName;
   isAutoScrollEnabled?: boolean;
   onBack: () => void;
   connection?: ConnectionProps;

@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, SafeAreaView } from 'react-native';
 import { isEqual } from 'lodash';
 
@@ -35,75 +35,58 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { CaipAccountId } from '@metamask/utils';
+import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 
 const AccountConnectMultiSelector = ({
   accounts,
   ensByAccountAddress,
-  selectedAddresses,
-  onSelectAddress,
+  defaultSelectedAccountIds,
+  onSubmit,
   isLoading,
-  onUserAction,
   isAutoScrollEnabled = true,
-  urlWithProtocol,
   hostname,
   connection,
   onBack,
   screenTitle,
   isRenderedAsBottomSheet = true,
   showDisconnectAllButton = true,
-  onPrimaryActionButtonPress,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
-  const { navigate } = useNavigation();
   const [screen, setScreen] = useState<AccountConnectMultiSelectorScreens>(
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
   );
-  const sortedSelectedAddresses = [...selectedAddresses].sort((a, b) =>
-    a.localeCompare(b),
-  );
-  const [originalSelectedAddresses] = useState<string[]>(
-    sortedSelectedAddresses,
-  );
+
+  const [selectedAccountIds, setSelectedAccountIds] = useState<CaipAccountId[]>([]);
+
+  useEffect(() => {
+    setSelectedAccountIds(defaultSelectedAccountIds);
+  }, [
+    // TODO: Fix the source of this prop value to be the same array instance each render
+    JSON.stringify(defaultSelectedAccountIds),
+  ]);
 
   const onSelectAccount = useCallback(
-    (accAddress) => {
-      const selectedAddressIndex = selectedAddresses.indexOf(accAddress);
-      // Reconstruct selected addresses.
-      const newAccountAddresses = accounts.reduce((acc, { address }) => {
-        if (accAddress === address) {
-          selectedAddressIndex === -1 && acc.push(address);
-        } else if (selectedAddresses.includes(address)) {
-          acc.push(address);
-        }
-        return acc;
-      }, [] as string[]);
-      onSelectAddress(newAccountAddresses);
+    (caipAccountId) => {
+      const updatedSelectedAccountAddresses = selectedAccountIds.filter(
+        (selectedAccountId) => {
+          return !isEqualCaseInsensitive(selectedAccountId, caipAccountId);
+        },
+      );
+
+      if (
+        updatedSelectedAccountAddresses.length === selectedAccountIds.length
+      ) {
+        setSelectedAccountIds([...selectedAccountIds, caipAccountId]);
+      } else {
+        setSelectedAccountIds(updatedSelectedAccountAddresses);
+      }
     },
-    [accounts, selectedAddresses, onSelectAddress],
+    [accounts, selectedAccountIds, setSelectedAccountIds],
   );
 
-  const onRevokeAllHandler = useCallback(async () => {
-    await Engine.context.PermissionController.revokeAllPermissions(hostname);
-    navigate('PermissionsManager');
-  }, [hostname, navigate]);
-
-  const toggleRevokeAllAccountPermissionsModal = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
-      params: {
-        hostInfo: {
-          metadata: {
-            origin: urlWithProtocol && new URL(urlWithProtocol).hostname,
-          },
-        },
-        onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
-      },
-    });
-  }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
-
   const areAllAccountsSelected = accounts
-    .map(({ address }) => address)
-    .every((address) => selectedAddresses.includes(address));
+    .every(({address}) => selectedAddresses.includes(address));
 
   const areAnyAccountsSelected = selectedAddresses?.length !== 0;
   const areNoAccountsSelected = selectedAddresses?.length === 0;
@@ -145,17 +128,11 @@ const AccountConnectMultiSelector = ({
     areAnyAccountsSelected,
     accounts,
     isLoading,
-    onSelectAddress,
+    onSubmit,
     styles.selectAll,
   ]);
 
   const renderCtaButtons = useCallback(() => {
-    const isConnectDisabled = Boolean(!selectedAddresses.length) || isLoading;
-    const areUpdateDisabled = isEqual(
-      [...selectedAddresses].sort((a, b) => a.localeCompare(b)),
-      originalSelectedAddresses,
-    );
-
     return (
       <View style={styles.ctaButtonsContainer}>
         <View style={styles.connectOrUpdateButtonContainer}>
@@ -164,17 +141,16 @@ const AccountConnectMultiSelector = ({
               variant={ButtonVariants.Primary}
               label={strings('networks.update')}
               onPress={() => {
-                onPrimaryActionButtonPress
-                  ? onPrimaryActionButtonPress()
-                  : onUserAction(USER_INTENT.Confirm);
+                // fix this
+                onSubmit()
               }}
               size={ButtonSize.Lg}
               style={{
                 ...styles.button,
-                ...((isConnectDisabled || areUpdateDisabled) &&
+                ...(isLoading &&
                   styles.disabled),
               }}
-              disabled={isConnectDisabled || areUpdateDisabled}
+              disabled={isLoading}
               testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON}
             />
           )}
@@ -193,7 +169,8 @@ const AccountConnectMultiSelector = ({
                 variant={ButtonVariants.Primary}
                 label={strings('accounts.disconnect')}
                 testID={ConnectedAccountsSelectorsIDs.DISCONNECT}
-                onPress={toggleRevokeAllAccountPermissionsModal}
+                // fix this
+                onPress={() => {}}
                 isDanger
                 size={ButtonSize.Lg}
                 style={{
@@ -208,15 +185,12 @@ const AccountConnectMultiSelector = ({
   }, [
     areAnyAccountsSelected,
     isLoading,
-    onUserAction,
-    selectedAddresses,
+    selectedAccountIds,
     styles,
     areNoAccountsSelected,
     hostname,
-    toggleRevokeAllAccountPermissionsModal,
     showDisconnectAllButton,
-    onPrimaryActionButtonPress,
-    originalSelectedAddresses,
+    onSubmit,
   ]);
 
   const renderAccountConnectMultiSelector = useCallback(
