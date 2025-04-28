@@ -190,7 +190,7 @@ jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
 jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 );
-require('@shopify/flash-list/jestSetup');
+// require('@shopify/flash-list/jestSetup');
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock(
   '@react-native-async-storage/async-storage',
