@@ -80,10 +80,15 @@ const PermissionsSummary = ({
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
 
-  const hostname = useMemo(
-    () => new URL(currentPageInformation.url).hostname,
-    [currentPageInformation.url],
-  );
+  const hostname = useMemo(() => {
+    try {
+      return new URL(currentPageInformation.url).hostname;
+    } catch (e) {
+      // Handle invalid URL, default to the original string or an empty string
+      return currentPageInformation.url || '';
+    }
+  }, [currentPageInformation.url]);
+
   const networkInfo = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
