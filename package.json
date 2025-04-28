@@ -152,7 +152,7 @@
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
-    "@consensys/on-ramp-sdk": "^2.1.5",
+    "@consensys/on-ramp-sdk": "2.1.6",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "@keystonehq/ur-decoder": "^0.12.2",
