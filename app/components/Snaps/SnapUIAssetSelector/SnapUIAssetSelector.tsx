@@ -1,30 +1,16 @@
 import React, { FunctionComponent } from 'react';
 import { CaipAccountId, CaipChainId } from '@metamask/utils';
-
 import { SnapUISelector } from '../SnapUISelector/SnapUISelector';
-
-import {
-  Display,
-  FlexDirection,
-  TextAlign,
-  TextColor,
-  TextVariant,
-  AlignItems,
-  BackgroundColor,
-  BlockSize,
-} from '../../../../helpers/constants/design-system';
-import {
-  Box,
-  Text,
-  AvatarToken,
-  BadgeWrapper,
-  AvatarNetwork,
-  AvatarNetworkSize,
-} from '../../../component-library';
-
-import { useI18nContext } from '../../../../hooks/useI18nContext';
+import { strings } from '../../../../locales/i18n';
 import { SnapUIAsset, useSnapAssetSelectorData } from './useSnapAssetDisplay';
-
+import { Box } from '../../UI/Box/Box';
+import { AlignItems, BackgroundColor, FlexDirection, TextAlign } from '../../UI/Box/box.types';
+import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import Text, { TextColor, TextVariant } from '../../../component-library/components/Texts/Text';
+import { ImageSourcePropType, ViewStyle } from 'react-native';
 /**
  * An option for the SnapUIAssetSelector.
  *
@@ -38,7 +24,7 @@ import { SnapUIAsset, useSnapAssetSelectorData } from './useSnapAssetDisplay';
  * @param props.networkIcon - The network icon.
  * @returns The Asset Selector option.
  */
-const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset> = ({
+const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewStyle }> = ({
   icon,
   symbol,
   name,
@@ -46,55 +32,54 @@ const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset> = ({
   fiat,
   networkName,
   networkIcon,
+  style,
 }) => (
   <Box
-    display={Display.Flex}
     alignItems={AlignItems.center}
-    width={BlockSize.Full}
     gap={4}
+    // eslint-disable-next-line react-native/no-inline-styles
     style={{ overflow: 'hidden' }}
   >
-    <Box display={Display.Flex} alignItems={AlignItems.center}>
+    <Box alignItems={AlignItems.center}>
       <BadgeWrapper
-        badge={
+        badgeElement={
           <AvatarNetwork
-            size={AvatarNetworkSize.Xs}
+            size={AvatarSize.Xs}
             name={networkName}
-            src={networkIcon}
-            backgroundColor={BackgroundColor.backgroundDefault}
+            imageSource={networkIcon as ImageSourcePropType}
+            style={{ backgroundColor: BackgroundColor.backgroundDefault }}
           />
         }
       >
-        <AvatarToken src={icon} />
+        <AvatarToken imageSource={icon as ImageSourcePropType} />
       </BadgeWrapper>
     </Box>
     <Box
-      display={Display.Flex}
       flexDirection={FlexDirection.Column}
+      // eslint-disable-next-line react-native/no-inline-styles
       style={{ overflow: 'hidden' }}
     >
-      <Text variant={TextVariant.bodyMdMedium} ellipsis>
+      <Text variant={TextVariant.BodyMDMedium} ellipsizeMode="tail">
         {name}
       </Text>
       <Text
-        color={TextColor.textAlternative}
-        variant={TextVariant.bodySm}
-        ellipsis
+        color={TextColor.Alternative}
+        variant={TextVariant.BodySM}
+        ellipsizeMode="tail"
       >
         {networkName}
       </Text>
     </Box>
     <Box
-      display={Display.Flex}
       flexDirection={FlexDirection.Column}
-      marginLeft={'auto'}
-      textAlign={TextAlign.End}
-      className="snap-ui-renderer__asset-selector-option__balance"
+      // eslint-disable-next-line react-native/no-inline-styles
+      style={{ marginLeft: 'auto', ...style }}
+      textAlign={TextAlign.right}
     >
-      <Text variant={TextVariant.bodySmMedium}>
+      <Text variant={TextVariant.BodySMMedium}>
         {balance} {symbol}
       </Text>
-      <Text color={TextColor.textAlternative} variant={TextVariant.bodySm}>
+      <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
         {fiat}
       </Text>
     </Box>
@@ -112,7 +97,9 @@ interface SnapUIAssetSelectorProps {
   form?: string;
   label?: string;
   error?: string;
+  style?: Record<string, ViewStyle>;
 }
+
 
 /**
  * The SnapUIAssetSelector component.
@@ -125,8 +112,9 @@ interface SnapUIAssetSelectorProps {
  */
 export const SnapUIAssetSelector: FunctionComponent<
   SnapUIAssetSelectorProps
-> = ({ addresses, chainIds, disabled, ...props }) => {
-  const t = useI18nContext();
+> = ({ addresses, chainIds, disabled, style, ...props }) => {
+  const t = (name: string, params?: object) =>
+    strings(name, params) ?? '';
   const assets = useSnapAssetSelectorData({ addresses, chainIds });
 
   const options = assets.map(({ address, name, symbol }) => ({
@@ -136,16 +124,16 @@ export const SnapUIAssetSelector: FunctionComponent<
   }));
 
   const optionComponents = assets.map((asset, index) => (
-    <SnapUIAssetSelectorOption {...asset} key={index} />
+    <SnapUIAssetSelectorOption {...asset} key={index} style={style?.option} />
   ));
 
   return (
     <SnapUISelector
-      className="snap-ui-renderer__asset-selector"
-      title={t('snapUIAssetSelectorTitle')}
+      title={t('snaps.snap_ui.asset_selector.title')}
       options={options}
       optionComponents={optionComponents}
       disabled={disabled || assets.length === 0}
+      style={style?.base}
       {...props}
     />
   );
