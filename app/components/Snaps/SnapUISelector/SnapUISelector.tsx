@@ -5,7 +5,7 @@ import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import { Box } from '../../UI/Box/Box';
-import { FlexDirection } from '../../UI/Box/box.types';
+import { BorderRadius, FlexDirection } from '../../UI/Box/box.types';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
@@ -15,11 +15,13 @@ import { View, ScrollView, ViewStyle } from 'react-native';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ApprovalModal from '../../Approvals/ApprovalModal';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
+import { State } from '@metamask/snaps-sdk';
+import { isObject } from '@metamask/utils';
 
 export interface SnapUISelectorProps {
   name: string;
   title: string;
-  options: { value: string; disabled: boolean }[];
+  options: { key?: string; value: State; disabled: boolean }[];
   optionComponents: React.ReactNode[];
   form?: string;
   label?: string;
@@ -29,9 +31,10 @@ export interface SnapUISelectorProps {
 }
 
 interface SelectorItemProps {
-  value: string;
+  value: State;
   children: React.ReactNode;
-  onSelect: (value: string) => void;
+  onSelect: (value: State) => void;
+  selected?: boolean;
   disabled?: boolean;
 }
 
@@ -40,16 +43,24 @@ const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
   children,
   onSelect,
   disabled,
+  selected,
 }) => {
-  const { styles } = useStyles(stylesheet, {});
+  const { styles } = useStyles(stylesheet, { selected });
 
   const handlePress = () => {
     onSelect(value);
   };
 
+  const buttonChildren = (
+    <>
+      {children}
+      {selected && <Box style={styles.selectedPill} />}
+    </>
+  );
+
   return (
     <ButtonBase
-      label={children}
+      label={buttonChildren}
       width={ButtonWidthTypes.Full}
       onPress={handlePress}
       style={styles.modalButton}
@@ -72,7 +83,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   const { styles } = useStyles(stylesheet, {});
   const { handleInputChange, getValue } = useSnapInterfaceContext();
 
-  const initialValue = getValue(name, form) as string;
+  const initialValue = getValue(name, form);
 
   const [selectedOptionValue, setSelectedOption] = useState(initialValue);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -89,15 +100,25 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
 
   const handleModalClose = () => setIsModalOpen(false);
 
-  const handleSelect = (value: string) => {
+  const handleSelect = (value: State) => {
     setSelectedOption(value);
     handleInputChange(name, value, form);
     handleModalClose();
   };
 
-  const selectedOptionIndex = options.findIndex(
-    (option) => option.value === selectedOptionValue,
+
+  /**
+   * Find the index of the selected option in the options array.
+   * If the option is an object, use the provided key to compare the values.
+   * If the option is a primitive, compare the values directly.
+   */
+  const selectedOptionIndex = options.findIndex((option) =>
+    option.key && isObject(option.value)
+      ? option.value[option.key as keyof typeof option.value] ===
+        selectedOptionValue?.[option.key as keyof typeof selectedOptionValue]
+      : option.value === selectedOptionValue,
   );
+
 
   const selectedOption = optionComponents[selectedOptionIndex];
 
@@ -136,7 +157,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
             >
               {optionComponents.map((component, index) => (
                 <SelectorItem
-                  key={options[index].value}
+                  key={`snap-ui-selector-${options[index].value}`}
                   value={options[index].value}
                   disabled={options[index]?.disabled}
                   onSelect={handleSelect}
