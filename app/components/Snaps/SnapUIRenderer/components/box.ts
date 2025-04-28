@@ -59,7 +59,11 @@ export const box: UIComponentFactory<BoxElement> = ({
 }) => ({
   element: 'Box',
   children: getJsxChildren(e).map((children) =>
-    mapToTemplate({ ...params, element: children as JSXElement }),
+    mapToTemplate({
+      ...params,
+      element: children as JSXElement,
+      parentIsFlexRow: e.props.direction === 'horizontal',
+    }),
   ) as NonEmptyArray<UIComponent>,
   props: {
     flexDirection:
