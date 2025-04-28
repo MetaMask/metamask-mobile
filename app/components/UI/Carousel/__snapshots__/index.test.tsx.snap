@@ -24,6 +24,19 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
       data={
         [
           {
+            "description": "banner.solana.subtitle",
+            "id": "solana",
+            "navigation": {
+              "navigate": [Function],
+              "type": "function",
+            },
+            "testID": "carousel-sixth-slide",
+            "testIDCloseButton": "carousel-sixth-slide-close-button",
+            "testIDTitle": "carousel-sixth-slide-title",
+            "title": "banner.solana.title",
+            "undismissable": false,
+          },
+          {
             "description": "banner.fund.subtitle",
             "id": "fund",
             "navigation": {
@@ -72,6 +85,194 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
       viewabilityConfigCallbackPairs={[]}
     >
       <View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 59,
+                  "marginHorizontal": 5,
+                  "position": "relative",
+                  "width": 718,
+                },
+                false,
+              ]
+            }
+            testID="carousel-sixth-slide"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "height": "100%",
+                  "width": "100%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "height": 59,
+                    "justifyContent": "center",
+                    "overflow": "hidden",
+                    "width": 60,
+                  }
+                }
+              >
+                <Image
+                  resizeMode="contain"
+                  source={
+                    {
+                      "uri": "aggregated-image",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 59,
+                      "width": 60,
+                    }
+                  }
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "gap": 0,
+                      "width": 658,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginLeft": 14,
+                      }
+                    }
+                    testID="carousel-sixth-slide-title"
+                  >
+                    banner.solana.title
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 10.4,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginLeft": 14,
+                        "marginTop": -4,
+                      }
+                    }
+                  >
+                    banner.solana.subtitle
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "height": 26,
+                    "justifyContent": "center",
+                    "position": "absolute",
+                    "right": 6,
+                    "top": 4,
+                    "width": 26,
+                  }
+                }
+                testID="carousel-sixth-slide-close-button"
+              >
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 18,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
         <View
           onFocusCapture={[Function]}
           onLayout={[Function]}
@@ -457,6 +658,20 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
         ]
       }
     />
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#9ca1af",
+            "borderRadius": 3,
+            "height": 6,
+            "margin": 0,
+            "width": 6,
+          },
+          false,
+        ]
+      }
+    />
   </View>
 </View>
 `;
@@ -484,6 +699,19 @@ exports[`Carousel should render correctly 1`] = `
     <RCTScrollView
       data={
         [
+          {
+            "description": "banner.solana.subtitle",
+            "id": "solana",
+            "navigation": {
+              "navigate": [Function],
+              "type": "function",
+            },
+            "testID": "carousel-sixth-slide",
+            "testIDCloseButton": "carousel-sixth-slide-close-button",
+            "testIDTitle": "carousel-sixth-slide-title",
+            "title": "banner.solana.title",
+            "undismissable": false,
+          },
           {
             "description": "banner.card.subtitle",
             "id": "card",
@@ -573,6 +801,194 @@ exports[`Carousel should render correctly 1`] = `
       viewabilityConfigCallbackPairs={[]}
     >
       <View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 59,
+                  "marginHorizontal": 5,
+                  "position": "relative",
+                  "width": 718,
+                },
+                false,
+              ]
+            }
+            testID="carousel-sixth-slide"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "height": "100%",
+                  "width": "100%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "height": 59,
+                    "justifyContent": "center",
+                    "overflow": "hidden",
+                    "width": 60,
+                  }
+                }
+              >
+                <Image
+                  resizeMode="contain"
+                  source={
+                    {
+                      "uri": "aggregated-image",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 59,
+                      "width": 60,
+                    }
+                  }
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "gap": 0,
+                      "width": 658,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginLeft": 14,
+                      }
+                    }
+                    testID="carousel-sixth-slide-title"
+                  >
+                    banner.solana.title
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 10.4,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginLeft": 14,
+                        "marginTop": -4,
+                      }
+                    }
+                  >
+                    banner.solana.subtitle
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "height": 26,
+                    "justifyContent": "center",
+                    "position": "absolute",
+                    "right": 6,
+                    "top": 4,
+                    "width": 26,
+                  }
+                }
+                testID="carousel-sixth-slide-close-button"
+              >
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 18,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
         <View
           onFocusCapture={[Function]}
           onLayout={[Function]}
@@ -1505,6 +1921,20 @@ exports[`Carousel should render correctly 1`] = `
           {
             "backgroundColor": "#121314",
           },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#9ca1af",
+            "borderRadius": 3,
+            "height": 6,
+            "margin": 0,
+            "width": 6,
+          },
+          false,
         ]
       }
     />

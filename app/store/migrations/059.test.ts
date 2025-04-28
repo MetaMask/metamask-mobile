@@ -131,6 +131,29 @@ describe('Migration #59 - Fix crasher related to undefined selectedAccount on Ac
     expect(migratedState).toStrictEqual(expectedState);
   });
 
+  it('should capture exception if attempting to set selectedAccount when first account id is undefined', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [expectedUuid]: { ...internalAccount1, id: undefined },
+                [expectedUuid2]: internalAccount2,
+              },
+              selectedAccount: undefined,
+            },
+          },
+        },
+      },
+    };
+
+    await migrate(oldState);
+    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      `Migration 59: selectedAccount will be undefined because firstAccount.id is undefined.`,
+    );
+  });
+
   it('should leave selectedAccount alone if it is not undefined', async () => {
     const oldState = {
       engine: {

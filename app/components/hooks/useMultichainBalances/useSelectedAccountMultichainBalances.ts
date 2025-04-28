@@ -103,7 +103,6 @@ const useSelectedAccountMultichainBalances =
             totalFiatBalancesCrossEvmChain[selectedInternalAccount.address]
               ?.tokenFiatBalancesCrossChains ?? [],
           shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(
-            selectedInternalAccount,
             chainId as SupportedCaipChainId,
           ),
           isPortfolioVieEnabled: isPortfolioEnabled,
