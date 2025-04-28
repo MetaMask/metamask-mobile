@@ -1,6 +1,6 @@
 // External dependencies.
 import { InputProps } from './foundation/Input/Input.types';
-
+import { ViewStyle } from 'react-native';
 /**
  * TextFieldSize.
  */
@@ -37,6 +37,10 @@ export interface TextFieldProps
    * Optional prop to replace defaulted input with custom Input.
    */
   inputElement?: React.ReactNode;
+  /**
+   * Optional prop to style the input.
+   */
+  inputStyle?: ViewStyle;
 }
 
 /**
