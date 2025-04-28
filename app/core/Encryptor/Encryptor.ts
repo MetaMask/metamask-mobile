@@ -117,11 +117,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     opts: KeyDerivationOptions = this.keyDerivationOptions,
     lib = ENCRYPTION_LIBRARY.original,
   ): Promise<EncryptionKey> => {
-    const derivedKey = await quickCryptoLib.deriveKey(
-      password,
-      salt,
-      opts,
-    );
+    const derivedKey = await quickCryptoLib.deriveKey(password, salt, opts);
 
     return {
       key: derivedKey,
@@ -146,12 +142,8 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const text = JSON.stringify(data);
 
     const iv = Crypto.getRandomValues(new Uint8Array(16));
-    const result = await quickCryptoLib.encrypt(
-      text,
-      key.key,
-      iv,
-    );
-    
+    const result = await quickCryptoLib.encrypt(text, key.key, iv);
+
     const cipher = Buffer.from(result).toString('base64');
 
     return {
@@ -174,13 +166,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     key: EncryptionKey,
     payload: EncryptionResult,
   ): Promise<unknown> => {
-    // TODO: Check for key and payload compatibility?
-
-    const result = await quickCryptoLib.decrypt(
-      payload.cipher,
-      key.key,
-      payload.iv,
-    );
+    const result = await quickCryptoLib.decrypt(payload.cipher, key.key, payload.iv);
 
     const text = Buffer.from(result).toString('utf-8');
 
@@ -211,7 +197,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     // the encryptor itself. This makes sure we always re-encrypt with the "latest" and "best"
     // setup possible.
     const result = await this.encryptWithKey(key, data);
-    result.lib = key.lib; // Use the same library as the one used for key generation!
+    result.lib = key.lib;
     result.salt = salt;
     result.keyMetadata = key.keyMetadata;
     return JSON.stringify(result);
@@ -277,7 +263,8 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     }
 
     const json = JSON.stringify(key);
-    return Buffer.from(json).toString('base64');
+    const base64Key = Buffer.from(json).toString('base64');
+    return base64Key;
   };
 
   /**
@@ -315,14 +302,9 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     text: string,
   ): Promise<DetailedDecryptResult> => {
     const payload = JSON.parse(text);
+
     const { salt, keyMetadata } = payload;
-    const key = await this.keyFromPassword(
-      password,
-      salt,
-      true,
-      keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
-      payload.lib,
-    );
+    const key = await this.keyFromPassword(password, salt, true, keyMetadata ?? LEGACY_DERIVATION_OPTIONS, payload.lib);
     const exportedKeyString = await this.exportKey(key);
     const vault = await this.decryptWithKey(key, payload);
 
@@ -349,13 +331,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     salt = this.generateSalt(),
     keyDerivationOptions = this.keyDerivationOptions,
   ): Promise<DetailedEncryptionResult> => {
-    const key = await this.keyFromPassword(
-      password,
-      salt,
-      true,
-      keyDerivationOptions,
-      ENCRYPTION_LIBRARY.original,
-    );
+    const key = await this.keyFromPassword(password, salt, true, keyDerivationOptions, ENCRYPTION_LIBRARY.original);
     const exportedKeyString = await this.exportKey(key);
 
     const result = await this.encryptWithKey(key, dataObj);
