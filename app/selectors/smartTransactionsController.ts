@@ -46,7 +46,7 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
     transactionChainId,
     providerConfigRpcUrl,
     smartTransactionsFeatureFlagEnabled,
-    _smartTransactionsLiveness,
+    smartTransactionsLiveness,
   ) => {
     const effectiveChainId = transactionChainId || globalChainId;
     const addressIsHardwareAccount = selectedAddress
@@ -58,10 +58,8 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
       isAllowedNetwork &&
         !addressIsHardwareAccount &&
         getIsAllowedRpcUrlForSmartTransactions(providerConfigRpcUrl) &&
-        smartTransactionsFeatureFlagEnabled,
-      // TODO: "fetchLiveness" fn from the STX controller has to be called with the right networkClientId,
-      // and then the smartTransactionsState?.liveness will return the correct value.
-      // smartTransactionsLiveness,
+        smartTransactionsFeatureFlagEnabled &&
+        smartTransactionsLiveness,
     );
   },
 );
