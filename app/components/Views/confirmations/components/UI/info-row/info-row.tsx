@@ -41,7 +41,7 @@ const InfoRow = ({
       <Text style={styles.value}>{children}</Text>
     ) : (
       <>{children}</>
-    )
+    );
 
   return (
     <>
@@ -70,7 +70,7 @@ const InfoRow = ({
         <View style={styles.valueOnNewLineContainer}>
           {ValueComponent}
         </View>
-      ): null}
+      ) : null}
     </>
   );
 };

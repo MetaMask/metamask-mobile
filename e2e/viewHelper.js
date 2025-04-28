@@ -245,15 +245,15 @@ export const loginToApp = async () => {
 export const waitForTestDappToLoad = async () => {
   const MAX_RETRIES = 3;
   const RETRY_DELAY = 5000;
-  
+
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
       await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
-      
+
       await Assertions.webViewElementExists(TestDApp.DappConnectButton);
       return; // Success - page is fully loaded and interactive
-      
+
     } catch (error) {
       if (attempt === MAX_RETRIES) {
         throw new Error(`Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`);
@@ -261,6 +261,6 @@ export const waitForTestDappToLoad = async () => {
       await TestHelpers.delay(RETRY_DELAY);
     }
   }
-  
+
   throw new Error('Test dapp failed to become fully interactive');
 };

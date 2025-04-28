@@ -397,7 +397,7 @@ describe('WC2Manager', () => {
 
       // Call the callback directly
       await sessionRequestCallback(mockRequest);
-      
+
       const session = manager.getSession('test-topic');
       expect(session).toBeDefined();
     });
@@ -638,7 +638,7 @@ describe('WC2Manager', () => {
       };
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       await manager.onSessionProposal(mockSessionProposal);
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -681,7 +681,7 @@ describe('WC2Manager', () => {
         }
       },
       pairingTopic: 'test-pairing'
-     }
+     };
 
     beforeEach(() => {
       mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
@@ -694,11 +694,11 @@ describe('WC2Manager', () => {
 
     it('removes all pending session proposals', async () => {
       const mockPendingProposals = {
-        '1': { 
+        '1': {
           id: 1,
           ...mockPendingProposalData
         },
-        '2': { 
+        '2': {
           id: 2,
           ...mockPendingProposalData
         }
@@ -710,7 +710,7 @@ describe('WC2Manager', () => {
 
       const rejectSessionSpy = jest.spyOn(mockWeb3Wallet, 'rejectSession')
         .mockResolvedValue(undefined);
-      
+
       rejectSessionSpy.mockClear();
 
       await manager.removePendings();
@@ -832,7 +832,7 @@ describe('WC2Manager', () => {
         )?.[1];
         expect(sessionDeleteCallback).toBeDefined();
       }
-    })
+    });
 
     afterEach(() => {
       jest.clearAllMocks();
@@ -924,7 +924,7 @@ describe('WC2Manager', () => {
       // Spy on console.warn
       jest.spyOn(console, 'warn').mockImplementation();
     });
-    
+
     afterEach(() => {
       // Restore console.warn after each test
       jest.restoreAllMocks();
@@ -965,7 +965,7 @@ describe('WC2Manager', () => {
     it('successfully initializes Core with valid projectId', async () => {
       // eslint-disable-next-line dot-notation
       const result = await WC2Manager['initCore']('valid-project-id');
-      
+
       expect(Core).toHaveBeenCalledWith({
         projectId: 'valid-project-id',
         logger: 'fatal'

@@ -84,7 +84,7 @@ describe(SmokeCore('Analytics during import wallet flow'), () => {
       sendMetaMetricsinE2E: true,
     }}, async ({ mockServer }) => {
 
-      await CreateNewWallet()
+      await CreateNewWallet();
 
       const events = await getEventsPayloads(mockServer, [EVENT_NAME.WALLET_CREATED, EVENT_NAME.WALLET_SETUP_COMPLETED]);
 
