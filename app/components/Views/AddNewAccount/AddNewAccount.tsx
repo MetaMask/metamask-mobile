@@ -174,6 +174,21 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     return keyring ? keyring.accounts.length : 0;
   }, [hdKeyrings, keyringId]);
 
+  const addAccountTitle = useMemo(() => {
+    switch (clientType) {
+      case WalletClientType.Bitcoin:
+        return strings('account_actions.add_multichain_account', {
+          networkName: strings('account_actions.headers.bitcoin'),
+        });
+      case WalletClientType.Solana:
+        return strings('account_actions.add_multichain_account', {
+          networkName: strings('account_actions.headers.solana'),
+        });
+      default:
+        return strings('account_actions.add_account');
+    }
+  }, [clientType]);
+
   const onKeyringSelection = (id: string) => {
     setShowSRPList(false);
     setKeyringId(id);
@@ -187,7 +202,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
             title={
               showSRPList
                 ? strings('accounts.select_secret_recovery_phrase')
-                : strings('account_actions.add_account')
+                : addAccountTitle
             }
             onBack={() => {
               if (showSRPList) {
