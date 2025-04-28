@@ -435,7 +435,7 @@ const BridgeView = () => {
                   currency={sourceToken?.symbol || 'ETH'}
                   decimals={sourceToken?.decimals || 18}
                   deleteIcon={
-                    <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
+                    <Icon name={IconName.Arrow2Left} size={IconSize.Lg} />
                   }
                 />
               </Box>
