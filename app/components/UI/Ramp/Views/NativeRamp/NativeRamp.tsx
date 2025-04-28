@@ -142,13 +142,11 @@ function NativeRamp() {
     }
   }, [currentStep]);
 
-  const fetchAndStoreNativeRampOrders = async (isRecovery = false) => {
+  const fetchAndStoreNativeRampOrders = async () => {
     try {
       if (!accessToken) return;
 
       const orders = await nativeRampService.getOrdersHistory(accessToken);
-
-      console.log('checking for pending orders...');
 
       // Convert NativeRamp orders to FiatOrder format
       const fiatOrders = orders.map((order) => {
@@ -225,131 +223,8 @@ function NativeRamp() {
       fiatOrders.forEach((order) => {
         dispatch(addFiatOrder(order));
       });
-
-      // implement recovery logic here
-      if (isRecovery && orders.length > 0) {
-        setLoadingMessage('Checking for pending orders...');
-
-        console.log('Checking for pending orders...');
-
-        // Get the newest order
-        const newestOrder = orders[0];
-
-        // Check if the newest order is pending
-        if (
-          newestOrder.status !== 'COMPLETED' &&
-          newestOrder.status !== 'FAILED'
-        ) {
-          // Set the amount from the pending order
-          setAmount(newestOrder.fiatAmount.toString());
-
-          // Set the payment method from the pending order
-          if (newestOrder.paymentOptionId) {
-            setSelectedPaymentMethod(newestOrder.paymentOptionId);
-          }
-
-          // Restore the order data
-          setOrderData(newestOrder);
-
-          // Check the payment method and restore the appropriate step
-          if (newestOrder.paymentOptionId === 'sepa_bank_transfer') {
-            // For SEPA transfers, we need to get the payment options to display the bank details
-            const sepaOption = newestOrder.paymentOptions?.find(
-              (option) => option.id === 'sepa_bank_transfer',
-            );
-
-            if (sepaOption) {
-              setSepaData(sepaOption);
-
-              // Get a quote to ensure we have all the necessary data
-              const recoveryQuote = await nativeRampService.getBuyQuote(
-                typeof newestOrder.fiatCurrency === 'string'
-                  ? newestOrder.fiatCurrency
-                  : (newestOrder.fiatCurrency as { symbol: string }).symbol,
-                typeof newestOrder.cryptoCurrency === 'string'
-                  ? newestOrder.cryptoCurrency
-                  : (newestOrder.cryptoCurrency as { symbol: string }).symbol,
-                'arbitrum',
-                'sepa_bank_transfer',
-                newestOrder.fiatAmount.toString(),
-              );
-              setQuote(recoveryQuote);
-
-              // Skip to the bank transfer confirmation step
-              setCurrentStep(7);
-            }
-          } else if (
-            newestOrder.paymentOptionId === 'credit_debit_card' ||
-            newestOrder.paymentOptionId === 'apple_pay'
-          ) {
-            // For card or Apple Pay payments, we need to get a new OTT token
-            // to create a new payment widget URL
-            const ottResponse = await nativeRampService.requestOtt(accessToken);
-            const callbackUrl = 'https://metamask.io';
-
-            // Get a quote first
-            const recoveryQuote = await nativeRampService.getBuyQuote(
-              typeof newestOrder.fiatCurrency === 'string'
-                ? newestOrder.fiatCurrency
-                : (newestOrder.fiatCurrency as { symbol: string }).symbol,
-              typeof newestOrder.cryptoCurrency === 'string'
-                ? newestOrder.cryptoCurrency
-                : (newestOrder.cryptoCurrency as { symbol: string }).symbol,
-              'arbitrum',
-              newestOrder.paymentOptionId,
-              newestOrder.fiatAmount.toString(),
-            );
-            setQuote(recoveryQuote);
-
-            // Generate a new payment widget URL
-            const widgetUrl = nativeRampService.generatePaymentWidgetUrl(
-              ottResponse.token,
-              recoveryQuote.fiatCurrency,
-              recoveryQuote.cryptoCurrency,
-              recoveryQuote.network,
-              newestOrder.fiatAmount.toString(),
-              selectedAddress,
-              newestOrder.paymentOptionId,
-              callbackUrl,
-            );
-
-            // Navigate to the payment widget
-            setCurrentStep(7);
-
-            // Create a callback reference instead of calling the function directly
-            const handleOrderCompletionCallback = () => {
-              navigation.goBack();
-              fetchAndStoreNativeRampOrders();
-            };
-
-            navigation.navigate(
-              ...createKycWebviewNavDetails({
-                url: widgetUrl,
-                isPaymentWidget: true,
-                onOrderComplete: handleOrderCompletionCallback,
-              }),
-            );
-          }
-
-          // Alert the user about the pending order recovery
-          Alert.alert(
-            'Pending Order Found',
-            'We found a pending order and have restored your session. You can continue from where you left off.',
-          );
-        }
-      }
     } catch (error) {
       console.error('Error fetching NativeRamp orders:', error);
-      if (isRecovery) {
-        Alert.alert(
-          'Error Recovering Order',
-          'We encountered an error while trying to recover your pending order. Please start a new transaction.',
-        );
-      }
-    } finally {
-      if (isRecovery) {
-        setIsLoading(false);
-      }
     }
   };
 
