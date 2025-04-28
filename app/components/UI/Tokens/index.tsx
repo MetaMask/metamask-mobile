@@ -35,7 +35,7 @@ import {
   selectEvmTokenFiatBalances,
   selectEvmTokens,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  selectMultichainTokenList,
+  selectMultichainTokenListForAccountId,
   ///: END:ONLY_INCLUDE_IF
 } from '../../../selectors/multichain';
 import { TraceName, endTrace, trace } from '../../../util/trace';
@@ -45,6 +45,9 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { RootState } from '../../../reducers';
+///: END:ONLY_INCLUDE_IF
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -74,12 +77,15 @@ const Tokens = memo(() => {
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   // non-evm
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const nonEvmTokens = useSelector(selectMultichainTokenList);
+ const nonEvmTokens = useSelector((state: RootState) =>
+  selectMultichainTokenListForAccountId(state, selectedAccount?.id),
+);
   ///: END:ONLY_INCLUDE_IF
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
+
 
   const tokenListData = isEvmSelected ? evmTokens : nonEvmTokens;
 
@@ -189,32 +195,31 @@ const Tokens = memo(() => {
   );
 
   return (
-    <AssetPollingProvider>
-      <View
-        style={styles.wrapper}
-        testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
-      >
-        <TokenListControlBar goToAddToken={goToAddToken} />
-        {tokensList && (
-          <TokenList
-            tokens={tokensList}
-            refreshing={refreshing}
-            isAddTokenEnabled={isAddTokenEnabled}
-            onRefresh={onRefresh}
-            showRemoveMenu={showRemoveMenu}
-            goToAddToken={goToAddToken}
-          />
-        )}
-        <ActionSheet
-          ref={actionSheet as LegacyRef<typeof ActionSheet>}
-          title={strings('wallet.remove_token_title')}
-          options={[strings('wallet.remove'), strings('wallet.cancel')]}
-          cancelButtonIndex={1}
-          destructiveButtonIndex={0}
-          onPress={onActionSheetPress}
+    <View
+      style={styles.wrapper}
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+    >
+      <AssetPollingProvider />
+      <TokenListControlBar goToAddToken={goToAddToken} />
+      {tokensList && (
+        <TokenList
+          tokens={tokensList}
+          refreshing={refreshing}
+          isAddTokenEnabled={isAddTokenEnabled}
+          onRefresh={onRefresh}
+          showRemoveMenu={showRemoveMenu}
+          goToAddToken={goToAddToken}
         />
-      </View>
-    </AssetPollingProvider>
+      )}
+      <ActionSheet
+        ref={actionSheet as LegacyRef<typeof ActionSheet>}
+        title={strings('wallet.remove_token_title')}
+        options={[strings('wallet.remove'), strings('wallet.cancel')]}
+        cancelButtonIndex={1}
+        destructiveButtonIndex={0}
+        onPress={onActionSheetPress}
+      />
+    </View>
   );
 });
 

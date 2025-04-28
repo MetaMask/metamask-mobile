@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(bridge): use `BridgeStatusController` for EVM and Solana Bridge transaction submission ([#14708](https://github.com/MetaMask/metamask-mobile/pull/14708))
 - feat(multi-srp): add discover accounts to MultichainWalletSnapClient ([#14727](https://github.com/MetaMask/metamask-mobile/pull/14727))
 - feat: real time dapp scanning BrowserTab ([#14515](https://github.com/MetaMask/metamask-mobile/pull/14515))
+- feat(earn): add pooled-staking and stablecoin lending remote feature flags ([#14660](https://github.com/MetaMask/metamask-mobile/pull/14660))
+- feat: feat: AccountConnect and AccountApproval use dapp scanning ([#14514](https://github.com/MetaMask/metamask-mobile/pull/14514/))
 
 ### Changed
 
