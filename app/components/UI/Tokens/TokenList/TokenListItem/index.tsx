@@ -327,7 +327,7 @@ export const TokenListItem = React.memo(
             ticker={asset.ticker || ''}
             big={false}
             biggest={false}
-            testID={'PLACE HOLDER'}
+            testID={asset.name}
           />
         );
       }
@@ -340,12 +340,13 @@ export const TokenListItem = React.memo(
         />
       );
     }, [
-      asset.ticker,
-      asset.image,
-      asset.symbol,
       asset.isNative,
-      styles.ethLogo,
+      asset.symbol,
+      asset.image,
+      asset.ticker,
+      asset.name,
       chainId,
+      styles.ethLogo,
     ]);
 
     const renderEarnCta = useCallback(() => {
