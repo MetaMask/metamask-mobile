@@ -2,16 +2,14 @@
 import React, { useCallback, useRef } from 'react';
 import { Alert, ListRenderItem, View, ViewStyle } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { useSelector } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
-import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useStyles } from '../../../component-library/hooks';
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
@@ -37,6 +35,8 @@ import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { RootState } from '../../../reducers';
+import { ACCOUNT_SELECTOR_LIST_TESTID } from './AccountSelectorList.constants';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -60,15 +60,14 @@ const AccountSelectorList = ({
   const accountListRef = useRef<any>(null);
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
 
-  const internalAccounts = useSelector(selectInternalAccounts);
+  const accountAvatarType = useSelector(
+    (state: RootState) =>
+      state.settings.useBlockieIcon
+        ? AvatarAccountType.Blockies
+        : AvatarAccountType.JazzIcon,
+    shallowEqual,
+  );
   const getKeyExtractor = ({ address }: Account) => address;
 
   const renderAccountBalances = useCallback(
@@ -175,10 +174,9 @@ const AccountSelectorList = ({
   );
 
   const onNavigateToAccountActions = useCallback(
-    (selectedAccount: string) => {
-      const account = internalAccounts.find(
-        (accountData: InternalAccount) =>
-          accountData.address.toLowerCase() === selectedAccount.toLowerCase(),
+    (selectedAccountAddress: string) => {
+      const account = Engine.context.AccountsController.getAccountByAddress(
+        selectedAccountAddress,
       );
 
       if (!account) return;
@@ -188,7 +186,7 @@ const AccountSelectorList = ({
         params: { selectedAccount: account },
       });
     },
-    [navigate, internalAccounts],
+    [navigate],
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
@@ -226,37 +224,51 @@ const AccountSelectorList = ({
         cellStyle.alignItems = 'center';
       }
 
+      const handleLongPress = () => {
+        onLongPress({
+          address,
+          isAccountRemoveable:
+            type === KeyringTypes.simple || type === KeyringTypes.snap,
+          isSelected: isSelectedAccount,
+          index,
+        });
+      };
+
+      const handlePress = () => {
+        onSelectAccount?.(address, isSelectedAccount);
+      };
+
+      const handleButtonClick = () => {
+        onNavigateToAccountActions(address);
+      };
+
+      const buttonProps = {
+        onButtonClick: handleButtonClick,
+        buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
+      };
+
+      const avatarProps = {
+        variant: AvatarVariant.Account as const,
+        type: accountAvatarType,
+        accountAddress: address,
+      };
+
       return (
         <Cell
           key={address}
-          onLongPress={() => {
-            onLongPress({
-              address,
-              isAccountRemoveable:
-                type === KeyringTypes.simple || type === KeyringTypes.snap,
-              isSelected: isSelectedAccount,
-              index,
-            });
-          }}
+          onLongPress={handleLongPress}
           variant={cellVariant}
           isSelected={isSelectedAccount}
           title={accountName}
           secondaryText={shortAddress}
           showSecondaryTextIcon={false}
           tertiaryText={balanceError}
-          onPress={() => onSelectAccount?.(address, isSelectedAccount)}
-          avatarProps={{
-            variant: AvatarVariant.Account,
-            type: accountAvatarType,
-            accountAddress: address,
-          }}
+          onPress={handlePress}
+          avatarProps={avatarProps}
           tagLabel={tagLabel}
           disabled={isDisabled}
           style={cellStyle}
-          buttonProps={{
-            onButtonClick: () => onNavigateToAccountActions(address),
-            buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
-          }}
+          buttonProps={buttonProps}
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets && renderAccountBalances(assets, address))}
@@ -307,9 +319,10 @@ const AccountSelectorList = ({
       renderItem={renderAccountItem}
       // Increasing number of items at initial render fixes scroll issue.
       initialNumToRender={999}
+      testID={ACCOUNT_SELECTOR_LIST_TESTID}
       {...props}
     />
   );
 };
 
-export default AccountSelectorList;
+export default React.memo(AccountSelectorList);
