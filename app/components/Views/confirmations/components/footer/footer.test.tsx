@@ -8,6 +8,7 @@ import {
   personalSignatureConfirmationState,
   stakingDepositConfirmationState,
 } from '../../../../../util/test/confirm-data-helpers';
+import Engine from '../../../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import { Footer } from './footer';
@@ -50,6 +51,14 @@ const mockTrackAlertMetrics = jest.fn();
 (useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
   trackAlertMetrics: mockTrackAlertMetrics,
 });
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
 
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
 const ALERT_DETAILS_MOCK = ['Detail 1', 'Detail 2'];

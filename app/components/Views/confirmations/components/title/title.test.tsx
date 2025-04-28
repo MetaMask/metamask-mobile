@@ -10,6 +10,13 @@ import {
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Title from './title';
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
 
 describe('Confirm Title', () => {
   it('renders the title and subtitle for a permit signature', () => {
