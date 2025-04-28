@@ -1681,7 +1681,7 @@
   resolved "https://registry.yarnpkg.com/@emotion/use-insertion-effect-with-fallbacks/-/use-insertion-effect-with-fallbacks-1.0.1.tgz#08de79f54eb3406f9daaf77c76e35313da963963"
   integrity sha512-jT/qyKZ9rzLErtrjGgdkMBn2OP8wl0G3sQlBb3YPryvKHsjvINUhVaPFfP+fpBcOkmrVOVEEHQFJ7nbj2TH2gw==
 
-"@endo/env-options@^1.1.1", "@endo/env-options@^1.1.8":
+"@endo/env-options@^1.1.8":
   version "1.1.8"
   resolved "https://registry.yarnpkg.com/@endo/env-options/-/env-options-1.1.8.tgz#dbfcfbf7574f2a793155281d035c8d6f809f5828"
   integrity sha512-Xtxw9n33I4guo8q0sDyZiRuxlfaopM454AKiELgU7l3tqsylCut6IBZ0fPy4ltSHsBib7M3yF7OEMoIuLwzWVg==
@@ -5484,23 +5484,6 @@
   version "18.3.1"
   resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-18.3.1.tgz#b49351134cbe77034db67774cc4ff473e259158c"
   integrity sha512-4wHCA24KDwq/eVnAu+/+N7BEuMNN63kdN295u8Wkdc76puyig3lJdcGGne+TEjiILG34twr9rjZPOWTCwOUcDg==
-  dependencies:
-    "@metamask/json-rpc-engine" "^10.0.2"
-    "@metamask/json-rpc-middleware-stream" "^8.0.6"
-    "@metamask/object-multiplex" "^2.0.0"
-    "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/safe-event-emitter" "^3.1.1"
-    "@metamask/utils" "^11.0.1"
-    detect-browser "^5.2.0"
-    extension-port-stream "^4.1.0"
-    fast-deep-equal "^3.1.3"
-    is-stream "^2.0.0"
-    readable-stream "^3.6.2"
-
-"@metamask/providers@^21.0.0":
-  version "21.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-21.0.0.tgz#4c23601e163a501b5cfb3853e227243685d1348a"
-  integrity sha512-qSKfQQYX4AsKxWcalJjmIce557wa9KWlRqSzMbmpcC2ULo3JlYCfJIi42u3mooaPxK2l+9AdtzLSVbLRsBYnPA==
   dependencies:
     "@metamask/json-rpc-engine" "^10.0.2"
     "@metamask/json-rpc-middleware-stream" "^8.0.6"
