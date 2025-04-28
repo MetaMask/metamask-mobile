@@ -10,9 +10,8 @@ import {
 import {
   VAULT_BACKUP_FAILED,
   VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP,
-} from '../../constants/error';
-
-const VAULT_BACKUP_KEY = 'VAULT_BACKUP';
+  VAULT_BACKUP_KEY,
+} from './constants';
 
 const options: Options = {
   accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
