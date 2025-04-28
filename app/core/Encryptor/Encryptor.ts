@@ -277,7 +277,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       throw new Error('Key is not exportable');
     }
 
-    const exportedKey = await quickCryptoLib.exportKey();
+    const exportedKey = await quickCryptoLib.exportKey('jwk', key.key);
 
     const json = JSON.stringify({ ...key, key: exportedKey });
     return Buffer.from(json).toString('base64');
