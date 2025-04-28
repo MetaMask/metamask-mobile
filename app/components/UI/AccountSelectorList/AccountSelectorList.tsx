@@ -36,6 +36,7 @@ import styleSheet from './AccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { RootState } from '../../../reducers';
+import { ACCOUNT_SELECTOR_LIST_TESTID } from './AccountSelectorList.constants';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -318,7 +319,7 @@ const AccountSelectorList = ({
       renderItem={renderAccountItem}
       // Increasing number of items at initial render fixes scroll issue.
       initialNumToRender={999}
-      testID="flat-list"
+      testID={ACCOUNT_SELECTOR_LIST_TESTID}
       {...props}
     />
   );

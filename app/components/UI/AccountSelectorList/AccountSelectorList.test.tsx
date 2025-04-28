@@ -20,6 +20,7 @@ import { AccountSelectorListProps } from './AccountSelectorList.types';
 import Engine from '../../../core/Engine';
 import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { ACCOUNT_SELECTOR_LIST_TESTID } from './AccountSelectorList.constants';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -652,7 +653,7 @@ describe('AccountSelectorList', () => {
     );
 
     // Simply check if the component renders
-    expect(getByTestId('flat-list')).toBeDefined();
+    expect(getByTestId(ACCOUNT_SELECTOR_LIST_TESTID)).toBeDefined();
   });
 
   it('renders in select-without-menu mode', async () => {
@@ -930,7 +931,7 @@ describe('AccountSelectorList', () => {
     );
 
     // Get the FlatList and trigger content size change
-    const flatList = getByTestId('flat-list');
+    const flatList = getByTestId(ACCOUNT_SELECTOR_LIST_TESTID);
     flatList.props.onContentSizeChange();
 
     // Verify that scrollToOffset was not called

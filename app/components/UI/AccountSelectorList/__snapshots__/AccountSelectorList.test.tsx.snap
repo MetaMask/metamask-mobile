@@ -51,7 +51,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
   renderScrollComponent={[Function]}
   scrollEventThrottle={50}
   stickyHeaderIndices={[]}
-  testID="flat-list"
+  testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
 >
   <View>
@@ -844,7 +844,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
   renderScrollComponent={[Function]}
   scrollEventThrottle={50}
   stickyHeaderIndices={[]}
-  testID="flat-list"
+  testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
 >
   <View>
@@ -1521,7 +1521,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
   renderScrollComponent={[Function]}
   scrollEventThrottle={50}
   stickyHeaderIndices={[]}
-  testID="flat-list"
+  testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
 >
   <View>
