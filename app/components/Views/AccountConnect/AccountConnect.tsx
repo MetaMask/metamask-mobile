@@ -501,6 +501,14 @@ const AccountConnect = (props: AccountConnectProps) => {
     [trackEvent, createEventBuilder],
   );
 
+  const handleAccountsSelected = useCallback(
+    (newSelectedAccountAddresses: string[]) => {
+      setSelectedAddresses(newSelectedAccountAddresses);
+      setScreen(AccountConnectScreens.SingleConnect);
+    },
+    [setSelectedAddresses, setScreen],
+  );
+
   const handleNetworksSelected = useCallback(
     (newSelectedChainIds: string[]) => {
       setSelectedChainIds(newSelectedChainIds);
@@ -707,7 +715,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
         defaultSelectedAddresses={selectedAddresses}
-        onSubmit={setSelectedAddresses}
+        onSubmit={handleAccountsSelected}
         isLoading={isLoading}
         onBack={() => {
           setScreen(AccountConnectScreens.SingleConnect);
