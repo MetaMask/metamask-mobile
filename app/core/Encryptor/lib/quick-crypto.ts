@@ -50,25 +50,8 @@ class QuickCryptoLib implements EncryptionLibrary {
       256
     );
 
-    const key = await Crypto.subtle.importKey(
-      'raw',
-      derivedBits,
-      { name: 'AES-CBC', length: 256 },
-      true,
-      ['encrypt', 'decrypt']
-    );
-
-    return this.exportKey('raw', key);
-  };
-
-  /**
-   * Encrypts data using the derived key and IV.
-   * @param data - The data to encrypt.
-   * @param key - The encryption key.
-   * @param iv - The IV.
-   * @returns A promise that resolves to the encrypted data as a base64 string.
-   */
-  encrypt = async (data: string, key: string, iv: Buffer): Promise<string> => {
+    const base64Key = Buffer.from(derivedBits).toString('base64');
+    return base64Key;
     const dataBuffer = Buffer.from(data, 'utf-8');
     const cryptoKey = await this.importKey(key);
 
@@ -130,4 +113,4 @@ class QuickCryptoLib implements EncryptionLibrary {
   };
 }
 
-export const quickCryptoLib = new QuickCryptoLib();
+export const QuickCryptoLib = new QuickCryptoEncryptionLibrary();
