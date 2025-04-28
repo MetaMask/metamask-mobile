@@ -34,10 +34,7 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
-import {
-  ONBOARDING,
-  PREVIOUS_SCREEN,
-} from '../../../constants/navigation';
+import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
   EXISTING_USER,
   TRUE,
@@ -76,6 +73,7 @@ import TextField from '../../../component-library/components/Form/TextField/Text
 import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Routes from '../../../constants/navigation/Routes';
+import { withMetricsAwareness } from '../../hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -210,9 +208,9 @@ class ChoosePassword extends PureComponent {
      */
     route: PropTypes.object,
     /**
-     * The flag to check if the oauth2 login was successful
+     * Metrics injected by withMetricsAwareness HOC
      */
-    oauth2LoginSuccess: PropTypes.bool,
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -228,7 +226,6 @@ class ChoosePassword extends PureComponent {
     inputWidth: { width: '99%' },
     showPasswordIndex: [0, 1],
     passwordInputContainerFocusedIndex: -1,
-    oauth2LoginSuccess: false,
   };
 
   mounted = true;
@@ -350,9 +347,11 @@ class ChoosePassword extends PureComponent {
         this.state.biometryChoice,
         this.state.rememberMe,
       );
-      authType.oauth2Login = this.props.oauth2LoginSuccess;
-      Logger.log('previous_screen', previous_screen);
 
+      const oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
+      authType.oauth2Login = oauth2LoginSuccess;
+
+      Logger.log('previous_screen', previous_screen);
       if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
@@ -370,10 +369,31 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: false });
 
       if (authType.oauth2Login) {
-        this.props.navigation.reset({
-          index: 0,
-          routes: [{ name: Routes.ONBOARDING.SUCCESS, params: { showPasswordHint: true } }],
-        });
+        if (this.props.metrics.isEnabled()) {
+          this.props.navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.ONBOARDING.SUCCESS,
+                params: { showPasswordHint: true },
+              },
+            ],
+          });
+        } else {
+          this.props.navigation.navigate('OptinMetrics', {
+            onContinue: () => {
+              this.props.navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: Routes.ONBOARDING.SUCCESS,
+                    params: { showPasswordHint: true },
+                  },
+                ],
+              });
+            },
+          });
+        }
       } else {
         this.props.navigation.replace('AccountBackupStep1');
       }
@@ -421,7 +441,9 @@ class ChoosePassword extends PureComponent {
       false,
       false,
     );
-    newAuthData.oauth2Login = this.props.oauth2LoginSuccess;
+
+    const oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
+    newAuthData.oauth2Login = oauth2LoginSuccess;
     try {
       await Authentication.newWalletAndKeychain(
         this.state.password,
@@ -829,4 +851,7 @@ const mapStateToProps = (state) => ({
   oauth2LoginSuccess: state.user.oauth2LoginSuccess,
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ChoosePassword);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(ChoosePassword));

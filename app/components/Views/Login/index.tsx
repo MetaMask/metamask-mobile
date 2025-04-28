@@ -132,7 +132,11 @@ const Login: React.FC = () => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const {
+    trackEvent,
+    createEventBuilder,
+    isEnabled: isMetricsEnabled,
+  } = useMetrics();
   const dispatch = useDispatch();
   const setOnboardingWizardStep = (step: number) =>
     dispatch(setOnboardingWizardStepUtil(step));
@@ -295,9 +299,11 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       if (oauthLoginSuccess) {
         await Authentication.rehydrateSeedPhrase(password, authType);
       } else {
+        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
         await trace(
           {
             name: TraceName.AuthenticateUser,
@@ -308,32 +314,54 @@ const Login: React.FC = () => {
             await Authentication.userEntryAuth(password, authType);
           },
         );
+
+        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       }
+      ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+
       Keyboard.dismiss();
 
       // Get onboarding wizard state
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-      if (onboardingWizard) {
-        if (oauthLoginSuccess) {
+
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+      if (oauthLoginSuccess) {
+        if (onboardingWizard) {
+          setOnboardingWizardStep(1);
+        }
+        if (isMetricsEnabled()) {
           navigation.reset({
             index: 0,
             routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
           });
         } else {
-          navigation.replace(Routes.ONBOARDING.HOME_NAV);
+          navigation.navigate('OnboardingRootNav', {
+            screen: 'OnboardingNav',
+            params: {
+              screen: 'OptinMetrics',
+              params: {
+                onContinue: () => {
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+                  });
+                },
+              },
+            },
+          });
         }
       } else {
-        setOnboardingWizardStep(1);
-
-        if (oauthLoginSuccess) {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          });
+        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+        // eslint-disable-next-line no-lonely-if
+        if (onboardingWizard) {
+          navigation.replace(Routes.ONBOARDING.HOME_NAV);
         } else {
+          setOnboardingWizardStep(1);
           navigation.replace(Routes.ONBOARDING.HOME_NAV);
         }
+        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
       }
+      ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setPassword('');

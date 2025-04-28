@@ -332,7 +332,7 @@ class Onboarding extends PureComponent {
 
   onPressCreate = () => {
     this.setState({ bottomSheetVisible: false });
-    OAuthService.resetOauthState();
+    OAuthLoginService.resetOauthState();
     const action = () => {
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -345,7 +345,7 @@ class Onboarding extends PureComponent {
 
   onPressImport = () => {
     this.setState({ bottomSheetVisible: false });
-    OAuthService.resetOauthState();
+    OAuthLoginService.resetOauthState();
     const action = async () => {
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
@@ -355,6 +355,7 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   handlePostSocialLogin = (result, createWallet) => {
     if (result.type === 'success') {
       if (createWallet) {
@@ -416,7 +417,7 @@ class Onboarding extends PureComponent {
     };
     this.handleExistingUser(action);
   };
-
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   track = (event) => {
     trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
   };
@@ -440,8 +441,10 @@ class Onboarding extends PureComponent {
       params: {
         onPressCreate: this.onPressCreate,
         onPressImport: this.onPressImport,
+        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
         onPressContinueWithGoogle: this.onPressContinueWithGoogle,
         onPressContinueWithApple: this.onPressContinueWithApple,
+        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
         createWallet: actionType === 'create',
       },
     });

@@ -316,12 +316,16 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       // check for oauth2 login
       if (authData.oauth2Login) {
         await this.createAndBackupSeedPhrase(password);
       } else {
+        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
         await this.createWalletVaultAndKeychain(password);
+        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       }
+      ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
       await this.storePassword(password, authData?.currentAuthType);
       await StorageWrapper.setItem(EXISTING_USER, TRUE);
