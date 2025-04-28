@@ -2147,7 +2147,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                     },
                   ]
                 }
-                testID="PLACE HOLDER"
+                testID="Ethereum"
               />
               <View
                 collapsable={false}
@@ -3309,7 +3309,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                     },
                   ]
                 }
-                testID="PLACE HOLDER"
+                testID="Ethereum"
               />
               <View
                 collapsable={false}
