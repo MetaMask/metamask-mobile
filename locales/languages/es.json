@@ -13,7 +13,7 @@
       "message": "Le sugerimos que rechace esta solicitud. Si continúa, podría poner en peligro sus activos.",
       "title_blockaid": "Sus activos pueden estar en peligro",
       "blockaid": {
-        "message": "Si confirma esta solicitud, podría perder sus activos. Le recomendamos que cancele esta solicitud.",
+        "message": "Si confirma esta solicitud, podría perder sus activos. Le recomendamos que la cancele.",
         "message1": "Si confirma esta solicitud, permitirá que un estafador retire y gaste sus activos. No los recuperará.",
         "message2": "Está enviando sus activos a un estafador. Si continúa, perderá esos activos.",
         "message3": "Si continúa, todos los activos que ha registrado en OpenSea podrían estar en peligro.",
@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Solicitud de inicio de sesión sospechosa",
       "message": "El sitio que realiza la solicitud no es el sitio en el que está iniciando sesión. Esto podría ser un intento de robo de sus credenciales de inicio de sesión."
+    },
+    "insufficient_balance": {
+      "title": "Fondos insuficientes",
+      "message": "No tiene suficiente %{nativeCurrency} en su cuenta para pagar las tarifas de red.",
+      "buy_action": "Comprar %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "en"
   },
   "autocomplete": {
-    "placeholder": "Búsqueda por sitio o dirección",
+    "placeholder": "Buscar por token, sitio o dirección",
     "recents": "Recientes",
     "favorites": "Favoritos",
-    "sites": "Sitios"
+    "sites": "Sitios",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Volver",
@@ -438,8 +444,8 @@
       "subtitle": "Controle la vista de su saldo en la configuración"
     },
     "multisrp": {
-      "title": "Add multiple Secret Recovery Phrases",
-      "subtitle": "Import and use multiple wallets in MetaMask"
+      "title": "Agregar varias frases secretas de recuperación",
+      "subtitle": "Importar y usar varios monederos en MetaMask"
     }
   },
   "wallet": {
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "La frase secreta de recuperación de su nueva cuenta se generará a partir de",
     "accounts": "cuentas",
     "show_accounts": "Mostrar",
-    "hide_accounts": "Ocultar"
+    "hide_accounts": "Ocultar",
+    "labels": {
+      "bitcoin_testnet_account_name": "Cuenta de red de prueba de Bitcoin",
+      "bitcoin_account_name": "Cuenta de Bitcoin",
+      "solana_devnet_account_name": "Cuenta DevNet de Solana",
+      "solana_testnet_account_name": "Cuenta de red de pruebas de Solana",
+      "solana_account_name": "Cuenta de Solana"
+    },
+    "error_messages": {
+      "failed_to_create_account": "No se pudo crear la cuenta de {{clientType}}"
+    }
   },
   "toast": {
     "connected_and_active": "conectado y activo.",
@@ -966,11 +982,11 @@
     "networks_desc": "Agregar y editar redes RPC personalizadas",
     "network_name_label": "Nombre de la red",
     "network_name_placeholder": "Nombre de la red (opcional)",
-    "network_rpc_url_label": "RPC URL",
+    "network_rpc_url_label": "URL de RPC",
     "network_rpc_name_label": "Nombre de RPC",
     "network_rpc_placeholder": "Nueva red RPC",
-    "network_failover_rpc_url_label": "Failover RPC URL",
-    "failover": "Failover",
+    "network_failover_rpc_url_label": "URL de RPC de conmutación por error",
+    "failover": "Conmutación por error",
     "network_chain_id_label": "Identificador de cadena",
     "network_chain_id_placeholder": "Identificador de cadena",
     "network_symbol_label": "Símbolo",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snaps",
       "description": "Revise y gestione sus snaps",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Se abre en una nueva pestaña"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Eliminar Snap",
         "remove_snap_section_description": "Esta acción eliminará el snap, sus datos y revocará sus permisos otorgados.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "LENTO",
     "hex_data": "Datos hexadecimales",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "Este es el número de transacción de una cuenta. El nonce de la primera transacción es 0 y aumenta de forma secuencial.",
     "this_is_an_advanced": "Esta es una función avanzada que se usa para cancelar o acelerar transacciones pendientes.",
     "current_suggested_nonce": "Nonce actual sugerido:",
     "edit_transaction_nonce": "Editar nonce de transacción",
@@ -1764,6 +1786,7 @@
     "tx_details_not_available": "No disponible",
     "smart_contract_interaction": "Interacción con el contrato inteligente",
     "swaps_transaction": "Transacción de intercambios",
+    "bridge_transaction": "Puentear",
     "approve": "Aprobar",
     "increase_allowance": "Aumentar la asignación",
     "set_approval_for_all": "Establecer aprobación para todos",
@@ -2089,7 +2112,7 @@
     "info_text_2": "Esto garantizará que solo usted podrá acceder a sus fondos y le permitirá recuperar su monedero si se le pierde el dispositivo",
     "cta_text": "Crear contraseña",
     "creating_password": "Creando contraseña…",
-    "srp_list_selection": "Select Secret Recovery Phrase"
+    "srp_list_selection": "Seleccionar frase secreta de recuperación"
   },
   "account_backup_step_1": {
     "remind_me_later": "Recordarme más adelante",
@@ -2250,7 +2273,7 @@
     "proceed_anyway": "continuar de todas formas,",
     "but_please_do_so_at_your_own_risk": "pero hágalo bajo su propia responsabilidad.",
     "report_detection_problem": "Informar sobre un problema de detección",
-    "share_on_twitter": "Si le resultó útil, ¡compártalo en X!",
+    "share_on_twitter": "Si esto le resultó útil, ¡compártalo en X!",
     "share_text": "MetaMask me protegió de visitar un sitio potencialmente peligroso: {{url}}. ¡Manténgase seguro!"
   },
   "notifications": {
@@ -2730,7 +2753,7 @@
     "minimum": "El depósito mínimo es de",
     "maximum": "El depósito máximo es",
     "insufficient_balance": "Este monto es mayor que su saldo",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "No tiene suficiente {{currency}} para cubrir las tarifas de gas.",
     "enter_larger_amount": "Ingrese un monto mayor para continuar",
     "enter_smaller_amount": "Ingrese una cantidad menor para continuar",
     "enter_lower_gas_fees": "Ingrese una cantidad baja para pagar las tarifas de gas",
@@ -2838,6 +2861,7 @@
     }
   },
   "swaps": {
+    "title": "Intercambiar",
     "onboarding": {
       "get_the": "Obtenga",
       "best_price": "el mejor precio",
@@ -3779,19 +3803,22 @@
       "permit": "Solicitud de límite de gasto",
       "permit_revoke": "Eliminar permiso",
       "permit_NFTs": "Solicitud de retiro",
-      "signature_siwe": "Solicitud de inicio de sesión"
+      "signature_siwe": "Solicitud de inicio de sesión",
+      "contract_interaction": "Solicitud de transacción"
     },
     "sub_title": {
       "permit": "Este sitio necesita permiso para gastar sus tokens.",
       "permit_NFTs": "Este sitio necesita permiso para retirar sus NFT.",
       "signature": "Revise los detalles de la solicitud antes de confirmar.",
-      "signature_siwe": "Un sitio quiere que inicie sesión para demostrar que usted es el titular de esta cuenta."
+      "signature_siwe": "Un sitio quiere que inicie sesión para demostrar que usted es el titular de esta cuenta.",
+      "contract_interaction": "Revise los detalles de la solicitud antes de confirmar."
     },
     "request_from": "Solicitud de",
     "staking_from": "Staking de",
     "signing_in_with": "Iniciando sesión con",
     "message": "Mensaje",
     "personal_sign_tooltip": "Este sitio solicita su firma",
+    "transaction_tooltip": "Este sitio está solicitando su transacción",
     "details": "Detalles",
     "qr_get_sign": "Obtener firma",
     "qr_scan_text": "Escanee con su monedero físico",
@@ -3826,7 +3853,10 @@
       "unavailable": "No disponible"
     },
     "unlimited": "Ilimitado",
-    "none": "Ninguno"
+    "none": "Ninguno",
+    "advanced_details": "Datos avanzados",
+    "interacting_with": "Interactuando con",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "Los resultados cambiaron",
@@ -3867,6 +3897,34 @@
     "time": "Hora",
     "quote_info_content": "Esta cotización ofrece el mejor rendimiento según nuestra búsqueda. Se basa en la tarifa de intercambio, incluidas las tarifas de puente y una tarifa MetaMask del 0,875 %, pero no las tarifas de gas. Las tarifas de gas varían según la actividad de la red y la complejidad de la transacción.",
     "quote_info_title": "Por qué recomendamos esta cotización",
-    "see_other_quotes": "Ver otras cotizaciones"
+    "see_other_quotes": "Ver otras cotizaciones",
+    "receive_at": "Recibir en",
+    "error_banner_description": "Esta ruta de operación no está disponible en este momento. Intente cambiar el monto, la red o el token y encontraremos la mejor opción.",
+    "insufficient_funds": "Fondos insuficientes",
+    "select_amount": "Seleccionar monto",
+    "bridge_to": "Puentear a",
+    "title": "Puentear",
+    "submitting_transaction": "Enviando",
+    "fetching_quote": "Obteniendo cotización"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Estado",
+    "date": "Fecha",
+    "total_gas_fee": "Tarifa de gas total",
+    "estimated_completion": "Finalización estimada",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} recibido en {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Recibiendo {{destSymbol}} en {{destChainName}}",
+    "bridge_step_action_swap_complete": "Se intercambió {{srcSymbol}} por {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Intercambiando {{srcSymbol}} por {{destSymbol}}",
+    "view_on_block_explorer": "Ver en explorador de bloques",
+    "block_explorer_description": "Esta transacción se realiza en dos redes. El primer enlace muestra el origen; el segundo, el destino una vez confirmado.",
+    "transaction_details": "Detalles de la transacción",
+    "bridge_to_chain": "Puentear a {{chainName}}",
+    "recipient": "Destinatario"
   }
 }

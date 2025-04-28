@@ -5,11 +5,12 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TransactionTypes from '../../../../../../core/TransactionTypes';
-
+import { addTransaction } from '../../../../../../util/transaction-controller';
+import { selectConfirmationRedesignFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
-
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { setMaxValueMode } from '../../../../../../actions/transaction';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 const mockTransactionTypes = TransactionTypes;
 
@@ -93,6 +94,7 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
       gas: mockTransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
     }),
   ),
+  addTransaction: jest.fn(),
 }));
 
 jest.mock('../../../../../../actions/transaction', () => ({
@@ -101,6 +103,13 @@ jest.mock('../../../../../../actions/transaction', () => ({
     type: 'SET_MAX_VALUE_MODE',
   }),
 }));
+
+jest.mock(
+  '../../../../../../selectors/featureFlagController/confirmations',
+  () => ({
+    selectConfirmationRedesignFlags: jest.fn(),
+  }),
+);
 
 const mockNavigate = jest.fn();
 
@@ -139,7 +148,13 @@ const initialState = {
         },
       },
       AccountTrackerController: {
-        accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+        accountsByChainId: {
+          '0xaa36a7': {
+            [CURRENT_ACCOUNT]: {
+              balance: '0',
+            },
+          },
+        },
       },
       AccountsController: {
         internalAccounts: {
@@ -208,16 +223,23 @@ const renderComponent = (state: any = {}) =>
   );
 
 describe('Amount', () => {
+  const mockSelectConfirmationRedesignFlags = jest.mocked(
+    selectConfirmationRedesignFlags,
+  );
+
   beforeEach(() => {
     mockNavigate.mockClear();
+    mockSelectConfirmationRedesignFlags.mockReturnValue({
+      transfer: false,
+    } as ReturnType<typeof selectConfirmationRedesignFlags>);
   });
 
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     const { toJSON } = renderComponent(initialState);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should display correct balance', () => {
+  it('displays correct balance', () => {
     const { getByText, toJSON } = renderComponent({
       ...initialState,
       engine: {
@@ -240,9 +262,11 @@ describe('Amount', () => {
             },
           },
           AccountTrackerController: {
-            accounts: {
-              [CURRENT_ACCOUNT]: {
-                balance: 'DE0B6B3A7640000',
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: 'DE0B6B3A7640000',
+                },
               },
             },
           },
@@ -288,7 +312,7 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should set max value mode when toggled on', () => {
+  it('sets max value mode when toggled on', () => {
     const { getByText } = renderComponent(initialState);
 
     const useMaxButton = getByText(/Use max/);
@@ -305,9 +329,11 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           AccountTrackerController: {
-            accounts: {
-              [CURRENT_ACCOUNT]: {
-                balance: '4563918244F40000', // 5 ETH in hex
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000', // 5 ETH in hex
+                },
               },
             },
           },
@@ -350,13 +376,15 @@ describe('Amount', () => {
     });
 
     // The conversion should happen and update the input
-    const amountInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
+    const amountInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
     expect(amountInput.props.value).toBeDefined();
     expect(typeof amountInput.props.value).toBe('string');
     expect(amountInput.props.value).toBe('5000'); // $5000 from 5 ETH at $1000/ETH
   });
 
-  it('should proceed if balance is sufficient while on Native primary currency is ETH', async () => {
+  it('proceeds if balance is sufficient while on Native primary currency is ETH', async () => {
     const { getByText, getByTestId, toJSON } = renderComponent({
       ...initialState,
       engine: {
@@ -372,9 +400,11 @@ describe('Amount', () => {
             },
           },
           AccountTrackerController: {
-            accounts: {
-              [CURRENT_ACCOUNT]: {
-                balance: '4563918244F40000',
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
               },
             },
           },
@@ -438,9 +468,7 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should proceed if balance is sufficient while on Native primary currency is not ETH', async () => {
-    //  {"address": "0x0000000000000000000000000000000000000000", "aggregators": [], "balance": "0.2059", "balanceFiat": "$5.74", "chainId": "0xa86a", "decimals": 18, "image": "", "isETH": false, "isNative": true, "isStaked": false, "logo": "", "name": "AVAX", "stakedBalance": "0x0", "symbol": "AVAX", "ticker": "AVAX", "tokenFiatAmount": 5.746669}}
-
+  it('proceeds if balance is sufficient while on Native primary currency is not ETH', async () => {
     const { getByText, getByTestId, toJSON } = renderComponent({
       ...initialState,
       engine: {
@@ -483,9 +511,11 @@ describe('Amount', () => {
             },
           },
           AccountTrackerController: {
-            accounts: {
-              [CURRENT_ACCOUNT]: {
-                balance: '4563918244F40000',
+            accountsByChainId: {
+              '0xa86a': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
               },
             },
           },
@@ -550,7 +580,7 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should show an error message if balance is insufficient', async () => {
+  it('shows an error message if balance is insufficient', async () => {
     const { getByText, getByTestId, queryByText, toJSON } = renderComponent({
       ...initialState,
       engine: {
@@ -566,9 +596,11 @@ describe('Amount', () => {
             },
           },
           AccountTrackerController: {
-            accounts: {
-              [CURRENT_ACCOUNT]: {
-                balance: '0x0',
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '0x0',
+                },
               },
             },
           },
@@ -634,7 +666,7 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should convert ETH to USD', () => {
+  it('converts ETH to USD', () => {
     const { getByTestId, toJSON } = renderComponent({
       ...initialState,
       engine: {
@@ -705,7 +737,7 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should convert ERC-20 token value to USD', () => {
+  it('converts ERC-20 token value to USD', () => {
     const { getByTestId, toJSON } = renderComponent({
       ...initialState,
       engine: {
@@ -783,7 +815,7 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should convert USD to ETH', () => {
+  it('converts USD to ETH', () => {
     const { getByTestId, toJSON } = renderComponent({
       ...initialState,
       engine: {
@@ -854,7 +886,7 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should convert USD to ERC-20 token value', () => {
+  it('converts USD to ERC-20 token value', () => {
     const { getByTestId, toJSON } = renderComponent({
       ...initialState,
       engine: {
@@ -919,8 +951,8 @@ describe('Amount', () => {
       },
       settings: {
         ...initialState.settings,
-        primaryCurrency: 'Fiat'
-      }
+        primaryCurrency: 'Fiat',
+      },
     });
 
     const textInput = getByTestId(
@@ -936,7 +968,7 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should show a warning when conversion rate is not available', () => {
+  it('shows a warning when conversion rate is not available', () => {
     const { getByTestId, toJSON } = renderComponent({
       ...initialState,
       engine: {
@@ -1002,7 +1034,7 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should not show a warning when conversion rate is available', async () => {
+  it('does not show a warning when conversion rate is available', async () => {
     const { getByTestId, toJSON } = renderComponent({
       ...initialState,
       engine: {
@@ -1079,7 +1111,7 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should not show a warning when transfering collectibles', () => {
+  it('does not show a warning when transfering collectibles', () => {
     const { getByTestId, toJSON } = renderComponent({
       ...initialState,
       engine: {
@@ -1142,5 +1174,102 @@ describe('Amount', () => {
       expect(hasErrorMessage).toBeTruthy();
     }
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('adds transaction and redirects to redesigned transfer confirmation if flag is enabled', async () => {
+    mockSelectConfirmationRedesignFlags.mockReturnValue({
+      transfer: true,
+    } as ReturnType<typeof selectConfirmationRedesignFlags>);
+
+    const { getByTestId } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates: {
+              ETH: {
+                conversionRate: 1,
+              },
+            },
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+          to: RECEIVER_ACCOUNT,
+          value: '0xde0b6b3a7640000',
+          data: '0x',
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
+    await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
+
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
+    fireEvent.changeText(textInput, '1');
+
+    await act(() => fireEvent.press(nextButton));
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {
+      screen: Routes.STANDALONE_CONFIRMATIONS.TRANSFER,
+    });
+    expect(addTransaction).toHaveBeenCalledTimes(1);
+    expect(addTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: CURRENT_ACCOUNT,
+        to: RECEIVER_ACCOUNT,
+        value: '0xde0b6b3a7640000',
+        data: '0x',
+      }),
+      {
+        origin: 'Metamask Mobile',
+        networkClientId: 'sepolia',
+      },
+    );
   });
 });

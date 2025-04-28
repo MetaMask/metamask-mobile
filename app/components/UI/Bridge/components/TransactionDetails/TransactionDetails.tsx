@@ -6,37 +6,36 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../Box/Box';
-import {
-  FlexDirection,
-  JustifyContent,
-  AlignItems,
-} from '../../../Box/box.types';
+import { FlexDirection, AlignItems } from '../../../Box/box.types';
 import { getBridgeTransactionDetailsNavbar } from '../../../Navbar';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { decimalToPrefixedHex } from '../../../../../util/conversions';
-import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
-import { selectEvmTokens } from '../../../../../selectors/multichain/evm';
-import { TokenI } from '../../../Tokens/types';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import TransactionAsset from './TransactionAsset';
-import { StatusTypes } from '@metamask/bridge-status-controller';
 import { calcTokenAmount } from '../../../../../util/transactions';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
-import Loader from '../../../../../component-library/components-temp/Loader';
+import { BridgeToken } from '../../types';
+import {
+  formatChainIdToCaip,
+  formatChainIdToHex,
+  getNativeAssetForChainId,
+  isSolanaChainId,
+  StatusTypes,
+} from '@metamask/bridge-controller';
+import { Transaction } from '@metamask/keyring-api';
+import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
+// import { renderShortAddress } from '../../../../../util/address';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -45,49 +44,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    },
-    arrowContainer: {
-      paddingLeft: 11,
-      paddingTop: 1,
-      paddingBottom: 10,
-    },
-    transactionContainer: {
-      paddingLeft: 8,
-    },
-    transactionAssetsContainer: {
-      paddingVertical: 16,
-    },
-    blockExplorerButton: {
-      width: '90%',
-      alignSelf: 'center',
-      marginTop: 12,
-    },
-    textTransform: {
-      textTransform: 'capitalize',
-    },
-    container: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: 8,
-    },
-    tokenIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    tokenInfo: {
-      flexDirection: 'column',
-      gap: 2,
-    },
-  });
+  },
+  arrowContainer: {
+    paddingLeft: 11,
+    paddingTop: 1,
+    paddingBottom: 10,
+  },
+  transactionContainer: {
+    paddingLeft: 8,
+  },
+  transactionAssetsContainer: {
+    paddingVertical: 16,
+  },
+  blockExplorerButton: {
+    width: '90%',
+    alignSelf: 'center',
+    marginTop: 12,
+  },
+  textTransform: {
+    textTransform: 'capitalize',
+  },
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 8,
+  },
+  tokenIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tokenInfo: {
+    flexDirection: 'column',
+    gap: 2,
+  },
+});
 
 interface BridgeTransactionDetailsProps {
   route: {
     params: {
-      tx: TransactionMeta;
+      evmTxMeta?: TransactionMeta;
+      multiChainTx?: Transaction;
     };
   };
 }
@@ -103,14 +103,16 @@ export const BridgeTransactionDetails = (
   props: BridgeTransactionDetailsProps,
 ) => {
   const navigation = useNavigation();
+
+  const evmTxMeta = props.route.params.evmTxMeta;
+  const multiChainTx = props.route.params.multiChainTx;
+
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
-    txMeta: props.route.params.tx,
+    evmTxMeta,
+    multiChainTx,
   });
+
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
-  const tokens = useSelector(selectEvmTokens);
-  const networkConfigurationsByChainId = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
 
   useEffect(() => {
     navigation.setOptions(getBridgeTransactionDetailsNavbar(navigation));
@@ -120,25 +122,45 @@ export const BridgeTransactionDetails = (
     // TODO: display error page
     return null;
   }
+
   const { quote, status, startTime } = bridgeTxHistoryItem;
 
-  const sourceToken = tokens.find(
-    (token: TokenI) => token.address === quote.srcAsset.address,
-  );
+  // Create token objects directly from the quote data
+  const sourceChainId = isSolanaChainId(quote.srcChainId)
+    ? formatChainIdToCaip(quote.srcChainId)
+    : formatChainIdToHex(quote.srcChainId);
+
+  const sourceToken: BridgeToken = {
+    address: quote.srcAsset.address,
+    symbol: quote.srcAsset.symbol,
+    decimals: quote.srcAsset.decimals,
+    name: quote.srcAsset.name,
+    image: quote.srcAsset.iconUrl || '',
+    chainId: sourceChainId,
+  };
+
   const sourceTokenAmount = calcTokenAmount(
     quote.srcTokenAmount,
     quote.srcAsset.decimals,
   ).toFixed(5);
-  const sourceChainId = decimalToPrefixedHex(quote.srcChainId);
 
-  const destinationToken = tokens.find(
-    (token: TokenI) => token.address === quote.destAsset.address,
-  );
+  const destinationChainId = isSolanaChainId(quote.destChainId)
+    ? formatChainIdToCaip(quote.destChainId)
+    : formatChainIdToHex(quote.destChainId);
+
+  const destinationToken: BridgeToken = {
+    address: quote.destAsset.address,
+    symbol: quote.destAsset.symbol,
+    decimals: quote.destAsset.decimals,
+    name: quote.destAsset.name,
+    image: quote.destAsset.iconUrl || '',
+    chainId: destinationChainId,
+  };
+
   const destinationTokenAmount = calcTokenAmount(
     quote.destTokenAmount,
     quote.destAsset.decimals,
   ).toFixed(5);
-  const destinationChainId = decimalToPrefixedHex(quote.destChainId);
 
   const submissionDate = startTime ? new Date(startTime) : null;
   const submissionDateString = submissionDate
@@ -164,54 +186,38 @@ export const BridgeTransactionDetails = (
       })
     : null;
 
-  const totalGasFee = calcTokenAmount(
-    calcHexGasTotal(props.route.params.tx),
-    18,
-  ).toFixed(5);
+  const evmTotalGasFee = evmTxMeta
+    ? calcTokenAmount(calcHexGasTotal(evmTxMeta), 18).toFixed(5)
+    : null;
+
+  let multiChainTotalGasFee;
+  if (multiChainTx) {
+    const { baseFee, priorityFee } = getMultichainTxFees(multiChainTx);
+    multiChainTotalGasFee =
+      baseFee?.asset.fungible && priorityFee?.asset.fungible
+        ? (
+            Number(baseFee?.asset.amount) + Number(priorityFee?.asset.amount)
+          ).toFixed(5)
+        : null;
+  }
 
   return (
     <ScreenView>
       <Box style={styles.transactionContainer}>
         <Box style={styles.transactionAssetsContainer}>
-          {sourceToken ? (
-            <TransactionAsset
-              token={sourceToken}
-              tokenAmount={sourceTokenAmount}
-              chainId={sourceChainId as Hex}
-            />
-          ) : (
-            <Box
-              flexDirection={FlexDirection.Row}
-              justifyContent={JustifyContent.spaceBetween}
-              alignItems={AlignItems.center}
-              style={styles.container}
-            >
-              <Box style={styles.tokenIcon}>
-                <Loader />
-              </Box>
-            </Box>
-          )}
+          <TransactionAsset
+            token={sourceToken}
+            tokenAmount={sourceTokenAmount}
+            chainId={sourceChainId}
+          />
           <Box style={styles.arrowContainer}>
             <Icon name={IconName.Arrow2Down} size={IconSize.Sm} />
           </Box>
-          {destinationToken ? (
-            <TransactionAsset
-              token={destinationToken}
-              tokenAmount={destinationTokenAmount}
-              chainId={destinationChainId as Hex}
-            />
-          ) : (
-            <Box
-              flexDirection={FlexDirection.Row}
-              justifyContent={JustifyContent.spaceBetween}
-              alignItems={AlignItems.center}
-              style={styles.container}
-            >
-              <Box style={styles.tokenIcon}>
-                <Loader />
-              </Box>
-            </Box>
-          )}
+          <TransactionAsset
+            token={destinationToken}
+            tokenAmount={destinationTokenAmount}
+            chainId={destinationChainId}
+          />
         </Box>
         <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>
@@ -257,8 +263,7 @@ export const BridgeTransactionDetails = (
           <Box style={styles.detailRow}>
             <BridgeStepList
               bridgeHistoryItem={bridgeTxHistoryItem}
-              srcChainTxMeta={props.route.params.tx}
-              networkConfigurationsByChainId={networkConfigurationsByChainId}
+              srcChainTxMeta={evmTxMeta}
             />
           </Box>
         )}
@@ -268,11 +273,30 @@ export const BridgeTransactionDetails = (
           </Text>
           <Text>{submissionDateString}</Text>
         </Box>
+        {/* TODO uncomment when recipient is available */}
+        {/* <Box style={styles.detailRow}>
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('bridge_transaction_details.recipient')}
+          </Text>
+          <Text>{renderShortAddress(bridgeTxHistoryItem.account)}</Text>
+        </Box> */}
         <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
-          <Text>{totalGasFee} ETH</Text>
+          {/* TODO get solana gas fee from multiChainTx */}
+          {evmTotalGasFee && (
+            <Text>
+              {evmTotalGasFee}{' '}
+              {getNativeAssetForChainId(quote.srcChainId).symbol}
+            </Text>
+          )}
+          {multiChainTotalGasFee && (
+            <Text>
+              {multiChainTotalGasFee}{' '}
+              {getNativeAssetForChainId(quote.srcChainId).symbol}
+            </Text>
+          )}
         </Box>
       </Box>
       <Box>
@@ -284,7 +308,8 @@ export const BridgeTransactionDetails = (
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
               params: {
-                tx: props.route.params.tx,
+                evmTxMeta: props.route.params.evmTxMeta,
+                multiChainTx: props.route.params.multiChainTx,
               },
             });
           }}

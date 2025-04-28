@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Подозрительный запрос на вход",
       "message": "Сайт, делающий запрос, не является тем сайтом, на который вы входите. Это может быть попыткой украсть ваши учетные данные для входа."
+    },
+    "insufficient_balance": {
+      "title": "Недостаточно средств",
+      "message": "На вашем счете недостаточно %{nativeCurrency} для оплаты комиссий сети.",
+      "buy_action": "Купить %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "в"
   },
   "autocomplete": {
-    "placeholder": "Поиск по сайту или адресу",
+    "placeholder": "Поиск по токену, сайту или адресу",
     "recents": "Недавние",
     "favorites": "Избранное",
-    "sites": "Сайты"
+    "sites": "Сайты",
+    "tokens": "Токены"
   },
   "navigation": {
     "back": "Назад",
@@ -438,8 +444,8 @@
       "subtitle": "Управляйте просмотром баланса в настройках"
     },
     "multisrp": {
-      "title": "Add multiple Secret Recovery Phrases",
-      "subtitle": "Import and use multiple wallets in MetaMask"
+      "title": "Добавьте несколько секретных фраз для восстановления",
+      "subtitle": "Импорт и использование нескольких кошельков в MetaMask"
     }
   },
   "wallet": {
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "Секретная фраза для восстановления, на основе которой будет сгенерирован ваш счет",
     "accounts": "счета",
     "show_accounts": "Показать",
-    "hide_accounts": "Скрыть"
+    "hide_accounts": "Скрыть",
+    "labels": {
+      "bitcoin_testnet_account_name": "Счет тестнета Биткойн",
+      "bitcoin_account_name": "Счет Биткойн",
+      "solana_devnet_account_name": "Счет девнета Solana",
+      "solana_testnet_account_name": "Счет тестнета Solana",
+      "solana_account_name": "Счет Solana"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Не удалось создать счет {{clientType}}"
+    }
   },
   "toast": {
     "connected_and_active": "подключен и активен.",
@@ -966,11 +982,11 @@
     "networks_desc": "Добавляйте и редактируйте пользовательские сети RPC",
     "network_name_label": "Имя сети",
     "network_name_placeholder": "Имя сети (необязательно)",
-    "network_rpc_url_label": "RPC URL",
+    "network_rpc_url_label": "URL-адрес RPC",
     "network_rpc_name_label": "Имя RPC",
     "network_rpc_placeholder": "Новая сеть RPC",
-    "network_failover_rpc_url_label": "Failover RPC URL",
-    "failover": "Failover",
+    "network_failover_rpc_url_label": "URL-адрес отказоустойчивого RPC",
+    "failover": "Отказоустойчивость",
     "network_chain_id_label": "ID блокчейна",
     "network_chain_id_placeholder": "ID блокчейна",
     "network_symbol_label": "Символ",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snaps",
       "description": "Обзор ваших snaps и управление ими",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Открывается в новой вкладке"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Удалить snap",
         "remove_snap_section_description": "Это действие приведет к удалению snap, его данных и предоставленных ему разрешений.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "МЕДЛЕННО",
     "hex_data": "Шестнадцатеричные данные",
     "custom_nonce": "Одноразовый код",
+    "custom_nonce_tooltip": "Это номер транзакции по счету. Одноразовый код для первой транзакции равен 0 и увеличивается в последовательном порядке.",
     "this_is_an_advanced": "Это расширенная функция, используемая для отмены или ускорения любых ожидающих транзакций.",
     "current_suggested_nonce": "Текущий рекомендуемый одноразовый код:",
     "edit_transaction_nonce": "Изменить одноразовый номер транзакции",
@@ -1764,6 +1786,7 @@
     "tx_details_not_available": "Недоступен",
     "smart_contract_interaction": "Взаимодействие со смарт-контрактом",
     "swaps_transaction": "Транзакция свопа",
+    "bridge_transaction": "Мост",
     "approve": "Одобрить",
     "increase_allowance": "Увеличить квоту",
     "set_approval_for_all": "Одобрить все",
@@ -2089,7 +2112,7 @@
     "info_text_2": "Это гарантирует, что только вы сможете получить доступ к своим средствам, и позволит вам восстановить кошелек, если вы потеряете устройство.",
     "cta_text": "Создать пароль",
     "creating_password": "Создание пароля...",
-    "srp_list_selection": "Select Secret Recovery Phrase"
+    "srp_list_selection": "Выберите секретную фразу для восстановления"
   },
   "account_backup_step_1": {
     "remind_me_later": "Напомнить мне позже",
@@ -2730,7 +2753,7 @@
     "minimum": "Минимальный депозит равен",
     "maximum": "Максимальный депозит равен",
     "insufficient_balance": "Эта сумма превышает ваш баланс",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "У вас недостаточно {{currency}} для оплаты платы за газ.",
     "enter_larger_amount": "Введите большую сумму, чтобы продолжить",
     "enter_smaller_amount": "Введите меньшую сумму, чтобы продолжить",
     "enter_lower_gas_fees": "Введите меньшую сумму для оплаты газа",
@@ -2838,6 +2861,7 @@
     }
   },
   "swaps": {
+    "title": "Своп",
     "onboarding": {
       "get_the": "Получите",
       "best_price": "лучшую цену",
@@ -3779,19 +3803,22 @@
       "permit": "Запрос на ограничение расходов",
       "permit_revoke": "Удалить разрешение",
       "permit_NFTs": "Запрос на вывод средств",
-      "signature_siwe": "Запрос на вход"
+      "signature_siwe": "Запрос на вход",
+      "contract_interaction": "Запрос транзакции"
     },
     "sub_title": {
       "permit": "Этот сайт запрашивает разрешение на трату ваших токенов.",
       "permit_NFTs": "Этот сайт запрашивает разрешение на вывод ваших NFT.",
       "signature": "Прежде чем подтвердить запрос, просмотрите детали запроса.",
-      "signature_siwe": "Сайт хочет, чтобы вы вошли в систему, чтобы доказать, что вы являетесь владельцем этого счета."
+      "signature_siwe": "Сайт хочет, чтобы вы вошли в систему, чтобы доказать, что вы являетесь владельцем этого счета.",
+      "contract_interaction": "Прежде чем подтвердить запрос, просмотрите детали запроса."
     },
     "request_from": "Запрос от",
     "staking_from": "Стейкинг от",
     "signing_in_with": "Вход через",
     "message": "Сообщение",
     "personal_sign_tooltip": "Этот сайт запрашивает вашу подпись",
+    "transaction_tooltip": "Этот сайт запрашивает транзакцию с вами",
     "details": "Подробности",
     "qr_get_sign": "Получить подпись",
     "qr_scan_text": "Отсканируйте с помощью вашего аппаратного кошелька",
@@ -3826,7 +3853,10 @@
       "unavailable": "Недоступно"
     },
     "unlimited": "Неограничено",
-    "none": "Нет"
+    "none": "Нет",
+    "advanced_details": "Дополнительные сведения",
+    "interacting_with": "Взаимодействие с",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "Результаты изменились",
@@ -3867,6 +3897,34 @@
     "time": "Время",
     "quote_info_content": "Эта котировка самая выгодная из найденных нами вариантов. Она основана на ставке свопа, включая комиссию за создание моста и комиссию MetaMask в размере 0,875%, но не на плату за газ. Размер платы за газ зависят от активности сети и сложности транзакции.",
     "quote_info_title": "Почему мы рекомендуем эту котировку",
-    "see_other_quotes": "Смотреть другие котировки"
+    "see_other_quotes": "Смотреть другие котировки",
+    "receive_at": "Получить в",
+    "error_banner_description": "Этот торговый маршрут сейчас недоступен. Попробуйте изменить сумму, сеть или токен, и мы найдем лучший вариант.",
+    "insufficient_funds": "Недостаточно средств",
+    "select_amount": "Выбрать сумму",
+    "bridge_to": "Мост к",
+    "title": "Мост",
+    "submitting_transaction": "Выполняется отправка",
+    "fetching_quote": "Получение котировки"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Статус",
+    "date": "Дата",
+    "total_gas_fee": "Итого платы за газ",
+    "estimated_completion": "Прим. завершение",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} получено в {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Выполняется получение {{destSymbol}} в {{destChainName}}",
+    "bridge_step_action_swap_complete": "Выполнен своп {{srcSymbol}} на {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Выполняется своп {{srcSymbol}} на {{destSymbol}}",
+    "view_on_block_explorer": "Просмотр в Обозревателе блоков",
+    "block_explorer_description": "Эта транзакция существует в двух сетях. Первая ссылка показывает источник, а вторая — пункт назначения после подтверждения транзакции.",
+    "transaction_details": "Сведения о транзакции",
+    "bridge_to_chain": "Мост к {{chainName}}",
+    "recipient": "Получатель"
   }
 }

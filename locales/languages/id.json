@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Permintaan masuk yang mencurigakan",
       "message": "Situs yang mengajukan permintaan tersebut bukanlah situs yang Anda masuki. Ini mungkin merupakan upaya untuk mencuri kredensial masuk Anda."
+    },
+    "insufficient_balance": {
+      "title": "Dana tidak cukup",
+      "message": "%{nativeCurrency} di akun Anda tidak cukup untuk membayar biaya jaringan.",
+      "buy_action": "Beli %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "pada"
   },
   "autocomplete": {
-    "placeholder": "Cari berdasarkan situs atau alamat",
+    "placeholder": "Cari berdasarkan token, situs, atau alamat",
     "recents": "Terbaru",
     "favorites": "Favorit",
-    "sites": "Situs"
+    "sites": "Situs",
+    "tokens": "Token"
   },
   "navigation": {
     "back": "Kembali",
@@ -438,8 +444,8 @@
       "subtitle": "Kontrol tampilan saldo Anda di pengaturan"
     },
     "multisrp": {
-      "title": "Add multiple Secret Recovery Phrases",
-      "subtitle": "Import and use multiple wallets in MetaMask"
+      "title": "Tambahkan beberapa Frasa Pemulihan Rahasia",
+      "subtitle": "Impor dan gunakan beberapa dompet di MetaMask"
     }
   },
   "wallet": {
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "Frasa Pemulihan Rahasia akun baru Anda akan dibuat dari",
     "accounts": "akun",
     "show_accounts": "Tampilkan",
-    "hide_accounts": "Sembunyikan"
+    "hide_accounts": "Sembunyikan",
+    "labels": {
+      "bitcoin_testnet_account_name": "Akun Testnet Bitcoin",
+      "bitcoin_account_name": "Akun Bitcoin",
+      "solana_devnet_account_name": "Akun Devnet Solana",
+      "solana_testnet_account_name": "Akun Testnet Solana",
+      "solana_account_name": "Akun Solana"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Gagal membuat akun {{clientType}}"
+    }
   },
   "toast": {
     "connected_and_active": "terhubung dan aktif.",
@@ -966,11 +982,11 @@
     "networks_desc": "Tambahkan dan edit jaringan RPC khusus",
     "network_name_label": "Nama Jaringan",
     "network_name_placeholder": "Nama Jaringan (opsional)",
-    "network_rpc_url_label": "RPC URL",
+    "network_rpc_url_label": "URL RPC",
     "network_rpc_name_label": "Nama RPC",
     "network_rpc_placeholder": "Jaringan RPC Baru",
-    "network_failover_rpc_url_label": "Failover RPC URL",
-    "failover": "Failover",
+    "network_failover_rpc_url_label": "Pengalihan URL RPC",
+    "failover": "Pengalihan",
     "network_chain_id_label": "ID Chain",
     "network_chain_id_placeholder": "ID Chain",
     "network_symbol_label": "Simbol",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snap",
       "description": "Tinjau dan kelola Snap",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Terbuka di tab baru"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Hapus Snap",
         "remove_snap_section_description": "Tindakan ini akan menghapus Snap, datanya, serta izin yang diberikan.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "LAMBAT",
     "hex_data": "Data Hex",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "Ini merupakan nomor transaksi suatu akun. Nonce untuk transaksi pertama adalah 0 dan akan bertambah secara berurutan.",
     "this_is_an_advanced": "Ini merupakan fitur lanjutan yang digunakan untuk membatalkan atau mempercepat transaksi yang berstatus menunggu.",
     "current_suggested_nonce": "Nonce yang disarankan saat ini:",
     "edit_transaction_nonce": "Edit nonce transaksi",
@@ -1764,6 +1786,7 @@
     "tx_details_not_available": "Tidak tersedia",
     "smart_contract_interaction": "Interaksi kontrak cerdas",
     "swaps_transaction": "Transaksi swap",
+    "bridge_transaction": "Bridge",
     "approve": "Setujui",
     "increase_allowance": "Tingkatkan Persetujuan",
     "set_approval_for_all": "Atur Persetujuan Untuk Semua",
@@ -2089,7 +2112,7 @@
     "info_text_2": "Ini akan memastikan Andalah satu-satunya yang dapat mengakses dana dan memungkinkan Anda memulihkan dompet jika perangkat hilang",
     "cta_text": "Buat kata sandi",
     "creating_password": "Membuat kata sandi...",
-    "srp_list_selection": "Select Secret Recovery Phrase"
+    "srp_list_selection": "Pilih Frasa Pemulihan Rahasia"
   },
   "account_backup_step_1": {
     "remind_me_later": "Ingatkan saya nanti",
@@ -2730,7 +2753,7 @@
     "minimum": "Deposit minimum adalah",
     "maximum": "Deposit maksimum adalah",
     "insufficient_balance": "Jumlah ini lebih tinggi dari saldo Anda",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "{{currency}} tidak cukup untuk menutup biaya gas.",
     "enter_larger_amount": "Masukkan jumlah yang lebih besar untuk melanjutkan",
     "enter_smaller_amount": "Masukkan jumlah yang lebih kecil untuk melanjutkan",
     "enter_lower_gas_fees": "Masukkan jumlah yang lebih rendah untuk membayar biaya gas",
@@ -2838,6 +2861,7 @@
     }
   },
   "swaps": {
+    "title": "Tukar",
     "onboarding": {
       "get_the": "Dapatkan",
       "best_price": "harga terbaik",
@@ -3779,19 +3803,22 @@
       "permit": "Permintaan batas penggunaan",
       "permit_revoke": "Hapus izin",
       "permit_NFTs": "Permintaan penarikan",
-      "signature_siwe": "Permintaan masuk"
+      "signature_siwe": "Permintaan masuk",
+      "contract_interaction": "Permintaan transaksi"
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",
       "permit_NFTs": "Situs ini meminta izin untuk menarik NFT Anda.",
       "signature": "Tinjau detail permintaan sebelum mengonfirmasi.",
-      "signature_siwe": "Sebuah situs ingin Anda masuk untuk membuktikan bahwa Anda merupakan pemilik akun ini."
+      "signature_siwe": "Sebuah situs ingin Anda masuk untuk membuktikan bahwa Anda merupakan pemilik akun ini.",
+      "contract_interaction": "Tinjau detail permintaan sebelum mengonfirmasi."
     },
     "request_from": "Permintaan dari",
     "staking_from": "Stake dari",
     "signing_in_with": "Masuk dengan",
     "message": "Pesan",
     "personal_sign_tooltip": "Situs ini meminta tanda tangan Anda",
+    "transaction_tooltip": "Situs ini meminta transaksi Anda",
     "details": "Detail",
     "qr_get_sign": "Dapatkan Tanda Tangan",
     "qr_scan_text": "Pindai dengan dompet perangkat keras",
@@ -3826,7 +3853,10 @@
       "unavailable": "Tidak tersedia"
     },
     "unlimited": "Tak terbatas",
-    "none": "Kosong"
+    "none": "Kosong",
+    "advanced_details": "Detail lanjutan",
+    "interacting_with": "Berinteraksi dengan",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "Hasil telah berubah",
@@ -3867,6 +3897,34 @@
     "time": "Waktu",
     "quote_info_content": "Kuotasi ini menawarkan hasil terbaik dari pencarian kami. Kuotasi ini didasarkan pada nilai tukar, termasuk biaya bridge dan biaya MetaMask 0,875%, tetapi tidak termasuk biaya gas. Biaya gas bervariasi tergantung aktivitas jaringan dan kompleksitas transaksi.",
     "quote_info_title": "Alasan kami merekomendasikan kuotasi ini",
-    "see_other_quotes": "Lihat kuotasi lainnya"
+    "see_other_quotes": "Lihat kuotasi lainnya",
+    "receive_at": "Terima di",
+    "error_banner_description": "Rute perdagangan ini tidak tersedia untuk saat ini. Coba ubah jumlah, jaringan, atau token, dan kami akan mencari opsi terbaik.",
+    "insufficient_funds": "Dana tidak cukup",
+    "select_amount": "Pilih jumlah",
+    "bridge_to": "Bridge ke",
+    "title": "Bridge",
+    "submitting_transaction": "Mengirim",
+    "fetching_quote": "Mengambil kuotasi"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Tanggal",
+    "total_gas_fee": "Total biaya gas",
+    "estimated_completion": "Est. penyelesaian",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} diterima pada {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Menerima {{destSymbol}} pada {{destChainName}}",
+    "bridge_step_action_swap_complete": "Menukar {{srcSymbol}} dengan {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Menukar {{srcSymbol}} dengan {{destSymbol}}",
+    "view_on_block_explorer": "Lihat di Block Explorer",
+    "block_explorer_description": "Transaksi ini berlangsung di dua jaringan. Tautan pertama menampilkan sumbernya; tautan kedua menampilkan tujuannya setelah dikonfirmasi.",
+    "transaction_details": "Detail Transaksi",
+    "bridge_to_chain": "Bridge ke {{chainName}}",
+    "recipient": "Penerima"
   }
 }

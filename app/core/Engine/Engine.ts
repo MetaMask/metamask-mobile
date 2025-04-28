@@ -12,6 +12,7 @@ import {
   TokenRatesController,
   TokensController,
   CodefiTokenPricesServiceV2,
+  TokenSearchDiscoveryDataController,
 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import { AddressBookController } from '@metamask/address-book-controller';
@@ -170,6 +171,7 @@ import {
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
   STATELESS_NON_CONTROLLER_NAMES,
+  swapsSupportedChainIds,
 } from './constants';
 import {
   getGlobalChainId,
@@ -800,7 +802,9 @@ export class Engine {
           'AccountsController:selectedAccountChange',
         ],
       }),
-      state: initialState.AccountTrackerController ?? { accounts: {} },
+      state: initialState.AccountTrackerController ?? {
+        accountsByChainId: {},
+      },
       getStakedBalanceForChain:
         assetsContractController.getStakedBalanceForChain.bind(
           assetsContractController,
@@ -856,7 +860,9 @@ export class Engine {
             const internalAccountCount = internalAccounts.length;
 
             const accountTrackerCount = Object.keys(
-              accountTrackerController.state.accounts || {},
+              accountTrackerController.state.accountsByChainId[
+                currentChainId
+              ] || {},
             ).length;
 
             captureException(
@@ -1023,6 +1029,19 @@ export class Engine {
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
+    const tokenSearchDiscoveryDataController =
+      new TokenSearchDiscoveryDataController({
+        tokenPricesService: codefiTokenApiV2,
+        swapsSupportedChainIds,
+        fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+        fetchTokens: swapsUtils.fetchTokens,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokenSearchDiscoveryDataController',
+          allowedActions: ['CurrencyRateController:getState'],
+          allowedEvents: [],
+        }),
+      });
+
     /* bridge controller Initialization */
     const bridgeController = new BridgeController({
       messenger: this.controllerMessenger.getRestricted({
@@ -1030,9 +1049,12 @@ export class Engine {
         allowedActions: [
           'AccountsController:getSelectedMultichainAccount',
           'SnapController:handleRequest',
-          'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',
+          'NetworkController:findNetworkClientIdByChainId',
+          'TokenRatesController:getState',
+          'MultichainAssetsRatesController:getState',
+          'CurrencyRateController:getState',
         ],
         allowedEvents: [],
       }),
@@ -1054,17 +1076,33 @@ export class Engine {
       config: {
         customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
       },
+      trackMetaMetricsFn: (event, properties) => {
+        const metricsEvent = MetricsEventBuilder.createEventBuilder({
+          // category property here maps to event name
+          category: event,
+        })
+          .addProperties({
+            ...(properties ?? {}),
+          })
+          .build();
+        MetaMetrics.getInstance().trackEvent(metricsEvent);
+      },
     });
 
     const bridgeStatusController = new BridgeStatusController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'BridgeStatusController',
         allowedActions: [
-          'AccountsController:getSelectedAccount',
           'AccountsController:getSelectedMultichainAccount',
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
+          'TokensController:addDetectedTokens',
+          'BridgeController:getBridgeERC20Allowance',
+          'BridgeController:trackUnifiedSwapBridgeEvent',
+          'GasFeeController:getState',
+          'AccountsController:getAccountByAddress',
+          'SnapController:handleRequest',
           'TransactionController:getState',
         ],
         allowedEvents: [],
@@ -1072,6 +1110,20 @@ export class Engine {
       state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
       fetchFn: handleFetch,
+      addTransactionFn: (
+        ...args: Parameters<typeof this.transactionController.addTransaction>
+      ) => this.transactionController.addTransaction(...args),
+      estimateGasFeeFn: (
+        ...args: Parameters<typeof this.transactionController.estimateGasFee>
+      ) => this.transactionController.estimateGasFee(...args),
+      addUserOperationFromTransactionFn: (...args: unknown[]) =>
+        // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
+        this.userOperationController?.addUserOperationFromTransaction?.(
+          ...args,
+        ),
+      config: {
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+      },
     });
 
     const existingControllersByName = {
@@ -1380,18 +1432,7 @@ export class Engine {
           AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
         fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
         fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-        supportedChainIds: [
-          swapsUtils.ETH_CHAIN_ID,
-          swapsUtils.BSC_CHAIN_ID,
-          swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-          swapsUtils.POLYGON_CHAIN_ID,
-          swapsUtils.AVALANCHE_CHAIN_ID,
-          swapsUtils.ARBITRUM_CHAIN_ID,
-          swapsUtils.OPTIMISM_CHAIN_ID,
-          swapsUtils.ZKSYNC_ERA_CHAIN_ID,
-          swapsUtils.LINEA_CHAIN_ID,
-          swapsUtils.BASE_CHAIN_ID,
-        ],
+        supportedChainIds: swapsSupportedChainIds,
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
@@ -1470,6 +1511,7 @@ export class Engine {
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
@@ -2067,6 +2109,7 @@ export default {
       MultichainAssetsRatesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController,
       MultichainNetworkController,
       BridgeController,
       BridgeStatusController,
@@ -2116,6 +2159,7 @@ export default {
       MultichainAssetsRatesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController,
       MultichainNetworkController,
       BridgeController,
       BridgeStatusController,

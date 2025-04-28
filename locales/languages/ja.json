@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "不審なサインイン要求",
       "message": "要求を行っているサイトはサインインしようとしているサイトではありません。これはログイン情報を盗む試みかもしれません。"
+    },
+    "insufficient_balance": {
+      "title": "資金不足",
+      "message": "ネットワーク手数料の支払いに十分な%{nativeCurrency}がアカウントにありません。",
+      "buy_action": "%{nativeCurrency}を購入"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "サイトまたはアドレスで検索",
+    "placeholder": "トークン、サイト、またはアドレスで検索",
     "recents": "最近",
     "favorites": "お気に入り",
-    "sites": "サイト"
+    "sites": "サイト",
+    "tokens": "トークン"
   },
   "navigation": {
     "back": "戻る",
@@ -438,8 +444,8 @@
       "subtitle": "設定で残高の表示を管理"
     },
     "multisrp": {
-      "title": "Add multiple Secret Recovery Phrases",
-      "subtitle": "Import and use multiple wallets in MetaMask"
+      "title": "複数のシークレットリカバリーフレーズの追加",
+      "subtitle": "MetaMaskで複数のウォレットをインポートして使用します"
     }
   },
   "wallet": {
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "新しいアカウントの生成元となるシークレットリカバリーフレーズ",
     "accounts": "アカウント",
     "show_accounts": "表示",
-    "hide_accounts": "非表示"
+    "hide_accounts": "非表示",
+    "labels": {
+      "bitcoin_testnet_account_name": "ビットコインテストネットアカウント",
+      "bitcoin_account_name": "ビットコインアカウント",
+      "solana_devnet_account_name": "Solana Devnetアカウント",
+      "solana_testnet_account_name": "Solanaテストネットアカウント",
+      "solana_account_name": "Solanaアカウント"
+    },
+    "error_messages": {
+      "failed_to_create_account": "{{clientType}}アカウントを作成できませんでした"
+    }
   },
   "toast": {
     "connected_and_active": "接続済みかつ有効です。",
@@ -969,8 +985,8 @@
     "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC名",
     "network_rpc_placeholder": "新しいRPCネットワーク",
-    "network_failover_rpc_url_label": "Failover RPC URL",
-    "failover": "Failover",
+    "network_failover_rpc_url_label": "フェイルオーバーRPC URL",
+    "failover": "フェイルオーバー",
     "network_chain_id_label": "チェーンID",
     "network_chain_id_placeholder": "チェーンID",
     "network_symbol_label": "シンボル",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snap",
       "description": "Snapの概要と管理",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "新しいタブで開きます"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Snapの削除",
         "remove_snap_section_description": "この操作により、Snapとそのデータが削除され、与えられたアクセス許可が取り消されます。",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "低速",
     "hex_data": "16進データ",
     "custom_nonce": "ナンス",
+    "custom_nonce_tooltip": "これはアカウントのトランザクション番号です。最初のトランザクションのナンスは0で、順番に数字が上がります。",
     "this_is_an_advanced": "これは保留中のトランザクションをキャンセルまたは高速化する高度な機能です。",
     "current_suggested_nonce": "現在サポートされているナンス:",
     "edit_transaction_nonce": "トランザクションナンスを編集",
@@ -1764,6 +1786,7 @@
     "tx_details_not_available": "利用できません",
     "smart_contract_interaction": "スマートコントラクトのインタラクション",
     "swaps_transaction": "スワップトランザクション",
+    "bridge_transaction": "ブリッジ",
     "approve": "承認",
     "increase_allowance": "許容額を増やす",
     "set_approval_for_all": "すべてを承認に設定",
@@ -2089,7 +2112,7 @@
     "info_text_2": "これにより、本人だけが資金にアクセスでき、デバイスを紛失した場合でもウォレットを復元できるようになります",
     "cta_text": "パスワードを作成",
     "creating_password": "パスワードを作成中...",
-    "srp_list_selection": "Select Secret Recovery Phrase"
+    "srp_list_selection": "シークレットリカバリーフレーズを選択"
   },
   "account_backup_step_1": {
     "remind_me_later": "後で通知",
@@ -2730,7 +2753,7 @@
     "minimum": "最低入金額は",
     "maximum": "最高入金額は",
     "insufficient_balance": "この金額は残高を超えています",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "ガス代の支払いに十分な{{currency}}がありません。",
     "enter_larger_amount": "続行するにはより大きな金額を入力してください",
     "enter_smaller_amount": "続行するにはより小さな金額を入力してください",
     "enter_lower_gas_fees": "ガス代の金額をより少なめに入力してください",
@@ -2838,6 +2861,7 @@
     }
   },
   "swaps": {
+    "title": "スワップ",
     "onboarding": {
       "get_the": "トップの",
       "best_price": "流動性",
@@ -3779,19 +3803,22 @@
       "permit": "使用上限要求",
       "permit_revoke": "アクセス許可を取り消す",
       "permit_NFTs": "出金リクエスト",
-      "signature_siwe": "サインイン要求"
+      "signature_siwe": "サインイン要求",
+      "contract_interaction": "トランザクション要求"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
       "permit_NFTs": "このサイトがNFTの引き出し許可を求めています。",
       "signature": "確定する前にリクエストの詳細を確認してください。",
-      "signature_siwe": "このアカウントの所有者であることを証明するために、サイトがサインインを求めています。"
+      "signature_siwe": "このアカウントの所有者であることを証明するために、サイトがサインインを求めています。",
+      "contract_interaction": "確定する前に要求の詳細を確認してください。"
     },
     "request_from": "要求元",
     "staking_from": "ステーキング元",
     "signing_in_with": "サインイン方法",
     "message": "メッセージ",
     "personal_sign_tooltip": "このサイトが署名を求めています",
+    "transaction_tooltip": "このサイトがトランザクションを求めています",
     "details": "詳細",
     "qr_get_sign": "署名を取得",
     "qr_scan_text": "ハードウェアウォレットでスキャン",
@@ -3826,7 +3853,10 @@
       "unavailable": "利用不可"
     },
     "unlimited": "無制限",
-    "none": "なし"
+    "none": "なし",
+    "advanced_details": "高度な詳細",
+    "interacting_with": "相手",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "結果が変更になりました",
@@ -3867,6 +3897,34 @@
     "time": "時間",
     "quote_info_content": "このクォートは、当社の検索で最も有利な条件を提供します。クォートはスワップレートに基づくもので、ブリッジ手数料と0.875%のMetaMask手数料が含まれていますが、ガス代は別になります。ガス代はネットワークのアクティビティとトランザクションの複雑さによって異なります。",
     "quote_info_title": "このクォートをお勧めする理由",
-    "see_other_quotes": "他のクォートを表示"
+    "see_other_quotes": "他のクォートを表示",
+    "receive_at": "受取先:",
+    "error_banner_description": "この取引ルートは現在使用できません。金額、ネットワーク、またはトークンを変更してみてください。最善のオプションを探します。",
+    "insufficient_funds": "資金不足",
+    "select_amount": "アカウントを選択",
+    "bridge_to": "ブリッジ先:",
+    "title": "ブリッジ",
+    "submitting_transaction": "送信中",
+    "fetching_quote": "クォートを取得中"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+  },
+  "bridge_transaction_details": {
+    "status": "ステータス",
+    "date": "日付",
+    "total_gas_fee": "ガス代合計",
+    "estimated_completion": "予想完了日時",
+    "bridge_step_action_bridge_complete": "{{destChainName}}で{{destSymbol}}を受け取りました",
+    "bridge_step_action_bridge_pending": "{{destChainName}}で{{destSymbol}}を受取中",
+    "bridge_step_action_swap_complete": "{{srcSymbol}}を{{destSymbol}}にスワップしました",
+    "bridge_step_action_swap_pending": "{{srcSymbol}}を{{destSymbol}}にスワップしています",
+    "view_on_block_explorer": "ブロックエクスプローラーで表示",
+    "block_explorer_description": "このトランザクションは2つのネットワークに存在します。1つ目のリンクはソースを表示し、2つ目のリンクは確定後に送金先を表示します。",
+    "transaction_details": "トランザクションの詳細",
+    "bridge_to_chain": "{{chainName}}へのブリッジ",
+    "recipient": "受取人"
   }
 }
