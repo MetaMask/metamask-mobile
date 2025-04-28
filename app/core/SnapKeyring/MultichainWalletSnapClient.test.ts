@@ -17,6 +17,11 @@ jest.mock('../Engine', () => ({
     call: jest.fn(),
   },
   getSnapKeyring: jest.fn(),
+  context: {
+    AccountsController: {
+      getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
+    },
+  },
 }));
 
 const mockKeyringClient = {
@@ -60,6 +65,10 @@ describe('MultichainWalletSnapClient', () => {
 
     protected getSnapSender(): Sender {
       return {} as Sender;
+    }
+
+    getClientType(): WalletClientType {
+      return WalletClientType.Solana;
     }
 
     public testWithSnapKeyring(

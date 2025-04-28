@@ -15,7 +15,6 @@ import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
 
 // Internal dependencies
 import { AddNewAccountProps } from './AddNewAccount.types';
@@ -36,11 +35,9 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import SRPList from '../../UI/SRPList';
 import Logger from '../../../util/Logger';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { getHdKeyringOfSelectedAccountOrPrimaryKeyring } from '../../../selectors/multisrp';
 import {
   MultichainWalletSnapFactory,
-  WalletClientType,
 } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import BottomSheet, {
   BottomSheetRef,
@@ -48,7 +45,7 @@ import BottomSheet, {
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { getMultichainAccountName } from '../../../core/SnapKeyring/utils/getMultichainAccountName';
 
 const AddNewAccount = ({ route }: AddNewAccountProps) => {
   const { navigate } = useNavigation();
@@ -117,50 +114,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
   }, [clientType, scope, accountName, keyringId, navigate]);
 
   useEffect(() => {
-    const nextAvailableAccountName =
-      Engine.context.AccountsController.getNextAvailableAccountName(
-        clientType ? KeyringTypes.snap : KeyringTypes.hd,
-      );
-    const accountNumber = nextAvailableAccountName.split(' ').pop();
-
-    let accountNameToUse = nextAvailableAccountName;
-    switch (clientType) {
-      case WalletClientType.Bitcoin: {
-        if (scope === BtcScope.Testnet) {
-          accountNameToUse = `${strings(
-            'accounts.labels.bitcoin_testnet_account_name',
-          )} ${accountNumber}`;
-          break;
-        }
-        accountNameToUse = `${strings(
-          'accounts.labels.bitcoin_account_name',
-        )} ${accountNumber}`;
-        break;
-      }
-      case WalletClientType.Solana: {
-        switch (scope) {
-          case SolScope.Devnet:
-            accountNameToUse = `${strings(
-              'accounts.labels.solana_devnet_account_name',
-            )} ${accountNumber}`;
-            break;
-          case SolScope.Testnet:
-            accountNameToUse = `${strings(
-              'accounts.labels.solana_testnet_account_name',
-            )} ${accountNumber}`;
-            break;
-          default:
-            accountNameToUse = `${strings(
-              'accounts.labels.solana_account_name',
-            )} ${accountNumber}`;
-            break;
-        }
-        break;
-      }
-      default:
-        break;
-    }
-    setAccountName(accountNameToUse);
+    setAccountName(getMultichainAccountName(scope, clientType));
   }, [clientType, scope]);
 
   const hdKeyringIndex = useMemo(

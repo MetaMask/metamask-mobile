@@ -37,7 +37,7 @@ const mockSnapClient = {
 jest.mock('../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../../core/SnapKeyring/MultichainWalletSnapClient'),
   MultichainWalletSnapFactory: {
-    createClient: jest.fn().mockImplementation(() => mockSnapClient),
+    createClient: () => mockSnapClient,
   },
 }));
 
@@ -49,6 +49,9 @@ jest.mock('../../core/Engine', () => ({
       getKeyringsByType: () => mockGetKeyringsByType(),
       withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
         operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
+    },
+    AccountsController: {
+      getNextAvailableAccountName: () => 'Snap Account 1',
     },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),

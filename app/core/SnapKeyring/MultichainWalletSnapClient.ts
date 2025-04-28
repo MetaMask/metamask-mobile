@@ -19,6 +19,7 @@ export enum WalletClientType {
   Bitcoin = 'bitcoin',
   Solana = 'solana',
 }
+import { getMultichainAccountName } from './utils/getMultichainAccountName';
 
 export const WALLET_SNAP_MAP = {
   [WalletClientType.Bitcoin]: {
@@ -69,6 +70,7 @@ export abstract class MultichainWalletSnapClient {
   }
 
   abstract getScope(): CaipChainId;
+  abstract getClientType(): WalletClientType;
   protected abstract getSnapSender(): Sender;
 
   /**
@@ -107,10 +109,18 @@ export abstract class MultichainWalletSnapClient {
     options: MultichainWalletSnapOptions,
     snapKeyringOptions?: SnapKeyringOptions,
   ) {
+    const accountName = getMultichainAccountName(
+      options.scope,
+      this.getClientType(),
+    );
+
     return await this.withSnapKeyring(async (keyring) => {
       (keyring as unknown as SnapKeyring).createAccount(
         this.snapId,
-        options as unknown as Record<string, Json>,
+        {
+          ...options,
+          accountNameSuggestion: accountName,
+        } as unknown as Record<string, Json>,
         snapKeyringOptions ?? this.snapKeyringOptions,
       );
     });
@@ -163,7 +173,6 @@ export abstract class MultichainWalletSnapClient {
         index,
       );
 
-      // We stop discovering accounts if none got discovered for that index.
       // No accounts discovered
       if (discoveredAccounts.length === 0) {
         // For the first index, create a default account
@@ -215,6 +224,10 @@ export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
     return BtcScope.Mainnet;
   }
 
+  getClientType(): WalletClientType {
+    return WalletClientType.Bitcoin;
+  }
+
   protected getSnapSender(): Sender {
     return new BitcoinWalletSnapSender();
   }
@@ -227,6 +240,10 @@ export class SolanaWalletSnapClient extends MultichainWalletSnapClient {
 
   getScope(): CaipChainId {
     return SolScope.Mainnet;
+  }
+
+  getClientType(): WalletClientType {
+    return WalletClientType.Solana;
   }
 
   protected getSnapSender(): Sender {
