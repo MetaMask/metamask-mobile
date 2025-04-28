@@ -277,6 +277,8 @@ enum EVENT_NAME {
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
+  BRIDGE_PAGE_VIEWED = 'Bridge Page Viewed',
+  SWAP_PAGE_VIEWED = 'Swap Page Viewed', // Temporary event until unified swap/bridge is done
 
   // Earn
   EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
@@ -1043,6 +1045,10 @@ const events = {
   TOKEN_SEARCH_DISCOVERY_TOKEN_SWAP_OPENED: generateOpt(
     EVENT_NAME.TOKEN_SEARCH_DISCOVERY_TOKEN_SWAP_OPENED,
   ),
+
+  // Bridge
+  BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),
+  SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
 };
 
 /**
