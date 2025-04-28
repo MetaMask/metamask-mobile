@@ -201,4 +201,27 @@ describe('useTokenBalancesPolling', () => {
       mockedTokenBalancesController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
   });
+
+  it('Should not poll when evm is not selected', async () => {
+    renderHookWithProvider(() => useTokenBalancesPolling(), {
+      state: {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            MultichainNetworkController: {
+              ...state.engine.backgroundState.MultichainNetworkController,
+              isEvmSelected: false,
+            },
+          },
+        },
+      },
+    });
+
+    const mockedTokenBalancesController = jest.mocked(
+      Engine.context.TokenBalancesController,
+    );
+    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(0);
+  });
 });
