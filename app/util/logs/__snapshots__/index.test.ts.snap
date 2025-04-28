@@ -7,7 +7,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
-        "accounts": {},
         "accountsByChainId": {
           "0x1": {},
         },
@@ -36,6 +35,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isSignedIn": false,
       },
       "BridgeController": {
+        "assetExchangeRates": {},
         "bridgeFeatureFlags": {
           "extensionConfig": {
             "chains": {},
@@ -142,6 +142,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "MultichainAssetsRatesController": {
         "conversionRates": {},
+        "historicalPrices": {},
       },
       "MultichainBalancesController": {
         "balances": {},
@@ -459,7 +460,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "TokenListController": {
         "preventPollingOnNetworkRestart": false,
-        "tokenList": {},
         "tokensChainsCache": {},
       },
       "TokenRatesController": {
@@ -468,6 +468,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "TokenSearchDiscoveryController": {
         "lastSearchTimestamp": null,
         "recentSearches": [],
+      },
+      "TokenSearchDiscoveryDataController": {
+        "swapsTokenAddressesByChainId": {},
+        "tokenDisplayData": [],
       },
       "TransactionController": {
         "lastFetchedBlockNumbers": {},

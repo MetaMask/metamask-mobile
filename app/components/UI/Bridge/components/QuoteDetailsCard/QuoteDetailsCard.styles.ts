@@ -12,6 +12,7 @@ const createStyles = ({ colors }: Theme) =>
       paddingVertical: 12,
       paddingHorizontal: 16,
       gap: 12,
+      marginBottom: 12,
     },
     gradientContainer: {
       position: 'absolute',
