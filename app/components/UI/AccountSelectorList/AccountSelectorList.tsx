@@ -318,6 +318,7 @@ const AccountSelectorList = ({
       renderItem={renderAccountItem}
       // Increasing number of items at initial render fixes scroll issue.
       initialNumToRender={999}
+      testID="flat-list"
       {...props}
     />
   );
