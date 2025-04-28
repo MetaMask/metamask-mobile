@@ -7,7 +7,6 @@ import {
   Hex, isCaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
 import { useTheme } from '../../../../../util/theme';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../../constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
@@ -90,8 +89,6 @@ export const TokenListItem = React.memo(
     const { trackEvent, createEventBuilder } = useMetrics();
     const navigation = useNavigation();
     const { colors } = useTheme();
-
-    useTokenBalancesController();
 
     const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
     const selectedInternalAccountAddress = useSelector(
