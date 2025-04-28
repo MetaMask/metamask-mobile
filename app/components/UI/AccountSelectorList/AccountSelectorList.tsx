@@ -1,17 +1,14 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { Alert, ListRenderItem, View, ViewStyle } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
-import { useSelector } from 'react-redux';
+import { Alert, View, ViewStyle } from 'react-native';
+import { useSelector, shallowEqual } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
-import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useStyles } from '../../../component-library/hooks';
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
@@ -31,12 +28,16 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { ESTIMATED_CELL_ITEM_HEIGHT } from '../../Views/AccountSelector/AccountSelector.styles';
+import { ScrollView } from 'react-native-gesture-handler';
+import { RootState } from '../../../reducers';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -55,20 +56,16 @@ const AccountSelectorList = ({
   ...props
 }: AccountSelectorListProps) => {
   const { navigate } = useNavigation();
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountListRef = useRef<any>(null);
+  const accountListRef = useRef<FlashList<Account>>(null);
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
+  const accountAvatarType = useSelector(
+    (state: RootState) =>
+      state.settings.useBlockieIcon
+        ? AvatarAccountType.Blockies
+        : AvatarAccountType.JazzIcon,
+    shallowEqual,
   );
-
-  const internalAccounts = useSelector(selectInternalAccounts);
   const getKeyExtractor = ({ address }: Account) => address;
 
   const renderAccountBalances = useCallback(
@@ -176,10 +173,8 @@ const AccountSelectorList = ({
 
   const onNavigateToAccountActions = useCallback(
     (selectedAccount: string) => {
-      const account = internalAccounts.find(
-        (accountData: InternalAccount) =>
-          accountData.address.toLowerCase() === selectedAccount.toLowerCase(),
-      );
+      const account =
+        Engine.context.AccountsController.getAccountByAddress(selectedAccount);
 
       if (!account) return;
 
@@ -188,7 +183,7 @@ const AccountSelectorList = ({
         params: { selectedAccount: account },
       });
     },
-    [navigate, internalAccounts],
+    [navigate],
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
@@ -226,25 +221,39 @@ const AccountSelectorList = ({
         cellStyle.alignItems = 'center';
       }
 
+      const handleLongPress = () => {
+        onLongPress({
+          address,
+          isAccountRemoveable:
+            type === KeyringTypes.simple || type === KeyringTypes.snap,
+          isSelected: isSelectedAccount,
+          index,
+        });
+      };
+
+      const handlePress = () => {
+        onSelectAccount?.(address, isSelectedAccount);
+      };
+
+      const handleButtonClick = () => {
+        onNavigateToAccountActions(address);
+      };
+
+      const buttonProps = {
+        onButtonClick: handleButtonClick,
+        buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
+      };
+
       return (
         <Cell
-          key={address}
-          onLongPress={() => {
-            onLongPress({
-              address,
-              isAccountRemoveable:
-                type === KeyringTypes.simple || type === KeyringTypes.snap,
-              isSelected: isSelectedAccount,
-              index,
-            });
-          }}
+          onLongPress={handleLongPress}
           variant={cellVariant}
           isSelected={isSelectedAccount}
           title={accountName}
           secondaryText={shortAddress}
           showSecondaryTextIcon={false}
           tertiaryText={balanceError}
-          onPress={() => onSelectAccount?.(address, isSelectedAccount)}
+          onPress={handlePress}
           avatarProps={{
             variant: AvatarVariant.Account,
             type: accountAvatarType,
@@ -253,10 +262,7 @@ const AccountSelectorList = ({
           tagLabel={tagLabel}
           disabled={isDisabled}
           style={cellStyle}
-          buttonProps={{
-            onButtonClick: () => onNavigateToAccountActions(address),
-            buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
-          }}
+          buttonProps={buttonProps}
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets && renderAccountBalances(assets, address))}
@@ -280,33 +286,22 @@ const AccountSelectorList = ({
   );
 
   const onContentSizeChanged = useCallback(() => {
-    // Handle auto scroll to account
+    // Handle auto scroll to account - only needed for when accounts change after initial render
     if (!accounts.length || !isAutoScrollEnabled) return;
     if (accountsLengthRef.current !== accounts.length) {
-      const selectedAddressOverride = selectedAddresses?.[0];
-      const account = accounts.find(({ isSelected, address }) =>
-        selectedAddressOverride
-          ? safeToChecksumAddress(selectedAddressOverride) ===
-            safeToChecksumAddress(address)
-          : isSelected,
-      );
-      accountListRef?.current?.scrollToOffset({
-        offset: account?.yOffset,
-        animated: false,
-      });
       accountsLengthRef.current = accounts.length;
     }
-  }, [accounts, selectedAddresses, isAutoScrollEnabled]);
+  }, [accounts, isAutoScrollEnabled]);
 
   return (
-    <FlatList
+    <FlashList
       ref={accountListRef}
       onContentSizeChange={onContentSizeChanged}
       data={accounts}
       keyExtractor={getKeyExtractor}
       renderItem={renderAccountItem}
-      // Increasing number of items at initial render fixes scroll issue.
-      initialNumToRender={999}
+      estimatedItemSize={ESTIMATED_CELL_ITEM_HEIGHT}
+      renderScrollComponent={ScrollView}
       {...props}
     />
   );

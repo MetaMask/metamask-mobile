@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { FlatListProps } from 'react-native';
+import { FlashListProps } from '@shopify/flash-list';
 
 // External dependencies.
 import { Account, UseAccounts } from '../../hooks/useAccounts';
@@ -9,7 +9,7 @@ import { Account, UseAccounts } from '../../hooks/useAccounts';
  * AccountSelectorList props.
  */
 export interface AccountSelectorListProps
-  extends Partial<FlatListProps<Account>>,
+  extends Partial<FlashListProps<Account>>,
     Omit<UseAccounts, 'evmAccounts'> {
   /**
    * Optional callback to trigger when account is selected.

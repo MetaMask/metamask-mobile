@@ -116,7 +116,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const renderAccountSelector = useCallback(
     () => (
-      <Fragment>
+      <View style={styles.listContainer}>
         <SheetHeader title={strings('accounts.accounts_title')} />
         <AccountSelectorList
           onSelectAccount={_onSelectAccount}
@@ -139,7 +139,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             }
           />
         </View>
-      </Fragment>
+      </View>
     ),
     [
       accounts,
