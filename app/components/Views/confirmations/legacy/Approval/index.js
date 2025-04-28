@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, AppState, Alert, InteractionManager } from 'react-native';
+import { pickBy } from 'lodash';
 import Engine from '../../../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from './components/TransactionEditor';
@@ -379,8 +380,8 @@ class Approval extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     };
 
     try {
@@ -496,8 +497,6 @@ class Approval extends PureComponent {
   onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
     const { KeyringController, ApprovalController } = Engine.context;
     const {
-      transactions,
-      chainId,
       shouldUseSmartTransaction,
       simulationData: { isUpdatedAfterSecurityCheck } = {},
       navigation,
@@ -565,19 +564,6 @@ class Approval extends PureComponent {
           },
           (transactionMeta) => transactionMeta.id === transaction.id,
         );
-
-      const fullTx = transactions.find(({ id }) => id === transaction.id);
-
-      const updatedTx = {
-        ...fullTx,
-        txParams: {
-          ...fullTx.txParams,
-          ...transaction,
-          chainId,
-        },
-      };
-
-      await updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 
       // For Ledger Accounts we handover the signing to the confirmation flow
