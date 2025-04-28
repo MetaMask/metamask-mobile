@@ -43,6 +43,17 @@ import { createKycWebviewNavDetails } from './NativeRampWebView';
 import MaterialsCommunityIconsIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialsIconsIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
+import { useDispatch } from 'react-redux';
+import {
+  FIAT_ORDER_STATES,
+  FIAT_ORDER_PROVIDERS,
+} from '../../../../../constants/on-ramp';
+import {
+  addFiatOrder,
+  FiatOrder,
+  resetFiatOrders,
+} from '../../../../../reducers/fiatOrders';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 function NativeRamp() {
   const navigation = useNavigation();
@@ -50,6 +61,7 @@ function NativeRamp() {
     styles,
     theme: { colors },
   } = useStyles(styleSheet, {});
+
   const [currentStep, setCurrentStep] = useState(1);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -91,6 +103,8 @@ function NativeRamp() {
       ),
   );
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
     const getScreenTitle = () => {
       switch (currentStep) {
@@ -127,6 +141,227 @@ function NativeRamp() {
       amountInputRef.current?.focus();
     }
   }, [currentStep]);
+
+  const fetchAndStoreNativeRampOrders = async (isRecovery = false) => {
+    try {
+      if (!accessToken) return;
+
+      const orders = await nativeRampService.getOrdersHistory(accessToken);
+
+      console.log('checking for pending orders...');
+
+      // Convert NativeRamp orders to FiatOrder format
+      const fiatOrders = orders.map((order) => {
+        const translatedOrderData = {
+          ...order,
+          isOnlyLink: false,
+          provider: {
+            name: 'Transak',
+            id: FIAT_ORDER_PROVIDERS.TRANSAK,
+          },
+          success: order.status === 'COMPLETED',
+          providerOrderId: order.id,
+          providerOrderLink: `https://global-transak.vercel.app/order/${order.id}`,
+          totalFeesFiat: order.totalFeeInFiat,
+          fiatCurrency:
+            typeof order.fiatCurrency === 'string'
+              ? { symbol: order.fiatCurrency }
+              : order.fiatCurrency,
+          cryptoCurrency:
+            typeof order.cryptoCurrency === 'string'
+              ? { symbol: order.cryptoCurrency }
+              : order.cryptoCurrency,
+          paymentMethod: {
+            id: order.paymentOptionId || 'unknown',
+            name:
+              order.paymentOptionId === 'sepa_bank_transfer'
+                ? 'SEPA Bank Transfer'
+                : order.paymentOptionId || 'Unknown',
+          },
+          canBeUpdated: false,
+          canBeCancelled: false,
+          expires: 0,
+          paymentUrl: '',
+          authUrl: '',
+          errorUrl: '',
+          authUrlMessage: '',
+          data: {},
+        };
+
+        // Create proper FiatOrder object
+        const fiatOrder: FiatOrder = {
+          id: order.id,
+          provider: FIAT_ORDER_PROVIDERS.TRANSAK,
+          createdAt: new Date(order.createdAt).getTime(),
+          amount: order.fiatAmount,
+          fee: order.totalFeeInFiat,
+          cryptoAmount: order.cryptoAmount,
+          currency:
+            typeof order.fiatCurrency === 'string'
+              ? order.fiatCurrency
+              : (order.fiatCurrency as { symbol: string }).symbol,
+          cryptocurrency:
+            typeof order.cryptoCurrency === 'string'
+              ? order.cryptoCurrency
+              : (order.cryptoCurrency as { symbol: string }).symbol,
+          state:
+            order.status === 'COMPLETED'
+              ? FIAT_ORDER_STATES.COMPLETED
+              : order.status === 'FAILED'
+              ? FIAT_ORDER_STATES.FAILED
+              : FIAT_ORDER_STATES.PENDING,
+          account: order.walletAddress,
+          network: '42161',
+          txHash: order.transactionHash,
+          excludeFromPurchases: false,
+          orderType: OrderOrderTypeEnum.Buy,
+          data: translatedOrderData as unknown as import('@consensys/on-ramp-sdk').Order,
+        };
+
+        return fiatOrder;
+      });
+
+      // Add each order to the Redux store
+      fiatOrders.forEach((order) => {
+        dispatch(addFiatOrder(order));
+      });
+
+      // implement recovery logic here
+      if (isRecovery && orders.length > 0) {
+        setLoadingMessage('Checking for pending orders...');
+
+        console.log('Checking for pending orders...');
+
+        // Get the newest order
+        const newestOrder = orders[0];
+
+        // Check if the newest order is pending
+        if (
+          newestOrder.status !== 'COMPLETED' &&
+          newestOrder.status !== 'FAILED'
+        ) {
+          // Set the amount from the pending order
+          setAmount(newestOrder.fiatAmount.toString());
+
+          // Set the payment method from the pending order
+          if (newestOrder.paymentOptionId) {
+            setSelectedPaymentMethod(newestOrder.paymentOptionId);
+          }
+
+          // Restore the order data
+          setOrderData(newestOrder);
+
+          // Check the payment method and restore the appropriate step
+          if (newestOrder.paymentOptionId === 'sepa_bank_transfer') {
+            // For SEPA transfers, we need to get the payment options to display the bank details
+            const sepaOption = newestOrder.paymentOptions?.find(
+              (option) => option.id === 'sepa_bank_transfer',
+            );
+
+            if (sepaOption) {
+              setSepaData(sepaOption);
+
+              // Get a quote to ensure we have all the necessary data
+              const recoveryQuote = await nativeRampService.getBuyQuote(
+                typeof newestOrder.fiatCurrency === 'string'
+                  ? newestOrder.fiatCurrency
+                  : (newestOrder.fiatCurrency as { symbol: string }).symbol,
+                typeof newestOrder.cryptoCurrency === 'string'
+                  ? newestOrder.cryptoCurrency
+                  : (newestOrder.cryptoCurrency as { symbol: string }).symbol,
+                'arbitrum',
+                'sepa_bank_transfer',
+                newestOrder.fiatAmount.toString(),
+              );
+              setQuote(recoveryQuote);
+
+              // Skip to the bank transfer confirmation step
+              setCurrentStep(7);
+            }
+          } else if (
+            newestOrder.paymentOptionId === 'credit_debit_card' ||
+            newestOrder.paymentOptionId === 'apple_pay'
+          ) {
+            // For card or Apple Pay payments, we need to get a new OTT token
+            // to create a new payment widget URL
+            const ottResponse = await nativeRampService.requestOtt(accessToken);
+            const callbackUrl = 'https://metamask.io';
+
+            // Get a quote first
+            const recoveryQuote = await nativeRampService.getBuyQuote(
+              typeof newestOrder.fiatCurrency === 'string'
+                ? newestOrder.fiatCurrency
+                : (newestOrder.fiatCurrency as { symbol: string }).symbol,
+              typeof newestOrder.cryptoCurrency === 'string'
+                ? newestOrder.cryptoCurrency
+                : (newestOrder.cryptoCurrency as { symbol: string }).symbol,
+              'arbitrum',
+              newestOrder.paymentOptionId,
+              newestOrder.fiatAmount.toString(),
+            );
+            setQuote(recoveryQuote);
+
+            // Generate a new payment widget URL
+            const widgetUrl = nativeRampService.generatePaymentWidgetUrl(
+              ottResponse.token,
+              recoveryQuote.fiatCurrency,
+              recoveryQuote.cryptoCurrency,
+              recoveryQuote.network,
+              newestOrder.fiatAmount.toString(),
+              selectedAddress,
+              newestOrder.paymentOptionId,
+              callbackUrl,
+            );
+
+            // Navigate to the payment widget
+            setCurrentStep(7);
+
+            // Create a callback reference instead of calling the function directly
+            const handleOrderCompletionCallback = () => {
+              navigation.goBack();
+              fetchAndStoreNativeRampOrders();
+            };
+
+            navigation.navigate(
+              ...createKycWebviewNavDetails({
+                url: widgetUrl,
+                isPaymentWidget: true,
+                onOrderComplete: handleOrderCompletionCallback,
+              }),
+            );
+          }
+
+          // Alert the user about the pending order recovery
+          Alert.alert(
+            'Pending Order Found',
+            'We found a pending order and have restored your session. You can continue from where you left off.',
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching NativeRamp orders:', error);
+      if (isRecovery) {
+        Alert.alert(
+          'Error Recovering Order',
+          'We encountered an error while trying to recover your pending order. Please start a new transaction.',
+        );
+      }
+    } finally {
+      if (isRecovery) {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const checkForPendingOrders = async () => {
+      if (accessToken) {
+        await fetchAndStoreNativeRampOrders();
+      }
+    };
+
+    checkForPendingOrders();
+  }, [accessToken]);
 
   // This is a helper function just for the POC to be able to identify errors
   const getErrorMessage = (error: any): string => {
@@ -184,7 +419,7 @@ function NativeRamp() {
     }
   };
 
-  const handleOrderCompletion = (orderId: string) => {
+  const handleOrderCompletion = async (orderId: string) => {
     if (accessToken) {
       navigation.goBack();
 
@@ -207,6 +442,7 @@ function NativeRamp() {
             setOrderData(updatedOrder);
             setCurrentStep(8);
             setIsLoading(false);
+            await fetchAndStoreNativeRampOrders();
             return;
           }
 
@@ -227,6 +463,9 @@ function NativeRamp() {
       };
 
       pollOrderStatus();
+
+      // After successful order completion, refresh the orders list
+      await fetchAndStoreNativeRampOrders();
     }
   };
 
@@ -637,6 +876,7 @@ function NativeRamp() {
             setOrderData(updatedOrder);
             setCurrentStep(8);
             setIsLoading(false);
+            await fetchAndStoreNativeRampOrders();
             return;
           }
 
@@ -1083,6 +1323,24 @@ function NativeRamp() {
           onPress={resetTransakToken}
         >
           reset auth token (only for testing)
+        </Text>
+      </Row>
+      <Row style={styles.devButtonContainer}>
+        <Text
+          variant={TextVariant.BodySM}
+          style={styles.devButtonText}
+          onPress={() => {
+            dispatch(resetFiatOrders());
+            Alert.alert(
+              'Orders Reset',
+              'All orders have been reset. Please fetch orders again.',
+            );
+            if (accessToken) {
+              fetchAndStoreNativeRampOrders();
+            }
+          }}
+        >
+          reset all orders (only for testing)
         </Text>
       </Row>
     </>
