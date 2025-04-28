@@ -31,7 +31,6 @@ import {
   selectPreviouslySelectedEvmAccount,
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
 import {
   getAddressAccountType,
@@ -43,12 +42,15 @@ import {
   prefixUrlWithProtocol,
 } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
-import { Account, useAccounts } from '../../hooks/useAccounts';
+import { useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
-import { ImageURISource, ImageSourcePropType, StyleSheet } from 'react-native';
+import { ImageSourcePropType, StyleSheet } from 'react-native';
 import URLParse from 'url-parse';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import PermissionsSummary from '../../../components/UI/PermissionsSummary';
+import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
@@ -58,33 +60,29 @@ import {
   MM_PHISH_DETECT_URL,
 } from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
+import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import { CaveatTypes } from '../../../core/Permissions/constants';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
+import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import { RootState } from '../../../reducers';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { trackDappViewedEvent } from '../../../util/metrics';
+import { getNetworkImageSource } from '../../../util/networks';
+import { getPhishingTestResult } from '../../../util/phishingDetection';
 import { useTheme } from '../../../util/theme';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
+import useOriginSource from '../../hooks/useOriginSource';
+import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import {
   AccountConnectProps,
   AccountConnectScreens,
 } from './AccountConnect.types';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
-import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
-import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
-import PermissionsSummary from '../../../components/UI/PermissionsSummary';
-import { getNetworkImageSource } from '../../../util/networks';
-import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
-import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
-import useOriginSource from '../../hooks/useOriginSource';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { getPhishingTestResult } from '../../../util/phishingDetection';
-import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -173,10 +171,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const isOriginWalletConnect =
     !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
-  const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
-
-  const [isSdkUrlUnknown, setIsSdkUrlUnknown] = useState(false);
 
   const { domainTitle, hostname } = useMemo(() => {
     let title = '';
@@ -197,7 +192,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       dappHostname = inappBrowserOrigin;
     } else {
       title = strings('sdk.unknown');
-      setIsSdkUrlUnknown(true);
     }
 
     return { domainTitle: title, hostname: dappHostname };
@@ -310,25 +304,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const faviconSource = useFavicon(
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
   );
-
-  const actualIcon = useMemo(() => {
-    // Priority to dappIconUrl
-    if (dappIconUrl) {
-      return { uri: dappIconUrl };
-    }
-
-    if (isOriginWalletConnect) {
-      // fetch icon from store
-      return { uri: wc2Metadata?.icon ?? '' };
-    }
-
-    const favicon = faviconSource as ImageURISource;
-    if ('uri' in favicon) {
-      return faviconSource;
-    }
-
-    return { uri: '' };
-  }, [dappIconUrl, wc2Metadata, faviconSource, isOriginWalletConnect]);
 
   const secureIcon = useMemo(
     () =>
@@ -548,8 +523,17 @@ const AccountConnect = (props: AccountConnectProps) => {
     [networkConfigurations, setScreen],
   );
 
-  const hideSheet = (callback?: () => void) =>
-    sheetRef?.current?.onCloseBottomSheet?.(callback);
+  const hideSheet = useCallback(
+    (callback?: () => void) =>
+      sheetRef?.current?.onCloseBottomSheet?.(callback),
+    [sheetRef],
+  );
+
+  const handleConfirm = useCallback(async () => {
+    hideSheet();
+    await handleUpdateNetworkPermissions();
+    await handleConnect();
+  }, [handleUpdateNetworkPermissions, hideSheet, handleConnect]);
 
   /**
    * User intent is set on AccountConnectSingle,
@@ -566,9 +550,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     const handleUserActions = (action: USER_INTENT) => {
       switch (action) {
         case USER_INTENT.Confirm: {
-          handleConnect();
-          handleUpdateNetworkPermissions();
-          hideSheet();
+          handleConfirm();
           break;
         }
         case USER_INTENT.Create: {
@@ -622,62 +604,20 @@ const AccountConnect = (props: AccountConnectProps) => {
     sheetRef,
     cancelPermissionRequest,
     permissionRequestId,
+    hideSheet,
     handleCreateAccount,
     handleConnect,
+    handleConfirm,
     trackEvent,
     handleUpdateNetworkPermissions,
     createEventBuilder,
   ]);
 
-  const handleSheetDismiss = () => {
+  const handleSheetDismiss = useCallback(() => {
     if (!permissionRequestId || userIntent !== USER_INTENT.None) return;
 
     cancelPermissionRequest(permissionRequestId);
-  };
-
-  const renderSingleConnectScreen = useCallback(() => {
-    const selectedAddress = selectedAddresses[0];
-    const selectedAccount = accounts.find(
-      (account) =>
-        safeToChecksumAddress(account.address) ===
-        safeToChecksumAddress(selectedAddress),
-    );
-    const ensName = ensByAccountAddress[selectedAddress];
-    const defaultSelectedAccount: Account | undefined = selectedAccount
-      ? {
-          ...selectedAccount,
-          name:
-            isDefaultAccountName(selectedAccount.name) && ensName
-              ? ensName
-              : selectedAccount.name,
-        }
-      : undefined;
-    return (
-      <AccountConnectSingle
-        onSetSelectedAddresses={setSelectedAddresses}
-        connection={sdkConnection}
-        onSetScreen={setScreen}
-        onUserAction={setUserIntent}
-        defaultSelectedAccount={defaultSelectedAccount}
-        isLoading={isLoading}
-        favicon={actualIcon}
-        secureIcon={secureIcon}
-        urlWithProtocol={urlWithProtocol}
-      />
-    );
-  }, [
-    accounts,
-    ensByAccountAddress,
-    selectedAddresses,
-    isLoading,
-    setScreen,
-    setSelectedAddresses,
-    actualIcon,
-    secureIcon,
-    sdkConnection,
-    urlWithProtocol,
-    setUserIntent,
-  ]);
+  }, [cancelPermissionRequest, permissionRequestId, userIntent]);
 
   const renderPermissionsSummaryScreen = useCallback(() => {
     const permissionsSummaryProps: PermissionsSummaryProps = {
@@ -832,9 +772,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderConnectScreens = useCallback(() => {
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
-        return isSdkUrlUnknown
-          ? renderSingleConnectScreen()
-          : renderPermissionsSummaryScreen();
+        return renderPermissionsSummaryScreen();
       case AccountConnectScreens.SingleConnectSelector:
         return renderSingleConnectSelectorScreen();
       case AccountConnectScreens.MultiConnectSelector:
@@ -844,8 +782,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [
     screen,
-    isSdkUrlUnknown,
-    renderSingleConnectScreen,
     renderPermissionsSummaryScreen,
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
