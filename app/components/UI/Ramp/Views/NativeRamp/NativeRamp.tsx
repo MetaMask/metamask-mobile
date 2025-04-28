@@ -51,9 +51,10 @@ import {
 import {
   addFiatOrder,
   FiatOrder,
-  resetFiatOrders,
+  updateFiatOrder,
 } from '../../../../../reducers/fiatOrders';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import { store } from '../../../../../store';
 
 function NativeRamp() {
   const navigation = useNavigation();
@@ -147,6 +148,9 @@ function NativeRamp() {
       if (!accessToken) return;
 
       const orders = await nativeRampService.getOrdersHistory(accessToken);
+      // Get current orders from the Redux store
+      const state = store.getState();
+      const currentOrders = state.fiatOrders.orders;
 
       // Convert NativeRamp orders to FiatOrder format
       const fiatOrders = orders.map((order) => {
@@ -219,9 +223,25 @@ function NativeRamp() {
         return fiatOrder;
       });
 
-      // Add each order to the Redux store
       fiatOrders.forEach((order) => {
-        dispatch(addFiatOrder(order));
+        const existingOrderIndex = currentOrders.findIndex(
+          (existingOrder) =>
+            existingOrder.id === order.id &&
+            existingOrder.provider === order.provider,
+        );
+
+        if (existingOrderIndex === -1) {
+          dispatch(addFiatOrder(order));
+        } else {
+          const existingOrder = currentOrders[existingOrderIndex];
+
+          const existingOrderStr = JSON.stringify(existingOrder);
+          const newOrderStr = JSON.stringify(order);
+
+          if (existingOrderStr !== newOrderStr) {
+            dispatch(updateFiatOrder(order));
+          }
+        }
       });
     } catch (error) {
       console.error('Error fetching NativeRamp orders:', error);
@@ -1198,24 +1218,6 @@ function NativeRamp() {
           onPress={resetTransakToken}
         >
           reset auth token (only for testing)
-        </Text>
-      </Row>
-      <Row style={styles.devButtonContainer}>
-        <Text
-          variant={TextVariant.BodySM}
-          style={styles.devButtonText}
-          onPress={() => {
-            dispatch(resetFiatOrders());
-            Alert.alert(
-              'Orders Reset',
-              'All orders have been reset. Please fetch orders again.',
-            );
-            if (accessToken) {
-              fetchAndStoreNativeRampOrders();
-            }
-          }}
-        >
-          reset all orders (only for testing)
         </Text>
       </Row>
     </>
