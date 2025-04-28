@@ -20,7 +20,7 @@ const styleSheet = (params: {
   vars: TextFieldStyleSheetVars;
 }) => {
   const { theme, vars } = params;
-  const { style, size, isError, isDisabled, isFocused } = vars;
+  const { style, size, isError, isDisabled, isFocused, inputStyle } = vars;
   let borderColor = theme.colors.border.default;
   if (isError) {
     borderColor = theme.colors.error.default;
@@ -49,6 +49,7 @@ const styleSheet = (params: {
     },
     input: {
       flex: 1,
+      ...inputStyle,
     },
     endAccessory: {
       marginLeft: 8,
