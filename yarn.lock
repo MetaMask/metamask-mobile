@@ -4774,10 +4774,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
   integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
-"@metamask/bridge-controller@^17.0.0":
-  version "17.0.0"
-  resolved "https://registry.npmjs.org/@metamask/bridge-controller/-/bridge-controller-17.0.0.tgz#fc825665d9f7d6803d136a62b4a282151d4ea2c6"
-  integrity sha512-PBeOfaPH8r/tfPvDrZi03KCNGYI7JDfcyy8Q8841JoLK12YCfHSlRHV4vEg+GRtCkLvhSfwW89h6uHEcb0/JNw==
+"@metamask/bridge-controller@^19.0.0":
+  version "19.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-19.0.0.tgz#ebfe866b587b7a2607349acccb070b5d711721fe"
+  integrity sha512-VwGipe65V3g0pIpG/UMPPTQHIumePmC1v/9c4xfk6VYGDffZSwGJDyvkxo/8CkkrHwMLAAxu+tGA9juMZJlyhw==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -4795,10 +4795,10 @@
     bignumber.js "^9.1.2"
     reselect "^5.1.1"
 
-"@metamask/bridge-status-controller@^14.0.0":
-  version "14.0.0"
-  resolved "https://registry.npmjs.org/@metamask/bridge-status-controller/-/bridge-status-controller-14.0.0.tgz#d9eb1e72864d426dc4d6bdab5282fb3a1c575f0b"
-  integrity sha512-alzQTD5BaV0xRfG2CA8T5T6FdFJt8nPwI504zLI7V1dMES3hFLAJ9hwxBqJTPpPbFRfjMFoppl3XNnelRvG18Q==
+"@metamask/bridge-status-controller@^16.0.0":
+  version "16.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-16.0.0.tgz#bc3c043456fa53f38f4af3dd025e431b3bbc2466"
+  integrity sha512-/gjfix+O4q6o/50p3DWqiDwAKn8m7qOmYZS9XNjYyrL5pE5BKzefy8Khva4yBddxgertevCvVDuUHOw/dr9LTA==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.7.0"
