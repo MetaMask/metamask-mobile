@@ -359,7 +359,7 @@ const Login: React.FC = () => {
           setOnboardingWizardStep(1);
           navigation.replace(Routes.ONBOARDING.HOME_NAV);
         }
-        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       }
       ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
