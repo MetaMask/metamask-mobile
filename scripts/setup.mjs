@@ -3,6 +3,7 @@ import fs from 'fs';
 import { $ } from 'execa';
 import { Listr } from 'listr2';
 import path from 'path';
+import envinfo from 'envinfo';
 
 const IS_CI = process.env.CI;
 const IS_OSX = process.platform === 'darwin';
@@ -250,10 +251,10 @@ const expoBuildLinks = {
     }
 
     console.log(`
-     Setup complete! Consider getting started with EXPO on MetaMask. Here are the 3 easy steps to get up and running. 
+     Setup complete! Consider getting started with EXPO on MetaMask. Here are the 3 easy steps to get up and running.
 
      Step 1: Install EXPO Executable
-      📱 ${hyperlink('iOS .ipa (physical devices) Note: it requires Apple Registration with MetaMask', 'https://app.runway.team/bucket/MV2BJmn6D5_O7nqGw8jHpATpEA4jkPrBB4EcWXC6wV7z8jgwIbAsDhE5Ncl7KwF32qRQQD9YrahAIaxdFVvLT4v3UvBcViMtT3zJdMMfkXDPjSdqVGw=')}     
+      📱 ${hyperlink('iOS .ipa (physical devices) Note: it requires Apple Registration with MetaMask', 'https://app.runway.team/bucket/MV2BJmn6D5_O7nqGw8jHpATpEA4jkPrBB4EcWXC6wV7z8jgwIbAsDhE5Ncl7KwF32qRQQD9YrahAIaxdFVvLT4v3UvBcViMtT3zJdMMfkXDPjSdqVGw=')}
       🤖 ${hyperlink('iOS .app (iOS simulator unzip the file and drag in simulator)', 'https://app.runway.team/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=')}
       🤖 ${hyperlink('Android .apk (physical devices & emulators)', 'https://app.runway.team/bucket/hykQxdZCEGgoyyZ9sBtkhli8wupv9PiTA6uRJf3Lh65FTECF1oy8vzkeXdmuJKhm7xGLeV35GzIT1Un7J5XkBADm5OhknlBXzA0CzqB767V36gi1F3yg3Uss')}
      Step 2: 👀 yarn watch or yarn watch:clean
@@ -331,6 +332,42 @@ const generateTermsOfUseTask = {
     ),
 };
 
+const toolchainCompatValidation = {
+  title: 'Toolchain compatibility',
+  task: async (_, task) => {
+    if (IS_CI) {
+      return task.skip('CI Detected. Skipping');
+    }
+
+    const versions = {
+      Java: {
+        required: '17.0.11',
+        installed: (await envinfo.helpers.getJavaInfo())[1],
+      },
+      Xcode: {
+        required: '16.2/16C5032a',
+        installed: (await envinfo.helpers.getXcodeInfo())[1],
+      },
+    };
+
+    const error = Object.keys(versions).reduce((errorString, toolName) => {
+      const { required, installed } = versions[toolName];
+      if (installed !== required) {
+        const errorMsg =
+          `${errorString}\n\n- ${toolName} version ${installed} icompatible. Project requires ${toolName} version ${required}`
+
+      return errorMsg;
+      }
+      return errorString;
+    }, '');
+
+    if (error.length > 0) {
+      throw new Error(error);
+    }
+
+  },
+}
+
 /**
  * Tasks that changes node modules and should run sequentially
  */
@@ -370,7 +407,7 @@ const concurrentTasks = {
     }),
 };
 
-const tasks = new Listr([prepareDependenciesTask, concurrentTasks], {
+const tasks = new Listr([toolchainCompatValidation, prepareDependenciesTask, concurrentTasks], {
   concurrent: false,
   exitOnError: true,
   rendererOptions,
