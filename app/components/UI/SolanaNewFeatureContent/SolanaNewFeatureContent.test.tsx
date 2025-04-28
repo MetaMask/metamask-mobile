@@ -9,6 +9,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { SolAccountType } from '@metamask/keyring-api';
 import { Linking } from 'react-native';
 import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
+import Engine from '../../../core/Engine';
+import { MOCK_SOLANA_ACCOUNT } from '../../../util/test/accountsControllerTestUtils';
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
@@ -43,6 +45,10 @@ jest.mock('@react-navigation/native', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
   }),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  setSelectedAddress: jest.fn(),
 }));
 
 const initialMetrics: Metrics = {
@@ -140,6 +146,47 @@ describe('SolanaNewFeatureContent', () => {
     );
   });
 
+  it('shows "view solana account" button and navigates to solana account if user has a solana account', async () => {
+    (useSelector as jest.Mock).mockImplementation((selector) =>
+      selector({
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '1',
+                accounts: {
+                  '1': {
+                    address: '0xSomeAddress',
+                  },
+                  '2': {
+                    address: MOCK_SOLANA_ACCOUNT.address,
+                    type: SolAccountType.DataAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
+
+    await waitFor(() => {
+      expect(
+        getByText('solana_new_feature_content.view_solana_account'),
+      ).toBeTruthy();
+    });
+
+    fireEvent.press(
+      getByText('solana_new_feature_content.view_solana_account'),
+    );
+    expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
+      MOCK_SOLANA_ACCOUNT.address,
+    );
+  });
+
   it('does not render when modal has been shown before', async () => {
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue('true');
     const { queryByText } = renderWithProviders(<SolanaNewFeatureContent />);
@@ -149,7 +196,7 @@ describe('SolanaNewFeatureContent', () => {
     });
   });
 
-  it('navigates to solana account if user has a solana account ', async () => {
+  it('navigates to learn more page when "learn more" button is pressed', async () => {
     const mockNavigate = jest.fn();
     Linking.openURL = mockNavigate;
 
@@ -163,10 +210,10 @@ describe('SolanaNewFeatureContent', () => {
             ...backgroundState,
             AccountsController: {
               internalAccounts: {
-                selectedAccount: '1',
+                selectedAccount: '2',
                 accounts: {
-                  '1': {
-                    address: '0xSomeAddress',
+                  '2': {
+                    address: 'SomeSolanaAddress',
                     type: SolAccountType.DataAccount,
                   },
                 },
