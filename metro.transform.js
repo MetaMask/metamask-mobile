@@ -18,14 +18,27 @@ const availableFeatures = new Set([
   'external-snaps',
   'beta',
   'keyring-snaps',
+  'multi-srp',
+  'bitcoin',
+  'solana',
 ]);
 
-const mainFeatureSet = new Set(['preinstalled-snaps']);
+const mainFeatureSet = new Set(['preinstalled-snaps', 'multi-srp']);
+const betaFeatureSet = new Set([
+  'beta',
+  'preinstalled-snaps',
+  'keyring-snaps',
+  'multi-srp',
+  'solana',
+]);
 const flaskFeatureSet = new Set([
   'flask',
   'preinstalled-snaps',
   'external-snaps',
   'keyring-snaps',
+  'multi-srp',
+  'bitcoin',
+  'solana',
 ]);
 
 /**
@@ -39,6 +52,8 @@ function getBuildTypeFeatures() {
   switch (buildType) {
     case 'main':
       return mainFeatureSet;
+    case 'beta':
+      return betaFeatureSet;
     case 'flask':
       return flaskFeatureSet;
     default:

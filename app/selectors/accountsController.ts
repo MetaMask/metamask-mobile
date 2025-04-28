@@ -4,7 +4,12 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
-import { BtcMethod, EthMethod, SolMethod } from '@metamask/keyring-api';
+import {
+  BtcMethod,
+  EthMethod,
+  SolMethod,
+  isEvmAccountType,
+} from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   getFormattedAddressFromInternalAccount,
@@ -70,14 +75,73 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
 );
 
 /**
+ * A memoized selector that returns the internal accounts sorted by the last selected timestamp
+ */
+export const selectOrderedInternalAccountsByLastSelected = createSelector(
+  selectAccountsControllerState,
+  (accountsControllerState) => {
+    const accounts = accountsControllerState.internalAccounts.accounts;
+
+    // Convert accounts object to array and sort by lastSelected timestamp
+    return Object.values(accounts).sort((a, b) => {
+      const aLastSelected = a.metadata?.lastSelected || 0;
+      const bLastSelected = b.metadata?.lastSelected || 0;
+
+      // Sort in descending order (most recent first)
+      return bLastSelected - aLastSelected;
+    });
+  },
+);
+
+/**
+ * A memoized selector that returns the last selected EVM account
+ */
+export const selectLastSelectedEvmAccount = createSelector(
+  selectOrderedInternalAccountsByLastSelected,
+  (accounts) => accounts.find((account) => account.type === 'eip155:eoa'),
+);
+
+/**
+ * A memoized selector that returns the last selected Solana account
+ */
+export const selectLastSelectedSolanaAccount = createSelector(
+  selectOrderedInternalAccountsByLastSelected,
+  (accounts) =>
+    accounts.find((account) => account.type === 'solana:data-account'),
+);
+
+/**
  * A memoized selector that returns the selected internal account address in checksum format
  */
-export const selectSelectedInternalAccountFormattedAddress = createSelector(
-  selectSelectedInternalAccount,
-  (account) =>
+export const selectSelectedInternalAccountFormattedAddress =
+  createDeepEqualSelector(selectSelectedInternalAccount, (account) =>
     account?.address
       ? getFormattedAddressFromInternalAccount(account)
       : undefined,
+  );
+
+/**
+ * A memoized selector that returns the previously selected EVM account
+ */
+export const selectPreviouslySelectedEvmAccount = createDeepEqualSelector(
+  selectInternalAccounts,
+  (accounts) => {
+    const evmAccounts = accounts.filter((account) =>
+      isEvmAccountType(account.type),
+    );
+
+    if (evmAccounts.length === 0) {
+      return undefined;
+    }
+
+    const previouslySelectedEvmAccount = [...evmAccounts].sort((a, b) => {
+      const aTimestamp = a?.metadata?.lastSelected || 0;
+      const bTimestamp = b?.metadata?.lastSelected || 0;
+      return bTimestamp - aTimestamp;
+    })[0];
+
+    return previouslySelectedEvmAccount;
+  },
 );
 
 /**
@@ -146,6 +210,11 @@ export function hasCreatedBtcTestnetAccount(state: RootState): boolean {
 export const selectSolanaAccountAddress = createSelector(
   selectInternalAccounts,
   (accounts) => accounts.find((account) => isSolanaAccount(account))?.address,
+);
+
+export const selectSolanaAccount = createSelector(
+  selectInternalAccounts,
+  (accounts) => accounts.find((account) => isSolanaAccount(account)),
 );
 
 ///: END:ONLY_INCLUDE_IF

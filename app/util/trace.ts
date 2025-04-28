@@ -41,6 +41,14 @@ export enum TraceName {
   Tokens = 'Tokens List',
   CreateSnapAccount = 'Create Snap Account',
   AddSnapAccount = 'Add Snap Account',
+  SelectAccount = 'Select Account',
+  AddNetwork = 'Add Network',
+  UpdateNetwork = 'Update Network',
+  AssetDetails = 'Asset Details',
+  ImportNfts = 'Import Nfts',
+  ImportTokens = 'Import Tokens',
+  RampQuoteLoading = 'Ramp Quote Loading',
+  LoadRampExperience = 'Load Ramp Experience',
 }
 
 export enum TraceOperation {

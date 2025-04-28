@@ -16,8 +16,13 @@ import {
 } from '../../../../selectors/networkController';
 // eslint-disable-next-line import/no-namespace
 import * as reactRedux from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
+import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
+
 jest.mock('../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: jest.fn(),
+  getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {},
   },
@@ -27,6 +32,18 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+    }),
+  };
+});
 
 const initialState = {
   engine: {
@@ -53,6 +70,7 @@ const mockDAI = {
   symbol: 'DAI',
   isETH: false,
   hasBalanceError: false,
+  chainId: '0x1',
 };
 const mockAssets = {
   '0x6b175474e89094c44da98b954eedeac495271d0f': mockDAI,
@@ -119,13 +137,27 @@ describe('TokenDetails', () => {
   beforeAll(() => {
     jest.resetAllMocks();
   });
-  it('should render correctly', () => {
+
+  const mockSelectors = () => {
     const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
     useSelectorSpy.mockImplementation((selectorOrCallback) => {
       const SELECTOR_MOCKS = {
-        selectTokenMarketDataByChainId: mockTokenMarketDataByChainId['0x1'],
+        selectIsEvmNetworkSelected: true,
+        selectEvmTokenMarketData: {
+          marketData:
+            mockTokenMarketDataByChainId['0x1'][
+              '0x6B175474E89094C44Da98b954EedeAC495271d0F'
+            ],
+          metadata: {
+            decimals: 18,
+            conversionRate: 2712.15,
+            aggregators: ['Metamask', 'Coinmarketcap'],
+          },
+        },
+        selectTokenMarketDataByChainId: {},
         selectConversionRateBySymbol: mockExchangeRate,
         selectNativeCurrencyByChainId: 'ETH',
+        selectMultichainAssetsRates: {},
       } as const;
 
       if (typeof selectorOrCallback === 'function') {
@@ -142,15 +174,29 @@ describe('TokenDetails', () => {
         case selectTokenList:
           return mockAssets;
         case selectContractExchangeRates:
-          return mockContractExchangeRates;
+          return {};
         case selectConversionRate:
           return mockExchangeRate;
         case selectCurrentCurrency:
           return mockCurrentCurrency;
+        case selectProviderConfig:
+          return { ticker: 'ETH' };
+        case selectEvmTicker:
+          return 'ETH';
+        case selectMultichainAssetsRates:
+          return {};
+        case selectIsEvmNetworkSelected:
+          return true;
+        case selectStablecoinLendingEnabledFlag:
+          return false;
         default:
           return undefined;
       }
     });
+  };
+
+  it('should render correctly', () => {
+    mockSelectors();
 
     const { toJSON, getByText } = renderWithProvider(
       <TokenDetails asset={mockDAI} />,
@@ -161,30 +207,129 @@ describe('TokenDetails', () => {
 
     expect(getByText('Token details')).toBeDefined();
     expect(getByText('Contract address')).toBeDefined();
-    expect(getByText('0x6B17...1d0F')).toBeDefined();
+    expect(getByText('0x6B175...71d0F')).toBeDefined();
     expect(getByText('Token decimal')).toBeDefined();
     expect(getByText('18')).toBeDefined();
     expect(getByText('Token list')).toBeDefined();
     expect(getByText('Metamask, Coinmarketcap')).toBeDefined();
     expect(getByText('Market details')).toBeDefined();
     expect(getByText('Market Cap')).toBeDefined();
-    expect(getByText('5.22B')).toBeDefined();
     expect(getByText('Total Volume (24h)')).toBeDefined();
-    expect(getByText('147.65M')).toBeDefined();
+    expect(getByText('$147.65M')).toBeDefined();
     expect(getByText('Volume / Market Cap')).toBeDefined();
     expect(getByText('2.83%')).toBeDefined();
     expect(getByText('Circulating supply')).toBeDefined();
     expect(getByText('5.21B')).toBeDefined();
     expect(getByText('All time high')).toBeDefined();
+    expect(getByText('$1.22')).toBeDefined();
     expect(getByText('All time low')).toBeDefined();
     expect(getByText('$0.88')).toBeDefined();
     expect(getByText('2.83%')).toBeDefined();
     expect(getByText('Fully diluted')).toBeDefined();
-    expect(getByText('1.92M')).toBeDefined();
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render Token Details without Market Details when marketData is null', () => {
+    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
+    const SELECTOR_MOCKS = {
+      selectTokenMarketDataByChainId: {},
+      selectConversionRateBySymbol: mockExchangeRate,
+      selectNativeCurrencyByChainId: 'ETH',
+      selectMultichainAssetsRates: {},
+    } as const;
+
+    useSelectorSpy.mockImplementation((selectorOrCallback) => {
+      if (typeof selectorOrCallback === 'function') {
+        const selectorString = selectorOrCallback.toString();
+        const matchedSelector = Object.keys(SELECTOR_MOCKS).find((key) =>
+          selectorString.includes(key),
+        );
+        if (matchedSelector) {
+          return SELECTOR_MOCKS[matchedSelector as keyof typeof SELECTOR_MOCKS];
+        }
+      }
+
+      switch (selectorOrCallback) {
+        case selectTokenList:
+          return mockAssets;
+        case selectContractExchangeRates:
+          return {};
+        case selectConversionRate:
+          return mockExchangeRate;
+        case selectCurrentCurrency:
+          return mockCurrentCurrency;
+        case selectProviderConfig:
+          return { ticker: 'ETH' };
+        case selectEvmTicker:
+          return 'ETH';
+        case selectMultichainAssetsRates:
+          return {};
+        default:
+          return undefined;
+      }
+    });
+
+    const { getByText, queryByText } = renderWithProvider(
+      <TokenDetails asset={mockDAI} />,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(getByText('Token details')).toBeDefined();
+    expect(queryByText('Market details')).toBeNull();
+  });
+
+  it('should render MarketDetails without TokenDetails when tokenList is null', () => {
+    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
+    useSelectorSpy.mockImplementation((selectorOrCallback) => {
+      const SELECTOR_MOCKS = {
+        selectEvmTokenMarketData: {
+          marketData:
+            mockTokenMarketDataByChainId['0x1'][
+              '0x6B175474E89094C44Da98b954EedeAC495271d0F'
+            ],
+        },
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+      } as const;
+
+      if (typeof selectorOrCallback === 'function') {
+        const selectorString = selectorOrCallback.toString();
+        const matchedSelector = Object.keys(SELECTOR_MOCKS).find((key) =>
+          selectorString.includes(key),
+        );
+        if (matchedSelector) {
+          return SELECTOR_MOCKS[matchedSelector as keyof typeof SELECTOR_MOCKS];
+        }
+      }
+
+      switch (selectorOrCallback) {
+        case selectContractExchangeRates:
+          return mockContractExchangeRates;
+        case selectConversionRate:
+          return mockExchangeRate;
+        case selectCurrentCurrency:
+          return mockCurrentCurrency;
+        case selectMultichainAssetsRates:
+          return {};
+        case selectIsEvmNetworkSelected:
+          return true;
+        default:
+          return undefined;
+      }
+    });
+
+    const { getByText, queryByText, debug } = renderWithProvider(
+      <TokenDetails asset={mockDAI} />,
+      { state: initialState },
+    );
+    debug();
+    expect(queryByText('Token details')).toBeNull();
+    expect(getByText('Market details')).toBeDefined();
+  });
+
+  it('renders EarnEmptyStateCta if asset can be lent and balance is not zero', () => {
     const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
     const SELECTOR_MOCKS = {
       selectTokenMarketDataByChainId: {},
@@ -216,59 +361,56 @@ describe('TokenDetails', () => {
           return { ticker: 'ETH' };
         case selectEvmTicker:
           return 'ETH';
+        case selectMultichainAssetsRates:
+          return {};
+        case selectStablecoinLendingEnabledFlag:
+          return true;
         default:
           return undefined;
       }
     });
 
-    const { getByText, queryByText } = renderWithProvider(
-      <TokenDetails asset={mockDAI} />,
+    const { getByText } = renderWithProvider(<TokenDetails asset={mockDAI} />, {
+      state: initialState,
+    });
+
+    expect(
+      getByText(
+        strings('earn.empty_state_cta.heading', {
+          tokenSymbol: mockDAI.symbol,
+        }),
+      ),
+    ).toBeDefined();
+    expect(
+      getByText(strings('earn.empty_state_cta.start_earning')),
+    ).toBeDefined();
+  });
+
+  it('does not render EarnEmptyCta if asset can be lent but balance is zero', () => {
+    mockSelectors();
+
+    const mockDaiWithoutBalance = {
+      ...mockDAI,
+      balanceFiat: '$0.00',
+      balance: '0',
+    };
+
+    const { queryByText } = renderWithProvider(
+      <TokenDetails asset={mockDaiWithoutBalance} />,
       {
         state: initialState,
       },
     );
-    expect(getByText('Token details')).toBeDefined();
-    expect(queryByText('Market details')).toBeNull();
-  });
 
-  it('should render MarketDetails without TokenDetails when tokenList is null', () => {
-    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
-    useSelectorSpy.mockImplementation((selectorOrCallback) => {
-      const SELECTOR_MOCKS = {
-        selectTokenMarketDataByChainId: mockTokenMarketDataByChainId['0x1'],
-        selectConversionRateBySymbol: mockExchangeRate,
-        selectNativeCurrencyByChainId: 'ETH',
-      } as const;
-
-      if (typeof selectorOrCallback === 'function') {
-        const selectorString = selectorOrCallback.toString();
-        const matchedSelector = Object.keys(SELECTOR_MOCKS).find((key) =>
-          selectorString.includes(key),
-        );
-        if (matchedSelector) {
-          return SELECTOR_MOCKS[matchedSelector as keyof typeof SELECTOR_MOCKS];
-        }
-      }
-
-      switch (selectorOrCallback) {
-        case selectTokenList:
-          return {};
-        case selectContractExchangeRates:
-          return mockContractExchangeRates;
-        case selectConversionRate:
-          return mockExchangeRate;
-        case selectCurrentCurrency:
-          return mockCurrentCurrency;
-        default:
-          return undefined;
-      }
-    });
-
-    const { getByText, queryByText } = renderWithProvider(
-      <TokenDetails asset={mockDAI} />,
-      { state: initialState },
-    );
-    expect(queryByText('Token details')).toBeNull();
-    expect(getByText('Market details')).toBeDefined();
+    expect(
+      queryByText(
+        strings('earn.empty_state_cta.heading', {
+          tokenSymbol: mockDAI.symbol,
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      queryByText(strings('earn.empty_state_cta.start_earning')),
+    ).toBeNull();
   });
 });

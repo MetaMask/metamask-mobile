@@ -11,7 +11,7 @@
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIconName</key>
-    <string>AppIcon</string>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -70,7 +70,7 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>MetaMask needs microphone access to record audio</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
@@ -92,31 +92,9 @@
 		<string>SimpleLineIcons.ttf</string>
 		<string>Zocial.ttf</string>
 		<string>Metamask.ttf</string>
-		<string>Roboto-Black.ttf</string>
-		<string>Roboto-BlackItalic.ttf</string>
-		<string>Roboto-Bold.ttf</string>
-		<string>Roboto-BoldItalic.ttf</string>
-		<string>Roboto-Italic.ttf</string>
-		<string>Roboto-Light.ttf</string>
-		<string>Roboto-LightItalic.ttf</string>
-		<string>Roboto-Medium.ttf</string>
-		<string>Roboto-MediumItalic.ttf</string>
-		<string>Roboto-Regular.ttf</string>
-		<string>Roboto-Thin.ttf</string>
-		<string>Roboto-ThinItalic.ttf</string>
 		<string>FontAwesome5_Brands.ttf</string>
 		<string>FontAwesome5_Regular.ttf</string>
 		<string>FontAwesome5_Solid.ttf</string>
-		<string>EuclidCircularB-Bold.otf</string>
-		<string>EuclidCircularB-BoldItalic.otf</string>
-		<string>EuclidCircularB-Light.otf</string>
-		<string>EuclidCircularB-LightItalic.otf</string>
-		<string>EuclidCircularB-Medium.otf</string>
-		<string>EuclidCircularB-MediumItalic.otf</string>
-		<string>EuclidCircularB-Regular.otf</string>
-		<string>EuclidCircularB-RegularItalic.otf</string>
-		<string>EuclidCircularB-Semibold.otf</string>
-		<string>EuclidCircularB-SemiboldItalic.otf</string>
 		<string>CentraNo1-Bold.otf</string>
 		<string>CentraNo1-BoldItalic.otf</string>
 		<string>CentraNo1-Book.otf</string>
@@ -124,6 +102,9 @@
 		<string>CentraNo1-Medium.otf</string>
 		<string>CentraNo1-MediumItalic.otf</string>
 		<string>MMSans-Regular.otf</string>
+		<string>MMPoly-Regular.otf</string>
+		<string>MMSans-Bold.otf</string>
+		<string>MMSans-Medium.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

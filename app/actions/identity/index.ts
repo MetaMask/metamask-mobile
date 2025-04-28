@@ -1,20 +1,10 @@
 import { getErrorMessage } from '@metamask/utils';
 import Engine from '../../core/Engine';
-import identityErrors from './constants/errors';
+import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
 
 export const performSignIn = async () => {
   try {
-    const accessToken =
-      await Engine.context.AuthenticationController.performSignIn();
-    if (!accessToken) {
-      return getErrorMessage(identityErrors.PERFORM_SIGN_IN);
-    }
-
-    const profile =
-      await Engine.context.AuthenticationController.getSessionProfile();
-    if (!profile) {
-      return getErrorMessage(identityErrors.PERFORM_SIGN_IN);
-    }
+    await Engine.context.AuthenticationController.performSignIn();
   } catch (error) {
     return getErrorMessage(error);
   }
@@ -28,17 +18,15 @@ export const performSignOut = () => {
   }
 };
 
-export const enableProfileSyncing = async () => {
+export const setIsBackupAndSyncFeatureEnabled = async (
+  feature: keyof typeof BACKUPANDSYNC_FEATURES,
+  enabled: boolean,
+) => {
   try {
-    await Engine.context.UserStorageController.enableProfileSyncing();
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const disableProfileSyncing = async () => {
-  try {
-    await Engine.context.UserStorageController.disableProfileSyncing();
+    await Engine.context.UserStorageController.setIsBackupAndSyncFeatureEnabled(
+      feature,
+      enabled,
+    );
   } catch (error) {
     return getErrorMessage(error);
   }
@@ -47,6 +35,18 @@ export const disableProfileSyncing = async () => {
 export const syncInternalAccountsWithUserStorage = async () => {
   try {
     await Engine.context.UserStorageController.syncInternalAccountsWithUserStorage();
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
+
+export const setIsAccountSyncingReadyToBeDispatched = async (
+  isAccountSyncingReadyToBeDispatched: boolean,
+) => {
+  try {
+    await Engine.context.UserStorageController.setIsAccountSyncingReadyToBeDispatched(
+      isAccountSyncingReadyToBeDispatched,
+    );
   } catch (error) {
     return getErrorMessage(error);
   }

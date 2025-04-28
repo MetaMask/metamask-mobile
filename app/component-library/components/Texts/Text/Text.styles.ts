@@ -6,10 +6,7 @@ import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
 import { TextColor, TextVariant } from './Text.types';
-import {
-  getFontStyleVariant,
-  getFontStyleVariantForBrandEvolution,
-} from './Text.utils';
+import { getFontFamily } from './Text.utils';
 
 /**
  * Style sheet function for Text component.
@@ -23,7 +20,7 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { theme, vars } = params;
-  const { variant, style, color, isBrandEvolution } = vars;
+  const { variant, style, color } = vars;
 
   let textColor;
   switch (color) {
@@ -69,12 +66,8 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   const fontObject = {
     ...variantObject,
     color: textColor,
-    fontFamily: isBrandEvolution
-      ? getFontStyleVariantForBrandEvolution(variant)
-      : getFontStyleVariant(finalFontWeight, style?.fontStyle),
-    ...(!isBrandEvolution && {
-      fontWeight: finalFontWeight,
-    }),
+    fontFamily: getFontFamily(variant, style?.fontWeight, style?.fontStyle),
+    fontWeight: finalFontWeight,
   };
 
   return StyleSheet.create({

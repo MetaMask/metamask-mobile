@@ -1,6 +1,15 @@
-import { KeyringControllerState } from '@metamask/keyring-controller';
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+import ExtendedKeyringTypes from '../../constants/keyringTypes';
+///: END:ONLY_INCLUDE_IF
+import {
+  KeyringControllerState,
+  KeyringMetadata,
+  KeyringObject,
+} from '@metamask/keyring-controller';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
+
+export type ExtendedKeyring = KeyringObject & { metadata: KeyringMetadata };
 
 /**
  *
@@ -16,7 +25,33 @@ const selectKeyringControllerState = (state: RootState) =>
 export const selectKeyrings = createDeepEqualSelector(
   selectKeyringControllerState,
   (keyringControllerState: KeyringControllerState) =>
-    keyringControllerState.keyrings,
+    keyringControllerState.keyrings.map((keyring, _index) => ({
+      ...keyring,
+      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+      metadata: keyringControllerState.keyringsMetadata?.[_index] || {},
+      ///: END:ONLY_INCLUDE_IF
+    })),
+);
+
+/**
+ * Selects all HD keyrings from the state
+ * @param state - The Redux state
+ * @returns Array of HD keyrings
+ */
+export const selectHDKeyrings = createDeepEqualSelector(
+  selectKeyrings,
+  (keyrings) => keyrings.filter((kr) => kr.type === ExtendedKeyringTypes.hd),
+);
+
+/**
+ * Checks if there are multiple HD keyrings in the state
+ * @param state - The Redux state
+ * @returns True if there is more than one HD keyring
+ */
+export const hasMultipleHDKeyrings = createDeepEqualSelector(
+  selectKeyrings,
+  (keyrings) =>
+    keyrings.filter((kr) => kr.type === ExtendedKeyringTypes.hd).length > 1,
 );
 
 /**

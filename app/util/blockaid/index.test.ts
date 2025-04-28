@@ -7,7 +7,7 @@ import {
   Reason,
   ResultType,
   SecurityAlertSource,
-} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 // eslint-disable-next-line import/no-namespace
 import * as NetworkControllerMock from '../../selectors/networkController';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
@@ -186,6 +186,30 @@ describe('Blockaid util', () => {
         ui_customizations: ['flagged_as_malicious'],
         security_alert_response: ResultType.Malicious,
         security_alert_reason: Reason.notApplicable,
+      });
+    });
+
+    it('should return additionalParams object when result_type is RequestInProgress', async () => {
+      const securityAlertResponse: SecurityAlertResponse & { source: string } =
+        {
+          result_type: ResultType.RequestInProgress,
+          reason: Reason.notApplicable,
+          source: SecurityAlertSource.API,
+          providerRequestsCount: {
+            eth_call: 5,
+            eth_getCode: 3,
+          },
+          features: [],
+        };
+
+      const result = getBlockaidMetricsParams(securityAlertResponse);
+      expect(result).toEqual({
+        ui_customizations: ['security_alert_loading'],
+        security_alert_response: 'loading',
+        security_alert_reason: Reason.notApplicable,
+        security_alert_source: SecurityAlertSource.API,
+        ppom_eth_call_count: 5,
+        ppom_eth_getCode_count: 3,
       });
     });
   });

@@ -86,7 +86,7 @@ import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
-
+import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
 const createStyles = (colors) =>
   StyleSheet.create({
     container: { backgroundColor: colors.background.default },
@@ -234,6 +234,14 @@ function SwapsAmountView({
       toLowerCaseEquals(token.address, initialDestination),
     ),
   );
+
+  useStablecoinsDefaultSlippage({
+    sourceTokenAddress: sourceToken?.address,
+    destTokenAddress: destinationToken?.address,
+    chainId,
+    setSlippage,
+  });
+
   const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
   const [contractBalance, setContractBalance] = useState(null);
   const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(
@@ -597,9 +605,11 @@ function SwapsAmountView({
         destinationTokenAddress,
       );
       if (enableDirectWrapping && !isDirectWrapping) {
+        // ETH <> WETH, set slippage to 0
         setSlippage(0);
         setIsDirectWrapping(true);
       } else if (isDirectWrapping && !enableDirectWrapping) {
+        // Coming out of ETH <> WETH to a non (ETH <> WETH) pair, reset slippage
         setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
         setIsDirectWrapping(false);
       }

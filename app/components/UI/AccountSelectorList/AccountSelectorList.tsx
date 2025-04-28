@@ -28,7 +28,7 @@ import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { Account, Assets } from '../../hooks/useAccounts';
-import UntypedEngine from '../../../core/Engine';
+import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -46,6 +46,7 @@ const AccountSelectorList = ({
   isLoading = false,
   selectedAddresses,
   isMultiSelect = false,
+  isSelectWithoutMenu = false,
   renderRightAccessory,
   isSelectionDisabled,
   isRemoveAccountEnabled = false,
@@ -54,9 +55,6 @@ const AccountSelectorList = ({
   ...props
 }: AccountSelectorListProps) => {
   const { navigate } = useNavigation();
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Engine = UntypedEngine as any;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountListRef = useRef<any>(null);
@@ -115,16 +113,16 @@ const AccountSelectorList = ({
   const onLongPress = useCallback(
     ({
       address,
-      imported,
+      isAccountRemoveable,
       isSelected,
       index,
     }: {
       address: string;
-      imported: boolean;
+      isAccountRemoveable: boolean;
       isSelected: boolean;
       index: number;
     }) => {
-      if (!imported || !isRemoveAccountEnabled) return;
+      if (!isAccountRemoveable || !isRemoveAccountEnabled) return;
       Alert.alert(
         strings('accounts.remove_account_title'),
         strings('accounts.remove_account_message'),
@@ -204,9 +202,13 @@ const AccountSelectorList = ({
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
-      const cellVariant = isMultiSelect
-        ? CellVariant.MultiSelect
-        : CellVariant.SelectWithMenu;
+      let cellVariant = CellVariant.SelectWithMenu;
+      if (isMultiSelect) {
+        cellVariant = CellVariant.MultiSelect;
+      }
+      if (isSelectWithoutMenu) {
+        cellVariant = CellVariant.Select;
+      }
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
         const lowercasedSelectedAddresses = selectedAddresses.map(
@@ -230,7 +232,8 @@ const AccountSelectorList = ({
           onLongPress={() => {
             onLongPress({
               address,
-              imported: type === KeyringTypes.simple,
+              isAccountRemoveable:
+                type === KeyringTypes.simple || type === KeyringTypes.snap,
               isSelected: isSelectedAccount,
               index,
             });
@@ -269,6 +272,7 @@ const AccountSelectorList = ({
       isLoading,
       selectedAddresses,
       isMultiSelect,
+      isSelectWithoutMenu,
       renderRightAccessory,
       isSelectionDisabled,
       onLongPress,

@@ -20,6 +20,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
 - [Testing](./docs/readme/testing.md)
 - [Debugging](./docs/readme/debugging.md)
+- [API Call Logging for Debugging](./docs/readme/api-logging.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
 
@@ -27,7 +28,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 
 ### Using Expo (recommended)
 
-Expo is the fastest way to start developing. With the Expo framework, developers don't need to compile the native side of the application as before, hence no need for any native enviornment setup, developers only need to download a precompiled develpoment build and run the javascript bundler. The development build will then connect with the bundler to load the javascript code.
+Expo is the fastest way to start developing. With the Expo framework, developers don't need to compile the native side of the application as before, hence no need for any native environment setup, developers only need to download a precompiled development build and run the javascript bundler. The development build will then connect with the bundler to load the javascript code.
 
 #### Expo Environment Setup
 
@@ -96,7 +97,7 @@ cd metamask-mobile
 
 ##### Firebase Messaging Setup
 
-MetaMask uses Firebase Cloud Messaging (FCM) to enable app communications. To integrate FCM, you’ll need configuration files for both iOS and Android platforms.
+MetaMask uses Firebase Cloud Messaging (FCM) to enable app communications. To integrate FCM, you'll need configuration files for both iOS and Android platforms.
 
 ###### Internal Contributor instructions
 

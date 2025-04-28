@@ -1,10 +1,14 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { strings } from '../../../../locales/i18n';
+import {
+  Hex,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  CaipAssetId,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/utils';
+import I18n, { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
@@ -13,22 +17,14 @@ import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectSelectedNetworkClientId,
-  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
-  selectConversionRate,
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
-import {
-  selectContractExchangeRates,
-  selectTokenMarketData,
-} from '../../../selectors/tokenRatesController';
+import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import {
-  selectContractBalances,
-  selectTokensBalances,
-} from '../../../selectors/tokenBalancesController';
+import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import {
   selectSelectedInternalAccountAddress,
   selectSelectedInternalAccountFormattedAddress,
@@ -36,12 +32,9 @@ import {
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
-  balanceToFiat,
-  hexToBN,
   renderFromTokenMinimalUnit,
   renderFromWei,
   toHexadecimal,
-  weiToFiat,
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
@@ -58,22 +51,34 @@ import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
-import useGoToBridge from '../Bridge/utils/useGoToBridge';
-import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  getDecimalChainId,
-  isPortfolioViewEnabled,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
+import {
+  isAssetFromSearch,
+  selectTokenDisplayData,
+} from '../../../selectors/tokenSearchDiscoveryDataController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { formatWithThreshold } from '../../../util/assets';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../Bridge/hooks/useSwapBridgeNavigation';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { TraceName, endTrace } from '../../../util/trace';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectMultichainAssetsRates } from '../../../selectors/multichain';
+///: END:ONLY_INCLUDE_IF
+import { calculateAssetPrice } from './utils/calculateAssetPrice';
 
 interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
+  displayBridgeButton?: boolean;
   swapsIsLive?: boolean;
   networkName?: string;
 }
@@ -82,6 +87,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
   displayBuyButton,
   displaySwapsButton,
+  displayBridgeButton,
   swapsIsLive,
   networkName,
 }: AssetOverviewProps) => {
@@ -90,56 +96,65 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
   );
-  const conversionRate = useSelector(selectConversionRate);
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
-  const primaryCurrency = useSelector(
-    (state: RootState) => state.settings.primaryCurrency,
-  );
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
   const { trackEvent, createEventBuilder } = useMetrics();
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const allTokenMarketData = useSelector(selectTokenMarketData);
-  const tokenBalances = useSelector(selectContractBalances);
   const selectedChainId = useSelector(selectEvmChainId);
-
-  const selectedTicker = useSelector((state: RootState) =>
-    selectEvmTicker(state),
-  );
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
 
   const multiChainTokenBalance = useSelector(selectTokensBalances);
-  const chainId = isPortfolioViewEnabled()
-    ? (asset.chainId as Hex)
-    : selectedChainId;
-  const ticker = isPortfolioViewEnabled() ? nativeCurrency : selectedTicker;
+  const chainId = asset.chainId as Hex;
+  const ticker = nativeCurrency;
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const tokenResult = useSelector((state: RootState) =>
+    selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
+  );
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
-  let currentAddress: Hex;
+  const multichainAssetRates =
+    multichainAssetsRates?.[asset.address as CaipAssetId];
+  ///: END:ONLY_INCLUDE_IF
 
-  if (isPortfolioViewEnabled()) {
-    currentAddress = asset.address as Hex;
-  } else {
-    currentAddress = asset.isETH
-      ? getNativeTokenAddress(chainId as Hex)
-      : (asset.address as Hex);
-  }
+  const currentAddress = asset.address as Hex;
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
+    asset,
     address: currentAddress,
     chainId,
     timePeriod,
     vsCurrency: currentCurrency,
   });
 
+  const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TokenDetails,
+    sourcePage: 'MainView',
+    token: {
+      ...asset,
+      address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      chainId: asset.chainId as Hex,
+      decimals: asset.decimals,
+      symbol: asset.symbol,
+      name: asset.name,
+      image: asset.image,
+    },
+  });
+
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    endTrace({ name: TraceName.AssetDetails });
+  }, []);
 
   useEffect(() => {
     const { SwapsController } = Engine.context;
@@ -168,62 +183,31 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     });
   };
 
-  const handleSwapNavigation = useCallback(() => {
-    navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
-      params: {
-        sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-        sourcePage: 'MainView',
-        chainId: asset.chainId,
-      },
-    });
-  }, [navigation, asset.address, asset.chainId]);
-
-  const handleBridgeNavigation = useCallback(() => {
-    navigation.navigate('Bridge', {
-      screen: 'BridgeView',
-      params: {
-        sourceToken: asset.address,
-        sourcePage: 'MainView',
-        chainId: asset.chainId,
-      },
-    });
-  }, [navigation, asset.address, asset.chainId]);
-
-  const goToPortfolioBridge = useGoToBridge('TokenDetails');
-
-  const goToBridge =
-    process.env.MM_BRIDGE_UI_ENABLED === 'true'
-      ? handleBridgeNavigation
-      : goToPortfolioBridge;
-
   const onSend = async () => {
-    if (isPortfolioViewEnabled()) {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+    navigation.navigate(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
 
-      if (asset.chainId !== selectedChainId) {
-        const { NetworkController, MultichainNetworkController } =
-          Engine.context;
-        const networkConfiguration =
-          NetworkController.getNetworkConfigurationByChainId(
-            asset.chainId as Hex,
-          );
-
-        const networkClientId =
-          networkConfiguration?.rpcEndpoints?.[
-            networkConfiguration.defaultRpcEndpointIndex
-          ]?.networkClientId;
-
-        await MultichainNetworkController.setActiveNetwork(
-          networkClientId as string,
+    if (asset.chainId !== selectedChainId) {
+      const { NetworkController, MultichainNetworkController } = Engine.context;
+      const networkConfiguration =
+        NetworkController.getNetworkConfigurationByChainId(
+          asset.chainId as Hex,
         );
-      }
+
+      const networkClientId =
+        networkConfiguration?.rpcEndpoints?.[
+          networkConfiguration.defaultRpcEndpointIndex
+        ]?.networkClientId;
+
+      await MultichainNetworkController.setActiveNetwork(
+        networkClientId as string,
+      );
     }
+
     if ((asset.isETH || asset.isNative) && ticker) {
       dispatch(newAssetTransaction(getEther(ticker)));
     } else {
@@ -231,59 +215,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     }
     navigation.navigate('SendFlowView', {});
   };
-
-  const goToSwaps = useCallback(() => {
-    if (isPortfolioViewEnabled()) {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-      if (asset.chainId !== selectedChainId) {
-        const { NetworkController, MultichainNetworkController } =
-          Engine.context;
-        const networkConfiguration =
-          NetworkController.getNetworkConfigurationByChainId(
-            asset.chainId as Hex,
-          );
-
-        const networkClientId =
-          networkConfiguration?.rpcEndpoints?.[
-            networkConfiguration.defaultRpcEndpointIndex
-          ]?.networkClientId;
-
-        MultichainNetworkController.setActiveNetwork(
-          networkClientId as string,
-        ).then(() => {
-          setTimeout(() => {
-            handleSwapNavigation();
-          }, 500);
-        });
-      } else {
-        handleSwapNavigation();
-      }
-    } else {
-      handleSwapNavigation();
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
-          .addProperties({
-            text: 'Swap',
-            tokenSymbol: '',
-            location: 'TokenDetails',
-            chain_id: getDecimalChainId(asset.chainId),
-          })
-          .build(),
-      );
-    }
-  }, [
-    navigation,
-    asset.chainId,
-    selectedChainId,
-    trackEvent,
-    createEventBuilder,
-    handleSwapNavigation,
-  ]);
 
   const onBuy = () => {
     navigation.navigate(
@@ -329,13 +260,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     </View>
   );
 
+  const chartNavigationButtons: TimePeriod[] = useMemo(
+    () =>
+      isEvmSelected
+        ? ['1d', '1w', '1m', '3m', '1y', '3y']
+        : ['1d', '1w', '1m', '3m', '1y'],
+    [isEvmSelected],
+  );
+
   const handleSelectTimePeriod = useCallback((_timePeriod: TimePeriod) => {
     setTimePeriod(_timePeriod);
   }, []);
 
   const renderChartNavigationButton = useCallback(
     () =>
-      (['1d', '1w', '1m', '3m', '1y', '3y'] as TimePeriod[]).map((label) => (
+      chartNavigationButtons.map((label) => (
         <ChartNavigationButton
           key={label}
           label={strings(
@@ -345,34 +284,34 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           selected={timePeriod === label}
         />
       )),
-    [handleSelectTimePeriod, timePeriod],
+    [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
   );
-  const itemAddress = safeToChecksumAddress(asset.address);
 
-  let exchangeRate: number | undefined;
-  if (!isPortfolioViewEnabled()) {
-    exchangeRate = itemAddress
-      ? tokenExchangeRates?.[itemAddress as Hex]?.price
-      : undefined;
-  } else {
-    const currentChainId = chainId as Hex;
-    exchangeRate =
-      allTokenMarketData?.[currentChainId]?.[itemAddress as Hex]?.price;
-  }
+  const itemAddress = isEvmSelected
+    ? safeToChecksumAddress(asset.address)
+    : asset.address;
 
-  let balance, balanceFiat;
-  if (asset.isETH || asset.isNative) {
-    balance = renderFromWei(
-      //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-      accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
+  const currentChainId = chainId as Hex;
+  const exchangeRate =
+    allTokenMarketData?.[currentChainId]?.[itemAddress as Hex]?.price;
+
+  let balance;
+  const minimumDisplayThreshold = 0.00001;
+
+  const isMultichainAsset = !isEvmSelected;
+  const isEthOrNative = asset.isETH || asset.isNative;
+
+  if (isMultichainAsset) {
+    balance = formatWithThreshold(
+      parseFloat(asset.balance),
+      minimumDisplayThreshold,
+      I18n.locale,
+      { minimumFractionDigits: 0, maximumFractionDigits: 5 },
     );
-    balanceFiat = weiToFiat(
-      hexToBN(
-        //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-        accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
-      ),
-      conversionRate,
-      currentCurrency,
+  } else if (isEthOrNative) {
+    balance = renderFromWei(
+      // @ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
+      accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
     );
   } else {
     const multiChainTokenBalanceHex =
@@ -381,62 +320,51 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         chainId as Hex
       ]?.[itemAddress as Hex];
 
-    const selectedTokenBalanceHex =
-      itemAddress && tokenBalances?.[itemAddress as Hex];
-
-    const tokenBalanceHex = isPortfolioViewEnabled()
-      ? multiChainTokenBalanceHex
-      : selectedTokenBalanceHex;
+    const tokenBalanceHex = multiChainTokenBalanceHex;
 
     balance =
       itemAddress && tokenBalanceHex
         ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
         : 0;
-    balanceFiat = balanceToFiat(
-      balance,
-      conversionRate,
-      exchangeRate,
-      currentCurrency,
-    );
   }
 
-  let mainBalance, secondaryBalance;
-  if (!isPortfolioViewEnabled()) {
-    if (primaryCurrency === 'ETH') {
-      mainBalance = `${balance} ${asset.symbol}`;
-      secondaryBalance = balanceFiat;
-    } else {
-      mainBalance = !balanceFiat ? `${balance} ${asset.symbol}` : balanceFiat;
-      secondaryBalance = !balanceFiat
-        ? balanceFiat
-        : `${balance} ${asset.symbol}`;
-    }
-  } else {
-    mainBalance = `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`;
-    secondaryBalance = asset.balanceFiat || '';
-  }
+  const mainBalance = asset.balanceFiat || '';
+  const secondaryBalance = `${balance} ${
+    asset.isETH ? asset.ticker : asset.symbol
+  }`;
+
+  const convertedMultichainAssetRates =
+    !isEvmSelected && multichainAssetRates
+      ? {
+          rate: Number(multichainAssetRates.rate),
+          marketData: undefined,
+        }
+      : undefined;
 
   let currentPrice = 0;
   let priceDiff = 0;
+  let comparePrice = 0;
 
-  if (!isPortfolioViewEnabled()) {
-    if (asset.isETH) {
-      currentPrice = conversionRate || 0;
-    } else if (exchangeRate && conversionRate) {
-      currentPrice = exchangeRate * conversionRate;
-    }
+  if (isAssetFromSearch(asset) && tokenResult?.found) {
+    currentPrice = tokenResult.price?.price || 0;
   } else {
-    const tickerConversionRate =
-      conversionRateByTicker?.[nativeCurrency]?.conversionRate ?? 0;
-    currentPrice =
-      exchangeRate && tickerConversionRate
-        ? exchangeRate * tickerConversionRate
-        : 0;
-  }
-
-  const comparePrice = prices[0]?.[1] || 0;
-  if (currentPrice !== undefined && currentPrice !== null) {
-    priceDiff = currentPrice - comparePrice;
+    const {
+      currentPrice: calculatedPrice,
+      priceDiff: calculatedPriceDiff,
+      comparePrice: calculatedComparePrice,
+    } = calculateAssetPrice({
+      _asset: asset,
+      isEvmNetworkSelected: isEvmSelected,
+      exchangeRate,
+      tickerConversionRate:
+        conversionRateByTicker?.[nativeCurrency]?.conversionRate ?? undefined,
+      prices,
+      multichainAssetRates: convertedMultichainAssetRates,
+      timePeriod,
+    });
+    currentPrice = calculatedPrice;
+    priceDiff = calculatedPriceDiff;
+    comparePrice = calculatedComparePrice;
   }
 
   return (
@@ -454,6 +382,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             comparePrice={comparePrice}
             isLoading={isLoading}
             timePeriod={timePeriod}
+            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+            multichainAssetsRates={multichainAssetsRates}
+            ///: END:ONLY_INCLUDE_IF
+            isEvmNetworkSelected={isEvmSelected}
           />
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
@@ -461,6 +393,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
+            displayBridgeButton={displayBridgeButton}
             swapsIsLive={swapsIsLive}
             goToBridge={goToBridge}
             goToSwaps={goToSwaps}
@@ -476,10 +409,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>
-          {/*  Commented out since we are going to re enable it after curating content */}
-          {/* <View style={styles.aboutWrapper}>
-            // <AboutAsset asset={asset} chainId={chainId} />
-          </View> */}
+          {networkModal}
         </View>
       )}
     </View>

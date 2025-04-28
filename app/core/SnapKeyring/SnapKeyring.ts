@@ -1,14 +1,26 @@
-import { SnapKeyring, SnapKeyringCallbacks } from '@metamask/eth-snap-keyring';
+import {
+  SnapKeyring,
+  SnapKeyringCallbacks,
+  SnapKeyringInternalOptions,
+  getDefaultInternalOptions,
+} from '@metamask/eth-snap-keyring';
 import Logger from '../../util/Logger';
 import { showAccountNameSuggestionDialog } from './utils/showDialog';
 import { SnapKeyringBuilderMessenger } from './types';
 import { SnapId } from '@metamask/snaps-sdk';
 import { assertIsValidSnapId } from '@metamask/snaps-utils';
 import { getUniqueAccountName } from './utils/getUniqueAccountName';
-import { isSnapPreinstalled } from './utils/snaps';
+import { getSnapName, isSnapPreinstalled } from './utils/snaps';
 import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import { getTraceTags } from '../../util/sentry/tags';
 import { store } from '../../store';
+import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
+import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSnapAccountEvent';
+import {
+  startPerformanceTrace,
+  endPerformanceTrace,
+} from '../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../redux/slices/performance/constants';
 
 /**
  * Builder type for the Snap keyring.
@@ -135,6 +147,8 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
   }
 
   private async addAccountFinalize({
+    address: _address,
+    snapId,
     accountName,
     onceSaved,
   }: {
@@ -150,6 +164,13 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           op: TraceOperation.AddSnapAccount,
           tags: getTraceTags(store.getState()),
         });
+
+        store.dispatch(
+          startPerformanceTrace({
+            eventName: PerformanceEventNames.AddSnapAccount,
+          }),
+        );
+
         // First, wait for the account to be fully saved.
         // NOTE: This might throw, so keep this in the `try` clause.
         const accountId = await onceSaved;
@@ -171,6 +192,21 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
             accountName,
           );
         }
+
+        // Track successful account addition
+        const snapName = getSnapName(snapId as SnapId, this.#messenger);
+        trackSnapAccountEvent(
+          MetaMetricsEvents.ACCOUNT_ADDED,
+          snapId,
+          snapName,
+        );
+
+        store.dispatch(
+          endPerformanceTrace({
+            eventName: PerformanceEventNames.AddSnapAccount,
+          }),
+        );
+
         endTrace({
           name: TraceName.AddSnapAccount,
         });
@@ -189,7 +225,9 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     handleUserInput: (accepted: boolean) => Promise<void>,
     onceSaved: Promise<string>,
     accountNameSuggestion: string = '',
-    displayAccountNameSuggestion: boolean = true,
+    {
+      displayAccountNameSuggestion,
+    }: SnapKeyringInternalOptions = getDefaultInternalOptions(),
   ) {
     assertIsValidSnapId(snapId);
 
@@ -224,6 +262,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     handleUserInput: (accepted: boolean) => Promise<void>,
   ) {
     assertIsValidSnapId(snapId);
+
     // TODO: Implement proper snap account confirmations. Currently, we are approving everything for testing purposes.
     Logger.log(
       `SnapKeyring: removeAccount called with \n
@@ -231,10 +270,31 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           - handleUserInput: ${handleUserInput} \n
           - snapId: ${snapId} \n`,
     );
+
     // Approve everything for now because we have not implemented snap account confirmations yet
     await handleUserInput(true);
-    await this.#removeAccountHelper(address);
-    await this.#persistKeyringHelper();
+
+    try {
+      await this.#removeAccountHelper(address);
+      await this.#persistKeyringHelper();
+
+      // Track successful account removal
+      const snapName = getSnapName(snapId as SnapId, this.#messenger);
+      trackSnapAccountEvent(
+        MetaMetricsEvents.ACCOUNT_REMOVED,
+        snapId,
+        snapName,
+      );
+    } catch (error) {
+      Logger.error(error as Error, `Error removing snap account: ${address}`);
+      const snapName = getSnapName(snapId as SnapId, this.#messenger);
+      trackSnapAccountEvent(
+        MetaMetricsEvents.ACCOUNT_REMOVED,
+        snapId,
+        snapName,
+      );
+      throw error;
+    }
   }
 
   async redirectUser(snapId: string, url: string, message: string) {

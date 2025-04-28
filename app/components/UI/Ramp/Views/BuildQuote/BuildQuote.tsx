@@ -11,6 +11,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BN4 from 'bnjs4';
 
@@ -40,7 +41,6 @@ import Keypad from '../../components/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 import TokenIcon from '../../../Swaps/components/TokenIcon';
-import CustomActionButton from '../../containers/CustomActionButton';
 import TokenSelectModal from '../../components/TokenSelectModal';
 import PaymentMethodModal from '../../components/PaymentMethodModal';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
@@ -62,6 +62,7 @@ import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../component-library/hooks';
+import { selectTicker } from '../../../../../selectors/networkController';
 
 import styleSheet from './BuildQuote.styles';
 import {
@@ -70,6 +71,7 @@ import {
 } from '../../../../../util/number';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
+import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
@@ -80,8 +82,9 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
-import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { isNonEvmAddress } from '../../../../../core/Multichain/utils';
+import { trace, endTrace, TraceName } from '../../../../../util/trace';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -129,6 +132,8 @@ const BuildQuote = () => {
   ] = useModalHandler(false);
   const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] =
     useModalHandler(false);
+
+  const nativeSymbol = useSelector(selectTicker);
 
   /**
    * Grab the current state of the SDK via the context.
@@ -241,9 +246,15 @@ const BuildQuote = () => {
     [selectedAsset],
   );
 
+  const addressForBalance = useMemo(
+    () => (isNonEvmAddress(selectedAddress) ? undefined : selectedAddress),
+    [selectedAddress],
+  );
+
   const { addressBalance } = useAddressBalance(
     assetForBalance as Asset,
-    selectedAddress,
+    addressForBalance,
+    true,
   );
 
   const { balanceFiat, balanceBN, balance } = useBalance(
@@ -257,10 +268,28 @@ const BuildQuote = () => {
       : undefined,
   );
 
-  const maxSellAmount =
-    balanceBN && gasPriceEstimation
-      ? balanceBN?.sub(gasPriceEstimation.estimatedGasFee)
-      : null;
+  const { balanceBN: nativeTokenBalanceBN } = useBalance(
+    isBuy || !selectedAsset || selectedAsset.address === NATIVE_ADDRESS
+      ? undefined
+      : {
+          address: NATIVE_ADDRESS,
+          decimals: 18,
+        },
+  );
+
+  let maxSellAmount = null;
+  if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
+    maxSellAmount =
+      balanceBN && gasPriceEstimation
+        ? balanceBN?.sub(gasPriceEstimation.estimatedGasFee)
+        : null;
+  } else if (
+    selectedAsset &&
+    selectedAsset.address !== NATIVE_ADDRESS &&
+    balanceBN
+  ) {
+    maxSellAmount = balanceBN;
+  }
 
   const amountIsBelowMinimum = useMemo(
     () => isAmountBelowMinimum(amountNumber),
@@ -290,6 +319,18 @@ const BuildQuote = () => {
     }
     return balanceBN.lt(amountBNMinimalUnit);
   }, [balanceBN, amountBNMinimalUnit]);
+
+  const hasInsufficientNativeBalanceForGas = useMemo(() => {
+    if (isBuy || (selectedAsset && selectedAsset.address === NATIVE_ADDRESS)) {
+      return false;
+    }
+
+    if (!nativeTokenBalanceBN || !gasPriceEstimation) {
+      return false;
+    }
+
+    return nativeTokenBalanceBN.lt(gasPriceEstimation.estimatedGasFee);
+  }, [gasPriceEstimation, isBuy, nativeTokenBalanceBN, selectedAsset]);
 
   const isFetching =
     isFetchingCryptoCurrencies ||
@@ -443,7 +484,7 @@ const BuildQuote = () => {
          */
         const newRegionCurrency = await queryDefaultFiatCurrency(
           region.id,
-          selectedPaymentMethodId,
+          selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
         );
         setSelectedFiatCurrencyId(newRegionCurrency?.id);
       }
@@ -529,6 +570,12 @@ const BuildQuote = () => {
         location: screenLocation,
       };
 
+      trace({
+        name: TraceName.RampQuoteLoading,
+        tags: {
+          rampType,
+        },
+      });
       if (isBuy) {
         trackEvent('ONRAMP_QUOTES_REQUESTED', {
           ...analyticsPayload,
@@ -546,6 +593,7 @@ const BuildQuote = () => {
       }
     }
   }, [
+    rampType,
     screenLocation,
     amount,
     amountNumber,
@@ -600,6 +648,23 @@ const BuildQuote = () => {
     errorPaymentMethods,
     errorCryptoCurrencies,
   ]);
+
+  const [shouldEndTrace, setShouldEndTrace] = useState(true);
+  useEffect(() => {
+    if (
+      shouldEndTrace &&
+      !sdkError &&
+      !error &&
+      !isFetching &&
+      cryptoCurrencies &&
+      cryptoCurrencies.length > 0
+    ) {
+      endTrace({
+        name: TraceName.LoadRampExperience,
+      });
+      setShouldEndTrace(false);
+    }
+  }, [cryptoCurrencies, error, isFetching, rampType, sdkError, shouldEndTrace]);
 
   if (sdkError) {
     return (
@@ -752,7 +817,11 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else if (balanceBN && !balanceBN.isZero() && maxSellAmount?.gt(new BN4(0))) {
+  } else if (
+    balanceBN &&
+    !balanceBN.isZero() &&
+    maxSellAmount?.gt(new BN4(0))
+  ) {
     quickAmounts = [
       { value: 0.25, label: '25%' },
       { value: 0.5, label: '50%' },
@@ -865,6 +934,16 @@ const BuildQuote = () => {
                 </Text>
               </Row>
             )}
+            {!hasInsufficientBalance && hasInsufficientNativeBalanceForGas && (
+              <Row>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  {strings(
+                    'fiat_on_ramp_aggregator.insufficient_native_balance',
+                    { currency: nativeSymbol },
+                  )}
+                </Text>
+              </Row>
+            )}
             {!hasInsufficientBalance && amountIsBelowMinimum && limits && (
               <Row>
                 <Text
@@ -929,24 +1008,15 @@ const BuildQuote = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <Row style={styles.cta}>
-            {currentPaymentMethod?.customAction ? (
-              <CustomActionButton
-                customAction={currentPaymentMethod.customAction}
-                amount={amountNumber}
-                disabled={!amountIsValid || amountNumber <= 0}
-                fiatSymbol={currentFiatCurrency?.symbol}
-              />
-            ) : (
-              <StyledButton
-                type="confirm"
-                onPress={handleGetQuotePress}
-                accessibilityRole="button"
-                accessible
-                disabled={amountNumber <= 0}
-              >
-                {strings('fiat_on_ramp_aggregator.get_quotes')}
-              </StyledButton>
-            )}
+            <StyledButton
+              type="confirm"
+              onPress={handleGetQuotePress}
+              accessibilityRole="button"
+              accessible
+              disabled={amountNumber <= 0}
+            >
+              {strings('fiat_on_ramp_aggregator.get_quotes')}
+            </StyledButton>
           </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

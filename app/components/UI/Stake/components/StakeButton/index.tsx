@@ -27,7 +27,11 @@ import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
 import Engine from '../../../../../core/Engine';
-import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -43,6 +47,14 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
 
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+
+  const areEarnExperiencesDisabled =
+    !isPooledStakingEnabled && !isStablecoinLendingEnabled;
+
   const onStakeButtonPress = async () => {
     if (!isStakingSupportedChain) {
       const { MultichainNetworkController } = Engine.context;
@@ -53,7 +65,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         screen: Routes.STAKING.STAKE,
         params: {
           token: asset,
-          action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         },
       });
     } else {
@@ -89,6 +101,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         .build(),
     );
   };
+
+  if (areEarnExperiencesDisabled) return <></>;
 
   return (
     <Pressable

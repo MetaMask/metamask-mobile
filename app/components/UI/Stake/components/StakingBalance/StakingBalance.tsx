@@ -1,54 +1,56 @@
-import React, { useEffect, useMemo, useState } from 'react';
 import { Hex } from '@metamask/utils';
+import bn from 'bignumber.js';
+import BN4 from 'bnjs4';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
-import AssetElement from '../../../AssetElement';
-import NetworkMainAssetLogo from '../../../NetworkMainAssetLogo';
-import { useSelector } from 'react-redux';
-import styleSheet from './StakingBalance.styles';
-import { View } from 'react-native';
-import StakingButtons from './StakingButtons/StakingButtons';
-import ClaimBanner from './StakingBanners/ClaimBanner/ClaimBanner';
-import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../../component-library/components/Banners/Banner';
-import { strings } from '../../../../../../locales/i18n';
-import { renderFromWei } from '../../../../../util/number';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
+import { RootState } from '../../../../../reducers';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
-import { filterExitRequests } from './utils';
-import BN4 from 'bnjs4';
-import bn from 'bignumber.js';
+import { isPortfolioViewEnabled } from '../../../../../util/networks';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import AssetElement from '../../../AssetElement';
+import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import NetworkAssetLogo from '../../../NetworkAssetLogo';
+import NetworkMainAssetLogo from '../../../NetworkMainAssetLogo';
+import type { TokenI } from '../../../Tokens/types';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import useBalance from '../../hooks/useBalance';
+import usePooledStakes from '../../hooks/usePooledStakes';
+import { useStakingChainByChainId } from '../../hooks/useStakingChain';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
+import useVaultApyAverages from '../../hooks/useVaultApyAverages';
+import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
+import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
 import {
   CommonPercentageInputUnits,
   fixDisplayAmount,
   formatPercent,
   PercentageOutputFormat,
 } from '../../utils/value';
-import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
+import styleSheet from './StakingBalance.styles';
+import ClaimBanner from './StakingBanners/ClaimBanner/ClaimBanner';
+import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
+import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
-import { useStakingChainByChainId } from '../../hooks/useStakingChain';
-import usePooledStakes from '../../hooks/usePooledStakes';
-import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
-import type { TokenI } from '../../../Tokens/types';
-import useBalance from '../../hooks/useBalance';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
-import NetworkAssetLogo from '../../../NetworkAssetLogo';
-import { isPortfolioViewEnabled } from '../../../../../util/networks';
-import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
-import { RootState } from '../../../../../reducers';
-import useVaultApyAverages from '../../hooks/useVaultApyAverages';
+import { filterExitRequests } from './utils';
+import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -65,6 +67,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
+
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
   const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
 
@@ -94,19 +98,19 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     return filterExitRequests(exitRequests, exchangeRate);
   }, [pooledStakesData, exchangeRate]);
 
-  const claimableEth = useMemo(
+  const claimableWei = useMemo(
     () =>
-      renderFromWei(
-        claimableRequests.reduce(
+      claimableRequests
+        .reduce(
           (acc, { claimedAssets }) =>
             claimedAssets ? acc.add(new BN4(claimedAssets)) : acc,
           new BN4(0),
-        ),
-      ),
+        )
+        .toString(),
     [claimableRequests],
   );
 
-  const hasClaimableEth = !!Number(claimableEth);
+  const hasClaimableWei = !!Number(claimableWei);
 
   useEffect(() => {
     if (hasStakedPositions && !hasSentViewingStakingRewardsMetric) {
@@ -175,23 +179,25 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
             ),
         )}
 
-        {hasClaimableEth && (
+        {hasClaimableWei && (
           <ClaimBanner
-            claimableAmount={claimableEth}
+            claimableAmount={claimableWei}
             style={styles.bannerStyles}
           />
         )}
 
-        {!hasStakedPositions && !isLoadingVaultApyAverages && (
-          <StakingCta
-            style={styles.stakingCta}
-            estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
-              inputFormat: CommonPercentageInputUnits.PERCENTAGE,
-              outputFormat: PercentageOutputFormat.PERCENT_SIGN,
-              fixed: 1,
-            })}
-          />
-        )}
+        {!hasStakedPositions &&
+          !isLoadingVaultApyAverages &&
+          isPooledStakingEnabled && (
+            <StakingCta
+              style={styles.stakingCta}
+              estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
+                inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+                outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+                fixed: 1,
+              })}
+            />
+          )}
 
         <StakingButtons
           asset={asset}
@@ -208,18 +214,16 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
       {hasEthToUnstake && !isLoadingPooledStakesData && (
         <AssetElement
           asset={asset}
-          mainBalance={stakedBalanceETH}
+          secondaryBalance={stakedBalanceETH}
           balance={stakedBalanceFiat}
         >
           <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
             style={styles.badgeWrapper}
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource(
-                  asset.chainId as Hex,
-                  asset.ticker ?? asset.symbol,
-                )}
+                imageSource={NetworkBadgeSource(asset.chainId as Hex)}
                 name={networkConfigurationByChainId?.name}
               />
             }

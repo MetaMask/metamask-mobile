@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { BackHandler } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Animated, {
   Extrapolate,
   interpolate,
@@ -16,7 +17,7 @@ import {
   QuoteResponse,
   SellQuoteResponse,
 } from '@consensys/on-ramp-sdk';
-import { Provider } from '@consensys/on-ramp-sdk/dist/API';
+import { PaymentCustomAction, Provider } from '@consensys/on-ramp-sdk/dist/API';
 import styleSheet from './Quotes.styles';
 import LoadingQuotes from './LoadingQuotes';
 import Timer from './Timer';
@@ -26,6 +27,7 @@ import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import ErrorView from '../../components/ErrorView';
 import Row from '../../components/Row';
 import Quote from '../../components/Quote';
+import CustomAction from '../../components/CustomAction';
 import InfoAlert from '../../components/InfoAlert';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
 import {
@@ -41,7 +43,7 @@ import BottomSheetFooter, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 
 import useAnalytics from '../../hooks/useAnalytics';
-import useSortedQuotes from '../../hooks/useSortedQuotes';
+import useQuotesAndCustomActions from '../../hooks/useQuotesAndCustomActions';
 import { useRampSDK } from '../../sdk';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
@@ -59,6 +61,8 @@ import Logger from '../../../../../util/Logger';
 import { isBuyQuote } from '../../utils';
 import { getOrdersProviders } from './../../../../../reducers/fiatOrders';
 import { QuoteSelectors } from '../../../../../../e2e/selectors/Ramps/Quotes.selectors';
+import useFiatCurrencies from '../../hooks/useFiatCurrencies';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 export interface QuotesParams {
   amount: number | string;
@@ -74,6 +78,7 @@ function Quotes() {
   const navigation = useNavigation();
   const trackEvent = useAnalytics();
   const params = useParams<QuotesParams>();
+
   const {
     selectedPaymentMethodId,
     selectedChainId,
@@ -82,7 +87,15 @@ function Quotes() {
     sdkError,
     rampType,
     isBuy,
+    selectedAddress,
+    selectedRegion,
+    selectedAsset,
+    selectedFiatCurrencyId,
+    sdk,
   } = useRampSDK();
+
+  const { currentFiatCurrency } = useFiatCurrencies();
+
   const renderInAppBrowser = useInAppBrowser();
 
   const ordersProviders = useSelector(getOrdersProviders);
@@ -123,13 +136,15 @@ function Quotes() {
 
   const {
     recommendedQuote,
+    recommendedCustomAction,
     quotesWithoutError,
     quotesWithError,
     quotesByPriceWithoutError,
+    customActions,
     isFetching: isFetchingQuotes,
     error: ErrorFetchingQuotes,
     query: fetchQuotes,
-  } = useSortedQuotes(params.amount);
+  } = useQuotesAndCustomActions(params.amount);
 
   const handleCancelPress = useCallback(() => {
     if (isBuy) {
@@ -242,6 +257,13 @@ function Quotes() {
     trackEvent,
   ]);
 
+  const handleOnCustomActionPress = useCallback(
+    (customAction: PaymentCustomAction) => {
+      setProviderId(customAction?.buy?.provider.id);
+    },
+    [],
+  );
+
   const handleOnQuotePress = useCallback(
     (quote: QuoteResponse | SellQuoteResponse) => {
       setProviderId(quote.provider.id);
@@ -267,6 +289,102 @@ function Quotes() {
       }
     },
     [isBuy, trackEvent],
+  );
+
+  const handleOnPressCustomActionCTA = useCallback(
+    async (customAction: PaymentCustomAction) => {
+      if (!sdk || !customAction) {
+        return;
+      }
+
+      try {
+        setIsQuoteLoading(true);
+        const provider = customAction.buy.provider;
+        const payload = {
+          region: selectedRegion?.id as string,
+          payment_method_id: selectedPaymentMethodId as string,
+        };
+
+        if (isBuy) {
+          trackEvent('ONRAMP_DIRECT_PROVIDER_CLICKED', {
+            ...payload,
+            currency_source: currentFiatCurrency?.symbol as string,
+            currency_destination: selectedAsset?.symbol as string,
+            provider_onramp: provider.name,
+            chain_id_destination: selectedChainId as string,
+          });
+        } else {
+          trackEvent('OFFRAMP_DIRECT_PROVIDER_CLICKED', {
+            ...payload,
+            currency_destination: currentFiatCurrency?.symbol as string,
+            currency_source: selectedAsset?.symbol as string,
+            provider_offramp: provider.name,
+            chain_id_source: selectedChainId as string,
+          });
+        }
+
+        const getUrlMethod = isBuy ? 'getBuyUrl' : 'getSellUrl';
+
+        const buyAction = await sdk[getUrlMethod](
+          provider,
+          selectedRegion?.id as string,
+          selectedPaymentMethodId as string,
+          selectedAsset?.id as string,
+          selectedFiatCurrencyId as string,
+          params.amount as number,
+          selectedAddress as string,
+        );
+
+        if (buyAction.browser === ProviderBuyFeatureBrowserEnum.AppBrowser) {
+          const { url, orderId: customOrderId } = await buyAction.createWidget(
+            callbackBaseUrl,
+          );
+
+          navigation.navigate(
+            ...createCheckoutNavDetails({
+              url,
+              provider,
+              customOrderId,
+            }),
+          );
+        } else if (
+          buyAction.browser === ProviderBuyFeatureBrowserEnum.InAppOsBrowser
+        ) {
+          await renderInAppBrowser(
+            buyAction,
+            provider,
+            params.amount as number,
+            currentFiatCurrency?.symbol,
+          );
+        } else {
+          throw new Error('Unsupported browser type: ' + buyAction.browser);
+        }
+      } catch (error) {
+        Logger.error(error as Error, {
+          message:
+            'FiatOrders::CustomActionButton error while getting buy action',
+        });
+      } finally {
+        setIsQuoteLoading(false);
+      }
+    },
+    [
+      sdk,
+      selectedRegion?.id,
+      selectedPaymentMethodId,
+      isBuy,
+      selectedAsset?.id,
+      selectedAsset?.symbol,
+      selectedFiatCurrencyId,
+      params.amount,
+      selectedAddress,
+      trackEvent,
+      currentFiatCurrency?.symbol,
+      selectedChainId,
+      callbackBaseUrl,
+      navigation,
+      renderInAppBrowser,
+    ],
   );
 
   const handleOnPressCTA = useCallback(
@@ -542,6 +660,8 @@ function Quotes() {
             provider_offramp_best_price: providerBestPrice,
           });
         }
+
+        endTrace({ name: TraceName.RampQuoteLoading });
       }
 
       quotesWithError.forEach((quoteError) => {
@@ -585,14 +705,61 @@ function Quotes() {
   ]);
 
   useEffect(() => {
-    if (quotesByPriceWithoutError && quotesByPriceWithoutError.length > 0) {
+    const doCustomActionsExist = customActions && customActions.length > 0;
+    const firstCustomActionId = customActions?.[0]?.buy?.provider?.id || null;
+    const recommendedCustomActionId =
+      recommendedCustomAction?.buy?.provider?.id || null;
+
+    const doQuotesExist = quotesWithoutError && quotesWithoutError.length > 0;
+    const firstQuoteId = quotesByPriceWithoutError?.[0]?.provider?.id || null;
+    const recommendedQuoteId = recommendedQuote?.provider?.id || null;
+
+    if (doCustomActionsExist) {
       if (isExpanded) {
-        setProviderId(quotesByPriceWithoutError[0].provider?.id);
-      } else if (recommendedQuote) {
-        setProviderId(recommendedQuote.provider?.id);
+        setProviderId(firstCustomActionId);
+        return;
+      } else if (recommendedCustomAction) {
+        setProviderId(recommendedCustomActionId);
+        return;
       }
     }
-  }, [isExpanded, quotesByPriceWithoutError, recommendedQuote]);
+
+    if (doQuotesExist) {
+      if (isExpanded) {
+        setProviderId(firstQuoteId);
+        return;
+      } else if (recommendedQuote) {
+        setProviderId(recommendedQuoteId);
+        return;
+      }
+    }
+  }, [
+    customActions,
+    isExpanded,
+    quotesByPriceWithoutError,
+    quotesWithoutError,
+    recommendedCustomAction,
+    recommendedQuote,
+  ]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const hardwareBackPress = () => {
+        if (isExpanded) {
+          setIsExpanded(false);
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        hardwareBackPress,
+      );
+
+      return () => subscription.remove();
+    }, [isExpanded]),
+  );
 
   if (sdkError) {
     if (!isExpanded) {
@@ -699,7 +866,11 @@ function Quotes() {
   }
 
   // No providers available
-  if (!isFetchingQuotes && quotesByPriceWithoutError.length === 0) {
+  if (
+    !isFetchingQuotes &&
+    quotesByPriceWithoutError.length === 0 &&
+    customActions?.length === 0
+  ) {
     if (!isExpanded) {
       return (
         <BottomSheet>
@@ -755,6 +926,28 @@ function Quotes() {
           <ScrollView testID={QuoteSelectors.QUOTES}>
             {isFetchingQuotes && isInPolling ? (
               <LoadingQuotes count={1} />
+            ) : recommendedCustomAction ? (
+              <CustomAction
+                isLoading={isQuoteLoading}
+                previouslyUsedProvider={ordersProviders.includes(
+                  recommendedCustomAction.buy?.provider?.id,
+                )}
+                customAction={recommendedCustomAction}
+                onPress={() =>
+                  handleOnCustomActionPress(recommendedCustomAction)
+                }
+                onPressCTA={() => {
+                  handleOnPressCustomActionCTA(recommendedCustomAction);
+                }}
+                highlighted={
+                  recommendedCustomAction.buy?.provider?.id === providerId
+                }
+                showInfo={() =>
+                  handleInfoPress({
+                    provider: recommendedCustomAction?.buy?.provider,
+                  })
+                }
+              />
             ) : recommendedQuote ? (
               <Row key={recommendedQuote.provider.id}>
                 <Quote
@@ -879,22 +1072,51 @@ function Quotes() {
               {isFetchingQuotes && isInPolling ? (
                 <LoadingQuotes />
               ) : (
-                quotesByPriceWithoutError.map((quote, index) => (
-                  <Row key={quote.provider.id}>
-                    <Quote
-                      isLoading={isQuoteLoading}
-                      previouslyUsedProvider={ordersProviders.includes(
-                        quote.provider.id,
-                      )}
-                      quote={quote}
-                      onPress={() => handleOnQuotePress(quote)}
-                      onPressCTA={() => handleOnPressCTA(quote, index)}
-                      highlighted={quote.provider.id === providerId}
-                      showInfo={() => handleInfoPress(quote)}
-                      rampType={rampType}
-                    />
-                  </Row>
-                ))
+                <>
+                  {customActions && customActions.length > 0
+                    ? customActions.map((customAction) => (
+                        <CustomAction
+                          key={customAction.buy?.provider.id}
+                          isLoading={isQuoteLoading}
+                          previouslyUsedProvider={ordersProviders.includes(
+                            customAction.buy?.provider?.id,
+                          )}
+                          customAction={customAction}
+                          onPress={() =>
+                            handleOnCustomActionPress(customAction)
+                          }
+                          onPressCTA={() =>
+                            handleOnPressCustomActionCTA(customAction)
+                          }
+                          highlighted={
+                            customAction.buy?.provider?.id === providerId
+                          }
+                          showInfo={() =>
+                            handleInfoPress({
+                              provider: customAction?.buy?.provider,
+                            })
+                          }
+                        />
+                      ))
+                    : null}
+
+                  {quotesByPriceWithoutError.map((quote, index) => (
+                    <Row key={quote.provider.id}>
+                      <Quote
+                        isLoading={isQuoteLoading}
+                        previouslyUsedProvider={ordersProviders.includes(
+                          quote.provider.id,
+                        )}
+                        quote={quote}
+                        onPress={() => handleOnQuotePress(quote)}
+                        onPressCTA={() => handleOnPressCTA(quote, index)}
+                        highlighted={quote.provider.id === providerId}
+                        showInfo={() => handleInfoPress(quote)}
+                        rampType={rampType}
+                      />
+                    </Row>
+                  ))}
+                </>
               )}
             </ScreenLayout.Content>
           </Animated.ScrollView>

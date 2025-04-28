@@ -38,6 +38,52 @@ export const WalletViewSelectorsIDs = {
   TOKEN_NETWORK_FILTER: 'token-network-filter',
   TOKEN_NETWORK_FILTER_ALL: 'token-network-filter-all',
   TOKEN_NETWORK_FILTER_CURRENT: 'token-network-filter-current',
+  NAVBAR_TITLE_TEXT: 'navbar-title-text',
+  NETWORK_AVATAR_IMAGE: 'network-avatar-image',
+  NOTIFICATIONS_BUTTON: 'notifications-button',
+  NOTIFICATIONS_COUNT: 'notifications-count',
+  PROFILE_BUTTON: 'profile-button',
+  PROFILE_BUTTON_CONTAINER: 'profile-button-container',
+  PROFILE_BUTTON_AVATAR: 'profile-button-avatar',
+  PROFILE_BUTTON_AVATAR_CONTAINER: 'profile-button-avatar-container',
+  PROFILE_BUTTON_AVATAR_TITLE: 'profile-button-avatar-title',
+  PROFILE_BUTTON_AVATAR_SUBTITLE: 'profile-button-avatar-subtitle',
+  PROFILE_BUTTON_AVATAR_NETWORK: 'profile-button-avatar-network',
+  PROFILE_BUTTON_AVATAR_NETWORK_TEXT: 'profile-button-avatar-network-text',
+  PROFILE_BUTTON_AVATAR_NETWORK_IMAGE: 'profile-button-avatar-network-image',
+  PROFILE_BUTTON_AVATAR_NETWORK_CONTAINER:
+    'profile-button-avatar-network-container',
+  PROFILE_BUTTON_AVATAR_NETWORK_TITLE: 'profile-button-avatar-network-title',
+  PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE:
+    'profile-button-avatar-network-subtitle',
+  PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_TEXT:
+    'profile-button-avatar-network-subtitle-text',
+  PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_ICON:
+    'profile-button-avatar-network-subtitle-icon',
+  PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_CONTAINER:
+    'profile-button-avatar-network-subtitle-container',
+  // Carousel selectors
+  CAROUSEL_CONTAINER: 'carousel-container',
+  CAROUSEL_FIRST_SLIDE: 'carousel-first-slide',
+  CAROUSEL_FIRST_SLIDE_TITLE: 'carousel-first-slide-title',
+  CAROUSEL_FIRST_SLIDE_CLOSE_BUTTON: 'carousel-first-slide-close-button',
+  CAROUSEL_SECOND_SLIDE: 'carousel-second-slide',
+  CAROUSEL_SECOND_SLIDE_TITLE: 'carousel-second-slide-title',
+  CAROUSEL_SECOND_SLIDE_CLOSE_BUTTON: 'carousel-second-slide-close-button',
+  CAROUSEL_THIRD_SLIDE: 'carousel-third-slide',
+  CAROUSEL_THIRD_SLIDE_TITLE: 'carousel-third-slide-title',
+  CAROUSEL_THIRD_SLIDE_CLOSE_BUTTON: 'carousel-third-slide-close-button',
+  CAROUSEL_FOURTH_SLIDE: 'carousel-fourth-slide',
+  CAROUSEL_FOURTH_SLIDE_TITLE: 'carousel-fourth-slide-title',
+  CAROUSEL_FOURTH_SLIDE_CLOSE_BUTTON: 'carousel-fourth-slide-close-button',
+  CAROUSEL_FIFTH_SLIDE: 'carousel-fifth-slide',
+  CAROUSEL_FIFTH_SLIDE_TITLE: 'carousel-fifth-slide-title',
+  CAROUSEL_FIFTH_SLIDE_CLOSE_BUTTON: 'carousel-fifth-slide-close-button',
+  CAROUSEL_SIXTH_SLIDE: 'carousel-sixth-slide',
+  CAROUSEL_SIXTH_SLIDE_TITLE: 'carousel-sixth-slide-title',
+  CAROUSEL_SIXTH_SLIDE_CLOSE_BUTTON: 'carousel-sixth-slide-close-button',
+  CAROUSEL_PROGRESS_DOTS: 'progress-dots',
+  CAROUSEL_SLIDE: 'carousel-slide',
 };
 
 export const WalletViewSelectorsText = {
@@ -47,4 +93,5 @@ export const WalletViewSelectorsText = {
   HIDE_TOKENS: enContent.wallet.remove,
   STAKED_ETHEREUM: enContent.stake.staked_ethereum,
   DEFAULT_TOKEN: 'Ethereum',
+  NAVBAR_TITLE_TEXT: 'Wallet',
 };

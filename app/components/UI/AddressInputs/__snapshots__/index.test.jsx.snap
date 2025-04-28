@@ -23,12 +23,12 @@ exports[`AddressInputs AddressFrom should match default snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -39,7 +39,7 @@ exports[`AddressInputs AddressFrom should match default snapshot 1`] = `
     style={
       [
         {
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 8,
           "borderWidth": 1,
           "flex": 1,
@@ -50,7 +50,7 @@ exports[`AddressInputs AddressFrom should match default snapshot 1`] = `
           "padding": 10,
         },
         {
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
         },
       ]
     }
@@ -66,7 +66,7 @@ exports[`AddressInputs AddressFrom should match default snapshot 1`] = `
       <View
         placeholderStyle={
           {
-            "backgroundColor": "#f2f4f6",
+            "backgroundColor": "#f3f5f9",
           }
         }
         useNativeDriver={true}
@@ -114,7 +114,7 @@ exports[`AddressInputs AddressFrom should match default snapshot 1`] = `
                   "backgroundColor": "#eee",
                 },
                 {
-                  "backgroundColor": "#f2f4f6",
+                  "backgroundColor": "#f3f5f9",
                 },
               ]
             }
@@ -149,12 +149,12 @@ exports[`AddressInputs AddressFrom should match default snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -165,12 +165,12 @@ exports[`AddressInputs AddressFrom should match default snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -204,12 +204,12 @@ exports[`AddressInputs AddressFrom should match snapshot when layout is vertical
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -220,7 +220,7 @@ exports[`AddressInputs AddressFrom should match snapshot when layout is vertical
     style={
       [
         {
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 8,
           "borderWidth": 1,
           "flex": 1,
@@ -231,7 +231,7 @@ exports[`AddressInputs AddressFrom should match snapshot when layout is vertical
           "padding": 10,
         },
         {
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
         },
       ]
     }
@@ -247,7 +247,7 @@ exports[`AddressInputs AddressFrom should match snapshot when layout is vertical
       <View
         placeholderStyle={
           {
-            "backgroundColor": "#f2f4f6",
+            "backgroundColor": "#f3f5f9",
           }
         }
         useNativeDriver={true}
@@ -295,7 +295,7 @@ exports[`AddressInputs AddressFrom should match snapshot when layout is vertical
                   "backgroundColor": "#eee",
                 },
                 {
-                  "backgroundColor": "#f2f4f6",
+                  "backgroundColor": "#f3f5f9",
                 },
               ]
             }
@@ -330,12 +330,12 @@ exports[`AddressInputs AddressFrom should match snapshot when layout is vertical
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -346,12 +346,12 @@ exports[`AddressInputs AddressFrom should match snapshot when layout is vertical
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -387,12 +387,12 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -413,7 +413,7 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
           "paddingHorizontal": 10,
         },
         {
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
         },
       ]
     }
@@ -436,7 +436,7 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
         <View
           placeholderStyle={
             {
-              "backgroundColor": "#f2f4f6",
+              "backgroundColor": "#f3f5f9",
             }
           }
           useNativeDriver={true}
@@ -484,7 +484,7 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
                     "backgroundColor": "#eee",
                   },
                   {
-                    "backgroundColor": "#f2f4f6",
+                    "backgroundColor": "#f3f5f9",
                   },
                 ]
               }
@@ -507,7 +507,7 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
             style={
               [
                 {
-                  "color": "#d73847",
+                  "color": "#ca3542",
                   "fontSize": 14,
                 },
                 undefined,
@@ -558,12 +558,12 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
@@ -582,16 +582,16 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
-                0x9004...0d12
+                0x9004C...A0d12
               </Text>
               <View
                 style={
@@ -605,7 +605,7 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
                   style={
                     [
                       {
-                        "color": "#1c8234",
+                        "color": "#1c7e33",
                         "fontSize": 15,
                       },
                       undefined,
@@ -658,12 +658,12 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -684,7 +684,7 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
           "paddingHorizontal": 10,
         },
         {
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
         },
       ]
     }
@@ -707,7 +707,7 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
         <View
           placeholderStyle={
             {
-              "backgroundColor": "#f2f4f6",
+              "backgroundColor": "#f3f5f9",
             }
           }
           useNativeDriver={true}
@@ -755,7 +755,7 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
                     "backgroundColor": "#eee",
                   },
                   {
-                    "backgroundColor": "#f2f4f6",
+                    "backgroundColor": "#f3f5f9",
                   },
                 ]
               }
@@ -778,7 +778,7 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
             style={
               [
                 {
-                  "color": "#d73847",
+                  "color": "#ca3542",
                   "fontSize": 14,
                 },
                 undefined,
@@ -829,12 +829,12 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
@@ -853,16 +853,16 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
-                0x9004...0d12
+                0x9004C...A0d12
               </Text>
               <View
                 style={
@@ -876,7 +876,7 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
                   style={
                     [
                       {
-                        "color": "#1c8234",
+                        "color": "#1c7e33",
                         "fontSize": 15,
                       },
                       undefined,

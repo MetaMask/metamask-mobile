@@ -9,7 +9,7 @@ import transactionReducer from './transaction';
 import legalNoticesReducer from './legalNotices';
 import userReducer, { UserState } from './user';
 import wizardReducer from './wizard';
-import onboardingReducer from './onboarding';
+import onboardingReducer, { OnboardingState } from './onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
 import signatureRequestReducer from './signatureRequest';
@@ -29,11 +29,12 @@ import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 import confirmationMetricsReducer from '../core/redux/slices/confirmationMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
+import bannersReducer, { BannersState } from './banners';
 import bridgeReducer from '../core/redux/slices/bridge';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { MultichainSettingsState } from '../actions/multichain/state';
-import multichainReducer from './multichain';
-///: END:ONLY_INCLUDE_IF
+import performanceReducer, {
+  PerformanceState,
+} from '../core/redux/slices/performance';
+import { isTest } from '../util/test/utils';
 
 /**
  * Infer state from a reducer
@@ -85,9 +86,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   wizard: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onboarding: any;
+  onboarding: OnboardingState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   notification: any;
@@ -123,16 +122,11 @@ export interface RootState {
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   bridge: StateFromReducer<typeof bridgeReducer>;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainSettings: MultichainSettingsState;
-  ///: END:ONLY_INCLUDE_IF
+  banners: BannersState;
+  performance?: PerformanceState;
 }
 
-// TODO: Fix the Action type. It's set to `any` now because some of the
-// TypeScript reducers have invalid actions
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rootReducer = combineReducers<RootState, any>({
+const baseReducers = {
   legalNotices: legalNoticesReducer,
   collectibles: collectiblesReducer,
   // TODO: Replace "any" with type
@@ -164,10 +158,19 @@ const rootReducer = combineReducers<RootState, any>({
   originThrottling: originThrottlingReducer,
   notifications: notificationsAccountsProvider,
   bridge: bridgeReducer,
+  banners: bannersReducer,
   confirmationMetrics: confirmationMetricsReducer,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainSettings: multichainReducer,
-  ///: END:ONLY_INCLUDE_IF
-});
+};
+
+if (isTest) {
+  // @ts-expect-error - it's expected to not exist, it should only exist in not production environments
+  baseReducers.performance = performanceReducer;
+}
+
+// TODO: Fix the Action type. It's set to `any` now because some of the
+// TypeScript reducers have invalid actions
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rootReducer = combineReducers<RootState, any>(baseReducers);
 
 export default rootReducer;

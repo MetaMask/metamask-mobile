@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef } from 'react';
 import { View } from 'react-native';
 import BottomSheet, { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
@@ -38,7 +38,7 @@ const MaxBrowserTabsModal = () => {
         />
       </View>
     </BottomSheet>
-  )
+  );
 };
 
 export default MaxBrowserTabsModal;

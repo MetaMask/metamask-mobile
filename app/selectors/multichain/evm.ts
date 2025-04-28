@@ -17,10 +17,15 @@ import {
   selectEvmTicker,
   selectIsAllNetworks,
   selectIsPopularNetwork,
+  selectNetworkConfigurations,
 } from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { renderFromWei, weiToFiat } from '../../util/number';
-import { hexToBN, toHex } from '@metamask/controller-utils';
+import {
+  hexToBN,
+  toChecksumHexAddress,
+  toHex,
+} from '@metamask/controller-utils';
 import {
   selectConversionRate,
   selectCurrencyRates,
@@ -35,6 +40,11 @@ import { isZero } from '../../util/lodash';
 import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../preferencesController';
 import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
 import { isTestNet } from '../../util/networks';
+import { selectTokenMarketData } from '../tokenRatesController';
+import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
+import { RootState } from '../../reducers';
+import { selectTokenList } from '../tokenListController';
+import { safeToChecksumAddress } from '../../util/address';
 
 interface NativeTokenBalance {
   balance: string;
@@ -51,38 +61,63 @@ type ChainBalances = Record<string, NativeTokenBalance>;
  * @param {RootState} state - The root state.
  * @returns {ChainBalances} The cached native token balance for the selected account by chainId.
  */
-export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
-  [selectSelectedInternalAccountFormattedAddress, selectAccountsByChainId],
-  (selectedAddress, accountsByChainId): ChainBalances => {
-    if (!selectedAddress || !accountsByChainId) {
-      return {};
-    }
-
-    const result: ChainBalances = {};
-    for (const chainId in accountsByChainId) {
-      const accounts = accountsByChainId[chainId];
-      const account = accounts[selectedAddress];
-      if (account) {
-        result[chainId] = {
-          balance: account.balance,
-          stakedBalance: account.stakedBalance ?? '0x0',
-          isStaked: account.stakedBalance !== '0x0',
-          name: '',
-        };
+export const selectedAccountNativeTokenCachedBalanceByChainIdForAddress =
+  createSelector(
+    [
+      selectAccountsByChainId,
+      (_: RootState, address: string | undefined) => address,
+    ],
+    (accountsByChainId, address): ChainBalances => {
+      if (!accountsByChainId || !address) {
+        return {};
       }
-    }
 
-    return result;
-  },
+      const checksumAddress = toChecksumHexAddress(address);
+
+      const result: ChainBalances = {};
+      for (const chainId in accountsByChainId) {
+        const accounts = accountsByChainId[chainId];
+        const account = accounts[checksumAddress];
+        if (account) {
+          result[chainId] = {
+            balance: account.balance,
+            stakedBalance: account.stakedBalance ?? '0x0',
+            isStaked: account.stakedBalance !== '0x0',
+            name: '',
+          };
+        }
+      }
+
+      return result;
+    },
+  );
+
+/**
+ * Get the cached native token balance for the selected account by chainId.
+ *
+ * @param {RootState} state - The root state.
+ * @returns {ChainBalances} The cached native token balance for the selected account by chainId.
+ */
+export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
+  [(state: RootState) => state, selectSelectedInternalAccountFormattedAddress],
+  (state, selectedAddress): ChainBalances =>
+    selectedAccountNativeTokenCachedBalanceByChainIdForAddress(
+      state,
+      selectedAddress,
+    ),
 );
 
 /**
  * Selector to get native tokens for the selected account across all chains.
  */
-export const selectNativeTokensAcrossChains = createSelector(
+export const selectNativeTokensAcrossChainsForAddress = createSelector(
   [
     selectEvmNetworkConfigurationsByChainId,
-    selectedAccountNativeTokenCachedBalanceByChainId,
+    (state: RootState, address: string | undefined) =>
+      selectedAccountNativeTokenCachedBalanceByChainIdForAddress(
+        state,
+        address,
+      ),
     selectCurrencyRates,
     selectCurrentCurrency,
   ],
@@ -97,9 +132,13 @@ export const selectNativeTokensAcrossChains = createSelector(
       const nativeChainId = token.chainId as Hex;
       const nativeTokenInfoByChainId =
         nativeTokenBalancesByChainId[nativeChainId];
-      const isETH = ['ETH', 'GOETH', 'SepoliaETH', 'LineaETH'].includes(
-        token.nativeCurrency || '',
-      );
+      const isETH = [
+        'ETH',
+        'GOETH',
+        'SepoliaETH',
+        'LineaETH',
+        'MegaETH',
+      ].includes(token.nativeCurrency || '');
 
       const name = isETH ? 'Ethereum' : token.nativeCurrency;
       const logo = isETH ? '../images/eth-logo-new.png' : '';
@@ -187,53 +226,76 @@ export const selectNativeTokensAcrossChains = createSelector(
 );
 
 /**
+ * Selector to get native tokens for the selected account across all chains.
+ */
+export const selectNativeTokensAcrossChains = createSelector(
+  [(state: RootState) => state, selectSelectedInternalAccountFormattedAddress],
+  (state, selectedAddress) =>
+    selectNativeTokensAcrossChainsForAddress(state, selectedAddress),
+);
+
+export const selectAccountTokensAcrossChainsForAddress =
+  createDeepEqualSelector(
+    selectAllTokens,
+    selectEvmNetworkConfigurationsByChainId,
+    (state: RootState, address: string | undefined) =>
+      selectNativeTokensAcrossChainsForAddress(state, address),
+    (_: RootState, address: string | undefined) => address,
+    (allTokens, networkConfigurations, nativeTokens, address) => {
+      const tokensByChain: {
+        [chainId: string]: (
+          | TokenI
+          | (Token & {
+              isStaked?: boolean;
+              isNative?: boolean;
+              isETH?: boolean;
+            })
+        )[];
+      } = {};
+
+      if (!address) {
+        return tokensByChain;
+      }
+
+      // Create a list of available chainIds
+      const chainIds = Object.keys(networkConfigurations);
+
+      for (const chainId of chainIds) {
+        const currentChainId = chainId as Hex;
+        const nonNativeTokens =
+          allTokens[currentChainId]?.[address]?.map((token) => ({
+            ...token,
+            token: token.name,
+            chainId,
+            isETH: false,
+            isNative: false,
+            balanceFiat: '',
+            isStaked: false,
+          })) || [];
+
+        // Add both native and non-native tokens
+        tokensByChain[currentChainId] = [
+          ...(nativeTokens[currentChainId] || []),
+          ...nonNativeTokens,
+        ];
+      }
+
+      return tokensByChain;
+    },
+  );
+
+/**
  * Get the tokens for the selected account across all chains.
  *
  * @param {RootState} state - The root state.
  * @returns {TokensByChain} The tokens for the selected account across all chains.
  */
-export const selectAccountTokensAcrossChains = createDeepEqualSelector(
+export const selectAccountTokensAcrossChains = createSelector(
+  (state: RootState) => state,
   selectSelectedInternalAccount,
-  selectAllTokens,
-  selectEvmNetworkConfigurationsByChainId,
-  selectNativeTokensAcrossChains,
-  (selectedAccount, allTokens, networkConfigurations, nativeTokens) => {
+  (state, selectedAccount) => {
     const selectedAddress = selectedAccount?.address;
-    const tokensByChain: {
-      [chainId: string]: (
-        | TokenI
-        | (Token & { isStaked?: boolean; isNative?: boolean; isETH?: boolean })
-      )[];
-    } = {};
-
-    if (!selectedAddress) {
-      return tokensByChain;
-    }
-
-    // Create a list of available chainIds
-    const chainIds = Object.keys(networkConfigurations);
-
-    for (const chainId of chainIds) {
-      const currentChainId = chainId as Hex;
-      const nonNativeTokens =
-        allTokens[currentChainId]?.[selectedAddress]?.map((token) => ({
-          ...token,
-          token: token.name,
-          chainId,
-          isETH: false,
-          isNative: false,
-          balanceFiat: '',
-          isStaked: false,
-        })) || [];
-
-      // Add both native and non-native tokens
-      tokensByChain[currentChainId] = [
-        ...(nativeTokens[currentChainId] || []),
-        ...nonNativeTokens,
-      ];
-    }
-
-    return tokensByChain;
+    return selectAccountTokensAcrossChainsForAddress(state, selectedAddress);
   },
 );
 
@@ -378,5 +440,76 @@ export const selectEvmTokens = createDeepEqualSelector(
     }
 
     return [...nativeTokens, ...nonNativeTokens];
+  },
+);
+
+export const selectEvmTokenFiatBalances = createDeepEqualSelector(
+  selectEvmTokens,
+  selectTokenMarketData,
+  selectTokensBalances,
+  selectSelectedInternalAccountAddress,
+  selectNetworkConfigurations,
+  selectCurrencyRates,
+  selectCurrentCurrency,
+  (
+    evmTokens,
+    multiChainMarketData,
+    multiChainTokenBalance,
+    selectedInternalAccountAddress,
+    networkConfigurationsByChainId,
+    multiChainCurrencyRates,
+    currentCurrency,
+  ) =>
+    evmTokens.map((token) => {
+      const chainId = token.chainId as Hex;
+      const multiChainExchangeRates = multiChainMarketData?.[chainId];
+      const multiChainTokenBalances =
+        multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+          chainId
+        ];
+      const nativeCurrency =
+        networkConfigurationsByChainId[chainId].nativeCurrency;
+      const multiChainConversionRate =
+        multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
+
+      return token.isETH || token.isNative
+        ? parseFloat(token.balance) * multiChainConversionRate
+        : deriveBalanceFromAssetMarketDetails(
+            token,
+            multiChainExchangeRates || {},
+            multiChainTokenBalances || {},
+            multiChainConversionRate || 0,
+            currentCurrency || '',
+          ).balanceFiatCalculation;
+    }),
+);
+
+export const selectEvmTokenMarketData = createDeepEqualSelector(
+  [
+    selectTokenList,
+    selectTokenMarketData,
+    (_state: RootState, params: { chainId: Hex; tokenAddress?: string }) =>
+      params.chainId,
+    (_state: RootState, params: { chainId: Hex; tokenAddress?: string }) =>
+      params.tokenAddress,
+  ],
+  (tokenList, marketData, chainId, tokenAddress) => {
+    // Handle native token case (no address)
+    if (!tokenAddress) {
+      return marketData?.[chainId]?.[zeroAddress() as Hex];
+    }
+
+    // Get checksummed address
+    const checksumAddress = safeToChecksumAddress(tokenAddress);
+    if (!checksumAddress) return null;
+
+    // Get token metadata and market data
+    const tokenMetadata = tokenList?.[checksumAddress.toLowerCase()];
+    const tokenMarketData = marketData?.[chainId]?.[checksumAddress as Hex];
+
+    return {
+      metadata: tokenMetadata,
+      marketData: tokenMarketData,
+    };
   },
 );
