@@ -113,14 +113,13 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   keyFromPassword = async (
     password: string,
     salt: string,
-    exportable = false,
+    exportable = true,
     opts: KeyDerivationOptions = this.keyDerivationOptions,
     lib = ENCRYPTION_LIBRARY.original,
   ): Promise<EncryptionKey> => {
     const derivedKey = await quickCryptoLib.deriveKey(
       password,
       salt,
-      exportable,
       opts,
     );
 
@@ -146,7 +145,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   ): Promise<EncryptionResult> => {
     const text = JSON.stringify(data);
 
-    const iv = await quickCryptoLib.generateIV(16);
+    const iv = Crypto.getRandomValues(new Uint8Array(16));
     const result = await quickCryptoLib.encrypt(
       text,
       key.key,
@@ -277,9 +276,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       throw new Error('Key is not exportable');
     }
 
-    const exportedKey = await quickCryptoLib.exportKey('jwk', key.key);
-
-    const json = JSON.stringify({ ...key, key: exportedKey });
+    const json = JSON.stringify(key);
     return Buffer.from(json).toString('base64');
   };
 

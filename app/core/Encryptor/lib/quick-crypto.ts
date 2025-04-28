@@ -12,7 +12,6 @@ class QuickCryptoLib implements EncryptionLibrary {
   deriveKey = async (
     password: string,
     salt: string,
-    exportable: boolean,
     opts: KeyDerivationOptions,
   ): Promise<string> => {
     const passBuffer = Buffer.from(password, 'utf-8');
@@ -41,24 +40,26 @@ class QuickCryptoLib implements EncryptionLibrary {
     );
 
     // Derive new key to be used with AES-CBC
-    return await Crypto.subtle.importKey(
+    const key = await Crypto.subtle.importKey(
       'raw',
       derivedBits,
       { name: 'AES-CBC', length: 256 },
-      exportable,
+      true,
       ['encrypt', 'decrypt']
     );
 
+    // const keyBuffer = await Crypto.subtle.exportKey('raw', key);
+    // return Buffer.from(keyBuffer).toString('base64');
+    return this.exportKey('raw', key);
   };
 
-  exportKey = async (importFormat: 'raw' | 'jwk', key: string): Promise<unknown> => await Crypto.subtle.exportKey(importFormat, key);
-
-  encrypt = async (data: string, key: string, iv: string): Promise<string> => {
+  encrypt = async (data: string, key: string, iv: Buffer): Promise<string> => {
     const dataBuffer = Buffer.from(data, 'utf-8');
-    const ivBuffer = Buffer.from(iv, 'utf-8');
+    const cryptoKey = this.importKey(key);
+
     return await Crypto.subtle.encrypt(
-      { name: 'AES-CBC', iv: ivBuffer },
-      key,
+      { name: 'AES-CBC', iv },
+      cryptoKey,
       dataBuffer
     );
   };
@@ -66,11 +67,29 @@ class QuickCryptoLib implements EncryptionLibrary {
   decrypt = async (data: string, key: string, iv: string): Promise<string> => {
     const dataBuffer = Buffer.from(data, 'base64');
     const ivBuffer = Buffer.from(iv, 'hex');
+    const cryptoKey = this.importKey(key);
+
     return await Crypto.subtle.decrypt(
       { name: 'AES-CBC', iv: ivBuffer },
-      key,
+      cryptoKey,
       dataBuffer,
     );
+  };
+
+  importKey = async (key: string): Promise<unknown> => {
+    const keyBuffer = Buffer.from(key, 'base64');
+    return await Crypto.subtle.importKey(
+      'raw',
+      keyBuffer,
+      { name: 'AES-CBC', length: 256 },
+      true,
+      ['encrypt', 'decrypt'],
+    );
+  };
+
+  exportKey = async (importFormat: 'raw' | 'jwk', key: unknown): Promise<unknown> => {
+    const keyBuffer = await Crypto.subtle.exportKey(importFormat, key);
+    return Buffer.from(keyBuffer).toString('base64');
   };
 }
 
