@@ -10,23 +10,8 @@ import {
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { createDeepEqualSelector } from './util';
-import { isProduction } from '../util/environment';
 import { Hex } from '@metamask/utils';
-
-const getIsAllowedRpcUrlForSmartTransactions = (rpcUrl?: string) => {
-  // Allow in non-production environments.
-  if (!isProduction()) {
-    return true;
-  }
-
-  const hostname = rpcUrl && new URL(rpcUrl).hostname;
-
-  return (
-    hostname?.endsWith('.infura.io') ||
-    hostname?.endsWith('.binance.org') ||
-    false
-  );
-};
+import { getIsAllowedRpcUrlForSmartTransactions } from '../util/smart-transactions';
 
 export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   [
