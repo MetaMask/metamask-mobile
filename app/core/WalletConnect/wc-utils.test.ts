@@ -281,20 +281,20 @@ describe('WalletConnect Utils', () => {
 			// Mock that the chain is not permitted
 			const mockPermittedChains = jest.requireMock('../Permissions').getPermittedChains;
 			mockPermittedChains.mockResolvedValueOnce([]);
-			
+
 			// Mock the addPermittedChain function
 			const mockAddPermittedChain = jest.requireMock('../Permissions').addPermittedChain;
-			
+
 			// Test with allowSwitchingToNewChain set to true
 			const result = await checkWCPermissions({
 				origin: 'test-dapp.com',
 				caip2ChainId: 'eip155:3',
 				allowSwitchingToNewChain: true,
 			});
-			
+
 			// Verify addPermittedChain was called with the right parameters
 			expect(mockAddPermittedChain).toHaveBeenCalledWith(
-				'test-dapp.com', 
+				'test-dapp.com',
 				'0x3'
 			);
 			expect(switchToNetwork).toHaveBeenCalled();
@@ -389,7 +389,7 @@ describe('WalletConnect Utils', () => {
 			};
 
 			expect(getHostname(maliciousUri as unknown as string)).toBe(maliciousUri);
-			
+
 			// Verify that DevLogger.log was called with the error
 			expect(DevLogger.log).toHaveBeenCalledWith(
 				'Error in getHostname:',
