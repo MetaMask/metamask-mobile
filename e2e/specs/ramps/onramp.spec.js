@@ -67,7 +67,7 @@ describe(SmokeTrade('Buy Crypto'), () => {
 
   it.skip('should change parameters and select a quote', async () => {
     const platform = device.getPlatform();
-    
+
     let paymentMethod;
     if (platform === 'ios') {
       const applePayVisible = await Assertions.checkIfTextIsDisplayed('Apple Pay');
