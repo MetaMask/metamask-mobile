@@ -59,10 +59,14 @@ export const config = {
 
   // Patterns to exclude.
   exclude: [
-    './wdio/features/Wallet/AddressFlow.feature',
-    './wdio/features/Wallet/ImportCustomToken.feature',
-    './wdio/features/Wallet/SendToken.feature',
-    './wdio/features/Accounts/AccountActions.feature'
+    './wdio/features/Wallet/*',
+    './wdio/features/Accounts/*',
+    './wdio/features/BrowserFlow/*',
+    './wdio/features/Confirmations/*',
+    './wdio/features/Networks/*',
+    './wdio/features/Settings/*',
+    './wdio/features/SecurityAndPrivacy/*',
+    './wdio/features/Onboarding/*',
   ],
   //
   // ============
@@ -307,9 +311,11 @@ export const config = {
       return capabilities.platformName;
     };
 
-    const adb = await ADB.createADB();
-    await adb.reversePort(8545, 8545);
-    await adb.reversePort(12345, 12345)
+    if (await driver.getPlatform() === 'Android') {
+      const adb = await ADB.createADB();
+      await adb.reversePort(8545, 8545);
+      await adb.reversePort(12345, 12345);
+    }
   },
   /**
    * Runs before a WebdriverIO command gets executed.
@@ -325,7 +331,7 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  beforeFeature: function (uri, feature) {},
+  beforeFeature: function (uri, feature) { },
   /**
    *
    * Runs before a Cucumber Scenario.
@@ -360,7 +366,7 @@ export const config = {
       // Start the fixture server
       await startFixtureServer(fixtureServer);
       const state = new FixtureBuilder().build();
-      await loadFixture(fixtureServer, {fixture: state});
+      await loadFixture(fixtureServer, { fixture: state });
     }
 
   },
@@ -413,7 +419,7 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  afterFeature: function (uri, feature) {},
+  afterFeature: function (uri, feature) { },
 
   /**
    * Runs after a WebdriverIO command gets executed

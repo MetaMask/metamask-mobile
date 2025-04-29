@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PickerAccount should render correctly 1`] = `
-<View
+<TouchableOpacity
+  onPress={[Function]}
   style={
     {
       "alignItems": "center",
@@ -15,7 +16,7 @@ exports[`PickerAccount should render correctly 1`] = `
       {
         "alignItems": "center",
         "backgroundColor": "#ffffff",
-        "borderColor": "#848c96",
+        "borderColor": "#b7bbc8",
         "borderRadius": 4,
         "borderWidth": 0,
         "flexDirection": "row",
@@ -193,12 +194,12 @@ exports[`PickerAccount should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="account-label"
@@ -209,7 +210,7 @@ exports[`PickerAccount should render correctly 1`] = `
       </View>
     </View>
     <SvgMock
-      color="#141618"
+      color="#121314"
       height={12}
       name="ArrowDown"
       style={
@@ -226,17 +227,17 @@ exports[`PickerAccount should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#6a737d",
-        "fontFamily": "EuclidCircularB-Medium",
-        "fontSize": 12,
+        "color": "#686e7d",
+        "fontFamily": "CentraNo1-Medium",
+        "fontSize": 14,
         "fontWeight": "500",
         "letterSpacing": 0,
-        "lineHeight": 20,
+        "lineHeight": 22,
         "textAlign": "center",
       }
     }
   >
-    0x2990...a21a
+    0x29900...da21a
   </Text>
-</View>
+</TouchableOpacity>
 `;

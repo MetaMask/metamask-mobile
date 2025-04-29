@@ -1,21 +1,57 @@
 import { DeFiPositionsControllerMessenger } from '@metamask/assets-controllers';
-import { BaseControllerMessenger } from '../../types';
+import {
+  AccountsControllerAccountAddedEvent,
+  AccountsControllerListAccountsAction,
+} from '@metamask/accounts-controller';
+import {
+  KeyringControllerLockEvent,
+  KeyringControllerUnlockEvent,
+} from '@metamask/keyring-controller';
+import { TransactionControllerTransactionConfirmedEvent } from '@metamask/transaction-controller';
+import { Messenger } from '@metamask/base-controller';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
+
+type Actions = AccountsControllerListAccountsAction;
+
+type Events =
+  | KeyringControllerUnlockEvent
+  | KeyringControllerLockEvent
+  | TransactionControllerTransactionConfirmedEvent
+  | AccountsControllerAccountAddedEvent;
 
 /**
- * Get the DeFiPositionsControllerMessenger for the DeFiPositionsController.
+ * Get a restricted messenger for the DeFiPositionsController.
  *
- * @param baseControllerMessenger - The base controller messenger.
- * @returns The DeFiPositionsControllerMessenger.
+ * @param messenger - The messenger to restrict.
+ * @returns The restricted messenger.
  */
 export function getDeFiPositionsControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  messenger: Messenger<Actions, Events>,
 ): DeFiPositionsControllerMessenger {
-  return baseControllerMessenger.getRestricted({
+  return messenger.getRestricted({
     name: 'DeFiPositionsController',
-    allowedActions: ['AccountsController:getSelectedAccount'],
+    allowedActions: ['AccountsController:listAccounts'],
     allowedEvents: [
-      'AccountsController:selectedAccountChange',
-      'NetworkController:stateChange',
+      'KeyringController:unlock',
+      'KeyringController:lock',
+      'TransactionController:transactionConfirmed',
+      'AccountsController:accountAdded',
     ],
+  });
+}
+
+type InitActions = RemoteFeatureFlagControllerGetStateAction;
+
+export type DeFiPositionsControllerInitMessenger = ReturnType<
+  typeof getDeFiPositionsControllerInitMessenger
+>;
+
+export function getDeFiPositionsControllerInitMessenger(
+  messenger: Messenger<InitActions, never>,
+) {
+  return messenger.getRestricted({
+    name: 'DeFiPositionsControllerInit',
+    allowedEvents: [],
+    allowedActions: ['RemoteFeatureFlagController:getState'],
   });
 }

@@ -17,6 +17,7 @@ export interface SnapUIInputProps {
   label?: string;
   error?: string;
   style?: ViewStyle;
+  disabled?: boolean;
 }
 
 export const SnapUIInput = ({
@@ -25,6 +26,7 @@ export const SnapUIInput = ({
   label,
   error,
   style,
+  disabled,
   ...props
 }: SnapUIInputProps) => {
   const { handleInputChange, getValue, focusedInput, setCurrentFocusedInput } =
@@ -66,12 +68,15 @@ export const SnapUIInput = ({
       <TextField
         {...props}
         size={TextFieldSize.Lg}
+        isDisabled={disabled}
         ref={inputRef}
         onFocus={handleFocus}
         onBlur={handleBlur}
         id={name}
         value={value}
         onChangeText={handleChange}
+        autoCapitalize="none"
+        autoCorrect={false}
       />
       {error && (
         // eslint-disable-next-line react-native/no-inline-styles

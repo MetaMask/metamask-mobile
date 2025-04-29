@@ -126,7 +126,7 @@ exports[`Onboarding should render correctly 1`] = `
                   style={
                     {
                       "height": 35,
-                      "tintColor": "#141618",
+                      "tintColor": "#121314",
                       "width": 70,
                     }
                   }
@@ -387,8 +387,8 @@ exports[`Onboarding should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "700",
                                     "letterSpacing": 0,
@@ -411,12 +411,12 @@ exports[`Onboarding should render correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginBottom": 16,
                                       "textAlign": "center",
                                     }
@@ -457,7 +457,7 @@ exports[`Onboarding should render correctly 1`] = `
                                           },
                                           {
                                             "backgroundColor": "#ffffff",
-                                            "borderColor": "#0376c9",
+                                            "borderColor": "#4459ff",
                                             "borderWidth": 1,
                                           },
                                           undefined,
@@ -479,13 +479,13 @@ exports[`Onboarding should render correctly 1`] = `
                                           null,
                                           [
                                             {
-                                              "fontFamily": "EuclidCircularB-Bold",
+                                              "fontFamily": "CentraNo1-Bold",
                                               "fontSize": 14,
                                               "fontWeight": "600",
                                               "textAlign": "center",
                                             },
                                             {
-                                              "color": "#0376c9",
+                                              "color": "#4459ff",
                                             },
                                             undefined,
                                           ],
@@ -518,7 +518,7 @@ exports[`Onboarding should render correctly 1`] = `
                                             "padding": 15,
                                           },
                                           {
-                                            "backgroundColor": "#0376c9",
+                                            "backgroundColor": "#4459ff",
                                           },
                                           undefined,
                                         ],
@@ -539,7 +539,7 @@ exports[`Onboarding should render correctly 1`] = `
                                           null,
                                           [
                                             {
-                                              "fontFamily": "EuclidCircularB-Bold",
+                                              "fontFamily": "CentraNo1-Bold",
                                               "fontSize": 14,
                                               "fontWeight": "600",
                                               "textAlign": "center",

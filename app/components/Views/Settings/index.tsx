@@ -153,10 +153,13 @@ const Settings = () => {
   };
 
   const showHelp = () => {
-    goToBrowserUrl(
-      'https://support.metamask.io',
-      strings('app_settings.contact_support'),
-    );
+    let supportUrl = 'https://support.metamask.io';
+
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
+    ///: END:ONLY_INCLUDE_IF
+
+    goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
     );
@@ -192,6 +195,10 @@ const Settings = () => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(flask)
   aboutMetaMaskTitle = strings('app_settings.info_title_flask');
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(beta)
+  aboutMetaMaskTitle = strings('app_settings.info_title_beta');
   ///: END:ONLY_INCLUDE_IF
 
   return (

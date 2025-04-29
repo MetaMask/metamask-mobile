@@ -119,7 +119,11 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
           </HelpText>
         )}
       </Box>
-      <ApprovalModal isVisible={isModalOpen} onCancel={handleModalClose}>
+      <ApprovalModal
+        isVisible={isModalOpen}
+        onCancel={handleModalClose}
+        avoidKeyboard
+      >
         <View style={styles.modal}>
           <BottomSheetHeader onBack={handleModalClose}>
             {title}

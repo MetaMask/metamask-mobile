@@ -3,6 +3,9 @@ import {
   DeFiPositionsControllerMessenger,
 } from '@metamask/assets-controllers';
 import type { ControllerInitFunction } from '../../types';
+import { DeFiPositionsControllerInitMessenger } from '../../messengers/defi-positions-controller-messenger';
+import { store } from '../../../../store';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 
 /**
  * Initialize the DeFiPositionsController.
@@ -12,14 +15,31 @@ import type { ControllerInitFunction } from '../../types';
  */
 export const defiPositionsControllerInit: ControllerInitFunction<
   DeFiPositionsController,
-  DeFiPositionsControllerMessenger
+  DeFiPositionsControllerMessenger,
+  DeFiPositionsControllerInitMessenger
 > = (request) => {
-  const { controllerMessenger, persistedState } = request;
+  const { initMessenger, controllerMessenger } = request;
 
   const controller = new DeFiPositionsController({
     messenger: controllerMessenger,
-    state: persistedState.DeFiPositionsController,
-    apiUrl: 'http://localhost:3000/positions',
+    isEnabled: () => {
+      const isBasicFunctionalityToggleEnabled = selectBasicFunctionalityEnabled(
+        store.getState(),
+      );
+
+      const featureFlagForDeFi = Boolean(
+        initMessenger.call('RemoteFeatureFlagController:getState')
+          ?.remoteFeatureFlags?.assetsDefiPositionsEnabled,
+      );
+
+      console.log('DEFI ENABLED', {
+        isBasicFunctionalityToggleEnabled,
+        featureFlagForDeFi,
+      });
+
+      // return isBasicFunctionalityToggleEnabled && featureFlagForDeFi;
+      return true;
+    },
   });
 
   return { controller };

@@ -47,13 +47,13 @@ describe('useFiatCurrencies', () => {
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getDefaultFiatCurrency',
       'test-region-id',
-      'test-payment-method-id',
+      [],
     );
 
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getFiatCurrencies',
       'test-region-id',
-      'test-payment-method-id',
+      ['test-payment-method-id'],
     );
   });
 
@@ -72,13 +72,13 @@ describe('useFiatCurrencies', () => {
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getDefaultSellFiatCurrency',
       'test-region-id',
-      'test-payment-method-id',
+      [],
     );
 
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getSellFiatCurrencies',
       'test-region-id',
-      'test-payment-method-id',
+      ['test-payment-method-id'],
     );
   });
 

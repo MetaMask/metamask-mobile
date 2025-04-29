@@ -65,18 +65,35 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<!-- The following document explains reasons behind this strange subdomain declarations -->
-				<!-- https://developer.android.com/training/app-links/verify-site-associations#multi-subdomain -->
-				<data android:scheme="https" />
-				<data android:scheme="https" />
-				<data android:scheme="https" />
-				<data android:scheme="https" />
 				<data android:scheme="https" />
 				<data android:host="metamask.app.link" />
+			</intent-filter>
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="https" />
 				<data android:host="metamask-alternate.app.link" />
+			</intent-filter>
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="https" />
 				<data android:host="metamask.test-app.link" />
+			</intent-filter>
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="https" />
 				<data android:host="metamask-alternate.test-app.link" />
-        <data android:scheme="expo-metamask" />
+			</intent-filter>
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="expo-metamask" />
 			</intent-filter>
 			<!-- Branch URI Scheme -->
 			<intent-filter>
@@ -115,7 +132,7 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
-      <intent-filter>
+      <intent-filter android:autoVerify="true">
 				<data android:scheme="expo-metamask" />
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />

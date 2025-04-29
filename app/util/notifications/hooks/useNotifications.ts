@@ -19,7 +19,7 @@ import {
 import { usePushNotificationsToggle } from './usePushNotifications';
 import Logger from '../../Logger';
 import { isNotificationsFeatureEnabled } from '../constants';
-import ErrorMessage from '../../../components/Views/confirmations/SendFlow/ErrorMessage';
+import ErrorMessage from '../../../components/Views/confirmations/legacy/SendFlow/ErrorMessage';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -80,6 +80,49 @@ export function useListNotificationsEffect() {
 }
 
 /**
+ * Adds a tiny delay between 2 loading states to ensure that we have a smooth loading experience.
+ * It prevents any flickers while we are transitioning between the 2 loading params
+ * E.g.
+ * ```
+ * loadingParam1: true, loadingParam2: false // 1st loading
+ * loadingParam1: false, loadingParam2: false // False positive (causes UI flicker)
+ * loadingParam1: false, loadingParam2: true // 2nd loading
+ * loadingParam1: false, loadingParam2: false // Finished loading
+ * ```
+ * @param loadingParam1 boolean
+ * @param loadingParam2 boolean
+ */
+export function useContiguousLoading(
+  loadingParam1: boolean,
+  loadingParam2: boolean,
+) {
+  const [contiguousLoading, setContiguousLoading] = useState(false);
+
+  useEffect(() => {
+    const isLoading = loadingParam1 || loadingParam2;
+
+    // If loading is true, we set it immediately
+    if (isLoading) {
+      setContiguousLoading(isLoading);
+      return;
+    }
+
+    // Otherwise if loading has stopped, we will continue to be loading for a little bit
+    // In case the boolean params update again
+    if (!isLoading) {
+      const timeout = setTimeout(() => {
+        setContiguousLoading(false);
+      }, 100);
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+  }, [loadingParam1, loadingParam2]);
+
+  return contiguousLoading;
+}
+
+/**
  * Custom hook to enable MetaMask notifications.
  * This hook encapsulates the logic for enabling notifications, handling loading and error states.
  * It uses Redux to dispatch actions related to notifications.
@@ -104,11 +147,13 @@ export function useEnableNotifications(props = { nudgeEnablePush: true }) {
     await enableNotificationsHelper().catch((e) => setError(e));
   }, [togglePushNotification]);
 
+  const contiguousLoading = useContiguousLoading(loading, pushLoading);
+
   return {
     enableNotifications,
     isEnablingNotifications: loading,
     isEnablingPushNotifications: pushLoading,
-    loading: loading && pushLoading,
+    loading: loading || pushLoading || contiguousLoading,
     error,
     data,
   };

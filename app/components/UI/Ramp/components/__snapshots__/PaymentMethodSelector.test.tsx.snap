@@ -6,12 +6,12 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
         "marginVertical": 8,
       }
     }
@@ -27,7 +27,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
       style={
         [
           {
-            "borderColor": "#848c96",
+            "borderColor": "#b7bbc8",
             "borderRadius": 8,
             "borderWidth": 1.5,
             "padding": 16,
@@ -97,9 +97,9 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
               numberOfLines={1}
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 18,
                   "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -123,8 +123,8 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 30,
                     "fontWeight": "400",
                     "marginVertical": 2,
@@ -134,14 +134,14 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
                   undefined,
                   undefined,
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                   },
                   undefined,
                   undefined,
                   undefined,
                   undefined,
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                   },
                   undefined,
                   undefined,
@@ -164,8 +164,8 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 30,
                       "fontWeight": "400",
                       "marginVertical": 2,
@@ -173,19 +173,19 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontWeight": "600",
                     },
                     undefined,
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                     },
                     undefined,
                     undefined,
                     undefined,
                     undefined,
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                     },
                     undefined,
                     undefined,
@@ -216,7 +216,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
                       "fontSize": 16,
                     },
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "marginLeft": 10,
                     },
                     {
@@ -237,7 +237,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#BBC0C566",
+            "backgroundColor": "#b7bbc866",
             "height": 1,
             "marginLeft": 16,
             "marginRight": 16,
@@ -294,12 +294,12 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
         "marginVertical": 8,
       }
     }
@@ -315,7 +315,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
       style={
         [
           {
-            "borderColor": "#848c96",
+            "borderColor": "#b7bbc8",
             "borderRadius": 8,
             "borderWidth": 1.5,
             "padding": 16,
@@ -385,9 +385,9 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
               numberOfLines={1}
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 18,
                   "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -411,8 +411,8 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
               style={
                 [
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 30,
                     "fontWeight": "400",
                     "marginVertical": 2,
@@ -422,14 +422,14 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
                   undefined,
                   undefined,
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                   },
                   undefined,
                   undefined,
                   undefined,
                   undefined,
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                   },
                   undefined,
                   undefined,
@@ -452,8 +452,8 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
                 style={
                   [
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 30,
                       "fontWeight": "400",
                       "marginVertical": 2,
@@ -461,19 +461,19 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
                     undefined,
                     undefined,
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontWeight": "600",
                     },
                     undefined,
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                     },
                     undefined,
                     undefined,
                     undefined,
                     undefined,
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                     },
                     undefined,
                     undefined,
@@ -504,7 +504,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
                       "fontSize": 16,
                     },
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "marginLeft": 10,
                     },
                     {
@@ -525,7 +525,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#BBC0C566",
+            "backgroundColor": "#b7bbc866",
             "height": 1,
             "marginLeft": 16,
             "marginRight": 16,

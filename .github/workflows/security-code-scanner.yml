@@ -24,7 +24,6 @@ jobs:
           paths_ignored: |
             e2e/
             docs/
-            storybook/
             .storybook/
             '**/*.test.js'
             '**/*.test.ts'

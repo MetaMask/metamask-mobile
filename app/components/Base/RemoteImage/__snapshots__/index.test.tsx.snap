@@ -104,14 +104,14 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#f2f4f6",
+                "backgroundColor": "#f3f5f9",
                 "borderColor": "#ffffff",
                 "borderRadius": 8,
                 "borderWidth": 1,
                 "height": 16,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001A",
+                "shadowColor": "#0000001a",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -126,8 +126,8 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 10,
                   "fontWeight": "400",
                   "letterSpacing": 0,

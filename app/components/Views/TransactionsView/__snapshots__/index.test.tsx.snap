@@ -320,20 +320,135 @@ exports[`TransactionsView renders correctly and matches snapshot 1`] = `
                         <View
                           style={
                             {
-                              "alignItems": "center",
-                              "justifyContent": "center",
-                              "paddingBottom": 24,
+                              "backgroundColor": "#ffffff",
+                              "flex": 1,
                             }
                           }
                         >
-                          <ActivityIndicator
-                            size="small"
-                            style={
+                          <RCTScrollView
+                            ListFooterComponent={
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "justifyContent": "center",
+                                    "paddingBottom": 24,
+                                  }
+                                }
+                              >
+                                <Text
+                                  style={
+                                    {
+                                      "color": "#9ca1af",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 20,
+                                      "fontWeight": "400",
+                                      "marginLeft": 6,
+                                      "marginRight": 6,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                >
+                                  Please switch network to view transactions
+                                </Text>
+                              </View>
+                            }
+                            data={[]}
+                            extraData={
                               {
-                                "alignSelf": "center",
+                                "cancel1559IsOpen": false,
+                                "cancelConfirmDisabled": false,
+                                "cancelIsOpen": false,
+                                "errorMsg": undefined,
+                                "isLedgerAccount": undefined,
+                                "isQRHardwareAccount": undefined,
+                                "ready": true,
+                                "refreshing": false,
+                                "retryIsOpen": false,
+                                "rpcBlockExplorer": undefined,
+                                "selectedTx": Map {},
+                                "speedUp1559IsOpen": false,
+                                "speedUpConfirmDisabled": false,
+                                "speedUpIsOpen": false,
                               }
                             }
-                          />
+                            getItem={[Function]}
+                            getItemCount={[Function]}
+                            getItemLayout={[Function]}
+                            initialNumToRender={10}
+                            keyExtractor={[Function]}
+                            maxToRenderPerBatch={2}
+                            onContentSizeChange={[Function]}
+                            onEndReachedThreshold={0.5}
+                            onLayout={[Function]}
+                            onMomentumScrollBegin={[Function]}
+                            onMomentumScrollEnd={[Function]}
+                            onScroll={[Function]}
+                            onScrollBeginDrag={[Function]}
+                            onScrollEndDrag={[Function]}
+                            refreshControl={
+                              <RefreshControlMock
+                                colors={
+                                  [
+                                    "#4459ff",
+                                  ]
+                                }
+                                onRefresh={[Function]}
+                                refreshing={false}
+                                tintColor="#121314"
+                              />
+                            }
+                            removeClippedSubviews={false}
+                            renderItem={[Function]}
+                            scrollEnabled={true}
+                            scrollEventThrottle={50}
+                            scrollIndicatorInsets={
+                              {
+                                "right": 1,
+                              }
+                            }
+                            stickyHeaderIndices={[]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                            testID="transactions-container"
+                            viewabilityConfigCallbackPairs={[]}
+                          >
+                            <RCTRefreshControl />
+                            <View>
+                              <View
+                                onLayout={[Function]}
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                      "paddingBottom": 24,
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      {
+                                        "color": "#9ca1af",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 20,
+                                        "fontWeight": "400",
+                                        "marginLeft": 6,
+                                        "marginRight": 6,
+                                        "textAlign": "center",
+                                      }
+                                    }
+                                  >
+                                    Please switch network to view transactions
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
+                          </RCTScrollView>
                         </View>
                       </View>
                       <Modal

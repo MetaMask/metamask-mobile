@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Store } from 'redux';
 import { act } from '@testing-library/react-native';
-import { GetByQuery } from '@testing-library/react-native/build/queries/makeQueries';
+import { GetByQuery } from '@testing-library/react-native/build/queries/make-queries';
 import { CommonQueryOptions } from '@testing-library/react-native/build/queries/options';
 import {
   TextMatch,
@@ -75,6 +75,7 @@ jest.mock('../core/Engine', () => ({
               networkClientId: 'mainnet',
               type: 'infura',
               url: 'https://mainnet.infura.io/v3',
+              failoverUrls: [],
             },
           ],
         },
@@ -89,6 +90,7 @@ jest.mock('../core/Engine', () => ({
               networkClientId: 'testNetwork',
               type: 'custom',
               url: 'https://test.mainnet.io',
+              failoverUrls: [],
             },
           ],
         },
@@ -103,6 +105,7 @@ jest.mock('../core/Engine', () => ({
               networkClientId: 'binance',
               type: 'custom',
               url: 'https://binance.infura.io/v3',
+              failoverUrls: [],
             },
           ],
         },
@@ -207,6 +210,7 @@ describe('selectAccountBalanceByChainId', () => {
                     networkClientId: 'mainnet',
                     type: 'infura',
                     url: 'https://mainnet.infura.io/v3',
+                    failoverUrls: [],
                   },
                 ],
               },
@@ -221,6 +225,7 @@ describe('selectAccountBalanceByChainId', () => {
                     networkClientId: 'testNetwork',
                     type: 'custom',
                     url: 'https://test.mainnet.io',
+                    failoverUrls: [],
                   },
                 ],
               },
@@ -235,6 +240,7 @@ describe('selectAccountBalanceByChainId', () => {
                     networkClientId: 'binance',
                     type: 'custom',
                     url: 'https://binance.infura.io/v3',
+                    failoverUrls: [],
                   },
                 ],
               },

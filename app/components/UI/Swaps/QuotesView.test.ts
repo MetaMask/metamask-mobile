@@ -41,16 +41,22 @@ jest.mock('./utils/useSwapsSmartTransaction', () => {
 });
 
 jest.mock('../../../../app/selectors/smartTransactionsController', () => ({
-  ...jest.requireActual('../../../../app/selectors/smartTransactionsController'),
+  ...jest.requireActual(
+    '../../../../app/selectors/smartTransactionsController',
+  ),
   selectShouldUseSmartTransaction: jest.fn(),
-  selectSmartTransactionsForCurrentChain: () => [{
-    status: 'pending',
-    uuid: 'mock-uuid-123',
-    creationTime: Date.now(),
-  }],
+  selectSmartTransactionsForCurrentChain: () => [
+    {
+      status: 'pending',
+      uuid: 'mock-uuid-123',
+      creationTime: Date.now(),
+    },
+  ],
 }));
 
-const mockSubmitSignedTransactions = jest.fn().mockResolvedValue({uuid: 'mock-uuid-123'});
+const mockSubmitSignedTransactions = jest
+  .fn()
+  .mockResolvedValue({ uuid: 'mock-uuid-123' });
 const mockUpdateSmartTransaction = jest.fn();
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -203,9 +209,11 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
-        accounts: {
-          [selectedAddress]: {
-            balance: accountBalance,
+        accountsByChainId: {
+          '0x1': {
+            [selectedAddress]: {
+              balance: accountBalance,
+            },
           },
         },
       },
@@ -364,16 +372,15 @@ describe('QuotesView', () => {
     it('should use Smart Transactions when enabled', async () => {
       const mockSubmitSwapsSmartTransaction = jest.fn().mockResolvedValue({
         approvalTxUuid: 'approval-uuid-123',
-        tradeTxUuid: 'trade-uuid-456'
+        tradeTxUuid: 'trade-uuid-456',
       });
       (useSwapsSmartTransaction as jest.Mock).mockReturnValue({
         submitSwapsSmartTransaction: mockSubmitSwapsSmartTransaction,
       });
-      (selectShouldUseSmartTransaction as jest.Mock).mockReturnValue(true);
-      (query as jest.Mock).mockResolvedValueOnce(123).mockResolvedValueOnce({
+      jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(true);
+      jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
         timestamp: 1234,
       });
-
 
       const wrapper = render(QuotesView, state);
 
@@ -390,13 +397,13 @@ describe('QuotesView', () => {
     it('should not use Smart Transactions when disabled', async () => {
       const mockSubmitSwapsSmartTransaction = jest.fn().mockResolvedValue({
         approvalTxUuid: undefined,
-        tradeTxUuid: 'trade-uuid-456'
+        tradeTxUuid: 'trade-uuid-456',
       });
       (useSwapsSmartTransaction as jest.Mock).mockReturnValue({
         submitSwapsSmartTransaction: mockSubmitSwapsSmartTransaction,
       });
 
-      (selectShouldUseSmartTransaction as jest.Mock).mockReturnValue(false);
+      jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
       const wrapper = render(QuotesView, state);
 
       const swapButton = await wrapper.findByTestId(

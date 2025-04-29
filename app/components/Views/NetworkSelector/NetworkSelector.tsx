@@ -36,12 +36,10 @@ import {
 } from '../../../selectors/preferencesController';
 import Networks, {
   getAllNetworks,
-  getDecimalChainId,
   isTestNet,
   getNetworkImageSource,
   isMainNet,
   isPortfolioViewEnabled,
-  isMultichainV1Enabled,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
@@ -51,7 +49,6 @@ import {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkListModal.selectors';
 import { useTheme } from '../../../util/theme';
@@ -60,13 +57,10 @@ import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
-import { useMetrics } from '../../../components/hooks/useMetrics';
 
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
 import {
-  BUILT_IN_NETWORKS,
   InfuraNetworkType,
 } from '@metamask/controller-utils';
 import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
@@ -92,7 +86,6 @@ import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import {
   TraceName,
   TraceOperation,
-  endTrace,
   trace,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
@@ -108,11 +101,9 @@ import {
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
-import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
-import { selectHasCreatedSolanaMainnetAccount } from '../../../selectors/accountsController';
 ///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
-import Logger from '../../../util/Logger';
+import { useSwitchNetworks } from './useSwitchNetworks';
 
 interface infuraNetwork {
   name: string;
@@ -143,18 +134,12 @@ const NetworkSelector = () => {
   const { navigate } = useNavigation();
 
   const theme = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
   const { colors } = theme;
   const styles = createStyles(colors);
   const sheetRef = useRef<ReusableModalRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const isSolanaAccountAlreadyCreated = useSelector(
-    selectHasCreatedSolanaMainnetAccount,
-  );
-  ///: END:ONLY_INCLUDE_IF
   const safeAreaInsets = useSafeAreaInsets();
 
   const networkConfigurations = useSelector(
@@ -217,22 +202,6 @@ const NetworkSelector = () => {
     isReadOnly: false,
   });
 
-  const setTokenNetworkFilter = useCallback(
-    (chainId: string) => {
-      const isPopularNetwork =
-        chainId === CHAIN_IDS.MAINNET ||
-        chainId === CHAIN_IDS.LINEA_MAINNET ||
-        PopularList.some((network) => network.chainId === chainId);
-      const { PreferencesController } = Engine.context;
-      if (!isAllNetwork && isPopularNetwork) {
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-      }
-    },
-    [isAllNetwork],
-  );
-
   const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] = useState<{
     isVisible: boolean;
     chainId: string;
@@ -249,55 +218,6 @@ const NetworkSelector = () => {
 
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
-  const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
-    const { MultichainNetworkController, SelectedNetworkController } =
-      Engine.context;
-    if (networkConfiguration) {
-      const {
-        name: nickname,
-        chainId,
-        rpcEndpoints,
-        defaultRpcEndpointIndex,
-      } = networkConfiguration;
-
-      const networkConfigurationId =
-        rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
-
-      if (domainIsConnectedDapp && isMultichainV1Enabled()) {
-        SelectedNetworkController.setNetworkClientIdForDomain(
-          origin,
-          networkConfigurationId,
-        );
-      } else {
-        trace({
-          name: TraceName.SwitchCustomNetwork,
-          parentContext: parentSpan,
-          op: TraceOperation.SwitchCustomNetwork,
-        });
-        const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
-        try {
-          await MultichainNetworkController.setActiveNetwork(networkClientId);
-        } catch (error) {
-          Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
-        }
-      }
-
-      setTokenNetworkFilter(chainId);
-      if (!(domainIsConnectedDapp && isMultichainV1Enabled()))
-        sheetRef.current?.dismissModal();
-      endTrace({ name: TraceName.SwitchCustomNetwork });
-      endTrace({ name: TraceName.NetworkSwitch });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
-          .addProperties({
-            chain_id: getDecimalChainId(chainId),
-            from_network: selectedNetworkName,
-            to_network: nickname,
-          })
-          .build(),
-      );
-    }
-  };
   /**
    * This is used to check if the network has multiple RPC endpoints
    * We need to check if the network is non-EVM because we don't support multiple RPC endpoints for non-EVM networks and the rpc is handled by the snap
@@ -388,54 +308,6 @@ const NetworkSelector = () => {
     Linking.openURL(strings('networks.learn_more_url'));
   };
 
-  // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
-  const onNetworkChange = async (type: InfuraNetworkType) => {
-    trace({
-      name: TraceName.SwitchBuiltInNetwork,
-      parentContext: parentSpan,
-      op: TraceOperation.SwitchBuiltInNetwork,
-    });
-    const {
-      MultichainNetworkController,
-      AccountTrackerController,
-      SelectedNetworkController,
-    } = Engine.context;
-    if (domainIsConnectedDapp && isMultichainV1Enabled()) {
-      SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
-    } else {
-      const networkConfiguration =
-        networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
-
-      const clientId =
-        networkConfiguration?.rpcEndpoints[
-          networkConfiguration.defaultRpcEndpointIndex
-        ].networkClientId ?? type;
-
-      setTokenNetworkFilter(networkConfiguration.chainId);
-      await MultichainNetworkController.setActiveNetwork(clientId);
-
-      closeRpcModal();
-      AccountTrackerController.refresh();
-
-      setTimeout(async () => {
-        await updateIncomingTransactions([networkConfiguration.chainId]);
-      }, 1000);
-    }
-
-    sheetRef.current?.dismissModal();
-    endTrace({ name: TraceName.SwitchBuiltInNetwork });
-    endTrace({ name: TraceName.NetworkSwitch });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
-        .addProperties({
-          chain_id: getDecimalChainId(selectedChainId),
-          from_network: selectedNetworkName,
-          to_network: type,
-        })
-        .build(),
-    );
-  };
-
   const filterNetworksByName = (
     networks: ExtendedNetwork[],
     networkName: string,
@@ -471,6 +343,22 @@ const NetworkSelector = () => {
 
     return !isEvmSelected ? false : chainId === selectedChainId;
   };
+
+  const {
+    onSetRpcTarget,
+    onNetworkChange,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    onNonEvmNetworkChange,
+    ///: END:ONLY_INCLUDE_IF
+  } = useSwitchNetworks({
+    domainIsConnectedDapp,
+    origin,
+    selectedChainId,
+    selectedNetworkName,
+    dismissModal: () => sheetRef.current?.dismissModal(),
+    closeRpcModal,
+    parentSpan,
+  });
 
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
@@ -785,20 +673,7 @@ const NetworkSelector = () => {
       });
     });
   };
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const onNonEvmNetworkChange = async (chainId: CaipChainId) => {
-    if (!isSolanaAccountAlreadyCreated && chainId === SolScope.Mainnet) {
-      navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
-        navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
-      });
 
-      return;
-    }
-
-    await Engine.context.MultichainNetworkController.setActiveNetwork(chainId);
-    sheetRef.current?.dismissModal();
-  };
-  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const renderNonEvmNetworks = () =>
     Object.values(nonEvmNetworkConfigurations)

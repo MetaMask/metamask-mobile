@@ -4,12 +4,14 @@ import {
   JSXElement,
   CheckboxElement,
   SelectorElement,
+  AddressInputElement,
 } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { getPrimaryChildElementIndex, mapToTemplate } from '../utils';
 import { checkbox as checkboxFn } from './checkbox';
 import { selector as selectorFn } from './selector';
 import { UIComponentFactory, UIComponentParams } from './types';
+import { constructInputProps } from './input';
 
 export const field: UIComponentFactory<FieldElement> = ({
   element: e,
@@ -30,7 +32,25 @@ export const field: UIComponentFactory<FieldElement> = ({
     flexBasis: '50%',
   };
 
-  switch (child.type) {
+  switch (child?.type) {
+    case 'AddressInput': {
+      const addressInput = child as AddressInputElement;
+      return {
+        element: 'SnapUIAddressInput',
+        props: {
+          name: addressInput.props.name,
+          form,
+          chainId: addressInput.props.chainId,
+          displayAvatar: addressInput.props.displayAvatar,
+          disabled: addressInput.props.disabled,
+          placeholder: addressInput.props.placeholder,
+          label: e.props.label,
+          error: e.props.error,
+          style,
+        },
+      };
+    }
+
     case 'Input': {
       const getLeftAccessory = () =>
         mapToTemplate({
@@ -62,6 +82,7 @@ export const field: UIComponentFactory<FieldElement> = ({
       return {
         element: 'SnapUIInput',
         props: {
+          ...constructInputProps(input.props),
           id: input.props.name,
           placeholder: input.props.placeholder,
           label: e.props.label,
@@ -76,14 +97,22 @@ export const field: UIComponentFactory<FieldElement> = ({
             ...leftAccessoryMapped,
             props: {
               ...leftAccessoryMapped.props,
-              padding: 0,
+              style: {
+                padding: 0,
+                height: '100%',
+                justifyContent: 'center',
+              },
             },
           },
           endAccessory: rightAccessoryMapped && {
             ...rightAccessoryMapped,
             props: {
               ...rightAccessoryMapped.props,
-              padding: 0,
+              style: {
+                padding: 0,
+                height: '100%',
+                justifyContent: 'center',
+              },
             },
           },
         },

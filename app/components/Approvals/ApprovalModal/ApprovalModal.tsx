@@ -7,6 +7,7 @@ export interface ApprovalModalProps {
   isVisible: boolean;
   onCancel: () => void;
   children: React.ReactNode;
+  avoidKeyboard?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -33,6 +34,7 @@ const ApprovalModal = (props: ApprovalModalProps) => {
       onSwipeComplete={props.onCancel}
       swipeDirection={'down'}
       propagateSwipe
+      avoidKeyboard={props.avoidKeyboard}
     >
       {props.children}
     </Modal>

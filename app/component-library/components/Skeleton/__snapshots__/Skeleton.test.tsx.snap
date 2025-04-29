@@ -14,7 +14,7 @@ exports[`Skeleton should match snapshot 1`] = `
     pointerEvents="none"
     style={
       {
-        "backgroundColor": "#6a737d",
+        "backgroundColor": "#686e7d",
         "borderRadius": 4,
         "bottom": 0,
         "left": 0,

@@ -68,7 +68,7 @@ const wallet_addEthereumChain = async ({
     const { networkClientId } =
       network.rpcEndpoints[network.defaultRpcEndpointIndex];
 
-    const analyticsParams = await switchToNetwork({
+    await switchToNetwork({
       network: [networkClientId, network],
       chainId,
       controllers: {
@@ -81,12 +81,6 @@ const wallet_addEthereumChain = async ({
       origin,
       isAddNetworkFlow,
     });
-
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
-        .addProperties(analyticsParams)
-        .build(),
-    );
   };
 
   //TODO: Remove aurora from default chains in @metamask/controller-utils
@@ -102,7 +96,7 @@ const wallet_addEthereumChain = async ({
     networkConfigurations,
   ).find((networkConfiguration) => networkConfiguration.chainId === chainId);
 
-  const existingNetworkConfigurationHasRpcEndpint =
+  const existingNetworkConfigurationHasRpcEndpoint =
     existingNetworkConfiguration?.rpcEndpoints.some(
       (endpoint) => endpoint.url === firstValidRPCUrl,
     );
@@ -110,12 +104,13 @@ const wallet_addEthereumChain = async ({
   // If the network already exists and the RPC URL is the same, perform a network switch only
   if (
     existingNetworkConfiguration &&
-    existingNetworkConfigurationHasRpcEndpint
+    existingNetworkConfigurationHasRpcEndpoint
   ) {
     const rpcResult = addOrUpdateIndex(
       existingNetworkConfiguration.rpcEndpoints,
       {
         url: firstValidRPCUrl,
+        failoverUrls: [],
         type: RpcEndpointType.Custom,
         name: chainName,
       },
@@ -202,6 +197,7 @@ const wallet_addEthereumChain = async ({
         existingNetworkConfiguration.rpcEndpoints,
         {
           url: firstValidRPCUrl,
+          failoverUrls: [],
           type: RpcEndpointType.Custom,
           name: chainName,
         },
@@ -243,6 +239,7 @@ const wallet_addEthereumChain = async ({
         rpcEndpoints: [
           {
             url: firstValidRPCUrl,
+            failoverUrls: [],
             name: chainName,
             type: RpcEndpointType.Custom,
           },

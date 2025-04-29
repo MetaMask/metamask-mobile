@@ -209,8 +209,8 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
               numberOfLines={1}
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -221,52 +221,25 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
             >
               Orangefox.eth
             </Text>
-            <TouchableOpacity
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessible={true}
-              focusable={false}
-              onClick={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "flexDirection": "row",
-                  "marginBottom": 0,
-                  "zIndex": 1,
-                }
-              }
-            >
+            <View>
               <Text
                 accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
                 0x2990079bcdEe240329a520d2444386FC119da21a
               </Text>
               <SvgMock
-                color="#141618"
+                color="#121314"
                 height={10}
                 name="ArrowDown"
                 style={
@@ -279,12 +252,12 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                 }
                 width={10}
               />
-            </TouchableOpacity>
+            </View>
             <View
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#848c96",
+                  "borderColor": "#b7bbc8",
                   "borderRadius": 10,
                   "borderWidth": 1,
                   "height": 24,
@@ -299,12 +272,12 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
@@ -343,7 +316,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
       testID="button-menu-select-test-id"
     >
       <SvgMock
-        color="#141618"
+        color="#121314"
         height={16}
         name="MoreVertical"
         style={

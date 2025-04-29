@@ -2,7 +2,11 @@ import { noop } from 'lodash';
 import { getAccountsControllerMessenger } from './accounts-controller-messenger';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger/currency-rate-controller-messenger';
-import { getDeFiPositionsControllerMessenger } from './defi-positions-controller-messenger';
+import { getAppMetadataControllerMessenger } from './app-metadata-controller-messenger';
+import {
+  getDeFiPositionsControllerInitMessenger,
+  getDeFiPositionsControllerMessenger,
+} from './defi-positions-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   getCronjobControllerMessenger,
@@ -23,7 +27,10 @@ import {
   getTransactionControllerInitMessenger,
   getTransactionControllerMessenger,
 } from './transaction-controller-messenger';
-
+import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
+import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
+import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
+import { getSignatureControllerMessenger } from './signature-controller-messenger';
 /**
  * The messengers for the controllers that have been.
  */
@@ -44,9 +51,21 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getMultichainNetworkControllerMessenger,
     getInitMessenger: noop,
   },
+  GasFeeController: {
+    getMessenger: getGasFeeControllerMessenger,
+    getInitMessenger: noop,
+  },
+  AppMetadataController: {
+    getMessenger: getAppMetadataControllerMessenger,
+    getInitMessenger: noop,
+  },
+  SignatureController: {
+    getMessenger: getSignatureControllerMessenger,
+    getInitMessenger: noop,
+  },
   DeFiPositionsController: {
     getMessenger: getDeFiPositionsControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getDeFiPositionsControllerInitMessenger,
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   CronjobController: {
@@ -67,6 +86,14 @@ export const CONTROLLER_MESSENGERS = {
   },
   SnapsRegistry: {
     getMessenger: getSnapsRegistryMessenger,
+    getInitMessenger: noop,
+  },
+  NotificationServicesController: {
+    getMessenger: getNotificationServicesControllerMessenger,
+    getInitMessenger: noop,
+  },
+  NotificationServicesPushController: {
+    getMessenger: getNotificationServicesPushControllerMessenger,
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF

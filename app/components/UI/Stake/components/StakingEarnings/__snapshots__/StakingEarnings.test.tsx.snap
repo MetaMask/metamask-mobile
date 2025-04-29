@@ -1,5 +1,359 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Staking Earnings displays pooled-staking maintenance banner when feature flag is enabled 1`] = `
+<View
+  style={
+    {
+      "paddingTop": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
+        "fontSize": 18,
+        "fontWeight": "700",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "paddingBottom": 8,
+      }
+    }
+  >
+    Your earnings
+  </Text>
+  <View>
+    <View
+      style={
+        {
+          "backgroundColor": "#9a63001a",
+          "borderColor": "#9a6300",
+          "borderLeftWidth": 4,
+          "borderRadius": 4,
+          "flexDirection": "row",
+          "padding": 12,
+          "paddingLeft": 8,
+        }
+      }
+      testID="banneralert"
+      variant="Alert"
+    >
+      <View
+        style={
+          {
+            "marginRight": 8,
+          }
+        }
+      >
+        <SvgMock
+          color="#9a6300"
+          height={24}
+          name="Danger"
+          style={
+            {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          We're down for maintenance. We'll be back online soon!
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "paddingVertical": 8,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Annual rate
+        </Text>
+        <TouchableOpacity
+          accessibilityLabel="Annual rate tooltip"
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          disabled={false}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "borderRadius": 8,
+              "height": 24,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 24,
+            }
+          }
+        >
+          <SvgMock
+            color="#9ca1af"
+            height={16}
+            name="Info"
+            style={
+              {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            width={16}
+          />
+        </TouchableOpacity>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#1c7e33",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        2.6%
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "paddingVertical": 8,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Lifetime rewards
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "flex-end",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          $5000
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          2.5 ETH
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "paddingVertical": 8,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Estimated annual earnings
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "flex-end",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          $5000
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          2.5 ETH
+        </Text>
+      </View>
+    </View>
+    <View>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 20,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="stake-earnings-history-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          View earnings history
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</View>
+`;
+
 exports[`Staking Earnings should render correctly 1`] = `
 <View
   style={
@@ -12,8 +366,8 @@ exports[`Staking Earnings should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -45,12 +399,12 @@ exports[`Staking Earnings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -77,7 +431,7 @@ exports[`Staking Earnings should render correctly 1`] = `
           }
         >
           <SvgMock
-            color="#9fa6ae"
+            color="#9ca1af"
             height={16}
             name="Info"
             style={
@@ -94,12 +448,12 @@ exports[`Staking Earnings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#1c8234",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "color": "#1c7e33",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -127,12 +481,12 @@ exports[`Staking Earnings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -150,12 +504,12 @@ exports[`Staking Earnings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -165,12 +519,12 @@ exports[`Staking Earnings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 12,
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 20,
+              "lineHeight": 22,
             }
           }
         >
@@ -199,12 +553,12 @@ exports[`Staking Earnings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -222,12 +576,12 @@ exports[`Staking Earnings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -237,12 +591,12 @@ exports[`Staking Earnings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 12,
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 20,
+              "lineHeight": 22,
             }
           }
         >
@@ -263,7 +617,7 @@ exports[`Staking Earnings should render correctly 1`] = `
             "alignItems": "center",
             "alignSelf": "stretch",
             "backgroundColor": "transparent",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 20,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -278,12 +632,12 @@ exports[`Staking Earnings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >

@@ -25,17 +25,17 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
         {
           "alignItems": "center",
           "aspectRatio": 1,
+          "bottom": 0,
           "height": 0,
           "justifyContent": "center",
           "position": "absolute",
           "right": 0,
-          "top": 0,
           "transform": [
             {
               "translateX": 0,
             },
             {
-              "translateY": -0,
+              "translateY": 0,
             },
           ],
         }
@@ -62,12 +62,12 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
               "alignItems": "center",
               "backgroundColor": "#ffffff",
               "borderColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "borderWidth": 2,
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
-              "shadowColor": "#0000001A",
+              "shadowColor": "#0000001a",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -111,8 +111,8 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
     <Text
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 18,
           "fontWeight": "400",
           "marginBottom": 4,
@@ -132,8 +132,8 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
       <Text
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -154,14 +154,14 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
           }
         >
-          0xToke...ress
+          0xToken...dress
         </Text>
         <Text
           allowFontScaling={false}
@@ -172,7 +172,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
                 "fontSize": 16,
               },
               {
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "marginLeft": 4,
               },
               {
@@ -200,8 +200,8 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
       <Text
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -215,8 +215,8 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
         <Text
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -261,8 +261,8 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
       }
       tintColors={
         {
-          "false": "#848c96",
-          "true": "#0376c9",
+          "false": "#b7bbc8",
+          "true": "#4459ff",
         }
       }
       value={false}
@@ -296,17 +296,17 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
         {
           "alignItems": "center",
           "aspectRatio": 1,
+          "bottom": 0,
           "height": 0,
           "justifyContent": "center",
           "position": "absolute",
           "right": 0,
-          "top": 0,
           "transform": [
             {
               "translateX": 0,
             },
             {
-              "translateY": -0,
+              "translateY": 0,
             },
           ],
         }
@@ -333,12 +333,12 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
               "alignItems": "center",
               "backgroundColor": "#ffffff",
               "borderColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "borderWidth": 2,
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
-              "shadowColor": "#0000001A",
+              "shadowColor": "#0000001a",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -382,8 +382,8 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
     <Text
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 18,
           "fontWeight": "400",
           "marginBottom": 4,
@@ -403,8 +403,8 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
       <Text
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -425,14 +425,14 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
           }
         >
-          0xToke...ress
+          0xToken...dress
         </Text>
         <Text
           allowFontScaling={false}
@@ -443,7 +443,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
                 "fontSize": 16,
               },
               {
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "marginLeft": 4,
               },
               {
@@ -471,8 +471,8 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
       <Text
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -486,8 +486,8 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
         <Text
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -532,8 +532,8 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
       }
       tintColors={
         {
-          "false": "#848c96",
-          "true": "#0376c9",
+          "false": "#b7bbc8",
+          "true": "#4459ff",
         }
       }
       value={true}
@@ -567,17 +567,17 @@ exports[`Token Component renders correctly 1`] = `
         {
           "alignItems": "center",
           "aspectRatio": 1,
+          "bottom": 0,
           "height": 0,
           "justifyContent": "center",
           "position": "absolute",
           "right": 0,
-          "top": 0,
           "transform": [
             {
               "translateX": 0,
             },
             {
-              "translateY": -0,
+              "translateY": 0,
             },
           ],
         }
@@ -604,12 +604,12 @@ exports[`Token Component renders correctly 1`] = `
               "alignItems": "center",
               "backgroundColor": "#ffffff",
               "borderColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "borderWidth": 2,
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
-              "shadowColor": "#0000001A",
+              "shadowColor": "#0000001a",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -653,8 +653,8 @@ exports[`Token Component renders correctly 1`] = `
     <Text
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 18,
           "fontWeight": "400",
           "marginBottom": 4,
@@ -674,8 +674,8 @@ exports[`Token Component renders correctly 1`] = `
       <Text
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -696,14 +696,14 @@ exports[`Token Component renders correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
           }
         >
-          0xToke...ress
+          0xToken...dress
         </Text>
         <Text
           allowFontScaling={false}
@@ -714,7 +714,7 @@ exports[`Token Component renders correctly 1`] = `
                 "fontSize": 16,
               },
               {
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "marginLeft": 4,
               },
               {
@@ -742,8 +742,8 @@ exports[`Token Component renders correctly 1`] = `
       <Text
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -757,8 +757,8 @@ exports[`Token Component renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -803,8 +803,8 @@ exports[`Token Component renders correctly 1`] = `
       }
       tintColors={
         {
-          "false": "#848c96",
-          "true": "#0376c9",
+          "false": "#b7bbc8",
+          "true": "#4459ff",
         }
       }
       value={false}
@@ -838,17 +838,17 @@ exports[`Token Component renders correctly with token chainId 1`] = `
         {
           "alignItems": "center",
           "aspectRatio": 1,
+          "bottom": 0,
           "height": 0,
           "justifyContent": "center",
           "position": "absolute",
           "right": 0,
-          "top": 0,
           "transform": [
             {
               "translateX": 0,
             },
             {
-              "translateY": -0,
+              "translateY": 0,
             },
           ],
         }
@@ -875,12 +875,12 @@ exports[`Token Component renders correctly with token chainId 1`] = `
               "alignItems": "center",
               "backgroundColor": "#ffffff",
               "borderColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "borderWidth": 2,
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
-              "shadowColor": "#0000001A",
+              "shadowColor": "#0000001a",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -924,8 +924,8 @@ exports[`Token Component renders correctly with token chainId 1`] = `
     <Text
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 18,
           "fontWeight": "400",
           "marginBottom": 4,
@@ -945,8 +945,8 @@ exports[`Token Component renders correctly with token chainId 1`] = `
       <Text
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -967,14 +967,14 @@ exports[`Token Component renders correctly with token chainId 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
           }
         >
-          0xToke...ress
+          0xToken...dress
         </Text>
         <Text
           allowFontScaling={false}
@@ -985,7 +985,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
                 "fontSize": 16,
               },
               {
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "marginLeft": 4,
               },
               {
@@ -1013,8 +1013,8 @@ exports[`Token Component renders correctly with token chainId 1`] = `
       <Text
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -1028,8 +1028,8 @@ exports[`Token Component renders correctly with token chainId 1`] = `
         <Text
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -1074,8 +1074,8 @@ exports[`Token Component renders correctly with token chainId 1`] = `
       }
       tintColors={
         {
-          "false": "#848c96",
-          "true": "#0376c9",
+          "false": "#b7bbc8",
+          "true": "#4459ff",
         }
       }
       value={false}

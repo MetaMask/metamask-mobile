@@ -21,6 +21,7 @@ import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import { rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
@@ -442,6 +443,18 @@ export class BackgroundBridge extends EventEmitter {
     // Sentry tracing middleware
     engine.push(createTracingMiddleware());
 
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    // These Snaps RPC methods are disabled in WalletConnect and SDK for now
+    if (this.isMMSDK || this.isWalletConnect) {
+      engine.push((req, _res, next, end) => {
+        if (['wallet_snap'].includes(req.method)) {
+          return end(rpcErrors.methodNotFound({ data: { method: req.method } }));
+        }
+        return next();
+      });
+    }
+    ///: END:ONLY_INCLUDE_IF
+
     // Append PermissionController middleware
     engine.push(
       Engine.context.PermissionController.createPermissionMiddleware({
@@ -452,16 +465,18 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    // Snaps middleware
-    engine.push(
-      snapMethodMiddlewareBuilder(
-        Engine.context,
-        Engine.controllerMessenger,
-        this.url,
-        // We assume that origins connecting through the BackgroundBridge are websites
-        SubjectType.Website,
-      ),
-    );
+    // The Snaps middleware is disabled in WalletConnect and SDK for now.
+    if (!this.isMMSDK && !this.isWalletConnect) {
+      engine.push(
+        snapMethodMiddlewareBuilder(
+          Engine.context,
+          Engine.controllerMessenger,
+          this.url,
+          // We assume that origins connecting through the BackgroundBridge are websites
+          SubjectType.Website,
+        ),
+      );
+    }
     ///: END:ONLY_INCLUDE_IF
 
     // user-facing RPC methods
@@ -493,7 +508,9 @@ export class BackgroundBridge extends EventEmitter {
    */
   getState() {
     const vault = Engine.context.KeyringController.state.vault;
-    const { PreferencesController: { selectedAddress } } = Engine.datamodel.state;
+    const {
+      PreferencesController: { selectedAddress },
+    } = Engine.datamodel.state;
     return {
       isInitialized: !!vault,
       isUnlocked: true,

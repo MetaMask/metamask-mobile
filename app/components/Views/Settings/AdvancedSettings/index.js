@@ -33,6 +33,7 @@ import { AdvancedViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/
 import Text, {
   TextVariant,
   TextColor,
+  getFontFamily,
 } from '../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
@@ -126,6 +127,7 @@ const createStyles = (colors) =>
     },
     warningText: {
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.text.default,
       flex: 1,
       marginStart: 8,
@@ -369,7 +371,9 @@ class AdvancedSettings extends PureComponent {
                 color={TextColor.Alternative}
                 style={styles.desc}
               >
-                {strings('app_settings.smart_transactions_opt_in_desc_supported_networks')}{' '}
+                {strings(
+                  'app_settings.smart_transactions_opt_in_desc_supported_networks',
+                )}{' '}
                 <Text
                   color={TextColor.Primary}
                   link

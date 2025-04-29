@@ -28,6 +28,7 @@ import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectInternalAccounts,
+  selectPreviouslySelectedEvmAccount,
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -82,6 +83,11 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import {
+  getPhishingTestResultAsync,
+  isProductSafetyDappScanningEnabled,
+} from '../../../util/phishingDetection';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -104,10 +110,21 @@ const AccountConnect = (props: AccountConnectProps) => {
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const previouslySelectedEvmAccount = useSelector(
+    selectPreviouslySelectedEvmAccount,
+  );
 
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
-    selectedWalletAddress && isEvmSelected ? [selectedWalletAddress] : [],
+    selectedWalletAddress && isEvmSelected
+      ? [selectedWalletAddress]
+      : [
+          previouslySelectedEvmAccount
+            ? getFormattedAddressFromInternalAccount(
+                previouslySelectedEvmAccount,
+              )
+            : '',
+        ],
   );
   const [confirmedAddresses, setConfirmedAddresses] =
     useState<string[]>(selectedAddresses);
@@ -123,6 +140,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const internalAccounts = useSelector(selectInternalAccounts);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
+  const isMountedRef = useRef(true);
 
   const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
     {
@@ -278,28 +296,24 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [selectedChainIds, chainId, hostname]);
 
-  const isAllowedOrigin = useCallback((origin: string) => {
-    const { PhishingController } = Engine.context;
-
-    // Update phishing configuration if it is out-of-date
-    // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-    // down network requests. The configuration is updated for the next request.
-    PhishingController.maybeUpdateState();
-
-    const phishingControllerTestResult = PhishingController.test(origin);
-
-    return !phishingControllerTestResult.result;
-  }, []);
-
   useEffect(() => {
-    const url = dappUrl || channelIdOrHostname || '';
-    const isAllowed = isAllowedOrigin(url);
+    let url = dappUrl || channelIdOrHostname || '';
 
-    if (!isAllowed) {
-      setBlockedUrl(dappUrl);
-      setShowPhishingModal(true);
-    }
-  }, [isAllowedOrigin, dappUrl, channelIdOrHostname]);
+    const checkOrigin = async () => {
+      if (isProductSafetyDappScanningEnabled()) {
+        url = prefixUrlWithProtocol(url);
+      }
+      const scanResult = await getPhishingTestResultAsync(url);
+      if (scanResult.result && isMountedRef.current) {
+        setBlockedUrl(dappUrl);
+        setShowPhishingModal(true);
+      }
+    };
+    checkOrigin();
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
@@ -587,6 +601,12 @@ const AccountConnect = (props: AccountConnectProps) => {
           );
           break;
         }
+        ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+        case USER_INTENT.ImportSrp: {
+          navigation.navigate('ImportSrpView');
+          break;
+        }
+        ///: END:ONLY_INCLUDE_IF
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.

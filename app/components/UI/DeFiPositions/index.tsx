@@ -18,15 +18,14 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import Logger from '../../../util/Logger';
 import { Hex } from '@metamask/utils';
-import { GroupedPositions } from '@metamask/assets-controllers';
 import { DeFiProtocolPositionsList } from './DeFiProtocolPositionsList';
+import { selectDeFiPositionsByAddress } from '../../../selectors/defiPositionsController';
 
 export interface DeFiPositionsProps {
   tabLabel: string;
-  defiPositions: { [key: Hex]: GroupedPositions } | null;
 }
 
-const DeFiPositions: React.FC<DeFiPositionsProps> = ({ defiPositions }) => {
+const DeFiPositions: React.FC<DeFiPositionsProps> = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -36,6 +35,8 @@ const DeFiPositions: React.FC<DeFiPositionsProps> = ({ defiPositions }) => {
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId);
 
+  const defiPositions = useSelector(selectDeFiPositionsByAddress);
+
   Logger.log('PROPERTIES', {
     isAllNetworks,
     isPopularNetwork,
@@ -43,6 +44,7 @@ const DeFiPositions: React.FC<DeFiPositionsProps> = ({ defiPositions }) => {
     networkName,
     currentChainId,
     portfolioViewEnabled: isPortfolioViewEnabled(),
+    defiPositions,
   });
 
   const refinedDeFiPositions = useMemo(() => {

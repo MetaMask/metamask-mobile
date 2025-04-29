@@ -109,7 +109,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     {
                       "alignItems": "center",
                       "backgroundColor": "#ffffff",
-                      "borderColor": "#141618",
+                      "borderColor": "#121314",
                       "borderRadius": 4,
                       "borderWidth": 2,
                       "height": 20,
@@ -141,7 +141,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     {
                       "alignItems": "center",
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 12,
+                      "borderRadius": 8,
                       "height": 24,
                       "justifyContent": "center",
                       "marginRight": 16,
@@ -181,8 +181,8 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -255,8 +255,8 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#0376c9",
-                      "borderColor": "#0376c9",
+                      "backgroundColor": "#4459ff",
+                      "borderColor": "#4459ff",
                       "borderRadius": 4,
                       "borderWidth": 2,
                       "height": 20,
@@ -303,7 +303,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     {
                       "alignItems": "center",
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 12,
+                      "borderRadius": 8,
                       "height": 24,
                       "justifyContent": "center",
                       "marginRight": 16,
@@ -343,8 +343,8 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -364,7 +364,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
             accessible={true}
             style={
               {
-                "backgroundColor": "#0376C91A",
+                "backgroundColor": "#4459ff1a",
                 "bottom": 0,
                 "flexDirection": "row",
                 "left": 0,

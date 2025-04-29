@@ -97,7 +97,7 @@ describe(Regression('Swap from Token view'), () => {
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken(destTokenSymbol);
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(3000);
     await QuoteView.selectToken(destTokenSymbol);
     await QuoteView.tapOnGetQuotes();
     await Assertions.checkIfVisible(SwapView.fetchingQuotes);

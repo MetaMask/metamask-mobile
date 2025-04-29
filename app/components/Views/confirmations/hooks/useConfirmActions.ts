@@ -5,11 +5,13 @@ import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest, isStakingConfirmation } from '../utils/confirm';
-import { useLedgerContext } from '../context/LedgerContext';
-import { useQRHardwareContext } from '../context/QRHardwareContext';
+import { useLedgerContext } from '../context/ledger-context';
+import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
-import { useSignatureMetrics } from './useSignatureMetrics';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { useSignatureMetrics } from './signatures/useSignatureMetrics';
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { useSelector } from 'react-redux';
 
 export const useConfirmActions = () => {
   const {
@@ -26,7 +28,10 @@ export const useConfirmActions = () => {
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
-  const isStakingDepositConfirmation = isStakingConfirmation(
+  const shouldUseSmartTransaction = useSelector(
+    selectShouldUseSmartTransaction,
+  );
+  const isOneOfTheStakingConfirmations = isStakingConfirmation(
     transactionMetadata?.type as string,
   );
 
@@ -59,12 +64,12 @@ export const useConfirmActions = () => {
       return;
     }
     await onRequestConfirm({
-      waitForResult: false,
+      waitForResult: isSignatureReq || !shouldUseSmartTransaction,
       deleteAfterResult: true,
       handleErrors: false,
     });
 
-    if (isStakingDepositConfirmation) {
+    if (isOneOfTheStakingConfirmations) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
@@ -83,7 +88,8 @@ export const useConfirmActions = () => {
     captureSignatureMetrics,
     onRequestConfirm,
     isSignatureReq,
-    isStakingDepositConfirmation,
+    isOneOfTheStakingConfirmations,
+    shouldUseSmartTransaction,
   ]);
 
   return { onConfirm, onReject };

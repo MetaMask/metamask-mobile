@@ -4,8 +4,9 @@ import { strings } from '../../../../../../locales/i18n';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
   TextColor,
   TextVariant,
@@ -32,7 +33,7 @@ function NFTCollectionField(props: NFTCollectionFieldProps) {
       {/* Collection Icon + Network Badge */}
       <BadgeWrapper
         testID={'badge-wrapper'}
-        badgePosition={DEFAULT_BADGEWRAPPER_BADGEPOSITION}
+        badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <Badge
             testID={'badge-element'}

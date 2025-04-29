@@ -21,7 +21,7 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000CC",
+          "backgroundColor": "#000000cc",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -39,7 +39,7 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
         <View
           style={
             {
-              "borderColor": "#f2f4f6",
+              "borderColor": "#f3f5f9",
               "borderRadius": 64,
               "borderWidth": 3.5,
               "height": 36,
@@ -69,7 +69,7 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
               style={
                 [
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                     "fontSize": 36,
                   },
                   undefined,
@@ -100,8 +100,8 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -132,7 +132,7 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "lineHeight": 18,
@@ -148,8 +148,8 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -216,7 +216,7 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000CC",
+          "backgroundColor": "#000000cc",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -234,7 +234,7 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
         <View
           style={
             {
-              "borderColor": "#f2f4f6",
+              "borderColor": "#f3f5f9",
               "borderRadius": 64,
               "borderWidth": 3.5,
               "height": 36,
@@ -264,7 +264,7 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
               style={
                 [
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                     "fontSize": 36,
                   },
                   undefined,
@@ -295,8 +295,8 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -327,7 +327,7 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "lineHeight": 18,
@@ -343,8 +343,8 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -411,7 +411,7 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000CC",
+          "backgroundColor": "#000000cc",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -429,7 +429,7 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
         <View
           style={
             {
-              "borderColor": "#f2f4f6",
+              "borderColor": "#f3f5f9",
               "borderRadius": 64,
               "borderWidth": 3.5,
               "height": 36,
@@ -459,7 +459,7 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
               style={
                 [
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                     "fontSize": 36,
                   },
                   undefined,
@@ -490,8 +490,8 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -522,7 +522,7 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "lineHeight": 18,
@@ -538,8 +538,8 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -606,7 +606,7 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000CC",
+          "backgroundColor": "#000000cc",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -626,7 +626,7 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
           style={
             [
               {
-                "color": "#1c8234",
+                "color": "#1c7e33",
                 "fontSize": 36,
               },
               undefined,
@@ -655,8 +655,8 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -687,7 +687,7 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "lineHeight": 18,
@@ -703,8 +703,8 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -771,7 +771,7 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000CC",
+          "backgroundColor": "#000000cc",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -791,7 +791,7 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
           style={
             [
               {
-                "color": "#1c8234",
+                "color": "#1c7e33",
                 "fontSize": 36,
               },
               undefined,
@@ -820,8 +820,8 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -852,7 +852,7 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "lineHeight": 18,
@@ -868,8 +868,8 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -936,7 +936,7 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000CC",
+          "backgroundColor": "#000000cc",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -956,7 +956,7 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
           style={
             [
               {
-                "color": "#1c8234",
+                "color": "#1c7e33",
                 "fontSize": 36,
               },
               undefined,
@@ -985,8 +985,8 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -1017,7 +1017,7 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "lineHeight": 18,
@@ -1033,8 +1033,8 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -1101,7 +1101,7 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000CC",
+          "backgroundColor": "#000000cc",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -1121,7 +1121,7 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
           style={
             [
               {
-                "color": "#1c8234",
+                "color": "#1c7e33",
                 "fontSize": 36,
               },
               undefined,
@@ -1150,8 +1150,8 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -1182,7 +1182,7 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "lineHeight": 18,
@@ -1198,8 +1198,8 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -1266,7 +1266,7 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000CC",
+          "backgroundColor": "#000000cc",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -1286,7 +1286,7 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
           style={
             [
               {
-                "color": "#1c8234",
+                "color": "#1c7e33",
                 "fontSize": 36,
               },
               undefined,
@@ -1315,8 +1315,8 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -1347,7 +1347,7 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "lineHeight": 18,
@@ -1363,8 +1363,8 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -1431,7 +1431,7 @@ exports[`BaseNotification gets icon correctly for each status 9`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000CC",
+          "backgroundColor": "#000000cc",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -1451,7 +1451,7 @@ exports[`BaseNotification gets icon correctly for each status 9`] = `
           style={
             [
               {
-                "color": "#d73847",
+                "color": "#ca3542",
                 "fontSize": 36,
               },
               undefined,
@@ -1480,8 +1480,8 @@ exports[`BaseNotification gets icon correctly for each status 9`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -1512,7 +1512,7 @@ exports[`BaseNotification gets icon correctly for each status 9`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "lineHeight": 18,
@@ -1528,8 +1528,8 @@ exports[`BaseNotification gets icon correctly for each status 9`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -1596,7 +1596,7 @@ exports[`BaseNotification gets icon correctly for each status 10`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000CC",
+          "backgroundColor": "#000000cc",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -1616,7 +1616,7 @@ exports[`BaseNotification gets icon correctly for each status 10`] = `
           style={
             [
               {
-                "color": "#d73847",
+                "color": "#ca3542",
                 "fontSize": 36,
               },
               undefined,
@@ -1645,8 +1645,8 @@ exports[`BaseNotification gets icon correctly for each status 10`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -1677,7 +1677,7 @@ exports[`BaseNotification gets icon correctly for each status 10`] = `
               {
                 "color": "#ffffff",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "lineHeight": 18,
@@ -1693,8 +1693,8 @@ exports[`BaseNotification gets icon correctly for each status 10`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,

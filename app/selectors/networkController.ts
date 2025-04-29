@@ -129,7 +129,7 @@ export const selectProviderConfig = createDeepEqualSelector(
   },
 );
 
-export const selectEvmTicker = createSelector(
+export const selectEvmTicker = createDeepEqualSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig?.ticker,
 );
@@ -147,7 +147,7 @@ export const selectEvmChainId = createSelector(
   (providerConfig) => providerConfig.chainId,
 );
 
-export const selectChainId = createSelector(
+export const selectChainId = createDeepEqualSelector(
   selectSelectedNonEvmNetworkChainId,
   selectEvmChainId,
   selectIsEvmNetworkSelected,
@@ -194,6 +194,20 @@ export const selectNetworkConfigurations = createSelector(
       ...nonEvmNetworkConfigurationsByChainId,
     };
     return networkConfigurationsByChainId;
+  },
+);
+
+export const selectNativeNetworkCurrencies = createDeepEqualSelector(
+  selectNetworkConfigurations,
+  (networkConfigurationsByChainId) => {
+    const nativeCurrencies = [
+      ...new Set(
+        Object.values(networkConfigurationsByChainId).map(
+          (n) => n.nativeCurrency,
+        ),
+      ),
+    ];
+    return nativeCurrencies;
   },
 );
 

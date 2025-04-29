@@ -26,9 +26,6 @@ const TextMeta = {
       },
       defaultValue: SAMPLE_TEXT_PROPS.color,
     },
-    isBrandEvolution: {
-      control: { type: 'boolean' },
-    },
   },
 };
 export default TextMeta;
@@ -66,29 +63,5 @@ TextVariants.argTypes = {
   isBrandEvolution: { control: false },
 };
 TextVariants.args = {
-  color: SAMPLE_TEXT_PROPS.color,
-};
-
-export const TextVariantsBrandEvolution = (
-  args: React.JSX.IntrinsicAttributes &
-    TextProps & { children?: React.ReactNode | undefined },
-) => (
-  <>
-    <TextComponent variant={TextVariant.DisplayMD} color={TextColor.Success}>
-      Brand Evolution
-    </TextComponent>
-    {Object.values(TextVariant).map((variant) => (
-      <TextComponent key={variant} variant={variant} isBrandEvolution {...args}>
-        {variant}
-      </TextComponent>
-    ))}
-  </>
-);
-TextVariantsBrandEvolution.argTypes = {
-  variant: { control: false },
-  children: { control: false },
-  isBrandEvolution: { control: false },
-};
-TextVariantsBrandEvolution.args = {
   color: SAMPLE_TEXT_PROPS.color,
 };

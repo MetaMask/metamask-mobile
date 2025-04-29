@@ -16,8 +16,8 @@ exports[`IpfsBanner should render banner correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#0376C91A",
-        "borderColor": "#0376c9",
+        "backgroundColor": "#4459ff1a",
+        "borderColor": "#4459ff",
         "borderLeftWidth": 4,
         "borderRadius": 4,
         "flexDirection": "row",
@@ -36,7 +36,7 @@ exports[`IpfsBanner should render banner correctly 1`] = `
       }
     >
       <SvgMock
-        color="#0376c9"
+        color="#4459ff"
         height={24}
         name="Info"
         style={
@@ -59,9 +59,9 @@ exports[`IpfsBanner should render banner correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 16,
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -74,12 +74,12 @@ exports[`IpfsBanner should render banner correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -89,12 +89,12 @@ exports[`IpfsBanner should render banner correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -107,12 +107,12 @@ exports[`IpfsBanner should render banner correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -128,12 +128,12 @@ exports[`IpfsBanner should render banner correctly 1`] = `
         style={
           {
             "backgroundColor": "transparent",
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
         suppressHighlighting={true}
@@ -142,12 +142,12 @@ exports[`IpfsBanner should render banner correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -182,7 +182,7 @@ exports[`IpfsBanner should render banner correctly 1`] = `
         testID="banner-close-button-icon"
       >
         <SvgMock
-          color="#141618"
+          color="#121314"
           height={16}
           name="Close"
           style={

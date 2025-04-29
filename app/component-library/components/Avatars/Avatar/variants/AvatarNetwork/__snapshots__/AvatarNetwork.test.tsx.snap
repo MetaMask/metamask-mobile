@@ -6,6 +6,7 @@ exports[`AvatarNetwork should render correctly 1`] = `
   style={
     {
       "alignItems": "center",
+      "borderRadius": 8,
       "justifyContent": "center",
     }
   }

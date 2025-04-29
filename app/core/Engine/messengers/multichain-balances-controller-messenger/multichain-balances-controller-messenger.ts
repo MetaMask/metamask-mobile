@@ -22,6 +22,7 @@ export function getMultichainBalancesControllerMessenger(
       'AccountsController:listMultichainAccounts',
       'SnapController:handleRequest',
       'MultichainAssetsController:getState',
+      'KeyringController:getState',
     ],
   });
 }

@@ -1,0 +1,723 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BlockaidBanner should not render if blockaid does not support network 1`] = `null`;
+
+exports[`BlockaidBanner should not render if resultType is benign 1`] = `null`;
+
+exports[`BlockaidBanner should not render if securityAlertResponse is undefined 1`] = `null`;
+
+exports[`BlockaidBanner should not render if user has not enabled blockaid 1`] = `null`;
+
+exports[`BlockaidBanner should render correctly 1`] = `
+<View
+  securityAlertResponse={
+    {
+      "block": 123,
+      "chainId": "0x1",
+      "features": [
+        "We found attack vectors in this request",
+        "This request shows a fake token name and icon.",
+        "If you approve this request, a third party known for scams might take all your assets.",
+        "Operator is an EOA",
+        "Operator is untrusted according to previous activity",
+      ],
+      "reason": "approval_farming",
+      "req": {},
+      "result_type": "Warning",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#9a63001a",
+      "borderColor": "#9a6300",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="security-alert-banner"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#9a6300"
+      height={24}
+      name="Danger"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a deceptive request
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      If you approve this request, a third party known for scams might take all your assets.
+    </Text>
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "justifyContent": "flex-start",
+        }
+      }
+      testID="accordionheader"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        testID="accordionheader-title"
+      >
+        See details
+      </Text>
+      <View
+        style={
+          [
+            {
+              "marginLeft": 4,
+            },
+            {
+              "transform": [
+                {
+                  "rotate": "0deg",
+                },
+              ],
+            },
+          ]
+        }
+        testID="accordionheader-arrow-icon-animation"
+      >
+        <SvgMock
+          color="#4459ff"
+          height={16}
+          name="ArrowDown"
+          style={
+            {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          testID="accordionheader-arrow-icon"
+          width={16}
+        />
+      </View>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
+exports[`BlockaidBanner should render correctly with list attack details 1`] = `
+<View
+  securityAlertResponse={
+    {
+      "block": 123,
+      "chainId": "0x1",
+      "features": [
+        "We found attack vectors in this request",
+        "This request shows a fake token name and icon.",
+        "If you approve this request, a third party known for scams might take all your assets.",
+        "Operator is an EOA",
+        "Operator is untrusted according to previous activity",
+      ],
+      "reason": "approval_farming",
+      "req": {},
+      "result_type": "Malicious",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="security-alert-banner"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#ca3542"
+      height={24}
+      name="Danger"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a deceptive request
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      If you approve this request, a third party known for scams might take all your assets.
+    </Text>
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "justifyContent": "flex-start",
+        }
+      }
+      testID="accordionheader"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        testID="accordionheader-title"
+      >
+        See details
+      </Text>
+      <View
+        style={
+          [
+            {
+              "marginLeft": 4,
+            },
+            {
+              "transform": [
+                {
+                  "rotate": "0deg",
+                },
+              ],
+            },
+          ]
+        }
+        testID="accordionheader-arrow-icon-animation"
+      >
+        <SvgMock
+          color="#4459ff"
+          height={16}
+          name="ArrowDown"
+          style={
+            {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          testID="accordionheader-arrow-icon"
+          width={16}
+        />
+      </View>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
+exports[`BlockaidBanner should render correctly with reason "raw_signature_farming" 1`] = `
+<View
+  securityAlertResponse={
+    {
+      "block": 123,
+      "chainId": "0x1",
+      "features": [
+        "We found attack vectors in this request",
+        "This request shows a fake token name and icon.",
+        "If you approve this request, a third party known for scams might take all your assets.",
+        "Operator is an EOA",
+        "Operator is untrusted according to previous activity",
+      ],
+      "reason": "raw_signature_farming",
+      "req": {},
+      "result_type": "Malicious",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="security-alert-banner"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#ca3542"
+      height={24}
+      name="Danger"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a suspicious request
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      If you approve this request, you might lose your assets.
+    </Text>
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "justifyContent": "flex-start",
+        }
+      }
+      testID="accordionheader"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        testID="accordionheader-title"
+      >
+        See details
+      </Text>
+      <View
+        style={
+          [
+            {
+              "marginLeft": 4,
+            },
+            {
+              "transform": [
+                {
+                  "rotate": "0deg",
+                },
+              ],
+            },
+          ]
+        }
+        testID="accordionheader-arrow-icon-animation"
+      >
+        <SvgMock
+          color="#4459ff"
+          height={16}
+          name="ArrowDown"
+          style={
+            {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          testID="accordionheader-arrow-icon"
+          width={16}
+        />
+      </View>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
+exports[`BlockaidBanner should render loader if reason is requestInProgress 1`] = `
+<ActivityIndicator
+  color="#9a6300"
+  size="small"
+  style={
+    {
+      "alignItems": "center",
+      "marginBottom": 10,
+      "marginTop": 10,
+    }
+  }
+/>
+`;
+
+exports[`BlockaidBanner should render normal banner alert if resultType is failed 1`] = `
+<View
+  collapsable={false}
+  style={
+    {
+      "marginBottom": 20,
+      "marginLeft": 10,
+      "marginRight": 10,
+      "marginTop": 10,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#9a63001a",
+        "borderColor": "#9a6300",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
+      }
+    }
+    testID="security-alert-response-failed-banner"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+    >
+      <SvgMock
+        color="#9a6300"
+        height={24}
+        name="Danger"
+        style={
+          {
+            "height": 24,
+            "width": 24,
+          }
+        }
+        width={24}
+      />
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Request may not be safe
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Because of an error, this request was not verified by the security provider. Proceed with caution.
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`BlockaidBanner should render something does not look right with contact us link when expanded 1`] = `
+<View
+  securityAlertResponse={
+    {
+      "block": 123,
+      "chainId": "0x1",
+      "features": [
+        "We found attack vectors in this request",
+        "This request shows a fake token name and icon.",
+        "If you approve this request, a third party known for scams might take all your assets.",
+        "Operator is an EOA",
+        "Operator is untrusted according to previous activity",
+      ],
+      "reason": "approval_farming",
+      "req": {},
+      "result_type": "Malicious",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="security-alert-banner"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#ca3542"
+      height={24}
+      name="Danger"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a deceptive request
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      If you approve this request, a third party known for scams might take all your assets.
+    </Text>
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "justifyContent": "flex-start",
+        }
+      }
+      testID="accordionheader"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        testID="accordionheader-title"
+      >
+        See details
+      </Text>
+      <View
+        style={
+          [
+            {
+              "marginLeft": 4,
+            },
+            {
+              "transform": [
+                {
+                  "rotate": "0deg",
+                },
+              ],
+            },
+          ]
+        }
+        testID="accordionheader-arrow-icon-animation"
+      >
+        <SvgMock
+          color="#4459ff"
+          height={16}
+          name="ArrowDown"
+          style={
+            {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          testID="accordionheader-arrow-icon"
+          width={16}
+        />
+      </View>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

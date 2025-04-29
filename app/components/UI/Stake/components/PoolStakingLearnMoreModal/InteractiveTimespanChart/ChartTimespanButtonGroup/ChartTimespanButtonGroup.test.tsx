@@ -5,6 +5,7 @@ import { CHART_BUTTONS } from '../InteractiveTimespanChart.constants';
 import { noop } from 'lodash';
 import { strings } from '../../../../../../../../locales/i18n';
 import { act, fireEvent } from '@testing-library/react-native';
+import { lightTheme } from '@metamask/design-tokens';
 
 describe('ChartTimespanButtonGroup', () => {
   it('render matches snapshot', () => {
@@ -35,8 +36,8 @@ describe('ChartTimespanButtonGroup', () => {
       // Component hierarchy: ChartTimespanButton < Text < Text < RCTText
     )?.parent?.parent?.parent;
 
-    const INACTIVE_COLOR = '#ffffff';
-    const ACTIVE_COLOR = '#f2f4f6';
+    const INACTIVE_COLOR = lightTheme.colors.background.default;
+    const ACTIVE_COLOR = lightTheme.colors.background.muted;
 
     // Inactive before press
     expect(oneMonthButton.props.style.backgroundColor).toBe(INACTIVE_COLOR);
