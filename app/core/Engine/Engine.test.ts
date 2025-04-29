@@ -28,6 +28,12 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
 jest.mock('../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
+jest.mock('../../selectors/tokenBalancesController', () => ({
+  selectAddressHasTokenBalances: jest.fn().mockReturnValue(true),
+}));
+jest.mock('../../reducers/swaps', () => ({
+  swapsTokensWithBalanceSelector: jest.fn().mockReturnValue([]),
+}));
 jest.mock('../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
   getPhishingTestResult: jest.fn().mockReturnValue({ result: true }),
