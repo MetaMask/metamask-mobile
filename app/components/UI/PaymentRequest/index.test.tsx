@@ -11,6 +11,8 @@ import configureMockStore from 'redux-mock-store';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { SolScope } from '@metamask/keyring-api';
+import Routes from '../../../constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
@@ -131,6 +133,7 @@ const renderComponent = (props = {}) =>
         <PaymentRequest
           navigation={mockNavigation}
           route={mockRoute}
+          networkImageSource=""
           {...props}
         />
       </ThemeContext.Provider>
@@ -201,5 +204,37 @@ describe('PaymentRequest', () => {
 
     expect(mockSetShowError).toHaveBeenCalledWith(true);
     expect(queryByText('Invalid request, please try again')).toBeTruthy();
+  });
+
+  describe('handleNetworkPickerPress', () => {
+    it('should navigate to network selector modal and track metrics', () => {
+      const mockMetrics = {
+        trackEvent: jest.fn(),
+        createEventBuilder: jest.fn().mockReturnValue({
+          addProperties: jest.fn().mockReturnValue({
+            build: jest.fn().mockReturnValue('builtEvent'),
+          }),
+        }),
+      };
+
+      const { getByTestId } = renderComponent({
+        metrics: mockMetrics,
+        chainId: '0x1',
+        networkImageSource: '',
+      });
+
+      const networkPicker = getByTestId(
+        WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
+      );
+      fireEvent.press(networkPicker);
+
+      // Verify navigation
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SHEET.NETWORK_SELECTOR,
+        },
+      );
+    });
   });
 });
