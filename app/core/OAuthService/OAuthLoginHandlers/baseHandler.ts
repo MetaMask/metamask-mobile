@@ -1,10 +1,8 @@
-import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import {
   AuthConnection,
+  AuthRequestParams,
   AuthResponse,
   HandleFlowParams,
-  LoginHandlerCodeResult,
-  LoginHandlerIdTokenResult,
   LoginHandlerResult,
 } from '../OAuthInterface';
 import { OAuthError, OAuthErrorType } from '../error';
@@ -61,30 +59,27 @@ export async function getAuthTokens(
     web3AuthNetwork,
   } = params;
 
-  // Type guard to check if params has a code property
-  const hasCode = (
-    p: HandleFlowParams,
-  ): p is LoginHandlerCodeResult & { web3AuthNetwork: Web3AuthNetwork } =>
-    'code' in p;
+  let body: AuthRequestParams;
 
-  // Type guard to check if params has an idToken property
-  const hasIdToken = (
-    p: HandleFlowParams,
-  ): p is LoginHandlerIdTokenResult & { web3AuthNetwork: Web3AuthNetwork } =>
-    'idToken' in p;
-
-  const code = hasCode(params) ? params.code : undefined;
-  const idToken = hasIdToken(params) ? params.idToken : undefined;
-
-  const body = {
-    code,
-    id_token: idToken,
-    client_id: clientId,
-    login_provider: authConnection,
-    network: web3AuthNetwork,
-    redirect_uri: redirectUri,
-    code_verifier: codeVerifier,
-  };
+  if ('code' in params) {
+    body = {
+      code: params.code,
+      client_id: clientId,
+      login_provider: authConnection,
+      network: web3AuthNetwork,
+      redirect_uri: redirectUri,
+      code_verifier: codeVerifier,
+    };
+  } else {
+    body = {
+      id_token: params.idToken,
+      client_id: clientId,
+      login_provider: authConnection,
+      network: web3AuthNetwork,
+      redirect_uri: redirectUri,
+      code_verifier: codeVerifier,
+    };
+  }
 
   const res = await fetch(`${authServerUrl}/${pathname}`, {
     method: 'POST',

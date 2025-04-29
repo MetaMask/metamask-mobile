@@ -40,6 +40,28 @@ export interface OAuthUserInfo {
   sub: string;
 }
 
+export interface AuthRequestCodeParams {
+  code: string;
+  client_id: string;
+  login_provider: AuthConnection;
+  network: Web3AuthNetwork;
+  redirect_uri?: string;
+  code_verifier?: string;
+}
+
+export interface AuthRequestIdTokenParams {
+  id_token: string;
+  client_id: string;
+  login_provider: AuthConnection;
+  network: Web3AuthNetwork;
+  redirect_uri?: string;
+  code_verifier?: string;
+}
+
+export type AuthRequestParams =
+  | AuthRequestCodeParams
+  | AuthRequestIdTokenParams;
+
 export interface AuthResponse {
   id_token: string;
   refresh_token?: string;
