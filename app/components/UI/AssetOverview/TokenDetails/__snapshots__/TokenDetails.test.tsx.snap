@@ -260,7 +260,7 @@ exports[`TokenDetails should render correctly 1`] = `
             }
           }
         >
-          5.22B
+          $5.22B
         </Text>
       </View>
       <View
@@ -300,7 +300,7 @@ exports[`TokenDetails should render correctly 1`] = `
             }
           }
         >
-          147.65M
+          $147.65M
         </Text>
       </View>
       <View
@@ -500,7 +500,7 @@ exports[`TokenDetails should render correctly 1`] = `
             }
           }
         >
-          1.92M
+          $5.22B
         </Text>
       </View>
     </View>

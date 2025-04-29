@@ -34,6 +34,11 @@ const createStyles = (colors: {
     cancelButton: {
       marginTop: 12,
     },
+    learnMore: {
+      ...fontStyles.normal,
+      color: colors.text.default,
+      marginBottom: 12,
+    },
   });
 
 export default createStyles;

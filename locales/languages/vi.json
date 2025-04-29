@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Yêu cầu đăng nhập đáng ngờ",
       "message": "Trang web thực hiện yêu cầu không phải là trang web bạn đang đăng nhập. Đây có thể là một nỗ lực đánh cắp thông tin đăng nhập của bạn."
+    },
+    "insufficient_balance": {
+      "title": "Không đủ tiền",
+      "message": "Bạn không có đủ %{nativeCurrency} trong tài khoản để thanh toán phí mạng.",
+      "buy_action": "Mua %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "tại"
   },
   "autocomplete": {
-    "placeholder": "Tìm kiếm theo trang web hoặc địa chỉ",
+    "placeholder": "Tìm kiếm theo token, trang web hoặc địa chỉ",
     "recents": "Gần đây",
     "favorites": "Yêu thích",
-    "sites": "Trang web"
+    "sites": "Trang web",
+    "tokens": "Token"
   },
   "navigation": {
     "back": "Quay lại",
@@ -438,8 +444,8 @@
       "subtitle": "Kiểm soát chế độ xem số dư trong phần cài đặt"
     },
     "multisrp": {
-      "title": "Add multiple Secret Recovery Phrases",
-      "subtitle": "Import and use multiple wallets in MetaMask"
+      "title": "Thêm nhiều Cụm từ khôi phục bí mật",
+      "subtitle": "Nhập và sử dụng nhiều ví trong MetaMask"
     }
   },
   "wallet": {
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "Tài khoản mới của bạn sẽ được tạo từ Cụm từ khôi phục bí mật này",
     "accounts": "tài khoản",
     "show_accounts": "Hiển thị",
-    "hide_accounts": "Ẩn"
+    "hide_accounts": "Ẩn",
+    "labels": {
+      "bitcoin_testnet_account_name": "Tài khoản Mạng thử nghiệm Bitcoin",
+      "bitcoin_account_name": "Tài khoản Bitcoin",
+      "solana_devnet_account_name": "Tài khoản Solana Devnet",
+      "solana_testnet_account_name": "Tài khoản Mạng thử nghiệm Solana",
+      "solana_account_name": "Tài khoản Solana"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Tạo tài khoản {{clientType}} thất bại"
+    }
   },
   "toast": {
     "connected_and_active": "đã được kết nối và đang hoạt động.",
@@ -966,11 +982,11 @@
     "networks_desc": "Thêm và sửa mạng RPC tùy chỉnh",
     "network_name_label": "Tên mạng",
     "network_name_placeholder": "Tên mạng (không bắt buộc)",
-    "network_rpc_url_label": "RPC URL",
+    "network_rpc_url_label": "URL RPC",
     "network_rpc_name_label": "Tên RPC",
     "network_rpc_placeholder": "Mạng RPC mới",
-    "network_failover_rpc_url_label": "Failover RPC URL",
-    "failover": "Failover",
+    "network_failover_rpc_url_label": "URL RPC dự phòng",
+    "failover": "Dự phòng",
     "network_chain_id_label": "ID chuỗi",
     "network_chain_id_placeholder": "ID chuỗi",
     "network_symbol_label": "Biểu tượng",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snap",
       "description": "Tổng quan và quản lý Snap của bạn",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Mở trong tab mới"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Xóa Snap",
         "remove_snap_section_description": "Hành động này sẽ xóa Snap, cũng như dữ liệu và các quyền đã cấp của Snap đó.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "CHẬM",
     "hex_data": "Dữ liệu với mã hex",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "Đây là số giao dịch của một tài khoản. Số Nonce cho giao dịch đầu tiên là 0 và sẽ tăng theo thứ tự.",
     "this_is_an_advanced": "Đây là tính năng nâng cao, được dùng để hủy hoặc tăng tốc bất kỳ giao dịch đang chờ xử lý nào.",
     "current_suggested_nonce": "Số nonce được đề xuất hiện tại:",
     "edit_transaction_nonce": "Sửa số nonce giao dịch",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "Không có sẵn",
     "smart_contract_interaction": "Tương tác hợp đồng thông minh",
     "swaps_transaction": "Giao dịch hoán đổi",
+    "bridge_transaction": "Cầu nối",
     "approve": "Chấp thuận",
     "increase_allowance": "Tăng hạn mức",
     "set_approval_for_all": "Thiết lập phê duyệt tất cả",
@@ -2090,7 +2113,7 @@
     "info_text_2": "Điều này sẽ đảm bảo chỉ mình bạn có quyền truy cập tiền của bạn và sẽ cho phép bạn khôi phục ví nếu làm mất thiết bị",
     "cta_text": "Tạo mật khẩu",
     "creating_password": "Đang tạo mật khẩu...",
-    "srp_list_selection": "Select Secret Recovery Phrase"
+    "srp_list_selection": "Chọn Cụm từ khôi phục bí mật"
   },
   "account_backup_step_1": {
     "remind_me_later": "Nhắc tôi sau",
@@ -2731,7 +2754,7 @@
     "minimum": "Số tiền nạp tối thiểu là",
     "maximum": "Số tiền nạp tối đa là",
     "insufficient_balance": "Số tiền này cao hơn số dư của bạn",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "Bạn không có đủ {{currency}} để thanh toán phí gas.",
     "enter_larger_amount": "Nhập số tiền lớn hơn để tiếp tục",
     "enter_smaller_amount": "Nhập số tiền nhỏ hơn để tiếp tục",
     "enter_lower_gas_fees": "Nhập số tiền thấp hơn để thanh toán phí gas",
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Hoán đổi",
     "onboarding": {
       "get_the": "Nhận",
       "best_price": "giá tốt nhất",
@@ -3780,19 +3804,22 @@
       "permit": "Yêu cầu giới hạn chi tiêu",
       "permit_revoke": "Xóa quyền",
       "permit_NFTs": "Yêu cầu rút tiền",
-      "signature_siwe": "Yêu cầu đăng nhập"
+      "signature_siwe": "Yêu cầu đăng nhập",
+      "contract_interaction": "Yêu cầu giao dịch"
     },
     "sub_title": {
       "permit": "Trang web này muốn được cấp quyền chi tiêu token của bạn.",
       "permit_NFTs": "Trang web này muốn được cấp quyền rút NFT của bạn.",
       "signature": "Xem lại thông tin yêu cầu trước khi bạn xác nhận.",
-      "signature_siwe": "Trang web muốn bạn đăng nhập để chứng minh bạn sở hữu tài khoản này."
+      "signature_siwe": "Trang web muốn bạn đăng nhập để chứng minh bạn sở hữu tài khoản này.",
+      "contract_interaction": "Xem lại thông tin yêu cầu trước khi bạn xác nhận."
     },
     "request_from": "Yêu cầu từ",
     "staking_from": "Ký gửi từ",
     "signing_in_with": "Đăng nhập bằng",
     "message": "Thông báo",
     "personal_sign_tooltip": "Trang web này đang yêu cầu chữ ký của bạn",
+    "transaction_tooltip": "Trang web này đang yêu cầu giao dịch của bạn",
     "details": "Chi tiết",
     "qr_get_sign": "Lấy Chữ Ký",
     "qr_scan_text": "Quét bằng ví cứng của bạn",
@@ -3827,7 +3854,10 @@
       "unavailable": "Không khả dụng"
     },
     "unlimited": "Không giới hạn",
-    "none": "Không có"
+    "none": "Không có",
+    "advanced_details": "Chi tiết nâng cao",
+    "interacting_with": "Tương tác với",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "Kết quả đã thay đổi",
@@ -3868,6 +3898,34 @@
     "time": "Thời gian",
     "quote_info_content": "Báo giá này mang lại lợi nhuận tốt nhất từ kết quả tìm kiếm của chúng tôi. Được dựa trên tỷ giá hoán đổi, bao gồm phí cầu nối và phí 0,875% của MetaMask, không bao gồm phí gas. Phí gas thay đổi theo hoạt động mạng và độ phức tạp của giao dịch.",
     "quote_info_title": "Tại sao chúng tôi đề xuất báo giá này",
-    "see_other_quotes": "Xem các báo giá khác"
+    "see_other_quotes": "Xem các báo giá khác",
+    "receive_at": "Nhận tại",
+    "error_banner_description": "Lộ trình giao dịch này hiện không khả dụng. Hãy thử thay đổi số lượng, mạng hoặc token và chúng tôi sẽ tìm phương án tốt nhất.",
+    "insufficient_funds": "Không đủ tiền",
+    "select_amount": "Chọn số lượng",
+    "bridge_to": "Cầu nối đến",
+    "title": "Cầu nối",
+    "submitting_transaction": "Đang gửi",
+    "fetching_quote": "Tìm nạp báo giá"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Trạng thái",
+    "date": "Ngày",
+    "total_gas_fee": "Tổng phí gas",
+    "estimated_completion": "Dự kiến hoàn tất",
+    "bridge_step_action_bridge_complete": "Đã nhận {{destSymbol}} trên {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Đang nhận {{destSymbol}} trên {{destChainName}}",
+    "bridge_step_action_swap_complete": "Đã hoán đổi {{srcSymbol}} thành {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Đang hoán đổi {{srcSymbol}} thành {{destSymbol}}",
+    "view_on_block_explorer": "Xem trên Trình khám phá khối",
+    "block_explorer_description": "Giao dịch này tồn tại trên hai mạng. Liên kết đầu tiên hiển thị nguồn; liên kết thứ hai hiển thị đích đến sau khi được xác nhận.",
+    "transaction_details": "Chi tiết giao dịch",
+    "bridge_to_chain": "Cầu nối đến {{chainName}}",
+    "recipient": "Người nhận"
   }
 }
