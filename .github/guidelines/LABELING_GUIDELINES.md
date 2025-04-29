@@ -22,7 +22,8 @@ Every PR shall include one the QA labels below:
 To merge your PR one of the following QA labels are required:
 - **QA Passed**: If the PR was labeled with `needs-qa`, this label must be added once QA has signed off
 - **No QA Needed**: If the PR does not require any QA effort. This label should only be used in case you are updating a README or other files that does not impact the building or runtime of the application.
-- **Run E2E Smoke**: This label will kick-off E2E testing and trigger a check to make sure the E2E tests pass. 
+- **Run E2E Smoke**: This label will kick-off E2E testing and trigger a check to make sure the E2E tests pass.
+- **No E2E Smoke Needed**: This label will bypass the E2E smoke test gate and allow the PR to be merged.
 
 ### Optional labels:
 - **regression-main**: This label can manually be added to a bug report issue at the time of its creation if the bug is present on the development branch, i.e., `main`, but is not yet released in production.

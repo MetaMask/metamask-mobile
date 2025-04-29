@@ -255,7 +255,7 @@ class WalletConnect2Session {
 
       const updatedAccounts = [
         ...new Set([...(currentNamespaces?.eip155?.accounts || []), ...accounts]),
-      ]
+      ];
 
       const updatedNamespaces = {
         ...currentNamespaces,
