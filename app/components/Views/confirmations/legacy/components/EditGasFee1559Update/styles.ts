@@ -15,7 +15,7 @@ const createStyles = (colors: any, isRedesignedTransaction: boolean) =>
     },
     wrapper: {
       paddingHorizontal: 24,
-      ...(isRedesignedTransaction ? { paddingBottom: 30 } : {}),
+      paddingBottom: isRedesignedTransaction ? 30 : 0,
     },
     customGasHeader: {
       flexDirection: 'row',

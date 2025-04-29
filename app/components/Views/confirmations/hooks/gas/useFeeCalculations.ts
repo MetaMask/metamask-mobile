@@ -47,12 +47,9 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
 
   const getFeesFromHex = useCallback(
     (hexFee: string) => {
-      if (nativeConversionRate === undefined || nativeConversionRate === null || !nativeCurrency) {
-        return {
-          currentCurrencyFee: null,
-          nativeCurrencyFee: null,
-          preciseNativeFeeInHex: add0x(hexFee),
-        };
+      let currentCurrencyFee;
+      if (!nativeConversionRate || !nativeCurrency) {
+        currentCurrencyFee = null;
       }
 
       const nativeConversionRateInBN = new BigNumber(
@@ -99,19 +96,14 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
         }),
       );
 
-      let currentCurrencyFee;
       if (decimalCurrentCurrencyFee === 0) {
         currentCurrencyFee = '$0.00';
       } else if (preciseCurrentCurrencyFee < 0.01) {
         currentCurrencyFee = `< ${fiatFormatter(new BigNumber(0.01))}`;
-      } else {
+      } else if (nativeConversionRate && nativeCurrency) {
         currentCurrencyFee = fiatFormatter(
           new BigNumber(decimalCurrentCurrencyFee),
         );
-      }
-
-      if (!nativeConversionRate) {
-        currentCurrencyFee = null;
       }
 
       return {
@@ -137,13 +129,13 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
 
     let minimumFeePerGas = addHexes(
       decGWEIToHexWEI(estimatedBaseFee) || HEX_ZERO,
-      decimalToHex(maxPriorityFeePerGas ?? 0),
+      decimalToHex(maxPriorityFeePerGas),
     );
 
     const minimumFeePerGasBN = hexToBN(minimumFeePerGas as Hex);
 
     // `minimumFeePerGas` should never be higher than the `maxFeePerGas`
-    if (maxFeePerGas && minimumFeePerGasBN.gt(hexToBN(maxFeePerGas as Hex))) {
+    if (minimumFeePerGasBN.gt(hexToBN(maxFeePerGas as Hex))) {
       minimumFeePerGas = decimalToHex(maxFeePerGas) as Hex;
     }
 
@@ -154,7 +146,7 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
 
     // If there is a L1 and L2 component to the gas fee, add them together
     const hasLayer1GasFee = Boolean(layer1GasFee);
-    if (hasLayer1GasFee && layer1GasFee) { // Ensure layer1GasFee is not null/undefined before adding
+    if (hasLayer1GasFee) {
       const estimatedTotalFeesForL2 = addHexes(
         estimatedFee,
         layer1GasFee,
@@ -164,13 +156,13 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
 
     return getFeesFromHex(estimatedFee);
   }, [
-    transactionMeta,
     estimatedBaseFee,
+    gasPrice,
     getFeesFromHex,
     maxFeePerGas,
     maxPriorityFeePerGas,
     supportsEIP1559,
-    gasPrice,
+    transactionMeta,
   ]);
 
   return {

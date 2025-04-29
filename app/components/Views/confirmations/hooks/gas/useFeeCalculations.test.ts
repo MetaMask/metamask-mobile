@@ -133,7 +133,7 @@ describe('useFeeCalculations', () => {
     expect(result.current).toMatchInlineSnapshot(`
       {
         "estimatedFeeFiat": null,
-        "estimatedFeeNative": null,
+        "estimatedFeeNative": "0.0001 ETH",
         "preciseNativeFeeInHex": "0x807fa4396c19",
       }
     `);
@@ -157,7 +157,7 @@ describe('useFeeCalculations', () => {
       gasFeeEstimates: {
         estimatedBaseFee: '15', // Example base fee in Gwei
       },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
     const { result } = renderHookWithProvider(

@@ -24,6 +24,7 @@ import {
 } from '../../../../../../util/number';
 import { getTicker } from '../../../../../../util/transactions';
 import EditGasFee1559Update from '../EditGasFee1559Update';
+import PropTypes from 'prop-types';
 
 const UpdateEIP1559Tx = ({
   gas,
@@ -263,6 +264,35 @@ const UpdateEIP1559Tx = ({
       isRedesignedTransaction={isRedesignedTransaction}
     />
   );
+};
+
+UpdateEIP1559Tx.propTypes = {
+  gas: PropTypes.string,
+  accounts: PropTypes.object.isRequired,
+  selectedAddress: PropTypes.string.isRequired,
+  ticker: PropTypes.string,
+  existingGas: PropTypes.object.isRequired,
+  gasFeeEstimates: PropTypes.object.isRequired,
+  gasEstimateType: PropTypes.string.isRequired,
+  primaryCurrency: PropTypes.string.isRequired,
+  isCancel: PropTypes.bool,
+  chainId: PropTypes.string.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  dappSuggestedGas: PropTypes.object,
+  dontIgnoreOptions: PropTypes.bool,
+  defaultStopUpdateGas: PropTypes.bool,
+  isRedesignedTransaction: PropTypes.bool,
+};
+
+UpdateEIP1559Tx.defaultProps = {
+  isCancel: false,
+  dontIgnoreOptions: false,
+  defaultStopUpdateGas: false,
+  isRedesignedTransaction: false,
+  dappSuggestedGas: undefined,
+  gas: undefined,
+  ticker: undefined,
 };
 
 const mapStateToProps = (state, ownProps) => ({

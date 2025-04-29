@@ -2,11 +2,12 @@ import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { act } from '@testing-library/react-native';
 import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
-import { stakingDepositConfirmationState } from '../../../../../../../../util/test/confirm-data-helpers';
-import renderWithProvider from '../../../../../../../../util/test/renderWithProvider';
-import { updateTransactionGasFees } from '../../../../../../../../util/transaction-controller';
-import UpdateEIP1559Tx from '../../../../../legacy/components/UpdateEIP1559Tx';
+import { stakingDepositConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { updateTransactionGasFees } from '../../../../../../util/transaction-controller';
+import UpdateEIP1559Tx from '../../../legacy/components/UpdateEIP1559Tx';
 import GasFeeModals from './gas-fee-modals';
+import { useSupportsEIP1559 } from '../../../hooks/transactions/useSupportsEIP1559';
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
@@ -16,18 +17,20 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn(),
 }));
 jest.mock('@metamask/transaction-controller');
-jest.mock('../../../../../../../../util/transaction-controller', () => ({
+jest.mock('../../../../../../util/transaction-controller', () => ({
   updateTransactionGasFees: jest.fn().mockResolvedValue(true),
 }));
 const mockOnSaveFn = jest.fn();
 const mockOnCancelFn = jest.fn();
-jest.mock('../../../../../legacy/components/UpdateEIP1559Tx', () =>
+jest.mock('../../../legacy/components/UpdateEIP1559Tx', () =>
   jest.fn(props => {
     mockOnSaveFn.mockImplementation(props.onSave);
     mockOnCancelFn.mockImplementation(props.onCancel);
     return null;
   }),
 );
+
+jest.mock('../../../hooks/transactions/useSupportsEIP1559');
 
 describe('GasFeeModals', () => {
   const baseTxParams = stakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].txParams;
@@ -37,7 +40,7 @@ describe('GasFeeModals', () => {
     jest.clearAllMocks();
     mockOnSaveFn.mockReset();
     mockOnCancelFn.mockReset();
-    (isEIP1559Transaction as jest.Mock).mockReturnValue(true);
+    (useSupportsEIP1559 as jest.Mock).mockReturnValue({ supportsEIP1559: true });
   });
 
   const createTestState = (txParamsOverrides = {}, txId = baseTxId) => {
@@ -97,7 +100,7 @@ describe('GasFeeModals', () => {
 
   it('should return null for non-EIP1559 transaction', () => {
     const testState = createTestState();
-    (isEIP1559Transaction as jest.Mock).mockReturnValue(false);
+    (useSupportsEIP1559 as jest.Mock).mockReturnValue({ supportsEIP1559: false });
 
     renderWithProvider(
       <GasFeeModals gasModalIsOpen setGasModalIsOpen={() => null} />,

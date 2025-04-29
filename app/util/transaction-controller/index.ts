@@ -120,12 +120,10 @@ export function updateEditableParams(
 }
 
 export async function updateTransactionGasFees(
-  transactionId: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  gasFees: any,
+  ...args: Parameters<BaseTransactionController['updateTransactionGasFees']>
 ) {
   const { TransactionController } = Engine.context;
-  return TransactionController.updateTransactionGasFees(transactionId, gasFees);
+  return TransactionController.updateTransactionGasFees(...args);
 }
 
 export const getNetworkNonce = async (

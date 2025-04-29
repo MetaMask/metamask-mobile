@@ -99,8 +99,7 @@ describe('Transaction Controller Util', () => {
       const proxyMethodsKeys = Object.keys(proxyMethods);
       proxyMethodsKeys.forEach((key) => {
         const proxyMethod = proxyMethods[key as keyof typeof proxyMethods];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (proxyMethod as any)('', undefined);
+        proxyMethod();
         expect(
           Engine.context.TransactionController[
             key as keyof typeof proxyMethods
