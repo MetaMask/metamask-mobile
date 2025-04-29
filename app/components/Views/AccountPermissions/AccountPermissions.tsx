@@ -87,9 +87,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const accountsLength = useSelector(selectAccountsLength);
-  // what's the difference here?
   const currentChainId = useSelector(selectEvmChainId);
-  const { chainId: currentlySelectedChainId } = useNetworkInfo(hostname);
 
   const nonTestnetNetworks = useSelector(
     (state: RootState) =>
@@ -252,7 +250,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     });
   }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
 
-  // todo: handle adding created account here
   const handleCreateAccount = useCallback(
     async () => {
       const { KeyringController } = Engine.context;
@@ -315,7 +312,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         }
       }
 
-      // is this needed?...
       const hexSelectedChainIds = chainIds.map(toHex);
       const removeExistingChainPermissions = true;
       updatePermittedChains(hostname, hexSelectedChainIds, removeExistingChainPermissions);
@@ -762,7 +758,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
       onUserAction: setUserIntent,
       onAddNetwork: () => {
-        if (!currentlySelectedChainId) {
+        if (!currentChainId) {
           throw new Error('No chainId provided');
         }
 
@@ -776,11 +772,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           Logger.error(e as Error, 'Error getting permitted chains caveat');
         }
 
-        if (currentlyPermittedChains.includes(currentlySelectedChainId)) {
+        if (currentlyPermittedChains.includes(currentChainId)) {
           return;
         }
 
-        updatePermittedChains(hostname, [currentlySelectedChainId]);
+        updatePermittedChains(hostname, [currentChainId]);
 
         const networkToastProps: ToastOptions = {
           variant: ToastVariants.Network,
@@ -824,7 +820,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     permittedAccounts,
     networkAvatars,
     accounts,
-    currentlySelectedChainId,
+    currentChainId,
     hideSheet,
     hostname,
     toastRef,

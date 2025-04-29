@@ -77,6 +77,14 @@ const AccountConnectMultiSelector = ({
     [selectedAddresses, setSelectedAddresses],
   );
 
+  const handleSubmit = useCallback(() => {
+    onSubmit(selectedAddresses)
+  }, [onSubmit, selectedAddresses])
+
+  const handleDisconnect = useCallback(() => {
+    onSubmit([])
+  }, [onSubmit])
+
   const areAllAccountsSelected = accounts
     .every(({address}) => selectedAddresses.includes(address));
 
@@ -130,10 +138,7 @@ const AccountConnectMultiSelector = ({
             <Button
               variant={ButtonVariants.Primary}
               label={strings('networks.update')}
-              onPress={() => {
-                // fix this
-                onSubmit(selectedAddresses);
-              }}
+              onPress={handleSubmit}
               size={ButtonSize.Lg}
               style={{
                 ...styles.button,
@@ -159,10 +164,7 @@ const AccountConnectMultiSelector = ({
                 variant={ButtonVariants.Primary}
                 label={strings('accounts.disconnect')}
                 testID={ConnectedAccountsSelectorsIDs.DISCONNECT}
-                // fix this
-                onPress={() => {
-                  onSubmit([]);
-                }}
+                onPress={handleDisconnect}
                 isDanger
                 size={ButtonSize.Lg}
                 style={{
