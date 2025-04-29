@@ -15,6 +15,7 @@ import { SolScope } from '@metamask/keyring-api';
 
 const MAX_TOP_TOKENS = 30;
 
+
 interface UseTopTokensProps {
   chainId?: Hex | CaipChainId;
 }
@@ -116,7 +117,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     // Helper function to add a token if it's not already added and we haven't reached the limit
     const addTokenIfNotExists = (token: BridgeToken) => {
       if (result.length >= MAX_TOP_TOKENS) return false;
-      
+
       const normalizedAddress = isSolanaChainId(token.chainId)
         ? token.address // Solana addresses are case-sensitive
         : token.address.toLowerCase(); // EVM addresses are case-insensitive

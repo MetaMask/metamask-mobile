@@ -285,7 +285,7 @@ describe('WalletConnect Utils', () => {
       expect(switchToNetwork).toHaveBeenCalled();
     });
 
-    it.only('adds permitted chain when allowSwitchingToNewChain is true', async () => {
+    it('adds permitted chain when allowSwitchingToNewChain is true', async () => {
       // Mock that the chain is not permitted
       const mockPermittedChains = jest.requireMock('../Permissions').getPermittedChains;
       mockPermittedChains.mockResolvedValueOnce([]);
