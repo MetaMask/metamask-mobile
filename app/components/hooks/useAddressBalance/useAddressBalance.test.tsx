@@ -25,12 +25,14 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS_1]: {
-            balance: '0x4a7036655fab2ca3',
-          },
-          [MOCK_ADDRESS_2]: {
-            balance: '0x5',
+        accountsByChainId: {
+          '0x1': {
+            [MOCK_ADDRESS_1]: {
+              balance: '0x4a7036655fab2ca3',
+            },
+            [MOCK_ADDRESS_2]: {
+              balance: '0x5',
+            },
           },
         },
       },

@@ -410,7 +410,7 @@ describe('WalletConnect2Session', () => {
       session.setDeeplink(false);
       session.redirect('test');
       jest.runAllTimers();
-      
+
       expect(Linking.openURL).not.toHaveBeenCalled();
       expect(Minimizer.goBack).not.toHaveBeenCalled();
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
@@ -418,7 +418,7 @@ describe('WalletConnect2Session', () => {
 
     it('allows backward navigation for non-iOS devices', () => {
       (Device.isIos as jest.Mock).mockReturnValue(false);
-      
+
       session.redirect('test');
       jest.runAllTimers();
 
@@ -534,7 +534,7 @@ describe('WalletConnect2Session', () => {
 
       it('skips iOS specific logic for iOS versions below 17', () => {
         jest.spyOn(Platform, 'Version', 'get').mockReturnValue('16.0');
-        
+
         session.redirect('test');
         jest.runAllTimers();
 
@@ -555,74 +555,114 @@ describe('WalletConnect2Session', () => {
     afterEach(() => {
       jest.runAllTimers();
       jest.clearAllTimers();
-    })
+    });
 
     it('calls redirect when requestId exists in requestsToRedirect', () => {
       const requestId = '123';
-      
+
       // Set up the requestsToRedirect object with the test ID
-      (session as any).requestsToRedirect = { 
-        [requestId]: true 
+      (session as any).requestsToRedirect = {
+        [requestId]: true
       };
-      
+
       // Spy on the redirect method
       const redirectSpy = jest.spyOn(session, 'redirect');
-      
+
       // Call the method under test
       session.needsRedirect(requestId);
-      
+
       // Verify redirect was called with the expected parameter
       expect(redirectSpy).toHaveBeenCalledWith(`needsRedirect_${requestId}`);
-      
+
       // Verify the ID was removed from requestsToRedirect
       expect((session as any).requestsToRedirect[requestId]).toBeUndefined();
     });
 
     it('does not call redirect when requestId does not exist', () => {
       const requestId = '123';
-      
+
       // Set up empty requestsToRedirect object
       (session as any).requestsToRedirect = {};
-      
+
       // Spy on the redirect method
       const redirectSpy = jest.spyOn(session, 'redirect');
-      
+
       // Call the method under test
       session.needsRedirect(requestId);
-      
+
       // Verify redirect was not called
       expect(redirectSpy).not.toHaveBeenCalled();
     });
 
     it('handles multiple requests correctly', () => {
       // Set up multiple request IDs
-      (session as any).requestsToRedirect = { 
+      (session as any).requestsToRedirect = {
         '123': true,
         '456': true,
         '789': true
       };
-      
+
       const redirectSpy = jest.spyOn(session, 'redirect');
-      
+
       // Process first request
       session.needsRedirect('123');
       expect(redirectSpy).toHaveBeenCalledWith('needsRedirect_123');
       expect((session as any).requestsToRedirect['123']).toBeUndefined();
-      
+
       // Other requests should still be there
       expect((session as any).requestsToRedirect['456']).toBe(true);
       expect((session as any).requestsToRedirect['789']).toBe(true);
-      
+
       // Reset the spy
       redirectSpy.mockClear();
-      
+
       // Process second request
       session.needsRedirect('456');
       expect(redirectSpy).toHaveBeenCalledWith('needsRedirect_456');
       expect((session as any).requestsToRedirect['456']).toBeUndefined();
-      
+
       // And the third request should still be there
       expect((session as any).requestsToRedirect['789']).toBe(true);
+    });
+  });
+
+  it('handles wallet_switchEthereumChain correctly', async () => {
+    // Setup spies
+    const handleChainChangeSpy = jest.spyOn(session as any, 'handleChainChange');
+    const approveRequestSpy = jest.spyOn(session, 'approveRequest');
+
+    // Create a mock switch chain request
+    const chainIdHex = '0x89'; // Polygon
+    const switchChainRequest = {
+      id: '42',
+      topic: mockSession.topic,
+      params: {
+        request: {
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: chainIdHex }],
+        },
+        chainId: 'eip155:1', // Current chain before switch
+      },
+      verifyContext: {
+        verified: {
+          origin: 'https://example.com'
+        }
+      },
+    };
+
+    // Store the request ID in the topicByRequestId map
+    (session as any).topicByRequestId[switchChainRequest.id] = switchChainRequest.topic;
+
+    // Call handleRequest with the switchChainRequest
+    await session.handleRequest(switchChainRequest as any);
+
+    // Verify handleChainChange was called with the decimal chain ID
+    expect(handleChainChangeSpy).toHaveBeenCalledWith(parseInt(chainIdHex, 16)); // 137 in decimal
+
+    // Verify approveRequest was called with the correct parameters
+    expect(approveRequestSpy).toHaveBeenCalledWith({
+      id: switchChainRequest.id + '',
+      result: true
     });
   });
 });

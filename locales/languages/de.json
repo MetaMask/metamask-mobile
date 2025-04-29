@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Verdächtige Anmeldeanfrage",
       "message": "Die Website, die die Anfrage stellt, ist nicht die Website, bei der Sie sich anmelden. Es könnte sich um einen Versuch handeln, Ihre Anmeldedaten zu stehlen."
+    },
+    "insufficient_balance": {
+      "title": "Unzureichende Gelder",
+      "message": "Sie haben nicht genügend %{nativeCurrency} auf Ihrem Konto, um die Netzwerkgebühren zu bezahlen.",
+      "buy_action": "%{nativeCurrency} kaufen"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "bei"
   },
   "autocomplete": {
-    "placeholder": "",
+    "placeholder": "Suche nach Token, Website oder Adresse",
     "recents": "Aktuelle",
     "favorites": "Favoriten",
-    "sites": "Websites"
+    "sites": "Websites",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Zurück",
@@ -438,8 +444,8 @@
       "subtitle": "Kontrollieren Sie Ihre Kontostandansicht in den Einstellungen"
     },
     "multisrp": {
-      "title": "Add multiple Secret Recovery Phrases",
-      "subtitle": "Import and use multiple wallets in MetaMask"
+      "title": "Mehrere geheime Wiederherstellungsphrasen hinzufügen",
+      "subtitle": "Mehrere Wallets in MetaMask importieren und verwenden"
     }
   },
   "wallet": {
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "Die geheime Wiederherstellungsphrase, aus der Ihr neues Konto generiert wird",
     "accounts": "Konten",
     "show_accounts": "Anzeigen",
-    "hide_accounts": "Verbergen"
+    "hide_accounts": "Verbergen",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin-Testnet-Konto",
+      "bitcoin_account_name": "Bitcoin-Konto",
+      "solana_devnet_account_name": "Solana-Devnet-Konto",
+      "solana_testnet_account_name": "Solana-Testnet-Konto",
+      "solana_account_name": "Solana-Konto"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Erstellung von {{clientType}}-Konto fehlgeschlagen"
+    }
   },
   "toast": {
     "connected_and_active": "verbunden und aktiv.",
@@ -966,10 +982,10 @@
     "networks_desc": "Benutzerdefinierte RPC-Netzwerke hinzufügen und verwalten",
     "network_name_label": "Netzwerkname",
     "network_name_placeholder": "Netzwerkname (optional)",
-    "network_rpc_url_label": "RPC URL",
+    "network_rpc_url_label": "RPC-URL",
     "network_rpc_name_label": "RPC-Name",
     "network_rpc_placeholder": "Neues RPC-Netzwerk",
-    "network_failover_rpc_url_label": "Failover RPC URL",
+    "network_failover_rpc_url_label": "RPC-URL-Failover",
     "failover": "Failover",
     "network_chain_id_label": "Chain-ID",
     "network_chain_id_placeholder": "Chain-ID",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snaps",
       "description": "Überblicken und verwalten Sie Ihre Snaps",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Öffnet in einem neuen Tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Snap entfernen",
         "remove_snap_section_description": "Diese Aktion löscht den Snap, seine Daten und die ihm erteilten Berechtigungen.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "LANGSAM",
     "hex_data": "Hex-Daten",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "Dies ist die Transaktionsnummer eines Kontos. Der Nonce für die erste Transaktion beträgt 0 und steigt in sequenzieller Reihenfolge an.",
     "this_is_an_advanced": "Dies ist eine erweiterte Funktion zum Stornieren oder Beschleunigen ausstehender Transaktionen.",
     "current_suggested_nonce": "Aktuelle empfohlene Nonce:",
     "edit_transaction_nonce": "Transaktions-Nonce anpassen",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "Nicht verfügbar",
     "smart_contract_interaction": "Smart Contract-Interaktion",
     "swaps_transaction": "Swaps-Transaktion",
+    "bridge_transaction": "Bridge",
     "approve": "Genehmigen",
     "increase_allowance": "Zulage erhöhen",
     "set_approval_for_all": "Erlaubnis für alle erteilen",
@@ -2090,7 +2113,7 @@
     "info_text_2": "Dadurch wird sichergestellt, dass nur Sie auf Ihre Gelder zugreifen können, und Sie können Ihre Wallet wiederherstellen, wenn Sie Ihr Gerät verlieren.",
     "cta_text": "Passwort erstellen",
     "creating_password": "Passwort wird erstellt ...",
-    "srp_list_selection": "Select Secret Recovery Phrase"
+    "srp_list_selection": "Geheime Wiederherstellungsphrase auswählen"
   },
   "account_backup_step_1": {
     "remind_me_later": "Später erinnern",
@@ -2731,7 +2754,7 @@
     "minimum": "Die Mindesteinzahlung beträgt",
     "maximum": "Die Höchsteinzahlung beträgt",
     "insufficient_balance": "Dieser Betrag ist höher als Ihr Kontostand",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "Sie haben nicht genug {{currency}}, um die Gas-Gebühren zu decken.",
     "enter_larger_amount": "Geben Sie zum Fortfahren einen größeren Betrag ein",
     "enter_smaller_amount": "Geben Sie zum Fortfahren einen kleineren Betrag ein",
     "enter_lower_gas_fees": "Geben Sie einen niedrigeren Betrag für die Gas-Gebühren ein",
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Sichern Sie sich den",
       "best_price": "bester Preis",
@@ -3780,19 +3804,22 @@
       "permit": "Ausgabenobergrenzeanfrage",
       "permit_revoke": "Genehmigung entfernen",
       "permit_NFTs": "Auszahlungsanfrage",
-      "signature_siwe": "Anmeldeanfrage"
+      "signature_siwe": "Anmeldeanfrage",
+      "contract_interaction": "Transaktionsanfrage"
     },
     "sub_title": {
       "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
       "permit_NFTs": "Diese Website möchte die Genehmigung, Ihre NFTs auszuzahlen.",
       "signature": "Überprüfen Sie vor der Bestätigung die Details der Anfrage.",
-      "signature_siwe": "Eine Website verlangt von Ihnen, sich anzumelden, um zu beweisen, dass Sie der Inhaber dieses Kontos sind."
+      "signature_siwe": "Eine Website verlangt von Ihnen, sich anzumelden, um zu beweisen, dass Sie der Inhaber dieses Kontos sind.",
+      "contract_interaction": "Überprüfen Sie vor der Bestätigung die Anfragedetails."
     },
     "request_from": "Anfrage von",
     "staking_from": "Staking von",
     "signing_in_with": "Anmelden mit",
     "message": "Nachricht",
     "personal_sign_tooltip": "Diese Website ersucht um Ihre Signatur",
+    "transaction_tooltip": "Diese Website fragt nach Ihrer Transaktion",
     "details": "Details",
     "qr_get_sign": "Signatur abrufen",
     "qr_scan_text": "Mit Ihrer Hardware-Wallet scannen",
@@ -3827,7 +3854,10 @@
       "unavailable": "Nicht verfügbar"
     },
     "unlimited": "Unbegrenzt",
-    "none": "Keine"
+    "none": "Keine",
+    "advanced_details": "Erweiterte Details",
+    "interacting_with": "Interaktion mit",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "Ergebnisse haben sich geändert",
@@ -3868,6 +3898,34 @@
     "time": "Zeit",
     "quote_info_content": "Dieses Angebot bietet die beste Rendite aus unserer Suche. Es basiert auf dem Swap-Satz, einschließlich Bridging-Gebühren und einer MetaMask-Gebühr von 0,875 %, aber ohne Gas-Gebühren. Die Gas-Gebühren variieren je nach Netzwerkaktivität und Transaktionskomplexität.",
     "quote_info_title": "Warum wir dieses Angebot empfehlen",
-    "see_other_quotes": "Andere Angebote sehen"
+    "see_other_quotes": "Andere Angebote sehen",
+    "receive_at": "Empfangen bei",
+    "error_banner_description": "Diese Handelsroute ist derzeit nicht verfügbar. Versuchen Sie, den Betrag, das Netzwerk oder das Token zu ändern, und wir finden die beste Option.",
+    "insufficient_funds": "Unzureichende Gelder",
+    "select_amount": "Betrag auswählen",
+    "bridge_to": "Bridge zu",
+    "title": "Bridge",
+    "submitting_transaction": "Absenden",
+    "fetching_quote": "Angebot einholen"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Datum",
+    "total_gas_fee": "Gesamte Gas-Gebühr",
+    "estimated_completion": "Geschätzte Fertigstellung",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} empfangen bei {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Empfangen von {{destSymbol}} bei {{destChainName}}",
+    "bridge_step_action_swap_complete": "{{srcSymbol}} für {{destSymbol}} geswappt",
+    "bridge_step_action_swap_pending": "Swappen von {{srcSymbol}} für {{destSymbol}}",
+    "view_on_block_explorer": "Im Block-Explorer anzeigen",
+    "block_explorer_description": "Diese Transaktion findet in zwei Netzwerken statt. Der erste Link zeigt die Quelle; der zweite zeigt das Ziel an, sobald sie bestätigt wurde.",
+    "transaction_details": "Transaktionsdetails",
+    "bridge_to_chain": "Bridge zu {{chainName}}",
+    "recipient": "Empfänger"
   }
 }

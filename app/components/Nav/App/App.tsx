@@ -129,7 +129,7 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user/selectors';
-import { Confirm } from '../../Views/confirmations/Confirm';
+import { Confirm } from '../../Views/confirmations/components/confirm';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
@@ -140,6 +140,7 @@ import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
+import AddNewAccount from '../../Views/AddNewAccount';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -179,13 +180,9 @@ const OnboardingSuccessComponentNoSRP = () => {
   );
 };
 
-const AccountAlreadyExists = () => (<AccountStatus
-    type="found"
-  />);
+const AccountAlreadyExists = () => <AccountStatus type="found" />;
 
-const AccountNotFound = () => (<AccountStatus
-    type="not_exist"
-  />);
+const AccountNotFound = () => <AccountStatus type="not_exist" />;
 
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
@@ -245,7 +242,10 @@ const OnboardingNav = () => (
     />
     <Stack.Screen name="OptinMetrics" component={OptinMetrics} />
     <Stack.Screen name="AccountStatus" component={AccountStatus} />
-    <Stack.Screen name="AccountAlreadyExists" component={AccountAlreadyExists} />
+    <Stack.Screen
+      name="AccountAlreadyExists"
+      component={AccountAlreadyExists}
+    />
     <Stack.Screen name="AccountNotFound" component={AccountNotFound} />
   </Stack.Navigator>
 );
@@ -369,6 +369,7 @@ const RootModalFlow = (
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
+    <Stack.Screen name={Routes.SHEET.ADD_ACCOUNT} component={AddNewAccount} />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
       name={Routes.SHEET.SDK_FEEDBACK}
@@ -579,13 +580,13 @@ const ConnectHardwareWalletFlow = () => (
   </Stack.Navigator>
 );
 
-const ConfirmRequest = () => (
-  <Stack.Navigator mode={'modal'}>
-    <Stack.Screen name={Routes.CONFIRM_FLAT_PAGE} component={Confirm} />
+const FlatConfirmationRequest = () => (
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.CONFIRMATION_REQUEST_FLAT} component={Confirm} />
   </Stack.Navigator>
 );
 
-const ConfirmDappRequest = () => (
+const ModalConfirmationRequest = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
@@ -593,7 +594,10 @@ const ConfirmDappRequest = () => (
     }}
     mode={'modal'}
   >
-    <Stack.Screen name={Routes.CONFIRM_MODAL} component={Confirm} />
+    <Stack.Screen
+      name={Routes.CONFIRMATION_REQUEST_MODAL}
+      component={Confirm}
+    />
   </Stack.Navigator>
 );
 
@@ -724,12 +728,12 @@ const AppFlow = () => {
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen
-        name={Routes.CONFIRM_FLAT_PAGE}
-        component={ConfirmRequest}
+        name={Routes.CONFIRMATION_REQUEST_FLAT}
+        component={FlatConfirmationRequest}
       />
       <Stack.Screen
-        name={Routes.CONFIRM_MODAL}
-        component={ConfirmDappRequest}
+        name={Routes.CONFIRMATION_REQUEST_MODAL}
+        component={ModalConfirmationRequest}
       />
     </Stack.Navigator>
   );

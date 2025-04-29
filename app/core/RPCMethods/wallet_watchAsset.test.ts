@@ -32,8 +32,10 @@ jest.mock('../Engine', () => {
       },
       TokenListController: {
         state: {
-          tokenList: {
-            '0x1': [],
+          tokensChainsCache: {
+            '0x1': {
+              data: [],
+            },
           },
         },
       },

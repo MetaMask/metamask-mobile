@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 import { KeyringClient } from '@metamask/keyring-snap-client';
 import { SolScope } from '@metamask/keyring-api';
 import Text from '../../../component-library/components/Texts/Text';
@@ -17,10 +17,15 @@ import FeatureItem from './FeatureItem';
 import { useTheme } from '../../../util/theme';
 import SolanaLogo from '../../../images/solana-logo-transparent.svg';
 import { strings } from '../../../../locales/i18n';
-import { selectHasCreatedSolanaMainnetAccount } from '../../../selectors/accountsController';
+import {
+  selectHasCreatedSolanaMainnetAccount,
+  selectLastSelectedSolanaAccount,
+} from '../../../selectors/accountsController';
 import createStyles from './SolanaNewFeatureContent.styles';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+import Engine from '../../../core/Engine';
+import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
 
 const SolanaNewFeatureContent = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -30,6 +35,9 @@ const SolanaNewFeatureContent = () => {
   const styles = createStyles(colors);
   const hasExistingSolanaAccount = useSelector(
     selectHasCreatedSolanaMainnetAccount,
+  );
+  const lastSelectedSolanaAccount = useSelector(
+    selectLastSelectedSolanaAccount,
   );
 
   useEffect(() => {
@@ -56,6 +64,17 @@ const SolanaNewFeatureContent = () => {
   const handleClose = async () => {
     await handleSheetClose();
     sheetRef.current?.onCloseBottomSheet();
+  };
+
+  const viewSolanaAccount = async () => {
+    if (lastSelectedSolanaAccount) {
+      await Engine.setSelectedAddress(lastSelectedSolanaAccount.address);
+    }
+    await handleClose();
+  };
+
+  const onLearnMoreClicked = () => {
+    Linking.openURL(SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE);
   };
 
   const createSolanaAccount = async () => {
@@ -112,13 +131,21 @@ const SolanaNewFeatureContent = () => {
         </View>
 
         <Button
+          style={styles.learnMore}
+          variant={ButtonVariants.Link}
+          label={strings('solana_new_feature_content.learn_more')}
+          onPress={onLearnMoreClicked}
+        />
+        <Button
           variant={ButtonVariants.Primary}
           label={strings(
             hasExistingSolanaAccount
-              ? 'solana_new_feature_content.got_it'
+              ? 'solana_new_feature_content.view_solana_account'
               : 'solana_new_feature_content.create_solana_account',
           )}
-          onPress={hasExistingSolanaAccount ? handleClose : createSolanaAccount}
+          onPress={
+            hasExistingSolanaAccount ? viewSolanaAccount : createSolanaAccount
+          }
           width={ButtonWidthTypes.Full}
         />
 
