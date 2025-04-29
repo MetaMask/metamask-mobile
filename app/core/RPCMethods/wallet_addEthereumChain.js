@@ -110,7 +110,6 @@ const wallet_addEthereumChain = async ({
       existingNetworkConfiguration.rpcEndpoints,
       {
         url: firstValidRPCUrl,
-        failoverUrls: [],
         type: RpcEndpointType.Custom,
         name: chainName,
       },
@@ -197,7 +196,6 @@ const wallet_addEthereumChain = async ({
         existingNetworkConfiguration.rpcEndpoints,
         {
           url: firstValidRPCUrl,
-          failoverUrls: [],
           type: RpcEndpointType.Custom,
           name: chainName,
         },
@@ -239,7 +237,6 @@ const wallet_addEthereumChain = async ({
         rpcEndpoints: [
           {
             url: firstValidRPCUrl,
-            failoverUrls: [],
             name: chainName,
             type: RpcEndpointType.Custom,
           },
