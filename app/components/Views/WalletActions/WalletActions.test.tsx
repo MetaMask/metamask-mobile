@@ -56,7 +56,9 @@ jest.mock('@metamask/bridge-controller', () => {
     ...actual,
     getNativeAssetForChainId: jest.fn((chainId) => {
       if (chainId === 'solana:mainnet') {
-        return actual.getNativeAssetForChainId('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
+        return actual.getNativeAssetForChainId(
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        );
       }
       return actual.getNativeAssetForChainId(chainId);
     }),
@@ -76,6 +78,14 @@ jest.mock('../../../selectors/networkController', () => ({
   }),
   selectEvmTicker: jest.fn().mockReturnValue('ETH'),
   selectNativeCurrencyByChainId: jest.fn(),
+  selectSelectedNetworkClientId: jest.fn().mockReturnValue('mainnet'),
+  selectNetworkClientId: jest.fn().mockReturnValue('mainnet'),
+  selectEvmNetworkConfigurationsByChainId: jest.fn().mockReturnValue({}),
+  selectRpcUrl: jest.fn().mockReturnValue('https://mainnet.infura.io/v3/123'),
+}));
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('../../../selectors/accountsController', () => {
@@ -204,6 +214,7 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 describe('WalletActions', () => {
+  it('should renderWithProvider correctly', () => {});
   afterEach(() => {
     mockNavigate.mockClear();
   });
@@ -217,7 +228,6 @@ describe('WalletActions', () => {
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
     });
-
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
     ).toBeDefined();
@@ -234,18 +244,15 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
     ).toBeDefined();
   });
-
   it('should render earn button if the stablecoin lending feature is enabled', () => {
     (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
     });
-
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
   });
-
   it('should not show the buy button and swap button if the chain does not allow buying', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
     (isBridgeAllowed as jest.Mock).mockReturnValue(false);
