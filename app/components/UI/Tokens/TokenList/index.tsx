@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { View, RefreshControl } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { View, RefreshControl, Dimensions } from 'react-native';
+import { BlankAreaEvent, FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
-import { selectPrivacyMode } from '../../../../selectors/preferencesController';
+import {
+  selectIsTokenNetworkFilterEqualCurrentNetwork,
+  selectPrivacyMode,
+} from '../../../../selectors/preferencesController';
 import createStyles from '../styles';
 import Text, {
   TextColor,
@@ -37,11 +40,27 @@ export const TokenList = ({
 }: TokenListProps) => {
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
+  const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
+    selectIsTokenNetworkFilterEqualCurrentNetwork,
+  );
+
+  const listRef = useRef<FlashList<TokenI>>(null);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
+
+  const { width: deviceWidth } = Dimensions.get('window');
+
+  const itemHeight = 80; // Adjust this to match TokenListItem height
+
+  const listLength = tokens.length;
+  const estimatedListHeight = itemHeight * listLength;
+
+  useLayoutEffect(() => {
+    listRef.current?.recomputeViewableItems();
+  }, [isTokenNetworkFilterEqualCurrentNetwork]);
 
   const handleLink = () => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
@@ -49,21 +68,46 @@ export const TokenList = ({
     });
   };
 
+  const renderTokenListItem = useCallback(
+    ({ item }: { item: TokenI }) => (
+      <TokenListItem
+        asset={item}
+        showRemoveMenu={showRemoveMenu}
+        showScamWarningModal={showScamWarningModal}
+        setShowScamWarningModal={setShowScamWarningModal}
+        privacyMode={privacyMode}
+        showPercentageChange={showPercentageChange}
+      />
+    ),
+    [
+      showRemoveMenu,
+      showScamWarningModal,
+      setShowScamWarningModal,
+      privacyMode,
+      showPercentageChange,
+    ],
+  );
+
   return tokens?.length ? (
     <FlashList
+      ref={listRef}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokens}
-      renderItem={({ item }) => (
-        <TokenListItem
-          asset={item}
-          showRemoveMenu={showRemoveMenu}
-          showScamWarningModal={showScamWarningModal}
-          setShowScamWarningModal={setShowScamWarningModal}
-          privacyMode={privacyMode}
-          showPercentageChange={showPercentageChange}
-        />
-      )}
-      keyExtractor={(_, index) => index.toString()}
+      estimatedItemSize={itemHeight}
+      estimatedListSize={{ height: estimatedListHeight, width: deviceWidth }}
+      removeClippedSubviews
+      onBlankArea={(e: BlankAreaEvent) => {
+        if (e.blankArea > 0.1) {
+          console.warn(`Large blank area detected: ${e.blankArea}`);
+        }
+      }}
+      viewabilityConfig={{
+        waitForInteraction: true,
+        itemVisiblePercentThreshold: 50,
+        minimumViewTime: 1000,
+      }}
+      renderItem={renderTokenListItem}
+      keyExtractor={(item) => `${item.address}-${item.chainId}`}
       ListFooterComponent={
         <TokenListFooter
           tokens={tokens}
@@ -79,6 +123,7 @@ export const TokenList = ({
           onRefresh={onRefresh}
         />
       }
+      extraData={{ isTokenNetworkFilterEqualCurrentNetwork, listLength }}
     />
   ) : (
     <View style={styles.emptyView}>
