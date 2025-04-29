@@ -30,7 +30,6 @@ afterEach(() => {
 const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = {
   signatures: true,
   staking_confirmations: false,
-  contract_interaction: false,
   transfer: false,
 };
 
@@ -38,7 +37,6 @@ const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = 
 const mockedConfirmationRedesignFlags: ConfirmationRedesignRemoteFlags = {
   signatures: false,
   staking_confirmations: true,
-  contract_interaction: true,
   transfer: true,
 };
 
@@ -66,18 +64,15 @@ describe('confirmationRedesign Feature flag: selectConfirmationRedesignFlags sel
     const {
       signatures,
       staking_confirmations,
-      contract_interaction,
     } = result as ConfirmationRedesignRemoteFlags;
 
     const {
       signatures: expectedSignatures,
       staking_confirmations: expectedStakingConfirmations,
-      contract_interaction: expectedContractInteraction,
     } = expected;
 
     expect(signatures).toEqual(expectedSignatures);
     expect(staking_confirmations).toEqual(expectedStakingConfirmations);
-    expect(contract_interaction).toEqual(expectedContractInteraction);
   };
 
   it('returns default values when empty feature flag state', () => {

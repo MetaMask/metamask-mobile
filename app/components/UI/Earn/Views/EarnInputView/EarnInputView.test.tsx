@@ -282,8 +282,11 @@ describe('EarnInputView', () => {
         } as InternalAccount),
     );
     selectConfirmationRedesignFlagsMock.mockReturnValue({
+      signatures: false,
       staking_confirmations: false,
-    } as unknown as ConfirmationRedesignRemoteFlags);
+      contract_interaction: false,
+      transfer: false,
+    });
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
     });
@@ -489,8 +492,11 @@ describe('EarnInputView', () => {
         const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
         // Override the mock value for this specific test
         selectConfirmationRedesignFlagsMock.mockReturnValue({
+          signatures: false,
           staking_confirmations: true,
-        } as unknown as ConfirmationRedesignRemoteFlags);
+          contract_interaction: false,
+          transfer: false,
+        });
 
         usePoolStakedDepositMock.mockReturnValue({
           attemptDepositTransaction: attemptDepositTransactionMock,
