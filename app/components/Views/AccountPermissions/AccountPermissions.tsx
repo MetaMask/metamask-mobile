@@ -796,7 +796,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
           : navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
-      accountAddresses: permittedAccounts.map(toChecksumHexAddress),
+      accountAddresses: permittedAccounts.map(toChecksumHexAddress) as string[],
       accounts,
       networkAvatars,
       isNetworkSwitch: true,
