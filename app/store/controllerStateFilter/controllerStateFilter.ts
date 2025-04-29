@@ -25,7 +25,8 @@ export const filterPersistableControllers = (
 ): Record<string, unknown> =>
   Object.entries(controllers).reduce(
     (acc, [controllerName, controllerState]) => {
-      // If the controller doesn't have both metadata and state, return it unchanged
+      // Return the controller unchanged if it's not a valid controller object
+      // (missing metadata, state, or either is null/undefined)
       if (
         !controllerState ||
         typeof controllerState !== 'object' ||
