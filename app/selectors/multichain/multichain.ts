@@ -289,15 +289,6 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
     return tokens;
   },
 );
-
-export const selectMultichainTokenList = createDeepEqualSelector(
-  (state: RootState) => state,
-  selectSelectedInternalAccount,
-  (state, selectedAccount) => {
-    return selectMultichainTokenListForAccountId(state, selectedAccount?.id);
-  },
-);
-
 export interface MultichainNetworkAggregatedBalance {
   totalNativeTokenBalance: Balance | undefined;
   totalBalanceFiat: number | undefined;
