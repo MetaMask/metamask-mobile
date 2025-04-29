@@ -1609,7 +1609,15 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    AccountTrackerController.refresh();
+    AccountTrackerController.refresh([
+      NetworkController.state.networkConfigurationsByChainId[
+        getGlobalChainId(NetworkController)
+      ]?.rpcEndpoints?.[
+        NetworkController.state.networkConfigurationsByChainId[
+          getGlobalChainId(NetworkController)
+        ]?.defaultRpcEndpointIndex
+      ]?.networkClientId,
+    ]);
   }
 
   getTotalEvmFiatAccountBalance = (
