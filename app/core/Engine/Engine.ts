@@ -314,7 +314,7 @@ export class Engine {
       allowedActions: [],
     });
 
-    const additionalDefaultNetworks = [ChainId['megaeth-testnet']];
+    const additionalDefaultNetworks = [ChainId['megaeth-testnet'], ChainId['monad-testnet']];
 
     let initialNetworkControllerState = initialState.NetworkController;
     if (!initialNetworkControllerState) {
