@@ -37,6 +37,9 @@ export const initialState = {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
           bridgeConfig: {
+            maxRefreshCount: 5,
+            refreshRate: 30000,
+            support: true,
             chains: {
               [formatChainIdToCaip(ethChainId)]: {
                 isActiveSrc: true,
@@ -47,7 +50,7 @@ export const initialState = {
                 isActiveDest: true,
               },
             },
-          }
+          },
         },
       },
       BridgeController: defaultBridgeControllerState,

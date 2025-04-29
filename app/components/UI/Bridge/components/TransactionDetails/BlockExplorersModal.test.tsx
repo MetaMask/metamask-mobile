@@ -103,6 +103,9 @@ describe('BlockExplorersModal', () => {
         RemoteFeatureFlagController: {
           remoteFeatureFlags: {
             bridgeConfig: {
+              maxRefreshCount: 5,
+              refreshRate: 30000,
+              support: true,
               chains: {
                 [formatChainIdToCaip(mockChainId)]: {
                   isActiveSrc: true,
