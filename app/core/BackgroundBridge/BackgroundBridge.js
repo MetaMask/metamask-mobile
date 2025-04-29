@@ -145,6 +145,7 @@ export class BackgroundBridge extends EventEmitter {
       : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
+    this.multichainEngine = null;
     this.multichainSubscriptionManager = null;
     this.multichainMiddlewareManager = null;
 
@@ -215,6 +216,15 @@ export class BackgroundBridge extends EventEmitter {
           ),
       });
       this.multichainMiddlewareManager = new MultichainMiddlewareManager();
+
+      // TODO: [ffmcgee] remove this try..catch
+      try {
+        this.setupProviderConnectionCaip(
+          mux.createStream('metamask-multichain-provider'),
+        );
+      } catch (e) {
+        console.log('Multichain Provider Error:', e);
+      }
     }
 
     // TODO: [ffmcgee] invoking this will probably now break unit test for this class. Address it.
@@ -692,12 +702,20 @@ export class BackgroundBridge extends EventEmitter {
    * A method for serving our CAIP provider over a given stream.
    *
    * @param {*} outStream - The stream to provide over.
-   * @param {MessageSender | SnapSender} sender - The sender of the messages on this stream
-   * @param {SubjectType} subjectType - The type of the sender, i.e. subject.
    */
-  setupProviderConnectionCaip(outStream, sender, subjectType) {
-    // TODO: [ffmcgee] implement
-    return null;
+  setupProviderConnectionCaip(outStream) {
+    this.multichainEngine = this.setupProviderEngineCaip();
+
+    // setup connection
+    const providerStream = createEngineStream({
+      engine: this.multichainEngine,
+    });
+
+    pump(outStream, providerStream, outStream, (err) => {
+      // handle any middleware cleanup
+      this.multichainEngine.destroy();
+      if (err) Logger.log('Error with provider stream conn', err);
+    });
   }
 
   /**
@@ -922,7 +940,7 @@ export class BackgroundBridge extends EventEmitter {
             { origin },
             requestedPermissions,
           ),
-        metamaskState: this.getState(),
+        // metamaskState: this.getState(),
         getCaveatForOrigin: PermissionController.getCaveat.bind(
           PermissionController,
           origin,
@@ -953,6 +971,7 @@ export class BackgroundBridge extends EventEmitter {
           Engine.controllerMessenger,
           'MultichainRouter:getSupportedAccounts',
         ),
+        trackSessionCreatedEvent: () => undefined,
       }),
     );
 
@@ -966,92 +985,92 @@ export class BackgroundBridge extends EventEmitter {
       ),
     );
 
-    engine.push(
-      createMultichainMethodMiddleware({
-        // Miscellaneous
-        addSubjectMetadata: SubjectMetadataController.addSubjectMetadata.bind(
-          SubjectMetadataController,
-        ),
-        getProviderState: this.getProviderState.bind(this),
-        handleWatchAssetRequest: ({ asset, type, origin, networkClientId }) => {
-          switch (type) {
-            case ERC20:
-              return TokensController.watchAsset({
-                asset,
-                type,
-                networkClientId,
-              });
-            case ERC721:
-            case ERC1155:
-              return NftController.watchNft(asset, type, origin);
-            default:
-              throw new Error(`Asset type ${type} not supported`);
-          }
-        },
-        requestUserApproval:
-          ApprovalController.addAndShowApprovalRequest.bind(ApprovalController),
-        getCaveat: ({ target, caveatType }) => {
-          try {
-            return PermissionController.getCaveat(origin, target, caveatType);
-          } catch (e) {
-            if (e instanceof PermissionDoesNotExistError) {
-              // suppress expected error in case that the origin
-              // does not have the target permission yet
-            } else {
-              throw e;
-            }
-          }
-        },
-        addNetwork: NetworkController.addNetwork.bind(NetworkController),
-        updateNetwork: NetworkController.updateNetwork.bind(NetworkController),
-        setActiveNetwork: async (networkClientId) => {
-          await NetworkController.setActiveNetwork(networkClientId);
-          // if the origin has the CAIP-25 permission
-          // we set per dapp network selection state
-          if (
-            PermissionController.hasPermission(
-              origin,
-              Caip25EndowmentPermissionName,
-            )
-          ) {
-            SelectedNetworkController.setNetworkClientIdForDomain(
-              origin,
-              networkClientId,
-            );
-          }
-        },
-        getNetworkConfigurationByChainId:
-          NetworkController.getNetworkConfigurationByChainId.bind(
-            NetworkController,
-          ),
-        getCurrentChainIdForDomain: (domain) => {
-          const networkClientId =
-            SelectedNetworkController.getNetworkClientIdForDomain(domain);
-          const { chainId } =
-            NetworkController.getNetworkConfigurationByNetworkClientId(
-              networkClientId,
-            );
-          return chainId;
-        },
-        // TODO: [ffmcgee] investigate, this controller not in context
-        // // Web3 shim-related
-        // getWeb3ShimUsageState: this.alertController.getWeb3ShimUsageState.bind(
-        //   this.alertController,
-        // ),
-        // setWeb3ShimUsageRecorded:
-        //   this.alertController.setWeb3ShimUsageRecorded.bind(
-        //     this.alertController,
-        //   ),
+    // engine.push(
+    //   createMultichainMethodMiddleware({
+    //     // Miscellaneous
+    //     addSubjectMetadata: SubjectMetadataController.addSubjectMetadata.bind(
+    //       SubjectMetadataController,
+    //     ),
+    //     getProviderState: this.getProviderState.bind(this),
+    //     handleWatchAssetRequest: ({ asset, type, origin, networkClientId }) => {
+    //       switch (type) {
+    //         case ERC20:
+    //           return TokensController.watchAsset({
+    //             asset,
+    //             type,
+    //             networkClientId,
+    //           });
+    //         case ERC721:
+    //         case ERC1155:
+    //           return NftController.watchNft(asset, type, origin);
+    //         default:
+    //           throw new Error(`Asset type ${type} not supported`);
+    //       }
+    //     },
+    //     requestUserApproval:
+    //       ApprovalController.addAndShowApprovalRequest.bind(ApprovalController),
+    //     getCaveat: ({ target, caveatType }) => {
+    //       try {
+    //         return PermissionController.getCaveat(origin, target, caveatType);
+    //       } catch (e) {
+    //         if (e instanceof PermissionDoesNotExistError) {
+    //           // suppress expected error in case that the origin
+    //           // does not have the target permission yet
+    //         } else {
+    //           throw e;
+    //         }
+    //       }
+    //     },
+    //     addNetwork: NetworkController.addNetwork.bind(NetworkController),
+    //     updateNetwork: NetworkController.updateNetwork.bind(NetworkController),
+    //     setActiveNetwork: async (networkClientId) => {
+    //       await NetworkController.setActiveNetwork(networkClientId);
+    //       // if the origin has the CAIP-25 permission
+    //       // we set per dapp network selection state
+    //       if (
+    //         PermissionController.hasPermission(
+    //           origin,
+    //           Caip25EndowmentPermissionName,
+    //         )
+    //       ) {
+    //         SelectedNetworkController.setNetworkClientIdForDomain(
+    //           origin,
+    //           networkClientId,
+    //         );
+    //       }
+    //     },
+    //     getNetworkConfigurationByChainId:
+    //       NetworkController.getNetworkConfigurationByChainId.bind(
+    //         NetworkController,
+    //       ),
+    //     getCurrentChainIdForDomain: (domain) => {
+    //       const networkClientId =
+    //         SelectedNetworkController.getNetworkClientIdForDomain(domain);
+    //       const { chainId } =
+    //         NetworkController.getNetworkConfigurationByNetworkClientId(
+    //           networkClientId,
+    //         );
+    //       return chainId;
+    //     },
+    //     // TODO: [ffmcgee] investigate, this controller not in context
+    //     // // Web3 shim-related
+    //     // getWeb3ShimUsageState: this.alertController.getWeb3ShimUsageState.bind(
+    //     //   this.alertController,
+    //     // ),
+    //     // setWeb3ShimUsageRecorded:
+    //     //   this.alertController.setWeb3ShimUsageRecorded.bind(
+    //     //     this.alertController,
+    //     //   ),
 
-        requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
-          Engine.requestPermittedChainsPermissionIncremental({
-            ...options,
-            origin,
-          }),
-        rejectApprovalRequestsForOrigin: () =>
-          Engine.rejectOriginPendingApprovals(origin),
-      }),
-    );
+    //     requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
+    //       Engine.requestPermittedChainsPermissionIncremental({
+    //         ...options,
+    //         origin,
+    //       }),
+    //     rejectApprovalRequestsForOrigin: () =>
+    //       Engine.rejectOriginPendingApprovals(origin),
+    //   }),
+    // );
 
     // TODO: [ffmcgee] implement
     // engine.push(this.metamaskMiddleware);
@@ -1099,20 +1118,21 @@ export class BackgroundBridge extends EventEmitter {
       },
     );
 
-    engine.push(
-      this.multichainMiddlewareManager.generateMultichainMiddlewareForOriginAndTabId(
-        origin,
-      ),
-    );
+    // engine.push(
+    //   this.multichainMiddlewareManager.generateMultichainMiddlewareForOriginAndTabId(
+    //     origin,
+    //   ),
+    // );
 
-    engine.push(async (req, res, _next, end) => {
-      const { provider } = NetworkController.getNetworkClientById(
-        req.networkClientId,
-      );
-      res.result = await provider.request(req);
-      return end();
-    });
+    // engine.push(async (req, res, _next, end) => {
+    //   const { provider } = NetworkController.getNetworkClientById(
+    //     req.networkClientId,
+    //   );
+    //   res.result = await provider.request(req);
+    //   return end();
+    // });
 
+    console.log('Successfully Setup Provider Engine Caip!');
     return engine;
   }
 
