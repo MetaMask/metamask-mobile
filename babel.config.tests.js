@@ -10,11 +10,7 @@ const newOverrides = [
   ...baseConfig.overrides,
   // Don't transform environment variables for files that depend on them.
   {
-    exclude: [
-      'app/store/migrations/**',
-      'app/core/Engine/controllers/network-controller/messenger-action-handlers.test.ts',
-      'app/util/networks/customNetworks.tsx',
-    ],
+    exclude: ['app/components/UI/Earn/selectors/featureFlags/index.ts'],
     plugins: ['transform-inline-environment-variables'],
   },
 ];
