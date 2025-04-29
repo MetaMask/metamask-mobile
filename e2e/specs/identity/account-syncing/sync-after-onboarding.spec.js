@@ -8,7 +8,7 @@ import {
   startMockServer,
   stopMockServer,
 } from '../../../api-mocking/mock-server';
-import { accountsSyncMockResponse } from './mockData';
+import { getAccountsSyncMockResponse } from './mock-data';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
@@ -18,60 +18,70 @@ import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
-describe(SmokeIdentity('Account syncing'), () => {
-  beforeAll(async () => {
-    const mockServer = await startMockServer({
-      mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
-    });
+describe(
+  SmokeIdentity('Account syncing - syncs previously synced accounts'),
+  () => {
+    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8001;
+    let mockServer;
 
-    const { userStorageMockttpControllerInstance } = await mockIdentityServices(
-      mockServer,
-    );
+    beforeAll(async () => {
+      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
-    userStorageMockttpControllerInstance.setupPath(
-      USER_STORAGE_FEATURE_NAMES.accounts,
-      mockServer,
-      {
-        getResponse: accountsSyncMockResponse,
-      },
-    );
+      const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
-    jest.setTimeout(200000);
-    await TestHelpers.reverseServerPort();
+      const { userStorageMockttpControllerInstance } =
+        await mockIdentityServices(mockServer);
 
-    await TestHelpers.launchApp({
-      newInstance: true,
-      delete: true,
-    });
-  });
-
-  afterAll(async () => {
-    await stopMockServer();
-  });
-
-  it('retrieves all previously synced accounts', async () => {
-    const decryptedAccountNames = await Promise.all(
-      accountsSyncMockResponse.map(async (response) => {
-        const decryptedAccountName = await SDK.Encryption.decryptString(
-          response.Data,
-          IDENTITY_TEAM_STORAGE_KEY,
-        );
-        return JSON.parse(decryptedAccountName).n;
-      }),
-    );
-
-    await importWalletWithRecoveryPhrase(
-      IDENTITY_TEAM_SEED_PHRASE,
-      IDENTITY_TEAM_PASSWORD,
-    );
-
-    await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-
-    for (const accountName of decryptedAccountNames) {
-      await Assertions.checkIfVisible(
-        AccountListBottomSheet.getAccountElementByAccountName(accountName),
+      await userStorageMockttpControllerInstance.setupPath(
+        USER_STORAGE_FEATURE_NAMES.accounts,
+        mockServer,
+        {
+          getResponse: accountsSyncMockResponse,
+        },
       );
-    }
-  });
-});
+
+      await TestHelpers.reverseServerPort();
+
+      await TestHelpers.launchApp({
+        newInstance: true,
+        delete: true,
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+      });
+    });
+
+    afterAll(async () => {
+      if (mockServer) {
+        await stopMockServer(mockServer);
+      }
+    });
+
+    it('retrieves all previously synced accounts', async () => {
+      const accountsSyncMockResponse = await getAccountsSyncMockResponse();
+
+      const decryptedAccountNames = await Promise.all(
+        accountsSyncMockResponse.map(async (response) => {
+          const decryptedAccountName = await SDK.Encryption.decryptString(
+            response.Data,
+            IDENTITY_TEAM_STORAGE_KEY,
+          );
+          return JSON.parse(decryptedAccountName).n;
+        }),
+      );
+
+      await importWalletWithRecoveryPhrase(
+        IDENTITY_TEAM_SEED_PHRASE,
+        IDENTITY_TEAM_PASSWORD,
+      );
+
+      await WalletView.tapIdenticon();
+      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+      await TestHelpers.delay(4000);
+
+      for (const accountName of decryptedAccountNames) {
+        await Assertions.checkIfVisible(
+          AccountListBottomSheet.getAccountElementByAccountName(accountName),
+        );
+      }
+    });
+  },
+);

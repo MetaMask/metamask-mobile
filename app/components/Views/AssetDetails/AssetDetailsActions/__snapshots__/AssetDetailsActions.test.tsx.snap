@@ -51,7 +51,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
@@ -79,9 +79,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -92,12 +92,12 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         />
@@ -107,12 +107,12 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -159,7 +159,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
@@ -187,9 +187,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -200,12 +200,12 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         />
@@ -215,12 +215,12 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -267,7 +267,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
@@ -295,9 +295,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -308,12 +308,12 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         />
@@ -323,12 +323,12 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -375,7 +375,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
@@ -403,9 +403,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -416,12 +416,12 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         />
@@ -431,12 +431,12 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -481,7 +481,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
@@ -509,9 +509,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -522,12 +522,12 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         />
@@ -537,12 +537,12 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

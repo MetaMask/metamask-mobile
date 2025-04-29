@@ -27,8 +27,8 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
       style={
         [
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "textAlign": "center",
@@ -48,7 +48,7 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
             "fontSize": 14,
           },
           {
-            "color": "#141618",
+            "color": "#121314",
             "marginLeft": 10,
             "marginTop": 2,
           },
@@ -92,8 +92,8 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
       numberOfLines={1}
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 11,
           "fontWeight": "400",
           "lineHeight": 11,

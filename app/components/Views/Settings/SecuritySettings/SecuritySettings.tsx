@@ -332,6 +332,7 @@ const Settings: React.FC = () => {
     if (credentials && credentials.password !== '') {
       storeCredentials(credentials.password, enabled, passwordType);
     } else {
+      setLoading(false);
       navigation.navigate('EnterPasswordSimple', {
         onPasswordSet: (password: string) => {
           storeCredentials(password, enabled, passwordType);

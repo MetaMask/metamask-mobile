@@ -189,33 +189,31 @@ const Tokens = memo(() => {
   );
 
   return (
-    <AssetPollingProvider>
-      <View
-        style={styles.wrapper}
-        testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
-      >
-        <TokenListControlBar goToAddToken={goToAddToken} />
-        {tokensList && (
-          <TokenList
-            tokens={tokensList}
-            refreshing={refreshing}
-            isAddTokenEnabled={isAddTokenEnabled}
-            onRefresh={onRefresh}
-            showRemoveMenu={showRemoveMenu}
-            goToAddToken={goToAddToken}
-            showNetworkBadge={isEvmSelected}
-          />
-        )}
-        <ActionSheet
-          ref={actionSheet as LegacyRef<typeof ActionSheet>}
-          title={strings('wallet.remove_token_title')}
-          options={[strings('wallet.remove'), strings('wallet.cancel')]}
-          cancelButtonIndex={1}
-          destructiveButtonIndex={0}
-          onPress={onActionSheetPress}
+    <View
+      style={styles.wrapper}
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+    >
+      <AssetPollingProvider />
+      <TokenListControlBar goToAddToken={goToAddToken} />
+      {tokensList && (
+        <TokenList
+          tokens={tokensList}
+          refreshing={refreshing}
+          isAddTokenEnabled={isAddTokenEnabled}
+          onRefresh={onRefresh}
+          showRemoveMenu={showRemoveMenu}
+          goToAddToken={goToAddToken}
         />
-      </View>
-    </AssetPollingProvider>
+      )}
+      <ActionSheet
+        ref={actionSheet as LegacyRef<typeof ActionSheet>}
+        title={strings('wallet.remove_token_title')}
+        options={[strings('wallet.remove'), strings('wallet.cancel')]}
+        cancelButtonIndex={1}
+        destructiveButtonIndex={0}
+        onPress={onActionSheetPress}
+      />
+    </View>
   );
 });
 

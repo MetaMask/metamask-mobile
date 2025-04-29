@@ -11,7 +11,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 
-describe(SmokeRamps('On-Ramp Limits'), () => {
+describe(SmokeRamps('Off-Ramp Limits'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
@@ -52,7 +52,9 @@ describe(SmokeRamps('On-Ramp Limits'), () => {
         await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
         await BuildQuoteView.tapKeypadDeleteButton(2);
         await BuildQuoteView.enterAmount('999');
-        await Assertions.checkIfVisible(BuildQuoteView.insufficientBalanceErrorMessage);
+        await Assertions.checkIfVisible(
+          BuildQuoteView.insufficientBalanceErrorMessage,
+        );
         await BuildQuoteView.tapCancelButton();
       },
     );

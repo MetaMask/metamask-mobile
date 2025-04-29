@@ -7,7 +7,7 @@ exports[`PickerBase should render correctly 1`] = `
     {
       "alignItems": "center",
       "backgroundColor": "#ffffff",
-      "borderColor": "#848c96",
+      "borderColor": "#b7bbc8",
       "borderRadius": 4,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -19,7 +19,7 @@ exports[`PickerBase should render correctly 1`] = `
     Test Content
   </Text>
   <SvgMock
-    color="#141618"
+    color="#121314"
     height={20}
     name="ArrowDown"
     style={

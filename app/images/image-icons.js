@@ -18,6 +18,9 @@ import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
 import BASE from './base.png';
+import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
+import XRPLEVM_XRP_TOKEN from './xrp-logo.png';
+
 
 export default {
   PALM,
@@ -42,4 +45,6 @@ export default {
   FOX_LOGO,
   BTC,
   BASE,
+  'MEGAETH-TESTNET': MEGAETH_TESTNET,
+  XRPLEVM_XRP_TOKEN,
 };

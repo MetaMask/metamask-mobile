@@ -13,7 +13,7 @@ exports[`ButtonPrimary render matches latest snapshot 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#0376c9",
+      "backgroundColor": "#4459ff",
       "borderRadius": 20,
       "flexDirection": "row",
       "height": 40,
@@ -40,11 +40,11 @@ exports[`ButtonPrimary render matches latest snapshot 1`] = `
     style={
       {
         "color": "#ffffff",
-        "fontFamily": "EuclidCircularB-Medium",
-        "fontSize": 14,
+        "fontFamily": "CentraNo1-Medium",
+        "fontSize": 16,
         "fontWeight": "500",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >

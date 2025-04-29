@@ -21,7 +21,7 @@ exports[`CopyButton should match snapshot 1`] = `
   testID="copyButtonTestId"
 >
   <SvgMock
-    color="#6a737d"
+    color="#686e7d"
     height={16}
     name="Copy"
     style={

@@ -25,7 +25,7 @@ exports[`TabThumbnail should render correctly 1`] = `
     style={
       [
         {
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 10,
           "borderWidth": 1,
           "elevation": 8,
@@ -36,7 +36,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           "width": 720,
         },
         {
-          "borderColor": "#0376c9",
+          "borderColor": "#4459ff",
           "borderWidth": 5,
         },
       ]
@@ -77,7 +77,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           }
         >
           <SvgMock
-            color="#141618"
+            color="#121314"
             height={20}
             name="Global"
             style={
@@ -94,12 +94,12 @@ exports[`TabThumbnail should render correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 18,
               "fontWeight": "600",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginLeft": 5,
               "marginRight": 40,
               "marginTop": 0,
@@ -123,7 +123,7 @@ exports[`TabThumbnail should render correctly 1`] = `
         onPress={[Function]}
       >
         <SvgMock
-          color="#141618"
+          color="#121314"
           height={20}
           name="Close"
           style={

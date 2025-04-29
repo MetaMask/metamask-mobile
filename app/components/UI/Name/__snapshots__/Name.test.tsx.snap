@@ -7,7 +7,7 @@ exports[`Name recognized address should render image 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "center",
-        "backgroundColor": "#f2f4f6",
+        "backgroundColor": "#f3f5f9",
         "borderRadius": 99,
         "flexDirection": "row",
         "gap": 5,
@@ -22,7 +22,7 @@ exports[`Name recognized address should render image 1`] = `
   <View
     placeholderStyle={
       {
-        "backgroundColor": "#f2f4f6",
+        "backgroundColor": "#f3f5f9",
       }
     }
     useNativeDriver={true}
@@ -74,7 +74,7 @@ exports[`Name recognized address should render image 1`] = `
               "backgroundColor": "#eee",
             },
             {
-              "backgroundColor": "#f2f4f6",
+              "backgroundColor": "#f3f5f9",
             },
           ]
         }
@@ -87,13 +87,13 @@ exports[`Name recognized address should render image 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "flexShrink": 1,
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >
@@ -109,7 +109,7 @@ exports[`Name recognized address should return name 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "center",
-        "backgroundColor": "#f2f4f6",
+        "backgroundColor": "#f3f5f9",
         "borderRadius": 99,
         "flexDirection": "row",
         "gap": 5,
@@ -124,7 +124,7 @@ exports[`Name recognized address should return name 1`] = `
   <View
     placeholderStyle={
       {
-        "backgroundColor": "#f2f4f6",
+        "backgroundColor": "#f3f5f9",
       }
     }
     useNativeDriver={true}
@@ -176,7 +176,7 @@ exports[`Name recognized address should return name 1`] = `
               "backgroundColor": "#eee",
             },
             {
-              "backgroundColor": "#f2f4f6",
+              "backgroundColor": "#f3f5f9",
             },
           ]
         }
@@ -189,13 +189,13 @@ exports[`Name recognized address should return name 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "flexShrink": 1,
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >
@@ -211,7 +211,7 @@ exports[`Name unknown address displays checksummed address 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "center",
-        "backgroundColor": "#f2f4f6",
+        "backgroundColor": "#f3f5f9",
         "borderRadius": 99,
         "flexDirection": "row",
         "gap": 5,
@@ -224,7 +224,7 @@ exports[`Name unknown address displays checksummed address 1`] = `
   }
 >
   <SvgMock
-    color="#141618"
+    color="#121314"
     height={20}
     name="Question"
     style={
@@ -241,13 +241,13 @@ exports[`Name unknown address displays checksummed address 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "flexShrink": 1,
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >

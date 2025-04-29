@@ -6,6 +6,8 @@ import { Hex } from '@metamask/utils';
 
 import Engine from '../../core/Engine';
 import { NetworkClientId } from '@metamask/network-controller';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
+import { store } from '../../store';
 
 export async function addTransaction(
   transaction: TransactionParams,
@@ -62,29 +64,31 @@ export function speedUpTransaction(
   return TransactionController.speedUpTransaction(...args);
 }
 
-export function startIncomingTransactionPolling(
-  ...args: Parameters<
-    BaseTransactionController['startIncomingTransactionPolling']
-  >
-) {
-  const { TransactionController } = Engine.context;
-  return TransactionController.startIncomingTransactionPolling(...args);
+export function startIncomingTransactionPolling() {
+  const isBasicFunctionalityToggleEnabled = selectBasicFunctionalityEnabled(
+    store.getState(),
+  );
+
+  if (isBasicFunctionalityToggleEnabled) {
+    const { TransactionController } = Engine.context;
+    return TransactionController.startIncomingTransactionPolling();
+  }
 }
 
-export function stopIncomingTransactionPolling(
-  ...args: Parameters<
-    BaseTransactionController['stopIncomingTransactionPolling']
-  >
-) {
+export function stopIncomingTransactionPolling() {
   const { TransactionController } = Engine.context;
-  return TransactionController.stopIncomingTransactionPolling(...args);
+  return TransactionController.stopIncomingTransactionPolling();
 }
 
-export function updateIncomingTransactions(
-  ...args: Parameters<BaseTransactionController['updateIncomingTransactions']>
-) {
-  const { TransactionController } = Engine.context;
-  return TransactionController.updateIncomingTransactions(...args);
+export function updateIncomingTransactions() {
+  const isBasicFunctionalityToggleEnabled = selectBasicFunctionalityEnabled(
+    store.getState(),
+  );
+
+  if (isBasicFunctionalityToggleEnabled) {
+    const { TransactionController } = Engine.context;
+    return TransactionController.updateIncomingTransactions();
+  }
 }
 
 export function updateSecurityAlertResponse(

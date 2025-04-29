@@ -10,7 +10,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
   }
 >
   <SvgMock
-    color="#d73847"
+    color="#ca3542"
     height={32}
     name="Warning"
     style={
@@ -44,8 +44,8 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -68,12 +68,12 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >
@@ -100,7 +100,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#4459ff",
           "borderRadius": 24,
           "flexDirection": "row",
           "height": 48,
@@ -115,11 +115,11 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -138,7 +138,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
           "alignItems": "center",
           "alignSelf": "stretch",
           "backgroundColor": "transparent",
-          "borderColor": "#0376c9",
+          "borderColor": "#4459ff",
           "borderRadius": 24,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -153,12 +153,12 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >

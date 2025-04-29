@@ -100,7 +100,7 @@ export const selectNativeTokensAcrossChains = createSelector(
       const nativeChainId = token.chainId as Hex;
       const nativeTokenInfoByChainId =
         nativeTokenBalancesByChainId[nativeChainId];
-      const isETH = ['ETH', 'GOETH', 'SepoliaETH', 'LineaETH'].includes(
+      const isETH = ['ETH', 'GOETH', 'SepoliaETH', 'LineaETH', 'MegaETH'].includes(
         token.nativeCurrency || '',
       );
 

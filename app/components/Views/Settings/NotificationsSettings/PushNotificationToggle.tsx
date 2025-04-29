@@ -10,10 +10,9 @@ import Text, {
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
 import { usePushNotificationSettingsToggle } from './PushNotificationToggle.hooks';
+import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
 
 export const PUSH_NOTIFICATION_TOGGLE_TEST_ID = 'push-notification-toggle';
-export const PUSH_NOTIFICATION_TOGGLE_SWITCH_TEST_ID =
-  'push-notification-toggle--switch';
 
 export const PushNotificationToggle = () => {
   const theme = useTheme();
@@ -41,7 +40,9 @@ export const PushNotificationToggle = () => {
           thumbColor={theme.brandColors.white}
           style={styles.switch}
           ios_backgroundColor={theme.colors.border.muted}
-          testID={PUSH_NOTIFICATION_TOGGLE_SWITCH_TEST_ID}
+          testID={
+            NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE
+          }
         />
       </View>
     </>

@@ -8,7 +8,7 @@ import { View, Text as RNText, ScrollView } from 'react-native';
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import { SnapUIImage } from '../../Snaps/SnapUIImage/SnapUIImage';
 import { SnapAvatar } from '../../Snaps/SnapAvatar/SnapAvatar';
-import AddressElement from '../../../components/Views/confirmations/SendFlow/AddressElement';
+import AddressElement from '../../../components/Views/confirmations/legacy/SendFlow/AddressElement';
 import { Box } from '../Box/Box';
 import { SnapUICard } from '../../Snaps/SnapUICard/SnapUICard';
 import { SnapUILink } from '../../Snaps/SnapUILink/SnapUILink';

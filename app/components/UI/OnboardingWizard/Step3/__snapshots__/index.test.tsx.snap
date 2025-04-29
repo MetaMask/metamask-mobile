@@ -45,7 +45,7 @@ exports[`Step3 should render correctly 1`] = `
           style={
             {
               "backgroundColor": "transparent",
-              "borderBottomColor": "#0376c9",
+              "borderBottomColor": "#4459ff",
               "borderBottomWidth": 12,
               "borderLeftColor": "transparent",
               "borderLeftWidth": 15,
@@ -63,7 +63,7 @@ exports[`Step3 should render correctly 1`] = `
         style={
           [
             {
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 8,
               "padding": 20,
             },
@@ -117,7 +117,7 @@ exports[`Step3 should render correctly 1`] = `
               {
                 "alignSelf": "center",
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 18,
                 "fontWeight": "600",
               }
@@ -168,7 +168,7 @@ exports[`Step3 should render correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "marginBottom": 20,
@@ -200,6 +200,7 @@ exports[`Step3 should render correctly 1`] = `
               style={
                 {
                   "color": "#ffffff",
+                  "fontFamily": "CentraNo1-Book",
                 }
               }
             >
@@ -251,13 +252,13 @@ exports[`Step3 should render correctly 1`] = `
                   null,
                   [
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",
                     },
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                     },
                     undefined,
                   ],

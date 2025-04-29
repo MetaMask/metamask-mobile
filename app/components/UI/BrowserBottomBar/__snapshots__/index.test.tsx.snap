@@ -13,7 +13,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       },
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#BBC0C566",
+        "borderColor": "#b7bbc866",
         "borderTopWidth": 0.5,
         "flex": 0,
         "flexDirection": "row",
@@ -49,7 +49,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
           },
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "height": 24,
               "textAlign": "center",
               "width": 24,
@@ -95,13 +95,13 @@ exports[`BrowserBottomBar should render correctly 1`] = `
           },
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "height": 24,
               "textAlign": "center",
               "width": 24,
             },
             {
-              "color": "#9fa6ae",
+              "color": "#9ca1af",
             },
           ],
           {
@@ -141,7 +141,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
             "fontSize": 24,
           },
           {
-            "color": "#141618",
+            "color": "#121314",
             "height": 24,
             "textAlign": "center",
             "width": 24,
@@ -179,7 +179,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         [
           {
             "alignItems": "center",
-            "borderColor": "#6a737d",
+            "borderColor": "#686e7d",
             "borderRadius": 6,
             "borderWidth": 2,
             "justifyContent": "center",
@@ -196,9 +196,9 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "color": "#6a737d",
+            "color": "#686e7d",
             "flex": 0,
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 15,
             "fontWeight": "400",
             "textAlign": "center",
@@ -235,7 +235,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
             "fontSize": 22,
           },
           {
-            "color": "#141618",
+            "color": "#121314",
             "height": 24,
             "textAlign": "center",
             "width": 24,
@@ -277,7 +277,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
             "fontSize": 22,
           },
           {
-            "color": "#141618",
+            "color": "#121314",
             "height": 24,
             "textAlign": "center",
             "width": 24,

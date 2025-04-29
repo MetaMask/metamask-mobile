@@ -21,7 +21,7 @@ exports[`TransactionHeader render correctly 1`] = `
     <View
       placeholderStyle={
         {
-          "backgroundColor": "#f2f4f6",
+          "backgroundColor": "#f3f5f9",
         }
       }
       useNativeDriver={true}
@@ -67,7 +67,7 @@ exports[`TransactionHeader render correctly 1`] = `
                 "backgroundColor": "#eee",
               },
               {
-                "backgroundColor": "#f2f4f6",
+                "backgroundColor": "#f3f5f9",
               },
             ]
           }
@@ -95,7 +95,7 @@ exports[`TransactionHeader render correctly 1`] = `
             "fontSize": 15,
           },
           {
-            "color": "#141618",
+            "color": "#121314",
             "marginRight": 5,
           },
           {
@@ -112,8 +112,8 @@ exports[`TransactionHeader render correctly 1`] = `
     <Text
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 14,
           "fontWeight": "600",
           "textAlign": "center",
@@ -149,8 +149,8 @@ exports[`TransactionHeader render correctly 1`] = `
     <Text
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 12,
           "fontWeight": "400",
           "padding": 5,

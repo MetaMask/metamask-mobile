@@ -24,7 +24,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
         "alignItems": "center",
         "alignSelf": "flex-start",
         "backgroundColor": "transparent",
-        "borderColor": "#0376c9",
+        "borderColor": "#4459ff",
         "borderRadius": 20,
         "borderWidth": 1,
         "flex": 1,
@@ -40,12 +40,12 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
+          "color": "#4459ff",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -63,7 +63,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#0376c9",
+        "backgroundColor": "#4459ff",
         "borderRadius": 20,
         "flex": 1,
         "flexDirection": "row",
@@ -81,11 +81,11 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       style={
         {
           "color": "#ffffff",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

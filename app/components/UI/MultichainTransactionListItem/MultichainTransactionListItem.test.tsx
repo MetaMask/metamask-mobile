@@ -135,7 +135,9 @@ describe('MultichainTransactionListItem', () => {
       />,
     );
 
-    expect(getByText('swap SOL to USDC')).toBeTruthy();
+    expect(
+      getByText('transactions.swap SOL transactions.to USDC'),
+    ).toBeTruthy();
   });
 
   it('opens transaction details modal when pressed', () => {

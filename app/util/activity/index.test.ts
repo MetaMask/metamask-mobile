@@ -4,13 +4,12 @@ import {
   sortTransactions,
   filterByAddressAndNetwork,
 } from '.';
-import { TX_SUBMITTED } from '../../constants/transaction';
+import { Token } from '../../components/UI/Swaps/utils/token-list-utils';
+import { TX_SUBMITTED, TX_UNAPPROVED } from '../../constants/transaction';
 
 const TEST_ADDRESS_ONE = '0x5a3ca5cd63807ce5e4d7841ab32ce6b6d9bbba2d';
 const TEST_ADDRESS_TWO = '0x202637daaefbd7f131f90338a4a6c69f6cd5ce91';
 const TEST_ADDRESS_THREE = '0xA9d8520b9F2da2A35df109dAeDf047CD7E10309a';
-const UNISWAP_ADDRESS = '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984';
-const MAKER_ADDRESS = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2';
 
 describe('Activity utils :: isFromOrToSelectedAddress', () => {
   const tx = {
@@ -19,6 +18,7 @@ describe('Activity utils :: isFromOrToSelectedAddress', () => {
       to: TEST_ADDRESS_TWO,
     },
   };
+
   it('should return true if the transaction is from the selected address', () => {
     const {
       txParams: { from, to },
@@ -27,6 +27,7 @@ describe('Activity utils :: isFromOrToSelectedAddress', () => {
     const result = isFromOrToSelectedAddress(from, to, selectedAddress);
     expect(result).toEqual(true);
   });
+
   it('should return true if the transaction is to the selected address', () => {
     const {
       txParams: { from, to },
@@ -35,6 +36,7 @@ describe('Activity utils :: isFromOrToSelectedAddress', () => {
     const result = isFromOrToSelectedAddress(from, to, selectedAddress);
     expect(result).toEqual(true);
   });
+
   it('should return false if the transaction is not from nor to the selected address', () => {
     const {
       txParams: { from, to },
@@ -43,6 +45,7 @@ describe('Activity utils :: isFromOrToSelectedAddress', () => {
     const result = isFromOrToSelectedAddress(from, to, selectedAddress);
     expect(result).toEqual(false);
   });
+
   it('should return false if no address is provided', () => {
     const {
       txParams: { from, to },
@@ -58,18 +61,22 @@ describe('Activity utils :: isFromCurrentChain', () => {
     chainId: '4',
     networkID: '4',
   };
-  it('should return true if the chain ids matches', () => {
+
+  it('should return true if the chain ids match', () => {
     expect(isFromCurrentChain(txWithChainId, '4', '4')).toEqual(true);
   });
-  it('should return true if the network ids matches and chain id is missing', () => {
+
+  it('should return true if the network ids match and chain id is missing', () => {
     const txWithoutChainId = {
       networkID: '4',
     };
     expect(isFromCurrentChain(txWithoutChainId, '4', '4')).toEqual(true);
   });
+
   it('should return false if the chain ids do not match', () => {
     expect(isFromCurrentChain(txWithChainId, '1', '1')).toEqual(false);
   });
+
   it('should return false if the network ids do not match and chain id is missing', () => {
     const txWithoutChainId = {
       networkID: '4',
@@ -96,7 +103,7 @@ describe('Activity utils :: sortTransactions', () => {
     expect(sortedTxs).toEqual(expectedSortedTxs);
   });
 
-  it('should return correct data when its already sorted', () => {
+  it('should return correct data when it is already sorted', () => {
     const unsortedTxs = [
       { id: 'a1', time: 1645406937199 },
       { id: 'a2', time: 1645322223255 },
@@ -113,7 +120,7 @@ describe('Activity utils :: sortTransactions', () => {
     expect(sortedTxs).toEqual(expectedSortedTxs);
   });
 
-  it('should return same array if timestamp is equal', () => {
+  it('should return the same array if all timestamps are equal', () => {
     const unsortedTxs = [
       { id: 'a1', time: 1645406937199 },
       { id: 'a2', time: 1645406937199 },
@@ -146,9 +153,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       isTransfer: false,
       transferInformation: undefined,
     };
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tokens: any[] = [];
+    const tokens = [] as Token[];
 
     const result = filterByAddressAndNetwork(
       transaction,
@@ -156,10 +161,12 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       TEST_ADDRESS_ONE,
       chainId,
       chainId,
+      [{ '0x1': true }],
     );
     expect(result).toEqual(true);
   });
-  it('should return true if the transaction meets the condition of address, network, and status and its a transfer transaction from a token contract', () => {
+
+  it('should return true if the transaction meets the condition for a transfer with a matching token', () => {
     const chainId = '1';
     const transaction = {
       chainId,
@@ -181,9 +188,11 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       TEST_ADDRESS_ONE,
       chainId,
       chainId,
+      [{ '0x1': true }],
     );
     expect(result).toEqual(true);
   });
+
   it('should return false if the transaction does not meet the address condition', () => {
     const chainId = '1';
     const transaction = {
@@ -204,9 +213,11 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       TEST_ADDRESS_THREE,
       chainId,
       chainId,
+      [{ '0x1': true }],
     );
     expect(result).toEqual(false);
   });
+
   it('should return false if the transaction does not meet the chain condition', () => {
     const chainId = '1';
     const transaction = {
@@ -227,24 +238,27 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       TEST_ADDRESS_ONE,
       chainId,
       chainId,
+      [{ '0x1': true }],
     );
     expect(result).toEqual(false);
   });
-  it('should return false if the transaction does not meet the token condition', () => {
+
+  it('should return false if the transaction does not meet the token condition for transfers', () => {
     const chainId = '1';
     const transaction = {
-      chainId: '4',
+      chainId,
       status: TX_SUBMITTED,
       txParams: {
         from: TEST_ADDRESS_ONE,
         to: TEST_ADDRESS_TWO,
       },
-      isTransfer: false,
+      isTransfer: true,
       transferInformation: {
-        contractAddress: MAKER_ADDRESS,
+        contractAddress: TEST_ADDRESS_THREE,
       },
     };
-    const tokens = [{ address: UNISWAP_ADDRESS }];
+    // Empty tokens array so matching token is not found.
+    const tokens = [] as Token[];
 
     const result = filterByAddressAndNetwork(
       transaction,
@@ -252,7 +266,60 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       TEST_ADDRESS_ONE,
       chainId,
       chainId,
+      [{ '0x1': true }],
     );
     expect(result).toEqual(false);
+  });
+
+  it('should return false if transaction status is TX_UNAPPROVED', () => {
+    const chainId = '1';
+    const transaction = {
+      chainId,
+      status: TX_UNAPPROVED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    };
+    const tokens = [] as Token[];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      chainId,
+      chainId,
+      [{ '0x1': true }],
+    );
+    expect(result).toEqual(false);
+  });
+
+  it('should return true when tokenNetworkFilter length is not equal to 1 (forcing chain condition to true) even if chain ids do not match', () => {
+    const chainId = '1';
+    const transaction = {
+      chainId: '4', // Different than provided chainId
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    };
+    const tokens = [] as Token[];
+
+    // tokenNetworkFilter array with two items, so Object.keys(tokenNetworkFilter).length === 2
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      chainId,
+      chainId,
+      [{ '0x1': true }, { '0x2': true }],
+    );
+    // Despite chainId mismatch, the condition becomes true
+    expect(result).toEqual(true);
   });
 });

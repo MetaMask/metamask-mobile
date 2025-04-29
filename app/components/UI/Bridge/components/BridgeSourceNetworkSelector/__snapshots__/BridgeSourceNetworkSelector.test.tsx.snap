@@ -324,7 +324,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                         style={
                           [
                             {
-                              "backgroundColor": "#00000099",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -371,7 +371,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#BBC0C566",
+                                "borderColor": "#b7bbc866",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
@@ -379,7 +379,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -409,7 +409,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#BBC0C566",
+                                  "backgroundColor": "#b7bbc866",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -491,9 +491,9 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#141618",
+                                          "color": "#121314",
                                           "flex": 1,
-                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontFamily": "CentraNo1-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "700",
                                           "letterSpacing": 0,
@@ -525,7 +525,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                         testID="bridge-network-selector-close-button"
                                       >
                                         <SvgMock
-                                          color="#141618"
+                                          color="#121314"
                                           height={16}
                                           name="Close"
                                           style={
@@ -584,12 +584,12 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                   style={
                                     {
                                       "backgroundColor": "transparent",
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                   suppressHighlighting={true}
@@ -599,12 +599,12 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#0376c9",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 14,
+                                        "color": "#4459ff",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                       }
                                     }
                                   >
@@ -622,191 +622,6 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                   ]
                                 }
                               >
-                                <TouchableOpacity
-                                  onPress={[Function]}
-                                  testID="chain-0xa"
-                                >
-                                  <View
-                                    accessibilityRole="none"
-                                    accessible={true}
-                                    style={
-                                      {
-                                        "padding": 16,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <TouchableOpacity
-                                        disabled={false}
-                                        onPress={[Function]}
-                                        style={
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "height": 24,
-                                            "opacity": 1,
-                                          }
-                                        }
-                                        testID="checkbox-0xa"
-                                      >
-                                        <View
-                                          accessibilityRole="checkbox"
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "backgroundColor": "#0376c9",
-                                              "borderColor": "#0376c9",
-                                              "borderRadius": 4,
-                                              "borderWidth": 2,
-                                              "height": 20,
-                                              "justifyContent": "center",
-                                              "width": 20,
-                                            }
-                                          }
-                                        >
-                                          <SvgMock
-                                            color="#ffffff"
-                                            height={20}
-                                            name="CheckBold"
-                                            onPress={[Function]}
-                                            style={
-                                              {
-                                                "height": 20,
-                                                "width": 20,
-                                              }
-                                            }
-                                            testID="checkbox-0xa"
-                                            width={20}
-                                          />
-                                        </View>
-                                      </TouchableOpacity>
-                                      <View
-                                        accessible={false}
-                                        style={
-                                          {
-                                            "width": 16,
-                                          }
-                                        }
-                                        testID="listitem-gap"
-                                      />
-                                      <View
-                                        alignItems="center"
-                                        flexDirection="row"
-                                        style={
-                                          [
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            },
-                                            {
-                                              "flex": 1,
-                                            },
-                                          ]
-                                        }
-                                      >
-                                        <View
-                                          alignItems="center"
-                                          flexDirection="row"
-                                          gap={8}
-                                          style={
-                                            [
-                                              {
-                                                "alignItems": "center",
-                                                "flexDirection": "row",
-                                                "gap": 8,
-                                              },
-                                              {
-                                                "flex": 1,
-                                              },
-                                            ]
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "#ffffff",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "overflow": "hidden",
-                                                "width": 32,
-                                              }
-                                            }
-                                          >
-                                            <Image
-                                              onError={[Function]}
-                                              resizeMode="contain"
-                                              source={1}
-                                              style={
-                                                {
-                                                  "height": 32,
-                                                  "width": 32,
-                                                }
-                                              }
-                                              testID="network-avatar-image"
-                                            />
-                                          </View>
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Medium",
-                                                "fontSize": 16,
-                                                "fontWeight": "500",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                              }
-                                            }
-                                          >
-                                            Optimism
-                                          </Text>
-                                        </View>
-                                        <View
-                                          alignItems="flex-end"
-                                          flexDirection="row"
-                                          style={
-                                            [
-                                              {
-                                                "alignItems": "flex-end",
-                                                "flexDirection": "row",
-                                              },
-                                              {
-                                                "flex": 1,
-                                              },
-                                            ]
-                                          }
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#141618",
-                                                "flex": 1,
-                                                "fontFamily": "EuclidCircularB-Medium",
-                                                "fontSize": 16,
-                                                "fontWeight": "500",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            $88000
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </TouchableOpacity>
                                 <TouchableOpacity
                                   onPress={[Function]}
                                   testID="chain-0x1"
@@ -846,8 +661,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                           style={
                                             {
                                               "alignItems": "center",
-                                              "backgroundColor": "#0376c9",
-                                              "borderColor": "#0376c9",
+                                              "backgroundColor": "#4459ff",
+                                              "borderColor": "#4459ff",
                                               "borderRadius": 4,
                                               "borderWidth": 2,
                                               "height": 20,
@@ -943,9 +758,9 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Medium",
-                                                "fontSize": 16,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontSize": 18,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -974,10 +789,10 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
+                                                "color": "#121314",
                                                 "flex": 1,
-                                                "fontFamily": "EuclidCircularB-Medium",
-                                                "fontSize": 16,
+                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontSize": 18,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -985,7 +800,192 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                               }
                                             }
                                           >
-                                            $46000
+                                            $22600
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  onPress={[Function]}
+                                  testID="chain-0xa"
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <TouchableOpacity
+                                        disabled={false}
+                                        onPress={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                            "height": 24,
+                                            "opacity": 1,
+                                          }
+                                        }
+                                        testID="checkbox-0xa"
+                                      >
+                                        <View
+                                          accessibilityRole="checkbox"
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#4459ff",
+                                              "borderColor": "#4459ff",
+                                              "borderRadius": 4,
+                                              "borderWidth": 2,
+                                              "height": 20,
+                                              "justifyContent": "center",
+                                              "width": 20,
+                                            }
+                                          }
+                                        >
+                                          <SvgMock
+                                            color="#ffffff"
+                                            height={20}
+                                            name="CheckBold"
+                                            onPress={[Function]}
+                                            style={
+                                              {
+                                                "height": 20,
+                                                "width": 20,
+                                              }
+                                            }
+                                            testID="checkbox-0xa"
+                                            width={20}
+                                          />
+                                        </View>
+                                      </TouchableOpacity>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        alignItems="center"
+                                        flexDirection="row"
+                                        style={
+                                          [
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                            },
+                                            {
+                                              "flex": 1,
+                                            },
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          alignItems="center"
+                                          flexDirection="row"
+                                          gap={8}
+                                          style={
+                                            [
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                                "gap": 8,
+                                              },
+                                              {
+                                                "flex": 1,
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "backgroundColor": "#ffffff",
+                                                "borderRadius": 8,
+                                                "height": 32,
+                                                "justifyContent": "center",
+                                                "overflow": "hidden",
+                                                "width": 32,
+                                              }
+                                            }
+                                          >
+                                            <Image
+                                              onError={[Function]}
+                                              resizeMode="contain"
+                                              source={1}
+                                              style={
+                                                {
+                                                  "height": 32,
+                                                  "width": 32,
+                                                }
+                                              }
+                                              testID="network-avatar-image"
+                                            />
+                                          </View>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontSize": 18,
+                                                "fontWeight": "500",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            Optimism
+                                          </Text>
+                                        </View>
+                                        <View
+                                          alignItems="flex-end"
+                                          flexDirection="row"
+                                          style={
+                                            [
+                                              {
+                                                "alignItems": "flex-end",
+                                                "flexDirection": "row",
+                                              },
+                                              {
+                                                "flex": 1,
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "flex": 1,
+                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontSize": 18,
+                                                "fontWeight": "500",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                                "textAlign": "right",
+                                              }
+                                            }
+                                          >
+                                            $12000
                                           </Text>
                                         </View>
                                       </View>
@@ -1017,7 +1017,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
                                       "backgroundColor": "transparent",
-                                      "borderColor": "#0376c9",
+                                      "borderColor": "#4459ff",
                                       "borderRadius": 20,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -1032,12 +1032,12 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#0376c9",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 14,
+                                        "color": "#4459ff",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                       }
                                     }
                                   >

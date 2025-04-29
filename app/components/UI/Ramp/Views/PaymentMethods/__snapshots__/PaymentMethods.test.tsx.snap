@@ -130,8 +130,8 @@ exports[`PaymentMethods View renders correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -166,12 +166,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -190,12 +190,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -233,8 +233,8 @@ exports[`PaymentMethods View renders correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -482,14 +482,14 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#848c96",
+                                            "borderColor": "#b7bbc8",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
                                           {
-                                            "borderColor": "#0376c9",
+                                            "borderColor": "#4459ff",
                                           },
                                           {
                                             "padding": 0,
@@ -528,7 +528,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f2f4f6",
+                                                    "backgroundColor": "#f3f5f9",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -547,7 +547,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                       "fontSize": 16,
                                                     },
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                     },
                                                     {
                                                       "fontFamily": "Material Design Icons",
@@ -583,9 +583,9 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                  "fontSize": 16,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -649,7 +649,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#BBC0C566",
+                                                  "backgroundColor": "#b7bbc866",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -661,12 +661,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 22,
                                               }
                                             }
                                           >
@@ -698,12 +698,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -713,12 +713,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -728,12 +728,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -769,7 +769,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#848c96",
+                                            "borderColor": "#b7bbc8",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -813,7 +813,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f2f4f6",
+                                                    "backgroundColor": "#f3f5f9",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -832,7 +832,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                       "fontSize": 16,
                                                     },
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                     },
                                                     {
                                                       "fontFamily": "FontAwesome",
@@ -868,9 +868,9 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                  "fontSize": 16,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -949,7 +949,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#BBC0C566",
+                                                  "backgroundColor": "#b7bbc866",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -961,12 +961,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 22,
                                               }
                                             }
                                           >
@@ -998,12 +998,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -1013,12 +1013,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -1028,12 +1028,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -1071,7 +1071,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#848c96",
+                                            "borderColor": "#b7bbc8",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -1115,7 +1115,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f2f4f6",
+                                                    "backgroundColor": "#f3f5f9",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -1134,7 +1134,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                       "fontSize": 16,
                                                     },
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                     },
                                                     {
                                                       "fontFamily": "Material Icons",
@@ -1170,9 +1170,9 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                  "fontSize": 16,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1251,7 +1251,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#BBC0C566",
+                                                  "backgroundColor": "#b7bbc866",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -1263,12 +1263,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 22,
                                               }
                                             }
                                           >
@@ -1300,12 +1300,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -1315,12 +1315,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -1330,12 +1330,12 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -1392,7 +1392,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                         "padding": 15,
                                       },
                                       {
-                                        "backgroundColor": "#0376c9",
+                                        "backgroundColor": "#4459ff",
                                         "minHeight": 50,
                                       },
                                       undefined,
@@ -1413,7 +1413,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                       null,
                                       [
                                         {
-                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontFamily": "CentraNo1-Bold",
                                           "fontSize": 14,
                                           "fontWeight": "600",
                                           "textAlign": "center",
@@ -1577,8 +1577,8 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -1613,12 +1613,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -1637,12 +1637,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1680,8 +1680,8 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -1929,14 +1929,14 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#848c96",
+                                            "borderColor": "#b7bbc8",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
                                           {
-                                            "borderColor": "#0376c9",
+                                            "borderColor": "#4459ff",
                                           },
                                           {
                                             "padding": 0,
@@ -1975,7 +1975,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f2f4f6",
+                                                    "backgroundColor": "#f3f5f9",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -1994,7 +1994,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                       "fontSize": 16,
                                                     },
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                     },
                                                     {
                                                       "fontFamily": "Material Design Icons",
@@ -2030,9 +2030,9 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                  "fontSize": 16,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2096,7 +2096,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#BBC0C566",
+                                                  "backgroundColor": "#b7bbc866",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -2108,12 +2108,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 22,
                                               }
                                             }
                                           >
@@ -2145,12 +2145,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -2160,12 +2160,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -2175,12 +2175,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -2216,7 +2216,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#848c96",
+                                            "borderColor": "#b7bbc8",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -2260,7 +2260,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f2f4f6",
+                                                    "backgroundColor": "#f3f5f9",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -2279,7 +2279,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                       "fontSize": 16,
                                                     },
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                     },
                                                     {
                                                       "fontFamily": "FontAwesome",
@@ -2315,9 +2315,9 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                  "fontSize": 16,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2396,7 +2396,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#BBC0C566",
+                                                  "backgroundColor": "#b7bbc866",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -2408,12 +2408,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 22,
                                               }
                                             }
                                           >
@@ -2445,12 +2445,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -2460,12 +2460,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -2475,12 +2475,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -2518,7 +2518,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#848c96",
+                                            "borderColor": "#b7bbc8",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -2562,7 +2562,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f2f4f6",
+                                                    "backgroundColor": "#f3f5f9",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -2581,7 +2581,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                       "fontSize": 16,
                                                     },
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                     },
                                                     {
                                                       "fontFamily": "Material Icons",
@@ -2617,9 +2617,9 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                  "fontSize": 16,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2698,7 +2698,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#BBC0C566",
+                                                  "backgroundColor": "#b7bbc866",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -2710,12 +2710,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 22,
                                               }
                                             }
                                           >
@@ -2747,12 +2747,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -2762,12 +2762,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -2777,12 +2777,12 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -2839,7 +2839,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                         "padding": 15,
                                       },
                                       {
-                                        "backgroundColor": "#0376c9",
+                                        "backgroundColor": "#4459ff",
                                         "minHeight": 50,
                                       },
                                       undefined,
@@ -2860,7 +2860,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                       null,
                                       [
                                         {
-                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontFamily": "CentraNo1-Bold",
                                           "fontSize": 14,
                                           "fontWeight": "600",
                                           "textAlign": "center",
@@ -3024,8 +3024,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -3060,12 +3060,12 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -3084,12 +3084,12 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -3127,8 +3127,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -3374,7 +3374,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#848c96",
+                                        "borderColor": "#b7bbc8",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -3417,7 +3417,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                           style={
                                             [
                                               {
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 6,
                                                 "padding": 18,
                                               },
@@ -3447,7 +3447,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                           style={
                                             [
                                               {
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 30,
                                                 "padding": 14,
                                               },
@@ -3495,12 +3495,12 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -3508,7 +3508,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 30,
                                                   "padding": 14,
                                                 },
@@ -3536,7 +3536,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 30,
                                                   "padding": 14,
                                                 },
@@ -3573,7 +3573,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#f2f4f6",
+                                              "backgroundColor": "#f3f5f9",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -3623,7 +3623,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#848c96",
+                                        "borderColor": "#b7bbc8",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -3666,7 +3666,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                           style={
                                             [
                                               {
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 6,
                                                 "padding": 18,
                                               },
@@ -3696,7 +3696,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                           style={
                                             [
                                               {
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 30,
                                                 "padding": 14,
                                               },
@@ -3744,12 +3744,12 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -3757,7 +3757,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 30,
                                                   "padding": 14,
                                                 },
@@ -3785,7 +3785,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 30,
                                                   "padding": 14,
                                                 },
@@ -3822,7 +3822,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#f2f4f6",
+                                              "backgroundColor": "#f3f5f9",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -3874,7 +3874,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#848c96",
+                                        "borderColor": "#b7bbc8",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -3917,7 +3917,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                           style={
                                             [
                                               {
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 6,
                                                 "padding": 18,
                                               },
@@ -3947,7 +3947,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                           style={
                                             [
                                               {
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 30,
                                                 "padding": 14,
                                               },
@@ -3995,12 +3995,12 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -4008,7 +4008,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 30,
                                                   "padding": 14,
                                                 },
@@ -4036,7 +4036,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 30,
                                                   "padding": 14,
                                                 },
@@ -4073,7 +4073,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#f2f4f6",
+                                              "backgroundColor": "#f3f5f9",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -4249,8 +4249,8 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -4285,12 +4285,12 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -4309,12 +4309,12 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -4352,8 +4352,8 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -4607,7 +4607,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#0376c9",
+                                          "color": "#4459ff",
                                         },
                                       ],
                                       {
@@ -4633,12 +4633,12 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -4658,8 +4658,8 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -4673,7 +4673,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#6a737d",
+                                        "color": "#686e7d",
                                       },
                                       undefined,
                                       undefined,
@@ -4721,7 +4721,7 @@ If you selected Chile by mistake, click the button below to reset your region.
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376c9",
+                                          "backgroundColor": "#4459ff",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -4742,7 +4742,7 @@ If you selected Chile by mistake, click the button below to reset your region.
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
@@ -4907,8 +4907,8 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -4943,12 +4943,12 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -4967,12 +4967,12 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -5010,8 +5010,8 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -5265,7 +5265,7 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#0376c9",
+                                          "color": "#4459ff",
                                         },
                                       ],
                                       {
@@ -5291,12 +5291,12 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -5316,8 +5316,8 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -5331,7 +5331,7 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#6a737d",
+                                        "color": "#686e7d",
                                       },
                                       undefined,
                                       undefined,
@@ -5379,7 +5379,7 @@ If you selected Chile by mistake, click the button below to reset your region.
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376c9",
+                                          "backgroundColor": "#4459ff",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -5400,7 +5400,7 @@ If you selected Chile by mistake, click the button below to reset your region.
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
@@ -5565,8 +5565,8 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -5601,12 +5601,12 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -5625,12 +5625,12 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -5668,8 +5668,8 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -5923,7 +5923,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#d73847",
+                                          "color": "#ca3542",
                                         },
                                       ],
                                       {
@@ -5949,12 +5949,12 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -5974,8 +5974,8 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -5989,7 +5989,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#6a737d",
+                                        "color": "#686e7d",
                                       },
                                       undefined,
                                       undefined,
@@ -6035,7 +6035,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376c9",
+                                          "backgroundColor": "#4459ff",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -6056,7 +6056,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
@@ -6221,8 +6221,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -6257,12 +6257,12 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -6281,12 +6281,12 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -6324,8 +6324,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -6571,7 +6571,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#848c96",
+                                        "borderColor": "#b7bbc8",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -6614,7 +6614,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                           style={
                                             [
                                               {
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 6,
                                                 "padding": 18,
                                               },
@@ -6644,7 +6644,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                           style={
                                             [
                                               {
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 30,
                                                 "padding": 14,
                                               },
@@ -6692,12 +6692,12 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -6705,7 +6705,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 30,
                                                   "padding": 14,
                                                 },
@@ -6733,7 +6733,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 30,
                                                   "padding": 14,
                                                 },
@@ -6770,7 +6770,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#f2f4f6",
+                                              "backgroundColor": "#f3f5f9",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -6820,7 +6820,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#848c96",
+                                        "borderColor": "#b7bbc8",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -6863,7 +6863,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                           style={
                                             [
                                               {
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 6,
                                                 "padding": 18,
                                               },
@@ -6893,7 +6893,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                           style={
                                             [
                                               {
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 30,
                                                 "padding": 14,
                                               },
@@ -6941,12 +6941,12 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -6954,7 +6954,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 30,
                                                   "padding": 14,
                                                 },
@@ -6982,7 +6982,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 30,
                                                   "padding": 14,
                                                 },
@@ -7019,7 +7019,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#f2f4f6",
+                                              "backgroundColor": "#f3f5f9",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7071,7 +7071,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#848c96",
+                                        "borderColor": "#b7bbc8",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -7114,7 +7114,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                           style={
                                             [
                                               {
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 6,
                                                 "padding": 18,
                                               },
@@ -7144,7 +7144,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                           style={
                                             [
                                               {
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 30,
                                                 "padding": 14,
                                               },
@@ -7192,12 +7192,12 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -7205,7 +7205,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 30,
                                                   "padding": 14,
                                                 },
@@ -7233,7 +7233,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 30,
                                                   "padding": 14,
                                                 },
@@ -7270,7 +7270,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                         style={
                                           [
                                             {
-                                              "backgroundColor": "#f2f4f6",
+                                              "backgroundColor": "#f3f5f9",
                                               "borderRadius": 30,
                                               "padding": 14,
                                             },
@@ -7446,8 +7446,8 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -7482,12 +7482,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -7506,12 +7506,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -7549,8 +7549,8 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -7800,7 +7800,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                       style={
                                         [
                                           {
-                                            "borderColor": "#848c96",
+                                            "borderColor": "#b7bbc8",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -7844,7 +7844,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f2f4f6",
+                                                    "backgroundColor": "#f3f5f9",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -7863,7 +7863,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                       "fontSize": 16,
                                                     },
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                     },
                                                     {
                                                       "fontFamily": "Material Design Icons",
@@ -7899,9 +7899,9 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                  "fontSize": 16,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7965,7 +7965,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#BBC0C566",
+                                                  "backgroundColor": "#b7bbc866",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -7977,12 +7977,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 22,
                                               }
                                             }
                                           >
@@ -8014,12 +8014,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -8029,12 +8029,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -8044,12 +8044,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -8083,14 +8083,14 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                       style={
                                         [
                                           {
-                                            "borderColor": "#848c96",
+                                            "borderColor": "#b7bbc8",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
                                           {
-                                            "borderColor": "#0376c9",
+                                            "borderColor": "#4459ff",
                                           },
                                           {
                                             "padding": 0,
@@ -8129,7 +8129,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f2f4f6",
+                                                    "backgroundColor": "#f3f5f9",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -8148,7 +8148,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                       "fontSize": 16,
                                                     },
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                     },
                                                     {
                                                       "fontFamily": "FontAwesome",
@@ -8184,9 +8184,9 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                  "fontSize": 16,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -8265,7 +8265,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#BBC0C566",
+                                                  "backgroundColor": "#b7bbc866",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -8277,12 +8277,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 22,
                                               }
                                             }
                                           >
@@ -8314,12 +8314,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -8329,12 +8329,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -8344,12 +8344,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -8387,7 +8387,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                       style={
                                         [
                                           {
-                                            "borderColor": "#848c96",
+                                            "borderColor": "#b7bbc8",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -8431,7 +8431,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f2f4f6",
+                                                    "backgroundColor": "#f3f5f9",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -8450,7 +8450,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                       "fontSize": 16,
                                                     },
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                     },
                                                     {
                                                       "fontFamily": "Material Icons",
@@ -8486,9 +8486,9 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                  "fontSize": 16,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -8567,7 +8567,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#BBC0C566",
+                                                  "backgroundColor": "#b7bbc866",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -8579,12 +8579,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 22,
                                               }
                                             }
                                           >
@@ -8616,12 +8616,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -8631,12 +8631,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -8646,12 +8646,12 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -8697,8 +8697,8 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                 style={
                                   [
                                     {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -8712,7 +8712,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                     undefined,
                                     undefined,
                                     {
-                                      "color": "#6a737d",
+                                      "color": "#686e7d",
                                     },
                                     undefined,
                                     undefined,
@@ -8766,7 +8766,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                         "padding": 15,
                                       },
                                       {
-                                        "backgroundColor": "#0376c9",
+                                        "backgroundColor": "#4459ff",
                                         "minHeight": 50,
                                       },
                                       undefined,
@@ -8787,7 +8787,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                       null,
                                       [
                                         {
-                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontFamily": "CentraNo1-Bold",
                                           "fontSize": 14,
                                           "fontWeight": "600",
                                           "textAlign": "center",
@@ -8951,8 +8951,8 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -8987,12 +8987,12 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -9011,12 +9011,12 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -9054,8 +9054,8 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -9309,7 +9309,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#d73847",
+                                          "color": "#ca3542",
                                         },
                                       ],
                                       {
@@ -9335,12 +9335,12 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -9360,8 +9360,8 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -9375,7 +9375,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#6a737d",
+                                        "color": "#686e7d",
                                       },
                                       undefined,
                                       undefined,
@@ -9421,7 +9421,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376c9",
+                                          "backgroundColor": "#4459ff",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -9442,7 +9442,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
@@ -9620,12 +9620,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -9644,12 +9644,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -9687,8 +9687,8 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -9936,14 +9936,14 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                       style={
                                         [
                                           {
-                                            "borderColor": "#848c96",
+                                            "borderColor": "#b7bbc8",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
                                           {
-                                            "borderColor": "#0376c9",
+                                            "borderColor": "#4459ff",
                                           },
                                           {
                                             "padding": 0,
@@ -9982,7 +9982,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f2f4f6",
+                                                    "backgroundColor": "#f3f5f9",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -10001,7 +10001,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                       "fontSize": 16,
                                                     },
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                     },
                                                     {
                                                       "fontFamily": "Material Design Icons",
@@ -10037,9 +10037,9 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                  "fontSize": 16,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -10103,7 +10103,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#BBC0C566",
+                                                  "backgroundColor": "#b7bbc866",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -10115,12 +10115,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 22,
                                               }
                                             }
                                           >
@@ -10152,12 +10152,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -10167,12 +10167,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -10182,12 +10182,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -10223,7 +10223,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                       style={
                                         [
                                           {
-                                            "borderColor": "#848c96",
+                                            "borderColor": "#b7bbc8",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -10267,7 +10267,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f2f4f6",
+                                                    "backgroundColor": "#f3f5f9",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -10286,7 +10286,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                       "fontSize": 16,
                                                     },
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                     },
                                                     {
                                                       "fontFamily": "FontAwesome",
@@ -10322,9 +10322,9 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                  "fontSize": 16,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -10403,7 +10403,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#BBC0C566",
+                                                  "backgroundColor": "#b7bbc866",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -10415,12 +10415,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 22,
                                               }
                                             }
                                           >
@@ -10452,12 +10452,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -10467,12 +10467,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -10482,12 +10482,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -10525,7 +10525,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                       style={
                                         [
                                           {
-                                            "borderColor": "#848c96",
+                                            "borderColor": "#b7bbc8",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -10569,7 +10569,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f2f4f6",
+                                                    "backgroundColor": "#f3f5f9",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -10588,7 +10588,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                       "fontSize": 16,
                                                     },
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                     },
                                                     {
                                                       "fontFamily": "Material Icons",
@@ -10624,9 +10624,9 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                  "fontSize": 16,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 18,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -10705,7 +10705,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#BBC0C566",
+                                                  "backgroundColor": "#b7bbc866",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -10717,12 +10717,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 22,
                                               }
                                             }
                                           >
@@ -10754,12 +10754,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -10769,12 +10769,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -10784,12 +10784,12 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#9fa6ae",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#9ca1af",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -10846,7 +10846,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                         "padding": 15,
                                       },
                                       {
-                                        "backgroundColor": "#0376c9",
+                                        "backgroundColor": "#4459ff",
                                         "minHeight": 50,
                                       },
                                       undefined,
@@ -10867,7 +10867,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                       null,
                                       [
                                         {
-                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontFamily": "CentraNo1-Bold",
                                           "fontSize": 14,
                                           "fontWeight": "600",
                                           "textAlign": "center",

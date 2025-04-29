@@ -11,9 +11,10 @@ import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../../co
 import Accordion, { AccordionHeaderHorizontalAlignment } from '../../../../../../component-library/components/Accordions/Accordion';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
-import BlockaidBannerLink from '../../BlockaidBanner/BlockaidBannerLink';
-import { FALSE_POSITIVE_REPOST_LINE_TEST_ID, REASON_DESCRIPTION_I18N_KEY_MAP } from '../../BlockaidBanner/BlockaidBanner.constants';
-import { Reason, SecurityAlertResponse } from '../../BlockaidBanner/BlockaidBanner.types';
+// TODO: Remove legacy import
+import BlockaidBannerLink from '../../../legacy/components/BlockaidBanner/BlockaidBannerLink';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID, REASON_DESCRIPTION_I18N_KEY_MAP } from '../../../legacy/components/BlockaidBanner/BlockaidBanner.constants';
+import { Reason, SecurityAlertResponse } from '../../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './BlockaidAlertContent.styles';
 
 interface BlockaidAlertContentProps {

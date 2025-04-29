@@ -87,7 +87,6 @@ const persistTransform = createTransform(
       tokens,
       tokensLastFetched,
       topAssets,
-      topAssetsLastFetched,
       ...persistedSwapsController
     } = SwapsController;
 

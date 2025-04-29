@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import BlockaidAlertContent from './BlockaidAlertContent';
-import { SecurityAlertResponse, Reason } from '../../BlockaidBanner/BlockaidBanner.types';
+// TODO: Remove legacy import
+import { SecurityAlertResponse, Reason } from '../../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { deflate } from 'react-native-gzip';
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../../util/networks';
 import BlockaidVersionInfo from '../../../../../../lib/ppom/blockaid-version';

@@ -104,6 +104,7 @@ describe('container', () => {
             "props": {
               "isSnapAction": false,
               "onCancel": [MockFunction],
+              "variant": "Secondary",
             },
           },
           "element": "Box",

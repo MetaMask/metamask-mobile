@@ -18,7 +18,7 @@ const MockText = Text;
 jest.mock('./QRInfo', () => () => <MockText>QR Scanning Component</MockText>);
 
 jest.mock('../../../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     KeyringController: {
       state: {

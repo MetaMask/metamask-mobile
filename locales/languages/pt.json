@@ -1,4 +1,34 @@
 {
+  "alert_system": {
+    "alert_modal": {
+      "title": "Alerta",
+      "checkbox_label": "Reconheço o risco e ainda quero prosseguir",
+      "got_it_btn": "Entendi",
+      "alert_details": "Detalhes do alerta"
+    },
+    "confirm_modal": {
+      "title": "Solicitação de alto risco",
+      "checkbox_label": "Reconheço o alerta e ainda quero prosseguir",
+      "review_alerts": "Revisar todos os alertas",
+      "message": "É recomendável que você recuse essa solicitação. Se continuar, você poderá colocar seus ativos em risco.",
+      "title_blockaid": "Seus ativos podem estar em risco",
+      "blockaid": {
+        "message": "Se você confirmar essa solicitação, poderá perder seus ativos. Recomendamos que você cancele essa solicitação.",
+        "message1": "Se você confirmar essa solicitação, estará permitindo que um golpista saque e gaste seus ativos. Você não os receberá de volta.",
+        "message2": "Você está enviando seus ativos para um golpista. Se você continuar, perderá esses ativos.",
+        "message3": "Se você continuar, todos os ativos que você listou na OpenSea podem estar em risco.",
+        "message4": "Se você continuar, todos os ativos que você listou na Blur podem estar em risco.",
+        "message5": "Você está interagindo com um site mal-intencionado. Se você continuar, perderá seus ativos."
+      }
+    },
+    "inline_alert_label": "Alerta",
+    "review_alerts": "Revisar alertas",
+    "review_alert": "Revisar alerta",
+    "domain_mismatch": {
+      "title": "Solicitação de entrada suspeita",
+      "message": "O site solicitante não é o site em que você está fazendo login. Isso pode ser uma tentativa de roubar suas credenciais de login."
+    }
+  },
   "blockaid_banner": {
     "approval_farming_description": "Se você aprovar essa solicitação, algum terceiro conhecido por aplicar golpes poderá tomar todos os seus ativos.",
     "blur_farming_description": "Se você aprovar essa solicitação, alguém poderá roubar seus ativos listados na Blur.",
@@ -382,32 +412,35 @@
     "description": "Agora oferecemos suporte a várias RPCs para uma única rede. Sua RPC mais recente foi selecionada como a padrão para resolução de informações conflitantes",
     "accept": "Aceitar"
   },
-  "nft_details": {
-    "bought_for": "Comprado por",
-    "highest_floor_price": "Maior preço mínimo",
-    "data_unavailable": "dados não disponíveis",
-    "price_unavailable": "preço não disponível",
-    "rank": "Classificação",
-    "contract_address": "Endereço do contrato",
-    "token_id": "ID do token",
-    "token_symbol": "Símbolo do token",
-    "token_standard": "Padrão de token",
-    "date_created": "Data de criação",
-    "unique_token_holders": "Titulares únicos de tokens",
-    "tokens_in_collection": "Tokens na coleção",
-    "creator_address": "Endereço do criador",
-    "last_sold": "Última venda",
-    "highest_current_bid": "Maior lance atual",
-    "options": {
-      "view_on_os": "Ver no OpenSea",
-      "remove_nft": "Remover NFT"
-    },
-    "attributes": "Atributos",
-    "disclaimer": "Aviso legal: a MetaMask obtém o arquivo de mídia do URL de origem. Esse URL às vezes é alterado pelo marketplace onde o NFT foi mintado."
-  },
   "qr_tab_switcher": {
     "scanner_tab": "Escanear código QR",
     "receive_tab": "Seu código QR"
+  },
+  "banner": {
+    "bridge": {
+      "title": "Pronto para fazer a ponte?",
+      "subtitle": "Transite entre 9 blockchains, todas dentro da sua carteira"
+    },
+    "card": {
+      "title": "Cartão MetaMask",
+      "subtitle": "Disponível em regiões selecionadas"
+    },
+    "fund": {
+      "title": "Deposite fundos em sua carteira",
+      "subtitle": "Adicione ou transfira tokens para começar"
+    },
+    "cashout": {
+      "title": "Saque com a MetaMask",
+      "subtitle": "Venda seus criptoativos por dinheiro"
+    },
+    "aggregated": {
+      "title": "Seu saldo é agregado",
+      "subtitle": "Controle a visualização do seu saldo nas configurações"
+    },
+    "multisrp": {
+      "title": "Add multiple Secret Recovery Phrases",
+      "subtitle": "Import and use multiple wallets in MetaMask"
+    }
   },
   "wallet": {
     "title": "Carteira",
@@ -524,6 +557,29 @@
       "token_details": "Detalhes do token",
       "remove_token": "Remover token"
     }
+  },
+  "nft_details": {
+    "bought_for": "Comprado por",
+    "highest_floor_price": "Maior preço mínimo",
+    "data_unavailable": "dados não disponíveis",
+    "price_unavailable": "preço não disponível",
+    "rank": "Classificação",
+    "contract_address": "Endereço do contrato",
+    "token_id": "ID do token",
+    "token_symbol": "Símbolo do token",
+    "token_standard": "Padrão de token",
+    "date_created": "Data de criação",
+    "unique_token_holders": "Titulares únicos de tokens",
+    "tokens_in_collection": "Tokens na coleção",
+    "creator_address": "Endereço do criador",
+    "last_sold": "Última venda",
+    "highest_current_bid": "Maior lance atual",
+    "options": {
+      "view_on_os": "Ver no OpenSea",
+      "remove_nft": "Remover NFT"
+    },
+    "attributes": "Atributos",
+    "disclaimer": "Aviso legal: a MetaMask obtém o arquivo de mídia do URL de origem. Esse URL às vezes é alterado pelo marketplace onde o NFT foi mintado."
   },
   "activity_view": {
     "title": "Atividade"
@@ -693,6 +749,7 @@
     "select_accounts_description": "Selecione as contas para usar nesse site:",
     "connect_multiple_accounts": "Conectar múltiplas contas",
     "connect_more_accounts": "Conectar mais contas",
+    "add": "Adicionar",
     "cancel": "Cancelar",
     "connect": "Conectar",
     "connect_with_count": "Conectar{{countLabel}}",
@@ -720,13 +777,21 @@
     "potential_threat": "Ameaças potenciais incluem",
     "fake_metamask": "Versões falsas da MetaMask",
     "srp_theft": "Roubo da Frase de Recuperação Secreta ou senha",
-    "malicious_transactions": "Transações mal-intencionadas que resultam no roubo de ativos"
+    "malicious_transactions": "Transações mal-intencionadas que resultam no roubo de ativos",
+    "secret_recovery_phrase": "Frase de recuperação secreta",
+    "account_name": "Nome da conta",
+    "select_secret_recovery_phrase": "Selecionar frase de recuperação secreta",
+    "reveal_secret_recovery_phrase": "Revelar frase de recuperação secreta",
+    "add_new_hd_account_helper_text": "A frase de recuperação secreta de sua nova conta será gerada de",
+    "accounts": "contas",
+    "show_accounts": "Exibir",
+    "hide_accounts": "Ocultar"
   },
   "toast": {
     "connected_and_active": "conectada e ativa.",
     "now_active": "agora ativa.",
     "network_added": "foi adicionada com sucesso",
-    "network_removed": "foi removido com sucesso",
+    "network_removed": "foi removida com sucesso",
     "network_deleted": "foi excluída com sucesso",
     "network_permissions_updated": "Permissões de rede atualizadas",
     "revoked": "revogada.",
@@ -773,7 +838,8 @@
   },
   "app_settings": {
     "enabling_notifications": "Ativando notificações...",
-    "disabling_notifications": "Desativando notificações...",
+    "updating_notifications": "Atualizando notificações...",
+    "updating_account_settings": "Atualizando configurações da conta...",
     "reset_notifications_title": "Redefinir notificações",
     "reset_notifications_description": "Redefinir as notificações significa que você está excluindo suas chaves de armazenamento de notificações e redefinindo todo o seu histórico de notificações. Tem certeza de que deseja fazer isso?",
     "reset_notifications": "Redefinir notificações",
@@ -864,6 +930,7 @@
     "notifications_title": "Notificações",
     "notifications_desc": "Gerencie suas notificações",
     "allow_notifications": "Permitir notificações",
+    "enable_push_notifications": "Ativar notificações push",
     "allow_notifications_desc": "Fique por dentro do que acontece na sua carteira com as notificações. Para fazer isso, usamos um perfil para sincronizar algumas configurações entre seus dispositivos.",
     "notifications_opts": {
       "customize_session_title": "Personalize suas notificações",
@@ -899,9 +966,11 @@
     "networks_desc": "Adicione e edite redes RPC personalizadas",
     "network_name_label": "Nome da rede",
     "network_name_placeholder": "Nome da rede (opcional)",
-    "network_rpc_url_label": "URL da RPC",
+    "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "Nome da RPC",
     "network_rpc_placeholder": "Nova rede RPC",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "ID da cadeia",
     "network_chain_id_placeholder": "ID da cadeia",
     "network_symbol_label": "Símbolo",
@@ -918,6 +987,7 @@
     "remove_network": "Remover",
     "cancel_remove_network": "Cancelar",
     "info_title": "Sobre a MetaMask",
+    "info_title_beta": "Sobre o beta da MetaMask",
     "info_title_flask": "Sobre o MetaMask Flask",
     "experimental_title": "Experimental",
     "experimental_desc": "WalletConnect e mais...",
@@ -1118,6 +1188,7 @@
     "security_alerts": "Alertas de segurança",
     "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor.",
     "smart_transactions_opt_in_heading": "Transações inteligentes",
+    "smart_transactions_opt_in_desc_supported_networks": "Ative as transações inteligentes para fazer transações mais confiáveis e seguras nas redes suportadas.",
     "smart_transactions_learn_more": "Saiba mais.",
     "simulation_details": "Estimar alterações de saldo",
     "simulation_details_description": "Ative esta opção para estimar as alterações de saldo pelas transações antes de confirmá-las. Isso não garante o resultado de suas transações. ",
@@ -1280,8 +1351,8 @@
       "swap": "Não há suporte para swaps nesta conta",
       "bridge": "Não há suporte para pontes nesta conta",
       "send": "Não há suporte para envios nesta conta",
-      "earn": "Não há suporte para ganhos nesta conta",
-      "action": "Não há suporte para esta ação nesta conta"
+      "action": "Não há suporte para esta ação nesta conta",
+      "earn": "Não há suporte para ganhos nesta conta"
     },
     "description": "Descrição",
     "totalSupply": "Emissão total",
@@ -1617,6 +1688,9 @@
     "tabs_done": "Concluído",
     "no_tabs_title": "Nenhuma guia aberta",
     "no_tabs_desc": "Para navegar pela web descentralizada, adicione uma nova guia",
+    "got_it": "Entendi",
+    "max_tabs_title": "Máximo de guias atingido",
+    "max_tabs_desc": "Atualmente, há suporte para apenas 5 guias abertas ao mesmo tempo. Feche as guias abertas antes de adicionar outras.",
     "failed_to_resolve_ens_name": "Não foi possível resolver o nome ENS",
     "remove_bookmark_title": "Remover dos favoritos",
     "remove_bookmark_msg": "Tem certeza de que deseja remover este site dos favoritos?",
@@ -1682,6 +1756,9 @@
     "sent_collectible": "Enviar colecionável",
     "sent": "Enviados",
     "received": "Recebidos",
+    "receive": "Receber",
+    "swap": "Trocar",
+    "send": "Enviar",
     "contract_deploy": "Implementação do contrato",
     "to_contract": "Novo contrato",
     "tx_details_free": "Gratuito",
@@ -1705,6 +1782,7 @@
     "gas_price": "Preço do gás (GWEI)",
     "base_fee": "Taxa-base (GWEI)",
     "priority_fee": "Taxa de prioridade (GWEI)",
+    "multichain_priority_fee": "Taxa de prioridade",
     "max_fee": "Taxa máxima por gás",
     "total": "Total",
     "view_on": "VER EM",
@@ -1728,7 +1806,9 @@
     "sign_description_1": "Depois de assinar com sua carteira de hardware,",
     "sign_description_2": "toque em Obter assinatura",
     "sign_get_signature": "Obter assinatura",
-    "network_fee": "Taxa de rede"
+    "transaction_id": "ID da transação",
+    "network_fee": "Taxa de rede",
+    "network_fee_tooltip": "Valor pago para processar a transação na rede."
   },
   "smart_transactions": {
     "status_submitting_header": "Enviando sua transação",
@@ -1840,6 +1920,7 @@
     "you_can": "Ou você pode",
     "add_network": "adicionar mais redes manualmente.",
     "add_specific_network": "Adicionar {{network_name}}",
+    "update_network": "Atualizar {{network_name}}",
     "select_network": "Selecione uma rede",
     "enabled_networks": "Redes habilitadas",
     "additional_networks": "Redes adicionais",
@@ -1875,7 +1956,8 @@
     "this_site_cant": "Este site não pode ser usado com a sua rede atual. Adicione permissões de rede ou escolha uma rede já permitida.",
     "non_permitted_network_description": "Este site não pode ser usado com a sua rede atual. Adicione permissões de rede ou escolha uma rede já permitida.",
     "edit_permissions": "Editar permissões",
-    "permitted_networks_info_sheet_description": "Esta é uma lista de redes às quais você já concedeu permissões para uso neste site. Selecione uma rede na lista ou edite as permissões de rede para este site."
+    "permitted_networks_info_sheet_description": "Esta é uma lista de redes às quais você já concedeu permissões para uso neste site. Selecione uma rede na lista ou edite as permissões de rede para este site.",
+    "connect_an_account": "Conectar uma conta"
   },
   "select": {
     "cancel": "Cancelar",
@@ -1966,6 +2048,31 @@
     "title": "Conta importada com sucesso!",
     "description_one": "Agora você poderá ver sua conta na MetaMask."
   },
+  "import_new_secret_recovery_phrase": {
+    "title": "Importar frase de recuperação secreta",
+    "description": "Insira sua frase de recuperação secreta. Você pode importar qualquer frase de recuperação secreta do Ethereum, Solana ou Bitcoin.",
+    "subtitle": "Cole sua frase de recuperação secreta",
+    "cta_text": "Continuar",
+    "paste": "Colar",
+    "clear": "Limpar tudo",
+    "srp_number_of_words_option_title": "Número de palavras",
+    "12_word_option": "Tenho uma frase de 12 palavras",
+    "24_word_option": "Tenho uma frase de 24 palavras",
+    "error_title": "Algo deu errado",
+    "error_message": "Não foi possível importar a frase de recuperação secreta. Certifique-se de que você a inseriu corretamente.",
+    "error_empty_message": "Você precisa inserir sua frase de recuperação secreta.",
+    "error_number_of_words_error_message": "As frases de recuperação secretas contêm 12 ou 24 palavras",
+    "error_srp_is_case_sensitive": "Entrada inválida! A frase de recuperação secreta diferencia maiúsculas e minúsculas.",
+    "error_srp_word_error_1": "A palavra ",
+    "error_srp_word_error_2": " está incorreta ou contém erros de ortografia.",
+    "error_multiple_srp_word_error_1": "As palavras ",
+    "error_multiple_srp_word_error_2": " e ",
+    "error_multiple_srp_word_error_3": " estão incorretas ou contêm erros de ortografia.",
+    "error_invalid_srp": "Frase de recuperação secreta inválida",
+    "error_duplicate_srp": "Essa Frase de Recuperação Secreta já foi importada.",
+    "success_1": "Frase de recuperação secreta",
+    "success_2": "importada"
+  },
   "first_incoming_transaction": {
     "title": "{{asset}} foi depositado na sua conta",
     "amount": "Valor:",
@@ -1982,7 +2089,8 @@
     "info_text_1": "Reserve alguns instantes para concluir a configuração da sua carteira MetaMask.",
     "info_text_2": "Isso garantirá que somente você poderá acessar seus fundos e permitirá que você recupere a carteira caso perca seu dispositivo",
     "cta_text": "Criar senha",
-    "creating_password": "Criando senha..."
+    "creating_password": "Criando senha...",
+    "srp_list_selection": "Select Secret Recovery Phrase"
   },
   "account_backup_step_1": {
     "remind_me_later": "Lembre-me mais tarde",
@@ -2136,7 +2244,15 @@
     "continue_on_your_own": "prosseguindo por sua conta e risco.",
     "file_an_issue_intro": "Caso acredite que esse domínio foi listado incorretamente ou acredita que um site legítimo bloqueado já resolveu seus problemas de segurança, ",
     "file_an_issue": "envie um relato de problema.",
-    "back_to_safety": "Voltar para a segurança"
+    "back_to_safety": "Voltar para a segurança",
+    "site_might_be_harmful": "Esse site pode ser prejudicial",
+    "metamask_flagged_site": "A MetaMask sinalizou o site que você está tentando visitar como potencialmente enganoso. Invasores podem induzir você a fazer algo perigoso por engano.",
+    "you_may_proceed_anyway": "Você também pode",
+    "proceed_anyway": "prosseguir mesmo assim",
+    "but_please_do_so_at_your_own_risk": "mas se fizer isso, será por sua conta e risco.",
+    "report_detection_problem": "Informar um problema de detecção",
+    "share_on_twitter": "Se você achou isso útil, compartilhe no X!",
+    "share_text": "A MetaMask me protegeu de visitar um site potencialmente prejudicial: {{url}}. Fique seguro!"
   },
   "notifications": {
     "timeout": "Tempo esgotado",
@@ -2227,7 +2343,7 @@
     "lido_stake_completed_title": "Staking concluído",
     "lido_withdrawal_requested_title": "Saque solicitado",
     "lido_withdrawal_completed_title": "Saque concluído",
-    "lido_stake_ready_to_be_withdrawn_title": "Staking pronto para ser sacado ",
+    "lido_stake_ready_to_be_withdrawn_title": "Staking pronto para saque",
     "erc721_sent_title": "NFT enviado",
     "erc721_received_title": "NFT recebido",
     "erc1155_sent_title": "NFT enviado",
@@ -2261,36 +2377,30 @@
     "lido_withdrawal_completed_message": "Retirada de staking concluída",
     "lido_stake_ready_to_be_withdrawn_message": "Saque solicitado",
     "push_notification_content": {
+      "funds_sent_title": "Fundos enviados",
+      "funds_sent_description": "Você enviou {{amount}} {{symbol}} com sucesso",
+      "funds_sent_default_description": "Você enviou alguns tokens com sucesso",
+      "funds_received_title": "Fundos recebidos",
+      "funds_received_description": "Você recebeu {{amount}} {{symbol}}",
+      "funds_received_default_description": "Você recebeu alguns tokens",
       "metamask_swap_completed_title": "Troca concluída",
       "metamask_swap_completed_description": "Sua troca na MetaMask foi bem-sucedida",
-      "erc20_sent_title": "Fundos enviados",
-      "erc20_sent_description": "Você enviou {{amount}} {{token}} com sucesso",
-      "erc20_received_title": "Fundos recebidos",
-      "erc20_received_description": "Você recebeu {{amount}} {{token}}",
-      "eth_sent_title": "Fundos enviados",
-      "eth_sent_description": "Você enviou {{amount}} ETH com sucesso",
-      "eth_received_title": "Fundos recebidos",
-      "eth_received_description": "Você recebeu {{amount}} {{token}}",
+      "nft_sent_title": "NFT enviado",
+      "nft_sent_description": "Você enviou um NFT com sucesso",
+      "nft_received_title": "NFT recebido",
+      "nft_received_description": "Você recebeu novos NFTs",
       "rocketpool_stake_completed_title": "Staking concluído",
       "rocketpool_stake_completed_description": "Seu staking no RocketPool foi bem-sucedido",
       "rocketpool_unstake_completed_title": "Retirada de staking concluída",
       "rocketpool_unstake_completed_description": "Sua retirada de staking no RocketPool foi bem-sucedida",
       "lido_stake_completed_title": "Staking concluído",
       "lido_stake_completed_description": "Seu staking no Lido foi bem-sucedido",
+      "lido_stake_ready_to_be_withdrawn_title": "Staking pronto para saque",
+      "lido_stake_ready_to_be_withdrawn_description": "Seu staking no Lido já está pronto para ser sacado",
       "lido_withdrawal_requested_title": "Saque solicitado",
       "lido_withdrawal_requested_description": "Sua solicitação de saque no Lido foi enviada",
       "lido_withdrawal_completed_title": "Saque concluído",
-      "lido_withdrawal_completed_description": "Seu saque no Lido foi bem-sucedido",
-      "lido_stake_ready_to_be_withdrawn_title": "Staking pronto para ser sacado ",
-      "lido_stake_ready_to_be_withdrawn_description": "Seu staking no Lido já está pronto para ser sacado",
-      "erc721_sent_title": "NFT enviado",
-      "erc721_sent_description": "Você enviou um NFT com sucesso",
-      "erc721_received_title": "NFT recebido",
-      "erc721_received_description": "Você recebeu um novo NFT",
-      "erc1155_sent_title": "NFT enviado",
-      "erc1155_sent_description": "Você enviou um NFT com sucesso",
-      "erc1155_received_title": "NFT recebido",
-      "erc1155_received_description": "Você recebeu um novo NFT"
+      "lido_withdrawal_completed_description": "Seu saque no Lido foi bem-sucedido"
     },
     "prompt_title": "Receber notificações push",
     "notifications_enabled_error_title": "Algo deu errado",
@@ -2588,6 +2698,8 @@
     "one_more_option": "Mais 1 opção",
     "more_options": "Outras {{count}} opções",
     "previously_used": "Usado anteriormente",
+    "best_rate": "Melhor taxa",
+    "most_reliable": "Mais confiável",
     "quotes_timeout": "Cotações expiradas",
     "request_new_quotes": "Solicite novas cotações para obter a melhor taxa mais recente.",
     "terms_of_service": "Termos de Serviço",
@@ -2602,6 +2714,7 @@
     "done": "Concluído",
     "fetching_quotes": "Obtendo cotações",
     "select_a_quote": "Selecione uma cotação",
+    "recommended_quote": "Cotação recomendada",
     "select_a_cryptocurrency": "Selecione uma criptomoeda",
     "select_a_cryptocurrency_description": "Selecione na lista de tokens disponíveis na {{network}}.",
     "search_by_cryptocurrency": "Pesquisar por criptomoeda",
@@ -2618,6 +2731,7 @@
     "minimum": "O depósito mínimo é de",
     "maximum": "O depósito máximo é de",
     "insufficient_balance": "Esse valor é superior ao seu saldo",
+    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
     "enter_larger_amount": "Insira um valor maior para continuar",
     "enter_smaller_amount": "Insira um valor menor para continuar",
     "enter_lower_gas_fees": "Insira um valor menor para pagar as taxas de gás",
@@ -2764,7 +2878,7 @@
     "token_to_verify": "para confirmar que esse é o token que você está procurando.",
     "continue": "Continuar",
     "select_a_token": "Selecionar um token",
-    "search_token": "Pesquisar um token",
+    "search_token": "Insira o nome do token ou cole o endereço",
     "no_tokens_result": "Nenhum token corresponde a “{{searchString}}”",
     "find_token_address": "Encontrar endereço do token",
     "cant_find_token": "Não consegue encontrar um token?",
@@ -2816,9 +2930,12 @@
     "n_quotes": "{{numberOfQuotes}} cotações",
     "view_details": "Ver detalhes",
     "estimated_gas_fee": "Taxa de gás estimada",
+    "gas_fee": "Taxa de gás",
+    "included": "incluídas",
     "max_gas_fee": "Taxa de gás máxima",
     "edit": "Editar",
     "quotes_include_fee": "As cotações incluem uma taxa de {{fee}}% da MetaMask",
+    "quotes_include_gas_and_metamask_fee": "A cotação inclui a taxa de gás e uma taxa de {{fee}}% da MetaMask",
     "tap_to_swap": "Toque para trocar",
     "swipe_to_swap": "Deslize para trocar",
     "swipe_to": "Deslize para",
@@ -2888,6 +3005,8 @@
     "high_recommendation": "As trocas são geralmente suscetíveis ao tempo. \"Alta\" ajudará a evitar possíveis perdas devido a mudanças nas condições do mercado.",
     "recommended": "Recomendado",
     "recommended_gas": "Taxa de gás recomendada",
+    "gas_included_tooltip_explanation": "Essa cotação incorpora as taxas de gás ajustando a quantidade de tokens enviada ou recebida. Você poderá receber ETH numa transação separada em sua lista de atividades.",
+    "gas_included_tooltip_explanation_link_text": "Saiba mais sobre as taxas de gás",
     "gas_education_title": "Taxas de gás estimadas",
     "gas_education_1": "As taxas de gás são pagas aos criptomineradores que processam as transações na ",
     "gas_education_2_ethereum": "rede Ethereum.",
@@ -2976,6 +3095,8 @@
     "title_new_network": "Nova rede adicionada",
     "switch_warning": "Isso alternará a rede selecionada dentro da MetaMask para uma rede adicionada anteriormente:",
     "add_network_and_give_dapp_permission_warning": "Você está adicionando esta rede à MetaMask e dando à {{dapp_origin}} permissão para usá-la.",
+    "update_network_and_give_dapp_permission_warning": "Você está atualizando esta rede na MetaMask e dando a {{dapp_origin}} permissão para usá-la.",
+    "request_update_network_url": "{{dapp_origin}} está pedindo para atualizar o URL da sua rede padrão. Você pode editar os padrões e as informações de rede quando quiser.",
     "available": "está disponível agora no seletor de redes.",
     "cancel": "Cancelar",
     "switch": "Alternar rede"
@@ -3138,7 +3259,9 @@
     "enable_token_detection": "Ative a detecção automática de tokens",
     "token_detection_mainnet_title": "Como a detecção de tokens está ativada, os tokens serão automaticamente exibidos em sua carteira.",
     "token_detection_mainnet_link": "Você também pode adicionar tokens manualmente.",
-    "or": "ou"
+    "or": "ou",
+    "non_evm_first_description": "O ativo nativo desta rede é {{ticker}}. Ele é usado para as taxas de transação.",
+    "non_evm_second_description": "Você perderá seus ativos se tentar recebê-los ou enviá-los usando outra rede."
   },
   "download_files": {
     "error": "Falha ao baixar anexo.",
@@ -3356,13 +3479,17 @@
   "account_actions": {
     "edit_name": "Editar nome da conta",
     "add_account_or_hardware_wallet": "Adicionar conta ou carteira de hardware",
-    "add_account": "Adicionar conta",
-    "add_new_account": "Adicionar nova conta",
-    "add_hardware_wallet": "Adicionar carteira de hardware",
-    "import_account": "Importar conta",
-    "add_bitcoin_account_testnet": "Adicionar uma nova conta Bitcoin (testnet)",
-    "add_bitcoin_account_mainnet": "Adicionar uma nova conta Bitcoin (beta)",
-    "add_solana_account": "Adicionar uma nova conta Solana (beta)"
+    "connect_hardware_wallet": "Conectar uma conta",
+    "import_wallet_or_account": "Importar uma carteira ou conta",
+    "add_account": "Criar uma nova conta",
+    "create_an_account": "Criar uma nova conta",
+    "add_new_account": "Conta Ethereum",
+    "import_srp": "Frase de recuperação secreta",
+    "add_hardware_wallet": "Carteira de hardware",
+    "import_account": "Chave privada",
+    "add_bitcoin_account_testnet": "Conta testnet do Bitcoin",
+    "add_bitcoin_account_mainnet": "Conta Bitcoin",
+    "add_solana_account": "Conta Solana"
   },
   "show_nft": {
     "show_nft_title": "Exibir NFT",
@@ -3380,6 +3507,18 @@
     "show_display_nft_media_content_3": "Exibir mídias e dados de NFTs expõe seu endereço IP à OpenSea ou a outros terceiros. A detecção automática de NFTs depende desse recurso e não está disponível se ele for desativado.",
     "show_display_nft_media_content_4": "Você pode desativar Exibir mídias de NFTs em",
     "show_display_nft_media_content_5": "Configurações > Segurança e privacidade."
+  },
+  "solana_new_feature_content": {
+    "title": "Solana na MetaMask",
+    "create_solana_account": "Crie uma conta Solana",
+    "not_now": "Agora não",
+    "got_it": "Entendi",
+    "feature_1_title": "Envie, receba e troque tokens",
+    "feature_1_description": "Transfira e faça transações com tokens como SOL, USDC e muitos outros.",
+    "feature_2_title": "Importe contas Solana",
+    "feature_2_description": "Importe uma Frase de Recuperação Secreta para migrar sua conta Solana a partir de outra carteira.",
+    "feature_3_title": "Mais recursos em breve",
+    "feature_3_description": "Dapps e NFTs Solana, além de suporte à carteira de hardware e muito mais em breve."
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Gateway de IPFS",
@@ -3407,6 +3546,14 @@
     "error_title": "Falha na instalação",
     "error_description": "Ocorreu uma falha na instalação de {{snap}}."
   },
+  "earn": {
+    "empty_state_cta": {
+      "heading": "Empreste {{tokenSymbol}} e ganhe",
+      "body_prefix": "Você pode ganhar até",
+      "body_suffix": "por ano emprestando seu {{tokenSymbol}}.",
+      "start_earning": "Comece a ganhar"
+    }
+  },
   "stake": {
     "stake": "Stake",
     "earn": "Ganhar",
@@ -3425,17 +3572,23 @@
       "stake_annual_rate_tooltip": "Dica de taxa anual"
     },
     "estimated_annual_rewards": "Recompensas anuais estimadas",
+    "estimated_annual_reward": "Recompensa anual estimada",
+    "reward_frequency": "Frequência da recompensa",
+    "reward_frequency_tooltip": "Seu saldo em staking é atualizado a cada {{frequency}} para contabilizar novas recompensas.",
+    "withdrawal_time": "Tempo para sacar",
     "metamask_pool": "Pool da MetaMask",
     "enter_amount": "Insira o valor",
     "review": "Revisar",
     "not_enough_eth": "ETH insuficiente",
+    "not_enough_token": "{{ticker}} insuficiente",
     "balance": "Saldo",
     "stake_eth_and_earn": "Faça staking de ETH e ganhe",
-    "stake_any_amount_of_eth": "Faça staking de qualquer quantia de ETH",
+    "how_it_works": "Como funciona",
+    "stake_any_amount_of_eth": "Faça staking de qualquer quantia de ETH.",
     "no_minimum_required": "Não há um mínimo obrigatório.",
-    "earn_eth_rewards": "Ganhe recompensas em ETH",
+    "earn_eth_rewards": "Ganhe recompensas em ETH.",
     "earn_eth_rewards_description": "Comece a ganhar assim que fizer staking. As recompensas são automáticas e compostas.",
-    "flexible_unstaking": "Retirada flexível de staking",
+    "flexible_unstaking": "Retirada flexível de staking.",
     "flexible_unstaking_description": "Retire do staking quando quiser. Normalmente, leva menos de 3 dias, mas pode levar até 11 dias para processar.",
     "disclaimer": "O staking não garante recompensas e envolve riscos, incluindo perda de fundos.",
     "learn_more": "Saiba mais",
@@ -3475,6 +3628,8 @@
     "unstake_input_banner_description": "Em média, leva menos de 3 dias para o ETH retirado de staking ficar disponível, mas pode levar até 11 dias.",
     "max": "Máx.",
     "staking_from": "Staking de",
+    "advanced_details": "Detalhes avançados",
+    "ethereum_mainnet": "Mainnet da Ethereum",
     "interacting_with": "Interagindo com",
     "12_hours": "12 horas",
     "terms_of_service": "Termos de serviço",
@@ -3486,15 +3641,40 @@
     "you_receive": "Você recebe",
     "up_to_n": "Até {{count}}",
     "unstaking_to": "Retirada de staking para",
+    "claiming_to": "Reivindicação para",
     "max_modal": {
       "title": "Máx.",
-      "description": "Máx. é o valor total de ETH que você tem, menos a taxa de gás necessária para o staking. É uma boa ideia guardar algum ETH extra em sua carteira para futuras transações."
+      "eth": {
+        "description": "Máx. é o montante total de ETH que você tem, menos a taxa de gás necessária para o staking. É aconselhável guardar algum ETH extra em sua carteira para futuras transações."
+      }
     },
     "use_max": "Usar máx.",
     "estimated_unstaking_time": "1 a 11 dias",
     "proceed_anyway": "Prosseguir mesmo assim",
     "gas_cost_impact": "Impacto no custo do gás",
-    "gas_cost_impact_warning": "Aviso: o custo de gás da transação representará mais de 30% do seu depósito."
+    "select_a_token": "Selecione um token",
+    "you_could_earn": "Você pode ganhar",
+    "per_year_on_your_tokens": "por ano com seus tokens",
+    "deposit": "Depositar",
+    "gas_cost_impact_warning": "Aviso: o custo de gás da transação representará mais de {{percentOverDeposit}}% do seu depósito.",
+    "view_earnings_history": "Ver histórico de ganhos",
+    "earnings_history_title": "{{ticker}} ganhos",
+    "earnings_history_list_title": "Histórico de pagamentos",
+    "apr": "ABR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7D",
+        "1M": "1M",
+        "3M": "3M",
+        "6M": "6M"
+      }
+    },
+    "today": "Hoje",
+    "one_week_average": "Média de 1 semana",
+    "one_month_average": "Média de 1 mês",
+    "three_month_average": "Média de 3 meses",
+    "six_month_average": "Média de 6 meses",
+    "one_year_average": "Média de 1 ano"
   },
   "default_settings": {
     "title": "Sua carteira está pronta",
@@ -3576,26 +3756,63 @@
     }
   },
   "confirm": {
-    "reject": "Recusar",
+    "cancel": "Cancelar",
     "confirm": "Confirmar",
+    "staking_footer": {
+      "part1": "Ao continuar, você concorda com os nossos ",
+      "terms_of_use": "Termos de uso",
+      "part2": " e ",
+      "risk_disclosure": "Divulgação de riscos",
+      "part3": "."
+    },
+    "label": {
+      "account": "Conta",
+      "balance": "Saldo",
+      "interacting_with": "Interagindo com",
+      "network": "Rede",
+      "primary_type": "Tipo primário",
+      "request_from": "Solicitação de",
+      "signing_in_with": "Fazendo login com",
+      "spender": "Gastador"
+    },
     "title": {
-      "signature": "Solicitação de assinatura"
+      "signature": "Solicitação de assinatura",
+      "permit": "Solicitação de limite de gastos",
+      "permit_revoke": "Remover permissão",
+      "permit_NFTs": "Solicitação de saque",
+      "signature_siwe": "Solicitação de login"
     },
     "sub_title": {
-      "signature": "Revise os detalhes da solicitação antes de confirmar."
+      "permit": "Este site quer permissão para gastar seus tokens.",
+      "permit_NFTs": "Este site quer permissão para sacar seus NFTs.",
+      "signature": "Revise os detalhes da solicitação antes de confirmar.",
+      "signature_siwe": "Um site deseja que você faça login para comprovar que você é o titular desta conta."
     },
     "request_from": "Solicitação de",
+    "staking_from": "Staking de",
+    "signing_in_with": "Fazendo login com",
     "message": "Mensagem",
-    "primary_type": "Tipo primário",
     "personal_sign_tooltip": "Este site está solicitando sua assinatura",
     "details": "Detalhes",
-    "account": "Conta",
-    "balance": "Saldo",
-    "network": "Rede",
+    "qr_get_sign": "Obter assinatura",
+    "qr_scan_text": "Leia com sua carteira de hardware",
+    "sign_with_ledger": "Assinar com a Ledger",
+    "siwe_message": {
+      "url": "URL",
+      "network": "Rede",
+      "account": "Conta",
+      "version": "Versão",
+      "chain_id": "ID da cadeia",
+      "nonce": "Nonce",
+      "issued": "Emitida",
+      "requestId": "ID da solicitação",
+      "resources": "Recursos"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "O NFT será refletido em sua carteira quando o lance for aceito.",
       "decoded_tooltip_list_nft": "Espere alterações somente se alguém comprar seus NFTs.",
       "info_permit": "Você está autorizando um consumidor a gastar esta quantidade de tokens de sua conta.",
+      "info_revoke": "Você está removendo a permissão de alguém para gastar tokens de sua conta.",
       "label_change_type_bidding": "Seu lance",
       "label_change_type_listing": "Sua lista",
       "label_change_type_nft_listing": "Preço de listagem",
@@ -3610,7 +3827,7 @@
       "unavailable": "Indisponível"
     },
     "unlimited": "Ilimitado",
-    "none": "None"
+    "none": "Nenhum"
   },
   "change_in_simulation_modal": {
     "title": "Os resultados mudaram",
@@ -3623,5 +3840,34 @@
     "input_title": "Nome da conta",
     "add_account_button": "Adicionar conta",
     "name_taken_message": "Este nome de conta já existe"
+  },
+  "smart_transactions_migration": {
+    "title": "As transações acabam de ficar mais inteligentes",
+    "link": "Taxas de sucesso mais altas",
+    "description": " e proteção MEV. Agora ativada por padrão."
+  },
+  "bridge": {
+    "continue": "Continuar",
+    "terms_and_conditions": "Termos e condições",
+    "select_token": "Selecionar token",
+    "select_network": "Selecionar rede",
+    "all_networks": "Todas as redes",
+    "num_networks": "{{numNetworks}} redes",
+    "one_network": "1 rede",
+    "select_all_networks": "Selecionar tudo",
+    "deselect_all_networks": "Desmarcar tudo",
+    "see_all": "Ver tudo",
+    "apply": "Aplicar",
+    "slippage": "Slippage",
+    "slippage_info": "Se entre a realização e a confirmação de sua ordem o preço mudar, teremos o que se chama de “slippage”. Sua troca será automaticamente cancelada se o slippage exceder a tolerância que você definir aqui.",
+    "network_fee": "Taxa de rede",
+    "estimated_time": "Tempo estimado",
+    "quote": "Cotação",
+    "quote_details": "Detalhes da cotação",
+    "price_impact": "Impacto no preço",
+    "time": "Horário",
+    "quote_info_content": "Esta cotação oferece o melhor retorno segundo nossa pesquisa. Ela se baseia na taxa de troca, incluindo taxas de ponte e uma taxa de 0,875% da MetaMask, mas não as taxas de gás. Estas variam conforme a atividade da rede e a complexidade da transação.",
+    "quote_info_title": "Por que recomendamos essa cotação",
+    "see_other_quotes": "Ver outras cotações"
   }
 }

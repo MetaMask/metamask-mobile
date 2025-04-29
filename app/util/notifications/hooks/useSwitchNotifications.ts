@@ -20,6 +20,7 @@ import {
   useListNotifications,
   useEnableNotifications,
   useDisableNotifications,
+  useContiguousLoading,
 } from './useNotifications';
 import { isNotificationsFeatureEnabled } from '../constants';
 import { strings } from '../../../../locales/i18n';
@@ -179,11 +180,16 @@ export function useSwitchNotificationLoadingText(): string | undefined {
     selectIsUpdatingMetamaskNotificationsAccount,
   );
 
+  const loading = useContiguousLoading(
+    notificationsLoading,
+    pushNotificationsLoading,
+  );
+
   if (accountsLoading.length > 0) {
     return strings('app_settings.updating_account_settings');
   }
 
-  if (notificationsLoading || pushNotificationsLoading) {
+  if (notificationsLoading || pushNotificationsLoading || loading) {
     return strings('app_settings.updating_notifications');
   }
 

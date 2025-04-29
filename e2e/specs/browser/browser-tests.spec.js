@@ -85,15 +85,24 @@ describe(SmokeCore('Browser Tests'), () => {
     await TestHelpers.delay(1500);
   });
 
-  it('should test phishing sites', async () => {
-    await Browser.tapBottomSearchBar();
-    // Clear text & Navigate to URL
-    await Browser.navigateToURL(ExternalSites.PHISHING_SITE);
-    await Browser.waitForBrowserPageToLoad();
-    await Assertions.checkIfVisible(Browser.backToSafetyButton);
+  // This is failing on android, because of the OS-level enforced
+  // ERR_CLEARTEXT_NOT_PERMITTED error
+  // We temporarily disable this test for android until we work out a solution
+  // https://consensyssoftware.atlassian.net/browse/IDENTITY-75
 
-    await Browser.tapBackToSafetyButton();
-    // Check that we are on the browser screen
-    await TestHelpers.delay(1500);
-  });
+  const itif = (condition) => (condition ? it : it.skip);
+  itif(device.getPlatform() === 'ios')(
+    'should test phishing sites',
+    async () => {
+      await Browser.tapBottomSearchBar();
+      // Clear text & Navigate to URL
+      await Browser.navigateToURL(ExternalSites.PHISHING_SITE);
+      await Browser.waitForBrowserPageToLoad();
+      await Assertions.checkIfVisible(Browser.backToSafetyButton);
+
+      await Browser.tapBackToSafetyButton();
+      // Check that we are on the browser screen
+      await TestHelpers.delay(1500);
+    },
+  );
 });

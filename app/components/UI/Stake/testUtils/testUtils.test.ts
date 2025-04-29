@@ -21,7 +21,7 @@ describe('Staking Test Utils', () => {
       });
 
       expect(token).toStrictEqual({
-        address: '0xabc',
+        address: token.address,
         aggregators: [],
         balance: '',
         balanceFiat: '',
@@ -48,7 +48,7 @@ describe('Staking Test Utils', () => {
       });
 
       expect(token).toStrictEqual({
-        address: '0xabc',
+        address: token.address,
         aggregators: [],
         balance: '',
         balanceFiat: '',

@@ -95,10 +95,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   const buttonLabel = () => {
     if (loading) {
       return (
-        <ActivityIndicator
-          size="small"
-          color={theme.colors.primary.inverse}
-        />
+        <ActivityIndicator size="small" color={theme.colors.primary.inverse} />
       );
     } else if (isSnapAction && !hideSnapBranding) {
       return (

@@ -3,6 +3,7 @@ import {
   performSignOut,
   disableProfileSyncing,
   enableProfileSyncing,
+  syncInternalAccountsWithUserStorage,
 } from '.';
 import Engine from '../../core/Engine';
 
@@ -16,6 +17,7 @@ jest.mock('../../core/Engine', () => ({
     UserStorageController: {
       enableProfileSyncing: jest.fn(),
       disableProfileSyncing: jest.fn(),
+      syncInternalAccountsWithUserStorage: jest.fn(),
     },
   },
 }));
@@ -72,6 +74,20 @@ describe('Identity actions', () => {
 
     expect(
       Engine.context.UserStorageController.disableProfileSyncing,
+    ).toHaveBeenCalled();
+    expect(result).toBeUndefined();
+  });
+
+  it('syncs internal accounts with user storage', async () => {
+    (
+      Engine.context.UserStorageController
+        .syncInternalAccountsWithUserStorage as jest.Mock
+    ).mockResolvedValue(undefined);
+
+    const result = await syncInternalAccountsWithUserStorage();
+
+    expect(
+      Engine.context.UserStorageController.syncInternalAccountsWithUserStorage,
     ).toHaveBeenCalled();
     expect(result).toBeUndefined();
   });

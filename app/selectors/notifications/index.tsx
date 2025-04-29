@@ -104,3 +104,8 @@ export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
         notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
     ).length,
 );
+export const getValidNotificationAccounts = createSelector(
+  [selectNotificationServicesControllerState],
+  (notificationServicesControllerState: NotificationServicesState) =>
+    notificationServicesControllerState.subscriptionAccountsSeen,
+);

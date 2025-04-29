@@ -1,6 +1,7 @@
 // Third party dependencies.
 import { StyleSheet, TextStyle, Dimensions } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
+import { getFontFamily, TextVariant } from '../../Texts/Text';
 
 const screenHeight = Dimensions.get('window').height;
 /**
@@ -28,6 +29,7 @@ const styleSheet = (params: { theme: Theme }) => {
     headerText: {
       color: colors.text.default,
       ...(typography.sHeadingMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.HeadingMD),
       textAlign: 'center',
       marginBottom: 16,
     },
@@ -41,6 +43,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       color: colors.text.default,
       ...(typography.sBodyMDBold as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMDBold),
     },
     confirmButton: {
       marginTop: 16,
@@ -66,6 +69,7 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
       color: colors.text.alternative,
       ...(typography.sBodySM as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodySM),
     },
   });
 };

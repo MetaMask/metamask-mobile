@@ -10,7 +10,7 @@ import TypedSignV3V4 from './TypedSignV3V4';
 
 jest.mock('../../../../../../../core/Engine', () => ({
   resetState: jest.fn(),
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     KeyringController: {
       state: {

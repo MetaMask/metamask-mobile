@@ -7,6 +7,7 @@ import {
 } from '../../../selectors/accountsController';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
+import { SolScope , EthAccountType, SolAccountType } from '@metamask/keyring-api';
 
 import renderWithProvider, {
   DeepPartial,
@@ -25,7 +26,6 @@ import {
 import Engine from '../../../core/Engine';
 import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
-import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 
 jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
   sendMultichainTransaction: jest.fn(),
@@ -323,6 +323,47 @@ describe('WalletActions', () => {
     expect(mockNavigate).toHaveBeenCalled();
   });
 
+  it('should call the goToBridge function when the Swap button is pressed on Solana mainnet', () => {
+    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
+    (selectChainId as unknown as jest.Mock).mockReturnValue(SolScope.Mainnet);
+
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('BrowserTabHome', {
+      params: {
+        newTabUrl: 'https://bridge.metamask.io/?metamaskEntry=mobile&srcChain=1',
+        timestamp: 123,
+      },
+      screen: 'BrowserView',
+    });
+  });
+
+  it('should call the goToSwaps function when the Swap button is pressed not on Solana testnet', () => {
+    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
+    (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
+      params: {
+        sourcePage: 'MainView',
+        sourceToken: '0x0000000000000000000000000000000000000000',
+      },
+      screen: 'SwapsAmountView',
+    });
+  });
   it('should call the goToBridge function when the Bridge button is pressed', () => {
     (isBridgeAllowed as jest.Mock).mockReturnValue(true);
     const { getByTestId } = renderWithProvider(<WalletActions />, {

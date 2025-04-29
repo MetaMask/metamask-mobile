@@ -4,6 +4,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
 
 const mockInitialState = {
   engine: { backgroundState },
@@ -12,9 +13,11 @@ const mockInitialState = {
   },
 };
 
+const mockUseDispatch = jest.fn();
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useDispatch: () => jest.fn(),
+  useDispatch: () => mockUseDispatch,
   useSelector: jest.fn(),
 }));
 const mockNavigate = jest.fn();
@@ -72,6 +75,26 @@ describe('DeleteWalletModal', () => {
 
     waitFor(() => {
       expect(mockSignOut).toHaveBeenCalled();
+    });
+  });
+
+  it('sets completedOnboarding to false when deleting the wallet', async () => {
+    const { getByTestId } = renderWithProvider(<DeleteWalletModal />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON));
+    fireEvent.press(
+      getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
+    );
+
+    waitFor(() => {
+      expect(mockUseDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: SET_COMPLETED_ONBOARDING,
+          completedOnboarding: false,
+        }),
+      );
     });
   });
 });

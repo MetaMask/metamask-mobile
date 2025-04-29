@@ -28,8 +28,8 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
           onError={[Function]}
           placeholderStyle={
             {
-              "backgroundColor": "#f2f4f6",
-              "borderColor": "#f2f4f6",
+              "backgroundColor": "#f3f5f9",
+              "borderColor": "#f3f5f9",
               "borderRadius": 16,
               "borderWidth": 0.5,
               "height": 32,
@@ -43,7 +43,7 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
           }
           style={
             {
-              "borderColor": "#f2f4f6",
+              "borderColor": "#f3f5f9",
               "borderRadius": 16,
               "borderWidth": 0.5,
               "height": 32,
@@ -80,7 +80,7 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
             {
               "alignItems": "center",
               "aspectRatio": 1,
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderColor": "#ffffff",
               "borderRadius": 9,
               "borderWidth": 1,
@@ -111,7 +111,7 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#0376c9",
+        "backgroundColor": "#4459ff",
         "borderRadius": 2,
         "height": 4,
         "marginLeft": 8,
