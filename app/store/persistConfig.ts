@@ -8,6 +8,7 @@ import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
 import { debounce } from 'lodash';
+import { filterPersistableControllers } from './controllerStateFilter/controllerStateFilter';
 
 const TIMEOUT = 40000;
 const STORAGE_DEBOUNCE_DELAY = 200;
@@ -77,24 +78,15 @@ const persistTransform = createTransform(
       return inboundState;
     }
 
-    const { SwapsController, ...controllers } =
-      inboundState.backgroundState || {};
+    const controllers = inboundState.backgroundState || {};
 
-    const {
-      aggregatorMetadata,
-      aggregatorMetadataLastFetched,
-      chainCache,
-      tokens,
-      tokensLastFetched,
-      topAssets,
-      ...persistedSwapsController
-    } = SwapsController;
+    // Use filterPersistableControllers to filter the controllers
+    const filteredControllers = filterPersistableControllers(controllers);
 
     // Reconstruct data to persist
     const newState = {
       backgroundState: {
-        ...controllers,
-        SwapsController: persistedSwapsController,
+        ...filteredControllers,
       },
     };
     return newState;
