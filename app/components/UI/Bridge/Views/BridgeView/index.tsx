@@ -254,11 +254,6 @@ const BridgeView = () => {
   const handleContinue = async () => {
     if (activeQuote) {
       setIsSubmittingTx(true);
-      // TEMPORARY: If tx originates from Solana, navigate to transactions view BEFORE submitting the tx
-      // Necessary because snaps prevents navigation after tx is submitted
-      if (isSolanaSwap || isSolanaToEvm) {
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      }
       await submitBridgeTx({
         quoteResponse: activeQuote,
       });
