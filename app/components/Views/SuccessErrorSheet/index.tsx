@@ -19,7 +19,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-
+import NavigationServices from '../../../core/NavigationService';
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
   onButtonPress?: () => void;
@@ -51,14 +51,15 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
   const handleCtaActions = () => {
     if (onButtonPress) {
       onButtonPress();
-      type === 'error' && sheetRef.current?.onCloseBottomSheet();
+    }
+    if (type === 'error') {
+      NavigationServices.navigation?.goBack();
     }
   };
 
   const handleClose = () => {
     if (onClose) {
       onClose();
-      sheetRef.current?.onCloseBottomSheet();
     }
   };
 

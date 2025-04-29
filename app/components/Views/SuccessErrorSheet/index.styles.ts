@@ -13,8 +13,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   description: {
-    textAlign: 'left',
-    alignSelf: 'flex-start',
+    textAlign: 'center',
+    alignSelf: 'center',
     width: '100%',
   },
   title: {

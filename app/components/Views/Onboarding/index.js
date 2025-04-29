@@ -56,10 +56,8 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import OAuthLoginService, {
-  OAuthService,
-} from '../../../core/OAuthService/OAuthService';
-import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
+import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -396,6 +394,7 @@ class Onboarding extends PureComponent {
       const result = await OAuthLoginService.handleOAuthLogin('apple').catch(
         (e) => {
           DevLogger.log(e);
+          this.handleLoginError(e);
           return { type: 'error', error: e, existingUser: false };
         },
       );
@@ -408,14 +407,35 @@ class Onboarding extends PureComponent {
     this.props.navigation.navigate('Onboarding');
     const action = async () => {
       const result = await OAuthLoginService.handleOAuthLogin('google').catch(
-        (e) => {
-          DevLogger.log(e);
-          return { type: 'error', error: e, existingUser: false };
+        (error) => {
+          this.handleLoginError(error);
+          return { type: 'error', error, existingUser: false };
         },
       );
       this.handlePostSocialLogin(result, createWallet);
     };
     this.handleExistingUser(action);
+  };
+
+  handleLoginError = (error) => {
+    let errorMessage;
+    if (error instanceof OAuthError) {
+      if (error.code === OAuthErrorType.UserCancelled) {
+        errorMessage = 'user_cancelled';
+      } else {
+        errorMessage = 'oauth_error';
+      }
+    }
+
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings(`error_sheet.${errorMessage}_title`),
+        description: strings(`error_sheet.${errorMessage}_description`),
+        buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+        type: 'error',
+      },
+    });
   };
   ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   track = (event) => {
