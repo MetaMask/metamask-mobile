@@ -113,8 +113,6 @@ interface SnapUIAssetSelectorProps {
 export const SnapUIAssetSelector: FunctionComponent<
   SnapUIAssetSelectorProps
 > = ({ addresses, chainIds, disabled, style, ...props }) => {
-  const t = (name: string, params?: object) =>
-    strings(name, params) ?? '';
   const assets = useSnapAssetSelectorData({ addresses, chainIds });
 
   const options = assets.map(({ address, name, symbol }) => ({
@@ -129,7 +127,7 @@ export const SnapUIAssetSelector: FunctionComponent<
 
   return (
     <SnapUISelector
-      title={t('snaps.snap_ui.asset_selector.title')}
+      title={strings('snaps.snap_ui.asset_selector.title')}
       options={options}
       optionComponents={optionComponents}
       disabled={disabled || assets.length === 0}
