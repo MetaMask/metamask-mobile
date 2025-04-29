@@ -2121,7 +2121,7 @@ PODS:
     - React
   - RNInAppBrowser (3.7.0):
     - React-Core
-  - RNKeychain (8.2.0):
+  - RNKeychain (8.0.0):
     - React-Core
   - RNNotifee (9.0.2):
     - React-Core
@@ -2917,7 +2917,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 6572a5f44759900730562b418da289c373de8d06
   RNI18n: 11ec5086508673ef71b5b567da3e8bcca8a926e1
   RNInAppBrowser: 6d3eb68d471b9834335c664704719b8be1bfdb20
-  RNKeychain: bbe2f6d5cc008920324acb49ef86ccc03d3b38e4
+  RNKeychain: 3194f1c9d8599f39e570b4b5ecbcdd8cd610e771
   RNNotifee: 5165d37aaf980031837be3caece2eae5a6d73ae8
   RNOS: d07e5090b5060c6f2b83116d740a32cfdb33afe3
   RNPermissions: bd0d9ca7969ff7b999aa605ee2e5919c12522bfe
