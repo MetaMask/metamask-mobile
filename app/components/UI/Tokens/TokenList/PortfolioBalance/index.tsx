@@ -33,7 +33,7 @@ import AggregatedPercentageCrossChains from '../../../../../component-library/co
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
-import useMultichainBalances from '../../../../hooks/useMultichainBalances/useMultichainBalances';
+import { useMultichainBalances } from '../../../../hooks/useMultichainBalances';
 
 export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
