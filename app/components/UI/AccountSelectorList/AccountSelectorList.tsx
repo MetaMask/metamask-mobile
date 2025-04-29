@@ -74,7 +74,11 @@ const AccountSelectorList = ({
 
   const selectedAddressesLookup = useMemo(() => {
     if (!selectedAddresses?.length) return null;
-    return new Set(selectedAddresses.map((addr) => addr.toLowerCase()));
+    const lookupSet = new Set<string>();
+    selectedAddresses.forEach((addr) => {
+      if (addr) lookupSet.add(addr.toLowerCase());
+    });
+    return lookupSet;
   }, [selectedAddresses]);
 
   const renderAccountBalances = useCallback(
@@ -299,7 +303,6 @@ const AccountSelectorList = ({
     // Handle auto scroll to account
     if (!accounts.length || !isAutoScrollEnabled) return;
     if (accountsLengthRef.current !== accounts.length) {
-      // Find the selected account more efficiently
       let selectedAccount: Account | undefined;
 
       if (selectedAddresses?.length) {
