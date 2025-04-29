@@ -13,6 +13,7 @@ import {
   MOCK_ADDRESS_1 as mockAddress1,
   MOCK_ADDRESS_2 as mockAddress2,
 } from '../../../util/test/accountsControllerTestUtils';
+import { RecommendedAction } from '@metamask/phishing-controller';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -73,6 +74,12 @@ jest.mock('../../../core/Engine', () => {
         test: jest.fn((url: string) => {
           if (url === 'phishing.com') return { result: true };
           return { result: false };
+        }),
+        scanUrl: jest.fn((domainName: string) => {
+          return {
+            domainName,
+            recommendedAction: "NONE"
+          }
         }),
       },
       PermissionController: {
