@@ -225,13 +225,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   );
 
   const getShouldShowAggregatedPercentage = useMemo(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    () => (account: InternalAccount) => {
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      return !isTestNet(chainId) && isEvmAccountType(account.type);
-      ///: END:ONLY_INCLUDE_IF
-
-      // Note: This code marked as unreachable however when the above block gets removed after code fencing this return becomes necessary
+    () => () => {
       return !isTestNet(chainId);
     },
     [chainId],
@@ -252,8 +246,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
         tokenFiatBalancesCrossChains:
           totalFiatBalancesCrossEvmChain[account.address]
             ?.tokenFiatBalancesCrossChains ?? [],
-        shouldShowAggregatedPercentage:
-          getShouldShowAggregatedPercentage(account),
+        shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(),
         isPortfolioVieEnabled: isPortfolioEnabled,
         aggregatedBalance: getAggregatedBalance(account),
       };
@@ -282,9 +275,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
         tokenFiatBalancesCrossChains:
           totalFiatBalancesCrossEvmChain[selectedInternalAccount.address]
             ?.tokenFiatBalancesCrossChains ?? [],
-        shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(
-          selectedInternalAccount,
-        ),
+        shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(),
         isPortfolioVieEnabled: isPortfolioEnabled,
         aggregatedBalance: getAggregatedBalance(selectedInternalAccount),
       };
