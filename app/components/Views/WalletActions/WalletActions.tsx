@@ -333,17 +333,15 @@ const WalletActions = () => {
             disabled={!canSignTransactions || !swapsIsLive}
           />
         )}
-        {isBridgeEnabledSource && (
-          <WalletAction
-            actionType={WalletActionType.Bridge}
-            iconName={IconName.Bridge}
-            onPress={goToBridge}
-            actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
-            disabled={!canSignTransactions}
-          />
-        )}
+        <WalletAction
+          actionType={WalletActionType.Bridge}
+          iconName={IconName.Bridge}
+          onPress={goToBridge}
+          actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
+          iconStyle={styles.icon}
+          iconSize={AvatarSize.Md}
+          disabled={!canSignTransactions}
+        />
         <WalletAction
           actionType={WalletActionType.Send}
           iconName={IconName.Arrow2Right}
