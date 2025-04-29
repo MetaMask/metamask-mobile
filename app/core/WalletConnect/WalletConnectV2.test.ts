@@ -682,7 +682,7 @@ describe('WC2Manager', () => {
         }
       },
       pairingTopic: 'test-pairing'
-     }
+     };
 
     beforeEach(() => {
       mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
@@ -833,7 +833,7 @@ describe('WC2Manager', () => {
         )?.[1];
         expect(sessionDeleteCallback).toBeDefined();
       }
-    })
+    });
 
     afterEach(() => {
       jest.clearAllMocks();
