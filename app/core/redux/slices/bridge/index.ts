@@ -248,6 +248,7 @@ const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.TokenRatesController,
   ...state.engine.backgroundState.CurrencyRateController,
   participateInMetaMetrics: MetaMetrics.getInstance().isEnabled(),
+  bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
 });
 
 export const selectBridgeQuotes = createSelector(
