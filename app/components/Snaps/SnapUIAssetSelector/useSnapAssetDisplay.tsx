@@ -11,12 +11,12 @@ import { getMemoizedInternalAccountByAddress } from '../../../selectors/accounts
 import { selectMultichainTokenListForAccountId } from '../../../selectors/multichain';
 import I18n from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
-import { getImageForChainId } from '../../../core/Multichain/utils';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { AllowedBridgeChainIds, NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { RootState } from '../../../reducers';
-import { TokenWithFiatAmount } from '../../../images/shared/constants/multichain/assets';
+import { getNonEvmNetworkImageSourceByChainId } from '../../../util/networks/customNetworks';
+import { TokenWithFiatAmount } from '../../../constants/assets';
 
 /**
  * An asset for the SnapUIAssetSelector.
@@ -116,7 +116,7 @@ export const useSnapAssetSelectorData = ({
       name: asset.title,
       balance: formatAssetBalance(asset.primary),
       networkName,
-      networkIcon: getImageForChainId(asset.chainId),
+      networkIcon: getNonEvmNetworkImageSourceByChainId(asset.chainId as CaipChainId),
       fiat: formatFiatBalance(asset.secondary),
       chainId: asset.chainId as CaipChainId,
       address: asset.address as CaipAssetType,
