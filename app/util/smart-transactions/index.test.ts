@@ -10,6 +10,7 @@ import {
   getIsAllowedRpcUrlForSmartTransactions,
 } from './index';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
+// eslint-disable-next-line import/no-namespace
 import * as environment from '../environment';
 import type { BaseControllerMessenger } from '../../core/Engine';
 
