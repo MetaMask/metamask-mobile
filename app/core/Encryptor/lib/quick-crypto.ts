@@ -9,7 +9,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
    * @returns A promise that resolves to the generated IV as a hex string.
    */
   generateIV = async (size: number): Promise<string> => {
-    const randomValues = await Crypto.getRandomValues(new Uint8Array(size));
+    const randomValues = await Crypto.getRandomValues(new Uint8Array(size)) as Uint8Array;
     const hexString = bytesToHex(randomValues);
     return remove0x(hexString);
   };
@@ -27,7 +27,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
     opts: KeyDerivationOptions,
   ): Promise<string> => {
     const passBuffer = Buffer.from(password, 'utf-8');
-    const saltBuffer = Buffer.from(salt, 'utf-8');
+    // const saltBuffer = Buffer.from(salt, 'utf-8');
 
     const baseKey = await Crypto.subtle.importKey(
       'raw',
@@ -40,7 +40,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
     const derivedBits = await Crypto.subtle.deriveBits(
       {
         name: 'PBKDF2',
-        salt: saltBuffer,
+        salt,
         iterations: opts.params.iterations,
         hash: 'SHA-512',
       },
@@ -66,12 +66,13 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
    * @param iv - The IV.
    * @returns A promise that resolves to the encrypted data as a base64 string.
    */
-  encrypt = async (data: string, key: string, iv: Buffer): Promise<string> => {
+  encrypt = async (data: string, key: string, iv: Uint8Array): Promise<ArrayBuffer> => {
     const dataBuffer = Buffer.from(data, 'utf-8');
     const cryptoKey = await this.importKey(key);
 
     const encryptedData = await Crypto.subtle.encrypt(
       { name: 'AES-CBC', iv },
+      // @ts-expect-error - This should be as CryptoKey but the type is not exported
       cryptoKey,
       dataBuffer
     );
@@ -85,13 +86,14 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
    * @param iv - The IV.
    * @returns A promise that resolves to the decrypted data as a string.
    */
-  decrypt = async (data: string, key: string, iv: string): Promise<string> => {
+  decrypt = async (data: string, key: string, iv: string): Promise<ArrayBuffer> => {
     const dataBuffer = Buffer.from(data, 'base64');
     const ivBuffer = Buffer.from(iv, 'hex');
     const cryptoKey = await this.importKey(key);
 
     const decryptedData = await Crypto.subtle.decrypt(
       { name: 'AES-CBC', iv: ivBuffer },
+      // @ts-expect-error - This should be as CryptoKey but the type is not exported
       cryptoKey,
       dataBuffer,
     );
@@ -121,8 +123,9 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
    * @param key - The key to export.
    * @returns A promise that resolves to the exported key as a base64 string.
    */
-  exportKey = async (importFormat: 'raw' | 'jwk', key: unknown): Promise<unknown> => {
-    const keyBuffer = await Crypto.subtle.exportKey(importFormat, key);
+  exportKey = async (importFormat: 'raw' | 'jwk', key: unknown): Promise<string> => {
+    // @ts-expect-error - This should be as CryptoKey but the type is not exported
+    const keyBuffer = await Crypto.subtle.exportKey(importFormat, key) as ArrayBuffer;
     const base64Key = Buffer.from(keyBuffer).toString('base64');
     return base64Key;
   };
