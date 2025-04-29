@@ -7,7 +7,7 @@ import { selectDestToken, selectSelectedDestChainId, selectSourceToken, setDestT
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { BridgeDestNetworksBar } from '../BridgeDestNetworksBar';
-import { BridgeTokenSelectorBase } from '../BridgeTokenSelectorBase';
+import { BridgeTokenSelectorBase, SkeletonItem } from '../BridgeTokenSelectorBase';
 import { IconColor, IconName } from '../../../../../component-library/components/Icons/Icon';
 import ButtonIcon, { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -49,7 +49,12 @@ export const BridgeDestTokenSelector: React.FC = () => {
   );
 
   const renderToken = useCallback(
-    ({ item }: { item: BridgeToken }) => {
+    ({ item }: { item: BridgeToken | null }) => {
+      // This is to support a partial loading state for top tokens
+      // We can show tokens with balance immediately, but we need to wait for the top tokens to load
+      if (!item) {
+        return <SkeletonItem />;
+      }
 
       // Open the asset details screen as a bottom sheet
       const handleInfoButtonPress = () => navigation.navigate('Asset', { ...item });
@@ -67,7 +72,6 @@ export const BridgeDestTokenSelector: React.FC = () => {
         networkName={networkName}
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         networkImageSource={getNetworkImageSource({ chainId: item.chainId as Hex })}
-        shouldShowBalance={false}
         isSelected={
           selectedDestToken?.address === item.address &&
           selectedDestToken?.chainId === item.chainId
