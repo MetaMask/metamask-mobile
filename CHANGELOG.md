@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.45.0]
+
 ### Added
 
 - feat(bridge): use dynamic slippage for single-chain Solana swaps ([#14805](https://github.com/MetaMask/metamask-mobile/pull/14805))
@@ -118,7 +120,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: animation added for loading state on SnapUILink button ([#13973](https://github.com/MetaMask/metamask-mobile/pull/13973))
 - fix: Revert "chore: upgrade Xcode 16 on bitrise.yml" ([#14012](https://github.com/MetaMask/metamask-mobile/pull/14012))
 - fix(bridge): hide staked native assets from token selectors ([#14457](https://github.com/MetaMask/metamask-mobile/pull/14457))
-
 
 ## [7.43.0]
 
@@ -5286,7 +5287,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.44.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.0...HEAD
+[7.45.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.44.0...v7.45.0
 [7.44.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.43.0...v7.44.0
 [7.43.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.42.1...v7.43.0
 [7.42.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.42.0...v7.42.1

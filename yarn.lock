@@ -4846,7 +4846,7 @@
 
 "@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.7.0":
   version "11.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.7.0.tgz#1186daecffff9dec6846f64f9da7a319dd9c9a83"
+  resolved "https://registry.npmjs.org/@metamask/controller-utils/-/controller-utils-11.7.0.tgz#1186daecffff9dec6846f64f9da7a319dd9c9a83"
   integrity sha512-Q2TPmTJT6L/ixBk5TEb+mJ1NRyFAGe+VjFuulNQMVu6AanEBeGSoxsuBnAzWQlIgbt3/EHGP7o31ep1H5gr5Gw==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
