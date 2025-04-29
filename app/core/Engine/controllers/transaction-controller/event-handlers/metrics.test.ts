@@ -21,8 +21,8 @@ import {
 jest.mock('../../../../../util/smart-transactions', () => {
   const actual = jest.requireActual('../../../../../util/smart-transactions');
   return {
-    ...actual, // Use real implementations for all utility functions
-    getSmartTransactionMetricsProperties: jest.fn(), // Only mock the specific function used in tests
+    ...actual,
+    getSmartTransactionMetricsProperties: jest.fn(),
   };
 });
 
