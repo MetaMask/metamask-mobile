@@ -22,11 +22,6 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectIsBridgeEnabledSource: jest.fn(() => true),
 }));
 
-jest.mock('../../utils', () => ({
-  ...jest.requireActual('../../utils'),
-  isBridgeUiEnabled: jest.fn(() => true),
-}));
-
 const mockGoToPortfolioBridge = jest.fn();
 jest.mock('../useGoToPortfolioBridge', () => ({
   __esModule: true,
