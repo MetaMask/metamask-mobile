@@ -137,7 +137,7 @@ export const selectIsBridgeEnabledSource = createSelector(
 
     return (
       bridgeFeatureFlags.support &&
-      bridgeFeatureFlags.chains[caipChainId].isActiveSrc
+      bridgeFeatureFlags.chains[caipChainId]?.isActiveSrc
     );
   },
 );
@@ -150,7 +150,7 @@ export const selectIsBridgeEnabledDest = createSelector(
 
     return (
       bridgeFeatureFlags.support &&
-      bridgeFeatureFlags.chains[caipChainId].isActiveDest
+      bridgeFeatureFlags.chains[caipChainId]?.isActiveDest
     );
   },
 );
