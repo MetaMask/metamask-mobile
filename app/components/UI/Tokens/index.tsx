@@ -47,8 +47,8 @@ import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { RootState } from '../../../reducers';
-import { ScamWarningModal } from './TokenList/ScamWarningModal';
 ///: END:ONLY_INCLUDE_IF
+import { ScamWarningModal } from './TokenList/ScamWarningModal';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };

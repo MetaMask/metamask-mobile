@@ -46,7 +46,6 @@ import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import { TokenI } from '../../types';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { ScamWarningIcon } from '../ScamWarningIcon';
-import { ScamWarningModal } from '../ScamWarningModal';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { useStakingChainByChainId } from '../../../Stake/hooks/useStakingChain';
 import {
