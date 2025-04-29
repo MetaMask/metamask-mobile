@@ -411,12 +411,6 @@ const DEFAULT_TRANSACTION_STATE_ENTRY = {
   lastUpdated: 0,
 };
 
-const DEFAULT_TRANSACTION_STATE_ENTRY = {
-  transactions: [],
-  next: null,
-  lastUpdated: 0,
-};
-
 export const selectSolanaAccountTransactions = createDeepEqualSelector(
   selectMultichainTransactions,
   selectSelectedInternalAccount,
