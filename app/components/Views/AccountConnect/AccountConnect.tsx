@@ -523,7 +523,6 @@ const AccountConnect = (props: AccountConnectProps) => {
         }),
       );
       setSelectedNetworkAvatars(newNetworkAvatars);
-
       setScreen(AccountConnectScreens.SingleConnect);
     },
     [networkConfigurations, setScreen],

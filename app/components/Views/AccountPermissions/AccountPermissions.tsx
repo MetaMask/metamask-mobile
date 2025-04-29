@@ -319,7 +319,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       const hexSelectedChainIds = chainIds.map(toHex);
       const removeExistingChainPermissions = true;
       updatePermittedChains(hostname, hexSelectedChainIds, removeExistingChainPermissions);
-      setUserIntent(USER_INTENT.Confirm);
+      setNetworkSelectorUserIntent(USER_INTENT.Confirm);
   }, [
     currentChainId,
     hostname,
@@ -328,7 +328,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     toggleRevokeAllPermissionsModal
   ]);
 
-  const handleSelectAccountAddresses = useCallback((selectedAccounts: string[]) => {
+  const handleSelectAccountAddresses = useCallback((selectedAccounts: string[], userIntent: USER_INTENT) => {
     try {
       if (selectedAccounts.length === 0) {
         toggleRevokeAllPermissionsModal();
@@ -421,6 +421,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           })
           .build(),
       );
+      setUserIntent(userIntent)
     } catch (e) {
       Logger.error(e as Error, 'Error while trying to connect to a dApp.');
     } finally {
@@ -440,6 +441,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     createEventBuilder,
     toggleRevokeAllPermissionsModal,
   ]);
+
+  const handleSelectAccountAddressesFromEditView = useCallback((selectedAccounts: string[]) => {
+    handleSelectAccountAddresses(selectedAccounts, USER_INTENT.EditMultiple)
+  }, [handleSelectAccountAddresses])
+
+  const handleSelectAccountAddressesFromConnectMoreView = useCallback((selectedAccounts: string[]) => {
+    handleSelectAccountAddresses(selectedAccounts, USER_INTENT.Confirm)
+  }, [handleSelectAccountAddresses])
 
   useEffect(() => {
     if (networkSelectorUserIntent === USER_INTENT.Confirm) {
@@ -619,7 +628,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
         defaultSelectedAddresses={permittedAccounts}
-        onSubmit={handleSelectAccountAddresses}
+        onSubmit={handleSelectAccountAddressesFromEditView}
         isLoading={isLoading}
         hostname={hostname}
         isAutoScrollEnabled={false}
@@ -647,7 +656,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accounts={accountsFilteredByPermissions.unpermitted}
         ensByAccountAddress={ensByAccountAddress}
         defaultSelectedAddresses={permittedAccounts}
-        onSubmit={handleSelectAccountAddresses}
+        onSubmit={handleSelectAccountAddressesFromConnectMoreView}
         isLoading={isLoading}
         hostname={hostname}
         isAutoScrollEnabled={false}
