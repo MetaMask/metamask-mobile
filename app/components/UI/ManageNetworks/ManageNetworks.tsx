@@ -43,8 +43,8 @@ export default function ManageNetworksComponent() {
     );
   }, [navigation, trackEvent, chainId, createEventBuilder]);
 
-  const handleLink = () => {
-    Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);
+  const handleLink = (link: string) => {
+    Linking.openURL(link);
   };
 
   return (
@@ -60,10 +60,23 @@ export default function ManageNetworksComponent() {
         style={styles.description}
       >
         {strings('default_settings.manage_networks_body')}
-        <Text color={TextColor.Info} onPress={handleLink}>
+        <Text
+          color={TextColor.Info}
+          testID="privacy-policy-link"
+          onPress={() => handleLink(AppConstants.URLS.PRIVACY_POLICY_2024)}
+        >
           {strings('default_settings.privacy_policy')}
         </Text>
         {strings('default_settings.manage_networks_body2')}
+        <Text
+          color={TextColor.Info}
+          testID="solana-privacy-policy-link"
+          onPress={() =>
+            handleLink(AppConstants.URLS.ADD_SOLANA_ACCOUNT_PRIVACY_POLICY)
+          }
+        >
+          {strings('default_settings.manage_networks_body3')}
+        </Text>
       </Text>
       <PickerNetwork
         label={networkName}
