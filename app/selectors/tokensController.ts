@@ -82,7 +82,7 @@ export const selectDetectedTokens = createSelector(
     ],
 );
 
-export const selectAllTokens = createSelector(
+export const selectAllTokens = createDeepEqualSelector(
   selectTokensControllerState,
   (tokensControllerState: TokensControllerState) =>
     tokensControllerState?.allTokens,
