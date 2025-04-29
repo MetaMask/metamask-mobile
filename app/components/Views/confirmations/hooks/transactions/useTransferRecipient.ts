@@ -20,7 +20,5 @@ export function useTransferRecipient() {
     transactionData?.args?.to ||
     transactionTo;
 
-  console.log('OGP - transactionData', transactionData);
-
   return type === TransactionType.simpleSend ? transactionTo : transferTo;
 }
