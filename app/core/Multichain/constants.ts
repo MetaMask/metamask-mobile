@@ -96,8 +96,6 @@ import LENS from '../../images/lens.png';
 import PLUME from '../../images/plume.svg';
 
 import { MultichainBlockExplorerFormatUrls } from './networks';
-import { SvgProps } from 'react-native-svg';
-import { ImageSourcePropType } from 'react-native';
 
 // Image imports for React Native rendering
 export const MULTICHAIN_TOKEN_IMAGES = {
@@ -213,6 +211,7 @@ export const PRICE_API_CURRENCIES = [
   'try',
   'zar',
 ];
+<<<<<<< HEAD
 
 export enum MultichainNetworks {
   BITCOIN = BtcScope.Mainnet,
@@ -487,3 +486,5 @@ export const MULTICHAIN_TOKEN_IMAGE_MAP: ImageMap = {
   [MultichainNetworks.SOLANA_DEVNET]: SOL_DEVNET,
   [MultichainNetworks.SOLANA_TESTNET]: SOL_TESTNET,
 } as const;
+=======
+>>>>>>> parent of eb64e52e40 (feat: add chain ids maps, token image paths, chain id to token image maps)
