@@ -54,6 +54,8 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import { RootState } from '../../../reducers';
+import { selectIsBridgeEnabledSource } from '../../../core/redux/slices/bridge';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -72,6 +74,9 @@ const WalletActions = () => {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   ///: END:ONLY_INCLUDE_IF
+  const isBridgeEnabledSource = useSelector((state: RootState) =>
+    selectIsBridgeEnabledSource(state, chainId),
+  );
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } =
@@ -328,15 +333,17 @@ const WalletActions = () => {
             disabled={!canSignTransactions || !swapsIsLive}
           />
         )}
-        <WalletAction
-          actionType={WalletActionType.Bridge}
-          iconName={IconName.Bridge}
-          onPress={goToBridge}
-          actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
-          iconStyle={styles.icon}
-          iconSize={AvatarSize.Md}
-          disabled={!canSignTransactions}
-        />
+        {isBridgeEnabledSource && (
+          <WalletAction
+            actionType={WalletActionType.Bridge}
+            iconName={IconName.Bridge}
+            onPress={goToBridge}
+            actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
+          />
+        )}
         <WalletAction
           actionType={WalletActionType.Send}
           iconName={IconName.Arrow2Right}
