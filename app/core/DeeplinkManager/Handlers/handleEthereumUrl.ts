@@ -12,7 +12,7 @@ import DeeplinkManager from '../DeeplinkManager';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
-} from '../../../components/Views/confirmations/utils/redesigned-deeplink';
+} from '../../../components/Views/confirmations/utils/deeplink';
 
 async function handleEthereumUrl({
   deeplinkManager,

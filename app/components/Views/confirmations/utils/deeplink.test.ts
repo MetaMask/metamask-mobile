@@ -8,7 +8,7 @@ import { generateTransferData } from '../../../../util/transactions';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
-} from './redesigned-deeplink';
+} from './deeplink';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -25,13 +25,16 @@ jest.mock('../../../../core/Engine', () => ({
         selectedNetworkClientId: 'mainnet',
         networkConfigurationsByChainId: {
           '0x1': {
+            defaultRpcEndpointIndex: 0,
             rpcEndpoints: [{ networkClientId: 'mainnet' }],
           },
           '0x22': {
+            defaultRpcEndpointIndex: 0,
             rpcEndpoints: [{ networkClientId: 'another-network' }],
           },
         },
       },
+      findNetworkClientIdByChainId: jest.fn(),
     },
     TransactionController: {
       addTransaction: jest.fn(),
@@ -119,15 +122,19 @@ describe('addTransactionForDeeplink', () => {
     mockEngine.context.AccountsController.getSelectedAccount;
   const mockAddTransaction =
     mockEngine.context.TransactionController.addTransaction;
+  const mockFindNetworkClientIdByChainId =
+    mockEngine.context.NetworkController.findNetworkClientIdByChainId;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetSelectedAccount.mockReturnValue({
       address: FROM_ADDRESS_MOCK,
     } as ReturnType<typeof Engine.context.AccountsController.getSelectedAccount>);
+    mockFindNetworkClientIdByChainId.mockReturnValue('mainnet');
   });
 
   it('adds a native transfer transaction', async () => {
+    mockFindNetworkClientIdByChainId.mockReturnValue('another-network');
     await addTransactionForDeeplink({
       chain_id: '0x22',
       parameters: {

@@ -5,37 +5,28 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { ParseOutput } from 'eth-url-parser';
 
 import { selectConfirmationRedesignFlagsFromRemoteFeatureFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { addTransaction } from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { getGlobalNetworkClientId } from '../../../../util/networks/global-network';
 import { ETH_ACTIONS } from '../../../../constants/deeplinks';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 
-const getSelectedNetworkClientId = () => {
-  const { NetworkController } = Engine.context;
-  return NetworkController.state.selectedNetworkClientId;
-};
-
 const getNetworkClientIdForChainId = (chainId: Hex) => {
   const { NetworkController } = Engine.context;
-  const { rpcEndpoints } =
-    NetworkController.state.networkConfigurationsByChainId[chainId];
-
-  const selectedNetworkClientId = getSelectedNetworkClientId();
-
-  const isSelectedNetworkClientIdInRpcEndpoints = rpcEndpoints.some(
-    (rpcEndpoint) => rpcEndpoint.networkClientId === selectedNetworkClientId,
-  );
-
-  if (!isSelectedNetworkClientIdInRpcEndpoints) {
-    // Return first match
-    return rpcEndpoints[0].networkClientId;
+  const selectedNetworkClientId = getGlobalNetworkClientId();
+  try {
+    return (
+      NetworkController.findNetworkClientIdByChainId(chainId) ??
+      selectedNetworkClientId
+    );
+  } catch {
+    return selectedNetworkClientId;
   }
-
-  return selectedNetworkClientId;
 };
 
 export function isDeeplinkRedesignedConfirmationCompatible(
@@ -69,12 +60,7 @@ export async function addTransactionForDeeplink({
   function_name,
   parameters,
   target_address,
-}: {
-  chain_id?: string;
-  function_name?: string;
-  parameters?: Record<string, string>;
-  target_address: string;
-}) {
+}: ParseOutput) {
   const { AccountsController } = Engine.context;
 
   // Temporary solution for preventing back to back deeplink requests
@@ -100,12 +86,12 @@ export async function addTransactionForDeeplink({
   const origin = 'deeplink';
   const networkClientId = getNetworkClientIdForChainId(chainId);
   const from = safeToChecksumAddress(selectedAccountAddress) as string;
-  const to = safeToChecksumAddress(target_address as string);
+  const to = safeToChecksumAddress(target_address);
   const checkSummedParamAddress = safeToChecksumAddress(
-    parameters?.address as string,
+    parameters?.address ?? '',
   );
 
-  if (function_name === 'transfer') {
+  if (function_name === ETH_ACTIONS.TRANSFER) {
     // ERC20 transfer
     const txParams: TransactionParams = {
       from,

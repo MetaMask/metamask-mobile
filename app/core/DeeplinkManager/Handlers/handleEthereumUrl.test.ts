@@ -10,7 +10,7 @@ import { MAINNET } from '../../../constants/network';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
-} from '../../../components/Views/confirmations/utils/redesigned-deeplink';
+} from '../../../components/Views/confirmations/utils/deeplink';
 
 jest.mock('react-native');
 
@@ -37,7 +37,7 @@ jest.mock('../../Engine', () => ({
   },
 }));
 
-jest.mock('../../../components/Views/confirmations/utils/redesigned-deeplink');
+jest.mock('../../../components/Views/confirmations/utils/deeplink');
 
 describe('handleEthereumUrl', () => {
   let deeplinkManager: DeeplinkManager;
