@@ -8,8 +8,6 @@ import {
 } from './';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
-jest.mock('../../util/Logger');
-
 const mockSetSelectedAddress = jest.fn();
 const mockAddNewKeyring = jest.fn();
 const mockGetKeyringsByType = jest.fn();
@@ -51,7 +49,7 @@ jest.mock('../../core/Engine', () => ({
         operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
     },
     AccountsController: {
-      getNextAvailableAccountName: () => 'Snap Account 1',
+      getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
     },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
