@@ -160,7 +160,7 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
   (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
   (bridgeFeatureFlags, chainId) =>
     chainId
-      ? bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)].topAssets
+      ? bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.topAssets
       : undefined,
 );
 

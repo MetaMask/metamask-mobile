@@ -2,7 +2,7 @@ import { defaultBridgeControllerState } from './bridgeControllerState';
 import { CaipAssetId, Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { ethers } from 'ethers';
-import { StatusTypes } from '@metamask/bridge-controller';
+import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
 
 export const ethChainId = '0x1' as Hex;
 export const optimismChainId = '0xa' as Hex;
@@ -34,6 +34,22 @@ export const solanaToken2Address =
 export const initialState = {
   engine: {
     backgroundState: {
+      RemoteFeatureFlagsController: {
+        remoteFeatureFlags: {
+          bridgeConfig: {
+            chains: {
+              [formatChainIdToCaip(ethChainId)]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+              },
+              [formatChainIdToCaip(optimismChainId)]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+              },
+            },
+          }
+        },
+      },
       BridgeController: defaultBridgeControllerState,
       TokenBalancesController: {
         tokenBalances: {
