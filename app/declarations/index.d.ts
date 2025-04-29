@@ -35,24 +35,6 @@ declare module '*.png' {
   export default content;
 }
 
-declare module '*.jpg' {
-  // Dupe import is necessary otherwise import is resolved as a string
-  // eslint-disable-next-line no-duplicate-imports
-  import { ImageSourcePropType } from 'react-native';
-  const content: ImageSourcePropType;
-  export default content;
-}
-
-declare module '*.jpeg' {
-  // Dupe import is necessary otherwise import is resolved as a string
-  // eslint-disable-next-line no-duplicate-imports
-  import { ImageSourcePropType } from 'react-native';
-  const content: ImageSourcePropType;
-  export default content;
-}
-
-
-
 declare module '@react-native-community/checkbox' {
   import { CheckBoxProps } from '@react-native-community/checkbox';
 
