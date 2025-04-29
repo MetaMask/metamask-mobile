@@ -380,5 +380,40 @@ describe('AddNewAccount', () => {
 
       expect(addButton.props.disabled).toBe(true);
     });
+
+    it.each([
+      {
+        scope: MultichainNetwork.Solana,
+        clientType: WalletClientType.Solana,
+        expectedHeader: 'account_actions.headers.solana',
+      },
+      {
+        scope: MultichainNetwork.Bitcoin,
+        clientType: WalletClientType.Bitcoin,
+        expectedHeader: 'account_actions.headers.bitcoin',
+      },
+    ])(
+      'shows the correct header for $clientType',
+      async ({ scope, clientType, expectedHeader }) => {
+        mockCreateMultichainAccount.mockRejectedValueOnce(
+          new Error(`Failed to create ${clientType} account`),
+        );
+
+        const { getByText } = render(initialState, {
+          params: {
+            scope,
+            clientType,
+          },
+        });
+
+        expect(
+          getByText(
+            strings('account_actions.add_multichain_account', {
+              networkName: strings(expectedHeader),
+            }),
+          ),
+        ).toBeDefined();
+      },
+    );
   });
 });
