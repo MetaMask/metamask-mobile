@@ -10,6 +10,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
         "assets": {
           "fiatBalance": "$3200.00
 1 ETH",
+          "tokens": [],
         },
         "balanceError": undefined,
         "isSelected": true,
@@ -22,6 +23,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
         "assets": {
           "fiatBalance": "$6400.00
 2 ETH",
+          "tokens": [],
         },
         "balanceError": undefined,
         "isSelected": false,
@@ -49,6 +51,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
   renderScrollComponent={[Function]}
   scrollEventThrottle={50}
   stickyHeaderIndices={[]}
+  testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
 >
   <View>
@@ -375,6 +378,14 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                     >
                       1 ETH
                     </Text>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                        }
+                      }
+                    />
                   </View>
                 </View>
               </View>
@@ -775,6 +786,14 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                     >
                       2 ETH
                     </Text>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                        }
+                      }
+                    />
                   </View>
                 </View>
               </View>
@@ -838,6 +857,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
         "assets": {
           "fiatBalance": "$3200.00
 1 ETH",
+          "tokens": [],
         },
         "balanceError": undefined,
         "isSelected": true,
@@ -850,6 +870,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
         "assets": {
           "fiatBalance": "$6400.00
 2 ETH",
+          "tokens": [],
         },
         "balanceError": undefined,
         "isSelected": false,
@@ -877,6 +898,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
   renderScrollComponent={[Function]}
   scrollEventThrottle={50}
   stickyHeaderIndices={[]}
+  testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
 >
   <View>
@@ -1566,6 +1588,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
         "assets": {
           "fiatBalance": "$3200.00
 1 ETH",
+          "tokens": [],
         },
         "balanceError": undefined,
         "isSelected": true,
@@ -1578,6 +1601,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
         "assets": {
           "fiatBalance": "$6400.00
 2 ETH",
+          "tokens": [],
         },
         "balanceError": undefined,
         "isSelected": false,
@@ -1605,6 +1629,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
   renderScrollComponent={[Function]}
   scrollEventThrottle={50}
   stickyHeaderIndices={[]}
+  testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
 >
   <View>
@@ -1931,6 +1956,14 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     >
                       1 ETH
                     </Text>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                        }
+                      }
+                    />
                   </View>
                 </View>
               </View>
@@ -2331,6 +2364,14 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     >
                       2 ETH
                     </Text>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                        }
+                      }
+                    />
                   </View>
                 </View>
               </View>
