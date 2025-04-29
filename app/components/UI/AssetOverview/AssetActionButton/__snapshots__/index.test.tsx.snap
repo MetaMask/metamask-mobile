@@ -140,7 +140,7 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      name="md-information"
+      name="information"
       size={30}
       style={
         {

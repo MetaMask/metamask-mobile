@@ -73,8 +73,8 @@ const mockInitialState = {
           logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
           name: 'Ethereum',
           symbol: 'ETH',
-          price: {}
-        }
+          price: {},
+        },
       ],
     },
   },
@@ -129,12 +129,14 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const mockAddPopularNetwork = jest.fn().mockImplementation(() => Promise.resolve());
+const mockAddPopularNetwork = jest
+  .fn()
+  .mockImplementation(() => Promise.resolve());
 jest.mock('../../../components/hooks/useAddNetwork', () => ({
   useAddNetwork: jest.fn().mockImplementation(() => ({
-      addPopularNetwork: mockAddPopularNetwork,
-      networkModal: null,
-    }))
+    addPopularNetwork: mockAddPopularNetwork,
+    networkModal: null,
+  })),
 }));
 
 const asset = {
@@ -437,6 +439,7 @@ describe('AssetOverview', () => {
       <AssetOverview
         asset={{
           ...asset,
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
           chainId: SolScope.Mainnet,
           isNative: true,
         }}
@@ -454,6 +457,13 @@ describe('AssetOverview', () => {
               ...mockInitialState.engine.backgroundState,
               MultichainNetworkController: {
                 selectedMultichainNetworkChainId: SolScope.Mainnet,
+              },
+              MultichainAssetsRatesController: {
+                conversionRates: {
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+                    rate: '151.23',
+                  },
+                },
               },
             },
           },
@@ -488,12 +498,15 @@ describe('AssetOverview', () => {
         destinationToken: assetFromSearch.address,
         sourcePage: 'MainView',
         chainId: assetFromSearch.chainId,
-      }
+      },
     });
   });
 
   it('should prompt to add the network if coming from search and on a different chain', async () => {
-    (Engine.context.NetworkController.getNetworkConfigurationByChainId as jest.Mock).mockReturnValueOnce(null);
+    (
+      Engine.context.NetworkController
+        .getNetworkConfigurationByChainId as jest.Mock
+    ).mockReturnValueOnce(null);
     const differentChainAssetFromSearch = {
       ...assetFromSearch,
       chainId: '0xa',

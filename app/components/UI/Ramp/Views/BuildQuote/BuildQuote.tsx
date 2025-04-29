@@ -83,7 +83,10 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+
 import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
+import { isNonEvmAddress } from '../../../../../core/Multichain/utils';
+import { trace, endTrace, TraceName } from '../../../../../util/trace';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -245,9 +248,14 @@ const BuildQuote = () => {
     [selectedAsset],
   );
 
+  const addressForBalance = useMemo(
+    () => (isNonEvmAddress(selectedAddress) ? undefined : selectedAddress),
+    [selectedAddress],
+  );
+
   const { addressBalance } = useAddressBalance(
     assetForBalance as Asset,
-    selectedAddress,
+    addressForBalance,
     true,
   );
 
@@ -564,6 +572,12 @@ const BuildQuote = () => {
         location: screenLocation,
       };
 
+      trace({
+        name: TraceName.RampQuoteLoading,
+        tags: {
+          rampType,
+        },
+      });
       if (isBuy) {
         trackEvent('ONRAMP_QUOTES_REQUESTED', {
           ...analyticsPayload,
@@ -581,6 +595,7 @@ const BuildQuote = () => {
       }
     }
   }, [
+    rampType,
     screenLocation,
     amount,
     amountNumber,
@@ -635,6 +650,23 @@ const BuildQuote = () => {
     errorPaymentMethods,
     errorCryptoCurrencies,
   ]);
+
+  const [shouldEndTrace, setShouldEndTrace] = useState(true);
+  useEffect(() => {
+    if (
+      shouldEndTrace &&
+      !sdkError &&
+      !error &&
+      !isFetching &&
+      cryptoCurrencies &&
+      cryptoCurrencies.length > 0
+    ) {
+      endTrace({
+        name: TraceName.LoadRampExperience,
+      });
+      setShouldEndTrace(false);
+    }
+  }, [cryptoCurrencies, error, isFetching, rampType, sdkError, shouldEndTrace]);
 
   if (sdkError) {
     return (

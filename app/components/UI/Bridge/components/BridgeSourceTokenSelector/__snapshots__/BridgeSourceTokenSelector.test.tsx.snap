@@ -885,10 +885,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1145,10 +1147,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1405,10 +1409,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1697,10 +1703,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1957,10 +1965,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {

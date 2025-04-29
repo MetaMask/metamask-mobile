@@ -39,7 +39,7 @@ import Logger from '../../../util/Logger';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { getHdKeyringOfSelectedAccountOrPrimaryKeyring } from '../../../selectors/multisrp';
 import {
-  MultichainWalletSnapClient,
+  MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
@@ -91,9 +91,8 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     setIsLoading(true);
     try {
       if (clientType && scope) {
-        const multichainWalletSnapClient = new MultichainWalletSnapClient(
-          clientType,
-        );
+        const multichainWalletSnapClient =
+          MultichainWalletSnapFactory.createClient(clientType);
         await multichainWalletSnapClient.createAccount({
           scope,
           accountNameSuggestion: accountName,

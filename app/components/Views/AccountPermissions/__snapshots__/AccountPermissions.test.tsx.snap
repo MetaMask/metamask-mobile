@@ -211,6 +211,7 @@ exports[`AccountPermissions renders correctly 1`] = `
         renderScrollComponent={[Function]}
         scrollEventThrottle={0.0001}
         stickyHeaderIndices={[]}
+        testID="account-selector-list"
         viewabilityConfigCallbackPairs={[]}
       >
         <View />

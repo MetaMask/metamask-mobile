@@ -51,13 +51,22 @@ jest.mock('../../../actions/multiSrp', () => ({
 const mockCreateMultichainAccount = jest.fn().mockResolvedValue(null);
 const mockMultichainWalletSnapClient = {
   createAccount: mockCreateMultichainAccount,
+  getSnapId: jest.fn().mockReturnValue('mock-snap-id'),
+  getSnapName: jest.fn().mockReturnValue('mock-snap-name'),
+  getScopes: jest.fn().mockReturnValue([]),
+  getSnapSender: jest.fn().mockReturnValue({}),
+  withSnapKeyring: jest.fn().mockImplementation(async (callback) => {
+    await callback({ createAccount: mockCreateMultichainAccount });
+  }),
 };
 
 jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../../../core/SnapKeyring/MultichainWalletSnapClient'),
-  MultichainWalletSnapClient: jest
-    .fn()
-    .mockImplementation(() => mockMultichainWalletSnapClient),
+  MultichainWalletSnapFactory: {
+    createClient: jest
+      .fn()
+      .mockImplementation(() => mockMultichainWalletSnapClient),
+  },
 }));
 
 jest.mock('../../../util/Logger', () => ({

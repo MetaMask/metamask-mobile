@@ -2074,7 +2074,7 @@ function SwapsQuotesView({
               />
               <Text style={styles.tokenText}>{sourceToken.symbol}</Text>
             </View>
-            <IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+            <IonicIcon style={styles.arrowDown} name="arrow-down" />
             <View style={styles.sourceTokenContainer}>
               <TokenIcon
                 style={styles.tokenIcon}

@@ -12,6 +12,8 @@ import { initialState } from '../../_mocks_/initialState';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
+import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
+import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
@@ -83,14 +85,6 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
   };
 });
 
-// const mockSubmitBridgeTx = jest.fn();
-// jest.mock('../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
-//   __esModule: true,
-//   default: () => ({
-//     submitBridgeTx: mockSubmitBridgeTx,
-//   }),
-// }));
-
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -123,11 +117,18 @@ jest.mock('../../../../../component-library/components/Skeleton', () => ({
   Skeleton: () => null,
 }));
 
+jest.mock('../../hooks/useBridgeQuoteData', () => ({
+  useBridgeQuoteData: jest
+    .fn()
+    .mockImplementation(() => mockUseBridgeQuoteData),
+}));
+
 describe('BridgeView', () => {
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Set default mock values
   });
 
   it('renders', async () => {
@@ -188,6 +189,18 @@ describe('BridgeView', () => {
   });
 
   it('should update source token amount when typing', async () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: null,
+        bestQuote: null,
+        sourceAmount: undefined,
+        isLoading: false,
+        destTokenAmount: undefined,
+        formattedQuoteData: undefined,
+      }));
+
     const { getByTestId, getByText } = renderScreen(
       BridgeView,
       {
@@ -374,8 +387,13 @@ describe('BridgeView', () => {
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
           quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotesLastFetched: 12,
         },
       });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => mockUseBridgeQuoteData);
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -391,10 +409,16 @@ describe('BridgeView', () => {
     it('displays "Fetching quote" when quotes are loading', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.LOADING,
           quotesLastFetched: null,
         },
       });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: true,
+        }));
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -415,11 +439,20 @@ describe('BridgeView', () => {
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
           quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0', // Less than balance of 2.0 ETH
         },
       });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: false,
+          willRefresh: false,
+        }));
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -441,6 +474,7 @@ describe('BridgeView', () => {
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
           quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0', // Less than balance of 2.0 ETH
@@ -472,6 +506,7 @@ describe('BridgeView', () => {
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
           quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0', // Less than balance of 2.0 ETH
@@ -490,6 +525,110 @@ describe('BridgeView', () => {
       fireEvent.press(termsButton);
 
       // TODO: Add expectations once Terms navigation is implemented
+    });
+    it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: true,
+          willRefresh: false,
+        }));
+
+      renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+          screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+        });
+      });
+    });
+
+    it('does not navigate to QuoteExpiredModal when quote expires with refresh', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: true,
+          willRefresh: true,
+        }));
+
+      renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          {
+            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+          },
+        );
+      });
+    });
+
+    it('does not navigate to QuoteExpiredModal when quote is valid', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: false,
+          willRefresh: false,
+        }));
+
+      renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          {
+            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+          },
+        );
+      });
+    });
+
+    it('blurs input when opening QuoteExpiredModal', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: true,
+          willRefresh: false,
+          isLoading: false,
+        }));
+
+      const { toJSON } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+          screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+        });
+      });
+
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });
