@@ -1206,38 +1206,40 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       // Unfocus the url bar and hide the autocomplete results
       urlBarRef.current?.hide();
 
-    if (item.category === 'tokens') {
-      let properties: JsonMap;
-      if (urlBarText.current.startsWith('0x')) {
-        properties = {
-          token_address: urlBarText.current,
-        };
-      } else {
-        properties = {
-          token_symbol: item.symbol,
-        };
-      }
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.TOKEN_SEARCH_DISCOVERY_TOKEN_DETAILS_OPENED)
-        .addProperties(properties)
-        .build()
-      );
+      if (item.category === 'tokens') {
+        let properties: JsonMap;
+        if (urlBarText.current.startsWith('0x')) {
+          properties = {
+            token_address: urlBarText.current,
+          };
+        } else {
+          properties = {
+            token_symbol: item.symbol,
+          };
+        }
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.TOKEN_SEARCH_DISCOVERY_TOKEN_DETAILS_OPENED)
+          .addProperties(properties)
+          .build()
+        );
 
-      navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
-        chainId: item.chainId,
-        address: item.address,
-      });
-    } else {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.TOKEN_SEARCH_DISCOVERY_SITE_OPENED)
-        .addProperties({
-          url: item.url,
-        })
-        .build()
-      );
-      onSubmitEditing(item.url);
-    }
-  }, [onSubmitEditing, navigation, trackEvent, createEventBuilder]);
+        navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
+          chainId: item.chainId,
+          address: item.address,
+        });
+      } else {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.TOKEN_SEARCH_DISCOVERY_SITE_OPENED)
+          .addProperties({
+            url: item.url,
+          })
+          .build()
+        );
+        onSubmitEditing(item.url);
+      }
+    },
+    [onSubmitEditing, navigation, trackEvent, createEventBuilder]
+  );
 
   /**
    * Handle autocomplete dismissal
