@@ -16,7 +16,8 @@ import {
   formatBlockExplorerAddressUrl,
   formatBlockExplorerTransactionUrl,
 } from './networks';
-
+import { SvgProps } from 'react-native-svg';
+import { ImageSourcePropType } from 'react-native';
 /**
  * Returns whether an account is an EVM account.
  *
@@ -204,7 +205,7 @@ export function shortenTransactionId(txId: string) {
 }
 
 
-export function getImageForChainId(chainId: string): string | undefined {
+export function getImageForChainId(chainId: string): ImageSourcePropType | React.FC<SvgProps & { name: string }> | undefined {
   return {
     ...CHAIN_ID_TO_NETWORK_IMAGE_URL_MAP,
     ...MULTICHAIN_TOKEN_IMAGE_MAP,
