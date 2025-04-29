@@ -97,7 +97,7 @@ describe('BridgeDestNetworkSelector', () => {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
-          RemoteFeatureFlagsController: {
+          RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               bridgeConfig: {
                 chains: {

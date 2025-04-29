@@ -99,7 +99,7 @@ describe('BridgeTransactionDetails', () => {
             },
           },
         },
-        RemoteFeatureFlagsController: {
+        RemoteFeatureFlagController: {
           remoteFeatureFlags: {
             bridgeConfig: {
               chains: {

@@ -34,7 +34,7 @@ export const solanaToken2Address =
 export const initialState = {
   engine: {
     backgroundState: {
-      RemoteFeatureFlagsController: {
+      RemoteFeatureFlagController: {
         remoteFeatureFlags: {
           bridgeConfig: {
             chains: {

@@ -100,7 +100,7 @@ describe('BlockExplorersModal', () => {
             slippage: 0.5,
           },
         },
-        RemoteFeatureFlagsController: {
+        RemoteFeatureFlagController: {
           remoteFeatureFlags: {
             bridgeConfig: {
               chains: {
