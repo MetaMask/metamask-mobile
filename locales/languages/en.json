@@ -446,6 +446,10 @@
     "multisrp": {
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
+    },
+    "solana": {
+      "title": "Solana is now supported",
+      "subtitle": "Create a Solana account to get started"
     }
   },
   "wallet": {
@@ -3537,13 +3541,14 @@
     "title": "Solana on MetaMask",
     "create_solana_account": "Create Solana account",
     "not_now": "Not now",
-    "got_it": "Got it",
+    "view_solana_account": "View Solana account",
     "feature_1_title": "Send, receive, and swap tokens",
     "feature_1_description": "Transfer and transact with tokens such as SOL, USDC, and more.",
     "feature_2_title": "Import Solana accounts",
     "feature_2_description": "Import a Secret Recovery Phrase to migrate your Solana account from an other wallet.",
     "feature_3_title": "More features coming soon",
-    "feature_3_description": "Solana dapps, NFTs, hardware wallet support, and more coming soon."
+    "feature_3_description": "Solana dapps, NFTs, hardware wallet support, and more coming soon.",
+    "learn_more": "Learn more about Solana accounts"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",

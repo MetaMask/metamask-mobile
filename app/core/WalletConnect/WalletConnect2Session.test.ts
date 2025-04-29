@@ -650,7 +650,10 @@ describe('WalletConnect2Session', () => {
 
   it('handles wallet_switchEthereumChain correctly', async () => {
     // Setup spies
-    const handleChainChangeSpy = jest.spyOn(session as any, 'handleChainChange');
+    const handleChainChangeSpy = jest.spyOn(
+      session as any,
+      'handleChainChange',
+    );
     const approveRequestSpy = jest.spyOn(session, 'approveRequest');
 
     // Create a mock switch chain request
@@ -667,13 +670,14 @@ describe('WalletConnect2Session', () => {
       },
       verifyContext: {
         verified: {
-          origin: 'https://example.com'
-        }
+          origin: 'https://example.com',
+        },
       },
     };
 
     // Store the request ID in the topicByRequestId map
-    (session as any).topicByRequestId[switchChainRequest.id] = switchChainRequest.topic;
+    (session as any).topicByRequestId[switchChainRequest.id] =
+      switchChainRequest.topic;
 
     // Call handleRequest with the switchChainRequest
     await session.handleRequest(switchChainRequest as any);
@@ -682,9 +686,9 @@ describe('WalletConnect2Session', () => {
     expect(handleChainChangeSpy).toHaveBeenCalledWith(parseInt(chainIdHex, 16)); // 137 in decimal
 
     // Verify approveRequest was called with the correct parameters
-    expect(approveRequestSpy).toHaveBeenCalledWith({ 
-      id: switchChainRequest.id + '', 
-      result: true 
+    expect(approveRequestSpy).toHaveBeenCalledWith({
+      id: switchChainRequest.id + '',
+      result: true,
     });
   });
 });

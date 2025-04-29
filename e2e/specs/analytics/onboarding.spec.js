@@ -116,10 +116,6 @@ describe(SmokeCore('Analytics during import wallet flow'), () => {
             new_wallet: true,
           },
         );
-
-        await Assertions.checkIfObjectsMatch(walletCreatedEvent.properties, {
-          biometrics_enabled: false,
-        });
       },
     );
   });

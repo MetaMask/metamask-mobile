@@ -142,7 +142,8 @@
     "phishingLists": [],
     "whitelist": [],
     "hotlistLastFetched": 0,
-    "stalelistLastFetched": 0
+    "stalelistLastFetched": 0,
+    "urlScanCache": {}
   },
   "PreferencesController": {
     "featureFlags": {},

@@ -5,7 +5,7 @@ import renderWithProvider, {
 import AccountConnect from './AccountConnect';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 import Engine from '../../../core/Engine';
 import {
@@ -33,6 +33,11 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+}));
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -73,6 +78,12 @@ jest.mock('../../../core/Engine', () => {
         test: jest.fn((url: string) => {
           if (url === 'phishing.com') return { result: true };
           return { result: false };
+        }),
+        scanUrl: jest.fn(async (url: string) => {
+          if (url === 'https://phishing.com') {
+            return { recommendedAction: 'BLOCK' };
+          }
+          return { recommendedAction: 'NONE' };
         }),
       },
       PermissionController: {
@@ -266,12 +277,81 @@ describe('AccountConnect', () => {
       const multiSelector = UNSAFE_getByType(AccountConnectMultiSelector);
 
       // Now we can access the component's props
-      multiSelector.props.onPrimaryActionButtonPress();
-
+      await act(async () => {
+        multiSelector.props.onPrimaryActionButtonPress();
+      });
       // Verify that the screen changed back to PermissionsSummary
       expect(
         await findByTestId('permission-summary-container'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Phishing detection', () => {
+    describe('dapp scanning is enabled', () => {
+      it('should show phishing modal for phishing URLs', async () => {
+        const { findByText } = renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: 'phishing.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
+                  },
+                },
+                permissionRequestId: 'test',
+              },
+            }}
+          />,
+          { state: mockInitialState },
+        );
+
+        const warningText = await findByText(
+          `MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.`,
+        );
+        expect(warningText).toBeTruthy();
+        expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
+          'https://phishing.com',
+        );
+      });
+
+      it('should not show phishing modal for safe URLs', async () => {
+        const { queryByText } = renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: 'safe-site.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
+                  },
+                },
+                permissionRequestId: 'test',
+              },
+            }}
+          />,
+          { state: mockInitialState },
+        );
+
+        const warningText = queryByText(
+          `MetaMask flagged the site you're trying to visit as potentially deceptive.`,
+        );
+        expect(warningText).toBeNull();
+        expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
+          'https://safe-site.com',
+        );
+      });
     });
   });
 
