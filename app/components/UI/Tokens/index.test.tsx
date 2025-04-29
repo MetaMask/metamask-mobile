@@ -76,6 +76,13 @@ jest.mock('../../../core/Engine', () => ({
         },
       }),
       findNetworkClientIdByChainId: () => 'mainnet',
+      state: {
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1',
+          },
+        },
+      },
     },
     AccountsController: {
       state: {

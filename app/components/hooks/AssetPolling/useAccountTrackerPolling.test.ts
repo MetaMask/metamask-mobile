@@ -84,10 +84,7 @@ describe('useAccountTrackerPolling', () => {
       2,
     );
     expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-      networkClientId: 'selectedNetworkClientId',
-    });
-    expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-      networkClientId: 'otherNetworkClientId',
+      networkClientIds: ['otherNetworkClientId'],
     });
 
     unmount();
@@ -119,7 +116,7 @@ describe('useAccountTrackerPolling', () => {
       1,
     );
     expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-      networkClientId: 'specificNetworkClientId',
+      networkClientIds: ['specificNetworkClientId'],
     });
 
     unmount();
@@ -204,7 +201,7 @@ describe('useAccountTrackerPolling', () => {
       1,
     );
     expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-      networkClientId: 'otherNetworkClientId',
+      networkClientIds: ['otherNetworkClientId'],
     });
 
     unmount();
