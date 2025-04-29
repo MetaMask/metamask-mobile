@@ -4782,21 +4782,17 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
   integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
-"@metamask/bridge-controller@^19.0.0":
-  version "19.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-19.0.0.tgz#ebfe866b587b7a2607349acccb070b5d711721fe"
-  integrity sha512-VwGipe65V3g0pIpG/UMPPTQHIumePmC1v/9c4xfk6VYGDffZSwGJDyvkxo/8CkkrHwMLAAxu+tGA9juMZJlyhw==
-"@metamask/bridge-controller@^19.0.0":
-  version "19.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-19.0.0.tgz#ebfe866b587b7a2607349acccb070b5d711721fe"
-  integrity sha512-VwGipe65V3g0pIpG/UMPPTQHIumePmC1v/9c4xfk6VYGDffZSwGJDyvkxo/8CkkrHwMLAAxu+tGA9juMZJlyhw==
+"@metamask/bridge-controller@npm:@metamask-previews/bridge-controller@19.0.0-preview-47d1bd5":
+  version "19.0.0-preview-47d1bd5"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/bridge-controller/-/bridge-controller-19.0.0-preview-47d1bd5.tgz#caefefc9ff8616254138250536fda165d1277f19"
+  integrity sha512-gyD+GQa5yk+rJ8+27Du7Xl1gSE00dYhm2jmk9dInYK6Y+CbrlJQIzuWToxrGj4rDesoXTIgeB1Q9pFXHMTRhRw==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/constants" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.0.0"
+    "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.7.0"
     "@metamask/gas-fee-controller" "^23.0.0"
     "@metamask/keyring-api" "^17.4.0"

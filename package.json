@@ -161,7 +161,7 @@
     "@metamask/assets-controllers": "^59.0.0",
     "@metamask/base-controller": "^8.0.0",
     "@metamask/bitcoin-wallet-snap": "^0.9.0",
-    "@metamask/bridge-controller": "^19.0.0",
+    "@metamask/bridge-controller": "npm:@metamask-previews/bridge-controller@19.0.0-preview-47d1bd5",
     "@metamask/bridge-status-controller": "^16.0.0",
     "@metamask/composable-controller": "^11.0.0",
     "@metamask/controller-utils": "^11.7.0",
