@@ -4803,10 +4803,10 @@
     bignumber.js "^9.1.2"
     reselect "^5.1.1"
 
-"@metamask/bridge-status-controller@^14.0.0":
-  version "14.0.0"
-  resolved "https://registry.npmjs.org/@metamask/bridge-status-controller/-/bridge-status-controller-14.0.0.tgz#d9eb1e72864d426dc4d6bdab5282fb3a1c575f0b"
-  integrity sha512-alzQTD5BaV0xRfG2CA8T5T6FdFJt8nPwI504zLI7V1dMES3hFLAJ9hwxBqJTPpPbFRfjMFoppl3XNnelRvG18Q==
+"@metamask/bridge-status-controller@^16.0.0":
+  version "16.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-16.0.0.tgz#bc3c043456fa53f38f4af3dd025e431b3bbc2466"
+  integrity sha512-/gjfix+O4q6o/50p3DWqiDwAKn8m7qOmYZS9XNjYyrL5pE5BKzefy8Khva4yBddxgertevCvVDuUHOw/dr9LTA==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.7.0"
