@@ -90,6 +90,7 @@ function NativeRamp() {
     useState<string>('sepa_bank_transfer');
   const [isPaymentMethodDropdownOpen, setIsPaymentMethodDropdownOpen] =
     useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState<string>('EUR');
 
   const { selectedAddress } = useRampSDK();
 
@@ -142,6 +143,14 @@ function NativeRamp() {
       amountInputRef.current?.focus();
     }
   }, [currentStep]);
+
+  useEffect(() => {
+    if (selectedPaymentMethod === 'pm_ach_push') {
+      setSelectedCurrency('USD');
+    } else {
+      setSelectedCurrency('EUR');
+    }
+  }, [selectedPaymentMethod]);
 
   const fetchAndStoreNativeRampOrders = async () => {
     try {
@@ -514,7 +523,7 @@ function NativeRamp() {
           }),
         );
       } else {
-        // SEPA Bank Transfer flow
+        // Bank transfer flow (SEPA or ACH)
         setLoadingMessage('Creating order...');
         const reservation = await nativeRampService.walletReserve(
           quote as BuyQuote,
@@ -526,13 +535,14 @@ function NativeRamp() {
         );
         setOrderData(order);
 
-        const sepa = order.paymentOptions.find(
-          (p) => p.id === 'sepa_bank_transfer',
+        const paymentOption = order.paymentOptions.find(
+          (p) => p.id === selectedPaymentMethod,
         );
 
-        if (!sepa) throw new Error('SEPA payment option not found');
+        if (!paymentOption)
+          throw new Error(`${selectedPaymentMethod} payment option not found`);
 
-        setSepaData(sepa);
+        setSepaData(paymentOption);
         setCurrentStep(7);
         setIsLoading(false);
       }
@@ -548,7 +558,7 @@ function NativeRamp() {
     try {
       setLoadingMessage('Getting quote...');
       const newQuote = await nativeRampService.getBuyQuote(
-        'EUR',
+        selectedCurrency,
         'USDC',
         'arbitrum',
         selectedPaymentMethod,
@@ -777,9 +787,12 @@ function NativeRamp() {
 
           retries++;
           if (retries === 10) {
+            const isAchTransfer = selectedPaymentMethod === 'pm_ach_push';
             Alert.alert(
               'Payment not detected',
-              "We haven't detected your payment yet. Would you like to review the bank details again?",
+              `We haven't detected your ${
+                isAchTransfer ? 'ACH' : 'SEPA'
+              } payment yet. Would you like to review the bank details again?`,
               [
                 {
                   text: 'Keep waiting',
@@ -1055,7 +1068,7 @@ function NativeRamp() {
             keyboardType={'numeric'}
             testID={AmountViewSelectorsIDs.AMOUNT_INPUT}
           />
-          <Text style={styles.currencyText}>EUR</Text>
+          <Text style={styles.currencyText}>{selectedCurrency}</Text>
         </View>
       </View>
 
@@ -1079,6 +1092,13 @@ function NativeRamp() {
                   color={colors.icon.default}
                 />
               )}
+              {selectedPaymentMethod === 'pm_ach_push' && (
+                <MaterialsCommunityIconsIcon
+                  name="bank-transfer"
+                  size={20}
+                  color={colors.icon.default}
+                />
+              )}
               {selectedPaymentMethod === 'credit_debit_card' && (
                 <MaterialsIconsIcon
                   name="credit-card"
@@ -1097,6 +1117,8 @@ function NativeRamp() {
             <Text variant={TextVariant.BodyMD}>
               {selectedPaymentMethod === 'sepa_bank_transfer'
                 ? 'SEPA Bank Transfer'
+                : selectedPaymentMethod === 'pm_ach_push'
+                ? 'ACH Transfer'
                 : selectedPaymentMethod === 'credit_debit_card'
                 ? 'Debit or credit'
                 : 'Apple Pay'}
@@ -1133,6 +1155,36 @@ function NativeRamp() {
                 <Text variant={TextVariant.BodyMD}>SEPA Bank Transfer</Text>
               </View>
               {selectedPaymentMethod === 'sepa_bank_transfer' && (
+                <MaterialsIconsIcon
+                  name="check"
+                  size={24}
+                  color={colors.primary.default}
+                />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.paymentMethodOption,
+                selectedPaymentMethod === 'pm_ach_push' &&
+                  styles.selectedPaymentMethod,
+              ]}
+              onPress={() => {
+                setSelectedPaymentMethod('pm_ach_push');
+                setIsPaymentMethodDropdownOpen(false);
+              }}
+            >
+              <View style={styles.paymentMethodLeft}>
+                <View style={styles.paymentMethodIconContainer}>
+                  <MaterialsCommunityIconsIcon
+                    name="bank-transfer"
+                    size={20}
+                    color={colors.icon.default}
+                  />
+                </View>
+                <Text variant={TextVariant.BodyMD}>ACH Transfer</Text>
+              </View>
+              {selectedPaymentMethod === 'pm_ach_push' && (
                 <MaterialsIconsIcon
                   name="check"
                   size={24}
@@ -1375,6 +1427,9 @@ function NativeRamp() {
 
   const renderConfirmationScreen = () => {
     if (!orderData || !sepaData) return null;
+
+    const isAchTransfer = selectedPaymentMethod === 'pm_ach_push';
+
     return (
       <>
         <Row style={styles.confirmationAmountContainer}>
@@ -1382,7 +1437,7 @@ function NativeRamp() {
             variant={TextVariant.HeadingLG}
             style={styles.confirmationAmount}
           >
-            {amount} EUR
+            {amount} {selectedCurrency}
           </Text>
           <Text variant={TextVariant.BodyMD} style={styles.fiatAmount}>
             ≈ {quote?.cryptoAmount || amount} USDC
@@ -1411,7 +1466,9 @@ function NativeRamp() {
           </Row>
 
           <Row style={styles.detailRow}>
-            <Text variant={TextVariant.BodyMD}>Beneficiary Name</Text>
+            <Text variant={TextVariant.BodyMD}>
+              {isAchTransfer ? 'Name' : 'Beneficiary Name'}
+            </Text>
             <Text variant={TextVariant.BodyMD}>
               {`${
                 (
@@ -1430,12 +1487,32 @@ function NativeRamp() {
           </Row>
 
           <Row style={styles.detailRow}>
-            <Text variant={TextVariant.BodyMD}>IBAN</Text>
             <Text variant={TextVariant.BodyMD}>
-              {(sepaData.fields?.find((f) => f.name === 'IBAN') as any)
-                ?.value || ''}
+              {isAchTransfer ? 'Account Number' : 'IBAN'}
+            </Text>
+            <Text variant={TextVariant.BodyMD}>
+              {(
+                sepaData.fields?.find((f) =>
+                  isAchTransfer
+                    ? f.name === 'Account Number'
+                    : f.name === 'IBAN',
+                ) as any
+              )?.value || ''}
             </Text>
           </Row>
+
+          {isAchTransfer && (
+            <Row style={styles.detailRow}>
+              <Text variant={TextVariant.BodyMD}>Routing Number</Text>
+              <Text variant={TextVariant.BodyMD}>
+                {(
+                  sepaData.fields?.find(
+                    (f) => f.name === 'Routing Number',
+                  ) as any
+                )?.value || ''}
+              </Text>
+            </Row>
+          )}
 
           <Row style={styles.detailRow}>
             <Text variant={TextVariant.BodyMD}>Bank Name</Text>
@@ -1481,7 +1558,7 @@ function NativeRamp() {
           {orderData?.cryptoAmount || amount} USDC
         </Text>
         <Text variant={TextVariant.BodyMD} style={styles.fiatAmount}>
-          {orderData?.fiatAmount || amount} EUR
+          {orderData?.fiatAmount || amount} {selectedCurrency}
         </Text>
       </Row>
 
