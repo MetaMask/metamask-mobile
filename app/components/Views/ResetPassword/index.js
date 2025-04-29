@@ -70,6 +70,7 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
+import NavigationService from '../../../core/NavigationService';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -634,7 +635,7 @@ class ResetPassword extends PureComponent {
   };
 
   handleConfirmAction = (styles) => {
-    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
         title: strings('reset_password.warning_password_change_title'),
@@ -651,9 +652,9 @@ class ResetPassword extends PureComponent {
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
               style={styles.warningButton}
-              onPress={() =>
-                this.setState({ showPasswordChangeWarning: false })
-              }
+              onPress={() => {
+                NavigationService.navigation?.goBack();
+              }}
             />
             <Button
               label={strings('reset_password.warning_password_change_button')}
@@ -661,7 +662,10 @@ class ResetPassword extends PureComponent {
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
               style={styles.warningButton}
-              onPress={this.onPressCreate}
+              onPress={() => {
+                NavigationService.navigation?.goBack();
+                this.onPressCreate();
+              }}
             />
           </View>
         ),
