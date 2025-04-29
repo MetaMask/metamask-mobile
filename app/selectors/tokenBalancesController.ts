@@ -5,6 +5,7 @@ import { RootState } from '../reducers';
 import { TokenBalancesControllerState } from '@metamask/assets-controllers';
 import { selectSelectedInternalAccountAddress } from './accountsController';
 import { selectEvmChainId } from './networkController';
+import { createDeepEqualSelector } from './util';
 
 const selectTokenBalancesControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenBalancesController;
@@ -29,7 +30,7 @@ export const selectContractBalances = createSelector(
     ]?.[chainId as Hex] ?? {},
 );
 
-export const selectAllTokenBalances = createSelector(
+export const selectAllTokenBalances = createDeepEqualSelector(
   selectTokenBalancesControllerState,
   (tokenBalancesControllerState: TokenBalancesControllerState) =>
     tokenBalancesControllerState.tokenBalances,
