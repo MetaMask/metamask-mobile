@@ -650,7 +650,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             accessibilityRole="button"
             accessible={true}
             activeOpacity={1}
-            disabled={true}
+            disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
@@ -664,7 +664,6 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
-                "opacity": 0.5,
                 "paddingHorizontal": 16,
               }
             }

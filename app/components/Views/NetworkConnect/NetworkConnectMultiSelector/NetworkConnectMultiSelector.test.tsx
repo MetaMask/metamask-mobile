@@ -97,20 +97,6 @@ describe('NetworkConnectMultiSelector', () => {
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1', '0x89'])
   });
 
-  it('shows disconnect button when no networks are selected', () => {
-    const { getByTestId } = renderWithProvider(
-      <NetworkConnectMultiSelector {...defaultProps} defaultSelectedChainIds={[]} />,
-    );
-
-    const disconnectButton = getByTestId(
-      ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
-    );
-    expect(disconnectButton).toBeTruthy();
-
-    fireEvent.press(disconnectButton);
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith([]);
-  });
-
   it('shows update button when some networks are selected', () => {
     const { getByTestId } = renderWithProvider(
       <NetworkConnectMultiSelector
@@ -125,5 +111,19 @@ describe('NetworkConnectMultiSelector', () => {
     fireEvent.press(updateButton);
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1']);
+  });
+
+  it('shows disconnect button when no networks are selected', () => {
+    const { getByTestId } = renderWithProvider(
+      <NetworkConnectMultiSelector {...defaultProps} defaultSelectedChainIds={[]} />,
+    );
+
+    const disconnectButton = getByTestId(
+      ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
+    );
+    expect(disconnectButton).toBeTruthy();
+
+    fireEvent.press(disconnectButton);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith([]);
   });
 });
