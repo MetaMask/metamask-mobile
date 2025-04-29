@@ -6,9 +6,98 @@ import {
   SolScope,
 } from '@metamask/keyring-api';
 import BTC from '../../images/bitcoin-logo.png';
+import BTC_SVG from '../../images/bitcoin-logo.svg';
+import BTC_TESTNET from '../../images/bitcoin-testnet-logo.svg';
 import SOL from '../../images/solana-logo.png';
+import SOL_TESTNET from '../../images/solana-testnet-logo.svg';
+import SOL_DEVNET from '../../images/solana-devnet-logo.svg';
+import ETH from '../../images/eth-logo-new.png';
+import LINEA_TESTNET from '../../images/linea-testnet-logo.png';
+import LINEA_MAINNET from '../../images/linea-mainnet-logo.png';
+import BNB from '../../images/bnb.svg';
+import POL from '../../images/pol.png';
+import AVAX from '../../images/avalanche.png';
+import AETH from '../../images/arbitrum.svg';
+import FTM from '../../images/fantom.png';
+import HARMONY_ONE from '../../images/harmony.png';
+import OPTIMISM from '../../images/optimism.png';
+import PALM from '../../images/palm.png';
+import CELO from '../../images/celo.svg';
+import GNOSIS from '../../images/gnosis.svg';
+import ZK_SYNC_ERA from '../../images/zk-sync.svg';
+import BASE from '../../images/base.png';
+import ACALA from '../../images/acala-network-logo.svg';
+import ARBITRUM_NOVA from '../../images/arbitrum-nova-logo.svg';
+import ASTAR from '../../images/astar-logo.svg';
+import BAHAMUT from '../../images/bahamut.png';
+import BLACKFORT from '../../images/blackfort.png';
+import CANTO from '../../images/canto.svg';
+import CONFLUX_ESPACE from '../../images/conflux.svg';
+import CORE_BLOCKCHAIN_MAINNET from '../../images/core.svg';
+import CRONOS from '../../images/cronos.svg';
+import DEXALOT_SUBNET from '../../images/dexalot-subnet.svg';
+import DFK_CHAIN from '../../images/dfk.png';
+import DOGECHAIN from '../../images/dogechain.jpeg';
+import ENDURANCE_SMART_CHAIN_MAINNET from
+  '../../images/endurance-smart-chain-mainnet.png';
+import ETHEREUM_CLASSIC_MAINNET from '../../images/eth_classic.svg';
+import EVMOS from '../../images/evmos.svg';
+import FLARE_MAINNET from '../../images/flare-mainnet.svg';
+import FUSE_GOLD_MAINNET from '../../images/fuse-mainnet.jpg';
+import HAQQ_NETWORK from '../../images/haqq.svg';
+import IOTEX_MAINNET from '../../images/iotex.svg';
+import KCC_MAINNET from '../../images/kcc-mainnet.svg';
+import KAIA_MAINNET from '../../images/kaia.png';
+import FUNKICHAIN from '../../images/funkichain.svg';
+import KROMA_MAINNET from '../../images/kroma.svg';
+import LIGHT_LINK from '../../images/lightlink.svg';
+import MANTA_PACIFIC_MAINNET from '../../images/manta.svg';
+import MANTLE from '../../images/mantle.svg';
+import MOONBEAM from '../../images/moonbeam.svg';
+import MOONRIVER from '../../images/moonriver.svg';
+import NEAR_AURORA_MAINNET from '../../images/near-aurora.svg';
+import NEBULA_MAINNET from '../../images/nebula.svg';
+import OASYS_MAINNET from '../../images/oasys.svg';
+import OKXCHAIN_MAINNET from '../../images/okx.svg';
+import PGN_MAINNET from '../../images/pgn.svg';
+import ZKEVM_MAINNET from '../../images/polygon-zkevm.svg';
+import PULSECHAIN_MAINNET from '../../images/pulse.svg';
+import SHARDEUM_LIBERTY_2X from '../../images/shardeum-2.svg';
+import SHARDEUM_SPHINX_1X from '../../images/shardeum-1.svg';
+import SHIB_MAINNET from '../../images/shiba.svg';
+import SONGBIRD_MAINNET from '../../images/songbird.png';
+import STEP_NETWORK from '../../images/step.svg';
+import TELOS_EVM_MAINNET from '../../images/telos.svg';
+import TENET from '../../images/tenet.svg';
+import VELAS_EVM_MAINNET from '../../images/velas.svg';
+import ZKATANA from '../../images/zkatana.png';
+import ZORA_MAINNET from '../../images/zora.svg';
+import FILECOIN from '../../images/filecoin.svg';
+import NUMBERS from '../../images/numbers-mainnet.svg';
+import SEI from '../../images/sei.svg';
+import NEAR from '../../images/near.svg';
+import B3 from '../../images/b3.svg';
+import APE from '../../images/ape.svg';
+import GRAVITY from '../../images/gravity.png';
+import LISK from '../../images/lisk.svg';
+import LISK_SEPOLIA from '../../images/lisk_sepolia.svg';
+import INK_SEPOLIA from '../../images/ink-sepolia.svg';
+import INK from '../../images/ink.svg';
+import SONIC_MAINNET from '../../images/sonic.svg';
+import SONEIUM from '../../images/soneium.png';
+import MODE_SEPOLIA from '../../images/mode-sepolia.svg';
+import MODE from '../../images/mode.svg';
+import SHAPE_SEPOLIA from '../../images/shape-sepolia.svg';
+import SHAPE from '../../images/shape.svg';
+import UNICHAIN from '../../images/unichain.svg';
+import MEGAETH_TESTNET from '../../images/megaeth-testnet-logo.png';
+import XRPLEVM_TESTNET from '../../images/xrplevm.png';
+import LENS from '../../images/lens.png';
+import PLUME from '../../images/plume.svg';
+
 import { MultichainBlockExplorerFormatUrls } from './networks';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { SvgProps } from 'react-native-svg';
+import { ImageSourcePropType } from 'react-native';
 
 // Image imports for React Native rendering
 export const MULTICHAIN_TOKEN_IMAGES = {
@@ -289,215 +378,112 @@ export const CHAINLIST_CHAIN_IDS_MAP = {
   XRPLEVM_TESTNET: '0x161c28',
 } as const;
 
-export const ETH_TOKEN_IMAGE_URL = './app/images/eth-logo-new.png';
-export const LINEA_GOERLI_TOKEN_IMAGE_URL = './app/images/linea-testnet-logo.png';
-export const LINEA_SEPOLIA_TOKEN_IMAGE_URL = './app/images/linea-testnet-logo.png';
-export const LINEA_MAINNET_TOKEN_IMAGE_URL = './app/images/linea-mainnet-logo.png';
-export const TEST_ETH_TOKEN_IMAGE_URL = './app/images/black-eth-logo.svg';
-export const BNB_TOKEN_IMAGE_URL = './app/images/bnb.svg';
-export const POL_TOKEN_IMAGE_URL = './app/images/pol.png';
-export const AVAX_TOKEN_IMAGE_URL = './app/images/avalanche.png';
-export const AETH_TOKEN_IMAGE_URL = './app/images/arbitrum.svg';
-export const FTM_TOKEN_IMAGE_URL = './app/images/fantom.png';
-export const HARMONY_ONE_TOKEN_IMAGE_URL = './app/images/harmony.png';
-export const OPTIMISM_TOKEN_IMAGE_URL = './app/images/optimism.png';
-export const PALM_TOKEN_IMAGE_URL = './app/images/palm.png';
-export const CELO_TOKEN_IMAGE_URL = './app/images/celo.svg';
-export const GNOSIS_TOKEN_IMAGE_URL = './app/images/gnosis.svg';
-export const ZK_SYNC_ERA_TOKEN_IMAGE_URL = './app/images/zk-sync.svg';
-export const BASE_TOKEN_IMAGE_URL = './app/images/base.png';
-export const ACALA_TOKEN_IMAGE_URL = './app/images/acala-network-logo.svg';
-export const ARBITRUM_NOVA_IMAGE_URL = './app/images/arbitrum-nova-logo.svg';
-export const ASTAR_IMAGE_URL = './app/images/astar-logo.svg';
-export const BAHAMUT_IMAGE_URL = './app/images/bahamut.png';
-export const BLACKFORT_IMAGE_URL = './app/images/blackfort.png';
-export const CANTO_IMAGE_URL = './app/images/canto.svg';
-export const CONFLUX_ESPACE_IMAGE_URL = './app/images/conflux.svg';
-export const CORE_BLOCKCHAIN_MAINNET_IMAGE_URL = './app/images/core.svg';
-export const CRONOS_IMAGE_URL = './app/images/cronos.svg';
-export const DEXALOT_SUBNET_IMAGE_URL = './app/images/dexalot-subnet.svg';
-export const DFK_CHAIN_IMAGE_URL = './app/images/dfk.png';
-export const DOGECHAIN_IMAGE_URL = './app/images/dogechain.jpeg';
-export const ENDURANCE_SMART_CHAIN_MAINNET_IMAGE_URL =
-  './app/images/endurance-smart-chain-mainnet.png';
-export const ETHEREUM_CLASSIC_MAINNET_IMAGE_URL = './app/images/eth_classic.svg';
-export const EVMOS_IMAGE_URL = './app/images/evmos.svg';
-export const FLARE_MAINNET_IMAGE_URL = './app/images/flare-mainnet.svg';
-export const FUSE_GOLD_MAINNET_IMAGE_URL = './app/images/fuse-mainnet.jpg';
-export const HAQQ_NETWORK_IMAGE_URL = './app/images/haqq.svg';
-export const IOTEX_MAINNET_IMAGE_URL = './app/images/iotex.svg';
-export const IOTEX_TOKEN_IMAGE_URL = './app/images/iotex-token.svg';
-export const APE_TOKEN_IMAGE_URL = './app/images/ape-token.png';
-export const KCC_MAINNET_IMAGE_URL = './app/images/kcc-mainnet.svg';
-export const KAIA_MAINNET_IMAGE_URL = './app/images/kaia.png';
-export const FUNKICHAIN_IMAGE_URL = './app/images/funkichain.svg';
-export const KROMA_MAINNET_IMAGE_URL = './app/images/kroma.svg';
-export const LIGHT_LINK_IMAGE_URL = './app/images/lightlink.svg';
-export const MANTA_PACIFIC_MAINNET_IMAGE_URL = './app/images/manta.svg';
-export const MANTLE_MAINNET_IMAGE_URL = './app/images/mantle.svg';
-export const MOONBEAM_IMAGE_URL = './app/images/moonbeam.svg';
-export const MOONRIVER_IMAGE_URL = './app/images/moonriver.svg';
-export const MOONBEAM_TOKEN_IMAGE_URL = './app/images/moonbeam-token.svg';
-export const MOONRIVER_TOKEN_IMAGE_URL = './app/images/moonriver-token.svg';
-export const NEAR_AURORA_MAINNET_IMAGE_URL = './app/images/near-aurora.svg';
-export const NEBULA_MAINNET_IMAGE_URL = './app/images/nebula.svg';
-export const OASYS_MAINNET_IMAGE_URL = './app/images/oasys.svg';
-export const OKXCHAIN_MAINNET_IMAGE_URL = './app/images/okx.svg';
-export const PGN_MAINNET_IMAGE_URL = './app/images/pgn.svg';
-export const ZKEVM_MAINNET_IMAGE_URL = './app/images/polygon-zkevm.svg';
-export const PULSECHAIN_MAINNET_IMAGE_URL = './app/images/pulse.svg';
-export const SHARDEUM_LIBERTY_2X_IMAGE_URL = './app/images/shardeum-2.svg';
-export const SHARDEUM_SPHINX_1X_IMAGE_URL = './app/images/shardeum-1.svg';
-export const SHIB_MAINNET_IMAGE_URL = './app/images/shiba.svg';
-export const SONGBIRD_MAINNET_IMAGE_URL = './app/images/songbird.png';
-export const STEP_NETWORK_IMAGE_URL = './app/images/step.svg';
-export const TELOS_EVM_MAINNET_IMAGE_URL = './app/images/telos.svg';
-export const TENET_MAINNET_IMAGE_URL = './app/images/tenet.svg';
-export const VELAS_EVM_MAINNET_IMAGE_URL = './app/images/velas.svg';
-export const ZKATANA_MAINNET_IMAGE_URL = './app/images/zkatana.png';
-export const ZORA_MAINNET_IMAGE_URL = './app/images/zora.svg';
-export const FILECOIN_MAINNET_IMAGE_URL = './app/images/filecoin.svg';
-export const SCROLL_IMAGE_URL = './app/images/scroll.svg';
-export const NUMBERS_MAINNET_IMAGE_URL = './app/images/numbers-mainnet.svg';
-export const NUMBERS_TOKEN_IMAGE_URL = './app/images/numbers-token.png';
-export const SEI_IMAGE_URL = './app/images/sei.svg';
-export const NEAR_IMAGE_URL = './app/images/near.svg';
-export const B3_IMAGE_URL = './app/images/b3.svg';
-export const APE_IMAGE_URL = './app/images/ape.svg';
-export const GRAVITY_ALPHA_MAINNET_IMAGE_URL = './app/images/gravity.png';
-export const GRAVITY_ALPHA_TESTNET_SEPOLIA_IMAGE_URL = './app/images/gravity.png';
-export const LISK_IMAGE_URL = './app/images/lisk.svg';
-export const LISK_SEPOLIA_IMAGE_URL = './app/images/lisk_sepolia.svg';
-export const INK_SEPOLIA_IMAGE_URL = './app/images/ink-sepolia.svg';
-export const INK_IMAGE_URL = './app/images/ink.svg';
-export const SONIC_MAINNET_IMAGE_URL = './app/images/sonic.svg';
-export const SONEIUM_IMAGE_URL = './app/images/soneium.png';
-export const MODE_SEPOLIA_IMAGE_URL = './app/images/mode-sepolia.svg';
-export const MODE_IMAGE_URL = './app/images/mode.svg';
-export const SHAPE_SEPOLIA_IMAGE_URL = './app/images/shape-sepolia.svg';
-export const SHAPE_IMAGE_URL = './app/images/shape.svg';
-export const UNICHAIN_IMAGE_URL = './app/images/unichain.svg';
-export const MEGAETH_TESTNET_IMAGE_URL = './app/images/megaeth-testnet-logo.png';
-export const SOLANA_IMAGE_URL = './app/images/solana-logo.png';
-export const XRPLEVM_TESTNET_IMAGE_URL = './app/images/xrplevm.png';
-export const XRP_TOKEN_IMAGE_URL = './app/images/xrp-logo.png';
-export const LENS_IMAGE_URL = './app/images/lens.png';
-export const LENS_NATIVE_TOKEN_IMAGE_URL = './app/images/lens-native.svg';
-export const PLUME_IMAGE_URL = './app/images/plume.svg';
-export const PLUME_NATIVE_TOKEN_IMAGE_URL = './app/images/plume-native.svg';
 
+type ImageMap = Record<string, ImageSourcePropType | React.FC<SvgProps & { name: string }>>;
 
-export const CHAIN_ID_TO_NETWORK_IMAGE_URL_MAP: Record<string, string> = {
-  [CHAIN_IDS.MAINNET]: ETH_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.LINEA_GOERLI]: LINEA_GOERLI_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.LINEA_SEPOLIA]: LINEA_SEPOLIA_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.LINEA_MAINNET]: LINEA_MAINNET_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.AVALANCHE]: AVAX_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.BSC]: BNB_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.POLYGON]: POL_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.ARBITRUM]: AETH_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.FANTOM]: FTM_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.HARMONY]: HARMONY_ONE_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.OPTIMISM]: OPTIMISM_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.PALM]: PALM_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.CELO]: CELO_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.GNOSIS]: GNOSIS_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.ZKSYNC_ERA]: ZK_SYNC_ERA_TOKEN_IMAGE_URL,
-  [CHAIN_IDS.MEGAETH_TESTNET]: MEGAETH_TESTNET_IMAGE_URL,
-  [CHAIN_IDS.NEAR]: NEAR_IMAGE_URL,
-  [CHAIN_IDS.NEAR_TESTNET]: NEAR_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.ACALA_NETWORK]: ACALA_TOKEN_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.ARBITRUM_NOVA]: ARBITRUM_NOVA_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.ASTAR]: ASTAR_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.BAHAMUT_MAINNET]: BAHAMUT_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.BLACKFORT_EXCHANGE_NETWORK]: BLACKFORT_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.CANTO]: CANTO_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.CONFLUX_ESPACE]: CONFLUX_ESPACE_IMAGE_URL,
+export const CHAIN_ID_TO_NETWORK_IMAGE_URL_MAP: ImageMap = {
+  [CHAIN_IDS.MAINNET]: ETH,
+  [CHAIN_IDS.LINEA_GOERLI]: LINEA_TESTNET,
+  [CHAIN_IDS.LINEA_SEPOLIA]: LINEA_TESTNET,
+  [CHAIN_IDS.LINEA_MAINNET]: LINEA_MAINNET,
+  [CHAIN_IDS.AVALANCHE]: AVAX,
+  [CHAIN_IDS.BSC]: BNB,
+  [CHAIN_IDS.POLYGON]: POL,
+  [CHAIN_IDS.ARBITRUM]: AETH,
+  [CHAIN_IDS.FANTOM]: FTM,
+  [CHAIN_IDS.HARMONY]: HARMONY_ONE,
+  [CHAIN_IDS.OPTIMISM]: OPTIMISM,
+  [CHAIN_IDS.PALM]: PALM,
+  [CHAIN_IDS.CELO]: CELO,
+  [CHAIN_IDS.GNOSIS]: GNOSIS,
+  [CHAIN_IDS.ZKSYNC_ERA]: ZK_SYNC_ERA,
+  [CHAIN_IDS.MEGAETH_TESTNET]: MEGAETH_TESTNET,
+  [CHAIN_IDS.NEAR]: NEAR,
+  [CHAIN_IDS.NEAR_TESTNET]: NEAR,
+  [CHAINLIST_CHAIN_IDS_MAP.ACALA_NETWORK]: ACALA,
+  [CHAINLIST_CHAIN_IDS_MAP.ARBITRUM_NOVA]: ARBITRUM_NOVA,
+  [CHAINLIST_CHAIN_IDS_MAP.ASTAR]: ASTAR,
+  [CHAINLIST_CHAIN_IDS_MAP.BAHAMUT_MAINNET]: BAHAMUT,
+  [CHAINLIST_CHAIN_IDS_MAP.BLACKFORT_EXCHANGE_NETWORK]: BLACKFORT,
+  [CHAINLIST_CHAIN_IDS_MAP.CANTO]: CANTO,
+  [CHAINLIST_CHAIN_IDS_MAP.CONFLUX_ESPACE]: CONFLUX_ESPACE,
   [CHAINLIST_CHAIN_IDS_MAP.CORE_BLOCKCHAIN_MAINNET]:
-    CORE_BLOCKCHAIN_MAINNET_IMAGE_URL,
-  [CHAIN_IDS.CRONOS]: CRONOS_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.DEXALOT_SUBNET]: DEXALOT_SUBNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.DFK_CHAIN]: DFK_CHAIN_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.DOGECHAIN_MAINNET]: DOGECHAIN_IMAGE_URL,
+    CORE_BLOCKCHAIN_MAINNET,
+  [CHAIN_IDS.CRONOS]: CRONOS,
+  [CHAINLIST_CHAIN_IDS_MAP.DEXALOT_SUBNET]: DEXALOT_SUBNET,
+  [CHAINLIST_CHAIN_IDS_MAP.DFK_CHAIN]: DFK_CHAIN,
+  [CHAINLIST_CHAIN_IDS_MAP.DOGECHAIN_MAINNET]: DOGECHAIN,
   [CHAINLIST_CHAIN_IDS_MAP.ENDURANCE_SMART_CHAIN_MAINNET]:
-    ENDURANCE_SMART_CHAIN_MAINNET_IMAGE_URL,
+    ENDURANCE_SMART_CHAIN_MAINNET,
   [CHAINLIST_CHAIN_IDS_MAP.ETHEREUM_CLASSIC_MAINNET]:
-    ETHEREUM_CLASSIC_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.EVMOS]: EVMOS_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.FLARE_MAINNET]: FLARE_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.FUSE_GOLD_MAINNET]: FUSE_GOLD_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.IOTEX_MAINNET]: IOTEX_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.HAQQ_NETWORK]: HAQQ_NETWORK_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.KCC_MAINNET]: KCC_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.KAIA_MAINNET]: KAIA_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.FUNKICHAIN]: FUNKICHAIN_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.KROMA_MAINNET]: KROMA_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.LIGHTLINK_PHOENIX_MAINNET]: LIGHT_LINK_IMAGE_URL,
+    ETHEREUM_CLASSIC_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.EVMOS]: EVMOS,
+  [CHAINLIST_CHAIN_IDS_MAP.FLARE_MAINNET]: FLARE_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.FUSE_GOLD_MAINNET]: FUSE_GOLD_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.IOTEX_MAINNET]: IOTEX_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.HAQQ_NETWORK]: HAQQ_NETWORK,
+  [CHAINLIST_CHAIN_IDS_MAP.KCC_MAINNET]: KCC_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.KAIA_MAINNET]: KAIA_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.FUNKICHAIN]: FUNKICHAIN,
+  [CHAINLIST_CHAIN_IDS_MAP.KROMA_MAINNET]: KROMA_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.LIGHTLINK_PHOENIX_MAINNET]: LIGHT_LINK,
   [CHAINLIST_CHAIN_IDS_MAP.MANTA_PACIFIC_MAINNET]:
-    MANTA_PACIFIC_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.MANTLE]: MANTLE_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.MOONBEAM]: MOONBEAM_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.MOONRIVER]: MOONRIVER_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.NEAR_AURORA_MAINNET]: NEAR_AURORA_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.NEBULA_MAINNET]: NEBULA_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.OASYS_MAINNET]: OASYS_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.OKXCHAIN_MAINNET]: OKXCHAIN_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.PGN_PUBLIC_GOODS_NETWORK]: PGN_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.POLYGON_ZKEVM]: ZKEVM_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.PULSECHAIN_MAINNET]: PULSECHAIN_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.SHARDEUM_LIBERTY_2X]: SHARDEUM_LIBERTY_2X_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.SHARDEUM_SPHINX_1X]: SHARDEUM_SPHINX_1X_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.SHIB_MAINNET]: SHIB_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.SONGBIRD_CANARY_NETWORK]: SONGBIRD_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.STEP_NETWORK]: STEP_NETWORK_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.TELOS_EVM_MAINNET]: TELOS_EVM_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.TENET]: TENET_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.VELAS_EVM_MAINNET]: VELAS_EVM_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.ZKATANA]: ZKATANA_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.ZORA_MAINNET]: ZORA_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.FILECOIN]: FILECOIN_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.APE_TESTNET]: APE_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.APE_MAINNET]: APE_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.BASE]: BASE_TOKEN_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.NUMBERS]: NUMBERS_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.SEI]: SEI_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.B3]: B3_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.B3_TESTNET]: B3_IMAGE_URL,
+    MANTA_PACIFIC_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.MANTLE]: MANTLE,
+  [CHAINLIST_CHAIN_IDS_MAP.MOONBEAM]: MOONBEAM,
+  [CHAINLIST_CHAIN_IDS_MAP.MOONRIVER]: MOONRIVER,
+  [CHAINLIST_CHAIN_IDS_MAP.NEAR_AURORA_MAINNET]: NEAR_AURORA_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.NEBULA_MAINNET]: NEBULA_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.OASYS_MAINNET]: OASYS_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.OKXCHAIN_MAINNET]: OKXCHAIN_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.PGN_PUBLIC_GOODS_NETWORK]: PGN_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.POLYGON_ZKEVM]: ZKEVM_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.PULSECHAIN_MAINNET]: PULSECHAIN_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.SHARDEUM_LIBERTY_2X]: SHARDEUM_LIBERTY_2X,
+  [CHAINLIST_CHAIN_IDS_MAP.SHARDEUM_SPHINX_1X]: SHARDEUM_SPHINX_1X,
+  [CHAINLIST_CHAIN_IDS_MAP.SHIB_MAINNET]: SHIB_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.SONGBIRD_CANARY_NETWORK]: SONGBIRD_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.STEP_NETWORK]: STEP_NETWORK,
+  [CHAINLIST_CHAIN_IDS_MAP.TELOS_EVM_MAINNET]: TELOS_EVM_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.TENET]: TENET,
+  [CHAINLIST_CHAIN_IDS_MAP.VELAS_EVM_MAINNET]: VELAS_EVM_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.ZKATANA]: ZKATANA,
+  [CHAINLIST_CHAIN_IDS_MAP.ZORA_MAINNET]: ZORA_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.FILECOIN]: FILECOIN,
+  [CHAINLIST_CHAIN_IDS_MAP.APE_TESTNET]: APE,
+  [CHAINLIST_CHAIN_IDS_MAP.APE_MAINNET]: APE,
+  [CHAINLIST_CHAIN_IDS_MAP.BASE]: BASE,
+  [CHAINLIST_CHAIN_IDS_MAP.NUMBERS]: NUMBERS,
+  [CHAINLIST_CHAIN_IDS_MAP.SEI]: SEI,
+  [CHAINLIST_CHAIN_IDS_MAP.B3]: B3,
+  [CHAINLIST_CHAIN_IDS_MAP.B3_TESTNET]: B3,
   [CHAINLIST_CHAIN_IDS_MAP.GRAVITY_ALPHA_MAINNET]:
-    GRAVITY_ALPHA_MAINNET_IMAGE_URL,
+    GRAVITY,
   [CHAINLIST_CHAIN_IDS_MAP.GRAVITY_ALPHA_TESTNET_SEPOLIA]:
-    GRAVITY_ALPHA_TESTNET_SEPOLIA_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.LISK]: LISK_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.LISK_SEPOLIA]: LISK_SEPOLIA_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.INK_SEPOLIA]: INK_SEPOLIA_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.INK]: INK_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.SONIC_MAINNET]: SONIC_MAINNET_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.SONEIUM_MAINNET]: SONEIUM_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.SONEIUM_TESTNET]: SONEIUM_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.MODE_SEPOLIA]: MODE_SEPOLIA_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.MODE]: MODE_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.SHAPE]: SHAPE_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.SHAPE_SEPOLIA]: SHAPE_SEPOLIA_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.UNICHAIN]: UNICHAIN_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.UNICHAIN_SEPOLIA]: UNICHAIN_IMAGE_URL,
-  [MultichainNetworks.SOLANA]: SOLANA_IMAGE_URL,
-  [CHAINLIST_CHAIN_IDS_MAP.XRPLEVM_TESTNET]: XRPLEVM_TESTNET_IMAGE_URL,
-  [CHAIN_IDS.LENS]: LENS_IMAGE_URL,
-  [CHAIN_IDS.PLUME]: PLUME_IMAGE_URL,
+    GRAVITY,
+  [CHAINLIST_CHAIN_IDS_MAP.LISK]: LISK,
+  [CHAINLIST_CHAIN_IDS_MAP.LISK_SEPOLIA]: LISK_SEPOLIA,
+  [CHAINLIST_CHAIN_IDS_MAP.INK_SEPOLIA]: INK_SEPOLIA,
+  [CHAINLIST_CHAIN_IDS_MAP.INK]: INK,
+  [CHAINLIST_CHAIN_IDS_MAP.SONIC_MAINNET]: SONIC_MAINNET,
+  [CHAINLIST_CHAIN_IDS_MAP.SONEIUM_MAINNET]: SONEIUM,
+  [CHAINLIST_CHAIN_IDS_MAP.SONEIUM_TESTNET]: SONEIUM,
+  [CHAINLIST_CHAIN_IDS_MAP.MODE_SEPOLIA]: MODE_SEPOLIA,
+  [CHAINLIST_CHAIN_IDS_MAP.MODE]: MODE,
+  [CHAINLIST_CHAIN_IDS_MAP.SHAPE]: SHAPE,
+  [CHAINLIST_CHAIN_IDS_MAP.SHAPE_SEPOLIA]: SHAPE_SEPOLIA,
+  [CHAINLIST_CHAIN_IDS_MAP.UNICHAIN]: UNICHAIN,
+  [CHAINLIST_CHAIN_IDS_MAP.UNICHAIN_SEPOLIA]: UNICHAIN,
+  [MultichainNetworks.SOLANA]: SOL,
+  [CHAINLIST_CHAIN_IDS_MAP.XRPLEVM_TESTNET]: XRPLEVM_TESTNET,
+  [CHAIN_IDS.LENS]: LENS,
+  [CHAIN_IDS.PLUME]: PLUME,
 } as const;
 
-// TODO: This data should be provided by the snap
-export const BITCOIN_TOKEN_IMAGE_URL = './app/images/bitcoin-logo.svg';
-export const BITCOIN_TESTNET_TOKEN_IMAGE_URL =
-  './app/images/bitcoin-testnet-logo.svg';
-export const SOLANA_TOKEN_IMAGE_URL = './app/images/solana-logo.png';
-export const SOLANA_TESTNET_IMAGE_URL = './app/images/solana-testnet-logo.svg';
-export const SOLANA_DEVNET_IMAGE_URL = './app/images/solana-devnet-logo.svg';
-
-export const MULTICHAIN_TOKEN_IMAGE_MAP: Record<CaipChainId, string> = {
-  [MultichainNetworks.BITCOIN]: BITCOIN_TOKEN_IMAGE_URL,
-  [MultichainNetworks.BITCOIN_TESTNET]: BITCOIN_TESTNET_TOKEN_IMAGE_URL,
-  [MultichainNetworks.SOLANA]: SOLANA_TOKEN_IMAGE_URL,
-  [MultichainNetworks.SOLANA_DEVNET]: SOLANA_DEVNET_IMAGE_URL,
-  [MultichainNetworks.SOLANA_TESTNET]: SOLANA_TESTNET_IMAGE_URL,
+export const MULTICHAIN_TOKEN_IMAGE_MAP: ImageMap = {
+  [MultichainNetworks.BITCOIN]: BTC_SVG,
+  [MultichainNetworks.BITCOIN_TESTNET]: BTC_TESTNET,
+  [MultichainNetworks.SOLANA]: SOL,
+  [MultichainNetworks.SOLANA_DEVNET]: SOL_DEVNET,
+  [MultichainNetworks.SOLANA_TESTNET]: SOL_TESTNET,
 } as const;
