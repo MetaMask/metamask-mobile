@@ -62,7 +62,6 @@ import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSumma
 import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import NetworkPermissionsConnected from './NetworkPermissionsConnected';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
@@ -324,7 +323,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     toggleRevokeAllPermissionsModal
   ]);
 
-  const handleSelectAccountAddresses = useCallback((selectedAccounts: string[], userIntent: USER_INTENT) => {
+  const handleSelectAccountAddresses = useCallback((selectedAccounts: string[], newUserIntent: USER_INTENT) => {
     try {
       if (selectedAccounts.length === 0) {
         toggleRevokeAllPermissionsModal();
@@ -417,7 +416,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           })
           .build(),
       );
-      setUserIntent(userIntent)
+      setUserIntent(newUserIntent);
     } catch (e) {
       Logger.error(e as Error, 'Error while trying to connect to a dApp.');
     } finally {
@@ -439,12 +438,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   ]);
 
   const handleSelectAccountAddressesFromEditView = useCallback((selectedAccounts: string[]) => {
-    handleSelectAccountAddresses(selectedAccounts, USER_INTENT.EditMultiple)
-  }, [handleSelectAccountAddresses])
+    handleSelectAccountAddresses(selectedAccounts, USER_INTENT.EditMultiple);
+  }, [handleSelectAccountAddresses]);
 
   const handleSelectAccountAddressesFromConnectMoreView = useCallback((selectedAccounts: string[]) => {
-    handleSelectAccountAddresses(selectedAccounts, USER_INTENT.Confirm)
-  }, [handleSelectAccountAddresses])
+    handleSelectAccountAddresses(selectedAccounts, USER_INTENT.Confirm);
+  }, [handleSelectAccountAddresses]);
 
   useEffect(() => {
     if (networkSelectorUserIntent === USER_INTENT.Confirm) {
@@ -642,7 +641,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       hostname,
       isRenderedAsBottomSheet,
       accounts,
-      handleSelectAccountAddresses,
+      handleSelectAccountAddressesFromEditView,
     ],
   );
 
@@ -667,7 +666,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       accountsFilteredByPermissions,
       hostname,
       permittedAccounts,
-      handleSelectAccountAddresses,
+      handleSelectAccountAddressesFromConnectMoreView,
     ],
   );
 

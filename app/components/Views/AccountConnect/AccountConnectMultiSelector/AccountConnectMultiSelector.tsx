@@ -78,12 +78,12 @@ const AccountConnectMultiSelector = ({
   );
 
   const handleSubmit = useCallback(() => {
-    onSubmit(selectedAddresses)
-  }, [onSubmit, selectedAddresses])
+    onSubmit(selectedAddresses);
+  }, [onSubmit, selectedAddresses]);
 
   const handleDisconnect = useCallback(() => {
-    onSubmit([])
-  }, [onSubmit])
+    onSubmit([]);
+  }, [onSubmit]);
 
   const areAllAccountsSelected = accounts
     .every(({address}) => selectedAddresses.includes(address));
@@ -178,12 +178,12 @@ const AccountConnectMultiSelector = ({
     ), [
     areAnyAccountsSelected,
     isLoading,
-    selectedAddresses,
     styles,
     areNoAccountsSelected,
     hostname,
     showDisconnectAllButton,
-    onSubmit,
+    handleDisconnect,
+    handleSubmit,
   ]);
 
   const renderAccountConnectMultiSelector = useCallback(
