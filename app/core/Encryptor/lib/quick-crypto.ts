@@ -48,15 +48,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
       256
     );
 
-    const key = await Crypto.subtle.importKey(
-      'raw',
-      derivedBits,
-      { name: 'AES-CBC', length: 256 },
-      true,
-      ['encrypt', 'decrypt']
-    );
-
-    return this.exportKey('raw', key);
+    return Buffer.from(derivedBits).toString('base64');
   };
 
   /**
