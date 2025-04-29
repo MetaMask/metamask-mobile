@@ -85,8 +85,11 @@ import {
   getCaip25PermissionsResponse,
   getRequestedCaip25CaveatValue,
 } from './utils';
-import { getPhishingTestResult } from '../../../util/phishingDetection';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import {
+  getPhishingTestResultAsync,
+  isProductSafetyDappScanningEnabled,
+} from '../../../util/phishingDetection';
 import { toHex } from '@metamask/controller-utils';
 
 const createStyles = () =>
@@ -138,6 +141,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const internalAccounts = useSelector(selectInternalAccounts);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
+  const isMountedRef = useRef(true);
 
   const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
     {
@@ -242,20 +246,24 @@ const AccountConnect = (props: AccountConnectProps) => {
     // No need to update selectedChainIds here since it's already initialized with all networks
   }, [networkConfigurations]);
 
-  const isAllowedOrigin = useCallback((origin: string) => {
-    const phishingResult = getPhishingTestResult(origin);
-    return !phishingResult?.result;
-  }, []);
-
   useEffect(() => {
-    const url = dappUrl || channelIdOrHostname || '';
-    const isAllowed = isAllowedOrigin(url);
+    let url = dappUrl || channelIdOrHostname || '';
 
-    if (!isAllowed) {
-      setBlockedUrl(dappUrl);
-      setShowPhishingModal(true);
-    }
-  }, [isAllowedOrigin, dappUrl, channelIdOrHostname]);
+    const checkOrigin = async () => {
+      if (isProductSafetyDappScanningEnabled()) {
+        url = prefixUrlWithProtocol(url);
+      }
+      const scanResult = await getPhishingTestResultAsync(url);
+      if (scanResult.result && isMountedRef.current) {
+        setBlockedUrl(dappUrl);
+        setShowPhishingModal(true);
+      }
+    };
+    checkOrigin();
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),

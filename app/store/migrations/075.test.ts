@@ -48,8 +48,15 @@ describe('Migration: transform "eth_accounts" and "endowment:permitted-chains" i
       },
     };
 
+    mockedEnsureValidState.mockReturnValue(true);
+
     const newStorage = migrate(oldStorage);
 
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      new Error(
+        `Migration ${version}: typeof state.PermissionController is undefined`,
+      ),
+    );
     expect(newStorage).toStrictEqual(oldStorage);
   });
 
