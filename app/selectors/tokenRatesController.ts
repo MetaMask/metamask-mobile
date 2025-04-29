@@ -5,7 +5,6 @@ import { RootState } from '../reducers';
 import { selectEvmChainId } from './networkController';
 import { Hex } from '@metamask/utils';
 import { createDeepEqualSelector } from './util';
-import Logger from '../util/Logger';
 
 /**
  * utility similar to lodash.mapValues.
@@ -48,16 +47,11 @@ export const selectTokenMarketData = createSelector(
 export const selectTokenMarketPriceData = createDeepEqualSelector(
   [selectTokenMarketData],
   (marketData) => {
-    try {
-      const marketPriceData = mapValues(marketData, (tokenData) =>
-        mapValues(tokenData, (tokenInfo) => ({ price: tokenInfo?.price })),
-      );
+    const marketPriceData = mapValues(marketData, (tokenData) =>
+      mapValues(tokenData, (tokenInfo) => ({ price: tokenInfo?.price })),
+    );
 
-      return marketPriceData;
-    } catch (e) {
-      Logger.log('FAILED', marketData, e);
-      throw e;
-    }
+    return marketPriceData;
   },
 );
 
