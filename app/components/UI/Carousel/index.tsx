@@ -54,7 +54,7 @@ const _Carousel: FC<CarouselProps> = ({ style }) => {
   const slidesConfig = useMemo(
     () =>
       PREDEFINED_SLIDES.map((slide) => {
-        if (slide.id === 'fund' && !isZeroBalance) {
+        if (slide.id === 'fund' && isZeroBalance) {
           return {
             ...slide,
             undismissable: true,
@@ -80,7 +80,7 @@ const _Carousel: FC<CarouselProps> = ({ style }) => {
         }
         ///: END:ONLY_INCLUDE_IF
 
-        if (slide.id === 'fund' && !isZeroBalance) {
+        if (slide.id === 'fund' && isZeroBalance) {
           return true;
         }
         return !dismissedBanners.includes(slide.id);
