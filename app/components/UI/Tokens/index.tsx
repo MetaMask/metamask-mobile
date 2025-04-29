@@ -47,6 +47,7 @@ import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { RootState } from '../../../reducers';
+import { ScamWarningModal } from './TokenList/ScamWarningModal';
 ///: END:ONLY_INCLUDE_IF
 
 interface TokenListNavigationParamList {
@@ -81,11 +82,12 @@ const Tokens = memo(() => {
 
   // non-evm
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
- const nonEvmTokens = useSelector((state: RootState) =>
-  selectMultichainTokenListForAccountId(state, selectedAccount?.id),
-);
+  const nonEvmTokens = useSelector((state: RootState) =>
+    selectMultichainTokenListForAccountId(state, selectedAccount?.id),
+  );
   ///: END:ONLY_INCLUDE_IF
 
+  const [showScamWarningModal, setShowScamWarningModal] = useState(false);
 
   const tokenListData = isEvmSelected ? evmTokens : nonEvmTokens;
 
@@ -194,6 +196,10 @@ const Tokens = memo(() => {
     [removeToken],
   );
 
+  const handleScamWarningModal = () => {
+    setShowScamWarningModal(!showScamWarningModal);
+  };
+
   return (
     <AssetPollingProvider>
       <View
@@ -209,6 +215,13 @@ const Tokens = memo(() => {
             onRefresh={onRefresh}
             showRemoveMenu={showRemoveMenu}
             goToAddToken={goToAddToken}
+            setShowScamWarningModal={handleScamWarningModal}
+          />
+        )}
+        {showScamWarningModal && (
+          <ScamWarningModal
+            showScamWarningModal={showScamWarningModal}
+            setShowScamWarningModal={setShowScamWarningModal}
           />
         )}
         <ActionSheet

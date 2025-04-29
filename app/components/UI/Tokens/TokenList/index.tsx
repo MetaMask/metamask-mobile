@@ -27,6 +27,7 @@ interface TokenListProps {
   showRemoveMenu: (arg: TokenI) => void;
   goToAddToken: () => void;
   showPercentageChange?: boolean;
+  setShowScamWarningModal: () => void;
 }
 
 export const TokenList = ({
@@ -37,6 +38,7 @@ export const TokenList = ({
   showRemoveMenu,
   goToAddToken,
   showPercentageChange = true,
+  setShowScamWarningModal,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
@@ -45,8 +47,6 @@ export const TokenList = ({
   );
 
   const listRef = useRef<FlashList<TokenI>>(null);
-
-  const [showScamWarningModal, setShowScamWarningModal] = useState(false);
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
@@ -73,7 +73,6 @@ export const TokenList = ({
       <TokenListItem
         asset={item}
         showRemoveMenu={showRemoveMenu}
-        showScamWarningModal={showScamWarningModal}
         setShowScamWarningModal={setShowScamWarningModal}
         privacyMode={privacyMode}
         showPercentageChange={showPercentageChange}
@@ -81,7 +80,6 @@ export const TokenList = ({
     ),
     [
       showRemoveMenu,
-      showScamWarningModal,
       setShowScamWarningModal,
       privacyMode,
       showPercentageChange,

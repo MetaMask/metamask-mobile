@@ -4,7 +4,9 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-  Hex, isCaipChainId } from '@metamask/utils';
+  Hex,
+  isCaipChainId,
+} from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -71,7 +73,6 @@ import {
 
 interface TokenListItemProps {
   asset: TokenI;
-  showScamWarningModal: boolean;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
@@ -81,7 +82,6 @@ interface TokenListItemProps {
 export const TokenListItem = React.memo(
   ({
     asset,
-    showScamWarningModal,
     showRemoveMenu,
     setShowScamWarningModal,
     privacyMode,
@@ -183,20 +183,20 @@ export const TokenListItem = React.memo(
 
     const getPricePercentChange1d = () => {
       const tokenPercentageChange = asset.address
-      ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
-          ?.pricePercentChange1d
-      : undefined;
+        ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
+            ?.pricePercentChange1d
+        : undefined;
       const evmPricePercentChange1d = asset.isNative
-      ? multiChainMarketData?.[chainId as Hex]?.[
-          getNativeTokenAddress(chainId as Hex) as Hex
-        ]?.pricePercentChange1d
-      : tokenPercentageChange;
-      if(isEvmNetworkSelected){
+        ? multiChainMarketData?.[chainId as Hex]?.[
+            getNativeTokenAddress(chainId as Hex) as Hex
+          ]?.pricePercentChange1d
+        : tokenPercentageChange;
+      if (isEvmNetworkSelected) {
         return evmPricePercentChange1d;
       }
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      return allMultichainAssetsRates[asset?.address as CaipAssetType]?.marketData
-          ?.pricePercentChange?.P1D;
+      return allMultichainAssetsRates[asset?.address as CaipAssetType]
+        ?.marketData?.pricePercentChange?.P1D;
       ///: END:ONLY_INCLUDE_IF(keyring-snaps)
     };
 
@@ -415,10 +415,6 @@ export const TokenListItem = React.memo(
         </View>
         <ScamWarningIcon
           asset={asset}
-          setShowScamWarningModal={setShowScamWarningModal}
-        />
-        <ScamWarningModal
-          showScamWarningModal={showScamWarningModal}
           setShowScamWarningModal={setShowScamWarningModal}
         />
       </AssetElement>
