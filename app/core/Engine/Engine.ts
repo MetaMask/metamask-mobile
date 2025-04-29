@@ -1055,6 +1055,7 @@ export class Engine {
           'TokenRatesController:getState',
           'MultichainAssetsRatesController:getState',
           'CurrencyRateController:getState',
+          'RemoteFeatureFlagController:getState',
         ],
         allowedEvents: [],
       }),

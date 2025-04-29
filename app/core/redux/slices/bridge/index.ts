@@ -11,12 +11,14 @@ import {
   isSolanaChainId,
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
+  selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
 import { MetaMetrics } from '../../../Analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
+import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -120,8 +122,11 @@ export const selectAllBridgeableNetworks = createSelector(
 );
 
 export const selectBridgeFeatureFlags = createSelector(
-  selectBridgeControllerState,
-  (bridgeControllerState) => bridgeControllerState.bridgeFeatureFlags,
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    selectBridgeFeatureFlagsBase({
+      bridgeConfig: remoteFeatureFlags.bridgeConfig,
+    }),
 );
 
 export const selectIsBridgeEnabledSource = createSelector(
