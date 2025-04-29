@@ -107,7 +107,10 @@ import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
-import UrlAutocomplete, { AutocompleteSearchResult, UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
+import UrlAutocomplete, {
+  AutocompleteSearchResult,
+  UrlAutocompleteRef,
+} from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
 import {
@@ -755,7 +758,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     // TODO: Make sure to replace with cache hits once EPD has been deprecated.
     if (!isProductSafetyDappScanningEnabled()) {
       const scanResult = getPhishingTestResult(urlToLoad);
-      if (scanResult.result) {
+      let whitelistUrlInput = prefixUrlWithProtocol(urlToLoad);
+      whitelistUrlInput = whitelistUrlInput.replace(/\/$/, ''); // removes trailing slash
+      if (scanResult.result && !whitelist.includes(whitelistUrlInput)) {
         handleNotAllowedUrl(urlToLoad);
         return false;
       }
@@ -1196,9 +1201,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Handle autocomplete selection
    */
-  const onSelect = useCallback((item: AutocompleteSearchResult) => {
-    // Unfocus the url bar and hide the autocomplete results
-    urlBarRef.current?.hide();
+  const onSelect = useCallback(
+    (item: AutocompleteSearchResult) => {
+      // Unfocus the url bar and hide the autocomplete results
+      urlBarRef.current?.hide();
 
     if (item.category === 'tokens') {
       let properties: JsonMap;
@@ -1247,7 +1253,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Hide the autocomplete results
    */
-  const hideAutocomplete = useCallback(() => autocompleteRef.current?.hide(), []);
+  const hideAutocomplete = useCallback(
+    () => autocompleteRef.current?.hide(),
+    [],
+  );
 
   const onCancelUrlBar = useCallback(() => {
     hideAutocomplete();
