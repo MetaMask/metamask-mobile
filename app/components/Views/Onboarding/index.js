@@ -393,7 +393,6 @@ class Onboarding extends PureComponent {
     const action = async () => {
       const result = await OAuthLoginService.handleOAuthLogin('apple').catch(
         (e) => {
-          DevLogger.log(e);
           this.handleLoginError(e);
           return { type: 'error', error: e, existingUser: false };
         },
