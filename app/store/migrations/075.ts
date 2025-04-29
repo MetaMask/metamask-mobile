@@ -93,11 +93,10 @@ export default function migrate(oldState: unknown) {
   const newState = cloneDeep(oldState);
   const { backgroundState } = newState.engine;
 
-  if (!hasProperty(backgroundState, 'PermissionController')) {
-    return oldState;
-  }
-
-  if (!isObject(backgroundState.PermissionController)) {
+  if (
+    !hasProperty(backgroundState, 'PermissionController') ||
+    !isObject(backgroundState.PermissionController)
+  ) {
     captureException(
       new Error(
         `Migration ${version}: typeof state.PermissionController is ${typeof backgroundState.PermissionController}`,
