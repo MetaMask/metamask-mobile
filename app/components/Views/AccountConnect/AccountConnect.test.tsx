@@ -232,7 +232,7 @@ describe('AccountConnect', () => {
   });
 
   describe('AccountConnectMultiSelector handlers', () => {
-    it('invokes onPrimaryActionButtonPress property and renders permissions summary', async () => {
+    it('invokes onSubmit property and renders permissions summary', async () => {
       // Render the container component with necessary props
       const { getByTestId, UNSAFE_getByType, findByTestId } =
         renderWithProvider(
@@ -266,7 +266,7 @@ describe('AccountConnect', () => {
       const multiSelector = UNSAFE_getByType(AccountConnectMultiSelector);
 
       // Now we can access the component's props
-      multiSelector.props.onPrimaryActionButtonPress();
+      multiSelector.props.onSubmit([mockAddress2]);
 
       // Verify that the screen changed back to PermissionsSummary
       expect(
