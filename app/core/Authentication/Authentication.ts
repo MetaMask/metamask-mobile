@@ -31,10 +31,12 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
+///: BEGIN:ONLY_INCLUDE_IF(beta)
 import {
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../SnapKeyring/MultichainWalletSnapClient';
+///: END:ONLY_INCLUDE_IF(beta)
 
 /**
  * Holds auth data used to determine auth configuration
