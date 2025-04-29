@@ -1,4 +1,4 @@
-import React, { useState, useCallback, FC, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, FC, useMemo } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -6,9 +6,12 @@ import {
   Linking,
   Image,
   FlatList,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import debounce from 'lodash/debounce';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { styleSheet } from './styles';
 import { CarouselProps, CarouselSlide, NavigationAction } from './types';
@@ -23,6 +26,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
 import { selectDismissedBanners } from '../../../selectors/banner';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
   selectSelectedInternalAccount,
@@ -118,13 +122,11 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
       ///: END:ONLY_INCLUDE_IF
 
       trackEvent(
-        createEventBuilder({
-          category: 'Banner Select',
-          properties: {
-            name: slideId,
-            ...extraProperties,
-          },
-        }).build(),
+        createEventBuilder(MetaMetricsEvents.CAROUSEL_BANNER_CLICKED)
+          .addProperties({
+            bannerName: slideId,
+          })
+          .build(),
       );
 
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
@@ -157,9 +159,51 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
 
   const handleClose = useCallback(
     (slideId: string) => {
+      const isLastVisibleBanner = visibleSlides.length === 1;
       dispatch(dismissBanner(slideId));
+
+      if (isLastVisibleBanner) {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.CAROUSEL_BANNER_CLOSE_ALL,
+          ).build(),
+        );
+      }
     },
-    [dispatch],
+    [dispatch, trackEvent, createEventBuilder, visibleSlides.length],
+  );
+
+  const handleNavigationChange = useCallback(
+    (newIndex: number) => {
+      if (newIndex !== selectedIndex && newIndex < visibleSlides.length) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CAROUSEL_BANNER_NAVIGATE)
+            .addProperties({
+              from_banner: visibleSlides[selectedIndex]?.id,
+              to_banner: visibleSlides[newIndex]?.id,
+              navigation_method: 'swipe',
+            })
+            .build(),
+        );
+        setSelectedIndex(newIndex);
+      }
+    },
+    [selectedIndex, visibleSlides, trackEvent, createEventBuilder],
+  );
+
+  const debouncedHandleNavigationChange = useMemo(
+    () => debounce(handleNavigationChange, 50),
+    [handleNavigationChange],
+  );
+
+  const handleMomentumScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offset = event.nativeEvent.contentOffset.x;
+      const width = event.nativeEvent.layoutMeasurement.width;
+      const newIndex = Math.round(offset / width);
+      debouncedHandleNavigationChange(newIndex);
+    },
+    [debouncedHandleNavigationChange],
   );
 
   const renderBannerSlides = useCallback(
@@ -218,20 +262,6 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
     ],
   );
 
-  // Track banner display events when visible slides change
-  useEffect(() => {
-    visibleSlides.forEach((slide) => {
-      trackEvent(
-        createEventBuilder({
-          category: 'Banner Display',
-          properties: {
-            name: slide.id,
-          },
-        }).build(),
-      );
-    });
-  }, [visibleSlides, trackEvent, createEventBuilder]);
-
   const renderProgressDots = useMemo(
     () => (
       <View
@@ -274,13 +304,7 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(event) => {
-            const newIndex = Math.round(
-              event.nativeEvent.contentOffset.x /
-                event.nativeEvent.layoutMeasurement.width,
-            );
-            setSelectedIndex(newIndex);
-          }}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
         />
       </View>
       {!isSingleSlide && renderProgressDots}
