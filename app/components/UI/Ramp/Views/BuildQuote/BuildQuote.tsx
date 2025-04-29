@@ -83,6 +83,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { isNonEvmAddress } from '../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../util/trace';
 
 // TODO: Replace "any" with type
@@ -245,9 +246,14 @@ const BuildQuote = () => {
     [selectedAsset],
   );
 
+  const addressForBalance = useMemo(
+    () => (isNonEvmAddress(selectedAddress) ? undefined : selectedAddress),
+    [selectedAddress],
+  );
+
   const { addressBalance } = useAddressBalance(
     assetForBalance as Asset,
-    selectedAddress,
+    addressForBalance,
     true,
   );
 

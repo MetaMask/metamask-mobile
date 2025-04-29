@@ -29,9 +29,9 @@
       "message": "Talepte bulunan site giriş yaptığınız site değil. Bu, oturum açma bilgilerinizi çalma teşebbüsü olabilir."
     },
     "insufficient_balance": {
-      "title": "Insufficient funds",
-      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
-      "buy_action": "Buy %{nativeCurrency}"
+      "title": "Para yetersiz",
+      "message": "Hesabınızda ağ ücretlerini ödemek için yeterli %{nativeCurrency} yok.",
+      "buy_action": "%{nativeCurrency} satın al"
     }
   },
   "blockaid_banner": {
@@ -83,11 +83,11 @@
     "connector": "saat"
   },
   "autocomplete": {
-    "placeholder": "Search by token, site or address",
+    "placeholder": "Token'a, siteye veya adrese göre ara",
     "recents": "Son Ziyaret Edilenler",
     "favorites": "Favoriler",
     "sites": "Siteler",
-    "tokens": "Tokens"
+    "tokens": "Token'lar"
   },
   "navigation": {
     "back": "Geri",
@@ -444,8 +444,8 @@
       "subtitle": "Ayarlarda bakiye görünümünüzü kontrol edin"
     },
     "multisrp": {
-      "title": "Add multiple Secret Recovery Phrases",
-      "subtitle": "Import and use multiple wallets in MetaMask"
+      "title": "Birden fazla Gizli Kurtarma İfadesi ekleyin",
+      "subtitle": "MetaMask'te cüzdanları içe aktarın veya kullanın"
     }
   },
   "wallet": {
@@ -793,14 +793,14 @@
     "show_accounts": "Göster",
     "hide_accounts": "Gizle",
     "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
-      "bitcoin_account_name": "Bitcoin Account",
-      "solana_devnet_account_name": "Solana Devnet Account",
-      "solana_testnet_account_name": "Solana Testnet Account",
-      "solana_account_name": "Solana Account"
+      "bitcoin_testnet_account_name": "Bitcoin Test Ağı Hesabı",
+      "bitcoin_account_name": "Bitcoin Hesabı",
+      "solana_devnet_account_name": "Solana Devnet Hesabı",
+      "solana_testnet_account_name": "Solana Test Ağı Hesabı",
+      "solana_account_name": "Solana Hesabı"
     },
     "error_messages": {
-      "failed_to_create_account": "Failed to create {{clientType}} account"
+      "failed_to_create_account": "{{clientType}} hesabı oluşturulamadı"
     }
   },
   "toast": {
@@ -982,11 +982,11 @@
     "networks_desc": "Kişisel RPC ağı ekle ve düzenle",
     "network_name_label": "Ağ Adı",
     "network_name_placeholder": "Ağ Adı (isteğe bağlı)",
-    "network_rpc_url_label": "RPC URL",
+    "network_rpc_url_label": "RPC URL adresi",
     "network_rpc_name_label": "RPC Adı",
     "network_rpc_placeholder": "Yeni RPC Ağı",
-    "network_failover_rpc_url_label": "Failover RPC URL",
-    "failover": "Failover",
+    "network_failover_rpc_url_label": "Yedek RPC URL adresi",
+    "failover": "Yedekleme",
     "network_chain_id_label": "Zincir Kimliği",
     "network_chain_id_placeholder": "Zincir Kimliği",
     "network_symbol_label": "Sembol",
@@ -1135,7 +1135,7 @@
       "description": "Snap'leriniz için genel bakış ve yönetim",
       "snap_ui": {
         "link": {
-          "accessibilityHint": "Opens in a new tab"
+          "accessibilityHint": "Yeni bir sekmede açılır"
         }
       },
       "snap_settings": {
@@ -1508,7 +1508,7 @@
     "gas_fee_slow": "YAVAŞ",
     "hex_data": "On Altılı Veriler",
     "custom_nonce": "Nonce",
-    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
+    "custom_nonce_tooltip": "Bu, bir hesabın işlem numarasıdır. İlk işlem için nonce 0 olup sıralı düzende artar.",
     "this_is_an_advanced": "Bu, bekleyen işlemleri iptal etmek veya hızlandırmak için kullanılan gelişmiş bir özelliktir.",
     "current_suggested_nonce": "Geçerli önerilen nonce:",
     "edit_transaction_nonce": "İşlem nonce numarasını düzenle",
@@ -1787,7 +1787,7 @@
     "tx_details_not_available": "Mevcut değil",
     "smart_contract_interaction": "Akıllı sözleşme etkileşimi",
     "swaps_transaction": "Swap işlemi",
-    "bridge_transaction": "Bridge",
+    "bridge_transaction": "Köprü",
     "approve": "Onayla",
     "increase_allowance": "Ödeneği Artır",
     "set_approval_for_all": "Tümüne Onay Ver",
@@ -2113,7 +2113,7 @@
     "info_text_2": "Bu, sadece cihazınızı kaybettiğiniz takdirde paranıza erişim sağlayabilmenizi ve cüzdanınızı kurtarmanızı sağlar",
     "cta_text": "Şifre oluştur",
     "creating_password": "Şifre oluşturuluyor...",
-    "srp_list_selection": "Select Secret Recovery Phrase"
+    "srp_list_selection": "Gizli Kurtarma İfadesi seçin"
   },
   "account_backup_step_1": {
     "remind_me_later": "Daha sonra hatırlat",
@@ -2754,7 +2754,7 @@
     "minimum": "Yatırılabilecek minimum miktar",
     "maximum": "Yatırılabilecek maksimum miktar",
     "insufficient_balance": "Bu tutar bakiyenizden yüksek",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "Gaz ücretlerini karşılamak için yeterli {{currency}} yok.",
     "enter_larger_amount": "Devam etmek için daha büyük bir tutar girin",
     "enter_smaller_amount": "Devam etmek için daha küçük bir tutar girin",
     "enter_lower_gas_fees": "Gaz ücretlerini ödemek için daha düşük bir tutar girin",
@@ -2862,7 +2862,7 @@
     }
   },
   "swaps": {
-    "title": "Swap",
+    "title": "Swap Yap",
     "onboarding": {
       "get_the": "Tüm zamanların en iyi likidite",
       "best_price": "kaynaklarından",
@@ -3805,21 +3805,21 @@
       "permit_revoke": "İzni kaldır",
       "permit_NFTs": "Para çekme talebi",
       "signature_siwe": "Giriş talebi",
-      "contract_interaction": "Transaction request"
+      "contract_interaction": "İşlem talebi"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",
       "permit_NFTs": "Bu site NFT'lerinizi çekmek için izin istiyor.",
       "signature": "Onaylamadan önce talep bilgilerini inceleyin.",
       "signature_siwe": "Bir site, bu hesabın sahibinin siz olduğunuzu kanıtlamak için giriş yapmanızı istiyor.",
-      "contract_interaction": "Review request details before you confirm."
+      "contract_interaction": "Onaylamadan önce talep bilgilerini inceleyin."
     },
     "request_from": "Talebi gönderen",
     "staking_from": "Stake edilecek yer",
     "signing_in_with": "Şununla giriş yapılıyor:",
     "message": "Mesaj",
     "personal_sign_tooltip": "Bu site imzanızı istiyor",
-    "transaction_tooltip": "This site is asking for your transaction",
+    "transaction_tooltip": "Bu site işleminizi istiyor",
     "details": "Ayrıntılar",
     "qr_get_sign": "İmza Al",
     "qr_scan_text": "Donanım cüzdanınızla tarayın",
@@ -3855,8 +3855,9 @@
     },
     "unlimited": "Sınırsız",
     "none": "Hiçbiri",
-    "advanced_details": "Advanced details",
-    "interacting_with": "Interacting with"
+    "advanced_details": "Gelişmiş bilgiler",
+    "interacting_with": "Etkileşimde",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "Sonuçlar değişti",
@@ -3898,28 +3899,33 @@
     "quote_info_content": "Aramamıza göre bu teklif en iyi getiriyi sunmaktadır. Swap oranına dayanır ve köprüleme ücretleri ve %0,875 MetaMask ücreti dahildir ancak gaz ücretleri dahil değildir. Gaz ücretleri ağ faaliyetine ve işlemin karmaşıklığına göre değişiklik gösterebilir.",
     "quote_info_title": "Neden bu teklifi öneriyoruz",
     "see_other_quotes": "Diğer teklifleri gör",
-    "receive_at": "Receive at",
-    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
-    "insufficient_funds": "Insufficient funds",
-    "select_amount": "Select amount",
-    "bridge_to": "Bridge to",
-    "title": "Bridge",
-    "submitting_transaction": "Submitting",
-    "fetching_quote": "Fetching quote"
+    "receive_at": "Alınacak",
+    "error_banner_description": "Bu işlem rotası şu anda kullanılamıyor. Tutarı, ağı veya token'ı değiştirmeyi deneyin ve en iyi seçeneği bulalım.",
+    "insufficient_funds": "Para yetersiz",
+    "select_amount": "Tutar seçin",
+    "bridge_to": "Köprü yapılan",
+    "title": "Köprü",
+    "submitting_transaction": "Gönderiliyor",
+    "fetching_quote": "Teklif alınıyor"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
   },
   "bridge_transaction_details": {
-    "status": "Status",
-    "date": "Date",
-    "total_gas_fee": "Total gas fee",
-    "estimated_completion": "Est. completion",
-    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
-    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
-    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
-    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
-    "view_on_block_explorer": "View on Block Explorer",
-    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
-    "transaction_details": "Transaction Details",
-    "bridge_to_chain": "Bridge to {{chainName}}",
-    "recipient": "Recipient"
+    "status": "Durum",
+    "date": "Tarih",
+    "total_gas_fee": "Toplam gaz ücreti",
+    "estimated_completion": "Tahmini tamamlanma",
+    "bridge_step_action_bridge_complete": "{{destChainName}} üzerinde {{destSymbol}} alındı",
+    "bridge_step_action_bridge_pending": "{{destChainName}} üzerinde {{destSymbol}} alınıyor",
+    "bridge_step_action_swap_complete": "{{srcSymbol}} - {{destSymbol}} swap işlemi gerçekleştirildi",
+    "bridge_step_action_swap_pending": "{{srcSymbol}} - {{destSymbol}} swap işlemi gerçekleştiriliyor",
+    "view_on_block_explorer": "Blok Gezgininde Görüntüle",
+    "block_explorer_description": "Bu işlem iki ağda da bulunuyor. Birinci bağlantı kaynağı gösterir, ikincisi onaylandıktan sonra hedefi gösterir.",
+    "transaction_details": "İşlem Bilgileri",
+    "bridge_to_chain": "{{chainName}} için köprü",
+    "recipient": "Alıcı"
   }
 }
