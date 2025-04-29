@@ -140,7 +140,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   ): Promise<EncryptionResult> => {
     const text = JSON.stringify(data);
 
-    const iv = Crypto.getRandomValues(new Uint8Array(16));
+    const iv = Crypto.getRandomValues(new Uint8Array(16)) as Uint8Array;
     const result = await QuickCryptoLib.encrypt(text, key.key, iv);
     const cipher = Buffer.from(result).toString('base64');
 
