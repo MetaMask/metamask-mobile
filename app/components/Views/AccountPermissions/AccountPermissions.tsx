@@ -122,9 +122,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hostname,
   );
 
-  const [networkAvatars, setNetworkAvatars] = useState<
-    ({ name: string; imageSource: string } | null)[]
-  >([]);
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -146,42 +143,33 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     USER_INTENT.None,
   );
 
-  useEffect(() => {
-    const networks = Object.entries(networkConfigurations)
-      .filter(([_, network]) => !isNonEvmChainId(network.chainId))
-      .map(([key, network]: [string, NetworkConfiguration]) => ({
-        id: key,
-        name: network.name,
-        rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
-        isSelected: false,
+  const networks = Object.entries(networkConfigurations)
+    .filter(([_, network]) => !isNonEvmChainId(network.chainId))
+    .map(([key, network]: [string, NetworkConfiguration]) => ({
+      id: key,
+      name: network.name,
+      rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
+      isSelected: false,
+      chainId: network?.chainId,
+      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+      imageSource: getNetworkImageSource({
         chainId: network?.chainId,
-        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-        imageSource: getNetworkImageSource({
-          chainId: network?.chainId,
-        }),
-      }));
+      }),
+    }));
 
-    const theNetworkAvatars: ({ name: string; imageSource: string } | null)[] =
-      permittedChainIds.map((selectedId) => {
-        const network = networks.find(({ id }) => id === selectedId);
-        if (network) {
-          return {
-            name: network.name,
-            imageSource: network.imageSource as string,
-            variant: AvatarVariant.Network,
-          };
-        }
-        return null;
-      });
+  const networkAvatars: ({ name: string; imageSource: string } | null)[] =
+    permittedChainIds.map((selectedId) => {
+      const network = networks.find(({ id }) => id === selectedId);
+      if (network) {
+        return {
+          name: network.name,
+          imageSource: network.imageSource as string,
+          variant: AvatarVariant.Network,
+        };
+      }
+      return null;
+    });
 
-    if (
-      [USER_INTENT.None, USER_INTENT.Confirm].includes(
-        networkSelectorUserIntent,
-      )
-    ) {
-      setNetworkAvatars(theNetworkAvatars);
-    }
-  }, [hostname, networkConfigurations, networkSelectorUserIntent, permittedChainIds]);
 
   const hideSheet = useCallback(
     (callback?: () => void) =>
