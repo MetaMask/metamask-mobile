@@ -14,10 +14,13 @@ export interface MultichainBalancesData {
   aggregatedBalance: AggregatedPercentageProps;
 }
 
-export interface UseMultichainBalancesHook {
+export interface UseAllAccountsMultichainBalancesHook {
   multichainBalancesForAllAccounts: Record<
     InternalAccount['id'],
     MultichainBalancesData
   >;
+}
+
+export interface UseSelectedAccountMultichainBalancesHook {
   selectedAccountMultichainBalance?: MultichainBalancesData;
 }

@@ -10,7 +10,7 @@ import {
   selectProviderConfig,
 } from '../../selectors/networkController';
 import Engine from '../Engine';
-import { getPermittedAccounts, getPermittedChains } from '../Permissions';
+import { addPermittedChain, getPermittedAccounts, getPermittedChains, removePermittedChain } from '../Permissions';
 import {
   findExistingNetwork,
   switchToNetwork,
@@ -246,7 +246,8 @@ export const onRequestUserApproval = (origin: string) => async (args: any) => {
 export const checkWCPermissions = async ({
   origin,
   caip2ChainId,
-}: { origin: string; caip2ChainId: string }) => {
+  allowSwitchingToNewChain = false,
+}: { origin: string; caip2ChainId: string; allowSwitchingToNewChain?: boolean }) => {
   const networkConfigurations = selectNetworkConfigurations(store.getState());
   const decimalChainId = caip2ChainId.split(':')[1];
   const hexChainIdString = `0x${parseInt(decimalChainId, 10).toString(16)}`;
@@ -274,7 +275,9 @@ export const checkWCPermissions = async ({
   );
 
 
-  if (!isAllowedChainId) {
+
+  // If the chainId is not permitted and we're not allowed to switch to a new chain, throw an error
+  if (!isAllowedChainId && !allowSwitchingToNewChain) {
     DevLogger.log(`WC::checkWCPermissions chainId is not permitted`);
     throw rpcErrors.invalidParams({
       message: `Invalid parameters: active chainId is different than the one provided.`,
@@ -288,6 +291,13 @@ export const checkWCPermissions = async ({
 
   if (caip2ChainId !== activeCaip2ChainId) {
     try {
+      if (!isAllowedChainId && allowSwitchingToNewChain) {
+        // Preemptively add the chain to the permitted chains
+        // This is to prevent a race condition where WalletConnect is told about the chain switch before permissions are updated
+        DevLogger.log(`WC::checkWCPermissions adding permitted chain for ${origin}:`, hexChainIdString);
+        await addPermittedChain(getHostname(origin), hexChainIdString);
+      }
+
       await switchToNetwork({
         network: existingNetwork,
         chainId: hexChainIdString,
@@ -303,6 +313,14 @@ export const checkWCPermissions = async ({
         `WC::checkWCPermissions error switching to network:`,
         error,
       );
+
+      if (!isAllowedChainId && allowSwitchingToNewChain) {
+        // If we failed to switch to the network, remove the chain from the permitted chains
+        // This is so we don't leave any dangling permissions if the user rejects the switch
+        DevLogger.log(`WC::checkWCPermissions removing permitted chain for ${origin}:`, hexChainIdString);
+        await removePermittedChain(getHostname(origin), hexChainIdString);
+      }
+
       return false;
     }
   }

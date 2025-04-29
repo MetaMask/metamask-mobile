@@ -983,7 +983,7 @@ exports[`Confirm should render correctly 1`] = `
                                           }
                                         }
                                       >
-                                        0xe64d...920A
+                                        0xe64dD...b920A
                                       </Text>
                                       <View
                                         style={

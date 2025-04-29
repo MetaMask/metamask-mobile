@@ -6,8 +6,9 @@ import { SimulationDetails } from '../../../../../UI/SimulationDetails/Simulatio
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import AccountNetworkInfo from '../../rows/account-network-info-row';
-import GasFeesDetails from '../../rows/transactions/gas-fee-details';
 import OriginRow from '../../rows/origin-row';
+import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
+import GasFeesDetails from '../../rows/transactions/gas-fee-details';
 import styleSheet from './contract-interaction.styles';
 
 const ContractInteraction = () => {
@@ -30,6 +31,7 @@ const ContractInteraction = () => {
       </View>
       <OriginRow isSignatureRequest={false} />
       <GasFeesDetails />
+      <AdvancedDetailsRow />
     </View>
   );
 };
