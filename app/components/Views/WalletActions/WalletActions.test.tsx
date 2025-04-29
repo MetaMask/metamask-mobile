@@ -181,7 +181,7 @@ const mockInitialState: DeepPartial<RootState> = {
         ...backgroundState.RemoteFeatureFlagController,
         remoteFeatureFlags: {
           ...backgroundState.RemoteFeatureFlagController.remoteFeatureFlags,
-          'bridgeConfig': {
+          bridgeConfig: {
             refreshRate: 3,
             maxRefreshCount: 1,
             support: true,
@@ -313,7 +313,9 @@ describe('WalletActions', () => {
 
   it('should not show the buy button and swap button if the chain does not allow buying', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
-    (selectIsBridgeEnabledSource as unknown as jest.Mock).mockReturnValue(false);
+    (selectIsBridgeEnabledSource as unknown as jest.Mock).mockReturnValue(
+      false,
+    );
     jest
       .requireMock('../../UI/Ramp/hooks/useRampNetwork')
       .default.mockReturnValue([false]);
@@ -447,13 +449,20 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith('BrowserTabHome', {
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       params: {
-        newTabUrl:
-          'https://bridge.metamask.io/?metamaskEntry=mobile&srcChain=1',
-        timestamp: 123,
+        bridgeViewMode: 'Swap',
+        sourcePage: 'MainView',
+        token: {
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          decimals: 9,
+          image: '',
+          name: 'Solana',
+          symbol: 'SOL',
+        },
       },
-      screen: 'BrowserView',
+      screen: 'BridgeView',
     });
   });
 
