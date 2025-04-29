@@ -355,7 +355,6 @@ export function getPaymentRequestOptionsTitle(
   const goBack = route.params?.dispatch;
   const innerStyles = StyleSheet.create({
     headerTitleStyle: {
-      // center the element
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -402,6 +401,7 @@ export function getPaymentRequestOptionsTitle(
         size={ButtonIconSizes.Md}
         onPress={() => navigation.pop()}
         style={innerStyles.headerCloseButton}
+        testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
       />
     ),
     headerStyle: innerStyles.headerStyle,
