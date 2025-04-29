@@ -11,6 +11,7 @@ import QRInfo from '../qr-info';
 import StakingClaim from '../../external/staking/info/staking-claim';
 import StakingDeposit from '../../external/staking/info/staking-deposit';
 import StakingWithdrawal from '../../external/staking/info/staking-withdrawal';
+import Transfer from '../info/transfer';
 import TypedSignV1 from '../info/typed-sign-v1';
 import TypedSignV3V4 from '../info/typed-sign-v3v4';
 
@@ -39,6 +40,10 @@ const ConfirmationInfoComponentMap = {
         return StakingDeposit;
       case TransactionType.stakingUnstake:
         return StakingWithdrawal;
+      case TransactionType.simpleSend:
+      case TransactionType.tokenMethodTransfer:
+      case TransactionType.tokenMethodTransferFrom:
+        return Transfer;
       default:
         return null;
     }

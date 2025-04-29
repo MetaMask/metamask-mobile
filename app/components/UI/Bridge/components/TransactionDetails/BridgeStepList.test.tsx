@@ -4,10 +4,9 @@ import BridgeStepList from './BridgeStepList';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import {
   BridgeHistoryItem,
-  StatusTypes,
   ActionTypes,
 } from '@metamask/bridge-status-controller';
-import { Step } from '@metamask/bridge-controller';
+import { StatusTypes, Step } from '@metamask/bridge-controller';
 
 jest.mock('./StepProgressBarItem', () => ({
   __esModule: true,

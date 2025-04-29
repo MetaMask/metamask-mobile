@@ -3,6 +3,7 @@ import React, {
   Fragment,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -14,7 +15,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import UntypedEngine from '../../../core/Engine';
+import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
@@ -42,25 +43,31 @@ import { TraceName, endTrace } from '../../../util/trace';
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const routeParams = useMemo(() => route?.params, [route?.params]);
   const {
     onSelectAccount,
     checkBalanceError,
     disablePrivacyMode,
     navigateToAddAccountActions,
-  } = route.params || {};
+  } = routeParams || {};
 
-  const { reloadAccounts } = useSelector((state: RootState) => state.accounts);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Engine = UntypedEngine as any;
+  const reloadAccounts = useSelector(
+    (state: RootState) => state.accounts.reloadAccounts,
+  );
   const privacyMode = useSelector(selectPrivacyMode);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { accounts, ensByAccountAddress } = useAccounts({
-    checkBalanceError,
-    isLoading: reloadAccounts,
-  });
+
+  // Memoize useAccounts parameters to prevent unnecessary recalculations
+  const accountsParams = useMemo(
+    () => ({
+      checkBalanceError,
+      isLoading: reloadAccounts,
+    }),
+    [checkBalanceError, reloadAccounts],
+  );
+  const { accounts, ensByAccountAddress } = useAccounts(accountsParams);
   const [screen, setScreen] = useState<AccountSelectorScreens>(
-    navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
+    () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
   useEffect(() => {
     endTrace({ name: TraceName.AccountList });
@@ -87,14 +94,24 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           .build(),
       );
     },
-    [Engine, accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
+    [accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );
+
+  // Handler for adding accounts
+  const handleAddAccount = useCallback(() => {
+    setScreen(AccountSelectorScreens.AddAccountActions);
+  }, []);
+
+  // Handler for returning from add accounts screen
+  const handleBackToSelector = useCallback(() => {
+    setScreen(AccountSelectorScreens.AccountSelector);
+  }, []);
 
   const onRemoveImportedAccount = useCallback(
     ({ nextActiveAddress }: { nextActiveAddress: string }) => {
       nextActiveAddress && Engine.setSelectedAddress(nextActiveAddress);
     },
-    [Engine],
+    [],
   );
 
   const renderAccountSelector = useCallback(
@@ -116,7 +133,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             label={strings('account_actions.add_account_or_hardware_wallet')}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
-            onPress={() => setScreen(AccountSelectorScreens.AddAccountActions)}
+            onPress={handleAddAccount}
             testID={
               AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
             }
@@ -131,16 +148,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onRemoveImportedAccount,
       privacyMode,
       disablePrivacyMode,
+      handleAddAccount,
     ],
   );
 
   const renderAddAccountActions = useCallback(
-    () => (
-      <AddAccountActions
-        onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
-      />
-    ),
-    [],
+    () => <AddAccountActions onBack={handleBackToSelector} />,
+    [handleBackToSelector],
   );
 
   const renderAccountScreens = useCallback(() => {
@@ -157,4 +171,4 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   return <BottomSheet ref={sheetRef}>{renderAccountScreens()}</BottomSheet>;
 };
 
-export default AccountSelector;
+export default React.memo(AccountSelector);
