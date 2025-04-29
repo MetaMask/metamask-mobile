@@ -1,4 +1,5 @@
 import { TransactionType } from '@metamask/transaction-controller';
+import { ParseOutput } from 'eth-url-parser';
 
 import { ETH_ACTIONS } from '../../../../constants/deeplinks';
 import { selectConfirmationRedesignFlagsFromRemoteFeatureFlags } from '../../../../selectors/featureFlagController/confirmations';
@@ -141,7 +142,7 @@ describe('addTransactionForDeeplink', () => {
         value: '1000',
       },
       target_address: TO_ADDRESS_MOCK,
-    });
+    } as unknown as ParseOutput);
 
     expect(mockAddTransaction).toHaveBeenCalledWith(
       {
@@ -163,7 +164,7 @@ describe('addTransactionForDeeplink', () => {
         value: '1000',
       },
       target_address: TO_ADDRESS_MOCK,
-    });
+    } as unknown as ParseOutput);
 
     expect(mockAddTransaction).toHaveBeenCalledWith(
       {
@@ -186,7 +187,7 @@ describe('addTransactionForDeeplink', () => {
         value: '1000',
       },
       target_address: TO_ADDRESS_MOCK,
-    });
+    } as unknown as ParseOutput);
 
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
 
@@ -195,7 +196,7 @@ describe('addTransactionForDeeplink', () => {
         value: '9999',
       },
       target_address: TO_ADDRESS_MOCK,
-    });
+    } as unknown as ParseOutput);
 
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
   });
@@ -213,7 +214,7 @@ describe('addTransactionForDeeplink', () => {
         uint256: '1000',
       },
       target_address: ERC20_ADDRESS_MOCK,
-    });
+    } as unknown as ParseOutput);
 
     expect(mockGenerateTransferData).toHaveBeenCalledWith(
       'transfer',

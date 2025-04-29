@@ -87,9 +87,7 @@ export async function addTransactionForDeeplink({
   const networkClientId = getNetworkClientIdForChainId(chainId);
   const from = safeToChecksumAddress(selectedAccountAddress) as string;
   const to = safeToChecksumAddress(target_address);
-  const checkSummedParamAddress = safeToChecksumAddress(
-    parameters?.address ?? '',
-  );
+  const checkSummedParamAddress = safeToChecksumAddress(parameters?.address);
 
   if (function_name === ETH_ACTIONS.TRANSFER) {
     // ERC20 transfer

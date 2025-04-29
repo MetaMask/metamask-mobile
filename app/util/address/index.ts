@@ -396,7 +396,7 @@ export function resemblesAddress(address: string) {
   return address && address.length === 2 + 20 * 2;
 }
 
-export function safeToChecksumAddress(address: string) {
+export function safeToChecksumAddress(address?: string) {
   if (!address) return undefined;
   return toChecksumAddress(address) as Hex;
 }
