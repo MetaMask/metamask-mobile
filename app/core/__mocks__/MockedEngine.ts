@@ -8,7 +8,7 @@ export const mockedEngine = {
   init: () => Engine.init({}),
   context: {
     KeyringController: {
-      ...MOCK_KEYRING_CONTROLLER_STATE,
+      state: MOCK_KEYRING_CONTROLLER_STATE,
       isUnlocked: () => true,
       setLocked: jest.fn(),
       createNewVaultAndRestore: jest.fn(),
