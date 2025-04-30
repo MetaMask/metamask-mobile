@@ -12,6 +12,7 @@ import {
   TokenRatesController,
   TokensController,
   CodefiTokenPricesServiceV2,
+  TokenSearchDiscoveryDataController,
 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import { AddressBookController } from '@metamask/address-book-controller';
@@ -24,8 +25,8 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
-  getDefaultNetworkControllerState,
   NetworkController,
+  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
@@ -170,6 +171,7 @@ import {
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
   STATELESS_NON_CONTROLLER_NAMES,
+  swapsSupportedChainIds,
 } from './constants';
 import {
   getGlobalChainId,
@@ -194,13 +196,6 @@ import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
-import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
-import {
-  onRpcEndpointDegraded,
-  onRpcEndpointUnavailable,
-} from './controllers/network-controller/messenger-action-handlers';
-import { INFURA_PROJECT_ID } from '../../constants/network';
-import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
@@ -309,100 +304,22 @@ export class Engine {
       },
     });
 
-    const networkControllerMessenger = this.controllerMessenger.getRestricted({
-      name: 'NetworkController',
-      allowedEvents: [],
-      allowedActions: [],
-    });
-
-    const additionalDefaultNetworks = [ChainId['megaeth-testnet']];
-
-    let initialNetworkControllerState = initialState.NetworkController;
-    if (!initialNetworkControllerState) {
-      initialNetworkControllerState = getDefaultNetworkControllerState(
-        additionalDefaultNetworks,
-      );
-
-      // Add failovers for default Infura RPC endpoints
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId.mainnet
-      ].rpcEndpoints[0].failoverUrls =
-        getFailoverUrlsForInfuraNetwork('ethereum-mainnet');
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId['linea-mainnet']
-      ].rpcEndpoints[0].failoverUrls =
-        getFailoverUrlsForInfuraNetwork('linea-mainnet');
-    }
-
-    const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
     const networkControllerOpts = {
-      infuraProjectId,
-      state: initialNetworkControllerState,
-      messenger: networkControllerMessenger,
-      getRpcServiceOptions: (rpcEndpointUrl: string) => {
-        const commonOptions = {
-          fetch: globalThis.fetch.bind(globalThis),
-          btoa: globalThis.btoa.bind(globalThis),
-        };
-
-        if (getIsQuicknodeEndpointUrl(rpcEndpointUrl)) {
-          return {
-            ...commonOptions,
-            policyOptions: {
-              // There is currently a bug in the block tracker (and probably
-              // also the middleware layers) that result in a flurry of retries
-              // when an RPC endpoint goes down, causing us to pretty
-              // immediately enter a 30-minute cooldown period during which all
-              // requests will be dropped. This isn't a problem for Infura, as
-              // we need a long cooldown anyway to prevent spamming it while it
-              // is down. But Quicknode is a different story. When we fail over
-              // to it, we expect it to be down at first while it is being
-              // automatically activated. So dropping requests for a lengthy
-              // period would defeat the point. Shortening the cooldown period
-              // mitigates this problem.
-              circuitBreakDuration: 5000,
-            },
-          };
-        }
-
-        return commonOptions;
-      },
-      additionalDefaultNetworks,
+      infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+      state: initialState.NetworkController,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'NetworkController',
+        allowedEvents: [],
+        allowedActions: [],
+      }) as unknown as NetworkControllerMessenger,
+      getRpcServiceOptions: () => ({
+        fetch,
+        btoa,
+      }),
+      additionalDefaultNetworks: [ChainId['megaeth-testnet']],
     };
     const networkController = new NetworkController(networkControllerOpts);
-    networkControllerMessenger.subscribe(
-      'NetworkController:rpcEndpointUnavailable',
-      async ({ chainId, endpointUrl, error }) => {
-        onRpcEndpointUnavailable({
-          chainId,
-          endpointUrl,
-          infuraProjectId,
-          error,
-          trackEvent: ({ event, properties }) => {
-            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-              .addProperties(properties)
-              .build();
-            MetaMetrics.getInstance().trackEvent(metricsEvent);
-          },
-        });
-      },
-    );
-    networkControllerMessenger.subscribe(
-      'NetworkController:rpcEndpointDegraded',
-      async ({ chainId, endpointUrl }) => {
-        onRpcEndpointDegraded({
-          chainId,
-          endpointUrl,
-          infuraProjectId,
-          trackEvent: ({ event, properties }) => {
-            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-              .addProperties(properties)
-              .build();
-            MetaMetrics.getInstance().trackEvent(metricsEvent);
-          },
-        });
-      },
-    );
+
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
@@ -803,7 +720,9 @@ export class Engine {
           'AccountsController:selectedAccountChange',
         ],
       }),
-      state: initialState.AccountTrackerController ?? { accounts: {} },
+      state: initialState.AccountTrackerController ?? {
+        accountsByChainId: {},
+      },
       getStakedBalanceForChain:
         assetsContractController.getStakedBalanceForChain.bind(
           assetsContractController,
@@ -859,7 +778,9 @@ export class Engine {
             const internalAccountCount = internalAccounts.length;
 
             const accountTrackerCount = Object.keys(
-              accountTrackerController.state.accounts || {},
+              accountTrackerController.state.accountsByChainId[
+                currentChainId
+              ] || {},
             ).length;
 
             captureException(
@@ -1026,6 +947,19 @@ export class Engine {
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
+    const tokenSearchDiscoveryDataController =
+      new TokenSearchDiscoveryDataController({
+        tokenPricesService: codefiTokenApiV2,
+        swapsSupportedChainIds,
+        fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+        fetchTokens: swapsUtils.fetchTokens,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokenSearchDiscoveryDataController',
+          allowedActions: ['CurrencyRateController:getState'],
+          allowedEvents: [],
+        }),
+      });
+
     /* bridge controller Initialization */
     const bridgeController = new BridgeController({
       messenger: this.controllerMessenger.getRestricted({
@@ -1033,9 +967,12 @@ export class Engine {
         allowedActions: [
           'AccountsController:getSelectedMultichainAccount',
           'SnapController:handleRequest',
-          'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',
+          'NetworkController:findNetworkClientIdByChainId',
+          'TokenRatesController:getState',
+          'MultichainAssetsRatesController:getState',
+          'CurrencyRateController:getState',
         ],
         allowedEvents: [],
       }),
@@ -1057,17 +994,32 @@ export class Engine {
       config: {
         customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
       },
+      trackMetaMetricsFn: (event, properties) => {
+        const metricsEvent = MetricsEventBuilder.createEventBuilder({
+          // category property here maps to event name
+          category: event,
+        })
+          .addProperties({
+            ...(properties ?? {}),
+          })
+          .build();
+        MetaMetrics.getInstance().trackEvent(metricsEvent);
+      },
     });
 
     const bridgeStatusController = new BridgeStatusController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'BridgeStatusController',
         allowedActions: [
-          'AccountsController:getSelectedAccount',
           'AccountsController:getSelectedMultichainAccount',
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
+          'BridgeController:getBridgeERC20Allowance',
+          'BridgeController:trackUnifiedSwapBridgeEvent',
+          'GasFeeController:getState',
+          'AccountsController:getAccountByAddress',
+          'SnapController:handleRequest',
           'TransactionController:getState',
         ],
         allowedEvents: [],
@@ -1075,6 +1027,20 @@ export class Engine {
       state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
       fetchFn: handleFetch,
+      addTransactionFn: (
+        ...args: Parameters<typeof this.transactionController.addTransaction>
+      ) => this.transactionController.addTransaction(...args),
+      estimateGasFeeFn: (
+        ...args: Parameters<typeof this.transactionController.estimateGasFee>
+      ) => this.transactionController.estimateGasFee(...args),
+      addUserOperationFromTransactionFn: (...args: unknown[]) =>
+        // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
+        this.userOperationController?.addUserOperationFromTransaction?.(
+          ...args,
+        ),
+      config: {
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+      },
     });
 
     const existingControllersByName = {
@@ -1406,18 +1372,7 @@ export class Engine {
           AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
         fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
         fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-        supportedChainIds: [
-          swapsUtils.ETH_CHAIN_ID,
-          swapsUtils.BSC_CHAIN_ID,
-          swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-          swapsUtils.POLYGON_CHAIN_ID,
-          swapsUtils.AVALANCHE_CHAIN_ID,
-          swapsUtils.ARBITRUM_CHAIN_ID,
-          swapsUtils.OPTIMISM_CHAIN_ID,
-          swapsUtils.ZKSYNC_ERA_CHAIN_ID,
-          swapsUtils.LINEA_CHAIN_ID,
-          swapsUtils.BASE_CHAIN_ID,
-        ],
+        supportedChainIds: swapsSupportedChainIds,
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
@@ -1496,6 +1451,7 @@ export class Engine {
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
@@ -1624,7 +1580,15 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    AccountTrackerController.refresh();
+    AccountTrackerController.refresh([
+      NetworkController.state.networkConfigurationsByChainId[
+        getGlobalChainId(NetworkController)
+      ]?.rpcEndpoints?.[
+        NetworkController.state.networkConfigurationsByChainId[
+          getGlobalChainId(NetworkController)
+        ]?.defaultRpcEndpointIndex
+      ]?.networkClientId,
+    ]);
   }
 
   getTotalEvmFiatAccountBalance = (
@@ -2094,6 +2058,7 @@ export default {
       MultichainAssetsRatesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController,
       MultichainNetworkController,
       BridgeController,
       BridgeStatusController,
@@ -2144,6 +2109,7 @@ export default {
       MultichainAssetsRatesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController,
       MultichainNetworkController,
       BridgeController,
       BridgeStatusController,

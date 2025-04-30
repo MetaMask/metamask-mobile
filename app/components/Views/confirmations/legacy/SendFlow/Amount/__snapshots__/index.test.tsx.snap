@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Amount should convert ERC-20 token value to USD 1`] = `
+exports[`Amount converts ERC-20 token value to USD 1`] = `
 <View
   style={
     {
@@ -432,7 +432,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -716,7 +716,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
 </View>
 `;
 
-exports[`Amount should convert ETH to USD 1`] = `
+exports[`Amount converts ETH to USD 1`] = `
 <View
   style={
     {
@@ -1148,7 +1148,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -1432,7 +1432,7 @@ exports[`Amount should convert ETH to USD 1`] = `
 </View>
 `;
 
-exports[`Amount should convert USD to ERC-20 token value 1`] = `
+exports[`Amount converts USD to ERC-20 token value 1`] = `
 <View
   style={
     {
@@ -1864,7 +1864,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -2165,7 +2165,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
 </View>
 `;
 
-exports[`Amount should convert USD to ETH 1`] = `
+exports[`Amount converts USD to ETH 1`] = `
 <View
   style={
     {
@@ -2597,7 +2597,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -2898,7 +2898,7 @@ exports[`Amount should convert USD to ETH 1`] = `
 </View>
 `;
 
-exports[`Amount should display correct balance 1`] = `
+exports[`Amount displays correct balance 1`] = `
 <View
   style={
     {
@@ -3330,7 +3330,7 @@ exports[`Amount should display correct balance 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -3613,7 +3613,7 @@ exports[`Amount should display correct balance 1`] = `
 </View>
 `;
 
-exports[`Amount should not show a warning when conversion rate is available 1`] = `
+exports[`Amount does not show a warning when conversion rate is available 1`] = `
 <View
   style={
     {
@@ -4045,7 +4045,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -4328,7 +4328,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
 </View>
 `;
 
-exports[`Amount should not show a warning when transfering collectibles 1`] = `
+exports[`Amount does not show a warning when transfering collectibles 1`] = `
 <View
   style={
     {
@@ -5010,7 +5010,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
 </View>
 `;
 
-exports[`Amount should proceed if balance is sufficient while on Native primary currency is ETH 1`] = `
+exports[`Amount proceeds if balance is sufficient while on Native primary currency is ETH 1`] = `
 <View
   style={
     {
@@ -5434,7 +5434,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                 }
                               >
                                 <TouchableOpacity
-                                  disabled={true}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={{}}
                                 >
@@ -5442,7 +5442,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -5721,7 +5721,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
 </View>
 `;
 
-exports[`Amount should proceed if balance is sufficient while on Native primary currency is not ETH 1`] = `
+exports[`Amount proceeds if balance is sufficient while on Native primary currency is not ETH 1`] = `
 <View
   style={
     {
@@ -6145,7 +6145,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                 }
                               >
                                 <TouchableOpacity
-                                  disabled={true}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={{}}
                                 >
@@ -6153,7 +6153,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -6432,7 +6432,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
 </View>
 `;
 
-exports[`Amount should render correctly 1`] = `
+exports[`Amount renders correctly 1`] = `
 <View
   style={
     {
@@ -6939,7 +6939,7 @@ exports[`Amount should render correctly 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -7142,7 +7142,7 @@ exports[`Amount should render correctly 1`] = `
 </View>
 `;
 
-exports[`Amount should show a warning when conversion rate is not available 1`] = `
+exports[`Amount shows a warning when conversion rate is not available 1`] = `
 <View
   style={
     {
@@ -7649,7 +7649,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -7852,7 +7852,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
 </View>
 `;
 
-exports[`Amount should show an error message if balance is insufficient 1`] = `
+exports[`Amount shows an error message if balance is insufficient 1`] = `
 <View
   style={
     {
@@ -8276,7 +8276,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                 }
                               >
                                 <TouchableOpacity
-                                  disabled={true}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={{}}
                                 >
@@ -8284,7 +8284,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",

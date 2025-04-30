@@ -465,9 +465,9 @@ const Wallet = ({
 
         Object.values(evmNetworkConfigurations).forEach(
           ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
-            AccountTrackerController.refresh(
+            AccountTrackerController.refresh([
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-            );
+            ]);
           },
         );
       });

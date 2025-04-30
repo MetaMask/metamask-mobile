@@ -1,4 +1,6 @@
+import { SolScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { CaipChainId, Hex } from '@metamask/utils';
 
 // TODO read from feature flags
 export const ALLOWED_BRIDGE_CHAIN_IDS = [
@@ -11,6 +13,7 @@ export const ALLOWED_BRIDGE_CHAIN_IDS = [
     CHAIN_IDS.ARBITRUM,
     CHAIN_IDS.LINEA_MAINNET,
     CHAIN_IDS.BASE,
+    SolScope.Mainnet as const
   ];
 
 export type AllowedBridgeChainIds = (typeof ALLOWED_BRIDGE_CHAIN_IDS)[number];
@@ -18,7 +21,7 @@ export type AllowedBridgeChainIds = (typeof ALLOWED_BRIDGE_CHAIN_IDS)[number];
 export const ETH_USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 
 export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
-  AllowedBridgeChainIds,
+  Hex | CaipChainId,
   string
 > = {
   [CHAIN_IDS.MAINNET]: 'Ethereum',
@@ -30,4 +33,5 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [CHAIN_IDS.OPTIMISM]: 'Optimism',
   [CHAIN_IDS.ZKSYNC_ERA]: 'ZkSync Era',
   [CHAIN_IDS.BASE]: 'Base',
+  [SolScope.Mainnet]: 'Solana',
 };
