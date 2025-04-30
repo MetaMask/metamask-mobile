@@ -22,7 +22,6 @@ import {
 const TextField = React.forwardRef<TextInput, TextFieldProps>((
   {
     style,
-    inputStyle,
     size = DEFAULT_TEXTFIELD_SIZE,
     startAccessory,
     endAccessory,
@@ -40,7 +39,6 @@ const TextField = React.forwardRef<TextInput, TextFieldProps>((
 
   const { styles } = useStyles(styleSheet, {
     style,
-    inputStyle,
     size,
     isError,
     isDisabled,
