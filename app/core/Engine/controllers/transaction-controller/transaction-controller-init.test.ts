@@ -254,7 +254,10 @@ describe('Transaction Controller Init', () => {
 
     expect(submitSmartTransactionHookMock).toHaveBeenCalledTimes(1);
     expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledTimes(1);
-    expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledWith(expect.anything(), MOCK_TRANSACTION_META.chainId);
+    expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledWith(
+      undefined,
+      MOCK_TRANSACTION_META.chainId,
+    );
     expect(selectSwapsChainFeatureFlagsMock).toHaveBeenCalledTimes(1);
     expect(submitSmartTransactionHookMock).toHaveBeenCalledWith(
       expect.objectContaining({
