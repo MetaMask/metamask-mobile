@@ -14,7 +14,7 @@ import {
   selectIsBackupAndSyncEnabled,
   selectIsBackupAndSyncUpdateLoading,
 } from '../../../../selectors/identity';
-import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/dist/controllers/user-storage/constants.cjs';
+import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
 import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
