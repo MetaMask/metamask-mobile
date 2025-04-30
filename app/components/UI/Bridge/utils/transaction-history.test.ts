@@ -1,6 +1,6 @@
 import { getBridgeTxActivityTitle } from './transaction-history';
-import { BridgeHistoryItem, StatusTypes } from '@metamask/bridge-status-controller';
-import { ChainId } from '@metamask/bridge-controller';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { ChainId, StatusTypes } from '@metamask/bridge-controller';
 
 // Mock the strings function
 jest.mock('../../../../../locales/i18n', () => ({

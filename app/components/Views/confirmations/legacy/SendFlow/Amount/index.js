@@ -1,5 +1,4 @@
 import React, { PureComponent } from 'react';
-import BigNumber from 'bignumber.js';
 import { fontStyles } from '../../../../../../styles/common';
 import {
   StyleSheet,
@@ -85,7 +84,6 @@ import { selectTokens } from '../../../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { PREFIX_HEX_STRING } from '../../../../../../constants/transaction';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import { swapsLivenessSelector } from '../../../../../../reducers/swaps';
@@ -94,6 +92,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 import { isNetworkRampNativeTokenSupported } from '../../../../../../components/UI/Ramp/utils';
+import { addTransaction } from '../../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../../selectors/gasFeeController';
@@ -109,6 +108,8 @@ import {
 } from '../../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import { isNativeToken } from '../../../utils/generic';
+import { selectConfirmationRedesignFlags } from '../../../../../../selectors/featureFlagController/confirmations';
+import { MMM_ORIGIN } from '../../../constants/confirmations';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -452,10 +453,6 @@ class Amount extends PureComponent {
      */
     providerType: PropTypes.string,
     /**
-     * Action that sets transaction attributes from object to a transaction
-     */
-    setTransactionObject: PropTypes.func,
-    /**
      * function to call when the 'Next' button is clicked
      */
     onConfirm: PropTypes.func,
@@ -499,6 +496,10 @@ class Amount extends PureComponent {
      * Network client id
      */
     globalNetworkClientId: PropTypes.string,
+    /**
+     * Boolean that indicates if the redesigned transfer confirmation is enabled
+     */
+    isRedesignedTransferConfirmationEnabled: PropTypes.bool,
   };
 
   state = {
@@ -510,6 +511,7 @@ class Amount extends PureComponent {
     internalPrimaryCurrencyIsCrypto: this.props.primaryCurrency === 'ETH',
     estimatedTotalGas: undefined,
     hasExchangeRate: false,
+    isRedesignedTransferTransactionLoading: false,
   };
 
   amountInput = React.createRef();
@@ -648,6 +650,8 @@ class Amount extends PureComponent {
       transactionState: { transaction },
       providerType,
       onConfirm,
+      globalNetworkClientId,
+      isRedesignedTransferConfirmationEnabled,
     } = this.props;
     const {
       inputValue,
@@ -692,11 +696,7 @@ class Amount extends PureComponent {
       }
     }
 
-    if (transaction.value !== undefined) {
-      this.updateTransaction(value);
-    } else {
-      await this.prepareTransaction(value);
-    }
+    await this.prepareTransaction(value);
 
     this.props.metrics.trackEvent(
       this.props.metrics
@@ -708,9 +708,30 @@ class Amount extends PureComponent {
     setSelectedAsset(selectedAsset);
     if (onConfirm) {
       onConfirm();
-    } else {
-      navigation.navigate(Routes.SEND_FLOW.CONFIRM);
-    }
+    } else if (isRedesignedTransferConfirmationEnabled) {
+        this.setState({ isRedesignedTransferTransactionLoading: true });
+
+        const transactionParams = {
+          data: transaction.data,
+          from: transaction.from,
+          to: transaction.to,
+          value:
+            typeof transaction.value === 'string'
+              ? transaction.value
+              : BNToHex(transaction.value),
+        };
+
+        await addTransaction(transactionParams, {
+          origin: MMM_ORIGIN,
+          networkClientId: globalNetworkClientId,
+        });
+        this.setState({ isRedesignedTransferTransactionLoading: false });
+        navigation.navigate('SendFlowView', {
+          screen: Routes.STANDALONE_CONFIRMATIONS.TRANSFER,
+        });
+      } else {
+        navigation.navigate(Routes.SEND_FLOW.CONFIRM);
+      }
   };
 
   getCollectibleTranferTransactionProperties() {
@@ -753,49 +774,6 @@ class Amount extends PureComponent {
 
     return collectibleTransferTransactionProperties;
   }
-
-  updateTransaction = (value = 0) => {
-    const {
-      selectedAsset,
-      transactionState: { transaction, transactionTo },
-      setTransactionObject,
-      selectedAddress,
-    } = this.props;
-
-    const transactionObject = {
-      ...transaction,
-      value: BNToHex(toWei(value)),
-      selectedAsset,
-      from: selectedAddress,
-    };
-
-    if (selectedAsset.tokenId) {
-      const collectibleTransferTransactionProperties =
-        this.getCollectibleTranferTransactionProperties();
-      transactionObject.data = collectibleTransferTransactionProperties.data;
-      transactionObject.to = collectibleTransferTransactionProperties.to;
-      transactionObject.value = collectibleTransferTransactionProperties.value;
-    } else if (!isNativeToken(selectedAsset)) {
-      const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
-      transactionObject.data = generateTransferData('transfer', {
-        toAddress: transactionTo,
-        amount: BNToHex(tokenAmount),
-      });
-      transactionObject.value = '0x0';
-      transactionObject.to = selectedAsset.address;
-    }
-
-    if (selectedAsset.erc20) {
-      transactionObject.readableValue = value;
-    }
-
-    if (isNativeToken(selectedAsset)) {
-      transactionObject.data = PREFIX_HEX_STRING;
-      transactionObject.to = transactionTo;
-    }
-
-    setTransactionObject(transactionObject);
-  };
 
   prepareTransaction = async (value) => {
     const {
@@ -1456,7 +1434,11 @@ class Amount extends PureComponent {
   };
 
   render = () => {
-    const { estimatedTotalGas, hasExchangeRate } = this.state;
+    const {
+      estimatedTotalGas,
+      hasExchangeRate,
+      isRedesignedTransferTransactionLoading,
+    } = this.state;
     const {
       selectedAsset,
       transactionState: { isPaymentRequest },
@@ -1549,7 +1531,9 @@ class Amount extends PureComponent {
             <StyledButton
               type={'confirm'}
               containerStyle={styles.buttonNext}
-              disabled={!estimatedTotalGas}
+              disabled={
+                !estimatedTotalGas || isRedesignedTransferTransactionLoading
+              }
               onPress={this.onNext}
               testID={AmountViewSelectorsIDs.NEXT_BUTTON}
             >
@@ -1595,6 +1579,8 @@ const mapStateToProps = (state, ownProps) => {
       globalChainId,
       getRampNetworks(state),
     ),
+    isRedesignedTransferConfirmationEnabled:
+      selectConfirmationRedesignFlags(state).transfer,
     swapsIsLive: swapsLivenessSelector(state),
     globalChainId,
     globalNetworkClientId,
@@ -1602,8 +1588,6 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  setTransactionObject: (transaction) =>
-    dispatch(setTransactionObject(transaction)),
   prepareTransaction: (transaction) =>
     dispatch(prepareTransaction(transaction)),
   setSelectedAsset: (selectedAsset) =>
