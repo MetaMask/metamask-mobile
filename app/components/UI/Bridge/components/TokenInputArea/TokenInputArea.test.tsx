@@ -1,4 +1,4 @@
-import { getDisplayFiatValue } from '.';
+import { getDisplayFiatValue } from '../../utils/exchange-rates';
 import { Hex } from '@metamask/utils';
 
 describe('getDisplayFiatValue', () => {
