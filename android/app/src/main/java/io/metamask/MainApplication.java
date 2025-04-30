@@ -114,7 +114,6 @@ public class MainApplication extends Application implements ShareApplication, Re
       DefaultNewArchitectureEntryPoint.load();
     }
 
-    ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
     ApplicationLifecycleDispatcher.onApplicationCreate(this);
   }
 

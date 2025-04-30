@@ -111,9 +111,9 @@ export default class Logger {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static log(...args: any[]) {
-    AsyncLogger.log(...args).catch(() => {
-      // ignore error but avoid dangling promises
-    });
+    // AsyncLogger.log(...args).catch(() => {
+    //   // ignore error but avoid dangling promises
+    // });
   }
 
   /**
@@ -126,8 +126,8 @@ export default class Logger {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static error(error: Error, extra?: ExtraInfo | string | any) {
-    AsyncLogger.error(error, extra).catch(() => {
-      // ignore error but avoid dangling promises
-    });
+    // AsyncLogger.error(error, extra).catch(() => {
+    //   // ignore error but avoid dangling promises
+    // });
   }
 }
