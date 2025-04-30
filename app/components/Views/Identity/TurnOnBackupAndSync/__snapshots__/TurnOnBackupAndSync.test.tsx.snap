@@ -1,0 +1,247 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TurnOnBackupAndSync renders correctly 1`] = `
+[
+  <View
+    style={
+      {
+        "alignItems": "flex-start",
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+        "paddingHorizontal": 16,
+        "paddingTop": 60,
+      }
+    }
+    testID="turn-on-backup-and-sync-view"
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "alignSelf": "center",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 18,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "marginBottom": 16,
+        }
+      }
+    >
+      Turn on backup and sync
+    </Text>
+    <RCTScrollView>
+      <View>
+        <View
+          style={
+            {
+              "alignSelf": "center",
+              "borderRadius": 12,
+              "height": 240,
+              "marginBottom": 32,
+              "overflow": "hidden",
+              "width": 718,
+            }
+          }
+        >
+          <Image
+            source={1}
+            style={
+              {
+                "height": 240,
+                "resizeMode": "cover",
+                "width": 718,
+              }
+            }
+          />
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginBottom": 16,
+            }
+          }
+        >
+          Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask.
+           
+          <Text
+            accessibilityRole="text"
+            onPress={[Function]}
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Learn how we protect your privacy
+          </Text>
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "flexDirection": "column",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          You can update your preferences at any time in
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 16,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Settings &gt; Backup and sync.
+        </Text>
+      </View>
+    </RCTScrollView>
+    <View
+      style={
+        {
+          "alignSelf": "center",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "marginBottom": 16,
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 20,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "margin": 4,
+            "paddingHorizontal": 16,
+            "width": "48%",
+          }
+        }
+        testID="turn-on-backup-and-sync-cancel-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 20,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "margin": 4,
+            "paddingHorizontal": 16,
+            "width": "48%",
+          }
+        }
+        testID="turn-on-backup-and-sync-enable-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Turn on
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>,
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    transparent={true}
+    visible={false}
+  />,
+]
+`;

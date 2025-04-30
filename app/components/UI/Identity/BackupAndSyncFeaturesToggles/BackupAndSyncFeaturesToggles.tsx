@@ -27,6 +27,7 @@ export const backupAndSyncFeaturesTogglesSections = [
     iconName: IconName.UserCircle,
     backupAndSyncfeatureKey: BACKUPANDSYNC_FEATURES.accountSyncing,
     featureReduxSelector: selectIsAccountSyncingEnabled,
+    testID: 'toggle-accountSyncing',
   },
 ];
 
@@ -61,6 +62,7 @@ const FeatureToggle = ({
         <Text>{section.titleI18NKey}</Text>
       </View>
       <Switch
+        testID={section.testID}
         value={isFeatureEnabled}
         disabled={!isBackupAndSyncEnabled || isBackupAndSyncUpdateLoading}
         onValueChange={handleToggleFeature}
