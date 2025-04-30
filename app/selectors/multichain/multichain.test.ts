@@ -787,7 +787,6 @@ describe('MultichainNonEvm Selectors', () => {
   describe('selectNonEvmAssetById', () => {
     const mockAccountId = MOCK_ACCOUNT_BIP122_P2WPKH.id;
     const mockAssetId = MultichainNativeAssets.Bitcoin;
-    const mockBalance = '1.00000000';
     const mockRate = '25000.00';
 
     const mockState = getNonEvmState(MOCK_ACCOUNT_BIP122_P2WPKH, mockRate);
