@@ -34,6 +34,8 @@ import {
   selectIsEvmSolanaBridge,
   selectIsSolanaSwap,
   setSlippage,
+  selectIsSubmittingTx,
+  setIsSubmittingTx,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import {
@@ -71,7 +73,14 @@ import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
-  const [isSubmittingTx, setIsSubmittingTx] = useState(false);
+  const isSubmittingTx = useSelector(selectIsSubmittingTx);
+  const isSubmittingTxRef = useRef(isSubmittingTx);
+  
+  // Update ref when Redux state changes
+  useEffect(() => {
+    isSubmittingTxRef.current = isSubmittingTx;
+  }, [isSubmittingTx]);
+
   // The same as getUseExternalServices in Extension
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -178,10 +187,13 @@ const BridgeView = () => {
   // Reset bridge state when component unmounts
   useEffect(
     () => () => {
-      dispatch(resetBridgeState());
-      // Clear bridge controller state if available
-      if (Engine.context.BridgeController?.resetState) {
-        Engine.context.BridgeController.resetState();
+      // Only reset state if we're not in the middle of a transaction
+      if (!isSubmittingTxRef.current) {
+        dispatch(resetBridgeState());
+        // Clear bridge controller state if available
+        if (Engine.context.BridgeController?.resetState) {
+          Engine.context.BridgeController.resetState();
+        }
       }
     },
     [dispatch],
@@ -251,11 +263,12 @@ const BridgeView = () => {
 
   const handleContinue = async () => {
     if (activeQuote) {
-      setIsSubmittingTx(true);
+      await dispatch(setIsSubmittingTx(true));
       await submitBridgeTx({
         quoteResponse: activeQuote,
       });
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      dispatch(setIsSubmittingTx(false));
     }
   };
 

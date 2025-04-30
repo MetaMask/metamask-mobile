@@ -33,15 +33,17 @@ export const getQuoteRefreshRate = (
  * @param insufficientBal - Whether user has insufficient balance for the transaction
  * @param quotesRefreshCount - How many times quotes have been refreshed
  * @param maxRefreshCount - Maximum allowed refresh attempts
+ * @param isSubmittingTx - Whether the transaction is currently being submitted
  * @returns boolean - Whether the quote should be refreshed
  */
 export const shouldRefreshQuote = (
   insufficientBal: boolean,
   quotesRefreshCount: number,
   maxRefreshCount: number,
+  isSubmittingTx: boolean = false,
 ): boolean => {
-  if (insufficientBal) {
-    return false; // Never refresh if insufficient balance
+  if (insufficientBal || isSubmittingTx) {
+    return false; // Never refresh if insufficient balance or submitting transaction
   }
   return quotesRefreshCount < maxRefreshCount; // Refresh if under max attempts
 };
