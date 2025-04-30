@@ -133,4 +133,13 @@ describe('Settings', () => {
     );
     expect(permissionsSettings).toBeDefined();
   });
+  it('should render backup and sync settings button', () => {
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const backupAndSyncSettings = getByTestId(
+      SettingsViewSelectorsIDs.BACKUP_AND_SYNC,
+    );
+    expect(backupAndSyncSettings).toBeDefined();
+  });
 });
