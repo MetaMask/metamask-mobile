@@ -99,10 +99,7 @@ describe('GasImpactModal', () => {
 
     selectConfirmationRedesignFlagsMock.mockReturnValue({
       staking_confirmations: false,
-      contract_interaction: false,
-      transfer: false,
-      signatures: false,
-    });
+    } as ConfirmationRedesignRemoteFlags);
 
     useNavigationMock.mockReturnValue({
       navigate: mockNavigate,
@@ -151,10 +148,7 @@ describe('GasImpactModal', () => {
       const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
       selectConfirmationRedesignFlagsMock.mockReturnValue({
         staking_confirmations: true,
-        contract_interaction: false,
-        transfer: false,
-        signatures: false,
-      });
+      } as ConfirmationRedesignRemoteFlags);
 
       usePoolStakedDepositMock.mockReturnValue({
         attemptDepositTransaction: attemptDepositTransactionMock,

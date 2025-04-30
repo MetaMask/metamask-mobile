@@ -282,11 +282,8 @@ describe('EarnInputView', () => {
         } as InternalAccount),
     );
     selectConfirmationRedesignFlagsMock.mockReturnValue({
-      signatures: false,
       staking_confirmations: false,
-      contract_interaction: false,
-      transfer: false,
-    });
+    } as unknown as ConfirmationRedesignRemoteFlags);
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
     });

@@ -7,8 +7,8 @@ import { getFeatureFlagValue } from '../env';
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ConfirmationRedesignRemoteFlags = {
   signatures: boolean;
-  contract_interaction: boolean;
   staking_confirmations: boolean;
+  contract_interaction: boolean;
   transfer: boolean;
 };
 
@@ -17,14 +17,14 @@ const isRemoteFeatureFlagValuesValid = (
 ): obj is ConfirmationRedesignRemoteFlags =>
   isObject(obj) &&
   hasProperty(obj, 'signatures') &&
-  hasProperty(obj, 'staking_confirmations');
-  // && hasProperty(obj, 'contract_interaction');
+  hasProperty(obj, 'staking_confirmations') &&
+  hasProperty(obj, 'contract_interaction');
 
 const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags =
   {
     signatures: true,
-    contract_interaction: false,
     staking_confirmations: false,
+    contract_interaction: false,
     transfer: false,
   };
 
@@ -51,6 +51,8 @@ export const selectConfirmationRedesignFlags = createSelector(
 
     const isContractInteractionEnabled = getFeatureFlagValue(
       process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION,
+      // TODO: This will be pick up values from the remote feature flag once the
+      // feature is ready to be rolled out
       false,
     );
 
