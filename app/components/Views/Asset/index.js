@@ -69,7 +69,10 @@ import {
 } from '../../../selectors/transactionController';
 import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
-import { isAssetFromSearch, selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
+import {
+  isAssetFromSearch,
+  selectSupportedSwapTokenAddressesForChainId,
+} from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 
@@ -233,7 +236,7 @@ class Asset extends PureComponent {
         false,
         navigation,
         colors,
-        shouldShowMoreOptionsInNavBar
+        shouldShowMoreOptionsInNavBar && !isNonEvmChainId(chainId)
           ? () =>
               navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
                 screen: 'AssetOptions',
@@ -525,7 +528,9 @@ class Asset extends PureComponent {
     if (asset.isETH || asset.isNative) {
       isAssetAllowed = true;
     } else if (isAssetFromSearch(asset)) {
-      isAssetAllowed = this.props.searchDiscoverySwapsTokens?.includes(asset.address?.toLowerCase());
+      isAssetAllowed = this.props.searchDiscoverySwapsTokens?.includes(
+        asset.address?.toLowerCase(),
+      );
     } else {
       isAssetAllowed = asset.address?.toLowerCase() in this.props.swapsTokens;
     }
@@ -588,7 +593,10 @@ const mapStateToProps = (state, { route }) => ({
   swapsTokens: isPortfolioViewEnabled()
     ? swapsTokensMultiChainObjectSelector(state)
     : swapsTokensObjectSelector(state),
-  searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(state, route.params.chainId),
+  searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
+    state,
+    route.params.chainId,
+  ),
   swapsTransactions: selectSwapsTransactions(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
