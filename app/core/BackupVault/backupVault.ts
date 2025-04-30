@@ -7,10 +7,8 @@ import {
   Options,
   ACCESSIBLE,
 } from 'react-native-keychain';
-import {
-  VAULT_BACKUP_FAILED,
-  VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP,
-} from '../../constants/error';
+import { Platform } from 'react-native';
+import { VaultErrorType, createVaultError } from '../../constants/vaultErrors';
 
 const VAULT_BACKUP_KEY = 'VAULT_BACKUP';
 
@@ -21,7 +19,10 @@ const options: Options = {
 interface KeyringBackupResponse {
   success: boolean;
   vault?: string;
-  error?: string;
+  error?: {
+    type: VaultErrorType;
+    message: string;
+  };
 }
 
 /**
@@ -36,26 +37,103 @@ interface KeyringBackupResponse {
 export async function backupVault(
   keyringState: KeyringControllerState,
 ): Promise<KeyringBackupResponse> {
-  const keyringVault = keyringState.vault as string;
+  try {
+    const keyringVault = keyringState.vault as string;
 
-  // Backup vault
-  const backupResult = await setInternetCredentials(
-    VAULT_BACKUP_KEY,
-    VAULT_BACKUP_KEY,
-    keyringVault,
-    options,
-  );
+    if (!keyringVault) {
+      Logger.error(new Error('Invalid vault data in backup attempt'), {
+        timestamp: Date.now(),
+        deviceInfo: {
+          platform: Platform.OS,
+          osVersion: Platform.Version.toString(),
+          appVersion: '1.0.0'
+        },
+        debugInfo: {
+          hasKeyringState: !!keyringState,
+          hasVault: !!keyringState.vault
+        }
+      });
+      return {
+        success: false,
+        error: {
+          type: VaultErrorType.INVALID_VAULT_DATA,
+          message: 'Invalid vault data provided'
+        }
+      };
+    }
 
-  // Vault backup failed, throw error
-  if (!backupResult) {
-    throw new Error(VAULT_BACKUP_FAILED);
+    const backupResult = await setInternetCredentials(
+      VAULT_BACKUP_KEY,
+      VAULT_BACKUP_KEY,
+      keyringVault,
+      options
+    );
+
+    if (!backupResult) {
+      Logger.error(new Error('Failed to store vault in keychain'), {
+        timestamp: Date.now(),
+        deviceInfo: {
+          platform: Platform.OS,
+          osVersion: Platform.Version.toString(),
+          appVersion: '1.0.0'
+        },
+        debugInfo: {
+          vaultLength: keyringVault.length,
+          hasKeychainAccess: true
+        }
+      });
+      return {
+        success: false,
+        error: {
+          type: VaultErrorType.KEYCHAIN_ACCESS_ERROR,
+          message: 'Failed to store vault in keychain'
+        }
+      };
+    }
+
+    return { 
+      success: true, 
+      vault: keyringState.vault 
+    };
+  } catch (error) {
+    const vaultError = createVaultError(
+      VaultErrorType.KEYCHAIN_ACCESS_ERROR,
+      error instanceof Error ? error : new Error('Unknown backup error'),
+      {
+        platform: Platform.OS,
+        osVersion: Platform.Version.toString(),
+        appVersion: '1.0.0'
+      },
+      {
+        errorType: error instanceof Error ? error.message : 'Unknown error type',
+        hasKeyringState: !!keyringState,
+        hasVault: !!keyringState?.vault
+      }
+    );
+
+    Logger.error(new Error('Vault backup failed'), {
+      originalError: vaultError,
+      timestamp: Date.now(),
+      deviceInfo: {
+        platform: Platform.OS,
+        osVersion: Platform.Version.toString(),
+        appVersion: '1.0.0'
+      },
+      debugInfo: {
+        errorType: vaultError.type,
+        hasKeyringState: !!keyringState,
+        hasVault: !!keyringState?.vault
+      }
+    });
+
+    return {
+      success: false,
+      error: {
+        type: vaultError.type,
+        message: error instanceof Error ? error.message : 'Unknown backup error'
+      }
+    };
   }
-
-  // Vault backup successful, return response
-  return {
-    success: true,
-    vault: keyringState.vault,
-  };
 }
 
 /**
@@ -68,13 +146,44 @@ export async function backupVault(
   }
  */
 export async function getVaultFromBackup(): Promise<KeyringBackupResponse> {
-  const credentials = await getInternetCredentials(VAULT_BACKUP_KEY);
-  if (credentials) {
-    return { success: true, vault: credentials.password };
+  try {
+    const credentials = await getInternetCredentials(VAULT_BACKUP_KEY);
+    
+    if (!credentials) {
+      return {
+        success: false,
+        error: {
+          type: VaultErrorType.VAULT_BACKUP_NOT_FOUND,
+          message: 'No backup found in keychain'
+        }
+      };
+    }
+
+    return { 
+      success: true, 
+      vault: credentials.password 
+    };
+  } catch (error) {
+    const vaultError = createVaultError(
+      VaultErrorType.KEYCHAIN_ACCESS_ERROR,
+      error as Error,
+      {
+        platform: Platform.OS,
+        osVersion: Platform.Version.toString(),
+        appVersion: '1.0.0' // TODO: Get actual app version
+      }
+    );
+
+    Logger.error(new Error('Failed to get vault from backup'), vaultError);
+
+    return {
+      success: false,
+      error: {
+        type: vaultError.type,
+        message: error instanceof Error ? error.message : 'Unknown keychain error'
+      }
+    };
   }
-  const vaultFetchError = new Error(VAULT_BACKUP_KEY);
-  Logger.error(vaultFetchError, VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP);
-  return { success: false, error: VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP };
 }
 
 /**

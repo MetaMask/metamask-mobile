@@ -9,6 +9,7 @@ import {
   BackHandler,
   TouchableOpacity,
   TextInput,
+  Platform,
 } from 'react-native';
 import Text, {
   TextVariant,
@@ -89,6 +90,10 @@ import ReduxService from '../../../core/redux';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import FOX_LOGO from '../../../images/branding/fox.png';
+import { 
+  VaultErrorType, 
+  createVaultError 
+} from '../../../constants/vaultErrors';
 
 /**
  * View where returning users can authenticate
@@ -187,23 +192,40 @@ const Login: React.FC = () => {
   }, []);
 
   const handleVaultCorruption = async () => {
-    // This is so we can log vault corruption error in sentry
-    const vaultCorruptionError = new Error('Vault Corruption Error');
-    Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
-
-    const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
-
     if (!passwordRequirementsMet(password)) {
       setError(strings('login.invalid_password'));
       return;
     }
+
     try {
       setLoading(true);
       const backupResult = await getVaultFromBackup();
+
+      if (!backupResult.success) {
+        const errorType = backupResult.error?.type || VaultErrorType.RECOVERY_FAILED;
+        
+        Logger.error(new Error('Vault recovery failed'), {
+          errorType,
+          errorDetails: backupResult.error,
+          timestamp: Date.now(),
+          deviceInfo: {
+            platform: Platform.OS,
+            osVersion: Platform.Version.toString(),
+            appVersion: '1.0.0'
+          },
+          debugInfo: {
+            backupResult,
+            hasVault: !!backupResult.vault,
+            errorType
+          }
+        });
+        setError('An error occurred while recovering your vault');
+        return;
+      }
+
       if (backupResult.vault) {
         const vaultSeed = await parseVaultValue(password, backupResult.vault);
         if (vaultSeed) {
-          // get authType
           const authData = await Authentication.componentAuthenticationType(
             biometryChoice,
             rememberMe,
@@ -222,18 +244,61 @@ const Login: React.FC = () => {
             setError(null);
             return;
           } catch (e) {
-            throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${e}`);
+            const storePasswordError = e instanceof Error ? e : new Error('Failed to store password');
+            Logger.error(new Error('Vault password storage failed'), {
+              originalError: storePasswordError,
+              authType: authData.currentAuthType,
+              timestamp: Date.now(),
+              deviceInfo: {
+                platform: Platform.OS,
+                osVersion: Platform.Version.toString(),
+                appVersion: '1.0.0'
+              },
+              debugInfo: {
+                authType: authData.currentAuthType,
+                hasBiometry: !!biometryChoice,
+                rememberMe
+              }
+            });
+            throw createVaultError(VaultErrorType.RECOVERY_FAILED, storePasswordError);
           }
         } else {
-          throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
+          Logger.error(new Error('Invalid vault seed'), {
+            timestamp: Date.now(),
+            deviceInfo: {
+              platform: Platform.OS,
+              osVersion: Platform.Version.toString(),
+              appVersion: '1.0.0'
+            },
+            debugInfo: {
+              hasBackup: !!backupResult.vault,
+              passwordLength: password.length
+            }
+          });
+          throw createVaultError(
+            VaultErrorType.INVALID_PASSWORD,
+            new Error('Invalid password for vault recovery')
+          );
         }
-      } else if (backupResult.error) {
-        throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
       }
-    } catch (e: unknown) {
-      Logger.error(e as Error);
+    } catch (e) {
+      const recoveryError = e instanceof Error ? e : new Error('Unknown vault recovery error');
+      Logger.error(new Error('Vault corruption recovery failed'), {
+        originalError: recoveryError,
+        timestamp: Date.now(),
+        deviceInfo: {
+          platform: Platform.OS,
+          osVersion: Platform.Version.toString(),
+          appVersion: '1.0.0'
+        },
+        debugInfo: {
+          errorType: recoveryError instanceof Error ? recoveryError.message : 'Unknown error type',
+          hasBackup: !!backupResult?.vault,
+          passwordLength: password.length
+        }
+      });
       setLoading(false);
-      setError(strings('login.invalid_password'));
+      setError('An error occurred while recovering your vault');
     }
   };
 
