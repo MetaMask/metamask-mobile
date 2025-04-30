@@ -141,7 +141,7 @@ function publishHook({
   initMessenger: TransactionControllerInitMessenger;
 }): Promise<{ transactionHash: string }> {
   const state = getState();
-  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state, transactionMeta.chainId);
 
   // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
   return submitSmartTransactionHook({

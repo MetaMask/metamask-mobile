@@ -93,16 +93,9 @@ const getNonEvmDisplayBalance = (
 };
 ///: END:ONLY_INCLUDE_IF
 
-export const getShouldShowAggregatedPercentage =
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  (account: InternalAccount, chainId: SupportedCaipChainId) => {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    return !isTestNet(chainId) && isEvmAccountType(account.type);
-    ///: END:ONLY_INCLUDE_IF
-
-    // Note: This code marked as unreachable however when the above block gets removed after code fencing this return becomes necessary
-    return !isTestNet(chainId);
-  };
+export const getShouldShowAggregatedPercentage = (chainId: SupportedCaipChainId) => {
+  return !isTestNet(chainId);
+};
 
 export const getAggregatedBalance = (account: InternalAccount) => {
   const balance = Engine.getTotalEvmFiatAccountBalance(account);
