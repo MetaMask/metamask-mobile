@@ -5,7 +5,7 @@ import { strings } from '../../../../locales/i18n';
 import { SnapUIAsset, useSnapAssetSelectorData } from './useSnapAssetDisplay';
 import { Box } from '../../UI/Box/Box';
 import { AlignItems, BackgroundColor, FlexDirection, TextAlign } from '../../UI/Box/box.types';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, { BadgePosition } from '../../../component-library/components/Badges/BadgeWrapper';
 import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
@@ -22,9 +22,10 @@ import { ImageSourcePropType, ViewStyle } from 'react-native';
  * @param props.fiat - The asset balance in fiat.
  * @param props.networkName - The network name.
  * @param props.networkIcon - The network icon.
+ * @param props.isParentFlexRow - Whether the parent has flex-direction: row.
  * @returns The Asset Selector option.
  */
-const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewStyle }> = ({
+const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewStyle, isParentFlexRow?: boolean }> = ({
   icon,
   symbol,
   name,
@@ -32,13 +33,14 @@ const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewS
   fiat,
   networkName,
   networkIcon,
-  style,
+  isParentFlexRow,
 }) => (
   <Box
     alignItems={AlignItems.center}
-    gap={4}
+    flexDirection={FlexDirection.Row}
+    gap={16}
     // eslint-disable-next-line react-native/no-inline-styles
-    style={{ overflow: 'hidden' }}
+    style={{ overflow: 'hidden', width: '100%' }}
   >
     <Box alignItems={AlignItems.center}>
       <BadgeWrapper
@@ -50,8 +52,9 @@ const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewS
             style={{ backgroundColor: BackgroundColor.backgroundDefault }}
           />
         }
+        badgePosition={BadgePosition.BottomRight}
       >
-        <AvatarToken imageSource={icon as ImageSourcePropType} />
+        <AvatarToken size={AvatarSize.Sm} imageSource={{ uri: icon }} />
       </BadgeWrapper>
     </Box>
     <Box
@@ -73,8 +76,8 @@ const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewS
     <Box
       flexDirection={FlexDirection.Column}
       // eslint-disable-next-line react-native/no-inline-styles
-      style={{ marginLeft: 'auto', ...style }}
-      textAlign={TextAlign.right}
+      style={{ marginLeft: 'auto', ...(isParentFlexRow ? { display: 'none' } : {}) }}
+      alignItems={AlignItems.flexEnd}
     >
       <Text variant={TextVariant.BodySMMedium}>
         {balance} {symbol}
@@ -98,6 +101,7 @@ interface SnapUIAssetSelectorProps {
   label?: string;
   error?: string;
   style?: Record<string, ViewStyle>;
+  isParentFlexRow?: boolean;
 }
 
 
@@ -112,7 +116,7 @@ interface SnapUIAssetSelectorProps {
  */
 export const SnapUIAssetSelector: FunctionComponent<
   SnapUIAssetSelectorProps
-> = ({ addresses, chainIds, disabled, style, ...props }) => {
+> = ({ addresses, chainIds, disabled, style, isParentFlexRow, ...props }) => {
   const assets = useSnapAssetSelectorData({ addresses, chainIds });
 
   const options = assets.map(({ address, name, symbol }) => ({
@@ -122,7 +126,7 @@ export const SnapUIAssetSelector: FunctionComponent<
   }));
 
   const optionComponents = assets.map((asset, index) => (
-    <SnapUIAssetSelectorOption {...asset} key={index} style={style?.option} />
+    <SnapUIAssetSelectorOption {...asset} key={index} isParentFlexRow={isParentFlexRow} />
   ));
 
   return (
@@ -131,7 +135,7 @@ export const SnapUIAssetSelector: FunctionComponent<
       options={options}
       optionComponents={optionComponents}
       disabled={disabled || assets.length === 0}
-      style={style?.base}
+      style={style}
       {...props}
     />
   );
