@@ -20,6 +20,8 @@ import BTC from './bitcoin-logo.png';
 import BASE from './base.png';
 import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
 import XRPLEVM_XRP_TOKEN from './xrp-logo.png';
+import MATCHAIN from './matchain.svg';
+import FLOW from './flow.svg';
 
 
 export default {
@@ -47,4 +49,6 @@ export default {
   BASE,
   'MEGAETH-TESTNET': MEGAETH_TESTNET,
   XRPLEVM_XRP_TOKEN,
+  MATCHAIN,
+  FLOW,
 };

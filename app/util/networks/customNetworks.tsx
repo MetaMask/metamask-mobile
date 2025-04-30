@@ -280,6 +280,9 @@ export const NETWORK_CHAIN_ID: {
   readonly SONEIUM_MAINNET: '0x74c';
   readonly SONEIUM_MINATO_TESTNET: '0x79a';
   readonly XRPLEVM_TESTNET: '0x161c28';
+  readonly MATCHAIN_MAINNET: '0x2ba';
+  readonly FLOW_MAINNET: '0x2eb';
+  readonly FLOW_TESTNET: '0x221';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -291,6 +294,9 @@ export const NETWORK_CHAIN_ID: {
   SONEIUM_MAINNET: '0x74c',
   SONEIUM_MINATO_TESTNET: '0x79a',
   XRPLEVM_TESTNET: '0x161c28',
+  MATCHAIN_MAINNET: '0x2ba',
+  FLOW_MAINNET: '0x2eb',
+  FLOW_TESTNET: '0x221',
   ...CHAIN_IDS,
 };
 
@@ -307,4 +313,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.SONEIUM_MINATO_TESTNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.SONEIUM_MAINNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: require('../../images/xrplevm.png'),
+  [NETWORK_CHAIN_ID.MATCHAIN_MAINNET]: require('../../images/matchain.svg'),
+  [NETWORK_CHAIN_ID.FLOW_MAINNET]: require('../../images/flow.svg'),
+  [NETWORK_CHAIN_ID.FLOW_TESTNET]: require('../../images/flow.svg'),
 };
