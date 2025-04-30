@@ -8,6 +8,7 @@ import {
   selectStakedEvmAsset,
   selectEvmTokens,
   selectEvmTokensWithZeroBalanceFilter,
+  makeSelectAssetByAddressAndChainId,
 } from './evm';
 import { SolScope } from '@metamask/keyring-api';
 import { GetByQuery } from '@testing-library/react-native/build/queries/make-queries';
@@ -31,6 +32,7 @@ import {
 } from '@metamask/swaps-controller/dist/constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { zeroAddress } from 'ethereumjs-util';
+import { TokenI } from '../../components/UI/Tokens/types';
 
 describe('Multichain Selectors', () => {
   const mockState: RootState = {
@@ -706,6 +708,168 @@ describe('Multichain Selectors', () => {
       expect(
         result.find((token) => token.chainId === '0xaa36a7'),
       ).toBeUndefined();
+    });
+  });
+
+  describe('makeSelectAssetByAddressAndChainId', () => {
+    const mockAccountId = '0xAddress1';
+    const mockAllTokens = {
+      [ETH_CHAIN_ID]: {
+        [mockAccountId]: [
+          {
+            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+            symbol: 'USDC',
+            decimals: 6,
+            name: 'USDC',
+          },
+          {
+            address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+            symbol: 'DAI',
+            decimals: 18,
+            name: 'Dai Stablecoin',
+          },
+        ],
+      },
+      [POLYGON_CHAIN_ID]: {
+        [mockAccountId]: [
+          {
+            address: '0x0D1E753a25eBda689453309112904807625bEFBe',
+            symbol: 'CAKE',
+            decimals: 18,
+            image:
+              'https://static.cx.metamask.io/api/v1/tokenIcons/59144/0x0d1e753a25ebda689453309112904807625befbe.png',
+            aggregators: ['CoinGecko', 'Lifi', 'Rubic'],
+          },
+        ],
+      },
+    };
+
+    const testState: RootState = {
+      ...mockState,
+      engine: {
+        ...mockState.engine,
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          MultichainNetworkController: {
+            ...mockState.engine.backgroundState.MultichainNetworkController,
+            isEvmSelected: true,
+          },
+          TokensController: {
+            allTokens: mockAllTokens,
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    it('should return undefined when EVM network is not selected', () => {
+      const stateWithNonEvmNetwork = {
+        ...testState,
+        engine: {
+          ...testState.engine,
+          backgroundState: {
+            ...testState.engine.backgroundState,
+            MultichainNetworkController: {
+              ...testState.engine.backgroundState.MultichainNetworkController,
+              isEvmSelected: false,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const selector = makeSelectAssetByAddressAndChainId();
+      const result = selector(stateWithNonEvmNetwork, {
+        address: '0x123',
+        chainId: '0x1',
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined for non-existent token', () => {
+      const selector = makeSelectAssetByAddressAndChainId();
+      const result = selector(testState, {
+        address: '0x999',
+        chainId: '0x1',
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined for non-existent chain', () => {
+      const selector = makeSelectAssetByAddressAndChainId();
+      const result = selector(testState, {
+        address: '0x123',
+        chainId: '0x999',
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return the correct token for valid address and chainId', () => {
+      const selector = makeSelectAssetByAddressAndChainId();
+      const result = selector(testState, {
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        chainId: '0x1',
+      });
+
+      expect(result).toHaveProperty(
+        'address',
+        '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      );
+      expect(result).toHaveProperty('chainId', '0x1');
+      expect(result).toHaveProperty('symbol', 'USDC');
+    });
+
+    it('should handle different chain IDs correctly', () => {
+      const selector = makeSelectAssetByAddressAndChainId();
+      const result = selector(testState, {
+        address: '0x0D1E753a25eBda689453309112904807625bEFBe',
+        chainId: POLYGON_CHAIN_ID,
+      });
+
+      expect(result).toHaveProperty(
+        'address',
+        '0x0D1E753a25eBda689453309112904807625bEFBe',
+      );
+      expect(result).toHaveProperty('chainId', POLYGON_CHAIN_ID);
+      expect(result).toHaveProperty('symbol', 'CAKE');
+      expect(result).toHaveProperty('aggregators', [
+        'CoinGecko',
+        'Lifi',
+        'Rubic',
+      ]);
+    });
+
+    it('should handle non-native tokens correctly', () => {
+      const selector = makeSelectAssetByAddressAndChainId();
+      const result = selector(testState, {
+        address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+        chainId: ETH_CHAIN_ID,
+      });
+
+      expect(result).toHaveProperty(
+        'address',
+        '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+      );
+      expect(result).toHaveProperty('chainId', ETH_CHAIN_ID);
+      expect(result).toHaveProperty('symbol', 'DAI');
+      expect(result).toHaveProperty('name', 'Dai Stablecoin');
+    });
+
+    it('should handle case-insensitive address matching', () => {
+      const selector = makeSelectAssetByAddressAndChainId();
+      const result = selector(testState, {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // Different case
+        chainId: ETH_CHAIN_ID,
+      });
+
+      expect(result).toHaveProperty(
+        'address',
+        '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      );
+      expect(result).toHaveProperty('chainId', ETH_CHAIN_ID);
+      expect(result).toHaveProperty('symbol', 'USDC');
+      expect(result).toHaveProperty('name', 'USDC');
     });
   });
 });
