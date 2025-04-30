@@ -151,7 +151,7 @@ export const TokenListItem = React.memo(
     ///: END:ONLY_INCLUDE_IF(keyring-snaps)
     const itemAddress = isEvmNetworkSelected
       ? asset && safeToChecksumAddress(asset.address)
-      : asset && asset.address;
+      : asset?.address;
 
     // Choose values based on multichain or legacy
     const exchangeRates = multiChainMarketData?.[chainId as Hex];
@@ -267,8 +267,7 @@ export const TokenListItem = React.memo(
       secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
     }
 
-    // @ts-ignore
-    asset = { ...asset, balanceFiat, isStaked: false };
+    asset = asset && { ...asset, balanceFiat, isStaked: asset?.isStaked };
 
     const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
 
@@ -323,8 +322,7 @@ export const TokenListItem = React.memo(
       );
 
       // if the asset is staked, navigate to the native asset details
-      // @ts-ignore
-      if (asset.isStaked) {
+      if (asset?.isStaked) {
         return navigation.navigate('Asset', {
           ...token.nativeAsset,
         });
@@ -384,7 +382,6 @@ export const TokenListItem = React.memo(
         (token) =>
           token.symbol === asset.symbol &&
           asset.chainId === token?.chainId &&
-          // @ts-ignore
           !asset?.isStaked,
       );
       const shouldShowStablecoinLendingCta =
@@ -409,7 +406,6 @@ export const TokenListItem = React.memo(
     return (
       <AssetElement
         // assign staked asset a unique key
-        // @ts-ignore
         key={asset.isStaked ? '0x_staked' : itemAddress || '0x'}
         onPress={onItemPress}
         onLongPress={asset.isETH || asset.isNative ? null : showRemoveMenu}

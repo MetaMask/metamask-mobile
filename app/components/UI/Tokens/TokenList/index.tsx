@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
 import { View, RefreshControl, Dimensions } from 'react-native';
-import { BlankAreaEvent, FlashList } from '@shopify/flash-list';
+import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import {

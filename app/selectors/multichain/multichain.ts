@@ -35,6 +35,7 @@ import {
   MultichainBalancesControllerState,
 } from '@metamask/assets-controllers';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { TokenI } from '../../components/UI/Tokens/types';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -462,7 +463,7 @@ export const selectNonEvmAssetById = createDeepEqualSelector(
     assetsRates,
     accountId,
     assetId,
-  ) => {
+  ): TokenI | undefined => {
     if (isEvmNetworkSelected) {
       return undefined;
     }
@@ -503,10 +504,8 @@ export const selectNonEvmAssetById = createDeepEqualSelector(
       chainId,
       isNative,
       balance: balance.amount,
-      secondary: balanceInFiat ? balanceInFiat.toString() : undefined,
-      string: '',
       balanceFiat: balanceInFiat ? balanceInFiat.toString() : undefined,
-      isStakeable: false,
+      isStaked: false,
       aggregators: [],
       isETH: false,
       ticker: metadata.symbol,
