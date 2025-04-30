@@ -53,7 +53,13 @@ const AlertRow = ({ alertField, isShownWithAlertsOnly, ...props }: AlertRowProps
     />
   ) : null;
 
-  return <InfoRow {...alertRowProps} labelChildren={inlineAlert} />;
+  return (
+    <InfoRow
+      {...alertRowProps}
+      style={{ paddingBottom: 4, paddingHorizontal: 8 }}
+      labelChildren={inlineAlert}
+    />
+  );
 };
 
 export default AlertRow;
