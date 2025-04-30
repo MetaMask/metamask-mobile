@@ -21,14 +21,13 @@ enum EIP5792ErrorCode {
   RejectedUpgrade = 5750,
 }
 
-const { TransactionController, AccountsController } = Engine.context;
-
 type JSONRPCRequest = JsonRpcRequest & {
   networkClientId: string;
   origin?: string;
 };
 
 export const getAccounts = async () => {
+  const { AccountsController } = Engine.context;
   const selectedAddress = AccountsController.getSelectedAccount()?.address;
   return Promise.resolve(selectedAddress ? [selectedAddress] : []);
 };
@@ -47,6 +46,7 @@ async function validateSendCallsChainId(
   sendCalls: SendCalls,
   req: JSONRPCRequest,
 ) {
+  const { TransactionController, AccountsController } = Engine.context;
   const { chainId } = sendCalls;
   const { networkClientId } = req;
 
@@ -117,6 +117,7 @@ export async function processSendCalls(
   params: SendCalls,
   req: JsonRpcRequest,
 ): Promise<SendCallsResult> {
+  const { TransactionController, AccountsController } = Engine.context;
   const { calls, from: paramFrom } = params;
   const { networkClientId, origin } = req as JsonRpcRequest & {
     networkClientId: string;
