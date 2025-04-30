@@ -199,6 +199,7 @@ const Routes = {
   },
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
+  EDIT_ACCOUNT_NAME: 'EditAccountName',
 };
 
 export default Routes;
