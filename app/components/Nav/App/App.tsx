@@ -674,7 +674,7 @@ const AppFlow = () => {
       />
       <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
       <Stack.Screen
-        name="EditAccountName"
+        name={Routes.EDIT_ACCOUNT_NAME}
         component={EditAccountName}
         options={{ animationEnabled: true }}
       />
@@ -932,7 +932,6 @@ const App: React.FC = () => {
               rpcEndpoints: [
                 {
                   url: network.rpcUrl,
-                  failoverUrls: network.failoverRpcUrls,
                   name: network.nickname,
                   type: RpcEndpointType.Custom,
                 },

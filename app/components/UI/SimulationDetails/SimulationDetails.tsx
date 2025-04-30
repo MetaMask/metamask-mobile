@@ -149,8 +149,8 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   isTransactionsRedesign = false,
 }: SimulationDetailsProps) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
-  const { chainId, id: transactionId, simulationData } = transaction;
-  const balanceChangesResult = useBalanceChanges({ chainId, simulationData });
+  const { chainId, id: transactionId, simulationData, networkClientId } = transaction;
+  const balanceChangesResult = useBalanceChanges({ chainId, simulationData, networkClientId });
   const loading = !simulationData || balanceChangesResult.pending;
 
   useSimulationMetrics({

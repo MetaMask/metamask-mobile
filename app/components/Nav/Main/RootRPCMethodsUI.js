@@ -588,7 +588,10 @@ const mapStateToProps = (state) => ({
   chainId: selectEvmChainId(state),
   tokens: selectTokens(state),
   providerType: selectProviderType(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
+    state,
+    selectEvmChainId(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({
