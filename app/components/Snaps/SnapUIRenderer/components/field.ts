@@ -166,6 +166,7 @@ export const field: UIComponentFactory<FieldElement> = ({
         element: assetSelector,
       } as UIComponentParams<AssetSelectorElement>);
 
+
       return {
         ...assetSelectorMapped,
         element: 'SnapUIAssetSelector',
@@ -174,9 +175,8 @@ export const field: UIComponentFactory<FieldElement> = ({
           label: e.props.label,
           form,
           error: e.props.error,
-          style: params.parentIsFlexRow
-            ? { base: { paddingHorizontal: 8 }, option: { display: 'none' } }
-            : undefined,
+          parentIsFlexRow: params.parentIsFlexRow,
+          style,
         },
       };
     }
