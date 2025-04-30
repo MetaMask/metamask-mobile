@@ -239,7 +239,7 @@ export const TokenListItem = React.memo(
       mainBalance = balanceValueFormatted?.toUpperCase();
       secondaryBalance = balanceFiat?.toUpperCase();
       // For ETH as a native currency, adjust display based on network safety.
-      if (asset && asset.isETH) {
+      if (asset?.isETH) {
         // Main balance always shows the formatted balance value for ETH.
         mainBalance = balanceValueFormatted?.toUpperCase();
         // Display fiat value as secondary balance only for original native tokens on safe networks.
@@ -306,7 +306,7 @@ export const TokenListItem = React.memo(
           return customNetworkImg;
         }
       },
-      [chainId],
+      [chainId, evmAsset?.isETH, evmAsset?.isStaked],
     );
 
     const onItemPress = (token: TokenI) => {
