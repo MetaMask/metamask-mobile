@@ -1,154 +1,157 @@
+/* eslint-disable react/prop-types */
 import React, { useMemo } from 'react';
-import { ImageSourcePropType, View } from 'react-native';
-import { Hex } from '@metamask/utils';
-import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import {
-  selectEvmTicker,
-  selectNetworkConfigurationByChainId,
-} from '../../../../selectors/networkController';
-import { useTheme } from '../../../../util/theme';
-import { RootState } from '../../../../reducers';
-import { PositionType } from '@metamask/assets-controllers/dist/DeFiPositionsController/fetch-positions.cjs';
-import { ProtocolTokenWithMarketValue } from '@metamask/assets-controllers/dist/DeFiPositionsController/group-positions.cjs';
-import {
-  isLineaMainnetByChainId,
-  isMainnetByChainId,
-} from '../../../../util/networks';
-import createStyles from '../styles';
-import { getTestNetImageByChainId, isTestNet } from '../../../../util/networks';
-import images from 'images/image-icons';
-import { CustomNetworkImgMapping } from '../../../../util/networks/customNetworks';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
+import { TouchableOpacity, View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import AssetElement from '../../AssetElement';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import { useTheme } from '../../../../util/theme';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../component-library/components/Texts/SensitiveText';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../../component-library/components/Badges/Badge';
+import { useNavigation } from '@react-navigation/native';
+import { Hex } from '@metamask/utils';
+import { getDefaultNetworkByChainId } from '../../../../util/networks';
+import {
+  CustomNetworkImgMapping,
+  PopularList,
+  UnpopularNetworkList,
+} from '../../../../util/networks/customNetworks';
+import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
+import createStyles from '../styles';
+import I18n from '../../../../../locales/i18n';
+import { formatWithThreshold } from '../../../../util/assets';
+import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
+import { AvatarProps } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+
+type ProtocolAggregate = GroupedDeFiPositions['protocols'][number] & {
+  chainId: Hex;
+  symbol: string;
+};
 
 interface DeFiProtocolPositionListItemProps {
-  chainId: Hex;
-  protocolId: string;
-  protocolDetails: { name: string; iconUrl: string };
-  aggregatedMarketValue: number;
-  positionTypes: {
-    [key in PositionType]?: {
-      aggregatedMarketValue: number;
-      positions: ProtocolTokenWithMarketValue[][];
-    };
-  };
-  privacyMode: boolean;
+  protocolAggregate: ProtocolAggregate;
+  privacyMode?: boolean;
 }
 
-export const DeFiProtocolPositionListItem = React.memo(
-  ({
-    chainId,
-    protocolId,
-    protocolDetails: { name, iconUrl },
-    aggregatedMarketValue,
-    positionTypes,
-    privacyMode,
-  }: DeFiProtocolPositionListItemProps) => {
-    const navigation = useNavigation();
-    const { colors } = useTheme();
-    const styles = createStyles(colors);
-
-    const ticker = useSelector(selectEvmTicker);
-
-    const networkConfigurationByChainId = useSelector((state: RootState) =>
-      selectNetworkConfigurationByChainId(state, chainId),
-    );
-
-    const isMainnet = isMainnetByChainId(chainId);
-    const isLineaMainnet = isLineaMainnetByChainId(chainId);
-
-    const onItemPress = (
-      protocolId: string,
-      protocolDetails: { name: string; iconUrl: string },
-      aggregatedMarketValue: number,
-      positionTypes: {
-        [key in PositionType]?: {
-          aggregatedMarketValue: number;
-          positions: ProtocolTokenWithMarketValue[][];
-        };
-      },
-      privacyMode: boolean,
-    ) => {
-      navigation.navigate('DeFiPositions', {
-        protocolId,
-        protocolDetails,
-        aggregatedMarketValue,
-        positionTypes,
-        privacyMode,
-      });
-    };
-
-    const networkBadgeSource = useMemo<ImageSourcePropType>(() => {
-      if (isTestNet(chainId)) {
-        return getTestNetImageByChainId(chainId);
+const networkBadgeSource = (currentChainId: Hex) => {
+  const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as
+    | {
+        imageSource: string;
       }
+    | undefined;
 
-      if (isMainnet) {
-        return images.ETHEREUM;
-      }
+  if (defaultNetwork) {
+    return defaultNetwork.imageSource;
+  }
 
-      if (isLineaMainnet) return images['LINEA-MAINNET'];
+  const unpopularNetwork = UnpopularNetworkList.find(
+    (networkConfig) => networkConfig.chainId === currentChainId,
+  );
 
-      if (CustomNetworkImgMapping[chainId]) {
-        return CustomNetworkImgMapping[chainId];
-      }
+  const popularNetwork = PopularList.find(
+    (networkConfig) => networkConfig.chainId === currentChainId,
+  );
 
-      return ticker ? images[ticker] : undefined;
-    }, [chainId, isMainnet, isLineaMainnet, ticker]);
+  const network = unpopularNetwork || popularNetwork;
+  if (network) {
+    return network.rpcPrefs.imageSource;
+  }
 
-    const badge = useMemo(() => {
-      return (
-        <BadgeWrapper
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeSource}
-              name={networkConfigurationByChainId?.name}
-            />
-          }
-        >
-          <AvatarToken
-            name={name}
-            imageSource={{ uri: iconUrl }}
-            size={AvatarSize.Md}
+  const customNetworkImg = CustomNetworkImgMapping[currentChainId];
+  if (customNetworkImg) {
+    return customNetworkImg;
+  }
+};
+
+/**
+ * Customizable view to render assets in lists
+ */
+const DeFiProtocolPositionListItem = ({
+  protocolAggregate,
+  privacyMode = false,
+}: DeFiProtocolPositionListItemProps) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
+  const navigation = useNavigation();
+
+  const tokenAvatars: AvatarProps[] = useMemo(
+    () =>
+      Object.values(protocolAggregate.positionTypes).flatMap((displayTokens) =>
+        displayTokens.positions.flatMap((nestedToken) =>
+          nestedToken.flatMap((token) =>
+            token.tokens.map((underlying) => ({
+              variant: AvatarVariant.Token,
+              name: underlying.name,
+              imageSource: {
+                uri: underlying.iconUrl,
+              },
+            })),
+          ),
+        ),
+      ),
+    [protocolAggregate],
+  );
+
+  console.log('tokenAvatars', tokenAvatars);
+
+  return (
+    <TouchableOpacity
+      onPress={() => {
+        navigation.navigate('DeFiProtocolPositionsDetails', protocolAggregate);
+      }}
+      style={styles.itemWrapper}
+    >
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={networkBadgeSource(protocolAggregate.chainId)}
           />
-        </BadgeWrapper>
-      );
-    }, [name, iconUrl]);
-
-    return (
-      <AssetElement
-        key={protocolId}
-        onPress={() =>
-          onItemPress(
-            protocolId,
-            { name, iconUrl },
-            aggregatedMarketValue,
-            positionTypes,
-            privacyMode,
-          )
         }
-        onLongPress={null}
-        asset={{} as any}
-        balance={aggregatedMarketValue.toString()}
-        privacyMode={privacyMode}
       >
-        {badge}
-        <View style={styles.balances}>
-          <View style={styles.assetName}>
-            <Text variant={TextVariant.BodyLGMedium}>{name}</Text>
-          </View>
+        <AvatarToken
+          name={protocolAggregate.symbol}
+          imageSource={{ uri: protocolAggregate.protocolDetails.iconUrl }}
+          size={AvatarSize.Md}
+        />
+      </BadgeWrapper>
+      <View style={styles.balances}>
+        <View style={styles.assetName}>
+          <Text variant={TextVariant.BodyLGMedium}>
+            {protocolAggregate.protocolDetails.name}
+          </Text>
         </View>
-      </AssetElement>
-    );
-  },
-);
+      </View>
+
+      <View style={styles.arrow}>
+        <SensitiveText
+          variant={TextVariant.BodyLGMedium}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Medium}
+        >
+          {formatWithThreshold(
+            protocolAggregate.aggregatedMarketValue,
+            0.01,
+            I18n.locale,
+            { style: 'currency', currency: 'USD' },
+          )}
+        </SensitiveText>
+        <AvatarGroup avatarPropsList={tokenAvatars} size={AvatarSize.Xs} />
+      </View>
+    </TouchableOpacity>
+  );
+};
+export default DeFiProtocolPositionListItem;

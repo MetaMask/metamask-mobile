@@ -93,6 +93,7 @@ import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
+import DefiProtocolPositionsDetails from '../../UI/DeFiPositions/DeFiProtocolPositionsDetails';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -208,7 +209,10 @@ const TransactionsHome = () => (
       name={Routes.RAMP.SEND_TRANSACTION}
       component={SendTransaction}
     />
-    <Stack.Screen name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS} component={BridgeTransactionDetails} />
+    <Stack.Screen
+      name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
+      component={BridgeTransactionDetails}
+    />
   </Stack.Navigator>
 );
 
@@ -889,6 +893,13 @@ const MainNavigator = () => (
       name={Routes.NOTIFICATIONS.OPT_IN_STACK}
       component={NotificationsOptInStack}
       options={NotificationsOptInStack.navigationOptions}
+    />
+    <Stack.Screen
+      name="DeFiProtocolPositionsDetails"
+      component={DefiProtocolPositionsDetails}
+      options={{
+        headerShown: true,
+      }}
     />
   </Stack.Navigator>
 );

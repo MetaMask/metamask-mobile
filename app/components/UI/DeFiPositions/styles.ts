@@ -216,6 +216,18 @@ const createStyles = (colors: Colors) =>
     portfolioButtonContainer: {
       alignItems: 'center',
     },
+    itemWrapper: {
+      flex: 1,
+      flexDirection: 'row',
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      alignItems: 'flex-start',
+    },
+    arrow: {
+      flex: 1,
+      alignSelf: 'flex-end',
+      alignItems: 'flex-end',
+    },
   });
 
 export default createStyles;
