@@ -1592,7 +1592,8 @@ Confirm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
-  const chainId = selectEvmChainId(state);
+  const chainId = transaction?.chainId || selectEvmChainId(state);
+
   const networkClientId =
     transaction?.networkClientId || selectNetworkClientId(state);
 
@@ -1620,7 +1621,7 @@ const mapStateToProps = (state) => {
       chainId,
       getRampNetworks(state),
     ),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
     confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
