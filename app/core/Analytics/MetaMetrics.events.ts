@@ -315,6 +315,8 @@ enum EVENT_NAME {
   UNSTAKE_TRANSACTION_SUBMITTED = 'Unstake Transaction Submitted',
   VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS = 'Visited ETH Overview with Staked Positions',
   EARN_TOKEN_LIST_ITEM_CLICKED = 'Earn Token List Item Clicked',
+  TRANSACTION_SUBMITTED = 'Transaction Submitted',
+  TRANSACTION_FINALIZED = 'Transaction Finalized',
 
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
@@ -1033,6 +1035,10 @@ const events = {
   // Bridge
   BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+
+  // Transactions
+  TRANSACTION_SUBMITTED: generateOpt(EVENT_NAME.TRANSACTION_SUBMITTED),
+  TRANSACTION_FINALIZED: generateOpt(EVENT_NAME.TRANSACTION_FINALIZED),
 };
 
 /**

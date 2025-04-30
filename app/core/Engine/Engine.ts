@@ -17,6 +17,7 @@ import {
 import { AccountsController } from '@metamask/accounts-controller';
 import { AddressBookController } from '@metamask/address-book-controller';
 import { ComposableController } from '@metamask/composable-controller';
+import { Transaction } from '@metamask/keyring-api';
 import {
   KeyringController,
   KeyringControllerState,
@@ -1585,6 +1586,42 @@ export class Engine {
       `${networkController.name}:networkWillChange`,
       () => {
         store.dispatch(networkIdWillUpdate());
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      'MultichainTransactionsController:transactionConfirmed',
+      (transaction: Transaction) => {
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.TRANSACTION_FINALIZED)
+            .addProperties({
+              id: transaction.id,
+              timestamp: transaction.timestamp,
+              chain_id_caip: transaction.chain,
+              status: transaction.status,
+              type: transaction.type,
+              fees: transaction.fees,
+            })
+            .build()
+        );
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      'MultichainTransactionsController:transactionSubmitted',
+      (transaction: Transaction) => {
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.TRANSACTION_SUBMITTED)
+            .addProperties({
+              id: transaction.id,
+              timestamp: transaction.timestamp,
+              chain_id_caip: transaction.chain,
+              status: transaction.status,
+              type: transaction.type,
+              fees: transaction.fees,
+            })
+            .build()
+        );
       },
     );
 
