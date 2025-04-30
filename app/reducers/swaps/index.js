@@ -74,17 +74,11 @@ export const swapsLivenessMultichainSelector = createSelector(
 /**
  * Returns if smart transactions are enabled in feature flags
  */
-const DEVICE_KEY = 'mobileActive';
 export const swapsSmartTxFlagEnabled = createSelector(
   swapsStateSelector,
   (swapsState) => {
     const globalFlags = swapsState.featureFlags;
-
-    const isEnabled = Boolean(
-      globalFlags?.smart_transactions?.mobile_active &&
-        globalFlags?.smartTransactions?.[DEVICE_KEY],
-    );
-
+    const isEnabled = Boolean(globalFlags?.smartTransactions?.mobileActive);
     return isEnabled;
   },
 );

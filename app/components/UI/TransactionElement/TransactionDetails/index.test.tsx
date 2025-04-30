@@ -102,7 +102,6 @@ const renderComponent = ({
       <Stack.Screen name="Amount" options={{}}>
         {() => (
           <TransactionDetails
-            // @ts-expect-error - TransactionDetails needs to be converted to typescript
             transactionObject={{
               networkID: '1',
               status,
@@ -112,7 +111,6 @@ const renderComponent = ({
               chainId: networkId,
               ...(txParams ? { txParams } : {}),
             }}
-            //@ts-expect-error - TransactionDetails needs to be converted to typescript
             transactionDetails={{
               renderFrom: '0x0',
               renderTo: networkId,
@@ -126,9 +124,7 @@ const renderComponent = ({
               hash: '0x3',
               ...(hash ? { hash } : {}),
             }}
-            //@ts-expect-error - navigation is not typed
             navigation={navigationMock}
-            // @ts-expect-error - chainId is not typed
             chainId={networkId}
           />
         )}
