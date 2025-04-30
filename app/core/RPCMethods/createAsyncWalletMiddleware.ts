@@ -118,7 +118,6 @@ export async function processSendCalls(
   params: SendCalls,
   req: JsonRpcRequest,
 ): Promise<SendCallsResult> {
-  const { TransactionController, AccountsController } = Engine.context;
   const { calls, from: paramFrom } = params;
   const { networkClientId, origin } = req as JsonRpcRequest & {
     networkClientId: string;
