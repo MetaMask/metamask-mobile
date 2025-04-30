@@ -38,6 +38,7 @@ import Logger from '../../../util/Logger';
 import { getHdKeyringOfSelectedAccountOrPrimaryKeyring } from '../../../selectors/multisrp';
 import {
   MultichainWalletSnapFactory,
+  WalletClientType,
 } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import BottomSheet, {
   BottomSheetRef,
