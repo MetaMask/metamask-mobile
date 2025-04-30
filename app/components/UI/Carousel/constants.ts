@@ -14,8 +14,37 @@ import aggregatedImage from '../../../images/banners/banner_image_aggregated.png
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import multiSrpImage from '../../../images/banners/banner_image_multisrp.png';
 ///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(solana)
+import solanaImage from '../../../images/banners/banner_image_solana.png';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { SolScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 
 export const PREDEFINED_SLIDES: CarouselSlide[] = [
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  {
+    id: 'solana',
+    title: strings('banner.solana.title'),
+    description: strings('banner.solana.subtitle'),
+    undismissable: false,
+    navigation: {
+      type: 'function',
+      navigate: () => [
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SHEET.ADD_ACCOUNT,
+          params: {
+            clientType: WalletClientType.Solana,
+            scope: SolScope.Mainnet,
+          },
+        },
+      ],
+    },
+    testID: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE,
+    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE_TITLE,
+    testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE_CLOSE_BUTTON,
+  },
+  ///: END:ONLY_INCLUDE_IF
   {
     id: 'card',
     title: strings('banner.card.title'),
@@ -93,5 +122,8 @@ export const BANNER_IMAGES: Record<SlideId, ImageSourcePropType> = {
   aggregated: aggregatedImage,
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   multisrp: multiSrpImage,
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  solana: solanaImage,
   ///: END:ONLY_INCLUDE_IF
 };
