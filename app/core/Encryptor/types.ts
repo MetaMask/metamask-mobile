@@ -37,7 +37,7 @@ export interface EncryptionLibrary {
    * @param iv - The IV.
    * @returns The encrypted data.
    */
-  encrypt(data: string, key: string, iv: string | Uint8Array): Promise<string | ArrayBuffer>;
+  encrypt(data: string, key: string, iv: string): Promise<string | ArrayBuffer>;
   /**
    * Decrypts encrypted data.
    *
