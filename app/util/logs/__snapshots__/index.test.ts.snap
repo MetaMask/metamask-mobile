@@ -142,6 +142,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "MultichainAssetsRatesController": {
         "conversionRates": {},
+        "historicalPrices": {},
       },
       "MultichainBalancesController": {
         "balances": {},
@@ -467,6 +468,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "TokenSearchDiscoveryController": {
         "lastSearchTimestamp": null,
         "recentSearches": [],
+      },
+      "TokenSearchDiscoveryDataController": {
+        "swapsTokenAddressesByChainId": {},
+        "tokenDisplayData": [],
       },
       "TransactionController": {
         "lastFetchedBlockNumbers": {},

@@ -61,7 +61,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         <View style={styles.buttonWrapper}>
           <WalletAction
             iconName={IconName.SwapHorizontal}
-            onPress={goToSwaps}
+            onPress={() => goToSwaps()}
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}

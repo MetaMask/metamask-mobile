@@ -21,6 +21,7 @@ interface ExpandableSectionProps {
   iconVerticalPosition?: IconVerticalPosition;
   collapseButtonTestID?: string;
   testID?: string;
+  isCompact?: boolean;
 }
 
 export enum IconVerticalPosition {
@@ -34,8 +35,9 @@ const ExpandableSection = ({
   iconVerticalPosition,
   collapseButtonTestID,
   testID,
+  isCompact,
 }: ExpandableSectionProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isCompact });
   const [expanded, setExpanded] = useState(false);
 
   const iconStyle =

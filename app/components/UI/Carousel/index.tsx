@@ -1,4 +1,4 @@
-import React, { useState, useCallback, FC, useMemo } from 'react';
+import React, { useState, useCallback, FC, useMemo, useEffect } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -16,24 +16,39 @@ import { dismissBanner } from '../../../reducers/banners';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { useMultichainBalances } from '../../hooks/useMultichainBalances';
+import { useSelectedAccountMultichainBalances } from '../../hooks/useMultichainBalances';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
 import { selectDismissedBanners } from '../../../selectors/banner';
+///: BEGIN:ONLY_INCLUDE_IF(solana)
+import {
+  selectSelectedInternalAccount,
+  selectLastSelectedSolanaAccount,
+} from '../../../selectors/accountsController';
+import { SolAccountType } from '@metamask/keyring-api';
+import Engine from '../../../core/Engine';
+///: END:ONLY_INCLUDE_IF
 
 export const Carousel: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { selectedAccountMultichainBalance } = useMultichainBalances();
+  const { selectedAccountMultichainBalance } =
+    useSelectedAccountMultichainBalances();
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, { style });
   const dismissedBanners = useSelector(selectDismissedBanners);
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const lastSelectedSolanaAccount = useSelector(
+    selectLastSelectedSolanaAccount,
+  );
+  ///: END:ONLY_INCLUDE_IF
   const isZeroBalance =
     selectedAccountMultichainBalance?.totalFiatBalance === 0;
 
@@ -57,14 +72,29 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   const visibleSlides = useMemo(
     () =>
       slidesConfig.filter((slide) => {
+        ///: BEGIN:ONLY_INCLUDE_IF(solana)
+        if (
+          slide.id === 'solana' &&
+          selectedAccount?.type === SolAccountType.DataAccount
+        ) {
+          return false;
+        }
+        ///: END:ONLY_INCLUDE_IF
+
         if (slide.id === 'fund' && isZeroBalance) {
           return true;
         }
         return !dismissedBanners.includes(slide.id);
       }),
-    [slidesConfig, isZeroBalance, dismissedBanners],
+    [
+      slidesConfig,
+      isZeroBalance,
+      dismissedBanners,
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      selectedAccount,
+      ///: END:ONLY_INCLUDE_IF
+    ],
   );
-
   const isSingleSlide = visibleSlides.length === 1;
 
   const openUrl =
@@ -76,14 +106,32 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
 
   const handleSlideClick = useCallback(
     (slideId: string, navigation: NavigationAction) => {
+      const extraProperties: Record<string, string> = {};
+
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      const isSolanaBanner = slideId === 'solana';
+      if (isSolanaBanner && lastSelectedSolanaAccount) {
+        extraProperties.action = 'redirect-solana-account';
+      } else if (isSolanaBanner && !lastSelectedSolanaAccount) {
+        extraProperties.action = 'create-solana-account';
+      }
+      ///: END:ONLY_INCLUDE_IF
+
       trackEvent(
         createEventBuilder({
           category: 'Banner Select',
           properties: {
             name: slideId,
+            ...extraProperties,
           },
         }).build(),
       );
+
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      if (isSolanaBanner && lastSelectedSolanaAccount) {
+        return Engine.setSelectedAddress(lastSelectedSolanaAccount.address);
+      }
+      ///: END:ONLY_INCLUDE_IF
 
       if (navigation.type === 'url') {
         return openUrl(navigation.href)();
@@ -97,7 +145,14 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
         return navigate(navigation.route);
       }
     },
-    [navigate, trackEvent, createEventBuilder],
+    [
+      trackEvent,
+      createEventBuilder,
+      navigate,
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      lastSelectedSolanaAccount,
+      ///: END:ONLY_INCLUDE_IF
+    ],
   );
 
   const handleClose = useCallback(
@@ -108,7 +163,64 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   );
 
   const renderBannerSlides = useCallback(
-    ({ item: slide }: { item: CarouselSlide }) => {
+    ({ item: slide }: { item: CarouselSlide }) => (
+      <Pressable
+        key={slide.id}
+        testID={slide.testID}
+        style={[
+          styles.slideContainer,
+          pressedSlideId === slide.id && styles.slideContainerPressed,
+        ]}
+        onPress={() => handleSlideClick(slide.id, slide.navigation)}
+        onPressIn={() => setPressedSlideId(slide.id)}
+        onPressOut={() => setPressedSlideId(null)}
+      >
+        <View style={styles.slideContent}>
+          <View style={styles.imageContainer}>
+            <Image
+              source={BANNER_IMAGES[slide.id]}
+              style={styles.bannerImage}
+              resizeMode="contain"
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <View style={styles.textWrapper}>
+              <Text
+                variant={TextVariant.BodyMD}
+                style={styles.title}
+                testID={slide.testIDTitle}
+              >
+                {slide.title}
+              </Text>
+              <Text variant={TextVariant.BodySM} style={styles.description}>
+                {slide.description}
+              </Text>
+            </View>
+          </View>
+          {!slide.undismissable && (
+            <TouchableOpacity
+              testID={slide.testIDCloseButton}
+              style={styles.closeButton}
+              onPress={() => handleClose(slide.id)}
+            >
+              <Icon name="close" size={18} color={colors.icon.default} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </Pressable>
+    ),
+    [
+      styles,
+      handleSlideClick,
+      handleClose,
+      colors.icon.default,
+      pressedSlideId,
+    ],
+  );
+
+  // Track banner display events when visible slides change
+  useEffect(() => {
+    visibleSlides.forEach((slide) => {
       trackEvent(
         createEventBuilder({
           category: 'Banner Display',
@@ -117,64 +229,8 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
           },
         }).build(),
       );
-
-      return (
-        <Pressable
-          key={slide.id}
-          testID={slide.testID}
-          style={[
-            styles.slideContainer,
-            pressedSlideId === slide.id && styles.slideContainerPressed,
-          ]}
-          onPress={() => handleSlideClick(slide.id, slide.navigation)}
-          onPressIn={() => setPressedSlideId(slide.id)}
-          onPressOut={() => setPressedSlideId(null)}
-        >
-          <View style={styles.slideContent}>
-            <View style={styles.imageContainer}>
-              <Image
-                source={BANNER_IMAGES[slide.id]}
-                style={styles.bannerImage}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.textContainer}>
-              <View style={styles.textWrapper}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  style={styles.title}
-                  testID={slide.testIDTitle}
-                >
-                  {slide.title}
-                </Text>
-                <Text variant={TextVariant.BodySM} style={styles.description}>
-                  {slide.description}
-                </Text>
-              </View>
-            </View>
-            {!slide.undismissable && (
-              <TouchableOpacity
-                testID={slide.testIDCloseButton}
-                style={styles.closeButton}
-                onPress={() => handleClose(slide.id)}
-              >
-                <Icon name="close" size={18} color={colors.icon.default} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </Pressable>
-      );
-    },
-    [
-      styles,
-      handleSlideClick,
-      handleClose,
-      colors.icon.default,
-      pressedSlideId,
-      trackEvent,
-      createEventBuilder,
-    ],
-  );
+    });
+  }, [visibleSlides, trackEvent, createEventBuilder]);
 
   const renderProgressDots = useMemo(
     () => (
