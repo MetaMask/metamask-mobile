@@ -909,13 +909,15 @@ class PaymentRequest extends PureComponent {
 
     return (
       <SafeAreaView style={styles.wrapper}>
-        <View style={styles.pickerNetworkContainer}>
-          <PickerNetwork
-            onPress={this.handleNetworkPickerPress}
-            label={networkName}
-            imageSource={networkImageSource}
-          />
-        </View>
+        {process.env.REMOVE_GNS && (
+          <View style={styles.pickerNetworkContainer}>
+            <PickerNetwork
+              onPress={this.handleNetworkPickerPress}
+              label={networkName}
+              imageSource={networkImageSource}
+            />
+          </View>
+        )}
         <KeyboardAwareScrollView
           contentContainerStyle={styles.scrollViewContainer}
           keyboardShouldPersistTaps="handled"
