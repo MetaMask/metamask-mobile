@@ -165,6 +165,7 @@ export const migrationList: MigrationsList = {
   71: migration71,
   72: migration72,
   74: migration74,
+  75: migration75,
 };
 
 // Enable both synchronous and asynchronous migrations
