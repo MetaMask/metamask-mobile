@@ -101,7 +101,6 @@ const renderComponent = ({
     <Stack.Navigator>
       <Stack.Screen name="Amount" options={{}}>
         {() => (
-          // @ts-expect-error - TransactionDetails needs to be converted to typescript
           <TransactionDetails
             transactionObject={{
               networkID: '1',
