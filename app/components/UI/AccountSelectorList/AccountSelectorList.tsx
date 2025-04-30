@@ -186,6 +186,7 @@ const AccountSelectorList = ({
       onRemoveImportedAccount,
       isRemoveAccountEnabled,
       selectedAddresses,
+      Engine.context.KeyringController,
     ],
   );
 
@@ -202,7 +203,7 @@ const AccountSelectorList = ({
         params: { selectedAccount: account },
       });
     },
-    [navigate],
+    [navigate, Engine.context.AccountsController],
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
