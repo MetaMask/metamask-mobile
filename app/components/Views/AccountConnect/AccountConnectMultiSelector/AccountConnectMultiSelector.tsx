@@ -61,15 +61,15 @@ const AccountConnectMultiSelector = ({
   ]);
 
   const onSelectAccount = useCallback(
-    (caipAccountId) => {
+    (accAddress: string) => {
       const updatedSelectedAccountAddresses = selectedAddresses.filter(
-        (selectedAccountId) => !isEqualCaseInsensitive(selectedAccountId, caipAccountId),
+        (selectedAccountId) => !isEqualCaseInsensitive(selectedAccountId, accAddress),
       );
 
       if (
         updatedSelectedAccountAddresses.length === selectedAddresses.length
       ) {
-        setSelectedAddresses([...selectedAddresses, caipAccountId]);
+        setSelectedAddresses([...selectedAddresses, accAddress]);
       } else {
         setSelectedAddresses(updatedSelectedAccountAddresses);
       }

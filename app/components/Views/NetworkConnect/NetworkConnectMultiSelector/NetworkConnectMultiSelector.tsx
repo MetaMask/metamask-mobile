@@ -72,7 +72,7 @@ const NetworkConnectMultiSelector = ({
     }),
   );
 
-  const onSelectNetwork = useCallback((chainId) => {
+  const onSelectNetwork = useCallback((chainId: string) => {
       if (selectedChainIds.includes(chainId)) {
         setSelectedChainIds(
           selectedChainIds.filter((_chainId) => _chainId !== chainId),
