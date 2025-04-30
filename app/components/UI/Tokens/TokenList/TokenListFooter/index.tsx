@@ -23,14 +23,16 @@ import {
 } from '../../../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectChainId } from '../../../../../selectors/networkController';
+import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
 import {
   selectEvmTokenFiatBalances,
   selectEvmTokens,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectMultichainTokenListForAccountId,
+  ///: END:ONLY_INCLUDE_IF
 } from '../../../../../selectors/multichain';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
 import { RootState } from '../../../../../reducers';
 ///: END:ONLY_INCLUDE_IF
 
