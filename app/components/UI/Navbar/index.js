@@ -2045,3 +2045,25 @@ export function getStakingNavbar(
       ),
   };
 }
+
+/**
+ * Function that returns the navigation options for the DeFi Protocol Positions Details screen
+ *
+ * @param {Object} navigation - Navigation object required to push new views
+ * @returns {Object} - Corresponding navbar options
+ */
+export function getDeFiProtocolPositionsDetailsNavbarOptions(navigation) {
+  return {
+    headerTitle: () => null,
+    headerLeft: () => (
+      <ButtonIcon
+        style={styles.headerLeftButton}
+        onPress={() => navigation.pop()}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
+        size={ButtonIconSizes.Lg}
+        iconName={IconName.ArrowLeft}
+        iconColor={IconColor.Default}
+      />
+    ),
+  };
+}
