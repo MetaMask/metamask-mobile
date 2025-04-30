@@ -37,14 +37,19 @@ export const DeFiProtocolPositionsList = ({
 
     return Object.entries(defiPositions)
       .map(([chainId, chainDeFiPositions]) =>
-        Object.values(chainDeFiPositions.protocols).map((protocol) => ({
-          chainId: toHex(chainId) as Hex,
-          symbol: protocol.protocolDetails.name,
-          ...protocol,
-        })),
+        Object.values(chainDeFiPositions.protocols).map(
+          (protocolAggregate) => ({
+            chainId: toHex(chainId) as Hex,
+            protocolAggregate,
+          }),
+        ),
       )
       .flat()
-      .sort((a, b) => b.aggregatedMarketValue - a.aggregatedMarketValue);
+      .sort(
+        (a, b) =>
+          b.protocolAggregate.aggregatedMarketValue -
+          a.protocolAggregate.aggregatedMarketValue,
+      );
   }, [defiPositions]);
 
   if (formattedDeFiPositions.length === 0) {
@@ -64,9 +69,10 @@ export const DeFiProtocolPositionsList = ({
     <FlatList
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={formattedDeFiPositions}
-      renderItem={({ item }) => (
+      renderItem={({ item: { chainId, protocolAggregate } }) => (
         <DeFiProtocolPositionListItem
-          protocolAggregate={item}
+          chainId={chainId}
+          protocolAggregate={protocolAggregate}
           privacyMode={privacyMode}
         />
       )}

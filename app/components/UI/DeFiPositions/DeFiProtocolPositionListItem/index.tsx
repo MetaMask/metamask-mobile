@@ -35,14 +35,13 @@ import AvatarGroup from '../../../../component-library/components/Avatars/Avatar
 import { AvatarProps } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 
 interface DeFiProtocolPositionListItemProps {
-  protocolAggregate: GroupedDeFiPositions['protocols'][number] & {
-    chainId: Hex;
-    symbol: string;
-  };
+  chainId: Hex;
+  protocolAggregate: GroupedDeFiPositions['protocols'][number];
   privacyMode?: boolean;
 }
 
 const DeFiProtocolPositionListItem = ({
+  chainId,
   protocolAggregate,
   privacyMode = false,
 }: DeFiProtocolPositionListItemProps) => {
@@ -52,8 +51,6 @@ const DeFiProtocolPositionListItem = ({
   const navigation = useNavigation();
 
   const networkIconAvatar = useMemo(() => {
-    const chainId = protocolAggregate.chainId;
-
     const defaultNetwork = getDefaultNetworkByChainId(chainId) as
       | {
           imageSource: string;
@@ -81,7 +78,7 @@ const DeFiProtocolPositionListItem = ({
     if (customNetworkImg) {
       return customNetworkImg;
     }
-  }, [protocolAggregate.chainId]);
+  }, [chainId]);
 
   const tokenAvatars: AvatarProps[] = useMemo(
     () =>
@@ -118,7 +115,7 @@ const DeFiProtocolPositionListItem = ({
         }
       >
         <AvatarToken
-          name={protocolAggregate.symbol}
+          name={protocolAggregate.protocolDetails.name}
           imageSource={{ uri: protocolAggregate.protocolDetails.iconUrl }}
           size={AvatarSize.Md}
         />
