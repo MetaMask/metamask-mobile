@@ -11,7 +11,7 @@ import { NetworkController } from '@metamask/network-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 
-import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/hooks/useConfirmationRedesignEnabled';
+import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/constants/confirmations';
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Logger from '../../../../util/Logger';
@@ -140,7 +140,7 @@ function publishHook({
   initMessenger: TransactionControllerInitMessenger;
 }): Promise<{ transactionHash: string }> {
   const state = getState();
-  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state, transactionMeta.chainId);
 
   // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
   return submitSmartTransactionHook({

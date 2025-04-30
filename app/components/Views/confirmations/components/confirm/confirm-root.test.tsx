@@ -19,6 +19,14 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
+
 describe('Confirm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -29,7 +37,9 @@ describe('Confirm', () => {
       state: personalSignatureConfirmationState,
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenLastCalledWith(Routes.CONFIRM_MODAL);
+    expect(mockNavigate).toHaveBeenLastCalledWith(
+      Routes.CONFIRMATION_REQUEST_MODAL,
+    );
   });
 
   it('does not navigate if confirmation is standalone', async () => {

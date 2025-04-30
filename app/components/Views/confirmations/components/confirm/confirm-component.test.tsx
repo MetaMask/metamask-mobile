@@ -12,6 +12,8 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
+import * as EditNonceHook from '../../../../../components/hooks/useEditNonce';
+// eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesignEnabled';
 import { Confirm } from './confirm-component';
 
@@ -84,6 +86,9 @@ jest.mock('../../../../../core/Engine', () => ({
           },
         },
       },
+    },
+    TokenListController: {
+      fetchTokenList: jest.fn(),
     },
   },
   controllerMessenger: {
@@ -201,6 +206,15 @@ describe('Confirm', () => {
   it('renders information for contract interaction', async () => {
     jest.spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
       .mockReturnValue({ isRedesignedEnabled: true });
+
+    jest.spyOn(EditNonceHook, 'useEditNonce')
+      .mockReturnValue({
+        setShowNonceModal: jest.fn(),
+        setUserSelectedNonce: jest.fn(),
+        showNonceModal: false,
+        proposedNonce: 10,
+        userSelectedNonce: 10,
+      });
 
     const { getByText } = renderWithProvider(<Confirm />, {
       state: generateContractInteractionState,
