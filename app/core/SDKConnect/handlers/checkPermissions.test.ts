@@ -144,7 +144,7 @@ describe('checkPermissions', () => {
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('should return true if permitted accounts exist', async () => {
