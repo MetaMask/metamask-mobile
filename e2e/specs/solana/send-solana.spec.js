@@ -18,6 +18,7 @@ import Gestures from '../../utils/Gestures';
 import SendView from '../../pages/Send/SendView';
 import WalletViewSelectorsText from '../../selectors/wallet/WalletView.selectors.js';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { getMockServerPort } from '../../fixtures/utils';
 
 const VALID_ADDRESS = '4Nd1mU6z1H7dffRCHfLtUJYXe9aM6sT3V9W2MDADjA9h';
 const INVALID_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -70,20 +71,22 @@ const mockSolanaAccountsAPIBalanceSpecificExact = () => ({
 });
 
 const solanaGetBalance = () => ({
-  urlEndpoint: SOLANA_GET_BALANCE_REGEX,
-  response: {
-    jsonrpc: '2.0',
-    result: {
-      context: {
-        apiVersion: '2.1.21',
-        slot: 335131784,
+  POST: [ {
+    urlEndpoint: SOLANA_GET_BALANCE_REGEX,
+    response: {
+      jsonrpc: '2.0',
+      result: {
+        context: {
+          apiVersion: '2.1.21',
+          slot: 335131784,
+        },
+        value: 5000000000,
       },
-      value: 99742964,
+      id: 11,
     },
-    id: 11,
-  },
-  responseCode: 200,
-  isRegexUrl: true, // Explicitly set isRegexUrl
+    responseCode: 200,
+    isRegexUrl: true, // Explicitly set isRegexUrl
+  }],
 });
 // --- End Mocks ---
 
@@ -104,15 +107,14 @@ describe(SmokeConfirmations('Send SOL'), () => {
   });
 
   it('should send SOL using mocked transaction responses', async () => {
-    mockServerInstance = await startMockServer({
-      POST: [solanaGetBalance()],
-    });
+    // const mockServerPort = getMockServerPort();
+    // mockServerInstance = await startMockServer(solanaGetBalance, mockServerPort);
 
     await withFixtures(
       {
         fixture: new FixtureBuilder()
           .withDefaultFixture()
-          .withSolanaNetwork()
+          .withSolanaDevnetNetwork()
           .build(),
         restartDevice: true,
         

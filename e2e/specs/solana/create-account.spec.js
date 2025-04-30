@@ -39,7 +39,7 @@ describe.only(SmokeConfirmations('Create Solana account'), () => {
       {
         fixture: new FixtureBuilder()
           .withDefaultFixture()
-          .withSolanaNetwork()
+          .withSolanaMainnetNetwork()
           .build(),
         restartDevice: true,
       },

@@ -10,7 +10,7 @@ export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 
 export const DEFAULT_FIXTURE_SOLANA_ACCOUNT = 'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd'
-export const DEFAULT_FIXTURE_SOLANA_ASSET = 'token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+export const DEFAULT_FIXTURE_SOLANA_ASSET = 'slip44:501'
 export const DEFAULT_FIXTURE_ACCOUNT_2 =
   '0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da';
 
@@ -789,11 +789,47 @@ class FixtureBuilder {
     return this;
   }
 
+   /**
+ * Adds Solana network configuration to the fixture state
+ * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
+ */
+ withSolanaDevnetNetwork() {
+  const solanaConfig = {
+    selectedMultichainNetworkChainId: SolScope.Devnet,
+    multichainNetworkConfigurationsByChainId: {
+      [SolScope.Devnet]: {
+        chainId: SolScope.Devnet,
+        name: 'Solana Devnet',
+        nativeCurrency: `solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/${DEFAULT_FIXTURE_SOLANA_ASSET}`, 
+        isEvm: false,
+      },
+    },
+    isEvmSelected: false,
+  };
+
+  this.fixture.state.engine.backgroundState.MultichainNetworkController = solanaConfig;
+
+  multichainBalanceConfig = {
+    balances: {
+      DEFAULT_FIXTURE_SOLANA_ACCOUNT: {
+        DEFAULT_FIXTURE_SOLANA_ASSET: {
+          amount: '10',
+          unit: 'SOL',
+        },
+      },
+    },
+  }
+
+  this.fixture.state.engine.backgroundState.MultichainBalancesController = multichainBalanceConfig;
+
+  return this;
+}
+
   /**
  * Adds Solana network configuration to the fixture state
  * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
  */
-  withSolanaNetwork() {
+  withSolanaMainnetNetwork() {
     const solanaConfig = {
       selectedMultichainNetworkChainId: SolScope.Mainnet,
       multichainNetworkConfigurationsByChainId: {
