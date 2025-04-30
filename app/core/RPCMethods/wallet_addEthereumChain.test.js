@@ -1,5 +1,4 @@
 import { InteractionManager } from 'react-native';
-import { providerErrors } from '@metamask/rpc-errors';
 import { wallet_addEthereumChain } from './wallet_addEthereumChain';
 import Engine from '../Engine';
 import { mockNetworkState } from '../../util/test/network';
