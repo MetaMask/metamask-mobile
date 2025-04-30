@@ -9,7 +9,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
    * @param size - The size of the IV in bytes.
    * @returns A promise that resolves to the generated IV as a hex string.
    */
-  generateIV = async (size: number): Promise<string> => {
+  generateIv = async (size: number): Promise<string> => {
     const randomValues = await getRandomBytes(size);
     const hexString = bytesToHex(randomValues);
     return remove0x(hexString);

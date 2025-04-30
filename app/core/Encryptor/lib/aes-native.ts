@@ -41,7 +41,7 @@ class AesEncryptionLibrary implements EncryptionLibrary {
     );
   };
 
-  generateIV = async (size: number): Promise<string> =>
+  generateIv = async (size: number): Promise<string> =>
     // Naming isn't perfect here, but this is how the library generates random IV (and encodes it the right way)
     // See: https://www.npmjs.com/package/react-native-aes-crypto#example
     await Aes.randomKey(size);
@@ -77,7 +77,7 @@ class AesForkedEncryptionLibrary implements EncryptionLibrary {
     return await AesForked.pbkdf2(password, salt);
   };
 
-  generateIV = async (size: number): Promise<string> =>
+  generateIv = async (size: number): Promise<string> =>
     // NOTE: For some reason, we are not using the AesForked one here, so keep the previous behavior!
     // Naming isn't perfect here, but this is how the library generates random IV (and encodes it the right way)
     // See: https://www.npmjs.com/package/react-native-aes-crypto#example
