@@ -75,7 +75,7 @@ const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const isSubmittingTxRef = useRef(isSubmittingTx);
-  
+
   // Update ref when Redux state changes
   useEffect(() => {
     isSubmittingTxRef.current = isSubmittingTx;

@@ -50,4 +50,4 @@ describe('shouldRefreshQuote', () => {
     );
     expect(result).toBe(false);
   });
-}); 
+});
