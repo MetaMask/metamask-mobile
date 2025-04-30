@@ -414,6 +414,7 @@ export const unrestrictedMethods = Object.freeze([
   'wallet_switchEthereumChain',
   'wallet_addEthereumChain',
   'wallet_sendCalls',
+  'wallet_getCallsStatus',
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   'wallet_getAllSnaps',
   'wallet_getSnaps',
