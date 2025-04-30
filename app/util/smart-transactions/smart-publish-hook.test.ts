@@ -21,7 +21,7 @@ import {
   AllowedEvents,
   SubmitSmartTransactionRequest,
   submitSmartTransactionHook,
-  submitBatchSmartTransactionHook,
+  submitBatchSmartTransactionHook
 } from './smart-publish-hook';
 import { ChainId } from '@metamask/controller-utils';
 import { ApprovalController } from '@metamask/approval-controller';
@@ -31,8 +31,6 @@ import {
   NetworkControllerStateChangeEvent,
 } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
-
-// Importing the module at the top level
 import * as smartPublishHookModule from './smart-publish-hook';
 
 interface PendingApprovalsData {
@@ -712,21 +710,49 @@ describe('submitSmartTransactionHook', () => {
 });
 
 describe('submitBatchSmartTransactionHook', () => {
-  it('does not submit transactions that are not smart transactions', async () => {
+  it('throws an error when smart transaction is not enabled', async () => {
     withRequest(
       {
         transactions: [
-          { signedTx: `0x${createSignedTransaction().slice(2)}` as const, id: '1', params: {} },
+          { signedTx: createSignedTransaction(), id: '1', params: {} },
         ],
       },
-      async ({ request, submitSignedTransactionsSpy }) => {
+      async ({ request }) => {
         request.shouldUseSmartTransaction = false;
-        // Mock submitBatchSmartTransactionHook for early return
-        const spy = jest.spyOn(smartPublishHookModule, 'submitBatchSmartTransactionHook');
-        spy.mockImplementation(() => Promise.resolve(undefined as any));
-        const result = await submitBatchSmartTransactionHook(request);
-        expect(result).toBeUndefined();
-        spy.mockRestore();
+        
+        // The function should throw an error because smart transactions are disabled
+        await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
+          'STX publishHook: Smart Transaction is required for batch submissions'
+        );
+      }
+    );
+  });
+
+  it('throws an error when transactions is undefined', async () => {
+    withRequest(
+      {
+        transactions: undefined,
+      },
+      async ({ request }) => {        
+        // The function should throw an error because transactions is required
+        await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
+          'STX publishHook: A list of transactions are required for batch submissions'
+        );
+      }
+    );
+  });
+
+  it('throws an error when transactions is an empty array', async () => {
+    withRequest(
+      {
+        transactions: [],
+      },
+      async ({ request }) => {
+        
+        // The function should throw an error because transactions cannot be empty
+        await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
+          'STX publishHook: A list of transactions are required for batch submissions'
+        );
       }
     );
   });
@@ -735,7 +761,7 @@ describe('submitBatchSmartTransactionHook', () => {
     withRequest(
       {
         transactions: [
-          { signedTx: `0x${createSignedTransaction().slice(2)}` as const, id: '1', params: {} },
+          { signedTx: createSignedTransaction(), id: '1', params: {} },
         ],
       },
       async ({ request, submitSignedTransactionsSpy }) => {
@@ -753,7 +779,7 @@ describe('submitBatchSmartTransactionHook', () => {
     withRequest(
       {
         transactions: [
-          { signedTx: `0x${createSignedTransaction().slice(2)}` as const, id: '1', params: {} },
+          { signedTx: createSignedTransaction(), id: '1', params: {} },
         ],
       },
       async ({ request, controllerMessenger }) => {
