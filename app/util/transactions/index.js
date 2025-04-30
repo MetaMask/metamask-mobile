@@ -385,7 +385,8 @@ export async function isSmartContractAddress(
   // If in contract map we don't need to cache it
   if (
     isMainnetByChainId(chainId) &&
-    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]?.data?.[address]
+    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
+      ?.data?.[address]
   ) {
     return Promise.resolve(true);
   }
@@ -1642,4 +1643,19 @@ export const getIsNativeTokenTransferred = (txParams) =>
  */
 export function isNFTTokenStandard(tokenStandard) {
   return [ERC721, ERC1155].includes(tokenStandard);
+}
+
+/**
+ * Get a transaction by its ID
+ * @param {string} transactionId - The ID of the transaction to get
+ * @param {TransactionController} transactionController - The transaction controller
+ * @returns {TransactionMeta} The transaction meta object
+ */
+export function getTransactionById(
+  transactionId: string,
+  transactionController: TransactionController,
+) {
+  return transactionController.state.transactions.find(
+    (tx) => tx.id === transactionId,
+  );
 }
