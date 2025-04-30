@@ -26,13 +26,8 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
   selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
+  ...jest.requireActual('../../selectors/settings'),
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
-}));
-jest.mock('../../selectors/tokenBalancesController', () => ({
-  selectAddressHasTokenBalances: jest.fn().mockReturnValue(true),
-}));
-jest.mock('../../reducers/swaps', () => ({
-  swapsTokensWithBalanceSelector: jest.fn().mockReturnValue([]),
 }));
 jest.mock('../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
