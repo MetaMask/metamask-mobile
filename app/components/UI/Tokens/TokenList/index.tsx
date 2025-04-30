@@ -104,9 +104,6 @@ export const TokenList = ({
       keyExtractor={(item) => `${item.address}-${item.chainId}`}
       ListFooterComponent={
         <TokenListFooter
-          // TODO: This previously accepted all tokens as a prop
-          // Instead, select tokens in the footer component via redux selector
-          tokens={[]}
           goToAddToken={goToAddToken}
           isAddTokenEnabled={isAddTokenEnabled}
         />
