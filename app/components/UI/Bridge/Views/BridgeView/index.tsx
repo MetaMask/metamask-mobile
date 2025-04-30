@@ -74,6 +74,9 @@ import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
+
+  // Ref necessary to avoid race condition between Redux state and component state
+  // Without it, the component would reset the bridge state when it shouldn't
   const isSubmittingTxRef = useRef(isSubmittingTx);
 
   // Update ref when Redux state changes
