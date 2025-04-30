@@ -23,7 +23,7 @@ import imageIcons from '../../../../../images/image-icons';
 import Text from '../../../../Base/Text';
 import CustomNetwork from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import customNetworkStyles from '../../../../Views/Settings/NetworksSettings/NetworkSettings/styles';
-import { Network } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import { Network, ExtendedNetwork } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 
 import useFetchRampNetworks from '../../hooks/useFetchRampNetworks';
 import useRampNetwork from '../../hooks/useRampNetwork';
@@ -42,7 +42,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { ExtendedNetwork } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 
 interface NetworkWithAdded extends Network, ExtendedNetwork {
   isAdded?: boolean;
