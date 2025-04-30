@@ -60,7 +60,7 @@ if (typeof localStorage !== 'undefined') {
 // crypto is loaded first, so it can populate global.crypto
 // require('crypto')
 
-if (enableApiCallLogs /*|| isTest*/) {
+if (enableApiCallLogs || isTest) {
   (async () => {
     const raw = LaunchArguments.value();
     const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
