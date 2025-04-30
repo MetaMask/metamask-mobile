@@ -125,7 +125,9 @@ export const selectBridgeFeatureFlags = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>
     selectBridgeFeatureFlagsBase({
-      bridgeConfig: remoteFeatureFlags.bridgeConfig,
+      remoteFeatureFlags: {
+        bridgeConfig: remoteFeatureFlags.bridgeConfig,
+      }
     }),
 );
 
@@ -248,7 +250,9 @@ const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.TokenRatesController,
   ...state.engine.backgroundState.CurrencyRateController,
   participateInMetaMetrics: MetaMetrics.getInstance().isEnabled(),
-  bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
+  remoteFeatureFlags: {
+    bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
+  },
 });
 
 export const selectBridgeQuotes = createSelector(
