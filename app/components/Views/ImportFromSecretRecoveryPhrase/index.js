@@ -362,10 +362,14 @@ const ImportFromSecretRecoveryPhrase = ({
   const handleSeedPhraseChange = (text, index) => {
     setError('');
     if (text.includes(' ')) {
-      const splitArray = text.trim().split(/\s+/); // split by any spaces
-      setSeedPhrase(splitArray);
+      setSeedPhrase((prev) => {
+        // handle use pasting multiple words / whole seed phrase separated by spaces
+        const splitArray = text.trim().split(/\s+/); // split by any spaces
+        return [...prev.slice(0, index), ...splitArray, ...prev.slice(index + 1)]; // input the array into the correct index
+      });
     } else {
       setSeedPhrase((prev) => {
+        // update the word at the correct index
         const newSeedPhrase = [...prev];
         newSeedPhrase[index] = text.trim();
         return newSeedPhrase;
