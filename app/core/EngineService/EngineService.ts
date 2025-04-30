@@ -106,11 +106,6 @@ export class EngineService {
 
     const updatedControllers = new Set<string>()
 
-    const updateReduxStateDebounced = (controllerName: string) => {
-      updatedControllers.add(controllerName);
-      flushStateDebounced();
-    }
-
     const flushStateDebounced = debounce(() => {
       if (!engine.context.KeyringController.metadata.vault) {
         Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
@@ -121,6 +116,11 @@ export class EngineService {
       });
       updatedControllers.clear();
     }, 200);
+
+    const updateReduxStateDebounced = (controllerName: string) => {
+      updatedControllers.add(controllerName);
+      flushStateDebounced();
+    }
 
     BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
       engine.controllerMessenger.subscribe(eventName, () =>
