@@ -7,8 +7,11 @@ import {
   getTradeTxTokenFee,
   getGasIncludedTransactionFees,
   type GasIncludedQuote,
+  getIsAllowedRpcUrlForSmartTransactions,
 } from './index';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
+// eslint-disable-next-line import/no-namespace
+import * as environment from '../environment';
 import type { BaseControllerMessenger } from '../../core/Engine';
 
 describe('Smart Transactions utils', () => {
@@ -513,15 +516,13 @@ describe('Smart Transactions utils', () => {
     it('returns the token fee when the full path exists', () => {
       const mockQuote = {
         tradeTxFees: {
-          fees: [
-            {
-              tokenFees: ['mockTokenFee'],
-            },
-          ],
+          fees: [{
+            tokenFees: ['mockTokenFee'],
+          }],
           cancelFees: {},
           feeEstimate: '0x0',
           gasLimit: '0x0',
-          gasUsed: '0x0',
+          gasUsed: '0x0'
         },
         approvalTxFees: null,
       } as unknown as GasIncludedQuote;
@@ -546,7 +547,7 @@ describe('Smart Transactions utils', () => {
           cancelFees: {},
           feeEstimate: '0x0',
           gasLimit: '0x0',
-          gasUsed: '0x0',
+          gasUsed: '0x0'
         },
         approvalTxFees: null,
       } as unknown as GasIncludedQuote;
@@ -586,21 +587,19 @@ describe('Smart Transactions utils', () => {
     it('returns transaction fees when gas is included and token fee exists', () => {
       const mockQuote = {
         tradeTxFees: {
-          fees: [
-            {
-              tokenFees: ['mockTokenFee'],
-            },
-          ],
+          fees: [{
+            tokenFees: ['mockTokenFee'],
+          }],
           cancelFees: {},
           feeEstimate: '0x0',
           gasLimit: '0x0',
-          gasUsed: '0x0',
+          gasUsed: '0x0'
         },
         approvalTxFees: {
           cancelFees: {},
           feeEstimate: '0x0',
           gasLimit: '0x0',
-          gasUsed: '0x0',
+          gasUsed: '0x0'
         },
         isGasIncludedTrade: true,
       } as unknown as GasIncludedQuote;
@@ -615,15 +614,13 @@ describe('Smart Transactions utils', () => {
     it('returns undefined when gas is not included', () => {
       const mockQuote = {
         tradeTxFees: {
-          fees: [
-            {
-              tokenFees: ['mockTokenFee'],
-            },
-          ],
+          fees: [{
+            tokenFees: ['mockTokenFee'],
+          }],
           cancelFees: {},
           feeEstimate: '0x0',
           gasLimit: '0x0',
-          gasUsed: '0x0',
+          gasUsed: '0x0'
         },
         approvalTxFees: null,
         isGasIncludedTrade: false,
@@ -640,7 +637,7 @@ describe('Smart Transactions utils', () => {
           cancelFees: {},
           feeEstimate: '0x0',
           gasLimit: '0x0',
-          gasUsed: '0x0',
+          gasUsed: '0x0'
         },
         approvalTxFees: null,
         isGasIncludedTrade: true,
@@ -648,6 +645,55 @@ describe('Smart Transactions utils', () => {
 
       const result = getGasIncludedTransactionFees(mockQuote);
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getIsAllowedRpcUrlForSmartTransactions', () => {
+    let isProductionMock: jest.SpyInstance;
+    
+    beforeEach(() => {
+      // Mock isProduction function before each test
+      isProductionMock = jest.spyOn(environment, 'isProduction');
+    });
+    
+    afterEach(() => {
+      isProductionMock.mockRestore();
+    });
+
+    it('returns true for Infura URLs in production', () => {
+      isProductionMock.mockReturnValue(true);
+      const result = getIsAllowedRpcUrlForSmartTransactions('https://mainnet.infura.io/v3/abc123');
+      expect(result).toBe(true);
+    });
+
+    it('returns true for Binance URLs in production', () => {
+      isProductionMock.mockReturnValue(true);
+      const result = getIsAllowedRpcUrlForSmartTransactions('https://bsc-dataseed.binance.org/');
+      expect(result).toBe(true);
+    });
+
+    it('returns false for other URLs in production', () => {
+      isProductionMock.mockReturnValue(true);
+      const result = getIsAllowedRpcUrlForSmartTransactions('https://example.com/rpc');
+      expect(result).toBe(false);
+    });
+
+    it('returns false for undefined URL in production', () => {
+      isProductionMock.mockReturnValue(true);
+      const result = getIsAllowedRpcUrlForSmartTransactions(undefined);
+      expect(result).toBe(false);
+    });
+
+    it('returns true for any URL in non-production environments', () => {
+      isProductionMock.mockReturnValue(false);
+      const result = getIsAllowedRpcUrlForSmartTransactions('https://example.com/rpc');
+      expect(result).toBe(true);
+    });
+
+    it('returns true for undefined URL in non-production environments', () => {
+      isProductionMock.mockReturnValue(false);
+      const result = getIsAllowedRpcUrlForSmartTransactions(undefined);
+      expect(result).toBe(true);
     });
   });
 });

@@ -58,13 +58,14 @@ const MOCK_STORE_STATE = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ACCOUNT_1.address]: {
-            balance: '0x0',
-            stakedBalance: '0x0',
-          },
-          [MOCK_ACCOUNT_2.address]: {
-            balance: '0x5',
+        accountsByChainId: {
+          '0x1': {
+            [MOCK_ACCOUNT_1.address]: {
+              balance: '0x0',
+            },
+            [MOCK_ACCOUNT_2.address]: {
+              balance: '0x5',
+            },
           },
         },
       },

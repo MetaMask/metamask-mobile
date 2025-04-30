@@ -1,0 +1,121 @@
+diff --git a/node_modules/react-native-fast-crypto/android/build.gradle b/node_modules/react-native-fast-crypto/android/build.gradle
+index 452a5a2..d91c96b 100644
+--- a/node_modules/react-native-fast-crypto/android/build.gradle
++++ b/node_modules/react-native-fast-crypto/android/build.gradle
+@@ -5,7 +5,7 @@ buildscript {
+   }
+ 
+   dependencies {
+-    classpath 'com.android.tools.build:gradle:3.6.0'
++    classpath 'com.android.tools.build:gradle:8.1.0'
+   }
+ }
+ 
+@@ -15,9 +15,9 @@ def safeExtGet(prop, fallback) {
+   rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+ }
+ 
+-def DEFAULT_COMPILE_SDK_VERSION = 28
+-def DEFAULT_BUILD_TOOLS_VERSION = '28.0.2'
+-def DEFAULT_MIN_SDK_VERSION = 19
++def DEFAULT_COMPILE_SDK_VERSION = 34
++def DEFAULT_BUILD_TOOLS_VERSION = '34.0.0'
++def DEFAULT_MIN_SDK_VERSION = 24
+ def DEFAULT_TARGET_SDK_VERSION = 27
+ 
+ android {
+@@ -38,16 +38,6 @@ android {
+       path "src/main/cpp/CMakeLists.txt"
+     }
+   }
+-
+-  // Older vesions of the Android Gradle plugin need us to manually add
+-  // the static libraries to the APK:
+-  if (com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION < '4.0') {
+-    sourceSets {
+-      main {
+-        jniLibs.srcDirs 'jni/libs/'
+-      }
+-    }
+-  }
+ }
+ 
+ repositories {
+diff --git a/node_modules/react-native-fast-crypto/android/src/main/cpp/CMakeLists.txt b/node_modules/react-native-fast-crypto/android/src/main/cpp/CMakeLists.txt
+index 06ebc52..71d8e43 100644
+--- a/node_modules/react-native-fast-crypto/android/src/main/cpp/CMakeLists.txt
++++ b/node_modules/react-native-fast-crypto/android/src/main/cpp/CMakeLists.txt
+@@ -1,8 +1,15 @@
+ cmake_minimum_required(VERSION 3.4.1)
++project(react-native-fast-crypto)
+ 
+-add_compile_options(-fvisibility=hidden -w)
+-include_directories(${CMAKE_SOURCE_DIR}/scrypt)
+-include_directories(${CMAKE_SOURCE_DIR}/../../../jni/include)
++set(CMAKE_CXX_STANDARD 17)
++set(CMAKE_CXX_STANDARD 14)
++set(CMAKE_CXX_STANDARD_REQUIRED ON)
++
++add_compile_options(
++    -fvisibility=hidden 
++    -w
++    -DANDROID
++)
+ 
+ add_library(
+   crypto_bridge
+@@ -13,6 +20,10 @@ add_library(
+   scrypt/sha256.c
+ )
+ 
++target_include_directories(crypto_bridge PRIVATE
++    ${CMAKE_SOURCE_DIR}/scrypt
++    ${CMAKE_SOURCE_DIR}/../../../jni/include)
++
+ add_library(
+   secp256k1
+   SHARED
+@@ -23,8 +34,14 @@ set_target_properties(
+   secp256k1
+   PROPERTIES
+   IMPORTED_LOCATION
+-  ${CMAKE_SOURCE_DIR}/../../../jni/libs/${ANDROID_ABI}/libsecp256k1.so
++  "${CMAKE_SOURCE_DIR}/../../../jni/libs/${ANDROID_ABI}/libsecp256k1.so"
+ )
+ 
++if(${ANDROID_ABI} STREQUAL "arm64-v8a")
++    target_compile_options(crypto_bridge PRIVATE
++        -march=armv8-a
++    )
++endif()
++
+ # Include libraries needed for crypto_bridge lib
+ target_link_libraries(crypto_bridge secp256k1 android log)
+diff --git a/node_modules/react-native-fast-crypto/android/src/main/cpp/crypto_bridge.cpp b/node_modules/react-native-fast-crypto/android/src/main/cpp/crypto_bridge.cpp
+index ddafe67..b898443 100644
+--- a/node_modules/react-native-fast-crypto/android/src/main/cpp/crypto_bridge.cpp
++++ b/node_modules/react-native-fast-crypto/android/src/main/cpp/crypto_bridge.cpp
+@@ -122,8 +122,8 @@ static const unsigned char pr2six[256] =
+ int Base64decode_len(const char *bufcoded)
+ {
+     int nbytesdecoded;
+-    register const unsigned char *bufin;
+-    register int nprbytes;
++    const unsigned char *bufin;
++    int nprbytes;
+ 
+     bufin = (const unsigned char *) bufcoded;
+     while (pr2six[*(bufin++)] <= 63);
+@@ -137,9 +137,9 @@ int Base64decode_len(const char *bufcoded)
+ int Base64decode(char *bufplain, const char *bufcoded)
+ {
+     int nbytesdecoded;
+-    register const unsigned char *bufin;
+-    register unsigned char *bufout;
+-    register int nprbytes;
++    const unsigned char *bufin;
++    unsigned char *bufout;
++    int nprbytes;
+ 
+     bufin = (const unsigned char *) bufcoded;
+     while (pr2six[*(bufin++)] <= 63);

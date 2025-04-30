@@ -158,9 +158,7 @@ export const waitForNetworkModalOnboarding = async ({
   }
 };
 
-export const getApprovedSessionMethods = (_: {
-  origin: string;
-}): string[] => {
+export const getApprovedSessionMethods = (_: { origin: string }): string[] => {
   const allEIP155Methods = [
     // Standard JSON-RPC methods
     'eth_sendTransaction',
@@ -268,7 +266,10 @@ export const checkWCPermissions = async ({
   const isAllowedChainId = permittedChains.includes(caip2ChainId);
 
   const providerConfig = selectProviderConfig(store.getState());
-  const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(providerConfig.chainId, 16)}`;
+  const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(
+    providerConfig.chainId,
+    16,
+  )}`;
 
   DevLogger.log(
     `WC::checkWCPermissions origin=${origin} caip2ChainId=${caip2ChainId} activeCaip2ChainId=${activeCaip2ChainId} permittedChains=${permittedChains} isAllowedChainId=${isAllowedChainId}`,
@@ -307,7 +308,6 @@ export const checkWCPermissions = async ({
         origin,
         isAddNetworkFlow: false,
       });
-
     } catch (error) {
       DevLogger.log(
         `WC::checkWCPermissions error switching to network:`,

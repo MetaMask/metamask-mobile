@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Amount should convert ERC-20 token value to USD 1`] = `
+exports[`Amount converts ERC-20 token value to USD 1`] = `
 <View
   style={
     {
@@ -150,7 +150,13 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -386,6 +393,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                   <View>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -404,7 +412,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                         ]
                                       }
                                     >
-                                      
+                                      
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -432,7 +440,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -536,6 +544,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -555,7 +564,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                           ]
                                         }
                                       >
-                                        
+                                        󰓢
                                       </Text>
                                     </View>
                                   </TouchableOpacity>
@@ -674,35 +683,6 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -716,7 +696,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
 </View>
 `;
 
-exports[`Amount should convert ETH to USD 1`] = `
+exports[`Amount converts ETH to USD 1`] = `
 <View
   style={
     {
@@ -866,7 +846,13 @@ exports[`Amount should convert ETH to USD 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -874,6 +860,7 @@ exports[`Amount should convert ETH to USD 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1102,6 +1089,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                   <View>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -1120,7 +1108,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                         ]
                                       }
                                     >
-                                      
+                                      
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -1148,7 +1136,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -1252,6 +1240,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -1271,7 +1260,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                           ]
                                         }
                                       >
-                                        
+                                        󰓢
                                       </Text>
                                     </View>
                                   </TouchableOpacity>
@@ -1390,35 +1379,6 @@ exports[`Amount should convert ETH to USD 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -1432,7 +1392,7 @@ exports[`Amount should convert ETH to USD 1`] = `
 </View>
 `;
 
-exports[`Amount should convert USD to ERC-20 token value 1`] = `
+exports[`Amount converts USD to ERC-20 token value 1`] = `
 <View
   style={
     {
@@ -1582,7 +1542,13 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1590,6 +1556,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1818,6 +1785,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                   <View>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -1836,7 +1804,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                         ]
                                       }
                                     >
-                                      
+                                      
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -1864,7 +1832,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -1985,6 +1953,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -2004,7 +1973,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                           ]
                                         }
                                       >
-                                        
+                                        󰓢
                                       </Text>
                                     </View>
                                   </TouchableOpacity>
@@ -2123,35 +2092,6 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -2165,7 +2105,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
 </View>
 `;
 
-exports[`Amount should convert USD to ETH 1`] = `
+exports[`Amount converts USD to ETH 1`] = `
 <View
   style={
     {
@@ -2315,7 +2255,13 @@ exports[`Amount should convert USD to ETH 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2323,6 +2269,7 @@ exports[`Amount should convert USD to ETH 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -2551,6 +2498,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                   <View>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -2569,7 +2517,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                         ]
                                       }
                                     >
-                                      
+                                      
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -2597,7 +2545,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -2718,6 +2666,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -2737,7 +2686,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                           ]
                                         }
                                       >
-                                        
+                                        󰓢
                                       </Text>
                                     </View>
                                   </TouchableOpacity>
@@ -2856,35 +2805,6 @@ exports[`Amount should convert USD to ETH 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -2898,7 +2818,7 @@ exports[`Amount should convert USD to ETH 1`] = `
 </View>
 `;
 
-exports[`Amount should display correct balance 1`] = `
+exports[`Amount displays correct balance 1`] = `
 <View
   style={
     {
@@ -3048,7 +2968,13 @@ exports[`Amount should display correct balance 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -3056,6 +2982,7 @@ exports[`Amount should display correct balance 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -3284,6 +3211,7 @@ exports[`Amount should display correct balance 1`] = `
                                   <View>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -3302,7 +3230,7 @@ exports[`Amount should display correct balance 1`] = `
                                         ]
                                       }
                                     >
-                                      
+                                      
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -3330,7 +3258,7 @@ exports[`Amount should display correct balance 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -3433,6 +3361,7 @@ exports[`Amount should display correct balance 1`] = `
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -3452,7 +3381,7 @@ exports[`Amount should display correct balance 1`] = `
                                           ]
                                         }
                                       >
-                                        
+                                        󰓢
                                       </Text>
                                     </View>
                                   </TouchableOpacity>
@@ -3571,35 +3500,6 @@ exports[`Amount should display correct balance 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -3613,7 +3513,7 @@ exports[`Amount should display correct balance 1`] = `
 </View>
 `;
 
-exports[`Amount should not show a warning when conversion rate is available 1`] = `
+exports[`Amount does not show a warning when conversion rate is available 1`] = `
 <View
   style={
     {
@@ -3763,7 +3663,13 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -3771,6 +3677,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -3999,6 +3906,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                   <View>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -4017,7 +3925,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                         ]
                                       }
                                     >
-                                      
+                                      
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -4045,7 +3953,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -4148,6 +4056,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -4167,7 +4076,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                           ]
                                         }
                                       >
-                                        
+                                        󰓢
                                       </Text>
                                     </View>
                                   </TouchableOpacity>
@@ -4286,35 +4195,6 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -4328,7 +4208,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
 </View>
 `;
 
-exports[`Amount should not show a warning when transfering collectibles 1`] = `
+exports[`Amount does not show a warning when transfering collectibles 1`] = `
 <View
   style={
     {
@@ -4478,7 +4358,13 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -4486,6 +4372,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -4714,6 +4601,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                   <View>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -4732,7 +4620,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                         ]
                                       }
                                     >
-                                      
+                                      
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -4968,35 +4856,6 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -5010,7 +4869,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
 </View>
 `;
 
-exports[`Amount should proceed if balance is sufficient while on Native primary currency is ETH 1`] = `
+exports[`Amount proceeds if balance is sufficient while on Native primary currency is ETH 1`] = `
 <View
   style={
     {
@@ -5160,7 +5019,13 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -5168,6 +5033,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -5396,6 +5262,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                   <View>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -5414,7 +5281,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                         ]
                                       }
                                     >
-                                      
+                                      
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -5434,7 +5301,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                 }
                               >
                                 <TouchableOpacity
-                                  disabled={true}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={{}}
                                 >
@@ -5442,7 +5309,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -5546,6 +5413,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -5565,7 +5433,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                           ]
                                         }
                                       >
-                                        
+                                        󰓢
                                       </Text>
                                     </View>
                                   </TouchableOpacity>
@@ -5679,35 +5547,6 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -5721,7 +5560,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
 </View>
 `;
 
-exports[`Amount should proceed if balance is sufficient while on Native primary currency is not ETH 1`] = `
+exports[`Amount proceeds if balance is sufficient while on Native primary currency is not ETH 1`] = `
 <View
   style={
     {
@@ -5871,7 +5710,13 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -5879,6 +5724,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -6107,6 +5953,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                   <View>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -6125,7 +5972,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                         ]
                                       }
                                     >
-                                      
+                                      
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -6145,7 +5992,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                 }
                               >
                                 <TouchableOpacity
-                                  disabled={true}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={{}}
                                 >
@@ -6153,7 +6000,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -6257,6 +6104,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -6276,7 +6124,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                           ]
                                         }
                                       >
-                                        
+                                        󰓢
                                       </Text>
                                     </View>
                                   </TouchableOpacity>
@@ -6390,35 +6238,6 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -6432,7 +6251,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
 </View>
 `;
 
-exports[`Amount should render correctly 1`] = `
+exports[`Amount renders correctly 1`] = `
 <View
   style={
     {
@@ -6582,7 +6401,13 @@ exports[`Amount should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -6590,6 +6415,7 @@ exports[`Amount should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -6789,6 +6615,7 @@ exports[`Amount should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -6805,7 +6632,7 @@ exports[`Amount should render correctly 1`] = `
                                   ]
                                 }
                               >
-                                
+                                󰋼
                               </Text>
                             </View>
                             <View
@@ -6893,6 +6720,7 @@ exports[`Amount should render correctly 1`] = `
                                   <View>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -6911,7 +6739,7 @@ exports[`Amount should render correctly 1`] = `
                                         ]
                                       }
                                     >
-                                      
+                                      
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -6939,7 +6767,7 @@ exports[`Amount should render correctly 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -7100,35 +6928,6 @@ exports[`Amount should render correctly 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -7142,7 +6941,7 @@ exports[`Amount should render correctly 1`] = `
 </View>
 `;
 
-exports[`Amount should show a warning when conversion rate is not available 1`] = `
+exports[`Amount shows a warning when conversion rate is not available 1`] = `
 <View
   style={
     {
@@ -7292,7 +7091,13 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -7300,6 +7105,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -7499,6 +7305,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -7515,7 +7322,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                   ]
                                 }
                               >
-                                
+                                󰋼
                               </Text>
                             </View>
                             <View
@@ -7603,6 +7410,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                   <View>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -7621,7 +7429,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                         ]
                                       }
                                     >
-                                      
+                                      
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -7649,7 +7457,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -7810,35 +7618,6 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -7852,7 +7631,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
 </View>
 `;
 
-exports[`Amount should show an error message if balance is insufficient 1`] = `
+exports[`Amount shows an error message if balance is insufficient 1`] = `
 <View
   style={
     {
@@ -8002,7 +7781,13 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -8010,6 +7795,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -8238,6 +8024,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                   <View>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -8256,7 +8043,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                         ]
                                       }
                                     >
-                                      
+                                      
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -8276,7 +8063,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                 }
                               >
                                 <TouchableOpacity
-                                  disabled={true}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={{}}
                                 >
@@ -8284,7 +8071,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#686e7d",
+                                        "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -8388,6 +8175,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -8407,7 +8195,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                           ]
                                         }
                                       >
-                                        
+                                        󰓢
                                       </Text>
                                     </View>
                                   </TouchableOpacity>
@@ -8562,35 +8350,6 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>

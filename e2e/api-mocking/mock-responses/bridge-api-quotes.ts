@@ -981,3 +981,40 @@ export const DummyQuotesWithApproval = {
     }
   ],
 };
+
+export const DummyQuoteMetadata = {
+    sentAmount: {
+        amount: '0.005',
+        valueInCurrency: '9.8128810694176015',
+        usd: '9.8128810694176015',
+    },
+    gasFee: {
+        amount: '0.000330764431277595',
+        valueInCurrency: '0.64914834989246961915',
+        usd: '0.64914834989246961915',
+    },
+    totalNetworkFee: {
+        amount: '0.000330764431277595',
+        valueInCurrency: '0.64914834989246961915',
+        usd: '0.64914834989246961915',
+    },
+    totalMaxNetworkFee: {
+        amount: '0.000677325191980185',
+        valueInCurrency: '1.32929810202455167545',
+        usd: '1.32929810202455167545',
+    },
+    toTokenAmount: {
+        amount: '0.004946243543883951',
+        valueInCurrency: '9.7076142722238981036723208247346',
+        usd: '9.7076142722238981036723208247346',
+    },
+    adjustedReturn: {
+        valueInCurrency: '9.0584659223314284845223208247346',
+        usd: '9.0584659223314284845223208247346',
+    },
+    swapRate: '0.9892487087767902',
+    cost: {
+        valueInCurrency: '0.7544151470861730154776791752654',
+        usd: '0.7544151470861730154776791752654',
+    }
+};

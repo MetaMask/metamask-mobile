@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { SnapUIInput } from './SnapUIInput';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
+import { INPUT_TEST_ID } from '../../../component-library/components/Form/TextField/foundation/Input/Input.constants';
 
 // Mock the entire module
 jest.mock('../SnapInterfaceContext');
@@ -76,6 +77,13 @@ describe('SnapUIInput', () => {
     fireEvent(input, 'blur');
 
     expect(mockSetCurrentFocusedInput).toHaveBeenCalledWith(null);
+  });
+
+  it('handles disabled input', () => {
+    const { getByTestId } = render(<SnapUIInput name="testInput" disabled />);
+
+    const input = getByTestId(INPUT_TEST_ID);
+    expect(input.props.editable).toBe(false);
   });
 
   it('updates value when initialValue changes', () => {

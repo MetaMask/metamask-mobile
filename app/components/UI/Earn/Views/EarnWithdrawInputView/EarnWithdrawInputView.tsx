@@ -32,7 +32,6 @@ import { StakeNavigationParamsList } from '../../../Stake/types';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import UnstakeInputViewBanner from './UnstakeBanner';
 import styleSheet from './EarnWithdrawInputView.styles';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import { RootState } from '../../../../../reducers';
@@ -40,7 +39,8 @@ import { selectConversionRate } from '../../../../../selectors/currencyRateContr
 import { Hex } from '@metamask/utils';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -55,6 +55,10 @@ const EarnWithdrawInputView = () => {
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
+  );
+
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
   );
 
   const conversionRate = useSelector(selectConversionRate) ?? 1;
@@ -143,7 +147,6 @@ const EarnWithdrawInputView = () => {
     //   },
     // },
   };
-  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
   const navBarOptions = isStablecoinLendingEnabled
     ? earnNavBarOptions
     : stakingNavBarOptions;
