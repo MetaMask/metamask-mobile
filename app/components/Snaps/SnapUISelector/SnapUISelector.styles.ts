@@ -2,7 +2,6 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
-import { BorderRadius } from '../../UI/Box/box.types';
 
 /**
  *
@@ -10,7 +9,7 @@ import { BorderRadius } from '../../UI/Box/box.types';
  * @param params.theme App theme from ThemeContext.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme, vars: { selected?: boolean } }) => {
+const styleSheet = (params: { theme: Theme, vars: { selected?: boolean, isParentFlexRow?: boolean } }) => {
   const { theme, vars } = params;
   const { colors } = theme;
   return StyleSheet.create({
@@ -37,8 +36,8 @@ const styleSheet = (params: { theme: Theme, vars: { selected?: boolean } }) => {
       borderRadius: 8,
       paddingTop: 8,
       paddingBottom: 8,
-      paddingRight: 16,
-      paddingLeft: 16,
+      paddingRight: vars.isParentFlexRow ? 8 : 16,
+      paddingLeft: vars.isParentFlexRow ? 8 : 16,
     },
     modalButton: {
       backgroundColor: vars.selected ? colors.background.muted : importedColors.transparent,
@@ -50,7 +49,6 @@ const styleSheet = (params: { theme: Theme, vars: { selected?: boolean } }) => {
       paddingBottom: 8,
       paddingRight: 16,
       paddingLeft: 16,
-      position: 'relative',
     },
     selectedPill: {
       position: 'absolute',
