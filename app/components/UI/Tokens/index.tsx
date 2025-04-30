@@ -49,6 +49,7 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { RootState } from '../../../reducers';
 ///: END:ONLY_INCLUDE_IF
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
+import Logger from '../../../util/Logger';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -117,6 +118,24 @@ const Tokens = memo(() => {
     });
     return tokensSorted;
   }, [tokenSortConfig, tokensWithBalances]);
+
+  const sortedTokenKeys = useMemo(() => {
+    trace({
+      name: TraceName.Tokens,
+      tags: getTraceTags(store.getState()),
+    });
+
+    const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
+
+    endTrace({ name: TraceName.Tokens });
+
+    // Return only minimal key info
+    return tokensSorted.map(({ address, chainId }) => ({ address, chainId }));
+  }, [tokensWithBalances, tokenSortConfig]);
+
+  Logger.log(sortedTokenKeys[0]);
+
+  Logger.log(tokensList[0]);
 
   const showRemoveMenu = useCallback(
     (token: TokenI) => {
@@ -209,6 +228,7 @@ const Tokens = memo(() => {
         <TokenListControlBar goToAddToken={goToAddToken} />
         {tokensList && (
           <TokenList
+            tokenKeys={sortedTokenKeys}
             tokens={tokensList}
             refreshing={refreshing}
             isAddTokenEnabled={isAddTokenEnabled}

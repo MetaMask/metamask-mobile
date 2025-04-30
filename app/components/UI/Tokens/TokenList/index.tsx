@@ -20,6 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 
 interface TokenListProps {
+  tokenKeys: { address: string; chainId: string | undefined }[];
   tokens: TokenI[];
   refreshing: boolean;
   isAddTokenEnabled: boolean;
@@ -31,6 +32,7 @@ interface TokenListProps {
 }
 
 export const TokenList = ({
+  tokenKeys,
   tokens,
   refreshing,
   isAddTokenEnabled,
@@ -46,7 +48,7 @@ export const TokenList = ({
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
-  const listRef = useRef<FlashList<TokenI>>(null);
+  // const listRef = useRef<FlashList<TokenI>>(null);
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
@@ -58,9 +60,9 @@ export const TokenList = ({
   const listLength = tokens.length;
   const estimatedListHeight = itemHeight * listLength;
 
-  useLayoutEffect(() => {
-    listRef.current?.recomputeViewableItems();
-  }, [isTokenNetworkFilterEqualCurrentNetwork]);
+  // useLayoutEffect(() => {
+  //   listRef.current?.recomputeViewableItems();
+  // }, [isTokenNetworkFilterEqualCurrentNetwork]);
 
   const handleLink = () => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
@@ -69,9 +71,10 @@ export const TokenList = ({
   };
 
   const renderTokenListItem = useCallback(
-    ({ item }: { item: TokenI }) => (
+    ({ item }: { item: { address: string; chainId: string | undefined } }) => (
       <TokenListItem
-        asset={item}
+        assetKey={item}
+        // asset={item}
         showRemoveMenu={showRemoveMenu}
         setShowScamWarningModal={setShowScamWarningModal}
         privacyMode={privacyMode}
@@ -86,11 +89,29 @@ export const TokenList = ({
     ],
   );
 
+  // const renderTokenListItem = useCallback(
+  //   ({ item }: { item: TokenI }) => (
+  //     <TokenListItem
+  //       asset={item}
+  //       showRemoveMenu={showRemoveMenu}
+  //       setShowScamWarningModal={setShowScamWarningModal}
+  //       privacyMode={privacyMode}
+  //       showPercentageChange={showPercentageChange}
+  //     />
+  //   ),
+  //   [
+  //     showRemoveMenu,
+  //     setShowScamWarningModal,
+  //     privacyMode,
+  //     showPercentageChange,
+  //   ],
+  // );
+
   return tokens?.length ? (
     <FlashList
-      ref={listRef}
+      // ref={listRef}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
-      data={tokens}
+      data={tokenKeys}
       estimatedItemSize={itemHeight}
       estimatedListSize={{ height: estimatedListHeight, width: deviceWidth }}
       removeClippedSubviews

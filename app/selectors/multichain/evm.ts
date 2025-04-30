@@ -513,3 +513,41 @@ export const selectEvmTokenMarketData = createDeepEqualSelector(
     };
   },
 );
+
+export const makeSelectAssetByAddressAndChainId = () =>
+  createSelector(
+    [
+      selectEvmTokens, // TokenI[]
+      (_state: RootState, params: { address: string; chainId: string }) =>
+        safeToChecksumAddress(params.address),
+      (_state: RootState, params: { address: string; chainId: string }) =>
+        params.chainId,
+    ],
+    (tokens, address, chainId): TokenI => {
+      // Step 1: build nested map once per call
+      const lookup = new Map<string, Map<string, TokenI>>();
+
+      for (const token of tokens) {
+        if (!token.chainId || !token.address) {
+          continue; // skip invalid tokens
+        }
+
+        const tokenChainId = token.chainId;
+        const tokenAddress = safeToChecksumAddress(token.address) as string;
+
+        if (!lookup.has(tokenChainId)) {
+          lookup.set(tokenChainId, new Map());
+        }
+
+        lookup.get(tokenChainId)?.set(tokenAddress, token);
+      }
+
+      // Step 2: lookup
+      const token = lookup.get(chainId)?.get(address as string);
+      if (!token) {
+        throw new Error(`Token not found for ${address} on chain ${chainId}`);
+      }
+
+      return token;
+    },
+  );

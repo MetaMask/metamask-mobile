@@ -9,14 +9,19 @@ import {
 } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
+// import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
 import { useTheme } from '../../../../../util/theme';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../../constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectSelectedInternalAccount,
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+  selectSelectedInternalAccountAddress,
+} from '../../../../../selectors/accountsController';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
@@ -62,16 +67,24 @@ import { formatWithThreshold } from '../../../../../util/assets';
 import { CustomNetworkNativeImgMapping } from './CustomNetworkNativeImgMapping';
 import { TraceName, trace } from '../../../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectMultichainAssetsRates } from '../../../../../selectors/multichain/multichain';
+import {
+  selectMultichainAssetsRates,
+  selectNonEvmAssetById,
+} from '../../../../../selectors/multichain/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import Logger from '../../../../../util/Logger';
+///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
 interface TokenListItemProps {
-  asset: TokenI;
+  assetKey: { address: string; chainId: string | undefined };
+  // asset: TokenI;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
@@ -80,7 +93,8 @@ interface TokenListItemProps {
 
 export const TokenListItem = React.memo(
   ({
-    asset,
+    // asset,
+    assetKey,
     showRemoveMenu,
     setShowScamWarningModal,
     privacyMode,
@@ -90,14 +104,34 @@ export const TokenListItem = React.memo(
     const navigation = useNavigation();
     const { colors } = useTheme();
 
-    useTokenBalancesController();
-
     const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
     const selectedInternalAccountAddress = useSelector(
       selectSelectedInternalAccountAddress,
     );
 
-    const chainId = asset.chainId as Hex;
+    const selectEvmAsset = useMemo(makeSelectAssetByAddressAndChainId, []);
+    let evmAsset = useSelector((state: RootState) =>
+      selectEvmAsset(state, {
+        address: assetKey.address,
+        chainId: assetKey.chainId ?? '',
+      }),
+    );
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const selectedAccount = useSelector(selectSelectedInternalAccount);
+    const nonEvmAsset = useSelector((state: RootState) =>
+      selectNonEvmAssetById(state, {
+        accountId: selectedAccount?.id,
+        assetId: assetKey.address,
+      }),
+    );
+    Logger.log('NON EVM ASSET: ', nonEvmAsset);
+    ///: END:ONLY_INCLUDE_IF
+
+    // const nonEvmAsset = { balanceFiat: '1', balance: '1', address: '' };
+    // Logger.log(evmAsset);
+
+    const chainId = evmAsset?.chainId as Hex;
     const primaryCurrency = useSelector(
       (state: RootState) => state.settings.primaryCurrency,
     );
@@ -123,8 +157,9 @@ export const TokenListItem = React.memo(
     const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF(keyring-snaps)
     const itemAddress = isEvmNetworkSelected
-      ? safeToChecksumAddress(asset.address)
-      : asset.address;
+      ? safeToChecksumAddress(evmAsset.address)
+      : // : asset.address;
+        '';
 
     // Choose values based on multichain or legacy
     const exchangeRates = multiChainMarketData?.[chainId as Hex];
@@ -146,24 +181,24 @@ export const TokenListItem = React.memo(
       () =>
         isEvmNetworkSelected
           ? deriveBalanceFromAssetMarketDetails(
-              asset,
+              evmAsset,
               exchangeRates || {},
               tokenBalances || {},
               conversionRate || 0,
               currentCurrency || '',
             )
           : {
-              balanceFiat: asset.balanceFiat
+              balanceFiat: nonEvmAsset.balanceFiat
                 ? formatWithThreshold(
-                    parseFloat(asset.balanceFiat),
+                    parseFloat(nonEvmAsset.balanceFiat),
                     oneHundredths,
                     I18n.locale,
                     { style: 'currency', currency: currentCurrency },
                   )
                 : TOKEN_BALANCE_LOADING,
-              balanceValueFormatted: asset.balance
+              balanceValueFormatted: nonEvmAsset.balance
                 ? formatWithThreshold(
-                    parseFloat(asset.balance),
+                    parseFloat(nonEvmAsset.balance),
                     oneHundredThousandths,
                     I18n.locale,
                     { minimumFractionDigits: 0, maximumFractionDigits: 5 },
@@ -172,20 +207,22 @@ export const TokenListItem = React.memo(
             },
       [
         isEvmNetworkSelected,
-        asset,
+        evmAsset,
         exchangeRates,
         tokenBalances,
         conversionRate,
         currentCurrency,
+        // nonEvmAsset.balance,
+        // nonEvmAsset.balanceFiat,
       ],
     );
 
     const getPricePercentChange1d = () => {
-      const tokenPercentageChange = asset.address
-        ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
+      const tokenPercentageChange = evmAsset.address
+        ? multiChainMarketData?.[chainId as Hex]?.[evmAsset.address as Hex]
             ?.pricePercentChange1d
         : undefined;
-      const evmPricePercentChange1d = asset.isNative
+      const evmPricePercentChange1d = evmAsset.isNative
         ? multiChainMarketData?.[chainId as Hex]?.[
             getNativeTokenAddress(chainId as Hex) as Hex
           ]?.pricePercentChange1d
@@ -194,7 +231,7 @@ export const TokenListItem = React.memo(
         return evmPricePercentChange1d;
       }
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      return allMultichainAssetsRates[asset?.address as CaipAssetType]
+      return allMultichainAssetsRates[nonEvmAsset?.address as CaipAssetType]
         ?.marketData?.pricePercentChange?.P1D;
       ///: END:ONLY_INCLUDE_IF(keyring-snaps)
     };
@@ -212,7 +249,7 @@ export const TokenListItem = React.memo(
       mainBalance = balanceValueFormatted?.toUpperCase();
       secondaryBalance = balanceFiat?.toUpperCase();
       // For ETH as a native currency, adjust display based on network safety.
-      if (asset.isETH) {
+      if (evmAsset.isETH) {
         // Main balance always shows the formatted balance value for ETH.
         mainBalance = balanceValueFormatted?.toUpperCase();
         // Display fiat value as secondary balance only for original native tokens on safe networks.
@@ -230,8 +267,8 @@ export const TokenListItem = React.memo(
       }
     }
 
-    if (asset?.hasBalanceError) {
-      mainBalance = asset.symbol;
+    if (evmAsset?.hasBalanceError) {
+      mainBalance = evmAsset.symbol;
       secondaryBalance = strings('wallet.unable_to_load');
     }
 
@@ -240,7 +277,7 @@ export const TokenListItem = React.memo(
       secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
     }
 
-    asset = { ...asset, balanceFiat };
+    evmAsset = { ...evmAsset, balanceFiat };
 
     const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
 
@@ -295,7 +332,7 @@ export const TokenListItem = React.memo(
       );
 
       // if the asset is staked, navigate to the native asset details
-      if (asset.isStaked) {
+      if (evmAsset.isStaked) {
         return navigation.navigate('Asset', {
           ...token.nativeAsset,
         });
@@ -306,13 +343,13 @@ export const TokenListItem = React.memo(
     };
 
     const renderNetworkAvatar = useCallback(() => {
-      if (asset.isNative) {
+      if (evmAsset.isNative) {
         const isCustomNetwork = CustomNetworkNativeImgMapping[chainId];
 
         if (isCustomNetwork) {
           return (
             <AvatarToken
-              name={asset.symbol}
+              name={evmAsset.symbol}
               imageSource={CustomNetworkNativeImgMapping[chainId]}
               size={AvatarSize.Md}
             />
@@ -323,7 +360,7 @@ export const TokenListItem = React.memo(
           <NetworkAssetLogo
             chainId={chainId as Hex}
             style={styles.ethLogo}
-            ticker={asset.ticker || ''}
+            ticker={evmAsset.ticker || ''}
             big={false}
             biggest={false}
             testID={'PLACE HOLDER'}
@@ -333,40 +370,40 @@ export const TokenListItem = React.memo(
 
       return (
         <AvatarToken
-          name={asset.symbol}
-          imageSource={{ uri: asset.image }}
+          name={evmAsset.symbol}
+          imageSource={{ uri: evmAsset.image }}
           size={AvatarSize.Md}
         />
       );
     }, [
-      asset.ticker,
-      asset.image,
-      asset.symbol,
-      asset.isNative,
+      evmAsset.ticker,
+      evmAsset.image,
+      evmAsset.symbol,
+      evmAsset.isNative,
       styles.ethLogo,
       chainId,
     ]);
 
     const renderEarnCta = useCallback(() => {
-      const isCurrentAssetEth = asset?.isETH && !asset?.isStaked;
+      const isCurrentAssetEth = evmAsset?.isETH && !evmAsset?.isStaked;
       const shouldShowPooledStakingCta =
         isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
 
       const isAssetSupportedStablecoin = earnTokens.find(
         (token) =>
-          token.symbol === asset.symbol &&
-          asset.chainId === token?.chainId &&
-          !asset?.isStaked,
+          token.symbol === evmAsset.symbol &&
+          evmAsset.chainId === token?.chainId &&
+          !evmAsset?.isStaked,
       );
       const shouldShowStablecoinLendingCta =
         isAssetSupportedStablecoin && isStablecoinLendingEnabled;
 
       if (shouldShowPooledStakingCta || shouldShowStablecoinLendingCta) {
         // TODO: Rename to EarnCta
-        return <StakeButton asset={asset} />;
+        return <StakeButton asset={evmAsset} />;
       }
     }, [
-      asset,
+      evmAsset,
       earnTokens,
       isPooledStakingEnabled,
       isStablecoinLendingEnabled,
@@ -376,10 +413,12 @@ export const TokenListItem = React.memo(
     return (
       <AssetElement
         // assign staked asset a unique key
-        key={asset.isStaked ? '0x_staked' : itemAddress || '0x'}
+        key={evmAsset.isStaked ? '0x_staked' : itemAddress || '0x'}
         onPress={onItemPress}
-        onLongPress={asset.isETH || asset.isNative ? null : showRemoveMenu}
-        asset={asset}
+        onLongPress={
+          evmAsset.isETH || evmAsset.isNative ? null : showRemoveMenu
+        }
+        asset={evmAsset}
         balance={mainBalance}
         secondaryBalance={secondaryBalance}
         privacyMode={privacyMode}
@@ -403,7 +442,7 @@ export const TokenListItem = React.memo(
            */}
           <View style={styles.assetName}>
             <Text variant={TextVariant.BodyLGMedium}>
-              {asset.name || asset.symbol}
+              {evmAsset.name || evmAsset.symbol}
             </Text>
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
             {renderEarnCta()}
@@ -413,7 +452,7 @@ export const TokenListItem = React.memo(
           ) : null}
         </View>
         <ScamWarningIcon
-          asset={asset}
+          asset={evmAsset}
           setShowScamWarningModal={setShowScamWarningModal}
         />
       </AssetElement>

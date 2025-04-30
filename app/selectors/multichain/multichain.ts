@@ -440,4 +440,71 @@ export const selectSolanaAccountTransactions = createDeepEqualSelector(
   },
 );
 
+export const selectNonEvmAssetById = createDeepEqualSelector(
+  [
+    selectMultichainBalances,
+    selectMultichainAssets,
+    selectMultichainAssetsMetadata,
+    selectMultichainAssetsRates,
+    (_: RootState, params: { accountId?: string; assetId: string }) =>
+      params.accountId,
+    (_: RootState, params: { accountId?: string; assetId: string }) =>
+      params.assetId,
+  ],
+  (
+    multichainBalances,
+    assets,
+    assetsMetadata,
+    assetsRates,
+    accountId,
+    assetId,
+  ) => {
+    if (!accountId) {
+      throw new Error('Account ID is required to fetch asset.');
+    }
+
+    const balance = multichainBalances?.[accountId]?.[assetId] || {
+      amount: undefined,
+      unit: '',
+    };
+
+    const { chainId, assetNamespace } = parseCaipAssetType(assetId);
+    const isNative = assetNamespace === 'slip44';
+    const rate = assetsRates?.[assetId]?.rate || '0';
+
+    const balanceInFiat = balance.amount
+      ? new BigNumber(balance.amount).times(rate)
+      : undefined;
+
+    const assetMetadataFallback = {
+      name: balance.unit || '',
+      symbol: balance.unit || '',
+      fungible: true,
+      units: [{ name: assetId, symbol: balance.unit || '', decimals: 0 }],
+    };
+
+    const metadata = assetsMetadata?.[assetId] || assetMetadataFallback;
+    const decimals = metadata.units[0]?.decimals || 0;
+
+    return {
+      name: metadata.name ?? '',
+      address: assetId,
+      symbol: metadata.symbol ?? '',
+      image: metadata.iconUrl,
+      logo: metadata.iconUrl,
+      decimals,
+      chainId,
+      isNative,
+      balance: balance.amount,
+      secondary: balanceInFiat ? balanceInFiat.toString() : undefined,
+      string: '',
+      balanceFiat: balanceInFiat ? balanceInFiat.toString() : undefined,
+      isStakeable: false,
+      aggregators: [],
+      isETH: false,
+      ticker: metadata.symbol,
+    };
+  },
+);
+
 ///: END:ONLY_INCLUDE_IF
