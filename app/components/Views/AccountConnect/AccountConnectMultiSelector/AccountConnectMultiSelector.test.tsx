@@ -114,8 +114,8 @@ describe('AccountConnectMultiSelector', () => {
     const updateButton = getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1234', '0x5678'])
-  })
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1234', '0x5678']);
+  });
 
   it('shows update button when accounts are selected', () => {
     const { getByTestId } = renderWithProvider(
@@ -124,8 +124,8 @@ describe('AccountConnectMultiSelector', () => {
     );
 
     const updateButton = getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
-    expect(updateButton).toBeTruthy()
-    fireEvent.press(updateButton)
+    expect(updateButton).toBeTruthy();
+    fireEvent.press(updateButton);
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1234']);
   });
@@ -137,8 +137,8 @@ describe('AccountConnectMultiSelector', () => {
     );
 
     const disconnectButton = getByTestId(ConnectedAccountsSelectorsIDs.DISCONNECT);
-    expect(disconnectButton).toBeTruthy()
-    fireEvent.press(disconnectButton)
+    expect(disconnectButton).toBeTruthy();
+    fireEvent.press(disconnectButton);
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith([]);
   });

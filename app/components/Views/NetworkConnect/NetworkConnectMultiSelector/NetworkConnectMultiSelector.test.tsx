@@ -94,7 +94,7 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1', '0x89'])
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1', '0x89']);
   });
 
   it('shows update button when some networks are selected', () => {
