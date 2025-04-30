@@ -19,11 +19,10 @@ describe('useAddNetwork', () => {
         rpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_API_KEY',
         ticker: 'ETH',
         rpcPrefs: {
-            blockExplorerUrl: 'https://etherscan.io',
-            imageUrl: 'https://etherscan.io/images/svg/brands/eth.svg',
-            imageSource: 'https://etherscan.io/images/svg/brands/eth.svg',
+          blockExplorerUrl: 'https://etherscan.io',
+          imageUrl: 'https://etherscan.io/images/svg/brands/eth.svg',
+          imageSource: 'https://etherscan.io/images/svg/brands/eth.svg',
         },
-        failoverRpcUrls: [],
       });
     });
     expect(result.current.networkModal).toBeDefined();

@@ -734,6 +734,7 @@
     "receive": "RECEIVE"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Create a new account",
     "import_account": "Import an account",
@@ -986,11 +987,9 @@
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",
-    "network_rpc_url_label": "RPC URL",
+    "network_rpc_url_label": "RPC Url",
     "network_rpc_name_label": "RPC Name",
     "network_rpc_placeholder": "New RPC Network",
-    "network_failover_rpc_url_label": "Failover RPC URL",
-    "failover": "Failover",
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
     "network_symbol_label": "Symbol",
@@ -3511,6 +3510,7 @@
     "connect_hardware_wallet": "Connect an account",
     "import_wallet_or_account": "Import a wallet or account",
     "add_account": "Create a new account",
+    "add_multichain_account": "Create a new {{networkName}} account",
     "create_an_account": "Create a new account",
     "add_new_account": "Ethereum account",
     "import_srp":"Secret Recovery Phrase",
@@ -3518,7 +3518,11 @@
     "import_account": "Private key",
     "add_bitcoin_account_testnet": "Bitcoin testnet account",
     "add_bitcoin_account_mainnet": "Bitcoin account",
-    "add_solana_account": "Solana account"
+    "add_solana_account": "Solana account",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "Show NFT",
