@@ -5,7 +5,7 @@ import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import { Box } from '../../UI/Box/Box';
-import { BorderRadius, FlexDirection } from '../../UI/Box/box.types';
+import { FlexDirection } from '../../UI/Box/box.types';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
@@ -28,6 +28,7 @@ export interface SnapUISelectorProps {
   error?: string;
   disabled?: boolean;
   style?: ViewStyle;
+  isParentFlexRow?: boolean;
 }
 
 interface SelectorItemProps {
@@ -79,8 +80,9 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   error,
   disabled,
   style,
+  isParentFlexRow = false,
 }) => {
-  const { styles } = useStyles(stylesheet, {});
+  const { styles } = useStyles(stylesheet, { isParentFlexRow });
   const { handleInputChange, getValue } = useSnapInterfaceContext();
 
   const initialValue = getValue(name, form);
