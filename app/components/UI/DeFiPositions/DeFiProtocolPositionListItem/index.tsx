@@ -34,49 +34,14 @@ import { formatWithThreshold } from '../../../../util/assets';
 import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
 import { AvatarProps } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 
-type ProtocolAggregate = GroupedDeFiPositions['protocols'][number] & {
-  chainId: Hex;
-  symbol: string;
-};
-
 interface DeFiProtocolPositionListItemProps {
-  protocolAggregate: ProtocolAggregate;
+  protocolAggregate: GroupedDeFiPositions['protocols'][number] & {
+    chainId: Hex;
+    symbol: string;
+  };
   privacyMode?: boolean;
 }
 
-const networkBadgeSource = (currentChainId: Hex) => {
-  const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as
-    | {
-        imageSource: string;
-      }
-    | undefined;
-
-  if (defaultNetwork) {
-    return defaultNetwork.imageSource;
-  }
-
-  const unpopularNetwork = UnpopularNetworkList.find(
-    (networkConfig) => networkConfig.chainId === currentChainId,
-  );
-
-  const popularNetwork = PopularList.find(
-    (networkConfig) => networkConfig.chainId === currentChainId,
-  );
-
-  const network = unpopularNetwork || popularNetwork;
-  if (network) {
-    return network.rpcPrefs.imageSource;
-  }
-
-  const customNetworkImg = CustomNetworkImgMapping[currentChainId];
-  if (customNetworkImg) {
-    return customNetworkImg;
-  }
-};
-
-/**
- * Customizable view to render assets in lists
- */
 const DeFiProtocolPositionListItem = ({
   protocolAggregate,
   privacyMode = false,
@@ -85,6 +50,38 @@ const DeFiProtocolPositionListItem = ({
   const styles = createStyles(colors);
 
   const navigation = useNavigation();
+
+  const networkIconAvatar = useMemo(() => {
+    const chainId = protocolAggregate.chainId;
+
+    const defaultNetwork = getDefaultNetworkByChainId(chainId) as
+      | {
+          imageSource: string;
+        }
+      | undefined;
+
+    if (defaultNetwork) {
+      return defaultNetwork.imageSource;
+    }
+
+    const unpopularNetwork = UnpopularNetworkList.find(
+      (networkConfig) => networkConfig.chainId === chainId,
+    );
+
+    const popularNetwork = PopularList.find(
+      (networkConfig) => networkConfig.chainId === chainId,
+    );
+
+    const network = unpopularNetwork || popularNetwork;
+    if (network) {
+      return network.rpcPrefs.imageSource;
+    }
+
+    const customNetworkImg = CustomNetworkImgMapping[chainId];
+    if (customNetworkImg) {
+      return customNetworkImg;
+    }
+  }, [protocolAggregate.chainId]);
 
   const tokenAvatars: AvatarProps[] = useMemo(
     () =>
@@ -104,8 +101,6 @@ const DeFiProtocolPositionListItem = ({
     [protocolAggregate],
   );
 
-  console.log('tokenAvatars', tokenAvatars);
-
   return (
     <TouchableOpacity
       onPress={() => {
@@ -118,7 +113,7 @@ const DeFiProtocolPositionListItem = ({
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
-            imageSource={networkBadgeSource(protocolAggregate.chainId)}
+            imageSource={networkIconAvatar}
           />
         }
       >
