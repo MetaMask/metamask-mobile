@@ -198,7 +198,6 @@ describe('SolanaNewFeatureContent', () => {
   });
 
   it('navigates to learn more page when "learn more" button is pressed', async () => {
-    const mockNavigate = jest.fn();
     Linking.openURL = mockNavigate;
 
     (useSelector as jest.Mock).mockImplementation((selector) =>
