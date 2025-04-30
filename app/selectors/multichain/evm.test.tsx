@@ -32,7 +32,6 @@ import {
 } from '@metamask/swaps-controller/dist/constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { zeroAddress } from 'ethereumjs-util';
-import { TokenI } from '../../components/UI/Tokens/types';
 
 describe('Multichain Selectors', () => {
   const mockState: RootState = {
