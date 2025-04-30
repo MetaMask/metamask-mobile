@@ -671,7 +671,7 @@ const AppFlow = () => {
       />
       <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
       <Stack.Screen
-        name="EditAccountName"
+        name={Routes.EDIT_ACCOUNT_NAME}
         component={EditAccountName}
         options={{ animationEnabled: true }}
       />

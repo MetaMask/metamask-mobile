@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { InteractionManager, View } from 'react-native';
 
 // External dependencies.
 import AccountSelectorList from '../../UI/AccountSelectorList';
@@ -73,19 +73,21 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const _onSelectAccount = useCallback(
     (address: string) => {
-      Engine.setSelectedAddress(address);
-      sheetRef.current?.onCloseBottomSheet();
-      onSelectAccount?.(address);
+      InteractionManager.runAfterInteractions(() => {
+        Engine.setSelectedAddress(address);
+        sheetRef.current?.onCloseBottomSheet();
+        onSelectAccount?.(address);
 
-      // Track Event: "Switched Account"
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
-          .addProperties({
-            source: 'Wallet Tab',
-            number_of_accounts: accounts?.length,
-          })
-          .build(),
-      );
+        // Track Event: "Switched Account"
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+            .addProperties({
+              source: 'Wallet Tab',
+              number_of_accounts: accounts?.length,
+            })
+            .build(),
+        );
+      });
     },
     [Engine, accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );
