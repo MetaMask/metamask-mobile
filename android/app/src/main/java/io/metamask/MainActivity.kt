@@ -50,6 +50,31 @@ class MainActivity : ReactActivity() {
     }
 
     /**
+    * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
+    * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
+    */
+    override fun createReactActivityDelegate(): ReactActivityDelegate {
+        return ReactActivityDelegateWrapper(
+            this,
+            BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
+            object : DefaultReactActivityDelegate(
+                this,
+                mainComponentName,
+                fabricEnabled
+            ){
+                override fun getLaunchOptions(): Bundle {
+                    return Bundle().apply {
+                        putString(
+                            "foxCode",
+                            BuildConfig.foxCode ?: "debug"
+                        )
+                    }
+                }
+            }
+        )
+    }
+
+    /**
      * Align the back button behavior with Android S
      * where moving root activities to background instead of finishing activities.
      * @see <a href="https://developer.android.com/reference/android/app/Activity#onBackPressed()">onBackPressed</a>
