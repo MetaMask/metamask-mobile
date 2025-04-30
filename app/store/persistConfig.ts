@@ -8,6 +8,8 @@ import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
 import { debounce } from 'lodash';
+import { StateConstraint, StateMetadata } from '@metamask/base-controller';
+import { getPersistentState } from './getPersistentState/getPersistantState';
 
 const TIMEOUT = 40000;
 const STORAGE_DEBOUNCE_DELAY = 200;
@@ -77,24 +79,28 @@ const persistTransform = createTransform(
       return inboundState;
     }
 
-    const { SwapsController, ...controllers } =
-      inboundState.backgroundState || {};
+    const controllers = inboundState.backgroundState || {};
 
-    const {
-      aggregatorMetadata,
-      aggregatorMetadataLastFetched,
-      chainCache,
-      tokens,
-      tokensLastFetched,
-      topAssets,
-      ...persistedSwapsController
-    } = SwapsController;
+    const filteredControllers = Object.entries(controllers).reduce<
+      Record<string, Record<string, unknown>>
+    >((acc, [key, value]) => {
+      if (!value || typeof value !== 'object') return acc;
 
+      const valueWithoutMetadata = Object.fromEntries(
+        Object.entries(value).filter(([objectKey]) => objectKey !== 'metadata'),
+      ) as StateConstraint;
+
+      const persistedState = getPersistentState(
+        valueWithoutMetadata,
+        value.metadata as StateMetadata<StateConstraint>,
+      );
+      acc[key] = persistedState;
+      return acc;
+    }, {});
     // Reconstruct data to persist
     const newState = {
       backgroundState: {
-        ...controllers,
-        SwapsController: persistedSwapsController,
+        ...filteredControllers,
       },
     };
     return newState;

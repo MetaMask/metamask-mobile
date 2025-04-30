@@ -21,7 +21,7 @@ import networkOnboardReducer from './networkSelector';
 import securityReducer, { SecurityState } from './security';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
-import { EngineState } from '../core/Engine';
+import { EngineStateWithMetadata } from '../core/Engine';
 import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
@@ -60,7 +60,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   collectibles: any;
-  engine: { backgroundState: EngineState };
+  engine: { backgroundState: EngineStateWithMetadata };
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   privacy: any;

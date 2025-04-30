@@ -27,14 +27,16 @@ const engineReducer = (
 ) => {
   switch (action.type) {
     case initBgState.type: {
-      return { backgroundState: Engine.state };
+      return { backgroundState: Engine.stateWithMetadata };
     }
     case updateBgState.type: {
       const newState = { ...state };
 
       if (action.payload) {
         const newControllerState =
-          Engine.state[action.payload.key as keyof typeof Engine.state];
+          Engine.stateWithMetadata[
+            action.payload.key as keyof typeof Engine.stateWithMetadata
+          ];
 
         newState.backgroundState[action.payload.key] = newControllerState;
       }
