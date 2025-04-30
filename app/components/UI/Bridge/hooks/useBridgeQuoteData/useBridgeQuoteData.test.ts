@@ -13,7 +13,7 @@ import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 jest.mock('../../utils/quoteUtils', () => ({
   isQuoteExpired: jest.fn(),
   getQuoteRefreshRate: jest.fn(),
-  shouldRefreshQuote: jest.fn().mockImplementation((insufficientBal, quotesRefreshCount, maxRefreshCount, isSubmittingTx) => false),
+  shouldRefreshQuote: jest.fn(),
 }));
 
 const mockSelectPrimaryCurrency = jest.fn();
