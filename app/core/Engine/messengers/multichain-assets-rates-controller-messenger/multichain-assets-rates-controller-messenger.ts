@@ -24,6 +24,7 @@ export function getMultichainAssetsRatesControllerMessenger(
       'SnapController:handleRequest',
       'CurrencyRateController:getState',
       'MultichainAssetsController:getState',
+      'AccountsController:getSelectedMultichainAccount',
     ],
   });
 }

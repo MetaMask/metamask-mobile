@@ -1,26 +1,26 @@
-import { AddNewHdAccountIds } from '../../../../selectors/MultiSRP/AddHdAccount.selectors';
+import { AddNewAccountIds } from '../../../../selectors/MultiSRP/AddHdAccount.selectors';
 import Matchers from '../../../../utils/Matchers';
 import Gestures from '../../../../utils/Gestures';
 
 class AddNewHdAccountComponent {
   get container() {
-    return Matchers.getElementByID(AddNewHdAccountIds.CONTAINER);
+    return Matchers.getElementByID(AddNewAccountIds.CONTAINER);
   }
 
   get srpSelector() {
-    return Matchers.getElementByID(AddNewHdAccountIds.SRP_SELECTOR);
+    return Matchers.getElementByID(AddNewAccountIds.SRP_SELECTOR);
   }
 
   get cancelButton() {
-    return Matchers.getElementByID(AddNewHdAccountIds.CANCEL);
+    return Matchers.getElementByID(AddNewAccountIds.CANCEL);
   }
 
   get confirmButton() {
-    return Matchers.getElementByID(AddNewHdAccountIds.CONFIRM);
+    return Matchers.getElementByID(AddNewAccountIds.CONFIRM);
   }
 
   get nameInput() {
-    return Matchers.getElementByID(AddNewHdAccountIds.NAME_INPUT);
+    return Matchers.getElementByID(AddNewAccountIds.NAME_INPUT);
   }
 
   async tapSrpSelector() {
