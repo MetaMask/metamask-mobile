@@ -181,6 +181,7 @@ const AccountSelectorList = ({
         { cancelable: false },
       );
     },
+    /* eslint-disable-next-line */
     [
       accounts,
       onRemoveImportedAccount,
@@ -202,6 +203,7 @@ const AccountSelectorList = ({
         params: { selectedAccount: account },
       });
     },
+    /* eslint-disable-next-line */
     [navigate],
   );
 
