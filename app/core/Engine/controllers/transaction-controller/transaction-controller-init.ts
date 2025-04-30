@@ -3,6 +3,8 @@ import {
   TransactionType,
   type TransactionControllerMessenger,
   type TransactionMeta,
+  type PublishBatchHookRequest,
+  type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { hasProperty, Hex } from '@metamask/utils';
@@ -22,6 +24,7 @@ import {
   type SubmitSmartTransactionRequest,
   type SignedTransaction,
 } from '../../../../util/smart-transactions/smart-publish-hook';
+import { getTransactionById } from '../../../../util/transactions';
 import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
@@ -37,6 +40,7 @@ import {
   handleTransactionFinalizedEventForMetrics,
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
+import { Hex } from '@metamask/utils';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -92,14 +96,15 @@ export const TransactionControllerInit: ControllerInitFunction<
               approvalController,
               initMessenger,
             }),
-          publishBatch: async (_request): Promise<any> =>
-            publishBatchHook({
-              getState,
+          publishBatch: async (_request: PublishBatchHookRequest) =>
+            await publishBatchSmartTransactionHook({
               transactionController,
               smartTransactionsController,
-              approvalController,
               initMessenger,
-              _request
+              getState,
+              approvalController,
+              transactions:
+                _request.transactions as PublishBatchHookTransaction[],
             }),
         },
         incomingTransactions: {
@@ -152,7 +157,8 @@ function publishHook({
   initMessenger: TransactionControllerInitMessenger;
 }): Promise<{ transactionHash: string }> {
   const state = getState();
-  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state, transactionMeta.chainId);
+  const { shouldUseSmartTransaction, featureFlags } =
+    getSmartTransactionCommonParams(state, transactionMeta.chainId);
 
   // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
   return submitSmartTransactionHook({
@@ -163,40 +169,67 @@ function publishHook({
     approvalController,
     controllerMessenger:
       initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
-    featureFlags: selectSwapsChainFeatureFlags(state),
+    featureFlags,
   });
 }
 
-function publishBatchHook({
-  getState,
+function getSmartTransactionCommonParams(state: RootState, chainId?: Hex) {
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state, chainId);
+  const featureFlags = selectSwapsChainFeatureFlags(state, chainId);
+
+  return {
+    shouldUseSmartTransaction,
+    featureFlags,
+  };
+}
+
+function publishBatchSmartTransactionHook({
   transactionController,
   smartTransactionsController,
-  approvalController,
   initMessenger,
-  _request,
+  getState,
+  approvalController,
+  transactions,
 }: {
-  transactionMeta: TransactionMeta;
-  getState: () => RootState;
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
-  approvalController: ApprovalController;
   initMessenger: TransactionControllerInitMessenger;
-  _request: {
-    transactions: SignedTransaction[];
-  },
+  getState: () => RootState;
+  approvalController: ApprovalController;
+  transactions: PublishBatchHookTransaction[];
 }): Promise<{ results: { transactionHash: string }[] } | undefined> {
+  // Get transactionMeta based on the last transaction ID
+  const lastTransaction = transactions[transactions.length - 1];
+  const transactionMeta = getTransactionById(
+    lastTransaction.id ?? '',
+    transactionController,
+  );
   const state = getState();
-  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
+
+  if (!transactionMeta) {
+    throw new Error(
+      `publishBatchSmartTransactionHook: Could not find transaction with id ${lastTransaction.id}`,
+    );
+  }
+
+  const { shouldUseSmartTransaction, featureFlags } =
+    getSmartTransactionCommonParams(state, transactionMeta.chainId);
+
+  if (!shouldUseSmartTransaction) {
+    throw new Error(
+      'publishBatchSmartTransactionHook: Smart Transaction is required for batch submissions',
+    );
+  }
 
   return submitBatchSmartTransactionHook({
-    transactions: _request.transactions as SignedTransaction[],
+    transactions,
     transactionController,
     smartTransactionsController,
-    shouldUseSmartTransaction,
-    approvalController,
     controllerMessenger:
       initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
-    featureFlags: selectSwapsChainFeatureFlags(state),
+    shouldUseSmartTransaction,
+    approvalController,
+    featureFlags,
   });
 }
 
