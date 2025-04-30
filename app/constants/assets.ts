@@ -9,7 +9,7 @@ export interface TokenDisplayValues {
 
 export interface TokenBalanceValues {
   tokenFiatAmount?: number | null;
-  balance?: string;
+  balance: string;
 }
 
 // Base token type with common fields
@@ -41,7 +41,7 @@ export type Token = (BaseToken | NonEvmBaseToken) & {
 // Token with balance and optional display values
 export type TokenWithBalance = Omit<BaseToken, 'chainId' | 'decimals'> &
   TokenDisplayValues &
-  Omit<TokenBalanceValues, 'balance'>;
+  TokenBalanceValues;
 
 // Token display information (UI-related properties)
 export type TokenDisplayInfo = TokenDisplayValues & {
