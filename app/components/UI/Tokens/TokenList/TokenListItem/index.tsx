@@ -402,7 +402,7 @@ export const TokenListItem = React.memo(
       isStakingSupportedChain,
     ]);
 
-    if (!asset) {
+    if (!asset || !chainId) {
       return null;
     }
 

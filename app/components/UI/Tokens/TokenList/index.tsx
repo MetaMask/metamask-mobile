@@ -95,11 +95,12 @@ export const TokenList = ({
       estimatedItemSize={itemHeight}
       estimatedListSize={{ height: estimatedListHeight, width: deviceWidth }}
       removeClippedSubviews
-      onBlankArea={(e: BlankAreaEvent) => {
-        if (e.blankArea > 0.1) {
-          console.warn(`Large blank area detected: ${e.blankArea}`);
-        }
-      }}
+      // uncomment for debugging whitespace purposes
+      // onBlankArea={(e: BlankAreaEvent) => {
+      //   if (e.blankArea > 0.1) {
+      //     console.warn(`Large blank area detected: ${e.blankArea}`);
+      //   }
+      // }}
       viewabilityConfig={{
         waitForInteraction: true,
         itemVisiblePercentThreshold: 50,
