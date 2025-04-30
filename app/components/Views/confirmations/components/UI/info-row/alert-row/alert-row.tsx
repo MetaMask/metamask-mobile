@@ -4,7 +4,9 @@ import { useAlerts } from '../../../../context/alert-system-context';
 import { useConfirmationAlertMetrics } from '../../../../hooks/metrics/useConfirmationAlertMetrics';
 import { Severity } from '../../../../types/alerts';
 import { TextColor } from '../../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../../component-library/hooks';
 import InfoRow, { InfoRowProps } from '../info-row';
+import styleSheet from './alert-row.styles';
 
 function getAlertTextColors(
   severity?: Severity,
@@ -29,6 +31,7 @@ const AlertRow = ({ alertField, isShownWithAlertsOnly, ...props }: AlertRowProps
   const { fieldAlerts, showAlertModal, setAlertKey } = useAlerts();
   const { trackInlineAlertClicked } = useConfirmationAlertMetrics();
   const alertSelected = fieldAlerts.find((a) => a.field === alertField);
+  const { styles } = useStyles(styleSheet, {});
 
   const handleInlineAlertClick = () => {
     if(!alertSelected) return;
@@ -56,7 +59,7 @@ const AlertRow = ({ alertField, isShownWithAlertsOnly, ...props }: AlertRowProps
   return (
     <InfoRow
       {...alertRowProps}
-      style={{ paddingBottom: 4, paddingHorizontal: 8 }}
+      style={styles.infoRowOverride}
       labelChildren={inlineAlert}
     />
   );
