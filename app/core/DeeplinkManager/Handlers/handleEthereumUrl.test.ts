@@ -82,7 +82,7 @@ describe('handleEthereumUrl', () => {
     );
   });
 
-  it('alerts and returns on invalid URL', () => {
+  it('alerts and throws on invalid URL', () => {
     const spyAlert = jest.spyOn(Alert, 'alert');
 
     const url = 'invalid_url';
