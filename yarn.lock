@@ -4675,7 +4675,7 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/accounts-controller@^27.0.0":
+"@metamask/accounts-controller@^27.0.0-preview-ca400074":
   version "27.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-27.0.0.tgz#555b58337e1f9e323fa2c6635136b585f0810fb3"
   integrity sha512-RwtBQtXTRs0lpHaxgQgYpJCam0PaRzX+H1ZaS9jlvADZMaY74xP4iKZPPpbLaVHY4gJH2/YW02CNXyFuSEkrFQ==
