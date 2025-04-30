@@ -306,7 +306,7 @@ export const TokenListItem = React.memo(
           return customNetworkImg;
         }
       },
-      [chainId, evmAsset?.isETH, evmAsset?.isStaked],
+      [chainId],
     );
 
     const onItemPress = (token: TokenI) => {
@@ -394,6 +394,8 @@ export const TokenListItem = React.memo(
     }, [
       asset,
       earnTokens,
+      evmAsset?.isETH,
+      evmAsset?.isStaked,
       isPooledStakingEnabled,
       isStablecoinLendingEnabled,
       isStakingSupportedChain,
