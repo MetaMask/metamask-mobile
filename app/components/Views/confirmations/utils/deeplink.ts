@@ -82,12 +82,12 @@ export async function addTransactionForDeeplink({
     chainId = CHAIN_IDS.MAINNET;
   }
 
-  // This should not anything except MMM in order to avoid layout issues in redesigned confirmations
+  // This should be anything *except* 'MMM' (MetaMask Mobile) to avoid layout issues in redesigned confirmations
   const origin = 'deeplink';
   const networkClientId = getNetworkClientIdForChainId(chainId);
   const from = safeToChecksumAddress(selectedAccountAddress) as string;
   const to = safeToChecksumAddress(target_address);
-  const checkSummedParamAddress = safeToChecksumAddress(parameters?.address);
+  const checkSummedParamAddress = safeToChecksumAddress(parameters?.address ?? '');
 
   if (function_name === ETH_ACTIONS.TRANSFER) {
     // ERC20 transfer

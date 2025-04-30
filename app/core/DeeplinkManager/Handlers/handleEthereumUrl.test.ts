@@ -135,7 +135,7 @@ describe('handleEthereumUrl', () => {
     );
   });
 
-  it('handles network switch error', () => {
+  it('shows alert when there is a network switch error', () => {
     const spyAlert = jest.spyOn(Alert, 'alert');
 
     const url = 'ethereum:transfer';
@@ -218,7 +218,7 @@ describe('handleEthereumUrl', () => {
     });
   });
 
-  it('handles unknown errors during Ethereum URL handling', () => {
+  it('shows alert when there is an unknown error during Ethereum URL handling', () => {
     const spyAlert = jest.spyOn(Alert, 'alert');
 
     const url = 'ethereum:transfer';
@@ -261,7 +261,7 @@ describe('handleEthereumUrl', () => {
     );
   });
 
-  it('handles a generic error during network switch', () => {
+  it('shows alert when there is a generic error during network switch', () => {
     const url = 'ethereum:sign';
     const origin = 'test_origin';
     const mockError = new Error('Generic network switch error');
@@ -284,7 +284,7 @@ describe('handleEthereumUrl', () => {
     );
   });
 
-  it('handles an error in _approveTransaction for APPROVE action', () => {
+  it('shows an alert when approval process fails', () => {
     const url = 'ethereum:approve';
     const origin = 'test_origin';
     const mockError = new Error('Approval process failed');
@@ -308,7 +308,7 @@ describe('handleEthereumUrl', () => {
     );
   });
 
-  it('handle missing or incomplete parameters in URL for TRANSFER action', () => {
+  it('shows alert when there are missing or incomplete parameters in URL for TRANSFER action', () => {
     const url = 'ethereum:transfer';
     const origin = 'test_origin';
 
