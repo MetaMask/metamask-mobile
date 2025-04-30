@@ -44,7 +44,7 @@ import { selectTokenMarketData } from '../tokenRatesController';
 import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
 import { selectTokenList } from '../tokenListController';
-import { safeToChecksumAddress } from '../../util/address';
+import { safeToChecksumAddress, toFormattedAddress } from '../../util/address';
 
 interface NativeTokenBalance {
   balance: string;
@@ -513,3 +513,42 @@ export const selectEvmTokenMarketData = createDeepEqualSelector(
     };
   },
 );
+
+export const makeSelectAssetByAddressAndChainId = () =>
+  createSelector(
+    [
+      selectEvmTokens, // TokenI[]
+      selectIsEvmNetworkSelected,
+      (_state: RootState, params: { address: string; chainId: string }) =>
+        toFormattedAddress(params.address),
+      (_state: RootState, params: { address: string; chainId: string }) =>
+        params.chainId,
+    ],
+    (tokens, isEvmNetworkSelected, address, chainId): TokenI | undefined => {
+      if (!isEvmNetworkSelected) {
+        return undefined;
+      }
+      // Step 1: build nested map once per call
+      const lookup = new Map<string, Map<string, TokenI>>();
+
+      for (const token of tokens) {
+        if (!token.chainId || !token.address) {
+          continue; // skip invalid tokens
+        }
+
+        const tokenChainId = token.chainId;
+        const tokenAddress = toFormattedAddress(token.address) as string;
+
+        if (!lookup.has(tokenChainId)) {
+          lookup.set(tokenChainId, new Map());
+        }
+
+        lookup.get(tokenChainId)?.set(tokenAddress, token);
+      }
+
+      // Step 2: lookup
+      const token = lookup.get(chainId)?.get(address as string);
+
+      return token;
+    },
+  );
