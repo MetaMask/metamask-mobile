@@ -35,7 +35,6 @@ import {
   selectIsSolanaSwap,
   setSlippage,
 } from '../../../../../core/redux/slices/bridge';
-import { ethers } from 'ethers';
 import {
   useNavigation,
   useRoute,
@@ -138,10 +137,7 @@ const BridgeView = () => {
   });
 
   const isValidSourceAmount =
-    !!sourceAmount &&
-    sourceAmount !== '.' &&
-    sourceToken?.decimals &&
-    !ethers.utils.parseUnits(sourceAmount, sourceToken.decimals).isZero();
+    sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
   const hasValidBridgeInputs =
     isValidSourceAmount && !!sourceToken && !!destToken;
@@ -149,7 +145,8 @@ const BridgeView = () => {
   const hasInsufficientBalance = quoteRequest?.insufficientBal;
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
-  const shouldDisplayKeypad = isInputFocused || !hasValidBridgeInputs;
+  const shouldDisplayKeypad =
+    isInputFocused || !hasValidBridgeInputs || !activeQuote;
   const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
 
   // Compute error state directly from dependencies
