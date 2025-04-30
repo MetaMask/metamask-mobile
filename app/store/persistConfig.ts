@@ -8,7 +8,7 @@ import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
 import { debounce } from 'lodash';
-import { StateConstraint, StateMetadata } from '@metamask/base-controller';
+import { StateConstraint } from '@metamask/base-controller';
 import { getPersistentState } from './getPersistentState/getPersistantState';
 
 const TIMEOUT = 40000;
@@ -92,7 +92,8 @@ const persistTransform = createTransform(
 
       const persistedState = getPersistentState(
         valueWithoutMetadata,
-        value.metadata as StateMetadata<StateConstraint>,
+        // @ts-expect-error - The controller metadata is ignored on purpose on the typing of the reducer
+        value.metadata,
       );
       acc[key] = persistedState;
       return acc;
