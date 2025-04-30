@@ -263,7 +263,7 @@ const BridgeView = () => {
 
   const handleContinue = async () => {
     if (activeQuote) {
-      await dispatch(setIsSubmittingTx(true));
+      dispatch(setIsSubmittingTx(true));
       await submitBridgeTx({
         quoteResponse: activeQuote,
       });
