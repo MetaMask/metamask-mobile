@@ -254,18 +254,21 @@ class SmartTransactionHook {
     }
   }
 
-  async submitBatch() {
-    // Will cause TransactionController to publish to the RPC provider as normal.
-    Logger.log(
-      LOG_PREFIX,
-      'shouldUseSmartTransaction',
-      this.#shouldUseSmartTransaction,
-    );
-    const useRegularTransactionSubmit = undefined;
-    if (!this.#shouldUseSmartTransaction || !this.#transactions || this.#transactions.length === 0) {
-      return useRegularTransactionSubmit;
+  #validateSubmitBatch = () => {
+    if (!this.#shouldUseSmartTransaction) {
+      throw new Error(
+        `${LOG_PREFIX}: Smart Transaction is required for batch submissions`,
+      );
     }
+    if (!this.#transactions || this.#transactions.length === 0) {
+      throw new Error(
+        `${LOG_PREFIX}: A list of transactions are required for batch submissions`,
+      );
+    }
+  }
 
+  async submitBatch() {
+    this.#validateSubmitBatch();
     Logger.log(
       LOG_PREFIX,
       'Started submit batch hook',
@@ -329,7 +332,6 @@ class SmartTransactionHook {
       }
 
       return submitBatchResponse;
-      // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Logger.error(
