@@ -30,6 +30,13 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   PERSONAL_ACCOUNT,
 ]);
 
+// Mock InteractionManager to run callbacks immediately in tests
+const { InteractionManager } = jest.requireActual('react-native');
+
+InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
+  callback(),
+);
+
 jest.mock('../../../util/address', () => {
   const actual = jest.requireActual('../../../util/address');
   return {
@@ -303,6 +310,10 @@ describe('AccountSelectorList', () => {
     await waitFor(() => {
       const rightAccessories = getAllByTestId(RIGHT_ACCESSORY_TEST_ID);
       expect(rightAccessories.length).toBe(2);
+
+      // Check that each right accessory contains the expected content
+      expect(rightAccessories[0].props.children).toContain(BUSINESS_ACCOUNT);
+      expect(rightAccessories[1].props.children).toContain(PERSONAL_ACCOUNT);
 
       expect(toJSON()).toMatchSnapshot();
     });
