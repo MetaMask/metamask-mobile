@@ -18,6 +18,8 @@ import { calcTokenValue } from '../../../../../util/transactions';
 import { debounce } from 'lodash';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 
+export const DEBOUNCE_WAIT = 700;
+
 /**
  * Hook for handling bridge quote request updates
  * @returns {Function} A debounced function to update quote parameters
@@ -85,5 +87,8 @@ export const useBridgeQuoteRequest = () => {
   ]);
 
   // Create a stable debounced function that persists across renders
-  return useMemo(() => debounce(updateQuoteParams, 700), [updateQuoteParams]);
+  return useMemo(
+    () => debounce(updateQuoteParams, DEBOUNCE_WAIT),
+    [updateQuoteParams],
+  );
 };
