@@ -69,9 +69,6 @@ export const STX_NO_HASH_ERROR =
   'Smart Transaction does not have a transaction hash, there was a problem';
 
 class SmartTransactionHook {
-  // Static property to store the approval flow ID across instances
-  static #sharedApprovalFlowId = '';
-  
   #approvalEnded: boolean;
   #approvalId: string | undefined;
   #chainId: Hex;
