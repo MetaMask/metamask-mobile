@@ -7,6 +7,7 @@ import { SimulationDetails } from '../../../../../UI/SimulationDetails/Simulatio
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import useNavbar from '../../../hooks/ui/useNavbar';
+import FromTo from '../../rows/transactions/from-to';
 import GasFeesDetails from '../../rows/transactions/gas-fee-details';
 import TokenHero from '../../rows/transactions/token-hero';
 import styleSheet from './transfer.styles';
@@ -23,6 +24,7 @@ const Transfer = () => {
   return (
     <View>
       <TokenHero />
+      <FromTo />
       <View style={styles.simulationsDetailsContainer}>
         <SimulationDetails
           transaction={transactionMetadata as TransactionMeta}
