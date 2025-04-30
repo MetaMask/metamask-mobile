@@ -146,64 +146,6 @@ PODS:
     - GoogleUtilities/Reachability (~> 7.8)
     - GoogleUtilities/UserDefaults (~> 7.8)
     - nanopb (< 2.30911.0, >= 2.30908.0)
-  - Flipper (0.182.0):
-    - Flipper-Folly (~> 2.6)
-  - Flipper-Boost-iOSX (1.76.0.1.11)
-  - Flipper-DoubleConversion (3.2.0.1)
-  - Flipper-Fmt (7.1.7)
-  - Flipper-Folly (2.6.10):
-    - Flipper-Boost-iOSX
-    - Flipper-DoubleConversion
-    - Flipper-Fmt (= 7.1.7)
-    - Flipper-Glog
-    - libevent (~> 2.1.12)
-    - OpenSSL-Universal (= 1.1.1100)
-  - Flipper-Glog (0.5.0.5)
-  - Flipper-PeerTalk (0.0.4)
-  - FlipperKit (0.182.0):
-    - FlipperKit/Core (= 0.182.0)
-  - FlipperKit/Core (0.182.0):
-    - Flipper (~> 0.182.0)
-    - FlipperKit/CppBridge
-    - FlipperKit/FBCxxFollyDynamicConvert
-    - FlipperKit/FBDefines
-    - FlipperKit/FKPortForwarding
-    - SocketRocket (~> 0.6.0)
-  - FlipperKit/CppBridge (0.182.0):
-    - Flipper (~> 0.182.0)
-  - FlipperKit/FBCxxFollyDynamicConvert (0.182.0):
-    - Flipper-Folly (~> 2.6)
-  - FlipperKit/FBDefines (0.182.0)
-  - FlipperKit/FKPortForwarding (0.182.0):
-    - CocoaAsyncSocket (~> 7.6)
-    - Flipper-PeerTalk (~> 0.0.4)
-  - FlipperKit/FlipperKitHighlightOverlay (0.182.0)
-  - FlipperKit/FlipperKitLayoutHelpers (0.182.0):
-    - FlipperKit/Core
-    - FlipperKit/FlipperKitHighlightOverlay
-    - FlipperKit/FlipperKitLayoutTextSearchable
-  - FlipperKit/FlipperKitLayoutIOSDescriptors (0.182.0):
-    - FlipperKit/Core
-    - FlipperKit/FlipperKitHighlightOverlay
-    - FlipperKit/FlipperKitLayoutHelpers
-    - YogaKit (~> 1.18)
-  - FlipperKit/FlipperKitLayoutPlugin (0.182.0):
-    - FlipperKit/Core
-    - FlipperKit/FlipperKitHighlightOverlay
-    - FlipperKit/FlipperKitLayoutHelpers
-    - FlipperKit/FlipperKitLayoutIOSDescriptors
-    - FlipperKit/FlipperKitLayoutTextSearchable
-    - YogaKit (~> 1.18)
-  - FlipperKit/FlipperKitLayoutTextSearchable (0.182.0)
-  - FlipperKit/FlipperKitNetworkPlugin (0.182.0):
-    - FlipperKit/Core
-  - FlipperKit/FlipperKitReactPlugin (0.182.0):
-    - FlipperKit/Core
-  - FlipperKit/FlipperKitUserDefaultsPlugin (0.182.0):
-    - FlipperKit/Core
-  - FlipperKit/SKIOSNetworkPlugin (0.182.0):
-    - FlipperKit/Core
-    - FlipperKit/FlipperKitNetworkPlugin
   - fmt (6.2.1)
   - glog (0.3.5)
   - GoogleAppMeasurement (10.29.0):
@@ -276,7 +218,6 @@ PODS:
     - GoogleUtilities/Privacy
   - GZIP (1.3.2)
   - GzipSwift (5.1.1)
-  - libevent (2.1.12)
   - lottie-ios (3.4.1)
   - lottie-react-native (5.1.5):
     - lottie-ios (~> 3.4.0)
@@ -615,8 +556,6 @@ PODS:
     - React-Core
   - react-native-fast-crypto (2.2.0):
     - React
-  - react-native-flipper (0.263.0):
-    - React-Core
   - react-native-get-random-values (1.8.0):
     - React-Core
   - react-native-gzip (1.1.0):
@@ -870,8 +809,6 @@ PODS:
     - CocoaAsyncSocket
     - React
   - Yoga (1.14.0)
-  - YogaKit (1.18.1):
-    - Yoga (~> 1.14)
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
@@ -896,33 +833,12 @@ DEPENDENCIES:
   - Firebase
   - FirebaseCore
   - FirebaseCoreInternal
-  - Flipper (= 0.182.0)
-  - Flipper-Boost-iOSX (= 1.76.0.1.11)
-  - Flipper-DoubleConversion (= 3.2.0.1)
-  - Flipper-Fmt (= 7.1.7)
-  - Flipper-Folly (= 2.6.10)
-  - Flipper-Glog (= 0.5.0.5)
-  - Flipper-PeerTalk (= 0.0.4)
-  - FlipperKit (= 0.182.0)
-  - FlipperKit/Core (= 0.182.0)
-  - FlipperKit/CppBridge (= 0.182.0)
-  - FlipperKit/FBCxxFollyDynamicConvert (= 0.182.0)
-  - FlipperKit/FBDefines (= 0.182.0)
-  - FlipperKit/FKPortForwarding (= 0.182.0)
-  - FlipperKit/FlipperKitHighlightOverlay (= 0.182.0)
-  - FlipperKit/FlipperKitLayoutPlugin (= 0.182.0)
-  - FlipperKit/FlipperKitLayoutTextSearchable (= 0.182.0)
-  - FlipperKit/FlipperKitNetworkPlugin (= 0.182.0)
-  - FlipperKit/FlipperKitReactPlugin (= 0.182.0)
-  - FlipperKit/FlipperKitUserDefaultsPlugin (= 0.182.0)
-  - FlipperKit/SKIOSNetworkPlugin (= 0.182.0)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - GoogleUtilities
   - GzipSwift
   - lottie-ios (from `../node_modules/lottie-ios`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - OpenSSL-Universal
-  - OpenSSL-Universal (= 1.1.1100)
   - Permission-BluetoothPeripheral (from `../node_modules/react-native-permissions/ios/BluetoothPeripheral`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
@@ -932,7 +848,6 @@ DEPENDENCIES:
   - React-callinvoker (from `../node_modules/react-native/ReactCommon/callinvoker`)
   - React-Codegen (from `build/generated/ios`)
   - React-Core (from `../node_modules/react-native/`)
-  - React-Core/DevSupport (from `../node_modules/react-native/`)
   - React-Core/RCTWebSocket (from `../node_modules/react-native/`)
   - React-CoreModules (from `../node_modules/react-native/React/CoreModules`)
   - React-cxxreact (from `../node_modules/react-native/ReactCommon/cxxreact`)
@@ -953,7 +868,6 @@ DEPENDENCIES:
   - "react-native-compat (from `../node_modules/@walletconnect/react-native-compat`)"
   - "react-native-cookies (from `../node_modules/@react-native-cookies/cookies`)"
   - react-native-fast-crypto (from `../node_modules/react-native-fast-crypto`)
-  - react-native-flipper (from `../node_modules/react-native-flipper`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-gzip (from `../node_modules/react-native-gzip`)
   - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
@@ -1032,21 +946,12 @@ SPEC REPOS:
     - FirebaseCoreInternal
     - FirebaseInstallations
     - FirebaseMessaging
-    - Flipper
-    - Flipper-Boost-iOSX
-    - Flipper-DoubleConversion
-    - Flipper-Fmt
-    - Flipper-Folly
-    - Flipper-Glog
-    - Flipper-PeerTalk
-    - FlipperKit
     - fmt
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
     - GZIP
     - GzipSwift
-    - libevent
     - MMKV
     - MMKVCore
     - MultiplatformBleAdapter
@@ -1055,7 +960,6 @@ SPEC REPOS:
     - PromisesObjC
     - Sentry
     - SocketRocket
-    - YogaKit
 
 EXTERNAL SOURCES:
   boost:
@@ -1158,8 +1062,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-cookies/cookies"
   react-native-fast-crypto:
     :path: "../node_modules/react-native-fast-crypto"
-  react-native-flipper:
-    :path: "../node_modules/react-native-flipper"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
   react-native-gzip:
@@ -1320,14 +1222,6 @@ SPEC CHECKSUMS:
   FirebaseCoreInternal: df84dd300b561c27d5571684f389bf60b0a5c934
   FirebaseInstallations: 913cf60d0400ebd5d6b63a28b290372ab44590dd
   FirebaseMessaging: 7b5d8033e183ab59eb5b852a53201559e976d366
-  Flipper: 6edb735e6c3e332975d1b17956bcc584eccf5818
-  Flipper-Boost-iOSX: fd1e2b8cbef7e662a122412d7ac5f5bea715403c
-  Flipper-DoubleConversion: 2dc99b02f658daf147069aad9dbd29d8feb06d30
-  Flipper-Fmt: 60cbdd92fc254826e61d669a5d87ef7015396a9b
-  Flipper-Folly: 584845625005ff068a6ebf41f857f468decd26b3
-  Flipper-Glog: 70c50ce58ddaf67dc35180db05f191692570f446
-  Flipper-PeerTalk: 116d8f857dc6ef55c7a5a75ea3ceaafe878aadc9
-  FlipperKit: 2efad7007d6745a3f95e4034d547be637f89d3f6
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   GoogleAppMeasurement: f9de05ee17401e3355f68e8fc8b5064d429f5918
@@ -1335,7 +1229,6 @@ SPEC CHECKSUMS:
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   lottie-ios: 016449b5d8be0c3dcbcfa0a9988469999cd04c5d
   lottie-react-native: b6776287d7fd31be4fd865059cd890f744242ffd
   MMKV: f7d1d5945c8765f97f39c3d121f353d46735d801
@@ -1372,7 +1265,6 @@ SPEC CHECKSUMS:
   react-native-compat: d28ca16ef3ce1fb6ea2d3780756d4ae78bb8b7b8
   react-native-cookies: d648ab7025833b977c0b19e142503034f5f29411
   react-native-fast-crypto: 6b448866f5310cf203714a21147ef67f735bea8e
-  react-native-flipper: ca4382a2b6cfd319b6e212539bc1fe7aafe36879
   react-native-get-random-values: 0fd2b6a3129988d701d10e30f0622d5f039531bc
   react-native-gzip: 8d602277c2564591f04dd1cec4043acc8350dcc3
   react-native-in-app-review: b3d1eed3d1596ebf6539804778272c4c65e4a400
@@ -1439,8 +1331,7 @@ SPEC CHECKSUMS:
   sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
   TcpSockets: 48866ffcb39d7114741919d21069fc90189e474a
   Yoga: 6f5ab94cd8b1ecd04b6e973d0bc583ede2a598cc
-  YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 07e76187497c064f80b2f260972b450ccb53d06f
+PODFILE CHECKSUM: 426cc71174e46ff2022225d812b35ecd12bc2532
 
 COCOAPODS: 1.16.2

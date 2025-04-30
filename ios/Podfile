@@ -55,16 +55,6 @@ def common_target_logic
   # Flags change depending on the env values.
   flags = get_default_flags()
 
-  # If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
-  # because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
-  #
-  # To fix this you can also exclude `react-native-flipper` using a `react-native.config.js`
-  # ```js
-  # module.exports = {
-  #   dependencies: {
-  #     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
-  # ```
-  flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
   use_react_native!(
     :path => config[:reactNativePath],
     # to enable hermes on iOS, change `false` to `true` and then install pods
@@ -74,11 +64,6 @@ def common_target_logic
     #:hermes_enabled => flags[:hermes_enabled],
     :hermes_enabled => false,
     :fabric_enabled => flags[:fabric_enabled],
-    # Enables Flipper.
-    #
-    # Note that if you have use_frameworks! enabled, Flipper will not work and
-    # you should disable the next line.
-    :flipper_configuration => flipper_config,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
   )
@@ -124,21 +109,6 @@ target 'MetaMask-Flask' do
 end
 
 post_install do |installer|
-  # fix flipper with pika 15.3 toolchain
-  installer.pods_project.targets.each do |target|
-    if target.name == 'Flipper'
-      file_path = 'ios/Pods/Flipper/xplat/Flipper/FlipperTransportTypes.h'
-      system("chmod +w " + file_path)
-      contents = File.read(file_path)
-      unless contents.include?('#include <functional>')
-        File.open(file_path, 'w') do |file|
-          file.puts('#include <functional>')
-          file.puts(contents)
-        end
-      end
-    end
-  end
-
   react_native_post_install(
     installer,
     # Set `mac_catalyst_enabled` to `true` in order to apply patches

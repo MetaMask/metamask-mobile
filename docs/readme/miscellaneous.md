@@ -1,7 +1,6 @@
 #### Miscellaneous
 
 - [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
-- [Flipper Documentation](https://fbflipper.com/docs/features/react-native/)
 
 ### Changing dependencies
 
