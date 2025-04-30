@@ -358,7 +358,7 @@ export const TokenListItem = React.memo(
             ticker={asset.ticker || ''}
             big={false}
             biggest={false}
-            testID={'PLACE HOLDER'}
+            testID={asset.name}
           />
         );
       }

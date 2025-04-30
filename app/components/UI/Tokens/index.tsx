@@ -197,39 +197,46 @@ const Tokens = memo(() => {
   };
 
   return (
-    <AssetPollingProvider>
-      <View
-        style={styles.wrapper}
-        testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
-      >
-        <TokenListControlBar goToAddToken={goToAddToken} />
-        {sortedTokenKeys && (
-          <TokenList
-            tokenKeys={sortedTokenKeys}
-            refreshing={refreshing}
-            isAddTokenEnabled={isAddTokenEnabled}
-            onRefresh={onRefresh}
-            showRemoveMenu={showRemoveMenu}
-            goToAddToken={goToAddToken}
-            setShowScamWarningModal={handleScamWarningModal}
-          />
-        )}
-        {showScamWarningModal && (
-          <ScamWarningModal
-            showScamWarningModal={showScamWarningModal}
-            setShowScamWarningModal={setShowScamWarningModal}
-          />
-        )}
-        <ActionSheet
-          ref={actionSheet as LegacyRef<typeof ActionSheet>}
-          title={strings('wallet.remove_token_title')}
-          options={[strings('wallet.remove'), strings('wallet.cancel')]}
-          cancelButtonIndex={1}
-          destructiveButtonIndex={0}
-          onPress={onActionSheetPress}
+    <View
+      style={styles.wrapper}
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+    >
+      <AssetPollingProvider />
+      <TokenListControlBar goToAddToken={goToAddToken} />
+      {sortedTokenKeys && (
+        <TokenList
+          tokenKeys={sortedTokenKeys}
+          refreshing={refreshing}
+          isAddTokenEnabled={isAddTokenEnabled}
+          onRefresh={onRefresh}
+          showRemoveMenu={showRemoveMenu}
+          goToAddToken={goToAddToken}
+          setShowScamWarningModal={handleScamWarningModal}
         />
-      </View>
-    </AssetPollingProvider>
+      )}
+      {showScamWarningModal && (
+        <ScamWarningModal
+          showScamWarningModal={showScamWarningModal}
+          setShowScamWarningModal={setShowScamWarningModal}
+        />
+      )}
+      <ActionSheet
+        ref={actionSheet as LegacyRef<typeof ActionSheet>}
+        title={strings('wallet.remove_token_title')}
+        options={[strings('wallet.remove'), strings('wallet.cancel')]}
+        cancelButtonIndex={1}
+        destructiveButtonIndex={0}
+        onPress={onActionSheetPress}
+      />
+      <ActionSheet
+        ref={actionSheet as LegacyRef<typeof ActionSheet>}
+        title={strings('wallet.remove_token_title')}
+        options={[strings('wallet.remove'), strings('wallet.cancel')]}
+        cancelButtonIndex={1}
+        destructiveButtonIndex={0}
+        onPress={onActionSheetPress}
+      />
+    </View>
   );
 });
 
