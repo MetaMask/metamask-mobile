@@ -167,7 +167,6 @@ import {
   EngineState,
   EngineContext,
   StatefulControllers,
-  EngineStateWithMetadata,
 } from './types';
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
@@ -2093,26 +2092,6 @@ export default {
   get datamodel() {
     assertEngineExists(instance);
     return instance.datamodel;
-  },
-
-  get stateWithMetadata() {
-    assertEngineExists(instance);
-    const state = instance.datamodel.state;
-
-    const stateWithMetadata = Object.keys(state).reduce(
-      (acc: Record<keyof EngineState, unknown>, controllerName) => {
-        const key = controllerName as keyof EngineState;
-
-        acc[key] = {
-          ...state[key],
-          metadata: instance?.context[key]?.metadata,
-        };
-        return acc;
-      },
-      {} as EngineStateWithMetadata,
-    );
-
-    return stateWithMetadata;
   },
 
   getTotalEvmFiatAccountBalance(account?: InternalAccount) {

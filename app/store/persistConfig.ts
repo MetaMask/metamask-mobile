@@ -8,8 +8,8 @@ import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
 import { debounce } from 'lodash';
-import { StateConstraint } from '@metamask/base-controller';
-import { getPersistentState } from './getPersistentState/getPersistantState';
+import { getPersistentState } from '@metamask/base-controller';
+import Engine, { EngineContext } from '../core/Engine';
 
 const TIMEOUT = 40000;
 const STORAGE_DEBOUNCE_DELAY = 200;
@@ -49,6 +49,15 @@ const MigratedStorage = {
   },
   async setItem(key: string, value: string) {
     try {
+      // Check if Engine is initialized by trying to access context
+      try {
+        if (Engine.context) {
+          // This is just to trigger the error if engine does not exist
+        }
+      } catch (error) {
+        // Engine not initialized, skipping setItem
+        return;
+      }
       return await debouncedSetItem(key, value);
     } catch (error) {
       Logger.error(error as Error, {
@@ -72,6 +81,7 @@ const MigratedStorage = {
  */
 const persistTransform = createTransform(
   (inboundState: RootState['engine']) => {
+    // Do not transform data in Fresh Installs
     if (
       !inboundState ||
       Object.keys(inboundState.backgroundState).length === 0
@@ -81,19 +91,25 @@ const persistTransform = createTransform(
 
     const controllers = inboundState.backgroundState || {};
 
+    try {
+      // Check if Engine is initialized by trying to access context
+      if (Engine.context) {
+        // This is just to trigger the error if engine does not exist
+      }
+    } catch (error) {
+      // Engine not initialized, skipping transform
+      return inboundState;
+    }
+
     const filteredControllers = Object.entries(controllers).reduce<
       Record<string, Record<string, unknown>>
     >((acc, [key, value]) => {
       if (!value || typeof value !== 'object') return acc;
 
-      const valueWithoutMetadata = Object.fromEntries(
-        Object.entries(value).filter(([objectKey]) => objectKey !== 'metadata'),
-      ) as StateConstraint;
-
       const persistedState = getPersistentState(
-        valueWithoutMetadata,
-        // @ts-expect-error - The controller metadata is ignored on purpose on the typing of the reducer
-        value.metadata,
+        value,
+        // @ts-expect-error - EngineContext have stateless controllers, so metadata is not available
+        Engine.context[key as keyof EngineContext]?.metadata,
       );
       acc[key] = persistedState;
       return acc;
@@ -104,6 +120,7 @@ const persistTransform = createTransform(
         ...filteredControllers,
       },
     };
+
     return newState;
   },
   null,

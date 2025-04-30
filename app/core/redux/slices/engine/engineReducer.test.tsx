@@ -3,7 +3,6 @@ import engineReducer, { initBgState, updateBgState } from '.';
 jest.mock('../../../Engine', () => ({
   init: () => jest.requireActual('../../../Engine').default.init({}),
   state: {},
-  stateWithMetadata: {},
 }));
 // importing Engine after mocking to avoid global mock from overwriting its values
 import Engine from '../../../Engine';
@@ -14,7 +13,6 @@ describe('engineReducer', () => {
       jest.mock('../../../Engine', () => ({
         init: () => jest.requireActual('../../../Engine').default.init({}),
         state: {},
-        stateWithMetadata: {},
       }));
     });
 
@@ -28,7 +26,7 @@ describe('engineReducer', () => {
   it('should initialize backgroundState when dispatching INIT_BG_STATE action', () => {
     const initialState = { backgroundState: {} };
     const nextState = engineReducer(initialState, initBgState());
-    expect(nextState).toEqual({ backgroundState: Engine.stateWithMetadata });
+    expect(nextState).toEqual({ backgroundState: Engine.state });
   });
 
   it('should update backgroundState when dispatching UPDATE_BG_STATE action', () => {
@@ -42,7 +40,7 @@ describe('engineReducer', () => {
     // changing the mock version to suit this test manually due to our current global mock
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (Engine as any).stateWithMetadata = {
+    (Engine as any).state = {
       AccountTrackerController: { accounts: 'testValue' },
     };
     const { backgroundState } = engineReducer(
@@ -51,7 +49,7 @@ describe('engineReducer', () => {
     );
     expect(backgroundState).toEqual({
       ...reduxInitialState.backgroundState,
-      AccountTrackerController: Engine.stateWithMetadata[key],
+      AccountTrackerController: Engine.state[key],
     });
   });
 });

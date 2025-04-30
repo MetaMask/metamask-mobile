@@ -223,8 +223,6 @@ import {
   RestrictedMessenger,
   ActionConstraint,
   EventConstraint,
-  StateMetadata,
-  StateConstraint,
 } from '@metamask/base-controller';
 import {
   TokenSearchDiscoveryController,
@@ -707,13 +705,4 @@ export type InitModularizedControllersFunction = (request: {
   persistedState: ControllerPersistedState;
 }) => {
   controllersByName: ControllerByName;
-};
-
-/**
- * Controller state with metadata
- */
-export type EngineStateWithMetadata = {
-  [K in keyof EngineState]: EngineState[K] & {
-    metadata: StateMetadata<StateConstraint>;
-  };
 };
