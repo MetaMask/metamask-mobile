@@ -49,7 +49,19 @@ jest.mock('../Permissions', () => ({
 
 jest.mock('../../selectors/networkController', () => ({
 	selectNetworkConfigurations: jest.fn().mockReturnValue({}),
-	selectProviderConfig: jest.fn().mockReturnValue({ chainId: '0x1' }) as jest.Mock,
+	selectProviderConfig: jest.fn().mockReturnValue({ chainId: '0x1' }),
+	selectEvmNetworkConfigurationsByChainId: jest.fn().mockReturnValue({
+		'0x1': {
+			chainId: '0x1',
+			name: 'Ethereum Mainnet',
+			ticker: 'ETH',
+			rpcEndpoints: [{ networkClientId: 'mainnet', url: 'https://mainnet.infura.io' }],
+		},
+	}),
+	selectSelectedNetworkClientId: jest.fn().mockReturnValue('mainnet'),
+	selectNetworkClientId: jest.fn().mockReturnValue('mainnet'),
+	selectEvmChainId: jest.fn().mockReturnValue('0x1'),
+	selectRpcUrl: jest.fn().mockReturnValue('https://mainnet.infura.io'),
 }));
 
 jest.mock('../RPCMethods/lib/ethereum-chain-utils', () => ({
