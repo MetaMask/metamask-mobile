@@ -43,6 +43,8 @@ import { isTestNet } from '../../util/networks';
 import { selectTokenMarketData } from '../tokenRatesController';
 import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
+import { selectTokenList } from '../tokenListController';
+import { safeToChecksumAddress, toFormattedAddress } from '../../util/address';
 
 interface NativeTokenBalance {
   balance: string;
@@ -130,9 +132,13 @@ export const selectNativeTokensAcrossChainsForAddress = createSelector(
       const nativeChainId = token.chainId as Hex;
       const nativeTokenInfoByChainId =
         nativeTokenBalancesByChainId[nativeChainId];
-      const isETH = ['ETH', 'GOETH', 'SepoliaETH', 'LineaETH', 'MegaETH'].includes(
-        token.nativeCurrency || '',
-      );
+      const isETH = [
+        'ETH',
+        'GOETH',
+        'SepoliaETH',
+        'LineaETH',
+        'MegaETH',
+      ].includes(token.nativeCurrency || '');
 
       const name = isETH ? 'Ethereum' : token.nativeCurrency;
       const logo = isETH ? '../images/eth-logo-new.png' : '';
@@ -477,3 +483,72 @@ export const selectEvmTokenFiatBalances = createDeepEqualSelector(
           ).balanceFiatCalculation;
     }),
 );
+
+export const selectEvmTokenMarketData = createDeepEqualSelector(
+  [
+    selectTokenList,
+    selectTokenMarketData,
+    (_state: RootState, params: { chainId: Hex; tokenAddress?: string }) =>
+      params.chainId,
+    (_state: RootState, params: { chainId: Hex; tokenAddress?: string }) =>
+      params.tokenAddress,
+  ],
+  (tokenList, marketData, chainId, tokenAddress) => {
+    // Handle native token case (no address)
+    if (!tokenAddress) {
+      return marketData?.[chainId]?.[zeroAddress() as Hex];
+    }
+
+    // Get checksummed address
+    const checksumAddress = safeToChecksumAddress(tokenAddress);
+    if (!checksumAddress) return null;
+
+    // Get token metadata and market data
+    const tokenMetadata = tokenList?.[checksumAddress.toLowerCase()];
+    const tokenMarketData = marketData?.[chainId]?.[checksumAddress as Hex];
+
+    return {
+      metadata: tokenMetadata,
+      marketData: tokenMarketData,
+    };
+  },
+);
+
+export const makeSelectAssetByAddressAndChainId = () =>
+  createSelector(
+    [
+      selectEvmTokens, // TokenI[]
+      selectIsEvmNetworkSelected,
+      (_state: RootState, params: { address: string; chainId: string }) =>
+        toFormattedAddress(params.address),
+      (_state: RootState, params: { address: string; chainId: string }) =>
+        params.chainId,
+    ],
+    (tokens, isEvmNetworkSelected, address, chainId): TokenI | undefined => {
+      if (!isEvmNetworkSelected) {
+        return undefined;
+      }
+      // Step 1: build nested map once per call
+      const lookup = new Map<string, Map<string, TokenI>>();
+
+      for (const token of tokens) {
+        if (!token.chainId || !token.address) {
+          continue; // skip invalid tokens
+        }
+
+        const tokenChainId = token.chainId;
+        const tokenAddress = toFormattedAddress(token.address) as string;
+
+        if (!lookup.has(tokenChainId)) {
+          lookup.set(tokenChainId, new Map());
+        }
+
+        lookup.get(tokenChainId)?.set(tokenAddress, token);
+      }
+
+      // Step 2: lookup
+      const token = lookup.get(chainId)?.get(address as string);
+
+      return token;
+    },
+  );
