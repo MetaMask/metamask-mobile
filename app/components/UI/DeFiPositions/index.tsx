@@ -13,13 +13,12 @@ import {
 } from '../../../selectors/networkController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { isPortfolioViewEnabled, isTestNet } from '../../../util/networks';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import Logger from '../../../util/Logger';
 import { Hex } from '@metamask/utils';
 import { DeFiProtocolPositionsList } from './DeFiProtocolPositionsList';
 import { selectDeFiPositionsByAddress } from '../../../selectors/defiPositionsController';
+import { isTestNet } from '../../../util/networks';
 
 export interface DeFiPositionsProps {
   tabLabel: string;
@@ -37,15 +36,15 @@ const DeFiPositions: React.FC<DeFiPositionsProps> = () => {
 
   const defiPositions = useSelector(selectDeFiPositionsByAddress);
 
-  Logger.log('PROPERTIES', {
-    isAllNetworks,
-    isPopularNetwork,
-    isEvmSelected,
-    networkName,
-    currentChainId,
-    portfolioViewEnabled: isPortfolioViewEnabled(),
-    defiPositions,
-  });
+  // Logger.log('PROPERTIES', {
+  //   isAllNetworks,
+  //   isPopularNetwork,
+  //   isEvmSelected,
+  //   networkName,
+  //   currentChainId,
+  //   portfolioViewEnabled: isPortfolioViewEnabled(),
+  //   defiPositions,
+  // });
 
   const refinedDeFiPositions = useMemo(() => {
     if (!defiPositions) {

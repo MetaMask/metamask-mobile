@@ -4,7 +4,9 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-  Hex, isCaipChainId } from '@metamask/utils';
+  Hex,
+  isCaipChainId,
+} from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
@@ -180,20 +182,20 @@ export const TokenListItem = React.memo(
 
     const getPricePercentChange1d = () => {
       const tokenPercentageChange = asset.address
-      ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
-          ?.pricePercentChange1d
-      : undefined;
+        ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
+            ?.pricePercentChange1d
+        : undefined;
       const evmPricePercentChange1d = asset.isNative
-      ? multiChainMarketData?.[chainId as Hex]?.[
-          getNativeTokenAddress(chainId as Hex) as Hex
-        ]?.pricePercentChange1d
-      : tokenPercentageChange;
-      if(isEvmNetworkSelected){
+        ? multiChainMarketData?.[chainId as Hex]?.[
+            getNativeTokenAddress(chainId as Hex) as Hex
+          ]?.pricePercentChange1d
+        : tokenPercentageChange;
+      if (isEvmNetworkSelected) {
         return evmPricePercentChange1d;
       }
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      return allMultichainAssetsRates[asset?.address as CaipAssetType]?.marketData
-          ?.pricePercentChange?.P1D;
+      return allMultichainAssetsRates[asset?.address as CaipAssetType]
+        ?.marketData?.pricePercentChange?.P1D;
       ///: END:ONLY_INCLUDE_IF(keyring-snaps)
     };
 
