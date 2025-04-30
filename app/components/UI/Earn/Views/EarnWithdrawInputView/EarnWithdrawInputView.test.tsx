@@ -234,10 +234,7 @@ describe('UnstakeInputView', () => {
 
       selectConfirmationRedesignFlagsMock.mockReturnValue({
         staking_confirmations: true,
-        signatures: false,
-        contract_interaction: false,
-        transfer: false,
-      });
+      } as unknown as ConfirmationRedesignRemoteFlags);
     });
 
     afterEach(() => {

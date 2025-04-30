@@ -489,11 +489,8 @@ describe('EarnInputView', () => {
         const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
         // Override the mock value for this specific test
         selectConfirmationRedesignFlagsMock.mockReturnValue({
-          signatures: false,
           staking_confirmations: true,
-          contract_interaction: false,
-          transfer: false,
-        });
+        } as unknown as ConfirmationRedesignRemoteFlags);
 
         usePoolStakedDepositMock.mockReturnValue({
           attemptDepositTransaction: attemptDepositTransactionMock,
