@@ -19,6 +19,7 @@
     "lint:tsc": "tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
     "setup": "yarn clean && node scripts/setup.mjs",
+    "setup:flask": "export METAMASK_BUILD_TYPE='flask' && yarn setup",
     "setup:expo": "yarn clean && node scripts/setup.mjs --no-build-ios --no-build-android",
     "setup:e2e": "cd wdio && yarn install",
     "start:ios": "./scripts/build.sh ios debug",
@@ -149,6 +150,7 @@
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
     "@consensys/on-ramp-sdk": "2.1.6",
+    "@ethersproject/abi": "^5.7.0",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "@keystonehq/ur-decoder": "^0.12.2",
