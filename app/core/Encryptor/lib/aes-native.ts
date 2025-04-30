@@ -12,7 +12,7 @@ import { EncryptionLibrary, KeyDerivationOptions } from './../types';
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
 
-export function checkForKdfAlgorithm(algorithm: string) {
+export function assertIsKdfAlgorithm(algorithm: string) {
   if (algorithm !== KDF_ALGORITHM) {
     throw new Error('Unsupported KDF algorithm');
   }
@@ -24,7 +24,7 @@ class AesEncryptionLibrary implements EncryptionLibrary {
     salt: string,
     opts: KeyDerivationOptions,
   ): Promise<string> => {
-    checkForKdfAlgorithm(opts.algorithm);
+    assertIsKdfAlgorithm(opts.algorithm);
 
     return await Aes.pbkdf2(
       password,
@@ -62,7 +62,7 @@ class AesForkedEncryptionLibrary implements EncryptionLibrary {
     salt: string,
     opts: KeyDerivationOptions,
   ): Promise<string> => {
-    checkForKdfAlgorithm(opts.algorithm);
+    assertIsKdfAlgorithm(opts.algorithm);
 
     // This library was mainly used in a legacy context, meaning the number of iterations/rounds during the
     // key derivation was hard-coded in the native library itself. We do check for those here to make sure
