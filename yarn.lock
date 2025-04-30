@@ -10984,11 +10984,6 @@
     "@urql/core" "^5.0.0"
     wonka "^6.3.2"
 
-"@vscode/sudo-prompt@^9.0.0":
-  version "9.3.1"
-  resolved "https://registry.yarnpkg.com/@vscode/sudo-prompt/-/sudo-prompt-9.3.1.tgz#c562334bc6647733649fd42afc96c0eea8de3b65"
-  integrity sha512-9ORTwwS74VaTn38tNbQhsA5U44zkJfcb0BdTSyyG6frP4e8KMtHuTXYmwefe5dpL8XB1aGSIVTaLjD3BbWb5iA==
-
 "@viem/anvil@^0.0.10":
   version "0.0.10"
   resolved "https://registry.yarnpkg.com/@viem/anvil/-/anvil-0.0.10.tgz#aa64fd96017d6875c9e8bebc223d394a55bc3a72"
@@ -10998,6 +10993,11 @@
     get-port "^6.1.2"
     http-proxy "^1.18.1"
     ws "^8.13.0"
+
+"@vscode/sudo-prompt@^9.0.0":
+  version "9.3.1"
+  resolved "https://registry.yarnpkg.com/@vscode/sudo-prompt/-/sudo-prompt-9.3.1.tgz#c562334bc6647733649fd42afc96c0eea8de3b65"
+  integrity sha512-9ORTwwS74VaTn38tNbQhsA5U44zkJfcb0BdTSyyG6frP4e8KMtHuTXYmwefe5dpL8XB1aGSIVTaLjD3BbWb5iA==
 
 "@vue/compiler-core@3.3.4":
   version "3.3.4"
@@ -29140,7 +29140,6 @@ ws@8.18.0:
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.18.0.tgz#0d7505a6eafe2b0e712d232b42279f53bc289bbc"
   integrity sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==
 
-ws@^6.2.2, ws@^6.2.3:
 ws@^6.2.3:
   version "6.2.3"
   resolved "https://registry.yarnpkg.com/ws/-/ws-6.2.3.tgz#ccc96e4add5fd6fedbc491903075c85c5a11d9ee"
