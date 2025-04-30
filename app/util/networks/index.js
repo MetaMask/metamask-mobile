@@ -141,7 +141,7 @@ export const NetworkList = {
     shortName: 'Monad Testnet',
     networkId: 10143,
     chainId: toHex('10143'),
-    ticker: 'MOD',
+    ticker: 'MON',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
