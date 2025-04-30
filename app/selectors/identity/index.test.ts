@@ -31,7 +31,7 @@ describe('Notification Selectors', () => {
     );
   });
 
-  it('selectIsProfileSyncingUpdateLoading returns correct value', () => {
+  it('selectIsBackupAndSyncUpdateLoading returns correct value', () => {
     expect(selectIsBackupAndSyncUpdateLoading(mockState)).toEqual(
       mockState.engine.backgroundState.UserStorageController
         .isProfileSyncingUpdateLoading,

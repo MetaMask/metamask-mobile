@@ -5,7 +5,7 @@ import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-s
 /**
  * Custom hook to set the enablement status of a backup and sync feature.
  *
- * @returns An object containing the `enableProfileSyncing` function, loading state, and error state.
+ * @returns An object containing the `setIsBackupAndSyncFeatureEnabled` function, loading state, and error state.
  */
 export function useBackupAndSync(): {
   setIsBackupAndSyncFeatureEnabled: (
