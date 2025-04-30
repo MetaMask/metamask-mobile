@@ -4761,15 +4761,7 @@
     "@metamask/utils" "^11.0.1"
     immer "^9.0.6"
 
-"@metamask/base-controller@^8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.0.0.tgz#281e408d88edc8c7ec419f97245a6042a4646e4d"
-  integrity sha512-TjIPaokJU7GqTKEaP7i5d55KCXcWPF5p85D26CttBDoqv4IIHGOimHFYMNZo3/mzp6Q5DD3K4bHOkvGT8tOcvQ==
-  dependencies:
-    "@metamask/utils" "^11.1.0"
-    immer "^9.0.6"
-
-"@metamask/base-controller@^8.0.1":
+"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1":
   version "8.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.0.1.tgz#5ac066e101dcc2ea187900ce7c0b08b13c573fff"
   integrity sha512-Yzf4Eipl7TIcS6PpDf+Fbb8Z1zMUEB0boMWJG0Jo2XhRM8Azb3yA1k5tashgEaacbl9Qs6HgGOe0P3eKzPzoJw==
@@ -4852,10 +4844,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.5.0.tgz#33921fa9c15eb1863f55dcd5f75467ae15614ebb"
   integrity sha512-+j7jEcp0P1OUMEpa/OIwfJs/ahBC/akwgWxaRTSWX2SWABvlUKBVRMtslfL94Qj2wN2xw8xjaUy5nSHqrznqDA==
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.7.0", "@metamask/controller-utils@npm:@metamask-previews/controller-utils@11.7.0-preview-cabccf7":
-  version "11.7.0-preview-cabccf7"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/controller-utils/-/controller-utils-11.7.0-preview-cabccf7.tgz#6d7befd10e780a4865d7a5f0e0da51492f8b537d"
-  integrity sha512-IFqIXd5Ggmdq1AiWWPoTpMryDpa6ySrpE3sd4rEs4bnBq5UVh4VRVSb2Y3H+4ZaUt0aclycn77vX5MxrJ2+fIA==
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.7.0", "@metamask/controller-utils@npm:@metamask-previews/controller-utils@11.7.0-preview-28cd3de3":
+  version "11.7.0-preview-28cd3de3"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/controller-utils/-/controller-utils-11.7.0-preview-28cd3de3.tgz#315902fe26dca734c863f32c8e51dd0f5a0cebc3"
+  integrity sha512-j4wGROal5GbIY287kImzGBJ6C+hOUAwGYy9FaxYPkuvTyv7GY0763PH9eshjGpNRJlkzr9dAbAv8Un6HWgleQQ==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/eth-query" "^4.0.0"
@@ -5312,10 +5304,10 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/network-controller@npm:@metamask-previews/network-controller@23.2.0-preview-cabccf7":
-  version "23.2.0-preview-cabccf7"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/network-controller/-/network-controller-23.2.0-preview-cabccf7.tgz#bb2698914306d0c198c91eaa010fe9cd4239d204"
-  integrity sha512-jW7UX/X0yuiyI1iq8RKPnUnn1wnz5j/4fMOSJXVHeTQyE2XPeAWX5sDfFL5ffm3xq0ef+E/OkcOOL86DmmK+vQ==
+"@metamask/network-controller@npm:@metamask-previews/network-controller@23.2.0-preview-28cd3de3":
+  version "23.2.0-preview-28cd3de3"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/network-controller/-/network-controller-23.2.0-preview-28cd3de3.tgz#396b86d7681c812b51dbe152d762ffdd96144ccd"
+  integrity sha512-g0YsvGROIpcBNT6MNy4eHueM7IA7HsJP0ZXlw3z345h433DOoVAIxVJQIlUpmcz4F5aKBjeM5eG6vy0QU66UMA==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.7.0"
