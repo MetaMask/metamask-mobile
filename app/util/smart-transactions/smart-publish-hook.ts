@@ -2,6 +2,7 @@ import {
   TransactionParams,
   TransactionController,
   TransactionMeta,
+  type PublishBatchHookTransaction
 } from '@metamask/transaction-controller';
 import SmartTransactionsController, {
   SmartTransactionsControllerSmartTransactionEvent,
@@ -32,13 +33,9 @@ export type AllowedActions = never;
 
 export type AllowedEvents = SmartTransactionsControllerSmartTransactionEvent;
 
-export type SignedTransaction = {
-  signedTx: string;
-  [key: string]: unknown;
-};
-
 export interface SubmitSmartTransactionRequest {
-  transactionMeta?: TransactionMeta;
+  transactionMeta: TransactionMeta;
+  signedTransactionInHex?: Hex;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   controllerMessenger: Messenger<AllowedActions, AllowedEvents>;
@@ -62,7 +59,7 @@ export interface SubmitSmartTransactionRequest {
         }
       | Record<string, never>;
   };
-  transactions: SignedTransaction[];
+  transactions: PublishBatchHookTransaction[];
 }
 
 const LOG_PREFIX = 'STX publishHook';
@@ -72,9 +69,12 @@ export const STX_NO_HASH_ERROR =
   'Smart Transaction does not have a transaction hash, there was a problem';
 
 class SmartTransactionHook {
+  // Static property to store the approval flow ID across instances
+  static #sharedApprovalFlowId = '';
+  
   #approvalEnded: boolean;
   #approvalId: string | undefined;
-  #chainId?: Hex;
+  #chainId: Hex;
   #featureFlags: {
     extensionActive: boolean;
     mobileActive: boolean;
@@ -89,7 +89,8 @@ class SmartTransactionHook {
   #smartTransactionsController: SmartTransactionsController;
   #transactionController: TransactionController;
   #approvalController: ApprovalController;
-  #transactionMeta?: TransactionMeta;
+  #transactionMeta: TransactionMeta;
+  #signedTransactionInHex?: Hex;
   #txParams?: TransactionParams;
   #controllerMessenger: SubmitSmartTransactionRequest['controllerMessenger'];
 
@@ -103,11 +104,12 @@ class SmartTransactionHook {
   #shouldStartApprovalRequest: boolean;
   #shouldUpdateApprovalRequest: boolean;
   #mobileReturnTxHashAsap: boolean;
-  #transactions: SignedTransaction[];
+  #transactions: PublishBatchHookTransaction[];
 
   constructor(request: SubmitSmartTransactionRequest) {
     const {
       transactionMeta,
+      signedTransactionInHex,
       smartTransactionsController,
       controllerMessenger,
       transactionController,
@@ -119,13 +121,14 @@ class SmartTransactionHook {
     this.#approvalId = undefined;
     this.#approvalEnded = false;
     this.#transactionMeta = transactionMeta;
+    this.#signedTransactionInHex = signedTransactionInHex;
     this.#smartTransactionsController = smartTransactionsController;
     this.#transactionController = transactionController;
     this.#approvalController = approvalController;
     this.#shouldUseSmartTransaction = shouldUseSmartTransaction;
     this.#featureFlags = featureFlags;
-    this.#chainId = transactionMeta?.chainId;
-    this.#txParams = transactionMeta?.txParams;
+    this.#chainId = transactionMeta.chainId;
+    this.#txParams = transactionMeta.txParams;
     this.#controllerMessenger = controllerMessenger;
     this.#mobileReturnTxHashAsap =
       this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap ?? false;
@@ -177,7 +180,7 @@ class SmartTransactionHook {
     const useRegularTransactionSubmit = { transactionHash: undefined };
     if (
       !this.#shouldUseSmartTransaction ||
-      this.#transactionMeta?.origin === RAMPS_SEND
+      this.#transactionMeta.origin === RAMPS_SEND
     ) {
       return useRegularTransactionSubmit;
     }
@@ -185,9 +188,9 @@ class SmartTransactionHook {
     Logger.log(
       LOG_PREFIX,
       'Started submit hook',
-      this.#transactionMeta?.id,
+      this.#transactionMeta.id,
       'transactionMeta.type',
-      this.#transactionMeta?.type,
+      this.#transactionMeta.type,
     );
 
     try {
@@ -433,28 +436,32 @@ class SmartTransactionHook {
   }: {
     getFeesResponse?: Fees;
   } = {}) => {
-    let signedTransactions;
-    if (this.#transactions && Array.isArray(this.#transactions)) {
+    let signedTransactions: string[] = [];
+    if (this.#transactions && Array.isArray(this.#transactions) && this.#transactions.length > 0) {
       // Batch transaction mode - extract signed transactions from this.#transactions[].signedTx
       signedTransactions = this.#transactions
         .filter((tx) => tx?.signedTx)
         .map((tx) => tx.signedTx);
-    } else {
+    } else if (this.#signedTransactionInHex) {
+      // Single transaction mode with pre-signed transaction
+      signedTransactions = [this.#signedTransactionInHex];
+    } else if (getFeesResponse) {
       signedTransactions = await this.#createSignedTransactions(
-        getFeesResponse?.tradeTxFees?.fees ?? [],
+        getFeesResponse.tradeTxFees?.fees ?? [],
         false,
       );
     }
     return await this.#smartTransactionsController.submitSignedTransactions({
       signedTransactions,
       signedCanceledTransactions: [],
-      ...(this.#txParams && { txParams: this.#txParams }),
-      ...(this.#transactionMeta && { transactionMeta: this.#transactionMeta }),
+      txParams: this.#txParams,
+      transactionMeta: this.#transactionMeta,
+      networkClientId: this.#transactionMeta.networkClientId,
     });
   };
 
   #addApprovalRequest = ({ uuid }: { uuid: string }) => {
-    const origin = this.#transactionMeta?.origin || 'submitBatch'; // TODO: Load origin correctly for submitBatch.
+    const origin = this.#transactionMeta.origin || 'submitBatch'; // TODO: Load origin correctly for submitBatch.
 
     // if (!origin) throw new Error('Origin is required');
 

@@ -87,7 +87,7 @@ export const TransactionControllerInit: ControllerInitFunction<
           networkController.getNetworkClientRegistry(...args),
         getNetworkState: () => networkController.state,
         hooks: {
-          publish: (transactionMeta: TransactionMeta) =>
+          publish: (transactionMeta: TransactionMeta, signedTransactionInHex: Hex) =>
             publishHook({
               transactionMeta,
               getState,
@@ -95,6 +95,7 @@ export const TransactionControllerInit: ControllerInitFunction<
               smartTransactionsController,
               approvalController,
               initMessenger,
+              signedTransactionInHex,
             }),
           publishBatch: async (_request: PublishBatchHookRequest) =>
             await publishBatchSmartTransactionHook({
@@ -148,6 +149,7 @@ function publishHook({
   smartTransactionsController,
   approvalController,
   initMessenger,
+  signedTransactionInHex
 }: {
   transactionMeta: TransactionMeta;
   getState: () => RootState;
@@ -155,6 +157,7 @@ function publishHook({
   smartTransactionsController: SmartTransactionsController;
   approvalController: ApprovalController;
   initMessenger: TransactionControllerInitMessenger;
+  signedTransactionInHex: Hex;
 }): Promise<{ transactionHash: string }> {
   const state = getState();
   const { shouldUseSmartTransaction, featureFlags } =
@@ -170,6 +173,7 @@ function publishHook({
     controllerMessenger:
       initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
     featureFlags,
+    signedTransactionInHex,
   });
 }
 
@@ -230,6 +234,7 @@ function publishBatchSmartTransactionHook({
     shouldUseSmartTransaction,
     approvalController,
     featureFlags,
+    transactionMeta
   });
 }
 
