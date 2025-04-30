@@ -1,5 +1,9 @@
-import { getEncryptionLibrary } from './index';
-import { AesLib, AesForkedLib } from './aes-native';
+import {
+  getEncryptionLibrary,
+  AesLib,
+  AesForkedLib,
+  QuickCryptoLib,
+} from './index';
 import {
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
@@ -10,11 +14,17 @@ const mockPassword = 'mockPassword';
 const mockSalt = '00112233445566778899001122334455';
 
 describe('lib', () => {
-  describe('getLib', () => {
+  describe('getEncryptionLibrary', () => {
     it('returns the original library', () => {
       const lib = AesLib;
 
       expect(getEncryptionLibrary(ENCRYPTION_LIBRARY.original)).toBe(lib);
+    });
+
+    it('returns the quick-crypto library', () => {
+      const lib = QuickCryptoLib;
+
+      expect(getEncryptionLibrary(ENCRYPTION_LIBRARY.quickCrypto)).toBe(lib);
     });
 
     it('returns the forked library in any other case', () => {

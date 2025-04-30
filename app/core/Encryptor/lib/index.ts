@@ -6,7 +6,14 @@ import { EncryptionLibrary } from '../types';
 function getEncryptionLibrary(
   lib: string | undefined,
 ): EncryptionLibrary {
-  return lib === ENCRYPTION_LIBRARY.original ? AesLib : AesForkedLib;
+  switch (lib) {
+    case ENCRYPTION_LIBRARY.original:
+      return AesLib;
+    case ENCRYPTION_LIBRARY.quickCrypto:
+      return QuickCryptoLib;
+    default:
+      return AesForkedLib;
+  }
 }
 
 export {

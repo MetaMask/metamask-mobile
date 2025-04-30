@@ -113,7 +113,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     salt: string,
     exportable = true,
     opts: KeyDerivationOptions = this.keyDerivationOptions,
-    lib = ENCRYPTION_LIBRARY.original,
+    lib = ENCRYPTION_LIBRARY.quickCrypto,
   ): Promise<EncryptionKey> => {
     const derivedKey = await QuickCryptoLib.deriveKey(password, salt, opts);
     return {
