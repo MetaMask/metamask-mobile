@@ -1,4 +1,3 @@
-import Logger from '../../../../util/Logger';
 import {
   LoginHandlerIdTokenResult,
   AuthConnection,
@@ -44,24 +43,44 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
    * @returns LoginHandlerIdTokenResult
    */
   async login(): Promise<LoginHandlerIdTokenResult> {
-    const result = await signInWithGoogle({
-      serverClientId: this.clientId,
-      nonce: this.nonce,
-      autoSelectEnabled: true,
-      filterByAuthorizedAccounts: false,
-    });
-    Logger.log('handleGoogleLogin: result', result);
+    try {
+      const result = await signInWithGoogle({
+        serverClientId: this.clientId,
+        nonce: this.nonce,
+        autoSelectEnabled: true,
+        filterByAuthorizedAccounts: false,
+      });
 
-    if (result.type === 'google-signin') {
-      return {
-        authConnection: this.authConnection,
-        idToken: result.idToken,
-        clientId: this.clientId,
-      };
+      if (result?.type === 'google-signin') {
+        return {
+          authConnection: this.authConnection,
+          idToken: result.idToken,
+          clientId: this.clientId,
+        };
+      }
+
+      throw new OAuthError(
+        'handleGoogleLogin: Unknown error',
+        OAuthErrorType.UnknownError,
+      );
+    } catch (error) {
+      if (error instanceof OAuthError) {
+        throw error;
+      } else if (error instanceof Error) {
+        if (error.message.includes('cancelled')) {
+          throw new OAuthError(
+            'handleGoogleLogin: User cancelled the login process',
+            OAuthErrorType.UserCancelled,
+          );
+        } else {
+          throw new OAuthError(error, OAuthErrorType.UnknownError);
+        }
+      } else {
+        throw new OAuthError(
+          'handleGoogleLogin: Unknown error',
+          OAuthErrorType.UnknownError,
+        );
+      }
     }
-    throw new OAuthError(
-      'handleGoogleLogin: Unknown error',
-      OAuthErrorType.UnknownError,
-    );
   }
 }
