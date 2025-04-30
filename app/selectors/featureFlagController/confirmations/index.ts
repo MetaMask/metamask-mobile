@@ -18,7 +18,8 @@ const isRemoteFeatureFlagValuesValid = (
   isObject(obj) &&
   hasProperty(obj, 'signatures') &&
   hasProperty(obj, 'staking_confirmations') &&
-  hasProperty(obj, 'contract_interaction');
+  hasProperty(obj, 'contract_interaction') &&
+  hasProperty(obj, 'transfer');
 
 const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags =
   {
@@ -51,7 +52,9 @@ export const selectConfirmationRedesignFlags = createSelector(
 
     const isContractInteractionEnabled = getFeatureFlagValue(
       process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION,
-      confirmationRedesignFlags.contract_interaction,
+      // TODO: This will be pick up values from the remote feature flag once the
+      // feature is ready to be rolled out
+      false,
     );
 
     // TODO: This will be pick up values from the remote feature flag once the feature is ready
