@@ -38,7 +38,6 @@ const styleSheet = (params: {
       paddingVertical: 16,
     },
     headerText: {
-      fontSize: 16,
       fontWeight: 'bold',
       textAlign: 'center',
       marginBottom: 16,
