@@ -286,14 +286,8 @@ const Login: React.FC = () => {
       Logger.error(new Error('Vault corruption recovery failed'), {
         originalError: recoveryError,
         timestamp: Date.now(),
-        deviceInfo: {
-          platform: Platform.OS,
-          osVersion: Platform.Version.toString(),
-          appVersion: '1.0.0'
-        },
         debugInfo: {
           errorType: recoveryError instanceof Error ? recoveryError.message : 'Unknown error type',
-          hasBackup: !!backupResult?.vault,
           passwordLength: password.length
         }
       });

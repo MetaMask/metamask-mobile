@@ -98,31 +98,21 @@ export async function backupVault(
   } catch (error) {
     const vaultError = createVaultError(
       VaultErrorType.KEYCHAIN_ACCESS_ERROR,
-      error instanceof Error ? error : new Error('Unknown backup error'),
-      {
-        platform: Platform.OS,
-        osVersion: Platform.Version.toString(),
-        appVersion: '1.0.0'
-      },
+      error as Error,
       {
         errorType: error instanceof Error ? error.message : 'Unknown error type',
-        hasKeyringState: !!keyringState,
-        hasVault: !!keyringState?.vault
+        hasKeychainAccess: true
       }
     );
 
     Logger.error(new Error('Vault backup failed'), {
       originalError: vaultError,
       timestamp: Date.now(),
-      deviceInfo: {
-        platform: Platform.OS,
-        osVersion: Platform.Version.toString(),
-        appVersion: '1.0.0'
-      },
       debugInfo: {
         errorType: vaultError.type,
         hasKeyringState: !!keyringState,
-        hasVault: !!keyringState?.vault
+        hasVault: !!keyringState?.vault,
+        hasKeychainAccess: true
       }
     });
 
@@ -168,9 +158,8 @@ export async function getVaultFromBackup(): Promise<KeyringBackupResponse> {
       VaultErrorType.KEYCHAIN_ACCESS_ERROR,
       error as Error,
       {
-        platform: Platform.OS,
-        osVersion: Platform.Version.toString(),
-        appVersion: '1.0.0' // TODO: Get actual app version
+        errorType: error instanceof Error ? error.message : 'Unknown error type',
+        hasKeychainAccess: true
       }
     );
 
