@@ -168,10 +168,10 @@ const AccountSelectorList = ({
                   removedAddress: address,
                   nextActiveAddress,
                 });
-                await Engine.context.KeyringController.removeAccount(address);
                 // Revocation of accounts from PermissionController is needed whenever accounts are removed.
                 // If there is an instance where this is not the case, this logic will need to be updated.
                 removeAccountsFromPermissions([toHex(address)]);
+                await Engine.context.KeyringController.removeAccount(address);
               });
             },
           },
