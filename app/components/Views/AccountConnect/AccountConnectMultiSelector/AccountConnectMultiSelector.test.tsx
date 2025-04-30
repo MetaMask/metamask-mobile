@@ -21,6 +21,11 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      }
+    },
     AccountsController: {
       state: {
         internalAccounts: {
