@@ -23,6 +23,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [API Call Logging for Debugging](./docs/readme/api-logging.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
+- [E2E Testing Segment Events](./docs/testing/e2e/segment-events.md)
 
 ## Getting started
 
