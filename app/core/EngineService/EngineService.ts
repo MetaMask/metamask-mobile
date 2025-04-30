@@ -15,6 +15,7 @@ import Routes from '../../constants/navigation/Routes';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { MetaMetrics } from '../Analytics';
 import { debounce } from 'lodash';
+import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 
 const LOG_TAG = 'EngineService';
 
@@ -103,19 +104,29 @@ export class EngineService {
       () => !this.engineInitialized,
     );
 
-    const updateReduxStateDebounced = debounce(() => {
+    const updatedControllers = new Set<string>()
+
+    const updateReduxStateDebounced = (controllerName: string) => {
+      updatedControllers.add(controllerName);
+      flushStateDebounced();
+    }
+
+    const flushStateDebounced = debounce(() => {
       if (!engine.context.KeyringController.metadata.vault) {
         Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
       }
       ReduxService.store.dispatch({
         type: UPDATE_BG_STATE_KEY,
+        payload: { updatedControllers: updatedControllers.values() }
       });
+      updatedControllers.clear();
     }, 200);
 
-    engine.controllerMessenger.subscribe(
-      'ComposableController:stateChange',
-      updateReduxStateDebounced,
-    );
+    BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
+      engine.controllerMessenger.subscribe(eventName, () =>
+        updateReduxStateDebounced(eventName.split(':')[0]),
+      );
+    });
   };
 
   /**

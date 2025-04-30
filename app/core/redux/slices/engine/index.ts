@@ -21,16 +21,25 @@ export const counter: any = {};
 const engineReducer = (
   // eslint-disable-next-line @typescript-eslint/default-param-last
   state = initialState,
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  action: PayloadAction<{ key: any } | undefined>,
+  action: PayloadAction<{ updatedControllers: string[] } | undefined>,
 ) => {
   switch (action.type) {
     case initBgState.type: {
       return { backgroundState: Engine.state };
     }
     case updateBgState.type: {
-      return { backgroundState: Engine.state };
+      const newState = { ...state };
+
+      if (action.payload) {
+        for (const controllerName of action.payload.updatedControllers) {
+          const newControllerState =
+            Engine.state[controllerName as keyof typeof Engine.state];
+
+          newState.backgroundState[controllerName] = newControllerState;
+        }
+      }
+
+      return newState;
     }
     default:
       return state;
