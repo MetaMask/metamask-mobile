@@ -11,6 +11,8 @@ import {
   VAULT_BACKUP_FAILED,
   VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP,
   VAULT_BACKUP_KEY,
+  VAULT_BACKUP_TEMP_KEY,
+  TEMP_VAULT_BACKUP_FAILED,
 } from './constants';
 
 const options: Options = {
@@ -24,10 +26,27 @@ interface KeyringBackupResponse {
 }
 
 /**
- * removes the vault backup from react-native-keychain
+ * Removes the primary vault backup from react-native-keychain
  */
-export const resetVaultBackup = async (): Promise<void> => {
+const _resetVaultBackup = async (): Promise<void> => {
+  // Clear existing backup
   await resetInternetCredentials(VAULT_BACKUP_KEY);
+};
+
+/**
+ * Removes the temporary vault backup from react-native-keychain
+ */
+const _resetTemporaryVaultBackup = async (): Promise<void> => {
+  // Clear temporary backup
+  await resetInternetCredentials(VAULT_BACKUP_TEMP_KEY);
+};
+
+/**
+ * Clears all vault backups from react-native-keychain
+ */
+export const clearAllVaultBackups = async (): Promise<void> => {
+  await _resetVaultBackup();
+  await _resetTemporaryVaultBackup();
 };
 
 /**
@@ -45,10 +64,33 @@ export async function backupVault(
   const keyringVault = keyringState.vault as string;
 
   try {
-    // Clear any existing vault backup first to prevent "item already exists" errors
-    await resetVaultBackup();
+    const existingBackup = await getInternetCredentials(VAULT_BACKUP_KEY);
 
-    // Backup vault
+    // An existing backup exists, backup it to the temp key
+    if (existingBackup && existingBackup.password) {
+      const existingVault = existingBackup.password;
+
+      // Clear any existing temporary backup
+      await _resetTemporaryVaultBackup();
+
+      // Then back up a secondary copy of the vault
+      const tempBackupResult = await setInternetCredentials(
+        VAULT_BACKUP_TEMP_KEY,
+        VAULT_BACKUP_TEMP_KEY,
+        existingVault,
+        options,
+      );
+
+      // Temporary vault backup failed, throw error
+      if (!tempBackupResult) {
+        throw new Error(TEMP_VAULT_BACKUP_FAILED);
+      }
+
+      // Clear any existing vault backup first to prevent "item already exists" errors
+      await _resetVaultBackup();
+    }
+
+    // Backup primary vault
     const backupResult = await setInternetCredentials(
       VAULT_BACKUP_KEY,
       VAULT_BACKUP_KEY,
@@ -60,6 +102,9 @@ export async function backupVault(
     if (!backupResult) {
       throw new Error(VAULT_BACKUP_FAILED);
     }
+
+    // Clear the temporary backup
+    await _resetTemporaryVaultBackup();
 
     return {
       success: true,
