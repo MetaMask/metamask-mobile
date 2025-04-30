@@ -29,7 +29,6 @@ type JSONRPCRequest = JsonRpcRequest & {
 };
 
 export const getAccounts = async () => {
-  const { AccountsController } = Engine.context;
   const selectedAddress = AccountsController.getSelectedAccount()?.address;
   return Promise.resolve(selectedAddress ? [selectedAddress] : []);
 };
