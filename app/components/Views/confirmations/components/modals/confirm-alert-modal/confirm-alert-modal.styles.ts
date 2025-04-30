@@ -35,7 +35,6 @@ const styleSheet = (params: {
       width: 8,
     },
     headerText: {
-      fontSize: 16,
       fontWeight: 'bold',
       textAlign: 'center',
       marginBottom: 16,
