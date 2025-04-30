@@ -1,8 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  selectConfirmationMetricsById,
-} from '../../../../../core/redux/slices/confirmationMetrics';
+import { selectConfirmationMetricsById } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationMetricEvents } from './useConfirmationMetricEvents';
 import { Alert } from '../../types/alerts';
@@ -19,30 +17,41 @@ export function useConfirmationAlertMetrics() {
   const { alerts, isAlertConfirmed, alertKey } = useAlerts();
   const signatureRequest = useSignatureRequest();
 
-  const alertProperties = useMemo(() => alerts.length > 0 ? {
-    alert_trigger_count: alerts.length,
-    alert_trigger_name: getAlertNames(alerts),
-    alert_resolved_count: alerts.filter((alertSelected) =>
-      isAlertConfirmed(alertSelected.key),
-    ).length,
-    alert_resolved: getAlertNames(
-      alerts.filter((alertSelected) => isAlertConfirmed(alertSelected.key)),
-    ),
-  } : undefined, [alerts, isAlertConfirmed]);
-
-  const confirmationMetrics = useSelector((state: RootState) =>
-    selectConfirmationMetricsById(state, signatureRequest?.id ?? '')
+  const alertProperties = useMemo(
+    () =>
+      alerts.length > 0
+        ? {
+            alert_trigger_count: alerts.length,
+            alert_trigger_name: getAlertNames(alerts),
+            alert_resolved_count: alerts.filter((alertSelected) =>
+              isAlertConfirmed(alertSelected.key),
+            ).length,
+            alert_resolved: getAlertNames(
+              alerts.filter((alertSelected) =>
+                isAlertConfirmed(alertSelected.key),
+              ),
+            ),
+          }
+        : undefined,
+    [alerts, isAlertConfirmed],
   );
 
-    const trackInlineAlertClicked = useCallback((alertField?: string) => {
+  const confirmationMetrics = useSelector((state: RootState) =>
+    selectConfirmationMetricsById(state, signatureRequest?.id ?? ''),
+  );
+
+  const trackInlineAlertClicked = useCallback(
+    (alertField?: string) => {
       const alertKeyClicked = uniqueFreshArrayPush(
         (confirmationMetrics?.properties?.alert_key_clicked as string[]) ?? [],
-        getAlertName(alertKey)
+        getAlertName(alertKey),
       );
-      const alertFieldClickedMetrics = confirmationMetrics?.properties?.alert_field_clicked as string[] ?? [];
-      const alertFieldClicked = alertField ? uniqueFreshArrayPush(
-        alertFieldClickedMetrics,
-        alertField) : alertFieldClickedMetrics;
+      const alertFieldClickedMetrics =
+        (confirmationMetrics?.properties?.alert_field_clicked as string[]) ??
+        [];
+      const alertFieldClicked = alertField
+        ? uniqueFreshArrayPush(alertFieldClickedMetrics, alertField)
+        : alertFieldClickedMetrics;
 
       setConfirmationMetric({
         properties: {
@@ -51,34 +60,35 @@ export function useConfirmationAlertMetrics() {
           alert_field_clicked: alertFieldClicked,
         },
       });
-    }, [confirmationMetrics, alertKey, setConfirmationMetric, alertProperties]);
+    },
+    [confirmationMetrics, alertKey, setConfirmationMetric, alertProperties],
+  );
 
-    const trackAlertRendered = useCallback(() => {
-      const alertVisualized = uniqueFreshArrayPush(
-        (confirmationMetrics?.properties?.alert_visualized as string[]) ?? [],
-        getAlertName(alertKey)
-      );
+  const trackAlertRendered = useCallback(() => {
+    const alertVisualized = uniqueFreshArrayPush(
+      (confirmationMetrics?.properties?.alert_visualized as string[]) ?? [],
+      getAlertName(alertKey),
+    );
 
-      setConfirmationMetric({
-        properties: {
-          ...alertProperties,
-          alert_visualized: alertVisualized,
-          alert_visualized_count: alertVisualized.length,
-        },
-      });
+    setConfirmationMetric({
+      properties: {
+        ...alertProperties,
+        alert_visualized: alertVisualized,
+        alert_visualized_count: alertVisualized.length,
+      },
+    });
   }, [confirmationMetrics, alertKey, setConfirmationMetric, alertProperties]);
 
-    const trackAlertMetrics = useCallback(() => {
-      if (!alertProperties) {
-        return;
-      }
-      setConfirmationMetric({
-        properties: {
-          ...alertProperties,
-        },
-      });
-
-    }, [alertProperties, setConfirmationMetric]);
+  const trackAlertMetrics = useCallback(() => {
+    if (!alertProperties) {
+      return;
+    }
+    setConfirmationMetric({
+      properties: {
+        ...alertProperties,
+      },
+    });
+  }, [alertProperties, setConfirmationMetric]);
 
   return {
     trackAlertRendered,

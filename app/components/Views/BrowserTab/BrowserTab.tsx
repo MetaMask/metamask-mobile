@@ -107,7 +107,10 @@ import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
-import UrlAutocomplete, { AutocompleteSearchResult, UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
+import UrlAutocomplete, {
+  AutocompleteSearchResult,
+  UrlAutocompleteRef,
+} from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import {
   getPhishingTestResult,
@@ -215,7 +218,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Checks if a given url or the current url is the homepage
    */
-  const isHomepage = useCallback((checkUrl = null) => {
+  const isHomepage = useCallback((checkUrl?: string | null) => {
     const currentPage = checkUrl || resolvedUrlRef.current;
     const prefixedUrl = prefixUrlWithProtocol(currentPage);
     const { host: currentHost } = getUrlObj(prefixedUrl);
@@ -224,7 +227,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     );
   }, []);
 
-  const notifyAllConnections = useCallback((payload) => {
+  const notifyAllConnections = useCallback((payload: unknown) => {
     backgroundBridgeRef.current?.sendNotification(payload);
   }, []);
 
@@ -361,8 +364,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const handleIpfsContent = useCallback(
     async (
-      fullUrl,
-      { hostname, pathname, query },
+      fullUrl: string,
+      {
+        hostname,
+        pathname,
+        query,
+      }: { hostname: string; pathname: string; query: string },
     ): Promise<IpfsContentResult | undefined | null> => {
       const { provider } =
         Engine.context.NetworkController.getProviderAndBlockTracker();
@@ -753,7 +760,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     // TODO: Make sure to replace with cache hits once EPD has been deprecated.
     if (!isProductSafetyDappScanningEnabled()) {
       const scanResult = getPhishingTestResult(urlToLoad);
-      if (scanResult.result) {
+      let whitelistUrlInput = prefixUrlWithProtocol(urlToLoad);
+      whitelistUrlInput = whitelistUrlInput.replace(/\/$/, ''); // removes trailing slash
+      if (scanResult.result && !whitelist.includes(whitelistUrlInput)) {
         handleNotAllowedUrl(urlToLoad);
         return false;
       }
@@ -1155,7 +1164,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   };
 
   const handleOnFileDownload = useCallback(
-    async ({ nativeEvent: { downloadUrl } }) => {
+    async ({
+      nativeEvent: { downloadUrl },
+    }: {
+      nativeEvent: { downloadUrl: string };
+    }) => {
       const downloadResponse = await downloadFile(downloadUrl);
       if (downloadResponse) {
         reload();
@@ -1194,19 +1207,22 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Handle autocomplete selection
    */
-  const onSelect = useCallback((item: AutocompleteSearchResult) => {
-    // Unfocus the url bar and hide the autocomplete results
-    urlBarRef.current?.hide();
+  const onSelect = useCallback(
+    (item: AutocompleteSearchResult) => {
+      // Unfocus the url bar and hide the autocomplete results
+      urlBarRef.current?.hide();
 
-    if (item.category === 'tokens') {
-      navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
-        chainId: item.chainId,
-        address: item.address,
-      });
-    } else {
-      onSubmitEditing(item.url);
-    }
-  }, [onSubmitEditing, navigation]);
+      if (item.category === 'tokens') {
+        navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
+          chainId: item.chainId,
+          address: item.address,
+        });
+      } else {
+        onSubmitEditing(item.url);
+      }
+    },
+    [onSubmitEditing, navigation],
+  );
 
   /**
    * Handle autocomplete dismissal
@@ -1222,7 +1238,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Hide the autocomplete results
    */
-  const hideAutocomplete = useCallback(() => autocompleteRef.current?.hide(), []);
+  const hideAutocomplete = useCallback(
+    () => autocompleteRef.current?.hide(),
+    [],
+  );
 
   const onCancelUrlBar = useCallback(() => {
     hideAutocomplete();
