@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
-index b654e87..7a2bde8 100644
+index b654e87..2f52b66 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
-@@ -136,38 +136,45 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
+@@ -136,6 +136,7 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
       * @param networkClientId - Optional networkClientId to fetch a network client with
       */
      async refresh(networkClientId) {
@@ -10,14 +10,8 @@ index b654e87..7a2bde8 100644
          const selectedAccount = this.messagingSystem.call('AccountsController:getSelectedAccount');
          const releaseLock = await __classPrivateFieldGet(this, _AccountTrackerController_refreshMutex, "f").acquire();
          try {
-             const { chainId, ethQuery } = __classPrivateFieldGet(this, _AccountTrackerController_instances, "m", _AccountTrackerController_getCorrectNetworkClient).call(this, networkClientId);
-             this.syncAccounts(chainId);
--            const { accounts, accountsByChainId } = this.state;
-+            const { accountsByChainId } = this.state;
-             const { isMultiAccountBalancesEnabled } = this.messagingSystem.call('PreferencesController:getState');
-             const accountsToUpdate = isMultiAccountBalancesEnabled
--                ? Object.keys(accounts)
-+                ? Object.keys(accountsByChainId[chainId])
+@@ -147,23 +148,32 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
+                 ? Object.keys(accounts)
                  : [(0, controller_utils_1.toChecksumHexAddress)(selectedAccount.address)];
              const accountsForChain = { ...accountsByChainId[chainId] };
 -            for (const address of accountsToUpdate) {
@@ -60,12 +54,8 @@ index b654e87..7a2bde8 100644
 +            // Wait for all promises to settle
 +            await Promise.allSettled(balancePromises);
              this.update((state) => {
--                if (chainId === __classPrivateFieldGet(this, _AccountTrackerController_instances, "m", _AccountTrackerController_getCurrentChainId).call(this)) {
--                    state.accounts = accountsForChain;
--                }
-                 state.accountsByChainId[chainId] = accountsForChain;
-             });
-         }
+                 if (chainId === __classPrivateFieldGet(this, _AccountTrackerController_instances, "m", _AccountTrackerController_getCurrentChainId).call(this)) {
+                     state.accounts = accountsForChain;
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 index 0f15eb6..179932b 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
