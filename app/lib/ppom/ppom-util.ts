@@ -194,9 +194,9 @@ function setSecurityAlertResponse(
     );
 
     if (updateControllerState) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       updateSecurityAlertResponse(
         transactionId as string,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         { ...response, securityAlertId } as any,
       );
     }
