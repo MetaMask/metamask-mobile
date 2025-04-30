@@ -59,7 +59,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
    * @param iv - The IV.
    * @returns A promise that resolves to the encrypted data as a base64 string.
    */
-  encrypt = async (data: string, key: string, iv: string): Promise<ArrayBuffer> => {
+  encrypt = async (data: string, key: string, iv: string): Promise<string> => {
     const bufferIv = Buffer.from(iv, 'hex');
     const dataBuffer = Buffer.from(data, 'utf-8');
     const cryptoKey = await this.importKey(key);
@@ -70,7 +70,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
       cryptoKey,
       dataBuffer
     );
-    return encryptedData;
+    return Buffer.from(encryptedData).toString('base64');
   };
 
   /**
@@ -80,18 +80,18 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
    * @param iv - The IV.
    * @returns A promise that resolves to the decrypted data as a string.
    */
-  decrypt = async (data: string, key: string, iv: string): Promise<ArrayBuffer> => {
+  decrypt = async (data: string, key: string, iv: string): Promise<string> => {
     const dataBuffer = Buffer.from(data, 'base64');
     const ivBuffer = Buffer.from(iv, 'hex');
     const cryptoKey = await this.importKey(key);
 
     const decryptedData = await Crypto.subtle.decrypt(
       { name: 'AES-CBC', iv: ivBuffer },
-      // @ts-expect-error - This should be as CryptoKey but the type is not exported
+      // @ts-expect-error - This should be CryptoKey but the type is not exported
       cryptoKey,
       dataBuffer,
     );
-    return decryptedData;
+    return Buffer.from(decryptedData).toString('utf-8');
   };
 
   /**

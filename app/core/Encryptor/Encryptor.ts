@@ -139,10 +139,9 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
 
     const iv = await QuickCryptoLib.generateIv(16);
     const result = await QuickCryptoLib.encrypt(text, key.key, iv);
-    const cipher = Buffer.from(result).toString('base64');
 
     return {
-      cipher,
+      cipher: result,
       iv,
       keyMetadata: key.keyMetadata,
       lib: key.lib,
@@ -162,9 +161,8 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     payload: EncryptionResult,
   ): Promise<unknown> => {
     const result = await QuickCryptoLib.decrypt(payload.cipher, key.key, payload.iv);
-    const text = Buffer.from(result).toString('utf-8');
 
-    return JSON.parse(text);
+    return JSON.parse(result);
   };
 
   /**
