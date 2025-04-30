@@ -49,7 +49,6 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { RootState } from '../../../reducers';
 ///: END:ONLY_INCLUDE_IF
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
-import Logger from '../../../util/Logger';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -94,48 +93,26 @@ const Tokens = memo(() => {
 
   const styles = createStyles(colors);
 
-  // we need to calculate fiat balances here in order to sort by descending fiat amount
-  const tokensWithBalances = useMemo(
-    () =>
-      tokenListData.map((token, i) => ({
-        ...token,
-        tokenFiatAmount: isEvmSelected
-          ? tokenFiatBalances[i]
-          : token.balanceFiat,
-      })),
-    [tokenListData, tokenFiatBalances, isEvmSelected],
-  );
-
-  const tokensList = useMemo((): TokenI[] => {
-    trace({
-      name: TraceName.Tokens,
-      tags: getTraceTags(store.getState()),
-    });
-
-    const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
-    endTrace({
-      name: TraceName.Tokens,
-    });
-    return tokensSorted;
-  }, [tokenSortConfig, tokensWithBalances]);
-
   const sortedTokenKeys = useMemo(() => {
     trace({
       name: TraceName.Tokens,
       tags: getTraceTags(store.getState()),
     });
 
+    const tokensWithBalances = tokenListData.map((token, i) => ({
+      ...token,
+      tokenFiatAmount: isEvmSelected ? tokenFiatBalances[i] : token.balanceFiat,
+    }));
+
     const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
 
     endTrace({ name: TraceName.Tokens });
 
-    // Return only minimal key info
-    return tokensSorted.map(({ address, chainId }) => ({ address, chainId }));
-  }, [tokensWithBalances, tokenSortConfig]);
-
-  Logger.log(sortedTokenKeys[0]);
-
-  Logger.log(tokensList[0]);
+    return tokensSorted.map(({ address, chainId }) => ({
+      address,
+      chainId,
+    }));
+  }, [tokenListData, tokenFiatBalances, isEvmSelected, tokenSortConfig]);
 
   const showRemoveMenu = useCallback(
     (token: TokenI) => {
@@ -226,10 +203,9 @@ const Tokens = memo(() => {
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
         <TokenListControlBar goToAddToken={goToAddToken} />
-        {tokensList && (
+        {sortedTokenKeys && (
           <TokenList
             tokenKeys={sortedTokenKeys}
-            tokens={tokensList}
             refreshing={refreshing}
             isAddTokenEnabled={isAddTokenEnabled}
             onRefresh={onRefresh}

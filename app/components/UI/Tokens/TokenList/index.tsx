@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useRef } from 'react';
 import { View, RefreshControl, Dimensions } from 'react-native';
 import { BlankAreaEvent, FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
@@ -21,7 +21,6 @@ import Routes from '../../../../constants/navigation/Routes';
 
 interface TokenListProps {
   tokenKeys: { address: string; chainId: string | undefined }[];
-  tokens: TokenI[];
   refreshing: boolean;
   isAddTokenEnabled: boolean;
   onRefresh: () => void;
@@ -33,7 +32,6 @@ interface TokenListProps {
 
 export const TokenList = ({
   tokenKeys,
-  tokens,
   refreshing,
   isAddTokenEnabled,
   onRefresh,
@@ -48,7 +46,8 @@ export const TokenList = ({
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
-  // const listRef = useRef<FlashList<TokenI>>(null);
+  const listRef =
+    useRef<FlashList<{ address: string; chainId: string | undefined }>>(null);
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
@@ -57,12 +56,12 @@ export const TokenList = ({
 
   const itemHeight = 80; // Adjust this to match TokenListItem height
 
-  const listLength = tokens.length;
+  const listLength = tokenKeys.length;
   const estimatedListHeight = itemHeight * listLength;
 
-  // useLayoutEffect(() => {
-  //   listRef.current?.recomputeViewableItems();
-  // }, [isTokenNetworkFilterEqualCurrentNetwork]);
+  useLayoutEffect(() => {
+    listRef.current?.recomputeViewableItems();
+  }, [isTokenNetworkFilterEqualCurrentNetwork]);
 
   const handleLink = () => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
@@ -74,7 +73,6 @@ export const TokenList = ({
     ({ item }: { item: { address: string; chainId: string | undefined } }) => (
       <TokenListItem
         assetKey={item}
-        // asset={item}
         showRemoveMenu={showRemoveMenu}
         setShowScamWarningModal={setShowScamWarningModal}
         privacyMode={privacyMode}
@@ -89,27 +87,9 @@ export const TokenList = ({
     ],
   );
 
-  // const renderTokenListItem = useCallback(
-  //   ({ item }: { item: TokenI }) => (
-  //     <TokenListItem
-  //       asset={item}
-  //       showRemoveMenu={showRemoveMenu}
-  //       setShowScamWarningModal={setShowScamWarningModal}
-  //       privacyMode={privacyMode}
-  //       showPercentageChange={showPercentageChange}
-  //     />
-  //   ),
-  //   [
-  //     showRemoveMenu,
-  //     setShowScamWarningModal,
-  //     privacyMode,
-  //     showPercentageChange,
-  //   ],
-  // );
-
-  return tokens?.length ? (
+  return tokenKeys?.length ? (
     <FlashList
-      // ref={listRef}
+      ref={listRef}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokenKeys}
       estimatedItemSize={itemHeight}
@@ -129,7 +109,9 @@ export const TokenList = ({
       keyExtractor={(item) => `${item.address}-${item.chainId}`}
       ListFooterComponent={
         <TokenListFooter
-          tokens={tokens}
+          // TODO: This previously accepted all tokens as a prop
+          // Instead, select tokens in the footer component via redux selector
+          tokens={[]}
           goToAddToken={goToAddToken}
           isAddTokenEnabled={isAddTokenEnabled}
         />
@@ -158,6 +140,6 @@ export const TokenList = ({
           {strings('wallet.show_tokens_without_balance')}
         </Text>
       </View>
-    </View> // TO see tokens without balance, Click here.
+    </View>
   );
 };

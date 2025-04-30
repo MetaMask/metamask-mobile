@@ -22,7 +22,11 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
-import { CaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import {
+  CaipAssetId,
+  CaipAssetType,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -442,23 +446,26 @@ export const selectSolanaAccountTransactions = createDeepEqualSelector(
 
 export const selectNonEvmAssetById = createDeepEqualSelector(
   [
+    selectIsEvmNetworkSelected,
     selectMultichainBalances,
-    selectMultichainAssets,
     selectMultichainAssetsMetadata,
     selectMultichainAssetsRates,
     (_: RootState, params: { accountId?: string; assetId: string }) =>
       params.accountId,
     (_: RootState, params: { accountId?: string; assetId: string }) =>
-      params.assetId,
+      params.assetId as CaipAssetId,
   ],
   (
+    isEvmNetworkSelected,
     multichainBalances,
-    assets,
     assetsMetadata,
     assetsRates,
     accountId,
     assetId,
   ) => {
+    if (isEvmNetworkSelected) {
+      return undefined;
+    }
     if (!accountId) {
       throw new Error('Account ID is required to fetch asset.');
     }
