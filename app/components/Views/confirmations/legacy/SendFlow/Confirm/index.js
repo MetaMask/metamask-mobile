@@ -122,8 +122,6 @@ import {
   selectConfirmationMetrics,
   updateConfirmationMetric,
 } from '../../../../../../core/redux/slices/confirmationMetrics';
-import SimulationDetails from '../../../../../UI/SimulationDetails/SimulationDetails';
-import { selectUseTransactionSimulations } from '../../../../../../selectors/preferencesController';
 import {
   validateSufficientTokenBalance,
   validateSufficientBalance,
@@ -286,10 +284,6 @@ class Confirm extends PureComponent {
      * Update confirmation metrics
      */
     updateConfirmationMetric: PropTypes.func,
-    /**
-     * Indicates whether the transaction simulations feature is enabled
-     */
-    useTransactionSimulations: PropTypes.bool,
     /**
      * Object containing blockaid validation response for confirmation
      */
@@ -1379,9 +1373,6 @@ class Confirm extends PureComponent {
       gasEstimateType,
       isNativeTokenBuySupported,
       shouldUseSmartTransaction,
-      transactionMetadata,
-      transactionState,
-      useTransactionSimulations,
     } = this.props;
     const { nonce } = this.props.transaction;
     const {
@@ -1412,7 +1403,6 @@ class Confirm extends PureComponent {
     const isLedgerAccount = isHardwareAccount(fromSelectedAddress, [
       ExtendedKeyringTypes.ledger,
     ]);
-    const transactionSimulationData = transactionMetadata?.simulationData;
 
     const isTestNetwork = isTestNet(chainId);
 
@@ -1486,16 +1476,6 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
-          {useTransactionSimulations &&
-            transactionState?.id &&
-            transactionMetadata && (
-              <View style={styles.simulationWrapper}>
-                <SimulationDetails
-                  transaction={transactionMetadata}
-                  enableMetrics
-                />
-              </View>
-            )}
           <TransactionReview
             gasSelected={this.state.gasSelected}
             primaryCurrency={primaryCurrency}
@@ -1643,7 +1623,6 @@ const mapStateToProps = (state) => {
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
-    useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
     maxValueMode: state.transaction.maxValueMode,
   };
