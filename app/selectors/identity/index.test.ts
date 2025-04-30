@@ -1,6 +1,7 @@
 import {
-  selectIsProfileSyncingEnabled,
-  selectIsProfileSyncingUpdateLoading,
+  selectIsBackupAndSyncEnabled,
+  selectIsBackupAndSyncUpdateLoading,
+  selectIsAccountSyncingEnabled,
   selectIsAccountSyncingReadyToBeDispatched,
   selectIsSignedIn,
 } from './index';
@@ -16,23 +17,31 @@ describe('Notification Selectors', () => {
         UserStorageController: {
           isProfileSyncingEnabled: true,
           isProfileSyncingUpdateLoading: false,
+          isAccountSyncingEnabled: true,
           isAccountSyncingReadyToBeDispatched: false,
         },
       },
     },
   } as unknown as RootState;
 
-  it('selectIsProfileSyncingEnabled returns correct value', () => {
-    expect(selectIsProfileSyncingEnabled(mockState)).toEqual(
+  it('selectIsBackupAndSyncEnabled returns correct value', () => {
+    expect(selectIsBackupAndSyncEnabled(mockState)).toEqual(
       mockState.engine.backgroundState.UserStorageController
         .isProfileSyncingEnabled,
     );
   });
 
   it('selectIsProfileSyncingUpdateLoading returns correct value', () => {
-    expect(selectIsProfileSyncingUpdateLoading(mockState)).toEqual(
+    expect(selectIsBackupAndSyncUpdateLoading(mockState)).toEqual(
       mockState.engine.backgroundState.UserStorageController
         .isProfileSyncingUpdateLoading,
+    );
+  });
+
+  it('selectIsAccountSyncingEnabled returns correct value', () => {
+    expect(selectIsAccountSyncingEnabled(mockState)).toEqual(
+      mockState.engine.backgroundState.UserStorageController
+        .isAccountSyncingEnabled,
     );
   });
 

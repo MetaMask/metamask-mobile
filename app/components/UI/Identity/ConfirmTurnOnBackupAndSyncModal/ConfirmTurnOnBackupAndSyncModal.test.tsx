@@ -2,7 +2,7 @@
 import React from 'react';
 
 // Internal dependencies.
-import ProfileSyncingModal from './ProfileSyncingModal';
+import ProfileSyncingModal from './ConfirmTurnOnBackupAndSyncModal';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 

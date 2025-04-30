@@ -2,9 +2,9 @@
 import React from 'react';
 
 // Internal dependencies.
-import ProfileSyncingComponent from './ProfileSyncing';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import Routes from '../../../constants/navigation/Routes';
+import ProfileSyncingComponent from './BackupAndSyncToggle';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import Routes from '../../../../constants/navigation/Routes';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 
 const MOCK_STORE_STATE = {
