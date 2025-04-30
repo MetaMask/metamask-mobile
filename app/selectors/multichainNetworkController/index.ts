@@ -98,3 +98,9 @@ export const selectSelectedNonEvmNetworkSymbol = createSelector(
     nonEvmNetworkConfigurationsByChainId[selectedMultichainNetworkChainId]
       ?.ticker,
 );
+
+export const selectNetworksWithActivity = createSelector(
+  selectMultichainNetworkControllerState,
+  (multichainNetworkControllerState: MultichainNetworkControllerState) =>
+    multichainNetworkControllerState.networksWithTransactionActivity,
+);
