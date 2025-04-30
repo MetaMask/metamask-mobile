@@ -13,6 +13,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import * as TransactionUtils from '../../../../../../util/transactions';
 // eslint-disable-next-line import/no-namespace
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
+import { MOCK_KEYRING_CONTROLLER_STATE } from '../../../../../../util/test/keyringControllerTestUtils';
 
 jest.mock('../../../../../../util/transactions', () => ({
   ...jest.requireActual('../../../../../../util/transactions'),
@@ -68,14 +69,24 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE =
 
 jest.mock('../../../../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
-    jest.requireActual('../../../../../../util/test/accountsControllerTestUtils');
+    jest.requireActual(
+      '../../../../../../util/test/accountsControllerTestUtils',
+    );
+  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
   return {
     context: {
       KeyringController: {
         state: {
           keyrings: [
             {
+              type: KeyringTypes.hd,
               accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+            },
+          ],
+          keyringsMetadata: [
+            {
+              id: '01JNG71B7GTWH0J1TSJY9891S0',
+              name: '',
             },
           ],
         },
@@ -122,6 +133,7 @@ const mockState = {
         securityAlertsEnabled: true,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
     },
   },
   settings: {

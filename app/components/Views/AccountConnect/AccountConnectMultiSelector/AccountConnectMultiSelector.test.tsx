@@ -23,31 +23,51 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    PermissionController: {
-      revokeAllPermissions: jest.fn(),
-    },
-    AccountsController: {
-      state: {
-        internalAccounts: {
-          accounts: {
-            '0x1234': {
-              address: '0x1234',
-              name: 'Account 1',
-              type: 'simple',
-            },
-            '0x5678': {
-              address: '0x5678',
-              name: 'Account 2',
-              type: 'simple',
+jest.mock('../../../../core/Engine', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
+  return {
+    context: {
+      PermissionController: {
+        revokeAllPermissions: jest.fn(),
+      },
+      AccountsController: {
+        state: {
+          internalAccounts: {
+            accounts: {
+              '0x1234': {
+                address: '0x1234',
+                name: 'Account 1',
+                type: 'simple',
+              },
+              '0x5678': {
+                address: '0x5678',
+                name: 'Account 2',
+                type: 'simple',
+              },
             },
           },
         },
       },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              type: KeyringTypes.hd,
+              accounts: ['0x1234', '0x5678'],
+            },
+          ],
+          keyringsMetadata: [
+            {
+              id: '01JNG71B7GTWH0J1TSJY9891S0',
+              name: '',
+            },
+          ],
+        },
+      },
     },
-  },
-}));
+  };
+});
 
 const mockAccounts = [
   {

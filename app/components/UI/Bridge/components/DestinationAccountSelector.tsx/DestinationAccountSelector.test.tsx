@@ -7,26 +7,48 @@ import DestinationAccountSelector from './index';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 // Mock Engine
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    AccountsController: {
-      state: {
-        internalAccounts: {
-          accounts: {
-            '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi': {
-              address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
-              name: 'Account 1',
-            },
-            '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi': {
-              address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
-              name: 'Account 2',
+jest.mock('../../../../../core/Engine', () => {
+  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
+  return {
+    context: {
+      AccountsController: {
+        state: {
+          internalAccounts: {
+            accounts: {
+              '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi': {
+                address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                name: 'Account 1',
+              },
+              '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi': {
+                address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                name: 'Account 2',
+              },
             },
           },
         },
       },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              type: KeyringTypes.hd,
+              accounts: [
+                '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+              ],
+            },
+          ],
+          keyringsMetadata: [
+            {
+              id: '01JNG71B7GTWH0J1TSJY9891S0',
+              name: '',
+            },
+          ],
+        },
+      },
     },
-  },
-}));
+  };
+});
 
 // Mock React Native Linking
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -140,7 +162,9 @@ describe('DestinationAccountSelector', () => {
   it('clears destination address when close button is pressed', () => {
     const { getByTestId, store } = renderComponent();
     // The close button is a ButtonIcon component with IconName.Close
-    const closeButton = getByTestId('cellselect').findByProps({ iconName: 'Close' });
+    const closeButton = getByTestId('cellselect').findByProps({
+      iconName: 'Close',
+    });
     fireEvent.press(closeButton);
 
     const actions = store.getActions();
@@ -186,7 +210,9 @@ describe('DestinationAccountSelector', () => {
 
   it('clears destination when close button is pressed', () => {
     const { getByTestId, store } = renderComponent();
-    const closeButton = getByTestId('cellselect').findByProps({ iconName: 'Close' });
+    const closeButton = getByTestId('cellselect').findByProps({
+      iconName: 'Close',
+    });
     fireEvent.press(closeButton);
 
     const actions = store.getActions();
