@@ -113,11 +113,11 @@ export const useSnapAssetSelectorData = ({
     return {
       icon: asset.image,
       symbol: asset.symbol,
-      name: asset.title,
-      balance: formatAssetBalance(asset.primary),
+      name: asset.name,
+      balance: formatAssetBalance(asset.balance),
       networkName,
       networkIcon: getNonEvmNetworkImageSourceByChainId(asset.chainId as CaipChainId),
-      fiat: formatFiatBalance(asset.secondary),
+      fiat: formatFiatBalance(Number(asset.secondary)),
       chainId: asset.chainId as CaipChainId,
       address: asset.address as CaipAssetType,
     };
