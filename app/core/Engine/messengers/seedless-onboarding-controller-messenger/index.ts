@@ -15,7 +15,7 @@ export function getSeedlessOnboardingControllerMessenger(
 ) {
   return baseControllerMessenger.getRestricted({
     name: 'SeedlessOnboardingController',
-    allowedEvents: [],
+    allowedEvents: ['KeyringController:lock', 'KeyringController:unlock'],
     allowedActions: [],
   });
 }
