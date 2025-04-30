@@ -150,7 +150,13 @@ exports[`Browser should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`Browser should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -664,12 +671,6 @@ TypeError: Cannot read properties of undefined (reading 'map')
                               </Text>
                             </TouchableOpacity>
                           </View>
-                          <Modal
-                            animationType="slide"
-                            hardwareAccelerated={false}
-                            onRequestClose={[Function]}
-                            visible={false}
-                          />
                         </View>
                       </RNCSafeAreaView>
                     </View>

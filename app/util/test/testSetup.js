@@ -187,15 +187,22 @@ jest.mock('react-native-branch', () => ({
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
-jest.mock('react-native-reanimated', () =>
-  require('react-native-reanimated/mock'),
-);
+
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock(
   '@react-native-async-storage/async-storage',
   () => mockRNAsyncStorage,
 );
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
+
+/**
+ * Mock the reanimated module temporarily while the infinite style issue is being investigated
+ * Issue: https://github.com/software-mansion/react-native-reanimated/issues/6645
+ */
+jest.mock('react-native-reanimated', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('react-native-reanimated/mock'),
+);
 
 NativeModules.RNGestureHandlerModule = {
   attachGestureHandler: jest.fn(),
@@ -258,8 +265,6 @@ jest.mock(
   'react-native/Libraries/Components/TextInput/TextInput',
   () => 'TextInput',
 );
-
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   runAfterInteractions: jest.fn(),
@@ -341,7 +346,7 @@ jest.mock('../../store/storage-wrapper', () => ({
 }));
 
 // eslint-disable-next-line import/no-commonjs
-require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests();
+require('react-native-reanimated').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
 

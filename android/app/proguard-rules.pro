@@ -48,3 +48,18 @@
   -keep class kotlin.** { *; }
 
   -keep class kotlin.Metadata { *; }
+
+-dontwarn kotlinx.serialization.SerialName
+-dontwarn kotlinx.serialization.Serializable
+
+# Ignore missing Java desktop classes referenced by JNA
+-dontwarn java.awt.**
+-dontwarn javax.swing.**
+-dontwarn java.lang.instrument.**
+-dontwarn sun.misc.**
+-dontwarn org.mockito.**
+-dontwarn edu.umd.cs.findbugs.**
+-dontwarn com.huawei.hms.ads.**
+-dontwarn com.google.common.util.concurrent.**
+-dontwarn org.objectweb.asm.**
+-dontwarn net.bytebuddy.**
