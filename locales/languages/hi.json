@@ -29,9 +29,9 @@
       "message": "अनुरोध करने वाली साइट वह साइट नहीं है जिस पर आप साइन इन कर रहे हैं। यह आपके लॉगिन क्रेडेंशियल चुराने का प्रयास हो सकता है।"
     },
     "insufficient_balance": {
-      "title": "Insufficient funds",
-      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
-      "buy_action": "Buy %{nativeCurrency}"
+      "title": "अपर्याप्त फंड",
+      "message": "नेटवर्क शुल्क का भुगतान करने के लिए आपके अकाउंट में पर्याप्त %{nativeCurrency} नहीं है।",
+      "buy_action": "%{nativeCurrency} खरीदें"
     }
   },
   "blockaid_banner": {
@@ -83,11 +83,11 @@
     "connector": "पर"
   },
   "autocomplete": {
-    "placeholder": "Search by token, site or address",
+    "placeholder": "टोकन, साइट या एड्रेस से ढूंढें",
     "recents": "हालिया",
     "favorites": "पसंदीदा",
     "sites": "साइट्स",
-    "tokens": "Tokens"
+    "tokens": "टोकन"
   },
   "navigation": {
     "back": "वापस",
@@ -444,8 +444,8 @@
       "subtitle": "सेटिंग्स में अपना बैलेंस व्यू नियंत्रित करें"
     },
     "multisrp": {
-      "title": "Add multiple Secret Recovery Phrases",
-      "subtitle": "Import and use multiple wallets in MetaMask"
+      "title": "कई सीक्रेट रिकवरी फ्रेज़ जोड़ें",
+      "subtitle": "MetaMask में एकाधिक वॉलेट इंपोर्ट करें और उनका उपयोग करें"
     }
   },
   "wallet": {
@@ -793,14 +793,14 @@
     "show_accounts": "दिखाएं",
     "hide_accounts": "छुपाएं",
     "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
-      "bitcoin_account_name": "Bitcoin Account",
-      "solana_devnet_account_name": "Solana Devnet Account",
-      "solana_testnet_account_name": "Solana Testnet Account",
-      "solana_account_name": "Solana Account"
+      "bitcoin_testnet_account_name": "Bitcoin टैस्टनेट (testnet) अकाउंट",
+      "bitcoin_account_name": "Bitcoin अकाउंट",
+      "solana_devnet_account_name": "Solana Devnet अकाउंट",
+      "solana_testnet_account_name": "Solana टैस्टनेट (testnet) अकाउंट",
+      "solana_account_name": "Solana अकाउंट"
     },
     "error_messages": {
-      "failed_to_create_account": "Failed to create {{clientType}} account"
+      "failed_to_create_account": "{{clientType}} अकाउंट बनाने में विफल रहे"
     }
   },
   "toast": {
@@ -985,8 +985,8 @@
     "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC नाम",
     "network_rpc_placeholder": "नया RPC नेटवर्क ",
-    "network_failover_rpc_url_label": "Failover RPC URL",
-    "failover": "Failover",
+    "network_failover_rpc_url_label": "फेलओवर RPC URL",
+    "failover": "फेलओवर",
     "network_chain_id_label": "चेन ID",
     "network_chain_id_placeholder": "चेन ID",
     "network_symbol_label": "प्रतीक",
@@ -1135,7 +1135,7 @@
       "description": "अपने Snaps को ओवरव्यू करें और उन्हें मैनेज करें",
       "snap_ui": {
         "link": {
-          "accessibilityHint": "Opens in a new tab"
+          "accessibilityHint": "एक नए टैब में खुलता है"
         }
       },
       "snap_settings": {
@@ -1508,7 +1508,7 @@
     "gas_fee_slow": "धीमा",
     "hex_data": "हेक्स डेटा",
     "custom_nonce": "नॉन्स (nonce)",
-    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
+    "custom_nonce_tooltip": "यह किसी अकाउंट की ट्रांसेक्शन संख्या है। पहले ट्रांसेक्शन के लिए nonce 0 है और यह क्रमिक क्रम में बढ़ता है।",
     "this_is_an_advanced": "यह एक एडवांस फीचर है जिसका उपयोग किसी विचाराधीन लेन-देन को रद्द करने या तेज करने में किया जाता है।",
     "current_suggested_nonce": "वर्तमान सुझाए गए नॉन्स:",
     "edit_transaction_nonce": "लेन-देन नॉन्स को संपादित करें",
@@ -1787,7 +1787,7 @@
     "tx_details_not_available": "उपलब्ध नहीं है",
     "smart_contract_interaction": "स्मार्ट अनुबंध संपर्क",
     "swaps_transaction": "स्वैप का लेन-देन",
-    "bridge_transaction": "Bridge",
+    "bridge_transaction": "ब्रिज",
     "approve": "स्वीकृति दें",
     "increase_allowance": "भत्ता बढ़ाएं",
     "set_approval_for_all": "सभी के लिए एप्रूवल सेट करें",
@@ -2113,7 +2113,7 @@
     "info_text_2": "यह आश्वस्त करेगा कि केवल आप ही अपने फंड तक पहुंच सकें और यदि आप अपनी डिवाइस खो देते हैं तो ये आपको आपका वॉलेट रिकवर करने देगा।",
     "cta_text": "पासवर्ड बनाएं",
     "creating_password": "पासवर्ड बना रहे हैं...",
-    "srp_list_selection": "Select Secret Recovery Phrase"
+    "srp_list_selection": "सीक्रेट रिकवरी फ्रेज़ चुनें"
   },
   "account_backup_step_1": {
     "remind_me_later": "मुझे बाद में याद दिलाएं",
@@ -2754,7 +2754,7 @@
     "minimum": "न्यूनतम जमा राशि है",
     "maximum": "अधिकतम जमा राशि है",
     "insufficient_balance": "यह राशि आपकी शेष बैलेंस से अधिक है",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "आपके पास गैस फीस का भुगतान करने के लिए पर्याप्त {{currency}} नहीं है।",
     "enter_larger_amount": "जारी रखने के लिए बड़ी राशि दर्ज करें",
     "enter_smaller_amount": "जारी रखने के लिए छोटी राशि दर्ज करें",
     "enter_lower_gas_fees": "गैस फीस भरने के लिए कोई कम अमाउंट डालें",
@@ -2862,7 +2862,7 @@
     }
   },
   "swaps": {
-    "title": "Swap",
+    "title": "स्वैप करें",
     "onboarding": {
       "get_the": "पाएं",
       "best_price": "सबसे अच्छी कीमत",
@@ -3805,21 +3805,21 @@
       "permit_revoke": "अनुमति हटाएं",
       "permit_NFTs": "विदड्रॉवल का अनुरोध",
       "signature_siwe": "साइन-इन का अनुरोध",
-      "contract_interaction": "Transaction request"
+      "contract_interaction": "ट्रांसेक्शन का अनुरोध"
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
       "permit_NFTs": "यह साइट आपके NFTs को निकालने की अनुमति चाहती है।",
       "signature": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।",
       "signature_siwe": "एक साइट चाहती है कि आप यह साबित करने के लिए साइन इन करें कि यह अकाउंट आपका है।",
-      "contract_interaction": "Review request details before you confirm."
+      "contract_interaction": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।"
     },
     "request_from": "इनसे मिला अनुरोध",
     "staking_from": "से स्टेक किया जा रहा है",
     "signing_in_with": "के साथ साइन इन किया जा रहा है",
     "message": "संदेश",
     "personal_sign_tooltip": "यह साइट आपका सिग्नेचर मांग रही है",
-    "transaction_tooltip": "This site is asking for your transaction",
+    "transaction_tooltip": "यह साइट आपका ट्रांसेक्शन मांग रही है",
     "details": "विवरण",
     "qr_get_sign": "सिग्नेचर प्राप्त करें",
     "qr_scan_text": "अपने हार्डवेयर वॉलेट के साथ स्कैन करें",
@@ -3855,8 +3855,9 @@
     },
     "unlimited": "असीमित",
     "none": "कोई नहीं",
-    "advanced_details": "Advanced details",
-    "interacting_with": "Interacting with"
+    "advanced_details": "एडवांस्ड विवरण",
+    "interacting_with": "के साथ इंटरैक्ट कर रहा है",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "परिणाम बदल गए हैं",
@@ -3898,28 +3899,33 @@
     "quote_info_content": "यह कोटेशन हमारी खोज से सबसे अच्छा रिटर्न प्रदान करता है। यह स्वैप दर पर आधारित है, जिसमें ब्रिजिंग फीस और 0.875% MetaMask शुल्क शामिल है, लेकिन गैस फीस नहीं। गैस फीस नेटवर्क गतिविधि और ट्रांसेक्शन जटिलता के साथ अलग-अलग होता है।",
     "quote_info_title": "हम इस कोटेशन का सुझाव क्यों देते हैं",
     "see_other_quotes": "अन्य कोटेशन देखें",
-    "receive_at": "Receive at",
-    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
-    "insufficient_funds": "Insufficient funds",
-    "select_amount": "Select amount",
-    "bridge_to": "Bridge to",
-    "title": "Bridge",
-    "submitting_transaction": "Submitting",
-    "fetching_quote": "Fetching quote"
+    "receive_at": "यहां प्राप्त करें",
+    "error_banner_description": "यह ट्रेड रूट अभी उपलब्ध नहीं है। राशि, नेटवर्क या टोकन बदलने का प्रयास करें और हम सबसे अच्छा विकल्प ढूँढ लेंगे।",
+    "insufficient_funds": "अपर्याप्त फंड",
+    "select_amount": "राशि चुनें",
+    "bridge_to": "इसपर ब्रिज करें",
+    "title": "ब्रिज",
+    "submitting_transaction": "सबमिट किया जा रहा है",
+    "fetching_quote": "कोटेशन लाया जा रहा है"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
   },
   "bridge_transaction_details": {
-    "status": "Status",
-    "date": "Date",
-    "total_gas_fee": "Total gas fee",
-    "estimated_completion": "Est. completion",
-    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
-    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
-    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
-    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
-    "view_on_block_explorer": "View on Block Explorer",
-    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
-    "transaction_details": "Transaction Details",
-    "bridge_to_chain": "Bridge to {{chainName}}",
-    "recipient": "Recipient"
+    "status": "स्टेटस",
+    "date": "तिथि",
+    "total_gas_fee": "कुल गैस फीस",
+    "estimated_completion": "अनुमानित पूर्णता",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} {{destChainName}} को प्राप्त किया गया",
+    "bridge_step_action_bridge_pending": "{{destSymbol}} {{destChainName}} को प्राप्त किया जा रहा है",
+    "bridge_step_action_swap_complete": "{{srcSymbol}} को {{destSymbol}} के लिए स्वैप किया गया",
+    "bridge_step_action_swap_pending": "{{srcSymbol}} को {{destSymbol}} के लिए स्वैप किया जा रहा है",
+    "view_on_block_explorer": "ब्लॉक एक्सप्लोरर पर देखें",
+    "block_explorer_description": "यह ट्रांसेक्शन दो नेटवर्क पर होता है। पहला लिंक स्रोत दिखाता है; दूसरा कन्फर्म होने के बाद गंतव्य दिखाता है।",
+    "transaction_details": "ट्रांसेक्शन संबंधी विवरण",
+    "bridge_to_chain": "{{chainName}} पर ब्रिज करें",
+    "recipient": "प्राप्तकर्ता"
   }
 }

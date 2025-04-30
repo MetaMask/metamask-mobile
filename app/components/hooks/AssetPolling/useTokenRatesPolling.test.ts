@@ -59,7 +59,7 @@ describe('useTokenRatesPolling', () => {
 
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(1);
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledWith({
-      chainId: '0x1',
+      chainIds: ['0x1'],
     });
 
     expect(
@@ -119,7 +119,7 @@ describe('useTokenRatesPolling', () => {
 
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(1);
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledWith({
-      chainId: '0x82750',
+      chainIds: ['0x82750'],
     });
 
     expect(
