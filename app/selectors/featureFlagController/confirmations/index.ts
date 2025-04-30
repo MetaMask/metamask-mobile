@@ -29,10 +29,10 @@ const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags =
     transfer: false,
   };
 
-export const selectConfirmationRedesignFlags = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteValues = remoteFeatureFlags.confirmation_redesign;
+export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
+  remoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags>,
+) => {
+  const remoteValues = remoteFeatureFlags.confirmation_redesign;
 
     const confirmationRedesignFlags = isRemoteFeatureFlagValuesValid(
       remoteValues,
@@ -40,33 +40,36 @@ export const selectConfirmationRedesignFlags = createSelector(
       ? remoteValues
       : confirmationRedesignFlagsDefaultValues;
 
-    const isSignaturesEnabled = getFeatureFlagValue(
-      process.env.FEATURE_FLAG_REDESIGNED_SIGNATURES,
-      confirmationRedesignFlags.signatures,
-    );
+  const isSignaturesEnabled = getFeatureFlagValue(
+    process.env.FEATURE_FLAG_REDESIGNED_SIGNATURES,
+    confirmationRedesignFlags.signatures,
+  );
 
-    const isStakingConfirmationsEnabled = getFeatureFlagValue(
-      process.env.FEATURE_FLAG_REDESIGNED_STAKING_TRANSACTIONS,
-      confirmationRedesignFlags.staking_confirmations,
-    );
+  const isStakingConfirmationsEnabled = getFeatureFlagValue(
+    process.env.FEATURE_FLAG_REDESIGNED_STAKING_TRANSACTIONS,
+    confirmationRedesignFlags.staking_confirmations,
+  );
 
-    const isContractInteractionEnabled = getFeatureFlagValue(
-      process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION,
-      // TODO: This will be pick up values from the remote feature flag once the
-      // feature is ready to be rolled out
-      false,
-    );
+  const isContractInteractionEnabled = getFeatureFlagValue(
+    process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION,
+    // TODO: This will be pick up values from the remote feature flag once the
+    // feature is ready to be rolled out
+    false,
+  );
 
-    // TODO: This will be pick up values from the remote feature flag once the feature is ready
-    // Task is created but still in draft
-    const isTransferEnabled =
-      process.env.FEATURE_FLAG_REDESIGNED_TRANSFER === 'true';
+  // TODO: This will be pick up values from the remote feature flag once the feature is ready
+  // Task is created but still in draft
+  const isTransferEnabled = process.env.FEATURE_FLAG_REDESIGNED_TRANSFER === 'true';
 
-    return {
-      signatures: isSignaturesEnabled,
-      staking_confirmations: isStakingConfirmationsEnabled,
-      contract_interaction: isContractInteractionEnabled,
-      transfer: isTransferEnabled,
-    };
-  },
+  return {
+    signatures: isSignaturesEnabled,
+    staking_confirmations: isStakingConfirmationsEnabled,
+    contract_interaction: isContractInteractionEnabled,
+    transfer: isTransferEnabled,
+  };
+};
+
+export const selectConfirmationRedesignFlags = createSelector(
+  selectRemoteFeatureFlags,
+  selectConfirmationRedesignFlagsFromRemoteFeatureFlags,
 );

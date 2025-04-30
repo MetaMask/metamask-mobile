@@ -25,6 +25,14 @@ jest.mock('../../../../../../hooks/useEditNonce', () => ({
   useEditNonce: jest.fn(),
 }));
 
+jest.mock('../../../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
+
 describe('AdvancedDetailsRow', () => {
   const mockUseEditNonce = {
     setShowNonceModal: jest.fn(),

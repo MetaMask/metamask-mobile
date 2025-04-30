@@ -3,6 +3,7 @@ import { SignatureRequest } from '@metamask/signature-controller';
 import { TransactionMeta, TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
 import { View } from 'react-native';
+import { ApprovalType } from '@metamask/controller-utils';
 
 import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../../component-library/components/Texts/Text';
@@ -12,8 +13,8 @@ import { useSignatureRequest } from '../../hooks/signatures/useSignatureRequest'
 import { useStandaloneConfirmation } from '../../hooks/ui/useStandaloneConfirmation';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { isPermitDaiRevoke, isRecognizedPermit, isSIWESignatureRequest, parseTypedDataMessageFromSignatureRequest } from '../../utils/signature';
+import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
 import styleSheet from './title.styles';
-import { ApprovalType } from '@metamask/controller-utils';
 
 const getTitleAndSubTitle = (
   approvalRequest?: ApprovalRequest<{ data: string }>,
@@ -76,6 +77,15 @@ const getTitleAndSubTitle = (
         return {
           title: strings('confirm.title.contract_interaction'),
           subTitle: strings('confirm.sub_title.contract_interaction'),
+        };
+      }
+      if (
+        REDESIGNED_TRANSFER_TYPES.includes(
+          transactionMetadata?.type as TransactionType,
+        )
+      ) {
+        return {
+          title: strings('confirm.title.transfer'),
         };
       }
       return {};
