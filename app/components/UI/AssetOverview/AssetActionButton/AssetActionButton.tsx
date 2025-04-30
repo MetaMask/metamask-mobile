@@ -51,11 +51,11 @@ const AssetActionButton = ({
         );
       }
       case 'add': {
-        return <Ionicon name="ios-add" size={30} style={styles.buttonIcon} />;
+        return <Ionicon name="add" size={30} style={styles.buttonIcon} />;
       }
       case 'information': {
         return (
-          <Ionicon name="md-information" size={30} style={styles.buttonIcon} />
+          <Ionicon name="information" size={30} style={styles.buttonIcon} />
         );
       }
       case 'swap': {

@@ -209,6 +209,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
                 
               <Text
                 allowFontScaling={false}
+                selectable={false}
                 style={
                   [
                     {
@@ -497,6 +498,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
                 
               <Text
                 allowFontScaling={false}
+                selectable={false}
                 style={
                   [
                     {

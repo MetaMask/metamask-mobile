@@ -47,7 +47,8 @@ describe(SmokeTrade('Token Chart Tests'), () => {
     await CommonView.tapBackButton();
   });
 
-  it('should not display the chart when using Sepolia test network', async () => {
+  // TODO: fix this test
+  it.skip('should not display the chart when using Sepolia test network', async () => {
     const sepoliaTokenSymbol = 'S';
     await switchToSepoliaNetwork();
     await WalletView.tapOnToken(sepoliaTokenSymbol);

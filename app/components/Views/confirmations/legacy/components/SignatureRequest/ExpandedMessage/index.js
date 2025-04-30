@@ -104,7 +104,7 @@ export default class ExpandedMessage extends PureComponent {
           onPress={toggleExpandedMessage}
         >
           <Ionicons
-            name={'ios-arrow-back'}
+            name={'arrow-back'}
             size={30}
             style={styles.arrowIcon}
           />

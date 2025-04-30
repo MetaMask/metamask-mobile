@@ -27,7 +27,7 @@ import {
   parseWalletConnectUri,
   showWCLoadingState,
   // normalizeOrigin,
-  getHostname
+  getHostname,
 } from './wc-utils';
 
 import WalletConnect2Session from './WalletConnect2Session';
@@ -129,7 +129,9 @@ export class WC2Manager {
 
           // Find approvedAccounts for current sessions
           DevLogger.log(
-            `WC2::init getPermittedAccounts for ${sessionKey} origin=${getHostname(session.peer.metadata.url)}`,
+            `WC2::init getPermittedAccounts for ${sessionKey} origin=${getHostname(
+              session.peer.metadata.url,
+            )}`,
             JSON.stringify(permissionController.state, null, 2),
           );
           const accountPermission = permissionController.getPermission(
@@ -142,9 +144,9 @@ export class WC2Manager {
             JSON.stringify(accountPermission, null, 2),
           );
           let approvedAccounts =
-            (await getPermittedAccounts((session.peer.metadata.url))) ?? [];
+            (await getPermittedAccounts(session.peer.metadata.url)) ?? [];
           const fromOrigin = await getPermittedAccounts(
-            (session.peer.metadata.url),
+            session.peer.metadata.url,
           );
 
           DevLogger.log(
@@ -162,7 +164,9 @@ export class WC2Manager {
               `WC2::init fallback to metadata url ${session.peer.metadata.url}`,
             );
             approvedAccounts =
-              (await getPermittedAccounts(getHostname(session.peer.metadata.url))) ?? [];
+              (await getPermittedAccounts(
+                getHostname(session.peer.metadata.url),
+              )) ?? [];
           }
 
           if (approvedAccounts?.length === 0) {
@@ -277,7 +281,12 @@ export class WC2Manager {
     try {
       // Add delay before returning instance
       await wait(1000);
-      this.instance = new WC2Manager(web3Wallet, deeplinkSessions, navigation, sessions);
+      this.instance = new WC2Manager(
+        web3Wallet,
+        deeplinkSessions,
+        navigation,
+        sessions,
+      );
     } catch (error) {
       Logger.error(error as Error, `WC2@init() failed to create instance`);
     }
@@ -579,7 +588,9 @@ export class WC2Manager {
 
         // If the session is not found, we need to create a new session
         // but this should never happen?
-        console.warn(`WC2Manager::connect session not found for sessionTopic=${sessionTopic}`);
+        console.warn(
+          `WC2Manager::connect session not found for sessionTopic=${sessionTopic}`,
+        );
       }
 
       if (params.version === 1) {

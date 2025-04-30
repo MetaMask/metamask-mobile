@@ -39,6 +39,7 @@ describe('switchToNetwork', () => {
     const mockPermissionController = {
       getCaveat: jest.fn(),
       hasPermission: jest.fn().mockReturnValue(true),
+      grantPermissionsIncremental: jest.fn(),
     };
 
     const mockSelectedNetworkController = {};

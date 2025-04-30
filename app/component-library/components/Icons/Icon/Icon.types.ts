@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 // Third party dependencies.
 import React from 'react';
-import { ViewProps } from 'react-native';
+import { ViewProps, Insets } from 'react-native';
 import { SvgProps } from 'react-native-svg';
 
 /**
@@ -52,6 +52,10 @@ export interface IconProps extends ViewProps {
    * Color of the icon.
    */
   color?: string | IconColor;
+  /**
+   * Optional hitSlop prop.
+   */
+  hitSlop?: number | Insets;
 }
 
 /**

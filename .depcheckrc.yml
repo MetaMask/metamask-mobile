@@ -79,16 +79,26 @@ ignores:
   - 'url'
   - 'vm-browserify'
   - 'react-native-cli'
+  - 'babel-plugin-module-resolver'
 
   ## Missing dependencies to investigate
   - '@react-navigation/core'
   - 'app'
   - 'i18n-js'
   - 'images'
-  
+
   ## Expo
   - '@config-plugins/detox'
   - 'cross-spawn'
   - 'expo-build-properties'
   - 'expo-dev-client'
-  
+
+  ## react native
+  - '@react-native-community/cli'
+  - '@react-native-community/cli-platform-android'
+  - '@react-native-community/cli-platform-ios'
+  - '@react-native-community/cli-server-api'
+  - '@react-native/typescript-config'
+  - 'react-native-pager-view'
+  # this dependency can probably be removed, needs investigation
+  - '@types/react-test-renderer'

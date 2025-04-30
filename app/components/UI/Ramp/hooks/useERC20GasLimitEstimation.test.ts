@@ -3,6 +3,7 @@ import useERC20GasLimitEstimation from './useERC20GasLimitEstimation';
 import { getGasLimit } from '../../../../util/custom-gas';
 import { generateTransferData } from '../../../../util/transactions';
 import { toHex } from '@metamask/controller-utils';
+import { flushPromises } from '../../../../util/test/utils';
 
 jest.mock('../../../../util/custom-gas', () => ({
   getGasLimit: jest.fn(),
@@ -135,7 +136,7 @@ describe('useERC20GasLimitEstimation', () => {
     });
     expect(mockGetGasLimit).toHaveBeenCalledTimes(2);
 
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('handles different decimal values correctly', async () => {
@@ -147,9 +148,7 @@ describe('useERC20GasLimitEstimation', () => {
 
     renderHook(() => useERC20GasLimitEstimation(params));
 
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
+    await flushPromises();
 
     expect(mockGenerateTransferData).toHaveBeenCalledWith(
       'transfer',
@@ -184,7 +183,7 @@ describe('useERC20GasLimitEstimation', () => {
     // Should still be 1 since polling stopped
     expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
 
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('updates gas estimation when amount changes', async () => {
@@ -229,7 +228,7 @@ describe('useERC20GasLimitEstimation', () => {
       }),
     );
 
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('handles invalid amount or decimals', async () => {
@@ -303,7 +302,7 @@ describe('useERC20GasLimitEstimation', () => {
       }),
     );
 
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('handles concurrent estimation requests', async () => {
@@ -362,6 +361,6 @@ describe('useERC20GasLimitEstimation', () => {
     expect(result.current).toBeGreaterThan(0);
     expect(typeof result.current).toBe('number');
 
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 });

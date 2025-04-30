@@ -214,7 +214,13 @@ exports[`NetworksSettings should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -222,6 +228,7 @@ exports[`NetworksSettings should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -394,6 +401,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                       >
                         <Text
                           allowFontScaling={false}
+                          selectable={false}
                           style={
                             [
                               {
@@ -410,7 +418,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             ]
                           }
                         >
-                          
+                          
                         </Text>
                         <TextInput
                           onBlur={[Function]}
@@ -498,6 +506,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                               </View>
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -570,6 +579,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                               </View>
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -644,6 +654,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                               </View>
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -737,6 +748,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 </Text>
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -801,6 +813,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 </Text>
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -865,6 +878,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 </Text>
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {

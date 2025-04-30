@@ -2428,6 +2428,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {
@@ -2446,7 +2447,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               ]
             }
           >
-            
+            
           </Text>
            
           $151.23

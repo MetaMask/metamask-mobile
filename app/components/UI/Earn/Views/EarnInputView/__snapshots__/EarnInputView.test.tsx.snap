@@ -150,7 +150,13 @@ exports[`EarnInputView render matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1506,6 +1513,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -1532,7 +1540,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -1748,7 +1756,13 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1756,6 +1770,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -3104,6 +3119,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -3130,7 +3146,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                             </TouchableOpacity>
                           </View>

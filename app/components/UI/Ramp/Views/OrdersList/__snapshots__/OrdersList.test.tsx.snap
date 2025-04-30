@@ -132,7 +132,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
   onScrollEndDrag={[Function]}
   removeClippedSubviews={false}
   renderItem={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
@@ -990,7 +990,7 @@ exports[`OrdersList renders correctly 1`] = `
   onScrollEndDrag={[Function]}
   removeClippedSubviews={false}
   renderItem={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
@@ -1941,7 +1941,7 @@ exports[`OrdersList renders empty buy message 1`] = `
   onScrollEndDrag={[Function]}
   removeClippedSubviews={false}
   renderItem={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
@@ -2190,7 +2190,7 @@ exports[`OrdersList renders empty sell message 1`] = `
   onScrollEndDrag={[Function]}
   removeClippedSubviews={false}
   renderItem={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
@@ -2465,7 +2465,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
   onScrollEndDrag={[Function]}
   removeClippedSubviews={false}
   renderItem={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
@@ -2893,7 +2893,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
   onScrollEndDrag={[Function]}
   removeClippedSubviews={false}
   renderItem={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
@@ -3385,7 +3385,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
   onScrollEndDrag={[Function]}
   removeClippedSubviews={false}
   renderItem={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >

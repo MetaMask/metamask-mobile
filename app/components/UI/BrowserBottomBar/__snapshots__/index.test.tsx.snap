@@ -29,10 +29,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       {
         "alignItems": "center",
         "flex": 1,
-        "height": 24,
+        "height": 60,
         "justifyContent": "space-around",
-        "paddingBottom": 30,
-        "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -41,6 +39,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   >
     <Text
       allowFontScaling={false}
+      selectable={false}
       style={
         [
           {
@@ -75,10 +74,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       {
         "alignItems": "center",
         "flex": 1,
-        "height": 24,
+        "height": 60,
         "justifyContent": "space-around",
-        "paddingBottom": 30,
-        "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -87,6 +84,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   >
     <Text
       allowFontScaling={false}
+      selectable={false}
       style={
         [
           {
@@ -122,10 +120,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       {
         "alignItems": "center",
         "flex": 1,
-        "height": 24,
+        "height": 60,
         "justifyContent": "space-around",
-        "paddingBottom": 30,
-        "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -134,6 +130,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   >
     <Text
       allowFontScaling={false}
+      selectable={false}
       style={
         [
           {
@@ -155,7 +152,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         ]
       }
     >
-      
+      
     </Text>
   </TouchableOpacity>
   <TouchableOpacity
@@ -164,10 +161,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       {
         "alignItems": "center",
         "flex": 1,
-        "height": 24,
+        "height": 60,
         "justifyContent": "space-around",
-        "paddingBottom": 30,
-        "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -216,10 +211,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       {
         "alignItems": "center",
         "flex": 1,
-        "height": 24,
+        "height": 60,
         "justifyContent": "space-around",
-        "paddingBottom": 30,
-        "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -228,6 +221,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   >
     <Text
       allowFontScaling={false}
+      selectable={false}
       style={
         [
           {
@@ -258,10 +252,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       {
         "alignItems": "center",
         "flex": 1,
-        "height": 24,
+        "height": 60,
         "justifyContent": "space-around",
-        "paddingBottom": 30,
-        "paddingTop": 30,
         "textAlign": "center",
         "width": 24,
       }
@@ -270,6 +262,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   >
     <Text
       allowFontScaling={false}
+      selectable={false}
       style={
         [
           {
