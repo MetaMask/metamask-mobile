@@ -32,7 +32,7 @@ import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
 
-const _Carousel: FC<CarouselProps> = ({ style }) => {
+const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -288,5 +288,5 @@ const _Carousel: FC<CarouselProps> = ({ style }) => {
 };
 
 // Split memo component so we still see a Component name when profiling
-export const Carousel = React.memo(_Carousel);
+export const Carousel = React.memo(CarouselComponent);
 export default Carousel;
