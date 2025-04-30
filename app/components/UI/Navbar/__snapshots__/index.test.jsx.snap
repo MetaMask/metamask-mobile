@@ -129,6 +129,7 @@ exports[`getPaymentRequestOptionsTitle should match snapshot with goBack functio
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -147,7 +148,7 @@ exports[`getPaymentRequestOptionsTitle should match snapshot with goBack functio
                     ]
                   }
                 >
-                  
+                  
                 </Text>
               </TouchableOpacity>
             </View>
@@ -251,7 +252,13 @@ exports[`getPaymentRequestOptionsTitle should match snapshot with goBack functio
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -259,6 +266,7 @@ exports[`getPaymentRequestOptionsTitle should match snapshot with goBack functio
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
