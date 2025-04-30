@@ -122,11 +122,11 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
     navigation: {
       type: 'route',
       route: Routes.IDENTITY.TURN_ON_BACKUP_AND_SYNC,
-      // navigationStack: Routes.SETTINGS_VIEW,
     },
-    testID: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE,
-    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE_TITLE,
-    testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE_CLOSE_BUTTON,
+    testID: WalletViewSelectorsIDs.CAROUSEL_SEVENTH_SLIDE,
+    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_SEVENTH_SLIDE_TITLE,
+    testIDCloseButton:
+      WalletViewSelectorsIDs.CAROUSEL_SEVENTH_SLIDE_CLOSE_BUTTON,
   },
 ];
 
