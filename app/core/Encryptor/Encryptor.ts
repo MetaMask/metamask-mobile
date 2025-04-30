@@ -12,6 +12,7 @@ import type {
   KeyDerivationOptions,
 } from './types';
 import { QuickCryptoLib } from './lib';
+import { getRandomBytes } from './bytes';
 
 // Add these interfaces near the top with the other types
 interface DetailedDecryptResult {
@@ -86,18 +87,15 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    * @param size - The number of bytes for the salt. Defaults to `constant.SALT_BYTES_COUNT`.
    * @returns The base64-encoded salt string.
    */
-  generateSalt = (size: number = SALT_BYTES_COUNT) => {
-    const view = new Uint8Array(size);
-    Crypto.getRandomValues(view);
-
+  generateSalt = (size: number = SALT_BYTES_COUNT) =>
     // From: https://github.com/MetaMask/browser-passworder/blob/main/src/index.ts#L418
     // Uint8Array is a fixed length array and thus does not have methods like pop, etc
     // so TypeScript complains about casting it to an array. Array.from() works here for
     // getting the proper type, but it results in a functional difference. In order to
     // cast, you have to first cast view to unknown then cast the unknown value to number[]
     // TypeScript ftw: double opt in to write potentially type-mismatched code.
-    return btoa(String.fromCharCode.apply(null, view as unknown as number[]));
-  };
+     btoa(String.fromCharCode.apply(null, getRandomBytes(size) as unknown as number[]))
+  ;
 
   /**
    * Generate an encryption key from a password and random salt, specifying
@@ -140,13 +138,13 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   ): Promise<EncryptionResult> => {
     const text = JSON.stringify(data);
 
-    const iv = Crypto.getRandomValues(new Uint8Array(16)) as Uint8Array;
+    const iv = await QuickCryptoLib.generateIV(16);
     const result = await QuickCryptoLib.encrypt(text, key.key, iv);
     const cipher = Buffer.from(result).toString('base64');
 
     return {
       cipher,
-      iv: remove0x(bytesToHex(iv)),
+      iv,
       keyMetadata: key.keyMetadata,
       lib: key.lib,
     };

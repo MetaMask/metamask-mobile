@@ -1,6 +1,7 @@
 import Crypto from 'react-native-quick-crypto';
 import { bytesToHex, remove0x } from '@metamask/utils';
 import { EncryptionLibrary, KeyDerivationOptions } from './../types';
+import { getRandomBytes } from '../bytes';
 
 class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
   /**
@@ -9,7 +10,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
    * @returns A promise that resolves to the generated IV as a hex string.
    */
   generateIV = async (size: number): Promise<string> => {
-    const randomValues = await Crypto.getRandomValues(new Uint8Array(size)) as Uint8Array;
+    const randomValues = await getRandomBytes(size);
     const hexString = bytesToHex(randomValues);
     return remove0x(hexString);
   };
@@ -58,12 +59,13 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
    * @param iv - The IV.
    * @returns A promise that resolves to the encrypted data as a base64 string.
    */
-  encrypt = async (data: string, key: string, iv: Uint8Array): Promise<ArrayBuffer> => {
+  encrypt = async (data: string, key: string, iv: string): Promise<ArrayBuffer> => {
+    const bufferIv = Buffer.from(iv, 'hex');
     const dataBuffer = Buffer.from(data, 'utf-8');
     const cryptoKey = await this.importKey(key);
 
     const encryptedData = await Crypto.subtle.encrypt(
-      { name: 'AES-CBC', iv },
+      { name: 'AES-CBC', iv: bufferIv },
       // @ts-expect-error - This should be as CryptoKey but the type is not exported
       cryptoKey,
       dataBuffer
