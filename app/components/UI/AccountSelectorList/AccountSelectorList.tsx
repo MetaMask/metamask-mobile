@@ -181,12 +181,13 @@ const AccountSelectorList = ({
         { cancelable: false },
       );
     },
+    // TODO: Please update this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       accounts,
       onRemoveImportedAccount,
       isRemoveAccountEnabled,
       selectedAddresses,
-      Engine.context.KeyringController,
     ],
   );
 
@@ -203,7 +204,9 @@ const AccountSelectorList = ({
         params: { selectedAccount: account },
       });
     },
-    [navigate, Engine.context.AccountsController],
+    // TODO: Please update this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [navigate],
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
