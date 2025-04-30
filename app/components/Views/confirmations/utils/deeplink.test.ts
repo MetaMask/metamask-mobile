@@ -180,7 +180,7 @@ describe('addTransactionForDeeplink', () => {
     );
   });
 
-  it('does not add a transaction if another transaction is already being added', async () => {
+  it('does not call addTransaction if it is already processing another transaction', async () => {
     // Not awaiting the first call to addTransactionForDeeplink to test the flow
     addTransactionForDeeplink({
       parameters: {
