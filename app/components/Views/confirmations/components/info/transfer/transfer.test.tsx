@@ -63,7 +63,7 @@ describe('Transfer', () => {
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
   });
 
-  it('renders correctly', () => {
+  it('renders expected elements', () => {
     const mockOnReject = jest.fn();
     mockUseConfirmActions.mockImplementation(() => ({
       onConfirm: jest.fn(),
@@ -73,8 +73,9 @@ describe('Transfer', () => {
     const { getByText } = renderWithProvider(<Transfer />, {
       state: transferConfirmationState,
     });
-    expect(getByText('Network Fee')).toBeDefined();
 
+    expect(getByText('0xDc477...0c164')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
     expect(getNavbar).toHaveBeenCalled();
     expect(getNavbar).toHaveBeenCalledWith({
       title: 'Review',
