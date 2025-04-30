@@ -5,6 +5,7 @@ import {
   type TransactionMeta,
   type PublishBatchHookRequest,
   type PublishBatchHookTransaction,
+  type PublishBatchHookResult,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { hasProperty, Hex } from '@metamask/utils';
@@ -22,7 +23,6 @@ import {
   submitSmartTransactionHook,
   submitBatchSmartTransactionHook,
   type SubmitSmartTransactionRequest,
-  type SignedTransaction,
 } from '../../../../util/smart-transactions/smart-publish-hook';
 import { getTransactionById } from '../../../../util/transactions';
 import type { RootState } from '../../../../reducers';
@@ -87,6 +87,7 @@ export const TransactionControllerInit: ControllerInitFunction<
           networkController.getNetworkClientRegistry(...args),
         getNetworkState: () => networkController.state,
         hooks: {
+          // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
           publish: (transactionMeta: TransactionMeta, signedTransactionInHex: Hex) =>
             publishHook({
               transactionMeta,
@@ -201,7 +202,7 @@ function publishBatchSmartTransactionHook({
   getState: () => RootState;
   approvalController: ApprovalController;
   transactions: PublishBatchHookTransaction[];
-}): Promise<{ results: { transactionHash: string }[] } | undefined> {
+}): Promise<PublishBatchHookResult> {
   // Get transactionMeta based on the last transaction ID
   const lastTransaction = transactions[transactions.length - 1];
   const transactionMeta = getTransactionById(

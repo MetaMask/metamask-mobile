@@ -91,7 +91,7 @@ class SmartTransactionHook {
   #approvalController: ApprovalController;
   #transactionMeta: TransactionMeta;
   #signedTransactionInHex?: Hex;
-  #txParams?: TransactionParams;
+  #txParams: TransactionParams;
   #controllerMessenger: SubmitSmartTransactionRequest['controllerMessenger'];
 
   #isDapp: boolean;
@@ -321,7 +321,7 @@ class SmartTransactionHook {
       let submitBatchResponse;
       if (submitTransactionResponse?.txHashes) {
         submitBatchResponse = {
-          results: submitTransactionResponse.txHashes.map((txHash: string) => ({
+          results: submitTransactionResponse.txHashes.map((txHash: Hex) => ({
             transactionHash: txHash,
           })),
         };
