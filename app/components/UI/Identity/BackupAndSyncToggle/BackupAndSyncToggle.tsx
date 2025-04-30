@@ -20,7 +20,7 @@ import {
 } from '../../../../selectors/identity';
 // import Routes from '../../../../constants/navigation/Routes';
 import SwitchLoadingModal from '../../Notification/SwitchLoadingModal';
-import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/dist/controllers/user-storage/constants.cjs';
+import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import Routes from '../../../../constants/navigation/Routes';

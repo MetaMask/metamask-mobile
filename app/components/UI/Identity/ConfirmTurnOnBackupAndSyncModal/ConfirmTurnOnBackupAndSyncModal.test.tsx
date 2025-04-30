@@ -2,9 +2,11 @@
 import React from 'react';
 
 // Internal dependencies.
-import ProfileSyncingModal from './ConfirmTurnOnBackupAndSyncModal';
+import ConfirmTurnOnBackupAndSyncModal from './ConfirmTurnOnBackupAndSyncModal';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { toggleBasicFunctionality } from '../../../../actions/settings';
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -19,25 +21,29 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-const MOCK_STORE_STATE = {
-  engine: {
-    backgroundState: {
-      NotificationServicesController: {
-        isNotificationServicesEnabled: true,
-      },
-      UserStorageController: {
-        isProfileSyncingEnabled: true,
-      },
-      AuthenticationController: {
-        isSignedIn: true,
-      },
-    },
-  },
-};
+const { InteractionManager } = jest.requireActual('react-native');
 
+InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
+  callback(),
+);
+
+const mockEnableBackupAndSync = jest.fn();
+const mockTrackEnableBackupAndSyncEvent = jest.fn();
+
+jest.mock('../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../util/navigation/navUtils'),
+  useParams: () => ({
+    enableBackupAndSync: mockEnableBackupAndSync,
+    trackEnableBackupAndSyncEvent: mockTrackEnableBackupAndSyncEvent,
+  }),
+  useRoute: jest.fn(),
+  createNavigationDetails: jest.fn(),
+}));
+
+const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: (fn: (state: unknown) => unknown) => fn(MOCK_STORE_STATE),
+  useDispatch: () => mockDispatch,
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -56,13 +62,30 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-describe('ProfileSyncingModal', () => {
-  it('should render correctly', () => {
+describe('ConfirmTurnOnBackupAndSyncModal', () => {
+  it('renders correctly', () => {
     const { toJSON } = renderWithProvider(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
-      <ProfileSyncingModal navigation={useNavigation()} />,
+      <ConfirmTurnOnBackupAndSyncModal navigation={useNavigation()} />,
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('enables basic functionality, then backup and sync', async () => {
+    const { getByText } = renderWithProvider(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      <ConfirmTurnOnBackupAndSyncModal navigation={useNavigation()} />,
+    );
+
+    const confirmButton = getByText('Turn on');
+    fireEvent.press(confirmButton);
+
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(toggleBasicFunctionality(true));
+      expect(mockTrackEnableBackupAndSyncEvent).toHaveBeenCalled();
+      expect(mockEnableBackupAndSync).toHaveBeenCalled();
+    });
   });
 });

@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 import BottomSheet, {
   BottomSheetRef,
@@ -11,7 +11,6 @@ import {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 import ModalContent from '../../Notification/Modal';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import { useParams } from '../../../../util/navigation/navUtils';
@@ -20,13 +19,10 @@ import { InteractionManager } from 'react-native';
 
 const ConfirmTurnOnBackupAndSyncModal = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const [isChecked, setIsChecked] = React.useState(false);
   const { enableBackupAndSync, trackEnableBackupAndSyncEvent } =
     useParams<ConfirmTurnOnBackupAndSyncModalNavigateParams>();
 
   const dispatch = useDispatch();
-
-  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const enableBasicFunctionality = async () => {
     dispatch(toggleBasicFunctionality(true));
@@ -67,9 +63,9 @@ const ConfirmTurnOnBackupAndSyncModal = () => {
         checkBoxLabel={strings('default_settings.sheet.checkbox_label')}
         btnLabelCancel={strings('default_settings.sheet.buttons.cancel')}
         btnLabelCta={turnContent.bottomSheetCTA}
-        isChecked={isChecked}
-        setIsChecked={setIsChecked}
-        hascheckBox={isBackupAndSyncEnabled}
+        isChecked={false}
+        setIsChecked={() => ({})}
+        hascheckBox={false}
         handleCta={handleEnableBackupAndSync}
         handleCancel={handleCancel}
       />

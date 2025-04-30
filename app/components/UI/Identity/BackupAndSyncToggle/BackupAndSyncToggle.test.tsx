@@ -1,11 +1,11 @@
-// Third party dependencies.
 import React from 'react';
 
-// Internal dependencies.
-import ProfileSyncingComponent from './BackupAndSyncToggle';
+import BackupAndSyncToggle from './BackupAndSyncToggle';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { toggleBasicFunctionality } from '../../../../actions/settings';
+import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
 
 const MOCK_STORE_STATE = {
   engine: {
@@ -40,27 +40,26 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockEnableProfileSyncing = jest.fn();
-const mockDisableProfileSyncing = jest.fn();
-jest.mock('../../../util/identity/hooks/useProfileSyncing', () => ({
-  useEnableProfileSyncing: () => ({
-    enableProfileSyncing: mockEnableProfileSyncing,
-  }),
-  useDisableProfileSyncing: () => ({
-    disableProfileSyncing: mockDisableProfileSyncing,
+const mockSetIsBackupAndSyncFeatureEnabled = jest.fn();
+jest.mock('../../../../util/identity/hooks/useBackupAndSync', () => ({
+  useBackupAndSync: () => ({
+    setIsBackupAndSyncFeatureEnabled: mockSetIsBackupAndSyncFeatureEnabled,
+    error: null,
   }),
 }));
 
-const handleSwitchToggle = jest.fn();
+const mockTrackEvent = jest.fn();
 
-describe('ProfileSyncing', () => {
+describe('BackupAndSyncToggle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(
-      <ProfileSyncingComponent handleSwitchToggle={handleSwitchToggle} />,
+      <BackupAndSyncToggle
+        trackBackupAndSyncToggleEventOverride={mockTrackEvent}
+      />,
       {
         state: MOCK_STORE_STATE,
       },
@@ -68,29 +67,33 @@ describe('ProfileSyncing', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('disables profile syncing when basic functionality is disabled', async () => {
+  it('disables backup and sync when basic functionality is disabled', async () => {
     const { store } = renderWithProvider(
-      <ProfileSyncingComponent handleSwitchToggle={handleSwitchToggle} />,
+      <BackupAndSyncToggle
+        trackBackupAndSyncToggleEventOverride={mockTrackEvent}
+      />,
       {
         state: MOCK_STORE_STATE,
       },
     );
 
     act(() => {
-      store.dispatch({
-        type: 'TOGGLE_BASIC_FUNCTIONALITY',
-        payload: false,
-      });
+      store.dispatch(toggleBasicFunctionality(false));
     });
 
     await waitFor(() => {
-      expect(mockDisableProfileSyncing).toHaveBeenCalled();
+      expect(mockSetIsBackupAndSyncFeatureEnabled).toHaveBeenCalledWith(
+        BACKUPANDSYNC_FEATURES.main,
+        false,
+      );
     });
   });
 
-  it('enables profile syncing when toggling the switch on', async () => {
+  it('enables backup and sync when toggling the switch on', async () => {
     const { getByRole } = renderWithProvider(
-      <ProfileSyncingComponent handleSwitchToggle={handleSwitchToggle} />,
+      <BackupAndSyncToggle
+        trackBackupAndSyncToggleEventOverride={mockTrackEvent}
+      />,
       {
         state: {
           ...MOCK_STORE_STATE,
@@ -108,41 +111,53 @@ describe('ProfileSyncing', () => {
 
     const switchElement = getByRole('switch');
 
-    // Toggle on
     act(() => {
       fireEvent(switchElement, 'onValueChange', true);
     });
 
     await waitFor(() => {
-      expect(mockEnableProfileSyncing).toHaveBeenCalled();
+      expect(mockSetIsBackupAndSyncFeatureEnabled).toHaveBeenCalledWith(
+        BACKUPANDSYNC_FEATURES.main,
+        true,
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 
-  it('executes a callback when toggling the switch', () => {
+  it('opens a modal when trying to enable backup and sync while basic functionality is off', () => {
     const { getByRole } = renderWithProvider(
-      <ProfileSyncingComponent handleSwitchToggle={handleSwitchToggle} />,
+      <BackupAndSyncToggle
+        trackBackupAndSyncToggleEventOverride={mockTrackEvent}
+      />,
+      {
+        state: {
+          ...MOCK_STORE_STATE,
+          engine: {
+            backgroundState: {
+              ...MOCK_STORE_STATE.engine.backgroundState,
+              UserStorageController: {
+                isProfileSyncingEnabled: false,
+              },
+            },
+          },
+          settings: {
+            ...MOCK_STORE_STATE.settings,
+            basicFunctionalityEnabled: false,
+          },
+        },
+      },
     );
 
     const switchElement = getByRole('switch');
 
-    // Toggle on
     fireEvent(switchElement, 'onValueChange', true);
 
-    expect(handleSwitchToggle).toHaveBeenCalled();
-  });
-
-  it('opens a modal when toggling profile syncing off', () => {
-    const { getByRole } = renderWithProvider(
-      <ProfileSyncingComponent handleSwitchToggle={handleSwitchToggle} />,
-    );
-
-    const switchElement = getByRole('switch');
-
-    // Toggle off
-    fireEvent(switchElement, 'onValueChange', false);
-
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.PROFILE_SYNCING,
+      screen: Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC,
+      params: {
+        enableBackupAndSync: expect.any(Function),
+        trackEnableBackupAndSyncEvent: expect.any(Function),
+      },
     });
   });
 });
