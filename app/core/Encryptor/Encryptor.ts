@@ -1,5 +1,4 @@
-import Crypto from 'react-native-quick-crypto';
-import { hasProperty, isPlainObject, Json, bytesToHex, remove0x } from '@metamask/utils';
+import { hasProperty, isPlainObject, Json } from '@metamask/utils';
 import {
   SALT_BYTES_COUNT,
   ENCRYPTION_LIBRARY,
