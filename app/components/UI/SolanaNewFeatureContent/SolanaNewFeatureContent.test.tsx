@@ -2,7 +2,6 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
-import { KeyringClient } from '@metamask/keyring-snap-client';
 import SolanaNewFeatureContent from './SolanaNewFeatureContent';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { backgroundState } from '../../../util/test/initial-root-state';
