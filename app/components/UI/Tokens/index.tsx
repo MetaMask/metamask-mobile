@@ -49,6 +49,7 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { RootState } from '../../../reducers';
 ///: END:ONLY_INCLUDE_IF
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
+// import Logger from '../../../util/Logger';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -99,7 +100,7 @@ const Tokens = memo(() => {
       tags: getTraceTags(store.getState()),
     });
 
-    const tokensWithBalances = tokenListData.map((token, i) => ({
+    const tokensWithBalances: TokenI[] = tokenListData.map((token, i) => ({
       ...token,
       tokenFiatAmount: isEvmSelected ? tokenFiatBalances[i] : token.balanceFiat,
     }));
@@ -108,11 +109,17 @@ const Tokens = memo(() => {
 
     endTrace({ name: TraceName.Tokens });
 
+    // Logger.log(
+    //   'FOO: ',
+    //   tokensSorted.find((asset) => asset.name === 'Staked Ethereum'),
+    // );
+
     return tokensSorted
       .filter(({ address, chainId }) => address && chainId)
-      .map(({ address, chainId }) => ({
+      .map(({ address, chainId, isStaked }) => ({
         address,
         chainId,
+        isStaked,
       }));
   }, [tokenListData, tokenFiatBalances, isEvmSelected, tokenSortConfig]);
 

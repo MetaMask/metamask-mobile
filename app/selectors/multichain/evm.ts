@@ -419,6 +419,11 @@ export const selectEvmTokens = createDeepEqualSelector(
         ? tokensToDisplay
         : tokensToDisplay.filter((token) => token.chainId === currentChainId);
 
+    console.log(
+      'filtered tokens',
+      filteredTokens.filter((token) => token.isStaked),
+    );
+
     // Categorize tokens as native or non-native, filtering out testnet tokens if applicable
     const nativeTokens: TokenI[] = [];
     const nonNativeTokens: TokenI[] = [];
@@ -519,17 +524,31 @@ export const makeSelectAssetByAddressAndChainId = () =>
     [
       selectEvmTokens, // TokenI[]
       selectIsEvmNetworkSelected,
-      (_state: RootState, params: { address: string; chainId: string }) =>
-        toFormattedAddress(params.address),
-      (_state: RootState, params: { address: string; chainId: string }) =>
-        params.chainId,
+      (
+        _state: RootState,
+        params: { address: string; chainId: string; isStaked?: boolean },
+      ) => toFormattedAddress(params.address),
+      (
+        _state: RootState,
+        params: { address: string; chainId: string; isStaked?: boolean },
+      ) => params.chainId,
+      (
+        _state: RootState,
+        params: { address: string; chainId: string; isStaked?: boolean },
+      ) => params.isStaked,
     ],
-    (tokens, isEvmNetworkSelected, address, chainId): TokenI | undefined => {
+    (
+      tokens,
+      isEvmNetworkSelected,
+      address,
+      chainId,
+      isStaked,
+    ): TokenI | undefined => {
       if (!isEvmNetworkSelected) {
         return undefined;
       }
       // Step 1: build nested map once per call
-      const lookup = new Map<string, Map<string, TokenI>>();
+      const lookup = new Map<string, Map<string, Map<boolean, TokenI>>>();
 
       for (const token of tokens) {
         if (!token.chainId || !token.address) {
@@ -538,16 +557,28 @@ export const makeSelectAssetByAddressAndChainId = () =>
 
         const tokenChainId = token.chainId;
         const tokenAddress = toFormattedAddress(token.address) as string;
+        const tokenIsStaked = Boolean(token.isStaked);
 
         if (!lookup.has(tokenChainId)) {
           lookup.set(tokenChainId, new Map());
         }
+        const chainMap = lookup.get(tokenChainId);
 
-        lookup.get(tokenChainId)?.set(tokenAddress, token);
+        if (chainMap && !chainMap.has(tokenAddress)) {
+          chainMap.set(tokenAddress, new Map());
+        }
+        const addressMap = chainMap?.get(tokenAddress);
+
+        if (addressMap) {
+          addressMap.set(tokenIsStaked, token);
+        }
       }
 
       // Step 2: lookup
-      const token = lookup.get(chainId)?.get(address as string);
+      const token = lookup
+        .get(chainId)
+        ?.get(address as string)
+        ?.get(Boolean(isStaked));
 
       return token;
     },

@@ -21,7 +21,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 
 interface TokenListProps {
-  tokenKeys: { address: string; chainId: string | undefined }[];
+  tokenKeys: {
+    address: string;
+    chainId: string | undefined;
+    isStaked: boolean;
+  }[];
   refreshing: boolean;
   isAddTokenEnabled: boolean;
   onRefresh: () => void;
@@ -47,8 +51,13 @@ export const TokenList = ({
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
-  const listRef =
-    useRef<FlashList<{ address: string; chainId: string | undefined }>>(null);
+  const listRef = useRef<
+    FlashList<{
+      address: string;
+      chainId: string | undefined;
+      isStaked: boolean;
+    }>
+  >(null);
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
@@ -71,7 +80,11 @@ export const TokenList = ({
   };
 
   const renderTokenListItem = useCallback(
-    ({ item }: { item: { address: string; chainId: string | undefined } }) => (
+    ({
+      item,
+    }: {
+      item: { address: string; chainId: string | undefined; isStaked: boolean };
+    }) => (
       <TokenListItem
         assetKey={item}
         showRemoveMenu={showRemoveMenu}
@@ -107,7 +120,8 @@ export const TokenList = ({
           Logger.log('Missing token-list-item key fields:', item);
           return `fallback-${index}`;
         }
-        return `${item.address}-${item.chainId}`;
+        const staked = item.isStaked ? 'staked' : 'unstaked';
+        return `${item.address}-${item.chainId}-${staked}`;
       }}
       ListFooterComponent={
         <TokenListFooter

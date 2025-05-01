@@ -79,7 +79,7 @@ import {
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
 
 interface TokenListItemProps {
-  assetKey: { address: string; chainId: string | undefined };
+  assetKey: { address: string; chainId: string | undefined; isStaked: boolean };
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
@@ -109,6 +109,7 @@ export const TokenListItem = React.memo(
       selectEvmAsset(state, {
         address: assetKey.address,
         chainId: assetKey.chainId ?? '',
+        isStaked: assetKey.isStaked,
       }),
     );
 

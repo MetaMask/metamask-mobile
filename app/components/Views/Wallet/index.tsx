@@ -63,7 +63,7 @@ import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
   selectTokens,
-  selectTransformedTokens,
+  // selectTransformedTokens,
 } from '../../../selectors/tokensController';
 import {
   NavigationProp,
@@ -119,10 +119,10 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
 ///: END:ONLY_INCLUDE_IF
-import {
-  selectNativeEvmAsset,
-  selectStakedEvmAsset,
-} from '../../../selectors/multichain';
+// import {
+//   selectNativeEvmAsset,
+//   selectStakedEvmAsset,
+// } from '../../../selectors/multichain';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
@@ -229,7 +229,7 @@ const Wallet = ({
   /**
    * An array that represents the user tokens by chainId and address
    */
-  const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
+  // const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
   /**
    * Current provider ticker
    */
@@ -358,8 +358,8 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const nativeEvmAsset = useSelector(selectNativeEvmAsset);
-  const stakedEvmAsset = useSelector(selectStakedEvmAsset);
+  // const nativeEvmAsset = useSelector(selectNativeEvmAsset);
+  // const stakedEvmAsset = useSelector(selectStakedEvmAsset);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -729,18 +729,18 @@ const Wallet = ({
     );
   }
 
-  const renderContent = useCallback(() => {
-    const assets = tokensByChainIdAndAddress
-      ? [...tokensByChainIdAndAddress]
-      : [];
-    if (nativeEvmAsset) {
-      assets.push(nativeEvmAsset);
-    }
-    if (stakedEvmAsset) {
-      assets.push(stakedEvmAsset);
-    }
+  const renderContent = useCallback(
+    () => (
+      // const assets = tokensByChainIdAndAddress
+      //   ? [...tokensByChainIdAndAddress]
+      //   : [];
+      // if (nativeEvmAsset) {
+      //   assets.push(nativeEvmAsset);
+      // }
+      // if (stakedEvmAsset) {
+      //   assets.push(stakedEvmAsset);
+      // }
 
-    return (
       <View
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
@@ -769,26 +769,27 @@ const Wallet = ({
           }
         </>
       </View>
-    );
+    ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    tokens,
-    accountBalanceByChainId,
-    styles,
-    colors,
-    basicFunctionalityEnabled,
-    turnOnBasicFunctionality,
-    onChangeTab,
-    navigation,
-    ticker,
-    conversionRate,
-    currentCurrency,
-    contractBalances,
-    isEvmSelected,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    tokensByChainIdAndAddress,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+    [
+      tokens,
+      accountBalanceByChainId,
+      styles,
+      colors,
+      basicFunctionalityEnabled,
+      turnOnBasicFunctionality,
+      onChangeTab,
+      navigation,
+      ticker,
+      conversionRate,
+      currentCurrency,
+      contractBalances,
+      isEvmSelected,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      tokensByChainIdAndAddress,
+      ///: END:ONLY_INCLUDE_IF
+    ],
+  );
   const renderLoader = useCallback(
     () => (
       <View style={styles.loader}>
