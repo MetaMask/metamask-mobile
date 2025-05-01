@@ -721,7 +721,7 @@ export class BackgroundBridge extends EventEmitter {
   /**
    * A method for creating a provider that is safely restricted for the requesting domain.
    **/
-  setupProviderEngine() {
+  setupProviderEngineEip1193() {
     const origin = this.isMMSDK ? this.channelId : this.hostname;
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
