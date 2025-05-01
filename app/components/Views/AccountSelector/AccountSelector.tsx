@@ -99,21 +99,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );
 
-  // Handler for adding accounts
-  const handleAddAccount = useCallback(() => {
-    setScreen(AccountSelectorScreens.AddAccountActions);
-  }, []);
-
-  // Handler for returning from add accounts screen
-  const handleBackToSelector = useCallback(() => {
-    setScreen(AccountSelectorScreens.AccountSelector);
-  }, []);
-
-  // Handler for returning from add hd account screen
-  const handleBackToAddHdAccountSelector = useCallback(() => {
-    setScreen(AccountSelectorScreens.AddHdAccountSelector);
-  }, []);
-
   const onRemoveImportedAccount = useCallback(
     ({ nextActiveAddress }: { nextActiveAddress: string }) => {
       nextActiveAddress && Engine.setSelectedAddress(nextActiveAddress);
@@ -140,7 +125,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             label={strings('account_actions.add_account_or_hardware_wallet')}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
-            onPress={handleAddAccount}
+            onPress={() => setScreen(AccountSelectorScreens.AddAccountActions)}
             testID={
               AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
             }
@@ -155,7 +140,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onRemoveImportedAccount,
       privacyMode,
       disablePrivacyMode,
-      handleAddAccount,
     ],
   );
 

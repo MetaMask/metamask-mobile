@@ -223,7 +223,7 @@ describe('useSelectedAccountMultichainBalances', () => {
       mockBalance,
     );
 
-    const { result } = renderHook(() => useMultichainBalances());
+    const { result } = renderHook(() => useSelectedAccountMultichainBalances());
 
     expect(
       result.current.selectedAccountMultichainBalance

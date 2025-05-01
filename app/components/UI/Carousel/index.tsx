@@ -28,7 +28,7 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { selectedAccountMultichainBalance } = useMultichainBalances();
+  const { selectedAccountMultichainBalance } = useSelectedAccountMultichainBalances();
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();

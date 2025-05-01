@@ -3,7 +3,7 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { personalSignatureConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import AccountNetworkInfoExpanded from './account-network-info-expanded';
 import { isPortfolioViewEnabled } from '../../../../../../../util/networks';
-import { useMultichainBalances } from '../../../../../../../components/hooks/useMultichainBalances';
+import { useSelectedAccountMultichainBalances } from '../../../../../../../components/hooks/useMultichainBalances';
 
 jest.mock('../../../../../../../util/networks', () => ({
   ...jest.requireActual('../../../../../../../util/networks'),
@@ -29,7 +29,7 @@ jest.mock(
 
 describe('AccountNetworkInfoExpanded', () => {
   const mockIsPortfolioViewEnabled = jest.mocked(isPortfolioViewEnabled);
-  const mockUseMultichainBalances = jest.mocked(useMultichainBalances);
+  const mockUseMultichainBalances = jest.mocked(useSelectedAccountMultichainBalances);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -51,7 +51,6 @@ describe('AccountNetworkInfoExpanded', () => {
           ethFiat1dAgo: 0,
         },
       },
-      multichainBalancesForAllAccounts: {},
     });
   });
 
