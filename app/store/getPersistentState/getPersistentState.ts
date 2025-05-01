@@ -1,5 +1,6 @@
 import { StateConstraint, StateMetadata } from '@metamask/base-controller';
 import { Json } from '@metamask/utils';
+import { captureException } from '@sentry/react-native';
 
 /**! IMPORTANT: THIS IS MEANT TO BE TEMPORARY, WE SHOULD NOT USE THIS AND USE THE VERSION IN BASE-CONTROLLER INSTEAD.
  * The reason why we are using this now, it's because we have controllers state without metadata.
@@ -54,7 +55,9 @@ function deriveStateFromMetadata<ControllerState extends StateConstraint>(
       // Throw error after timeout so that it is captured as a console error
       // (and by Sentry) without interrupting state-related operations
       setTimeout(() => {
-        throw error;
+        // This is what change from the original base controller implementation
+        // This is a temporary solution to capture the error for extraneous data that we did not detect
+        captureException(error);
       });
       return derivedState;
     }

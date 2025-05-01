@@ -8,8 +8,8 @@ import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
 import { debounce } from 'lodash';
-import { getPersistentState } from './getPersistentState/getPersistentState';
 import Engine, { EngineContext } from '../core/Engine';
+import { getPersistentState } from '@metamask/base-controller';
 
 const TIMEOUT = 40000;
 const STORAGE_DEBOUNCE_DELAY = 200;
