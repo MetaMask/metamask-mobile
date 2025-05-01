@@ -16,7 +16,7 @@ import { dismissBanner } from '../../../reducers/banners';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { useMultichainBalances } from '../../hooks/useMultichainBalances';
+import { useSelectedAccountMultichainBalances } from '../../hooks/useMultichainBalances';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
