@@ -5124,14 +5124,14 @@
     "@metamask/utils" "^11.1.0"
     bech32 "^2.0.0"
 
-"@metamask/keyring-controller@^21.0.4":
-  version "21.0.4"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.4.tgz#d7f262478382d347292aaa3ccc81311af21dcd05"
-  integrity sha512-8YJFllustIfHZ1Y8MDXKPuv2EEA/09zQ6eStvDh7yJVafMbOKkRs3IzuaEUbws0G4PAWNn4pNkuMlrkEk95PJw==
+"@metamask/keyring-controller@^21.0.5":
+  version "21.0.5"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.5.tgz#706fc2d4fbf19421c2c0b21fd637302eda97065f"
+  integrity sha512-zZ+TXl6AkTqxJfM7FZy3NRk9Q2cVepqEVrzeV3M/VPgxGljId9Azavz7kRzf6ah5NhCmVhLC5K4wln2PumfilA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
-    "@metamask/base-controller" "^8.0.0"
+    "@metamask/base-controller" "^8.0.1"
     "@metamask/browser-passworder" "^4.3.0"
     "@metamask/eth-hd-keyring" "^12.0.0"
     "@metamask/eth-sig-util" "^8.2.0"
