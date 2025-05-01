@@ -10,7 +10,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: metamask/github-tools/.github/actions/stale-issue-pr.yml@ad27b74eec04e404ebf1383429bdcabad227f05e
+      - uses: metamask/github-tools/.github/workflows/stale-issue-pr.yml@ad27b74eec04e404ebf1383429bdcabad227f05e
         with:
           base_ref: main
           is-high-risk-environment: false
