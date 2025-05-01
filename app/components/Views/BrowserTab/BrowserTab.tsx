@@ -117,6 +117,7 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
+import { TokenDiscovery } from '../TokenDiscovery';
 
 /**
  * Tab component for the in-app browser
@@ -139,7 +140,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   activeChainId,
 }) => {
   const [firstUrl, setFirstUrl] = useState(initialUrl);
-  console.log('\n\n\n>>>>>>>>>>>>>>>>\n\n\nfirstUrl', firstUrl);
   // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -1088,19 +1088,29 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     [handleIpfsContent, setIsResolvedIpfsUrl],
   );
 
+  /**
+   * Hide the autocomplete results
+   */
+  const hideAutocomplete = useCallback(
+    () => autocompleteRef.current?.hide(),
+    [],
+  );
+
   const onSubmitEditing = useCallback(
     async (text: string) => {
       if (!text) return;
+
+      hideAutocomplete();
       // Format url for browser to be navigatable by webview
       const processedUrl = processUrlForBrowser(text, searchEngine);
-      if (!firstUrl) {
-        setFirstUrl(processedUrl);
-        return;
-      }
       setConnectionType(ConnectionType.UNKNOWN);
       urlBarRef.current?.setNativeProps({ text });
       submittedUrlRef.current = text;
       webviewRef.current?.stopLoading();
+      if (!firstUrl) {
+        setFirstUrl(processedUrl);
+        return;
+      }
       if (isENSUrl(processedUrl, ensIgnoreListRef.current)) {
         const handledEnsUrl = await handleEnsUrl(
           processedUrl.replace(regex.urlHttpToHttps, 'https://'),
@@ -1120,7 +1130,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       true;  // Required for iOS
     `);
     },
-    [searchEngine, handleEnsUrl, setConnectionType, firstUrl],
+    [searchEngine, handleEnsUrl, setConnectionType, firstUrl, hideAutocomplete],
   );
 
   // Assign the memoized function to the ref. This is needed since onSubmitEditing is a useCallback and is accessed recursively
@@ -1239,14 +1249,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
   }, []);
-
-  /**
-   * Hide the autocomplete results
-   */
-  const hideAutocomplete = useCallback(
-    () => autocompleteRef.current?.hide(),
-    [],
-  );
 
   const onCancelUrlBar = useCallback(() => {
     hideAutocomplete();
@@ -1371,7 +1373,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             onSubmitEditing={onSubmitEditing}
             onCancel={onCancelUrlBar}
             onFocus={onFocusUrlBar}
-            onBlur={hideAutocomplete}
             onChangeText={onChangeUrlBar}
             connectedAccounts={permittedAccountsList}
             activeUrl={resolvedUrlRef.current}
@@ -1428,6 +1429,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                   )}
                 </>
               )}
+              {!firstUrl && <TokenDiscovery />}
             </View>
             <UrlAutocomplete
               ref={autocompleteRef}

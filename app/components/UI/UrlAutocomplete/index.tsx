@@ -57,7 +57,12 @@ const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
 >(({ onSelect, onDismiss }, ref) => {
-  const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>([]);
+  const browserHistory = useSelector(selectBrowserHistoryWithType);
+  const bookmarks = useSelector(selectBrowserBookmarksWithType);
+  const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>([
+    ...browserHistory,
+    ...bookmarks,
+  ]);
   const {searchTokens, results: tokenSearchResults, reset: resetTokenSearch, isLoading: isTokenSearchLoading} = useTokenSearchDiscovery();
   const usdConversionRate = useSelector(selectUsdConversionRate);
   const tokenResults: TokenSearchResult[] = useMemo(
@@ -117,8 +122,6 @@ const UrlAutocomplete = forwardRef<
     })
   ), [fuseResults, tokenResults, isTokenSearchLoading]);
 
-  const browserHistory = useSelector(selectBrowserHistoryWithType);
-  const bookmarks = useSelector(selectBrowserBookmarksWithType);
   const fuseRef = useRef<Fuse<FuseSearchResult> | null>(null);
   const resultsRef = useRef<View | null>(null);
   const { styles } = useStyles(styleSheet, {});
