@@ -99,7 +99,7 @@ function getAccountsFromSubject(subject: any) {
   const caveats =
     subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
-    return;
+    return [];
   }
 
   const caveat = caveats.find(
@@ -145,7 +145,7 @@ function getPermittedChainIdsFromSubject(subject: any) {
   const caveats =
     subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
-    return;
+    return [];
   }
 
   const caveat = caveats.find(
