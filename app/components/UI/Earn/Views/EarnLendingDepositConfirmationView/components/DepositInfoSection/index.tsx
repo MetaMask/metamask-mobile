@@ -62,8 +62,12 @@ const DepositInfoSection = ({
             },
             tooltip: {
               title: strings('earn.apr'),
-              content:
-                'Commodo officia id eu amet reprehenderit excepteur fugiat amet sint enim voluptate culpa ullamco commodo.',
+              content: (
+                <View style={styles.aprTooltipContentContainer}>
+                  <Text>{strings('earn.tooltip_content.apr.part_one')}</Text>
+                  <Text>{strings('earn.tooltip_content.apr.part_two')}</Text>
+                </View>
+              ),
               size: TooltipSizes.Sm,
             },
           }}
@@ -99,8 +103,7 @@ const DepositInfoSection = ({
             },
             tooltip: {
               title: strings('stake.reward_frequency'),
-              content:
-                'Incididunt nisi proident voluptate velit dolor ullamco fugiat ex minim consequat nisi pariatur.',
+              content: strings('earn.tooltip_content.reward_frequency'),
               size: TooltipSizes.Sm,
             },
           }}
@@ -118,8 +121,7 @@ const DepositInfoSection = ({
             },
             tooltip: {
               title: strings('stake.withdrawal_time'),
-              content:
-                'Incididunt nisi proident voluptate velit dolor ullamco fugiat ex minim consequat nisi pariatur.',
+              content: strings('earn.tooltip_content.withdrawal_time'),
               size: TooltipSizes.Sm,
             },
           }}
@@ -137,8 +139,7 @@ const DepositInfoSection = ({
             },
             tooltip: {
               title: strings('earn.protocol'),
-              content:
-                'Incididunt nisi proident voluptate velit dolor ullamco fugiat ex minim consequat nisi pariatur.',
+              content: strings('earn.tooltip_content.protocol'),
               size: TooltipSizes.Sm,
             },
           }}

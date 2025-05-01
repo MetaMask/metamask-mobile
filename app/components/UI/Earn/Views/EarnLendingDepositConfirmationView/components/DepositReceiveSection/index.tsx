@@ -52,7 +52,7 @@ const DepositReceiveSection = ({
             onPress={() =>
               openTooltipModal(
                 strings('earn.receive'),
-                'Ad voluptate commodo esse consequat enim commodo id culpa laborum dolore magna ullamco.',
+                strings('earn.tooltip_content.receive'),
               )
             }
           />

@@ -11,6 +11,9 @@ const styleSheet = () =>
       flexDirection: 'row',
       gap: 8,
     },
+    aprTooltipContentContainer: {
+      gap: 8,
+    },
   });
 
 export default styleSheet;
