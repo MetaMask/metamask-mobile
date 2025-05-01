@@ -110,13 +110,13 @@ describe('processSendCalls', () => {
   it('throw error if TransactionController.isAtomicBatchSupported returns false', async () => {
     Engine.context.TransactionController.isAtomicBatchSupported = jest
       .fn()
-      .mockResolvedValue([false]);
+      .mockResolvedValue([]);
     expect(async () => {
       await processSendCalls(MOCK_PARAMS, MOCK_REQUEST);
     }).rejects.toThrow('EIP-7702 not supported on chain: 0xaa36a7');
     Engine.context.TransactionController.isAtomicBatchSupported = jest
       .fn()
-      .mockResolvedValue([true]);
+      .mockResolvedValue([{}]);
   });
 
   it('throws if top-level capability is required', async () => {

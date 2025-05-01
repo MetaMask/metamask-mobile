@@ -88,7 +88,7 @@ function validateCapabilities(sendCalls: SendCalls) {
 
   const requiredCallCapabilities = calls.flatMap((call) =>
     Object.keys(call.capabilities ?? {}).filter(
-      (name) => call.capabilities?.[name].optional !== true,
+      (name) => !call.capabilities?.[name].optional,
     ),
   );
 
@@ -97,7 +97,7 @@ function validateCapabilities(sendCalls: SendCalls) {
     ...requiredCallCapabilities,
   ];
 
-  if (requiredCapabilities?.length) {
+  if (requiredCapabilities.length) {
     throw new JsonRpcError(
       EIP5792ErrorCode.UnsupportedNonOptionalCapability,
       `Unsupported non-optional capabilities: ${requiredCapabilities.join(
