@@ -31,7 +31,6 @@ import {
   NetworkControllerStateChangeEvent,
 } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
-import * as smartPublishHookModule from './smart-publish-hook';
 
 interface PendingApprovalsData {
   id: string;

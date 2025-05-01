@@ -40,7 +40,6 @@ import {
   handleTransactionFinalizedEventForMetrics,
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
-import { Hex } from '@metamask/utils';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -87,7 +86,7 @@ export const TransactionControllerInit: ControllerInitFunction<
           networkController.getNetworkClientRegistry(...args),
         getNetworkState: () => networkController.state,
         hooks: {
-          // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
+          // @ts-expect-error - TransactionController actually sends a signedTx as a second argument, but its type doesn't reflect that.
           publish: (transactionMeta: TransactionMeta, signedTransactionInHex: Hex) =>
             publishHook({
               transactionMeta,

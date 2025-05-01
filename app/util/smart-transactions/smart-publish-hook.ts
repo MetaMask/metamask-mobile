@@ -459,9 +459,9 @@ class SmartTransactionHook {
   };
 
   #addApprovalRequest = ({ uuid }: { uuid: string }) => {
-    const origin = this.#transactionMeta.origin || 'submitBatch'; // TODO: Load origin correctly for submitBatch.
+    const origin = this.#transactionMeta.origin;
 
-    // if (!origin) throw new Error('Origin is required');
+    if (!origin) throw new Error('Origin is required');
 
     this.#approvalId = random();
 
