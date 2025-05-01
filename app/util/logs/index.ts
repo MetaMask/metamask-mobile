@@ -42,6 +42,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
         KeyringController: {
           keyrings: KeyringController.state.keyrings,
           isUnlocked: KeyringController.state.isUnlocked,
+          keyringsMetadata: KeyringController.state.keyringsMetadata,
         },
       },
     },
