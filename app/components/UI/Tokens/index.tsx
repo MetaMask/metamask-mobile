@@ -108,10 +108,12 @@ const Tokens = memo(() => {
 
     endTrace({ name: TraceName.Tokens });
 
-    return tokensSorted.map(({ address, chainId }) => ({
-      address,
-      chainId,
-    }));
+    return tokensSorted
+      .filter(({ address, chainId }) => address && chainId)
+      .map(({ address, chainId }) => ({
+        address,
+        chainId,
+      }));
   }, [tokenListData, tokenFiatBalances, isEvmSelected, tokenSortConfig]);
 
   const showRemoveMenu = useCallback(

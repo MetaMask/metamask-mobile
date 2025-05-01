@@ -18,6 +18,7 @@ import { TokenListItem } from './TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
+import Logger from '../../../../util/Logger';
 
 interface TokenListProps {
   tokenKeys: { address: string; chainId: string | undefined }[];
@@ -95,13 +96,14 @@ export const TokenList = ({
       estimatedItemSize={itemHeight}
       estimatedListSize={{ height: estimatedListHeight, width: deviceWidth }}
       removeClippedSubviews
-      viewabilityConfig={{
-        waitForInteraction: true,
-        itemVisiblePercentThreshold: 50,
-        minimumViewTime: 1000,
-      }}
       renderItem={renderTokenListItem}
-      keyExtractor={(item) => `${item.address}-${item.chainId}`}
+      keyExtractor={(item, index) => {
+        if (!item?.address || !item?.chainId) {
+          Logger.log('Missing token-list-item key fields:', item);
+          return `fallback-${index}`;
+        }
+        return `${item.address}-${item.chainId}`;
+      }}
       ListFooterComponent={
         <TokenListFooter
           goToAddToken={goToAddToken}
