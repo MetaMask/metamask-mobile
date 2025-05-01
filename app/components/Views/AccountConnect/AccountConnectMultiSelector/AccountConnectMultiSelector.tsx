@@ -86,7 +86,7 @@ const AccountConnectMultiSelector = ({
   }, [onSubmit]);
 
   const areAllAccountsSelected = accounts
-    .every(({address}) => selectedAddresses.includes(address));
+    .every(({ address }) => selectedAddresses.includes(address));
 
   const areAnyAccountsSelected = selectedAddresses?.length !== 0;
   const areNoAccountsSelected = selectedAddresses?.length === 0;
