@@ -150,6 +150,8 @@ describe(`migration #${version}`, () => {
     expectedNetwork.defaultRpcEndpointIndex =
       expectedNetwork.rpcEndpoints.push({
         networkClientId: customNetwork.id,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         name: customNetwork.nickname,
         url: customNetwork.rpcUrl,
         type: 'custom',
@@ -214,7 +216,7 @@ describe(`migration #${version}`, () => {
       },
     };
 
-    const defaultStateToExpect = defaultPostMigrationState();
+    const defaultStateToExpect = defaultPostMigrationState() as NetworkState;
 
     const expectedNetwork = {
       ...defaultStateToExpect.networkConfigurationsByChainId[
@@ -502,38 +504,18 @@ describe(`migration #${version}`, () => {
 
 // The state of the network controller post migration for just the
 // built-in networks. As if there were no custom networks defined.
-function defaultPostMigrationState(): {
-  selectedNetworkClientId: string;
-  networksMetadata: Record<string, string>;
-  networkConfigurationsByChainId: Record<
-    `0x${string}`,
-    {
-      chainId: `0x${string}`;
-      rpcEndpoints: {
-        name?: string;
-        networkClientId: string;
-        url: string;
-        type: 'infura' | 'custom';
-      }[];
-      defaultRpcEndpointIndex: number;
-      blockExplorerUrls: string[];
-      defaultBlockExplorerUrlIndex: number;
-      name: string;
-      nativeCurrency: string;
-    }
-  >;
-} {
+function defaultPostMigrationState() {
   const state = {
     selectedNetworkClientId: 'mainnet',
     networksMetadata: {},
     networkConfigurationsByChainId: {
       '0x1': {
-        chainId: '0x1' as const,
+        chainId: '0x1',
         rpcEndpoints: [
           {
             networkClientId: 'mainnet',
             url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-            type: 'infura' as const,
+            type: 'infura',
           },
         ],
         defaultRpcEndpointIndex: 0,
@@ -543,12 +525,12 @@ function defaultPostMigrationState(): {
         nativeCurrency: 'ETH',
       },
       '0xaa36a7': {
-        chainId: '0xaa36a7' as const,
+        chainId: '0xaa36a7',
         rpcEndpoints: [
           {
             networkClientId: 'sepolia',
             url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
-            type: 'infura' as const,
+            type: 'infura',
           },
         ],
         defaultRpcEndpointIndex: 0,
@@ -558,12 +540,12 @@ function defaultPostMigrationState(): {
         nativeCurrency: 'SepoliaETH',
       },
       '0xe705': {
-        chainId: '0xe705' as const,
+        chainId: '0xe705',
         rpcEndpoints: [
           {
             networkClientId: 'linea-sepolia',
             url: 'https://linea-sepolia.infura.io/v3/{infuraProjectId}',
-            type: 'infura' as const,
+            type: 'infura',
           },
         ],
         defaultRpcEndpointIndex: 0,
@@ -573,12 +555,12 @@ function defaultPostMigrationState(): {
         nativeCurrency: 'LineaETH',
       },
       '0xe708': {
-        chainId: '0xe708' as const,
+        chainId: '0xe708',
         rpcEndpoints: [
           {
             networkClientId: 'linea-mainnet',
             url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
-            type: 'infura' as const,
+            type: 'infura',
           },
         ],
         defaultRpcEndpointIndex: 0,

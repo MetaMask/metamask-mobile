@@ -181,7 +181,8 @@ const AccountSelectorList = ({
         { cancelable: false },
       );
     },
-    /* eslint-disable-next-line */
+    // TODO: Please update this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       accounts,
       onRemoveImportedAccount,
@@ -203,7 +204,8 @@ const AccountSelectorList = ({
         params: { selectedAccount: account },
       });
     },
-    /* eslint-disable-next-line */
+    // TODO: Please update this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [navigate],
   );
 

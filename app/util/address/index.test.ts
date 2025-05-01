@@ -354,7 +354,6 @@ describe('shouldShowBlockExplorer', () => {
             networkClientId: 'networkId1',
             type: RpcEndpointType.Custom,
             url: 'https://mainnet.infura.io/v3/123',
-            failoverUrls: [],
           },
         ],
       },
