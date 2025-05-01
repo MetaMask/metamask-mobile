@@ -117,6 +117,7 @@ const AccountConnectMultiSelector = ({
         <Checkbox
           style={styles.selectAll}
           label={strings('accounts.select_all')}
+          testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON}
           isIndeterminate={areSomeSelectedButNotAll}
           isChecked={areAllAccountsSelected}
           onPress={onPress}

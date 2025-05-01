@@ -81,20 +81,40 @@ describe('NetworkConnectMultiSelector', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('handles network selection correctly', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <NetworkConnectMultiSelector {...defaultProps} />,
+  it('disables the select all button when loading', () => {
+    const { getByTestId, getAllByTestId } = renderWithProvider(
+      <NetworkConnectMultiSelector {...defaultProps} isLoading />,
     );
 
-    const network = getByText('Polygon');
-    fireEvent.press(network);
+    const selectAllbutton = getAllByTestId(ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON)
+    fireEvent.press(selectAllbutton[0]);
 
     const updateButton = getByTestId(
       NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
     );
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1', '0x89']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1']);
+  })
+
+  it('handles network selection correctly', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <NetworkConnectMultiSelector {...defaultProps} />,
+    );
+
+    const newNetwork = getByText('Polygon');
+    fireEvent.press(newNetwork);
+
+    // tests removal of an already selected network
+    const exstingNetwork = getByText('Ethereum Mainnet');
+    fireEvent.press(exstingNetwork);
+
+    const updateButton = getByTestId(
+      NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
+    );
+    fireEvent.press(updateButton);
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x89']);
   });
 
   it('shows update button when some networks are selected', () => {
