@@ -1209,7 +1209,7 @@ class Confirm extends PureComponent {
             onPress={this.toggleHexDataModal}
           >
             <IonicIcon
-              name={'ios-close'}
+              name={'close'}
               size={28}
               color={colors.text.default}
             />
