@@ -1,6 +1,7 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import {
+  CaipAssetId,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -68,11 +69,12 @@ import { CustomNetworkNativeImgMapping } from './CustomNetworkNativeImgMapping';
 import { TraceName, trace } from '../../../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
+  makeSelectNonEvmAssetById,
   selectMultichainAssetsRates,
-  selectNonEvmAssetById,
 } from '../../../../../selectors/multichain/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
+import Logger from '../../../../../util/Logger';
 
 interface TokenListItemProps {
   assetKey: { address: string; chainId: string | undefined };
@@ -81,6 +83,52 @@ interface TokenListItemProps {
   privacyMode: boolean;
   showPercentageChange?: boolean;
 }
+
+const useLogDep = (key: string, val: unknown, showVal = false) => {
+  useEffect(() => {
+    if (showVal) {
+      Logger.log(`TokenListItem - ${key} changed`, val);
+    } else {
+      Logger.log(`TokenListItem - ${key} changed`);
+    }
+  }, [key, showVal, val]);
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function findChangedFields(obj1: any, obj2: any) {
+  const changes: string[] = [];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function compareObjects(o1: any, o2: any, path = '') {
+    Object.keys(o1).forEach((key) => {
+      const currentPath = path ? `${path}.${key}` : key;
+      if (
+        typeof o1[key] === 'object' &&
+        o1[key] !== null &&
+        typeof o2[key] === 'object' &&
+        o2[key] !== null
+      ) {
+        compareObjects(o1[key], o2[key], currentPath);
+      } else if (o1[key] !== o2[key]) {
+        changes.push(currentPath);
+      }
+    });
+  }
+
+  compareObjects(obj1, obj2);
+  return changes;
+}
+
+const useLogDepChanged = (key: string, val: unknown) => {
+  const prevVal = useRef(val);
+  useEffect(() => {
+    if (prevVal.current) {
+      const changedFields = findChangedFields(prevVal.current, val);
+      Logger.log(`TokenListItem - ${key} Changed fields:`, changedFields);
+    }
+    prevVal.current = val;
+  }, [key, val]);
+};
 
 export const TokenListItem = React.memo(
   ({
@@ -112,12 +160,15 @@ export const TokenListItem = React.memo(
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const selectedAccount = useSelector(selectSelectedInternalAccount);
+    const selectNonEvmAsset = useMemo(() => makeSelectNonEvmAssetById(), []);
     const nonEvmAsset = useSelector((state: RootState) =>
-      selectNonEvmAssetById(state, {
+      selectNonEvmAsset(state, {
         accountId: selectedAccount?.id,
-        assetId: assetKey.address,
+        assetId: assetKey.address as CaipAssetId,
       }),
     );
+
+    useLogDep('nonEvmAsset', nonEvmAsset);
     ///: END:ONLY_INCLUDE_IF
 
     let asset = isEvmNetworkSelected ? evmAsset : nonEvmAsset;
