@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import useCurrencyRatePolling from './useCurrencyRatePolling';
 import useTokenRatesPolling from './useTokenRatesPolling';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
