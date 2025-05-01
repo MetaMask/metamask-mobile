@@ -18,18 +18,22 @@ import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './QuoteExpiredModal.styles';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import Engine from '../../../../../core/Engine';
+import { setIsSubmittingTx } from '../../../../../core/redux/slices/bridge';
+import { useDispatch } from 'react-redux';
 
 const QuoteExpiredModal = () => {
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
   const updateQuoteParams = useBridgeQuoteRequest();
+  const dispatch = useDispatch();
 
   const handleClose = () => {
     navigation.goBack();
   };
 
   const handleGetNewQuote = () => {
+    dispatch(setIsSubmittingTx(false));
     // Reset bridge controller state
     if (Engine.context.BridgeController?.resetState) {
       Engine.context.BridgeController.resetState();

@@ -4,7 +4,10 @@ import {
   isQuoteExpired,
 } from './quoteUtils';
 import type { BridgeToken } from '../types';
-import type { FeatureFlagsPlatformConfig, ChainConfiguration } from '@metamask/bridge-controller';
+import type {
+  FeatureFlagsPlatformConfig,
+  ChainConfiguration,
+} from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 
 describe('quoteUtils', () => {
@@ -38,9 +41,15 @@ describe('quoteUtils', () => {
     };
 
     it('should return default refresh rate when no source token or feature flags', () => {
-      expect(getQuoteRefreshRate(undefined, undefined)).toBe(DEFAULT_REFRESH_RATE);
-      expect(getQuoteRefreshRate(mockFeatureFlags, undefined)).toBe(DEFAULT_REFRESH_RATE);
-      expect(getQuoteRefreshRate(undefined, mockBridgeToken)).toBe(DEFAULT_REFRESH_RATE);
+      expect(getQuoteRefreshRate(undefined, undefined)).toBe(
+        DEFAULT_REFRESH_RATE,
+      );
+      expect(getQuoteRefreshRate(mockFeatureFlags, undefined)).toBe(
+        DEFAULT_REFRESH_RATE,
+      );
+      expect(getQuoteRefreshRate(undefined, mockBridgeToken)).toBe(
+        DEFAULT_REFRESH_RATE,
+      );
     });
 
     it('should return chain-specific refresh rate when available', () => {
@@ -57,7 +66,12 @@ describe('quoteUtils', () => {
           },
         },
       };
-      expect(getQuoteRefreshRate(featureFlagsWithoutChainRefreshRate, mockBridgeToken)).toBe(10000);
+      expect(
+        getQuoteRefreshRate(
+          featureFlagsWithoutChainRefreshRate,
+          mockBridgeToken,
+        ),
+      ).toBe(10000);
     });
 
     it('should fall back to global refresh rate when no matching chain config', () => {
@@ -65,29 +79,61 @@ describe('quoteUtils', () => {
         ...mockBridgeToken,
         chainId: 'eip155:999' as `${string}:${string}`,
       };
-      expect(getQuoteRefreshRate(mockFeatureFlags, tokenWithUnsupportedChain)).toBe(10000);
+      expect(
+        getQuoteRefreshRate(mockFeatureFlags, tokenWithUnsupportedChain),
+      ).toBe(10000);
     });
   });
 
   describe('shouldRefreshQuote', () => {
-    it('should return false when insufficient balance', () => {
-      expect(shouldRefreshQuote(true, 0, 3)).toBe(false);
-      expect(shouldRefreshQuote(true, 1, 3)).toBe(false);
-      expect(shouldRefreshQuote(true, 2, 3)).toBe(false);
+    it('returns false when isSubmittingTx is true', () => {
+      const result = shouldRefreshQuote(
+        false, // insufficientBal
+        0, // quotesRefreshCount
+        5, // maxRefreshCount
+        true, // isSubmittingTx
+      );
+      expect(result).toBe(false);
     });
 
-    it('should return true when sufficient balance and under max refresh count', () => {
-      expect(shouldRefreshQuote(false, 0, 3)).toBe(true);
-      expect(shouldRefreshQuote(false, 1, 3)).toBe(true);
-      expect(shouldRefreshQuote(false, 2, 3)).toBe(true);
+    it('returns false when insufficientBal is true', () => {
+      const result = shouldRefreshQuote(
+        true, // insufficientBal
+        0, // quotesRefreshCount
+        5, // maxRefreshCount
+        false, // isSubmittingTx
+      );
+      expect(result).toBe(false);
     });
 
-    it('should return false when sufficient balance but at max refresh count', () => {
-      expect(shouldRefreshQuote(false, 3, 3)).toBe(false);
+    it('returns true when under max refresh count and no blocking conditions', () => {
+      const result = shouldRefreshQuote(
+        false, // insufficientBal
+        2, // quotesRefreshCount
+        5, // maxRefreshCount
+        false, // isSubmittingTx
+      );
+      expect(result).toBe(true);
     });
 
-    it('should return false when sufficient balance but over max refresh count', () => {
-      expect(shouldRefreshQuote(false, 4, 3)).toBe(false);
+    it('returns false when at max refresh count', () => {
+      const result = shouldRefreshQuote(
+        false, // insufficientBal
+        5, // quotesRefreshCount
+        5, // maxRefreshCount
+        false, // isSubmittingTx
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns false when over max refresh count', () => {
+      const result = shouldRefreshQuote(
+        false, // insufficientBal
+        6, // quotesRefreshCount
+        5, // maxRefreshCount
+        false, // isSubmittingTx
+      );
+      expect(result).toBe(false);
     });
   });
 
@@ -105,7 +151,9 @@ describe('quoteUtils', () => {
 
     it('should return false when quote is going to refresh', () => {
       expect(isQuoteExpired(true, refreshRate, now - 1000)).toBe(false);
-      expect(isQuoteExpired(true, refreshRate, now - refreshRate - 1)).toBe(false);
+      expect(isQuoteExpired(true, refreshRate, now - refreshRate - 1)).toBe(
+        false,
+      );
     });
 
     it('should return false when no last fetched timestamp', () => {
@@ -113,11 +161,15 @@ describe('quoteUtils', () => {
     });
 
     it('should return true when quote not refreshing and time exceeds refresh rate', () => {
-      expect(isQuoteExpired(false, refreshRate, now - refreshRate - 1)).toBe(true);
+      expect(isQuoteExpired(false, refreshRate, now - refreshRate - 1)).toBe(
+        true,
+      );
     });
 
     it('should return false when quote not refreshing but time within refresh rate', () => {
-      expect(isQuoteExpired(false, refreshRate, now - refreshRate + 1)).toBe(false);
+      expect(isQuoteExpired(false, refreshRate, now - refreshRate + 1)).toBe(
+        false,
+      );
     });
 
     it('should handle edge cases with exact refresh rate timing', () => {
