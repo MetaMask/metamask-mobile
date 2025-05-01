@@ -228,6 +228,34 @@ const createStyles = (colors: Colors) =>
       alignSelf: 'flex-end',
       alignItems: 'flex-end',
     },
+    detailsWrapper: {
+      paddingHorizontal: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    separatorWrapper: {
+      paddingHorizontal: 16,
+    },
+    ProtocolDetailsPositionsWrapper: {
+      display: 'flex',
+      flexDirection: 'column',
+      paddingHorizontal: 16,
+    },
+    PositionTypeLabel: {
+      color: colors.text.alternative,
+      fontWeight: 'bold',
+      ...fontStyles.normal,
+    },
+    underlyingBalancesWrapper: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+    },
+    alternativeText: {
+      color: colors.text.alternative,
+      ...fontStyles.normal,
+    },
   });
 
 export default createStyles;

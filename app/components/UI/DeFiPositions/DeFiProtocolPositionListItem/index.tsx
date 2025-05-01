@@ -101,7 +101,10 @@ const DeFiProtocolPositionListItem = ({
   return (
     <TouchableOpacity
       onPress={() => {
-        navigation.navigate('DeFiProtocolPositionsDetails', protocolAggregate);
+        navigation.navigate('DeFiProtocolPositionsDetails', {
+          protocolAggregate,
+          networkIconAvatar,
+        });
       }}
       style={styles.itemWrapper}
     >
@@ -120,6 +123,7 @@ const DeFiProtocolPositionListItem = ({
           size={AvatarSize.Md}
         />
       </BadgeWrapper>
+
       <View style={styles.balances}>
         <View style={styles.assetName}>
           <Text variant={TextVariant.BodyLGMedium}>
