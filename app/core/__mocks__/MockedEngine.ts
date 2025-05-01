@@ -3,7 +3,6 @@ import { mockNetworkState } from '../../util/test/network';
 import { NetworkClientId } from '@metamask/network-controller';
 import Engine from '../../core/Engine';
 import { MOCK_KEYRING_CONTROLLER_STATE } from '../../util/test/keyringControllerTestUtils';
-import { PreferencesController } from '@metamask/preferences-controller';
 
 export const mockedEngine = {
   init: () => Engine.init({}),

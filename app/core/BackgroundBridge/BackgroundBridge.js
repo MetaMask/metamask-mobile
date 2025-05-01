@@ -223,7 +223,7 @@ export class BackgroundBridge extends EventEmitter {
           mux.createStream('metamask-multichain-provider'),
         );
       } catch (e) {
-        console.log('Multichain Provider Error:', e);
+        Logger.log('failed to setupProviderConnectionCaip: ', e);
       }
     }
 
@@ -1132,7 +1132,6 @@ export class BackgroundBridge extends EventEmitter {
     //   return end();
     // });
 
-    console.log('Successfully Setup Provider Engine Caip!');
     return engine;
   }
 
