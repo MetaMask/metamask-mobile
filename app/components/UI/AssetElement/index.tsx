@@ -3,6 +3,7 @@ import React from 'react';
 import { TouchableOpacity, StyleSheet, Platform, View } from 'react-native';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import SkeletonText from '../Ramp/components/SkeletonText';
+import { TokenI } from '../Tokens/types';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
@@ -18,17 +19,11 @@ import SensitiveText, {
 } from '../../../component-library/components/Texts/SensitiveText';
 import { BALANCE_TEST_ID, SECONDARY_BALANCE_TEST_ID } from './index.constants';
 
-interface Asset {
-  symbol: string;
-  hasBalanceError?: boolean;
-  balanceFiat?: string;
-}
-
-interface AssetElementProps<T extends Asset = Asset> {
+interface AssetElementProps {
   children?: React.ReactNode;
-  asset: T;
-  onPress?: (asset: T) => void;
-  onLongPress?: ((asset: T) => void) | null;
+  asset: TokenI;
+  onPress?: (asset: TokenI) => void;
+  onLongPress?: ((asset: TokenI) => void) | null;
   balance?: string;
   secondaryBalance?: string;
   privacyMode?: boolean;
@@ -65,7 +60,7 @@ const createStyles = (colors: Colors) =>
 /**
  * Customizable view to render assets in lists
  */
-const AssetElement = <T extends Asset>({
+const AssetElement: React.FC<AssetElementProps> = ({
   children,
   balance,
   secondaryBalance,
@@ -73,7 +68,7 @@ const AssetElement = <T extends Asset>({
   onPress,
   onLongPress,
   privacyMode = false,
-}: AssetElementProps<T>) => {
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
