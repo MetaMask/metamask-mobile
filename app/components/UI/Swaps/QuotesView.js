@@ -2080,7 +2080,7 @@ function SwapsQuotesView({
               />
               <Text style={styles.tokenText}>{sourceToken.symbol}</Text>
             </View>
-            <IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+            <IonicIcon style={styles.arrowDown} name="arrow-down" />
             <View style={styles.sourceTokenContainer}>
               <TokenIcon
                 style={styles.tokenIcon}
@@ -2656,7 +2656,10 @@ const mapStateToProps = (state) => ({
   usedCustomGas: selectSwapsUsedCustomGas(state),
   primaryCurrency: state.settings.primaryCurrency,
   swapsTokens: swapsTokensSelector(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
+    state,
+    selectEvmChainId(state),
+  ),
   isEIP1559Network: selectIsEIP1559Network(state),
 });
 

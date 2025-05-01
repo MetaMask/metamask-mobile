@@ -775,7 +775,7 @@ function SwapsAmountView({
         >
           <View style={styles.horizontalRule} />
           <TouchableOpacity onPress={handleFlipTokens}>
-            <IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+            <IonicIcon style={styles.arrowDown} name="arrow-down" />
           </TouchableOpacity>
           <View style={styles.horizontalRule} />
         </View>
@@ -1047,7 +1047,10 @@ const mapStateToProps = (state) => ({
   selectedNetworkClientId: selectSelectedNetworkClientId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
+    state,
+    selectEvmChainId(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({
