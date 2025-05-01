@@ -27,4 +27,5 @@ export const mockBridgeReducerState: BridgeState = {
   selectedSourceChainIds: ['0x1'],
   selectedDestChainId: '0xa',
   slippage: '0.5',
+  isSubmittingTx: false,
 };
