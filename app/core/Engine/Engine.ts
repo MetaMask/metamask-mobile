@@ -1185,6 +1185,7 @@ export class Engine {
           'NetworkController:getNetworkClientById',
           'AccountsController:getAccount',
           'AccountsController:getSelectedAccount',
+          'AccountsController:listAccounts',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
@@ -1192,6 +1193,7 @@ export class Engine {
           'NetworkController:stateChange',
           'TokenListController:stateChange',
           'AccountsController:selectedEvmAccountChange',
+          'AccountsController:accountRemoved',
         ],
       }),
     });
@@ -1307,11 +1309,13 @@ export class Engine {
             'TokensController:getState',
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
+            'AccountsController:listAccounts',
           ],
           allowedEvents: [
             'TokensController:stateChange',
             'PreferencesController:stateChange',
             'NetworkController:stateChange',
+            'AccountsController:accountRemoved',
           ],
         }),
         // TODO: This is long, can we decrease it?
