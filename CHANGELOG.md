@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.45.1]
+
+### Fixed
+- fix: update patch to use old AccountTrackerController data structures ([dfc076c](https://github.com/MetaMask/metamask-mobile/commit/dfc076cee12aab974720b2dd1e8a145b3fafd484))
+
 ## [7.45.0]
 
 ### Changed
@@ -5348,7 +5353,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.1...HEAD
+[7.45.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.0...v7.45.1
 [7.45.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.44.0...v7.45.0
 [7.44.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.43.0...v7.44.0
 [7.43.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.42.1...v7.43.0
