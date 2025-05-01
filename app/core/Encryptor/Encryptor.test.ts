@@ -266,11 +266,7 @@ describe('Encryptor', () => {
     beforeEach(() => {
       const mockDecrypt = jest
         .fn()
-        .mockResolvedValue(new Uint8Array([
-          123,  34, 116, 101, 115,
-          116,  34,  58,  34, 100,
-           97, 116,  97,  34, 125
-        ]));
+        .mockResolvedValue(JSON.stringify({ test: 'data' }));
       jest.spyOn(QuickCryptoLib, 'decrypt').mockImplementation(mockDecrypt);
 
       jest.spyOn(QuickCryptoLib, 'deriveKey').mockResolvedValue('mockedKey');
