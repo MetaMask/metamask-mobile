@@ -29,7 +29,6 @@ const mockNetworks: Record<Hex, NetworkConfiguration> = {
     rpcEndpoints: [
       {
         url: 'https://mainnet.infura.io/v3',
-        failoverUrls: [],
         networkClientId: NETWORK_CHAIN_ID.MAINNET,
         type: RpcEndpointType.Custom,
         name: 'Ethereum',
@@ -46,7 +45,6 @@ const mockNetworks: Record<Hex, NetworkConfiguration> = {
     rpcEndpoints: [
       {
         url: 'https://polygon-rpc.com',
-        failoverUrls: [],
         name: 'Polygon',
         networkClientId: NETWORK_CHAIN_ID.POLYGON,
         type: RpcEndpointType.Custom,
@@ -124,9 +122,9 @@ describe('TokenFilterBottomSheet', () => {
   });
 
   it('sets filter to All Networks and closes bottom sheet when first option is pressed', async () => {
-    const { queryByText } = render(<TokenFilterBottomSheet />);
+    const { getByText } = render(<TokenFilterBottomSheet />);
 
-    fireEvent.press(queryByText('Popular networks'));
+    fireEvent.press(getByText('Popular networks'));
 
     await waitFor(() => {
       expect(
@@ -136,9 +134,9 @@ describe('TokenFilterBottomSheet', () => {
   });
 
   it('sets filter to Current Network and closes bottom sheet when second option is pressed', async () => {
-    const { queryByText } = render(<TokenFilterBottomSheet />);
+    const { getByText } = render(<TokenFilterBottomSheet />);
 
-    fireEvent.press(queryByText('Current Network'));
+    fireEvent.press(getByText('Current Network'));
 
     await waitFor(() => {
       expect(

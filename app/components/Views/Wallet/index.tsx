@@ -164,7 +164,6 @@ const createStyles = ({ colors, typography }: Theme) =>
       alignItems: 'center',
     },
     banner: {
-      widht: '80%',
       marginTop: 20,
       paddingHorizontal: 16,
     },
@@ -467,9 +466,9 @@ const Wallet = ({
 
         Object.values(evmNetworkConfigurations).forEach(
           ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
-            AccountTrackerController.refresh(
+            AccountTrackerController.refresh([
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-            );
+            ]);
           },
         );
       });
@@ -615,7 +614,7 @@ const Wallet = ({
   ]);
 
   const renderTabBar = useCallback(
-    (props) => (
+    (props: Record<string, unknown>) => (
       <View style={styles.base}>
         <DefaultTabBar
           underlineStyle={styles.tabUnderlineStyle}
@@ -646,7 +645,7 @@ const Wallet = ({
   }, []);
 
   const onChangeTab = useCallback(
-    async (obj) => {
+    async (obj: { ref: { props: { tabLabel: string } } }) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {
