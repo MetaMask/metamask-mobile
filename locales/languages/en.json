@@ -3586,7 +3586,8 @@
     },
     "service_interruption_banner": {
       "maintenance_message": "We're down for maintenance. We'll be back online soon!"
-    }
+    },
+    "deposit": "Deposit"
   },
   "stake": {
     "stake": "Stake",

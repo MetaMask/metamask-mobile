@@ -183,6 +183,9 @@ const Routes = {
       EARN_TOKEN_LIST: 'EarnTokenList',
     },
   },
+  EARN: {
+    LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
+  },
   STANDALONE_CONFIRMATIONS: {
     STAKE_DEPOSIT: 'RedesignedStakeDeposit',
     STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
