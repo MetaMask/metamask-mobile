@@ -109,11 +109,6 @@ const Tokens = memo(() => {
 
     endTrace({ name: TraceName.Tokens });
 
-    // Logger.log(
-    //   'FOO: ',
-    //   tokensSorted.find((asset) => asset.name === 'Staked Ethereum'),
-    // );
-
     return tokensSorted
       .filter(({ address, chainId }) => address && chainId)
       .map(({ address, chainId, isStaked }) => ({

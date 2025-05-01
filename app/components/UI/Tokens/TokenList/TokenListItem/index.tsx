@@ -79,7 +79,11 @@ import {
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
 
 interface TokenListItemProps {
-  assetKey: { address: string; chainId: string | undefined; isStaked: boolean };
+  assetKey: {
+    address: string;
+    chainId: string | undefined;
+    isStaked: boolean | undefined;
+  };
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;

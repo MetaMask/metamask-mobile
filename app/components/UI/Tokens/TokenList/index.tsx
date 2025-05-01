@@ -24,7 +24,7 @@ interface TokenListProps {
   tokenKeys: {
     address: string;
     chainId: string | undefined;
-    isStaked: boolean;
+    isStaked: boolean | undefined;
   }[];
   refreshing: boolean;
   isAddTokenEnabled: boolean;
@@ -55,7 +55,7 @@ export const TokenList = ({
     FlashList<{
       address: string;
       chainId: string | undefined;
-      isStaked: boolean;
+      isStaked: boolean | undefined;
     }>
   >(null);
 
@@ -83,7 +83,11 @@ export const TokenList = ({
     ({
       item,
     }: {
-      item: { address: string; chainId: string | undefined; isStaked: boolean };
+      item: {
+        address: string;
+        chainId: string | undefined;
+        isStaked: boolean | undefined;
+      };
     }) => (
       <TokenListItem
         assetKey={item}
