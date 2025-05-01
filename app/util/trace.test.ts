@@ -5,8 +5,7 @@ import {
   startSpanManual,
   withScope,
 } from '@sentry/react-native';
-
-import { Span } from '@sentry/types';
+import type { Span } from '@sentry/core';
 import { endTrace, trace, TraceName, TRACES_CLEANUP_INTERVAL } from './trace';
 
 jest.mock('@sentry/react-native', () => ({
@@ -19,8 +18,10 @@ jest.mock('@sentry/react-native', () => ({
 const NAME_MOCK = TraceName.Middleware;
 const ID_MOCK = 'testId';
 const PARENT_CONTEXT_MOCK = {
-  spanId: 'parentSpanId',
-} as Span;
+  spanContext: () => ({
+    spanId: 'parentSpanId',
+  }),
+};
 
 const TAGS_MOCK = {
   tag1: 'value1',
@@ -90,7 +91,7 @@ describe('Trace', () => {
       expect(startSpanMock).toHaveBeenCalledWith(
         {
           name: NAME_MOCK,
-          parentSpanId: PARENT_CONTEXT_MOCK.spanId,
+          parentSpanId: PARENT_CONTEXT_MOCK.spanContext?.()?.spanId,
           attributes: DATA_MOCK,
           op: 'custom',
         },
@@ -120,7 +121,7 @@ describe('Trace', () => {
       expect(startSpanManualMock).toHaveBeenCalledWith(
         {
           name: NAME_MOCK,
-          parentSpanId: PARENT_CONTEXT_MOCK.spanId,
+          parentSpanId: PARENT_CONTEXT_MOCK.spanContext?.()?.spanId,
           attributes: DATA_MOCK,
           op: 'custom',
         },
@@ -151,7 +152,7 @@ describe('Trace', () => {
       expect(startSpanManualMock).toHaveBeenCalledWith(
         {
           name: NAME_MOCK,
-          parentSpanId: PARENT_CONTEXT_MOCK.spanId,
+          parentSpanId: PARENT_CONTEXT_MOCK.spanContext?.()?.spanId,
           attributes: DATA_MOCK,
           op: 'custom',
           startTime: 123,

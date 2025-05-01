@@ -5,8 +5,8 @@ import {
   setMeasurement,
   Scope,
 } from '@sentry/react-native';
+import type { StartSpanOptions, Span } from '@sentry/core';
 import performance from 'react-native-performance';
-import type { Span, StartSpanOptions, MeasurementUnit } from '@sentry/types';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
@@ -285,7 +285,7 @@ function startSpan<T>(
     op: op || OP_DEFAULT,
     // This needs to be parentSpan once we have the withIsolatedScope implementation in place in the Sentry SDK for React Native
     // Reference PR that updates @sentry/react-native: https://github.com/getsentry/sentry-react-native/pull/3895
-    parentSpanId: parentSpan?.spanId,
+    parentSpan,
     startTime,
   };
 
@@ -336,7 +336,7 @@ function initSpan(_span: Span, request: TraceRequest) {
 
   for (const [key, value] of Object.entries(tags)) {
     if (typeof value === 'number') {
-      sentrySetMeasurement(key, value, 'none');
+      setMeasurement(key, value, 'none');
     }
   }
 }
@@ -372,12 +372,4 @@ function tryCatchMaybePromise<T>(
   }
 
   return undefined;
-}
-
-function sentrySetMeasurement(
-  key: string,
-  value: number,
-  unit: MeasurementUnit,
-) {
-  setMeasurement(key, value, unit);
 }
