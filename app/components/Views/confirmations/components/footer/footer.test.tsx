@@ -51,6 +51,14 @@ const mockTrackAlertMetrics = jest.fn();
   trackAlertMetrics: mockTrackAlertMetrics,
 });
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
+
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
 const ALERT_DETAILS_MOCK = ['Detail 1', 'Detail 2'];
 const mockAlerts = [
