@@ -31,6 +31,10 @@ import Toast, {
 } from '../../../../../component-library/components/Toast';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
+import {
+  STABLECOIN_TOKEN_CONTRACT_ADDRESS_MAP,
+  AAVE_V3_POOL_CONTRACT_ADDRESS,
+} from '../../constants/tempToken';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -55,28 +59,6 @@ const MOCK_DATA_TO_REPLACE = {
     TOKEN: '10,100 AETHUSDC',
   },
 };
-
-// Temp: Contract addresses below will be replaced by earn-sdk/earn-controller in the next iteration.
-const USDC_BASE_TOKEN_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
-
-// TODO: Remove hardcoded variables before opening PR.
-const USDC_MAINNET_TOKEN_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-
-const DAI_MAINNET_TOKEN_ADDRESS = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
-
-// Temp: Contract map will be replaced by earn-sdk/earn-contorller in the next iteration.
-const stablecoinTokenContractAddressMap = {
-  '0x1': {
-    DAI: DAI_MAINNET_TOKEN_ADDRESS,
-    USDC: USDC_MAINNET_TOKEN_ADDRESS,
-  },
-  '0x2105': {
-    USDC: USDC_BASE_TOKEN_ADDRESS,
-  },
-};
-
-const AAVE_V3_POOL_CONTRACT_ADDRESS =
-  '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2';
 
 const Steps = {
   ALLOWANCE_INCREASE: 0,
@@ -118,15 +100,18 @@ const EarnLendingDepositConfirmationView = () => {
   const { toastRef } = useContext(ToastContext);
 
   const confirmButtonText = useMemo(
-    () => (activeStep === Steps.ALLOWANCE_INCREASE ? 'Approve' : 'Confirm'),
+    () =>
+      activeStep === Steps.ALLOWANCE_INCREASE
+        ? strings('earn.approve')
+        : strings('earn.confirm'),
     [activeStep],
   );
 
-  // TODO: Replace hardcoded strings
   const showTransactionSubmissionToast = useCallback(() => {
-    const baseMessage = 'Transaction Submitted';
     const prefix =
-      activeStep === Steps.ALLOWANCE_INCREASE ? 'Approval' : 'Deposit';
+      activeStep === Steps.ALLOWANCE_INCREASE
+        ? strings('earn.approval')
+        : strings('earn.deposit');
 
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
@@ -135,7 +120,7 @@ const EarnLendingDepositConfirmationView = () => {
       backgroundColor: theme.colors.background.default,
       labelOptions: [
         {
-          label: `${prefix} ${baseMessage}`,
+          label: `${prefix} ${strings('earn.transaction_submitted')}`,
           isBold: false,
         },
       ],
@@ -265,9 +250,14 @@ const EarnLendingDepositConfirmationView = () => {
     let txOptions;
 
     const tokenContractAddress =
-      // @ts-expect-error sanity testing.
-      stablecoinTokenContractAddressMap[earnToken?.chainId][earnToken?.symbol];
+      // @ts-expect-error temp until we use TransactionController for token addresses.
+      STABLECOIN_TOKEN_CONTRACT_ADDRESS_MAP[earnToken?.chainId][
+        earnToken?.symbol
+      ];
 
+    if (!tokenContractAddress) return;
+
+    // Requires allowance increase
     if (activeStep === Steps.ALLOWANCE_INCREASE) {
       const allowanceIncreaseTransaction =
         generateLendingAllowanceIncreaseTransaction(
@@ -282,8 +272,9 @@ const EarnLendingDepositConfirmationView = () => {
       txOptions = allowanceIncreaseTransaction.txOptions;
 
       setIsApprovalLoading(true);
-    } else {
-      // Already has necessary allowance and can deposit straight away.
+    }
+    // Already has necessary allowance and can deposit straight away.
+    else {
       const depositTransaction = generateLendingDepositTransaction(
         amountTokenMinimalUnit,
         activeAccount.address,
@@ -355,9 +346,8 @@ const EarnLendingDepositConfirmationView = () => {
         }}
         activeStep={activeStep}
         steps={[
-          //   TODO: Replace hardcoded strings with locale variables
-          { label: 'Approve', isLoading: isApprovalLoading },
-          { label: 'Deposit', isLoading: isDepositLoading },
+          { label: strings('earn.approve'), isLoading: isApprovalLoading },
+          { label: strings('earn.deposit'), isLoading: isDepositLoading },
         ]}
       />
       <Toast ref={toastRef} />

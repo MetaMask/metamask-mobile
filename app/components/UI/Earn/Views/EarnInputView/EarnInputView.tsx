@@ -48,25 +48,10 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { getErc20SpendingLimit } from '../../utils/tempLending';
 import BigNumber from 'bignumber.js';
-
-// TEMP: These token addresses should be pulled from either the TokenController or EarnController
-// TODO: Replace hardcoded token addresses with calls to TokenController
-const USDC_BASE_TOKEN_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
-const USDC_MAINNET_TOKEN_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-const DAI_MAINNET_TOKEN_ADDRESS = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
-
-const stablecoinTokenContractAddressMap = {
-  '0x1': {
-    DAI: DAI_MAINNET_TOKEN_ADDRESS,
-    USDC: USDC_MAINNET_TOKEN_ADDRESS,
-  },
-  '0x2105': {
-    USDC: USDC_BASE_TOKEN_ADDRESS,
-  },
-};
-
-const AAVE_V3_POOL_CONTRACT_ADDRESS =
-  '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2';
+import {
+  AAVE_V3_POOL_CONTRACT_ADDRESS,
+  STABLECOIN_TOKEN_CONTRACT_ADDRESS_MAP,
+} from '../../constants/tempToken';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -151,8 +136,10 @@ const EarnInputView = () => {
     const amountTokenMinimalUnitString = amountTokenMinimalUnit.toString();
 
     const tokenContractAddress =
-      // @ts-expect-error sanity testing.
-      stablecoinTokenContractAddressMap[earnToken?.chainId][earnToken?.symbol];
+      // @ts-expect-error temp until we use TransactionController for token addresses.
+      STABLECOIN_TOKEN_CONTRACT_ADDRESS_MAP[earnToken?.chainId][
+        earnToken?.symbol
+      ];
 
     if (!tokenContractAddress) return;
 
@@ -165,6 +152,7 @@ const EarnInputView = () => {
       allowanceMinimalTokenUnit,
     ).isLessThan(amountTokenMinimalUnitString);
 
+    // TODO: Update when moving Earn screen stack into its own namespace.
     navigation.navigate('StakeScreens', {
       screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
       params: {

@@ -15,6 +15,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../../reducers';
 import { TokenI } from '../../../../../Tokens/types';
 import { useEarnTokenDetails } from '../../../../hooks/useEarnTokenDetails';
+import { strings } from '../../../../../../../../locales/i18n';
 
 export const STABLECOIN_DEPOSIT_TEST_IDS = {
   DEPOSIT_DETAILS_SECTION: 'depositDetailsSection',
@@ -32,8 +33,8 @@ const MOCK_DATA_TO_REPLACE = {
     FIAT: '$5.00',
     TOKEN: '5 DAI',
   },
-  REWARD_FREQUENCY: 'Daily',
-  WITHDRAWAL_TIME: 'Immediate',
+  REWARD_FREQUENCY: strings('earn.daily'),
+  WITHDRAWAL_TIME: strings('earn.immediate'),
 };
 
 const DepositInfoSection = ({
@@ -53,15 +54,14 @@ const DepositInfoSection = ({
   return (
     <InfoSection testID={STABLECOIN_DEPOSIT_TEST_IDS.DEPOSIT_DETAILS_SECTION}>
       <View style={styles.infoSectionContent}>
-        {/* <InfoRow label="test">{earnToken.apr}</InfoRow> */}
         <KeyValueRow
           field={{
             label: {
-              text: 'APR',
+              text: strings('earn.apr'),
               variant: TextVariant.BodyMDMedium,
             },
             tooltip: {
-              title: 'APR',
+              title: strings('earn.apr'),
               content:
                 'Commodo officia id eu amet reprehenderit excepteur fugiat amet sint enim voluptate culpa ullamco commodo.',
               size: TooltipSizes.Sm,
@@ -78,7 +78,7 @@ const DepositInfoSection = ({
         <KeyValueRow
           field={{
             label: {
-              text: 'Est. annual reward',
+              text: strings('stake.estimated_annual_reward'),
             },
           }}
           value={{
@@ -95,10 +95,10 @@ const DepositInfoSection = ({
         <KeyValueRow
           field={{
             label: {
-              text: 'Reward frequency',
+              text: strings('stake.reward_frequency'),
             },
             tooltip: {
-              title: 'Reward frequency',
+              title: strings('stake.reward_frequency'),
               content:
                 'Incididunt nisi proident voluptate velit dolor ullamco fugiat ex minim consequat nisi pariatur.',
               size: TooltipSizes.Sm,
@@ -114,10 +114,10 @@ const DepositInfoSection = ({
         <KeyValueRow
           field={{
             label: {
-              text: 'Withdrawal time',
+              text: strings('stake.withdrawal_time'),
             },
             tooltip: {
-              title: 'Withdrawal time',
+              title: strings('stake.withdrawal_time'),
               content:
                 'Incididunt nisi proident voluptate velit dolor ullamco fugiat ex minim consequat nisi pariatur.',
               size: TooltipSizes.Sm,
@@ -133,10 +133,10 @@ const DepositInfoSection = ({
         <KeyValueRow
           field={{
             label: {
-              text: 'Protocol',
+              text: strings('earn.protocol'),
             },
             tooltip: {
-              title: 'Protocol',
+              title: strings('earn.protocol'),
               content:
                 'Incididunt nisi proident voluptate velit dolor ullamco fugiat ex minim consequat nisi pariatur.',
               size: TooltipSizes.Sm,

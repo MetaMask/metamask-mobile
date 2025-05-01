@@ -17,6 +17,7 @@ import useTooltipModal from '../../../../../../hooks/useTooltipModal';
 import AvatarToken from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
 import { TokenI } from '../../../../../Tokens/types';
+import { strings } from '../../../../../../../../locales/i18n';
 
 interface DepositReceiveSectionProps {
   token: TokenI;
@@ -39,16 +40,18 @@ const DepositReceiveSection = ({
     <InfoSection>
       <View style={styles.infoSectionContent}>
         <View style={styles.receiveRow}>
-          <Text variant={TextVariant.BodyMDMedium}>Receive</Text>
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('earn.receive')}
+          </Text>
           <ButtonIcon
             size={TooltipSizes.Sm}
             iconColor={IconColor.Alternative}
             iconName={IconName.Info}
-            accessibilityRole="button"
-            accessibilityLabel="receive tooltip"
+            accessibilityRole={strings('earn.button')}
+            accessibilityLabel={strings('earn.receive_tooltip')}
             onPress={() =>
               openTooltipModal(
-                'Receive',
+                strings('earn.receive'),
                 'Ad voluptate commodo esse consequat enim commodo id culpa laborum dolore magna ullamco.',
               )
             }
