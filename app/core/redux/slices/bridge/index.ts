@@ -32,6 +32,7 @@ export interface BridgeState {
   selectedSourceChainIds: (Hex | CaipChainId)[] | undefined;
   selectedDestChainId: Hex | CaipChainId | undefined;
   slippage: string | undefined;
+  isSubmittingTx: boolean;
 }
 
 export const initialState: BridgeState = {
@@ -43,6 +44,7 @@ export const initialState: BridgeState = {
   selectedSourceChainIds: undefined,
   selectedDestChainId: undefined,
   slippage: '0.5',
+  isSubmittingTx: false,
 };
 
 const name = 'bridge';
@@ -81,6 +83,9 @@ const slice = createSlice({
     },
     setSlippage: (state, action: PayloadAction<string | undefined>) => {
       state.slippage = action.payload;
+    },
+    setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
+      state.isSubmittingTx = action.payload;
     },
   },
 });
@@ -300,6 +305,11 @@ export const selectIsEvmSolanaBridge = createSelector(
   (isEvmToSolana, isSolanaToEvm) => isEvmToSolana || isSolanaToEvm,
 );
 
+export const selectIsSubmittingTx = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isSubmittingTx,
+);
+
 // Actions
 export const {
   setSourceAmount,
@@ -311,4 +321,5 @@ export const {
   setSelectedDestChainId,
   setSlippage,
   setDestAddress,
+  setIsSubmittingTx,
 } = actions;
