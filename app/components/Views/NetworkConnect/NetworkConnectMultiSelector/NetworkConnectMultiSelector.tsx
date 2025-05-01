@@ -84,8 +84,8 @@ const NetworkConnectMultiSelector = ({
 
   const areAllNetworksSelected = networks
     .every(({ chainId }) => selectedChainIds.includes(chainId));
-  const areAnyNetworksSelected = selectedChainIds.length !== 0;
-  const areNoNetworksSelected = selectedChainIds.length === 0;
+const areAnyNetworksSelected = selectedChainIds.length > 0;
+const areNoNetworksSelected = !areAnyNetworksSelected;
 
   const renderSelectAllCheckbox = useCallback((): React.JSX.Element | null => {
     const areSomeNetworksSelectedButNotAll =
