@@ -2,6 +2,8 @@ import enContent from '../../../locales/languages/en.json';
 
 export const QuoteViewSelectorText = {
   GET_QUOTES: enContent.swaps.get_quotes,
+  BRIDGE_TO: 'Bridge to',
+  CONTINUE: 'Continue',
   CANCEL: 'Cancel',
 };
 
@@ -10,4 +12,5 @@ export const QuoteViewSelectorIDs = {
   DEST_TOKEN: 'select-dest-token',
   MAX_SLIPPAGE: 'swap_max-slippage',
   SEARCH_TOKEN: 'swaps-search-token',
+  TOKEN_SEARCH_INPUT: 'bridge-token-search-input',
 };
