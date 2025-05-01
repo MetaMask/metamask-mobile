@@ -20,12 +20,14 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 
+export interface FlashListAssetKey {
+  address: string;
+  chainId: string | undefined;
+  isStaked: boolean | undefined;
+}
+
 interface TokenListProps {
-  tokenKeys: {
-    address: string;
-    chainId: string | undefined;
-    isStaked: boolean | undefined;
-  }[];
+  tokenKeys: FlashListAssetKey[];
   refreshing: boolean;
   isAddTokenEnabled: boolean;
   onRefresh: () => void;
@@ -51,13 +53,7 @@ export const TokenList = ({
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
-  const listRef = useRef<
-    FlashList<{
-      address: string;
-      chainId: string | undefined;
-      isStaked: boolean | undefined;
-    }>
-  >(null);
+  const listRef = useRef<FlashList<FlashListAssetKey>>(null);
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
@@ -80,15 +76,7 @@ export const TokenList = ({
   };
 
   const renderTokenListItem = useCallback(
-    ({
-      item,
-    }: {
-      item: {
-        address: string;
-        chainId: string | undefined;
-        isStaked: boolean | undefined;
-      };
-    }) => (
+    ({ item }: { item: FlashListAssetKey }) => (
       <TokenListItem
         assetKey={item}
         showRemoveMenu={showRemoveMenu}

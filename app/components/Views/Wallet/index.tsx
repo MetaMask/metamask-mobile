@@ -358,8 +358,6 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  // const nativeEvmAsset = useSelector(selectNativeEvmAsset);
-  // const stakedEvmAsset = useSelector(selectStakedEvmAsset);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,

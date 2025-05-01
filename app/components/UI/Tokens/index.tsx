@@ -49,7 +49,6 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { RootState } from '../../../reducers';
 ///: END:ONLY_INCLUDE_IF
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
-// import Logger from '../../../util/Logger';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };

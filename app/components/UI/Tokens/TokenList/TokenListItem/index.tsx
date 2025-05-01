@@ -77,13 +77,9 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
-
+import { FlashListAssetKey } from '..';
 interface TokenListItemProps {
-  assetKey: {
-    address: string;
-    chainId: string | undefined;
-    isStaked: boolean | undefined;
-  };
+  assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
