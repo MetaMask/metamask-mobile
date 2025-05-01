@@ -106,6 +106,7 @@ export const TokenList = ({
         itemVisiblePercentThreshold: 50,
         minimumViewTime: 1000,
       }}
+      decelerationRate={0.9}
       renderItem={renderTokenListItem}
       keyExtractor={(item, index) => {
         if (!item?.address || !item?.chainId) {
