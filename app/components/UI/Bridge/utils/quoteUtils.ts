@@ -1,7 +1,6 @@
 import {
-  BridgeFeatureFlags,
-  BridgeFeatureFlagsKey,
   formatChainIdToCaip,
+  FeatureFlagsPlatformConfig,
 } from '@metamask/bridge-controller';
 import type { BridgeToken } from '../types';
 
@@ -14,17 +13,19 @@ const DEFAULT_REFRESH_RATE = 5 * 1000; // 5 seconds
  * @returns The refresh rate in milliseconds
  */
 export const getQuoteRefreshRate = (
-  bridgeFeatureFlags: BridgeFeatureFlags | undefined,
+  bridgeFeatureFlags: FeatureFlagsPlatformConfig | undefined,
   sourceToken?: BridgeToken,
 ) => {
-  const mobileConfig =
-    bridgeFeatureFlags?.[BridgeFeatureFlagsKey.MOBILE_CONFIG];
-  if (!sourceToken?.chainId || !mobileConfig) return DEFAULT_REFRESH_RATE;
+  if (!sourceToken?.chainId || !bridgeFeatureFlags) return DEFAULT_REFRESH_RATE;
 
   const chainConfig =
-    mobileConfig.chains[formatChainIdToCaip(sourceToken.chainId.toString())];
+    bridgeFeatureFlags.chains[
+      formatChainIdToCaip(sourceToken.chainId.toString())
+    ];
   return (
-    chainConfig?.refreshRate ?? mobileConfig.refreshRate ?? DEFAULT_REFRESH_RATE
+    chainConfig?.refreshRate ??
+    bridgeFeatureFlags.refreshRate ??
+    DEFAULT_REFRESH_RATE
   );
 };
 
