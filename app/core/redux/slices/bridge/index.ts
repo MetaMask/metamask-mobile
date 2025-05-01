@@ -7,17 +7,18 @@ import { uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
   AllowedBridgeChainIds,
-  BridgeFeatureFlagsKey,
   formatChainIdToCaip,
   isSolanaChainId,
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
+  selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
 import { MetaMetrics } from '../../../Analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
+import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -121,8 +122,39 @@ export const selectAllBridgeableNetworks = createSelector(
 );
 
 export const selectBridgeFeatureFlags = createSelector(
-  selectBridgeControllerState,
-  (bridgeControllerState) => bridgeControllerState.bridgeFeatureFlags,
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    selectBridgeFeatureFlagsBase({
+      remoteFeatureFlags: {
+        bridgeConfig: remoteFeatureFlags.bridgeConfig,
+      }
+    }),
+);
+
+export const selectIsBridgeEnabledSource = createSelector(
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (bridgeFeatureFlags, chainId) => {
+    const caipChainId = formatChainIdToCaip(chainId);
+
+    return (
+      bridgeFeatureFlags.support &&
+      bridgeFeatureFlags.chains[caipChainId]?.isActiveSrc
+    );
+  },
+);
+
+export const selectIsBridgeEnabledDest = createSelector(
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (bridgeFeatureFlags, chainId) => {
+    const caipChainId = formatChainIdToCaip(chainId);
+
+    return (
+      bridgeFeatureFlags.support &&
+      bridgeFeatureFlags.chains[caipChainId]?.isActiveDest
+    );
+  },
 );
 
 export const selectTopAssetsFromFeatureFlags = createSelector(
@@ -130,9 +162,7 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
   (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
   (bridgeFeatureFlags, chainId) =>
     chainId
-      ? bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[
-          formatChainIdToCaip(chainId)
-        ].topAssets
+      ? bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.topAssets
       : undefined,
 );
 
@@ -142,9 +172,7 @@ export const selectEnabledSourceChains = createSelector(
   (networks, bridgeFeatureFlags) =>
     networks.filter(
       ({ chainId }) =>
-        bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[
-          formatChainIdToCaip(chainId)
-        ]?.isActiveSrc,
+        bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.isActiveSrc,
     ),
 );
 
@@ -165,9 +193,7 @@ export const selectEnabledDestChains = createSelector(
 
     return uniqBy([...networks, ...popularListFormatted], 'chainId').filter(
       ({ chainId }) =>
-        bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[
-          formatChainIdToCaip(chainId)
-        ]?.isActiveDest,
+        bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.isActiveDest,
     );
   },
 );
@@ -224,6 +250,9 @@ const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.TokenRatesController,
   ...state.engine.backgroundState.CurrencyRateController,
   participateInMetaMetrics: MetaMetrics.getInstance().isEnabled(),
+  remoteFeatureFlags: {
+    bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
+  },
 });
 
 export const selectBridgeQuotes = createSelector(
@@ -232,7 +261,6 @@ export const selectBridgeQuotes = createSelector(
     selectBridgeQuotesBase(requiredControllerFields, {
       sortOrder: SortOrder.COST_ASC, // TODO for v1 we don't allow user to select alternative quotes, hardcode for now
       selectedQuote: null, // TODO for v1 we don't allow user to select alternative quotes, pass in null for now
-      featureFlagsKey: BridgeFeatureFlagsKey.MOBILE_CONFIG,
     }),
 );
 
@@ -240,30 +268,36 @@ export const selectIsEvmToSolana = createSelector(
   selectSourceToken,
   selectDestToken,
   (sourceToken, destToken) =>
-    sourceToken?.chainId && !isSolanaChainId(sourceToken.chainId) &&
-    destToken?.chainId && isSolanaChainId(destToken.chainId)
+    sourceToken?.chainId &&
+    !isSolanaChainId(sourceToken.chainId) &&
+    destToken?.chainId &&
+    isSolanaChainId(destToken.chainId),
 );
 
 export const selectIsSolanaToEvm = createSelector(
   selectSourceToken,
   selectDestToken,
   (sourceToken, destToken) =>
-    sourceToken?.chainId && isSolanaChainId(sourceToken.chainId) &&
-    destToken?.chainId && !isSolanaChainId(destToken.chainId)
+    sourceToken?.chainId &&
+    isSolanaChainId(sourceToken.chainId) &&
+    destToken?.chainId &&
+    !isSolanaChainId(destToken.chainId),
 );
 
 export const selectIsSolanaSwap = createSelector(
   selectSourceToken,
   selectDestToken,
   (sourceToken, destToken) =>
-    sourceToken?.chainId && isSolanaChainId(sourceToken.chainId) &&
-    destToken?.chainId && isSolanaChainId(destToken.chainId)
+    sourceToken?.chainId &&
+    isSolanaChainId(sourceToken.chainId) &&
+    destToken?.chainId &&
+    isSolanaChainId(destToken.chainId),
 );
 
 export const selectIsEvmSolanaBridge = createSelector(
   selectIsEvmToSolana,
   selectIsSolanaToEvm,
-  (isEvmToSolana, isSolanaToEvm) => isEvmToSolana || isSolanaToEvm
+  (isEvmToSolana, isSolanaToEvm) => isEvmToSolana || isSolanaToEvm,
 );
 
 // Actions
