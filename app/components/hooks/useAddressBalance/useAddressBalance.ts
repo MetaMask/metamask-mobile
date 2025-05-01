@@ -123,10 +123,14 @@ const useAddressBalance = (
       } else {
         (async () => {
           try {
-            const { AssetsContractController } = Engine.context;
+            const { AssetsContractController, NetworkController } =
+              Engine.context;
+            const networkClientId =
+              NetworkController.findNetworkClientIdByChainId(chainId as Hex);
             fromAccBalance = await AssetsContractController.getERC20BalanceOf(
               contractAddress,
               address,
+              networkClientId,
             );
             fromAccBalance = `${renderFromTokenMinimalUnit(
               // This is to work around incompatibility between bn.js v4/v5 - should be removed when migration to v5 is complete

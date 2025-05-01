@@ -25,7 +25,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
@@ -98,6 +98,7 @@ import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
+import { selectSendFlowContextualChainId } from '../../../selectors/transaction';
 
 interface infuraNetwork {
   name: string;
@@ -118,6 +119,7 @@ interface NetworkSelectorRouteParams {
       origin?: string;
     };
   };
+  source?: string;
 }
 
 const NetworkSelector = () => {
@@ -135,6 +137,7 @@ const NetworkSelector = () => {
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const safeAreaInsets = useSafeAreaInsets();
+  const dispatch = useDispatch();
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -160,12 +163,23 @@ const NetworkSelector = () => {
     tags: getTraceTags(store.getState()),
     op: TraceOperation.NetworkSwitch,
   });
+
+  // Get both chain IDs
+  // const globalChainId = useSelector(selectChainId);
+  const contextualChainId = useSelector(selectSendFlowContextualChainId);
+
   const {
-    chainId: selectedChainId,
+    chainId: perDappChainId,
     rpcUrl: selectedRpcUrl,
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
+
+  const selectedChainId =
+    route.params?.source === 'SendFlow' && contextualChainId
+      ? contextualChainId
+      : perDappChainId;
+
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
     ? 'networks.additional_network_information_title'
@@ -211,6 +225,8 @@ const NetworkSelector = () => {
   const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
 
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
+
+  const source = route.params?.source;
 
   /**
    * This is used to check if the network has multiple RPC endpoints
@@ -352,6 +368,8 @@ const NetworkSelector = () => {
     dismissModal: () => sheetRef.current?.dismissModal(),
     closeRpcModal,
     parentSpan,
+    source,
+    dispatch,
   });
 
   const renderMainnet = () => {

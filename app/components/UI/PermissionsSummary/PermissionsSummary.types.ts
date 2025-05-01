@@ -26,6 +26,7 @@ export interface PermissionsSummaryProps {
   accounts?: Account[];
   accountAddresses?: string[];
   networkAvatars?: ({ name: string; imageSource: string } | null)[];
+  // TODO: remove isNonDappNetworkSwitch prop once the per-dapp network switch is implemented
   isNonDappNetworkSwitch?: boolean;
   onChooseFromPermittedNetworks?: () => void;
 }

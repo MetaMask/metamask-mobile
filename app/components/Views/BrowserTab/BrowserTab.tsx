@@ -75,9 +75,6 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
-import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
@@ -117,7 +114,10 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
+import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
+import { CaveatTypes } from '../../../core/Permissions/constants';
 
 /**
  * Tab component for the in-app browser
