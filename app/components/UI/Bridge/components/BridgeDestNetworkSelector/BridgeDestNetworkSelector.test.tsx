@@ -4,10 +4,7 @@ import { BridgeDestNetworkSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSelectedDestChainId } from '../../../../../core/redux/slices/bridge';
-import {
-  BridgeFeatureFlagsKey,
-  formatChainIdToCaip,
-} from '@metamask/bridge-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { initialState } from '../../_mocks_/initialState';
 
 const mockNavigate = jest.fn();
@@ -100,9 +97,12 @@ describe('BridgeDestNetworkSelector', () => {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
-          BridgeController: {
-            bridgeFeatureFlags: {
-              [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              bridgeConfig: {
+                maxRefreshCount: 5,
+                refreshRate: 30000,
+                support: true,
                 chains: {
                   [formatChainIdToCaip(mockChainId)]: {
                     isActiveSrc: true,

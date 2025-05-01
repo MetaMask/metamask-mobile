@@ -46,7 +46,6 @@ import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
@@ -71,10 +70,6 @@ import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isSubmittingTx, setIsSubmittingTx] = useState(false);
-  // The same as getUseExternalServices in Extension
-  const isBasicFunctionalityEnabled = useSelector(
-    selectBasicFunctionalityEnabled,
-  );
 
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
@@ -187,23 +182,6 @@ const BridgeView = () => {
   useEffect(() => {
     navigation.setOptions(getBridgeNavbar(navigation, route, colors));
   }, [navigation, route, colors]);
-
-  useEffect(() => {
-    const setBridgeFeatureFlags = async () => {
-      try {
-        if (
-          isBasicFunctionalityEnabled &&
-          Engine.context.BridgeController?.setBridgeFeatureFlags
-        ) {
-          await Engine.context.BridgeController.setBridgeFeatureFlags();
-        }
-      } catch (error) {
-        console.error('Error setting bridge feature flags', error);
-      }
-    };
-
-    setBridgeFeatureFlags();
-  }, [isBasicFunctionalityEnabled]);
 
   const hasTrackedPageView = useRef(false);
   useEffect(() => {

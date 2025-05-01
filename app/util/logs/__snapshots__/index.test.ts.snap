@@ -36,20 +36,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "BridgeController": {
         "assetExchangeRates": {},
-        "bridgeFeatureFlags": {
-          "extensionConfig": {
-            "chains": {},
-            "maxRefreshCount": 5,
-            "refreshRate": 30000,
-            "support": false,
-          },
-          "mobileConfig": {
-            "chains": {},
-            "maxRefreshCount": 5,
-            "refreshRate": 30000,
-            "support": false,
-          },
-        },
         "quoteFetchError": null,
         "quoteRequest": {
           "srcTokenAddress": "0x0000000000000000000000000000000000000000",
