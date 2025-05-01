@@ -26,7 +26,6 @@ import {
   selectCurrencyRates,
 } from '../../../../../selectors/currencyRateController';
 import { RootState } from '../../../../../reducers';
-import { safeToChecksumAddress } from '../../../../../util/address';
 import {
   getTestNetImageByChainId,
   isTestNet,
@@ -150,9 +149,6 @@ export const TokenListItem = React.memo(
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-    const itemAddress = isEvmNetworkSelected
-      ? asset && safeToChecksumAddress(asset.address)
-      : asset?.address;
 
     // Choose values based on multichain or legacy
     const exchangeRates = multiChainMarketData?.[chainId as Hex];
@@ -408,8 +404,6 @@ export const TokenListItem = React.memo(
 
     return (
       <AssetElement
-        // assign staked asset a unique key
-        key={asset.isStaked ? '0x_staked' : itemAddress || '0x'}
         onPress={onItemPress}
         onLongPress={asset.isETH || asset.isNative ? null : showRemoveMenu}
         asset={asset}
