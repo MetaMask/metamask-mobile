@@ -19,6 +19,9 @@ jest.mock('../../../../../../../core/Engine', () => ({
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
     },
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
   },
 }));
 
