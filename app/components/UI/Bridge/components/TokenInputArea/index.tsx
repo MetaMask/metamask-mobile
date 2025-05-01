@@ -160,7 +160,7 @@ export const TokenInputArea = forwardRef<
     //   nonEvmMultichainAssetRates,
     // });
 
-    const fiatValue =
+    const currencyValue =
       token?.currencyExchangeRate && amount
         ? `${Number(amount) * token?.currencyExchangeRate} ${currentCurrency}`
         : undefined;
@@ -231,8 +231,8 @@ export const TokenInputArea = forwardRef<
               <Skeleton width={100} height={10} />
             ) : (
               <>
-                {token && fiatValue ? (
-                  <Text color={TextColor.Alternative}>{fiatValue}</Text>
+                {token && currencyValue ? (
+                  <Text color={TextColor.Alternative}>{currencyValue}</Text>
                 ) : null}
                 {subtitle ? (
                   <Text
