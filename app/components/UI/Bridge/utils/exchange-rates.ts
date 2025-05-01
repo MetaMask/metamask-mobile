@@ -1,13 +1,21 @@
-import { formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
-import { Hex, CaipAssetType, CaipChainId } from '@metamask/utils';
+import {
+  formatChainIdToCaip,
+  formatChainIdToHex,
+  isSolanaChainId,
+} from '@metamask/bridge-controller';
+import { Hex, CaipAssetType, CaipChainId, isStrictHexString } from '@metamask/utils';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import {
   addCurrencySymbol,
   balanceToFiatNumber,
 } from '../../../../util/number';
 import { BridgeToken } from '../types';
-import { handleFetch } from '@metamask/controller-utils';
-import { CodefiTokenPricesServiceV2, fetchTokenContractExchangeRates } from '@metamask/assets-controllers';
+import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
+import {
+  CodefiTokenPricesServiceV2,
+  ContractMarketData,
+  fetchTokenContractExchangeRates,
+} from '@metamask/assets-controllers';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { SolScope } from '@metamask/keyring-api';
 import { toAssetId } from '../hooks/useAssetMetadata/utils';
@@ -53,7 +61,8 @@ export const getDisplayFiatValue = ({
     // EVM
     const evmChainId = token.chainId as Hex;
     const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
-    const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+    const evmTokenMarketData =
+      evmMultiChainExchangeRates?.[token.address as Hex];
 
     const nativeCurrency =
       networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
@@ -76,6 +85,13 @@ export const getDisplayFiatValue = ({
   return `< ${addCurrencySymbol('0.01', currentCurrency)}`;
 };
 
+/**
+ * Fetches the exchange rates for the tokens against the current currency
+ * @param chainId - The chainId of the tokens
+ * @param currency - The currency to fetch the exchange rates in
+ * @param tokenAddresses - The addresses of the tokens to fetch the exchange rates for
+ * @returns Exchange rate for the tokens against the current currency
+ */
 export const fetchTokenExchangeRates = async (
   chainId: Hex | CaipChainId,
   currency: string,
@@ -109,7 +125,9 @@ export const fetchTokenExchangeRates = async (
   }
 
   // EVM chains
-  const checksumAddresses = tokenAddresses.map((address) => safeToChecksumAddress(address));
+  const checksumAddresses = tokenAddresses.map((address) =>
+    safeToChecksumAddress(address),
+  );
   if (checksumAddresses.some((address) => !address)) {
     return {};
   }
@@ -129,3 +147,45 @@ export const fetchTokenExchangeRates = async (
     {},
   );
 };
+
+// This fetches the exchange rate for a token in a given currency. This is only called when the exchange
+// rate is not available in the TokenRatesController, which happens when the selected token has not been
+// imported into the wallet
+export const getTokenExchangeRate = async (request: {
+  chainId: Hex | CaipChainId;
+  tokenAddress: string;
+  currency: string;
+}) => {
+  const { chainId, tokenAddress, currency } = request;
+  const exchangeRates = await fetchTokenExchangeRates(
+    chainId,
+    currency,
+    tokenAddress,
+  );
+  const assetId = toAssetId(tokenAddress, formatChainIdToCaip(chainId));
+  if (isSolanaChainId(chainId) && assetId) {
+    return exchangeRates?.[assetId];
+  }
+  // The exchange rate can be checksummed or not, so we need to check both
+  const exchangeRate =
+    exchangeRates?.[toChecksumHexAddress(tokenAddress)] ??
+    exchangeRates?.[tokenAddress.toLowerCase()];
+  return exchangeRate;
+};
+
+/**
+ * This extracts a token's exchange rate from the marketData state object
+ * These exchange rates are against the native asset of the chain
+ * @param chainId - The chainId of the token
+ * @param tokenAddress - The address of the token
+ * @param marketData - The marketData state object
+ * @returns The exchange rate of the token against the native asset of the chain
+ */
+export const exchangeRateFromMarketData = (
+  chainId: Hex | CaipChainId,
+  tokenAddress: string,
+  marketData?: Record<string, ContractMarketData>,
+) =>
+  isStrictHexString(tokenAddress) && isStrictHexString(chainId)
+    ? marketData?.[chainId]?.[tokenAddress]?.price
+    : undefined;

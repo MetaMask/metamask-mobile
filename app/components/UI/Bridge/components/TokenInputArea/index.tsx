@@ -12,9 +12,7 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../../../selectors/currencyRateController';
-import {
-  renderNumber,
-} from '../../../../../util/number';
+import { renderNumber } from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { ethers } from 'ethers';
@@ -27,9 +25,14 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
-import { selectBridgeControllerState } from '../../../../../core/redux/slices/bridge';
+import {
+  selectBridgeControllerState,
+  setDestTokenExchangeRate,
+  setSourceTokenExchangeRate,
+} from '../../../../../core/redux/slices/bridge';
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 import { getDisplayFiatValue } from '../../utils/exchange-rates';
+import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -100,6 +103,16 @@ export const TokenInputArea = forwardRef<
     },
     ref,
   ) => {
+    const currentCurrency = useSelector(selectCurrentCurrency);
+    useBridgeExchangeRates({
+      token,
+      currencyOverride: currentCurrency,
+      action:
+        tokenType === TokenInputAreaType.Source
+          ? setSourceTokenExchangeRate
+          : setDestTokenExchangeRate,
+    });
+
     const inputRef = useRef<TextInput>(null);
 
     useImperativeHandle(ref, () => ({
@@ -123,8 +136,7 @@ export const TokenInputArea = forwardRef<
       });
     };
 
-    // Data for fiat value calculation
-    const currentCurrency = useSelector(selectCurrentCurrency);
+    // // Data for fiat value calculation
     const evmMultiChainMarketData = useSelector(selectTokenMarketData);
     const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
     const networkConfigurationsByChainId = useSelector(
@@ -138,15 +150,22 @@ export const TokenInputArea = forwardRef<
     nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
-    const fiatValue = getDisplayFiatValue({
-      token,
-      amount,
-      evmMultiChainMarketData,
-      networkConfigurationsByChainId,
-      evmMultiChainCurrencyRates,
-      currentCurrency,
-      nonEvmMultichainAssetRates,
-    });
+    // const fiatValue = getDisplayFiatValue({
+    //   token,
+    //   amount,
+    //   evmMultiChainMarketData,
+    //   networkConfigurationsByChainId,
+    //   evmMultiChainCurrencyRates,
+    //   currentCurrency,
+    //   nonEvmMultichainAssetRates,
+    // });
+
+    const fiatValue =
+      token?.currencyExchangeRate && amount
+        ? `${amount} ${token?.symbol} = ${
+            Number(amount) * token?.currencyExchangeRate
+          } ${currentCurrency}`
+        : undefined;
 
     // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
     const formattedBalance =
