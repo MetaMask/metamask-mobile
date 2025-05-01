@@ -103,6 +103,7 @@ exports[`Options should render homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -124,7 +125,7 @@ exports[`Options should render homepage options correctly 1`] = `
             ]
           }
         >
-          
+          󰐕
         </Text>
       </View>
       <Text
@@ -252,6 +253,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -273,7 +275,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
             ]
           }
         >
-          
+          󰐕
         </Text>
       </View>
       <Text
@@ -337,6 +339,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -422,6 +425,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -507,6 +511,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -592,6 +597,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
