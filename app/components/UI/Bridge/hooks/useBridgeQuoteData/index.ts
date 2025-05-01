@@ -152,5 +152,7 @@ export const useBridgeQuoteData = () => {
     isLoading: quotesLoadingStatus === RequestStatus.LOADING,
     formattedQuoteData,
     isNoQuotesAvailable,
+    willRefresh,
+    isExpired,
   };
 };
