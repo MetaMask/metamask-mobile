@@ -889,6 +889,7 @@ class PaymentRequest extends PureComponent {
     this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
+    console.log('TRACK EVENT PRESSED!!!');
     this.props.metrics.trackEvent(
       this.props.metrics
         .createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
@@ -897,6 +898,7 @@ class PaymentRequest extends PureComponent {
         })
         .build(),
     );
+    console.log('TRACK EVENT FINISHED!!!');
   };
 
   render() {
@@ -909,15 +911,13 @@ class PaymentRequest extends PureComponent {
 
     return (
       <SafeAreaView style={styles.wrapper}>
-        {process.env.REMOVE_GNS && (
-          <View style={styles.pickerNetworkContainer}>
-            <PickerNetwork
-              onPress={this.handleNetworkPickerPress}
-              label={networkName}
-              imageSource={networkImageSource}
-            />
-          </View>
-        )}
+        <View style={styles.pickerNetworkContainer}>
+          <PickerNetwork
+            onPress={this.handleNetworkPickerPress}
+            label={networkName}
+            imageSource={networkImageSource}
+          />
+        </View>
         <KeyboardAwareScrollView
           contentContainerStyle={styles.scrollViewContainer}
           keyboardShouldPersistTaps="handled"

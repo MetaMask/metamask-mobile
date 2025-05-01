@@ -207,28 +207,30 @@ describe('PaymentRequest', () => {
   });
 
   describe('handleNetworkPickerPress', () => {
-    it('should navigate to network selector modal and track metrics', () => {
+    it('should navigate to network selector modal', () => {
       const mockMetrics = {
         trackEvent: jest.fn(),
-        createEventBuilder: jest.fn().mockReturnValue({
-          addProperties: jest.fn().mockReturnValue({
-            build: jest.fn().mockReturnValue('builtEvent'),
-          }),
-        }),
+        createEventBuilder: jest.fn(() => ({
+          addProperties: jest.fn(() => ({
+            build: jest.fn(() => 'builtEvent'),
+          })),
+        })),
       };
 
       const { getByTestId } = renderComponent({
         metrics: mockMetrics,
         chainId: '0x1',
-        networkImageSource: '',
+        networkImageSource: 'test-network-image.png',
       });
 
       const networkPicker = getByTestId(
         WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
       );
-      fireEvent.press(networkPicker);
 
-      // Verify navigation
+      act(() => {
+        fireEvent.press(networkPicker);
+      });
+
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
