@@ -129,12 +129,13 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user/selectors';
-import { Confirm } from '../../Views/confirmations/Confirm';
+import { Confirm } from '../../Views/confirmations/components/confirm';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
+import AddNewAccount from '../../Views/AddNewAccount';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -336,6 +337,7 @@ const RootModalFlow = (
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
+    <Stack.Screen name={Routes.SHEET.ADD_ACCOUNT} component={AddNewAccount} />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
       name={Routes.SHEET.SDK_FEEDBACK}
@@ -546,13 +548,13 @@ const ConnectHardwareWalletFlow = () => (
   </Stack.Navigator>
 );
 
-const ConfirmRequest = () => (
-  <Stack.Navigator mode={'modal'}>
-    <Stack.Screen name={Routes.CONFIRM_FLAT_PAGE} component={Confirm} />
+const FlatConfirmationRequest = () => (
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.CONFIRMATION_REQUEST_FLAT} component={Confirm} />
   </Stack.Navigator>
 );
 
-const ConfirmDappRequest = () => (
+const ModalConfirmationRequest = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
@@ -560,7 +562,10 @@ const ConfirmDappRequest = () => (
     }}
     mode={'modal'}
   >
-    <Stack.Screen name={Routes.CONFIRM_MODAL} component={Confirm} />
+    <Stack.Screen
+      name={Routes.CONFIRMATION_REQUEST_MODAL}
+      component={Confirm}
+    />
   </Stack.Navigator>
 );
 
@@ -669,7 +674,7 @@ const AppFlow = () => {
       />
       <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
       <Stack.Screen
-        name="EditAccountName"
+        name={Routes.EDIT_ACCOUNT_NAME}
         component={EditAccountName}
         options={{ animationEnabled: true }}
       />
@@ -691,12 +696,12 @@ const AppFlow = () => {
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen
-        name={Routes.CONFIRM_FLAT_PAGE}
-        component={ConfirmRequest}
+        name={Routes.CONFIRMATION_REQUEST_FLAT}
+        component={FlatConfirmationRequest}
       />
       <Stack.Screen
-        name={Routes.CONFIRM_MODAL}
-        component={ConfirmDappRequest}
+        name={Routes.CONFIRMATION_REQUEST_MODAL}
+        component={ModalConfirmationRequest}
       />
     </Stack.Navigator>
   );
@@ -768,22 +773,33 @@ const App: React.FC = () => {
     });
   }, [navigation, queueOfHandleDeeplinkFunctions]);
 
-  const handleDeeplink = useCallback(({ error, params, uri }) => {
-    if (error) {
-      trackErrorAsAnalytics(error, 'Branch:');
-    }
-    const deeplink = params?.['+non_branch_link'] || uri || null;
-    try {
-      if (deeplink) {
-        AppStateEventProcessor.setCurrentDeeplink(deeplink);
-        SharedDeeplinkManager.parse(deeplink, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-        });
+  const handleDeeplink = useCallback(
+    ({
+      error,
+      params,
+      uri,
+    }: {
+      error?: string | null;
+      params?: Record<string, unknown>;
+      uri?: string;
+    }) => {
+      if (error) {
+        trackErrorAsAnalytics(error, 'Branch:');
       }
-    } catch (e) {
-      Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
-    }
-  }, []);
+      const deeplink = params?.['+non_branch_link'] || uri || null;
+      try {
+        if (deeplink && typeof deeplink === 'string') {
+          AppStateEventProcessor.setCurrentDeeplink(deeplink);
+          SharedDeeplinkManager.parse(deeplink, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          });
+        }
+      } catch (e) {
+        Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
+      }
+    },
+    [],
+  );
 
   // on Android devices, this creates a listener
   // to deeplinks used to open the app

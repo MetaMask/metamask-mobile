@@ -5,13 +5,14 @@ import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest, isStakingConfirmation } from '../utils/confirm';
-import { useLedgerContext } from '../context/LedgerContext';
-import { useQRHardwareContext } from '../context/QRHardwareContext';
+import { useLedgerContext } from '../context/ledger-context';
+import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
-import { useSignatureMetrics } from './useSignatureMetrics';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { useSignatureMetrics } from './signatures/useSignatureMetrics';
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { useSelector } from 'react-redux';
+import { RootState } from '../../../../reducers';
 
 export const useConfirmActions = () => {
   const {
@@ -29,7 +30,7 @@ export const useConfirmActions = () => {
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const shouldUseSmartTransaction = useSelector(
-    selectShouldUseSmartTransaction,
+    (state: RootState) => selectShouldUseSmartTransaction(state, transactionMetadata?.chainId)
   );
   const isOneOfTheStakingConfirmations = isStakingConfirmation(
     transactionMetadata?.type as string,

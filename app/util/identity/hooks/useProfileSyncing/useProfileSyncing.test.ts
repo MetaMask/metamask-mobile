@@ -6,12 +6,13 @@ import {
   useDisableProfileSyncing,
   useEnableProfileSyncing,
 } from './useProfileSyncing';
+import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
 
 describe('useEnableProfileSyncing()', () => {
   it('should enable profile syncing', async () => {
-    const mockEnableProfileSyncingAction = jest.spyOn(
+    const mockSetIsBackupAndSyncFeatureEnabledAction = jest.spyOn(
       actions,
-      'enableProfileSyncing',
+      'setIsBackupAndSyncFeatureEnabled',
     );
 
     const { result } = renderHookWithProvider(
@@ -22,15 +23,18 @@ describe('useEnableProfileSyncing()', () => {
       await result.current.enableProfileSyncing();
     });
 
-    expect(mockEnableProfileSyncingAction).toHaveBeenCalled();
+    expect(mockSetIsBackupAndSyncFeatureEnabledAction).toHaveBeenCalledWith(
+      BACKUPANDSYNC_FEATURES.main,
+      true,
+    );
   });
 });
 
 describe('useDisableProfileSyncing()', () => {
   it('should disable profile syncing', async () => {
-    const mockDisableProfileSyncingAction = jest.spyOn(
+    const mockSetIsBackupAndSyncFeatureEnabledAction = jest.spyOn(
       actions,
-      'disableProfileSyncing',
+      'setIsBackupAndSyncFeatureEnabled',
     );
 
     const { result } = renderHookWithProvider(() => useDisableProfileSyncing());
@@ -39,6 +43,9 @@ describe('useDisableProfileSyncing()', () => {
       await result.current.disableProfileSyncing();
     });
 
-    expect(mockDisableProfileSyncingAction).toHaveBeenCalled();
+    expect(mockSetIsBackupAndSyncFeatureEnabledAction).toHaveBeenCalledWith(
+      BACKUPANDSYNC_FEATURES.main,
+      false,
+    );
   });
 });

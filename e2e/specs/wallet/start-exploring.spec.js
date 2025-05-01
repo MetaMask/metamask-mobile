@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
@@ -16,7 +16,7 @@ import Assertions from '../../utils/Assertions';
 
 const PASSWORD = '12345678';
 
-describe(SmokeCore('Start Exploring'), () => {
+describe(SmokeWalletPlatform('Start Exploring'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();

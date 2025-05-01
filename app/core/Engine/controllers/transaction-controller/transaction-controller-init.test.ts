@@ -3,6 +3,7 @@ import {
   TransactionControllerMessenger,
   TransactionControllerOptions,
   TransactionMeta,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { NetworkController } from '@metamask/network-controller';
@@ -244,6 +245,13 @@ describe('Transaction Controller Init', () => {
   it('publish hook calls submitSmartTransactionHook', () => {
     const MOCK_TRANSACTION_META = {
       id: '123',
+      chainId: '0x1',
+      status: 'approved',
+      time: 123,
+      txParams: {
+        from: '0x123',
+      },
+      networkClientId: 'selectedNetworkClientId',
     } as TransactionMeta;
 
     const hooks = testConstructorOption('hooks');
@@ -252,6 +260,7 @@ describe('Transaction Controller Init', () => {
 
     expect(submitSmartTransactionHookMock).toHaveBeenCalledTimes(1);
     expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledTimes(1);
+    expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledWith(undefined, MOCK_TRANSACTION_META.chainId);
     expect(selectSwapsChainFeatureFlagsMock).toHaveBeenCalledTimes(1);
     expect(submitSmartTransactionHookMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -282,6 +291,22 @@ describe('Transaction Controller Init', () => {
 
     expect(isEnabledFn?.()).toBe(true);
     expect(updateTransactionsProp).toBe(true);
+  });
+
+  it('determines if automatic gas fee update is enabled based on transaction type', () => {
+    const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');
+    const isEnabledFn = option as ({ type }: { type: string }) => boolean;
+
+    // Redesigned transaction types
+    expect(isEnabledFn({ type: TransactionType.stakingDeposit })).toBe(true);
+    expect(isEnabledFn({ type: TransactionType.stakingUnstake })).toBe(true);
+    expect(isEnabledFn({ type: TransactionType.stakingClaim })).toBe(true);
+    expect(isEnabledFn({ type: TransactionType.contractInteraction })).toBe(
+      true,
+    );
+
+    // Non-redesigned transaction types
+    expect(isEnabledFn({ type: TransactionType.bridge })).toBe(false);
   });
 
   it('gets network state from network controller on option getNetworkState', () => {

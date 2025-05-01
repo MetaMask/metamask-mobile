@@ -40,11 +40,13 @@ app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
 
 # Confirmation Team
-app/components/Views/confirmations   @MetaMask/confirmations
-app/core/Engine/controllers/gas-fee-controller             @MetaMask/confirmations
-app/core/Engine/controllers/transaction-controller             @MetaMask/confirmations
-app/core/Analytics/events/confirmations   @MetaMask/confirmations
-ppom                                 @MetaMask/confirmations
+app/components/Views/confirmations                          @MetaMask/confirmations
+app/core/Engine/controllers/gas-fee-controller              @MetaMask/confirmations
+app/core/Engine/controllers/signature-controller            @MetaMask/confirmations
+app/core/Engine/controllers/transaction-controller          @MetaMask/confirmations
+app/core/Analytics/events/confirmations                     @MetaMask/confirmations
+ppom                                                        @MetaMask/confirmations
+app/selectors/featureFlagController/confirmations/          @MetaMask/confirmations
 
 # All below files are maintained by the SDK team because they contain SDK related code, WalletConnect integrations, or critical SDK flows.
 app/actions/sdk   @MetaMask/sdk-devs
@@ -101,13 +103,13 @@ app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/snaps-dev
 # Wallet API Platform Team
  app/core/RPCMethods/                @MetaMask/wallet-api-platform-engineers
 
-# Staking Team
-app/components/UI/Stake              @MetaMask/metamask-staking
-app/core/Engine/controllers/earn-controller @MetaMask/metamask-staking
-app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-staking
-app/selectors/earnController         @MetaMask/metamask-staking
-**/Earn/**                           @MetaMask/metamask-staking
-**/earn/**                           @MetaMask/metamask-staking
+# Earn Team
+app/components/UI/Stake              @MetaMask/metamask-earn
+app/core/Engine/controllers/earn-controller @MetaMask/metamask-earn
+app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-earn
+app/selectors/earnController         @MetaMask/metamask-earn
+**/Earn/**                           @MetaMask/metamask-earn
+**/earn/**                           @MetaMask/metamask-earn
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets

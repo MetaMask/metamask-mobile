@@ -7,7 +7,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
-        "accounts": {},
         "accountsByChainId": {
           "0x1": {},
         },
@@ -21,6 +20,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AddressBookController": {
         "addressBook": {},
       },
+      "AppMetadataController": {
+        "currentAppVersion": "",
+        "currentMigrationVersion": 0,
+        "previousAppVersion": "",
+        "previousMigrationVersion": 0,
+      },
       "ApprovalController": {
         "approvalFlows": [],
         "pendingApprovalCount": 0,
@@ -30,20 +35,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isSignedIn": false,
       },
       "BridgeController": {
-        "bridgeFeatureFlags": {
-          "extensionConfig": {
-            "chains": {},
-            "maxRefreshCount": 5,
-            "refreshRate": 30000,
-            "support": false,
-          },
-          "mobileConfig": {
-            "chains": {},
-            "maxRefreshCount": 5,
-            "refreshRate": 30000,
-            "support": false,
-          },
-        },
+        "assetExchangeRates": {},
         "quoteFetchError": null,
         "quoteRequest": {
           "srcTokenAddress": "0x0000000000000000000000000000000000000000",
@@ -136,6 +128,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "MultichainAssetsRatesController": {
         "conversionRates": {},
+        "historicalPrices": {},
       },
       "MultichainBalancesController": {
         "balances": {},
@@ -453,7 +446,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "TokenListController": {
         "preventPollingOnNetworkRestart": false,
-        "tokenList": {},
         "tokensChainsCache": {},
       },
       "TokenRatesController": {
@@ -463,6 +455,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastSearchTimestamp": null,
         "recentSearches": [],
       },
+      "TokenSearchDiscoveryDataController": {
+        "swapsTokenAddressesByChainId": {},
+        "tokenDisplayData": [],
+      },
       "TransactionController": {
         "lastFetchedBlockNumbers": {},
         "methodData": {},
@@ -471,6 +467,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "UserStorageController": {
         "hasAccountSyncingSyncedAtLeastOnce": false,
+        "isAccountSyncingEnabled": true,
         "isAccountSyncingInProgress": false,
         "isAccountSyncingReadyToBeDispatched": false,
         "isProfileSyncingEnabled": true,

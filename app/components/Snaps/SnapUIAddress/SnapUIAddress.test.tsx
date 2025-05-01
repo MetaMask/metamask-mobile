@@ -7,19 +7,19 @@ const baseMockState = {
     engine: {
       backgroundState: {
         KeyringController: {
-          keyrings: [],
+          keyrings: []
         },
         AccountsController: {
           internalAccounts: {
             accounts: {
-              foo: {
+              'foo': {
                 address: '0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb',
                 metadata: {
                   name: 'My Account',
-                },
-              },
-            },
-          },
+                }
+              }
+            }
+          }
         },
         AddressBookController: {
           addressBook: {
@@ -27,13 +27,13 @@ const baseMockState = {
               '0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcda': {
                 address: '0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcda',
                 name: 'Test Contact',
-              },
-            },
-          },
-        },
-      },
+              }
+            }
+          }
+        }
+      }
     },
-  },
+  }
 };
 
 const mockStateWithoutBlockies = {
@@ -75,11 +75,8 @@ describe('SnapUIAddress', () => {
 
   it('renders account name', () => {
     const { getByText } = renderWithProvider(
-      <SnapUIAddress
-        address="eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb"
-        displayName
-      />,
-      baseMockState,
+      <SnapUIAddress address="eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb" displayName />,
+      baseMockState
     );
 
     expect(getByText('My Account')).toBeDefined();
@@ -87,15 +84,13 @@ describe('SnapUIAddress', () => {
 
   it('renders contact name', () => {
     const { getByText } = renderWithProvider(
-      <SnapUIAddress
-        address="eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcda"
-        displayName
-      />,
-      baseMockState,
+      <SnapUIAddress address="eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcda" displayName />,
+      baseMockState
     );
 
     expect(getByText('Test Contact')).toBeDefined();
   });
+
 
   it('renders Ethereum address with blockie', () => {
     const { toJSON } = renderWithProvider(
