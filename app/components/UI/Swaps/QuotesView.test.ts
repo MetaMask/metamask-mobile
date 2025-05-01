@@ -429,6 +429,9 @@ describe('QuotesView', () => {
 
   it('should call addToken in TokensController', async () => {
     const state = merge({}, mockInitialState);
+    jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
+      timestamp: 1234,
+    });
     jest
       .spyOn(Engine.context.TransactionController, 'addTransaction')
       .mockResolvedValue({
