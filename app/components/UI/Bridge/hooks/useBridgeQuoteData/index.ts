@@ -6,9 +6,9 @@ import {
   selectSourceAmount,
   selectSlippage,
   selectBridgeQuotes,
+  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import {
-  BridgeFeatureFlagsKey,
   RequestStatus,
 } from '@metamask/bridge-controller';
 import { useCallback, useMemo } from 'react';
@@ -38,23 +38,19 @@ export const useBridgeQuoteData = () => {
   const fiatFormatter = useFiatFormatter();
   const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
   const ticker = useSelector(selectTicker);
-
   const quotes = useSelector(selectBridgeQuotes);
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
 
   const {
     quoteFetchError,
     quotesLoadingStatus,
     quotesLastFetched,
     quotesRefreshCount,
-    bridgeFeatureFlags,
     quoteRequest,
   } = bridgeControllerState;
 
   const refreshRate = getQuoteRefreshRate(bridgeFeatureFlags, sourceToken);
-
-  const mobileConfig =
-    bridgeFeatureFlags?.[BridgeFeatureFlagsKey.MOBILE_CONFIG];
-  const maxRefreshCount = mobileConfig?.maxRefreshCount ?? 5; // Default to 5 refresh attempts
+  const maxRefreshCount = bridgeFeatureFlags?.maxRefreshCount ?? 5; // Default to 5 refresh attempts
   const { insufficientBal } = quoteRequest;
 
   const willRefresh = shouldRefreshQuote(
@@ -152,5 +148,7 @@ export const useBridgeQuoteData = () => {
     isLoading: quotesLoadingStatus === RequestStatus.LOADING,
     formattedQuoteData,
     isNoQuotesAvailable,
+    willRefresh,
+    isExpired,
   };
 };

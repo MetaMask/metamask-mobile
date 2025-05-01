@@ -47,7 +47,6 @@ import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
@@ -72,10 +71,6 @@ import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isSubmittingTx, setIsSubmittingTx] = useState(false);
-  // The same as getUseExternalServices in Extension
-  const isBasicFunctionalityEnabled = useSelector(
-    selectBasicFunctionalityEnabled,
-  );
 
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
@@ -99,6 +94,8 @@ const BridgeView = () => {
     destTokenAmount,
     quoteFetchError,
     isNoQuotesAvailable,
+    isExpired,
+    willRefresh,
   } = useBridgeQuoteData();
   const { quoteRequest, quotesLastFetched } = useSelector(
     selectBridgeControllerState,
@@ -189,23 +186,6 @@ const BridgeView = () => {
     navigation.setOptions(getBridgeNavbar(navigation, route, colors));
   }, [navigation, route, colors]);
 
-  useEffect(() => {
-    const setBridgeFeatureFlags = async () => {
-      try {
-        if (
-          isBasicFunctionalityEnabled &&
-          Engine.context.BridgeController?.setBridgeFeatureFlags
-        ) {
-          await Engine.context.BridgeController.setBridgeFeatureFlags();
-        }
-      } catch (error) {
-        console.error('Error setting bridge feature flags', error);
-      }
-    };
-
-    setBridgeFeatureFlags();
-  }, [isBasicFunctionalityEnabled]);
-
   const hasTrackedPageView = useRef(false);
   useEffect(() => {
     const shouldTrackPageView = sourceToken && !hasTrackedPageView.current;
@@ -282,6 +262,16 @@ const BridgeView = () => {
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
     return strings('bridge.continue');
   };
+
+  useEffect(() => {
+    if (isExpired && !willRefresh) {
+      setIsInputFocused(false);
+      // open the quote tooltip modal
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+      });
+    }
+  }, [isExpired, willRefresh, navigation]);
 
   const renderBottomContent = () => {
     if (!hasValidBridgeInputs || isInputFocused) {
