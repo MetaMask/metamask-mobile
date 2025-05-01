@@ -160,6 +160,7 @@ import {
   SnapControllerGetSnapStateAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/snaps';
+import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import {
@@ -199,7 +200,6 @@ import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
-import { RestrictedMethods } from '../Permissions/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
