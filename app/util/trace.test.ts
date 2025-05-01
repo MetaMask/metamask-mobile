@@ -1,18 +1,19 @@
 import {
-  Scope,
   setMeasurement,
   startSpan,
   startSpanManual,
-  withScope,
 } from '@sentry/react-native';
-import type { Span } from '@sentry/core';
+import { Scope, type Span, withIsolationScope } from '@sentry/core';
 import { endTrace, trace, TraceName, TRACES_CLEANUP_INTERVAL } from './trace';
 
 jest.mock('@sentry/react-native', () => ({
-  withScope: jest.fn(),
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
   setMeasurement: jest.fn(),
+}));
+
+jest.mock('@sentry/core', () => ({
+  withIsolationScope: jest.fn(),
 }));
 
 const NAME_MOCK = TraceName.Middleware;
@@ -38,7 +39,8 @@ const DATA_MOCK = {
 describe('Trace', () => {
   const startSpanMock = jest.mocked(startSpan);
   const startSpanManualMock = jest.mocked(startSpanManual);
-  const withScopeMock = jest.mocked(withScope);
+  // mockImplementation doesn't choose the correct overload, so we ignore the types by casting to jest.Mock
+  const withIsolationScopeMock = jest.mocked(withIsolationScope) as jest.Mock;
   const setMeasurementMock = jest.mocked(setMeasurement);
   const setTagMock = jest.fn();
 
@@ -53,7 +55,7 @@ describe('Trace', () => {
       }),
     );
 
-    withScopeMock.mockImplementation((fn: (arg: Scope) => unknown) =>
+    withIsolationScopeMock.mockImplementation((fn: (arg: Scope) => unknown) =>
       fn({ setTag: setTagMock } as unknown as Scope),
     );
   });
@@ -85,7 +87,7 @@ describe('Trace', () => {
         () => true,
       );
 
-      expect(withScopeMock).toHaveBeenCalledTimes(1);
+      expect(withIsolationScopeMock).toHaveBeenCalledTimes(1);
 
       expect(startSpanMock).toHaveBeenCalledTimes(1);
       expect(startSpanMock).toHaveBeenCalledWith(
@@ -115,7 +117,7 @@ describe('Trace', () => {
         parentContext: PARENT_CONTEXT_MOCK,
       });
 
-      expect(withScopeMock).toHaveBeenCalledTimes(1);
+      expect(withIsolationScopeMock).toHaveBeenCalledTimes(1);
 
       expect(startSpanManualMock).toHaveBeenCalledTimes(1);
       expect(startSpanManualMock).toHaveBeenCalledWith(
@@ -146,7 +148,7 @@ describe('Trace', () => {
         startTime: 123,
       });
 
-      expect(withScopeMock).toHaveBeenCalledTimes(1);
+      expect(withIsolationScopeMock).toHaveBeenCalledTimes(1);
 
       expect(startSpanManualMock).toHaveBeenCalledTimes(1);
       expect(startSpanManualMock).toHaveBeenCalledWith(

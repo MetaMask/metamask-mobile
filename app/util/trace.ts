@@ -1,11 +1,14 @@
 import {
   startSpan as sentryStartSpan,
   startSpanManual,
-  withScope,
   setMeasurement,
   Scope,
 } from '@sentry/react-native';
-import type { StartSpanOptions, Span } from '@sentry/core';
+import {
+  type StartSpanOptions,
+  type Span,
+  withIsolationScope,
+} from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 
@@ -283,14 +286,12 @@ function startSpan<T>(
     attributes,
     name,
     op: op || OP_DEFAULT,
-    // This needs to be parentSpan once we have the withIsolatedScope implementation in place in the Sentry SDK for React Native
-    // Reference PR that updates @sentry/react-native: https://github.com/getsentry/sentry-react-native/pull/3895
     parentSpan,
     startTime,
   };
 
-  return withScope((scope) => {
-    initScope(scope, request);
+  return withIsolationScope((scope) => {
+    setScopeTags(scope, request);
 
     return callback(spanOptions);
   }) as T;
@@ -314,7 +315,7 @@ function getTraceKey(request: TraceRequest) {
  * @param scope - The Sentry scope to initialise.
  * @param request - The trace request.
  */
-function initScope(scope: Scope, request: TraceRequest) {
+function setScopeTags(scope: Scope, request: TraceRequest) {
   const tags = request.tags ?? {};
 
   for (const [key, value] of Object.entries(tags)) {
