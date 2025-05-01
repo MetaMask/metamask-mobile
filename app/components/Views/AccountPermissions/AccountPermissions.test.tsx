@@ -77,7 +77,6 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-// Mock useAccounts
 jest.mock('../../hooks/useAccounts', () => {
   const useAccountsMock = jest.fn(() => ({
     evmAccounts: [
