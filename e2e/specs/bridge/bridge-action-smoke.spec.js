@@ -44,7 +44,7 @@ describe(SmokeTrade('Bridge from Actions'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-it('should bridge ETH to Linea', async () => {
+it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
   const   testSpecificMock  = {
     GET: [
           {
