@@ -142,7 +142,7 @@ describe('getPersistentState', () => {
 
   // New test cases for the two key changes
 
-  it('include state property when no metadata exists for a key', () => {
+  it('exclude state property when no metadata exists for a key', () => {
     const state = {
       password: 'secret password',
       privateKey: '123',
@@ -164,11 +164,10 @@ describe('getPersistentState', () => {
     expect(persistentState).toStrictEqual({
       password: 'secret password',
       privateKey: '123',
-      network: 'mainnet', // be included even though no metadata exists
     });
   });
 
-  it('include state property when an error occurs during derivation', () => {
+  it('exclude state property when an error occurs during derivation', () => {
     const state = {
       password: 'secret password',
       privateKey: '123',
@@ -191,12 +190,10 @@ describe('getPersistentState', () => {
 
     expect(persistentState).toStrictEqual({
       password: 'secret password',
-      privateKey: '123', // be included even though derivation failed
-      network: 'mainnet', // be included as there's no metadata
     });
   });
 
-  it('handle complex nested objects with missing metadata', () => {
+  it('exclude nested objects without metadata', () => {
     const state = {
       user: {
         name: 'John',
@@ -226,10 +223,6 @@ describe('getPersistentState', () => {
           theme: 'dark',
           notifications: true,
         },
-      },
-      preferences: {
-        language: 'en',
-        currency: 'USD',
       },
     });
   });

@@ -40,9 +40,7 @@ function deriveStateFromMetadata<ControllerState extends StateConstraint>(
     try {
       const stateMetadata = metadata[key];
       if (!stateMetadata) {
-        // If there is no metadata for this key, include the state property (THIS IS CHANGED FROM BASE CONTROLLER)
-        derivedState[key] = state[key];
-        return derivedState;
+        throw new Error(`No metadata found for '${String(key)}'`);
       }
       const propertyMetadata = stateMetadata[metadataProperty];
       const stateProperty = state[key];
@@ -53,8 +51,11 @@ function deriveStateFromMetadata<ControllerState extends StateConstraint>(
       }
       return derivedState;
     } catch (error) {
-      // If any error occurs, include the state property (THIS IS CHANGED FROM BASE CONTROLLER)
-      derivedState[key] = state[key];
+      // Throw error after timeout so that it is captured as a console error
+      // (and by Sentry) without interrupting state-related operations
+      setTimeout(() => {
+        throw error;
+      });
       return derivedState;
     }
   }, {} as never);
