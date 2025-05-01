@@ -277,6 +277,20 @@ describe('Engine', () => {
     });
   });
 
+  it('does not pass initial RemoteFeatureFlagController state to the controller', () => {
+    const state = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 20000000000000,
+      },
+    };
+    const engine = Engine.init(state);
+    expect(engine.datamodel.state.RemoteFeatureFlagController).toStrictEqual({
+      remoteFeatureFlags: {},
+      cacheTimestamp: 0,
+    });
+  });
+
   describe('getTotalEvmFiatAccountBalance', () => {
     let engine: EngineClass;
     afterEach(() => engine?.destroyEngineInstance());
