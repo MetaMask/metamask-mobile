@@ -226,5 +226,59 @@ describe('persistConfig', () => {
       > & { whitelist?: string[] };
       expect(userTransform.whitelist).toEqual(['user']);
     });
+
+    describe('persistTransform', () => {
+      const engineTransform = persistConfig.transforms[0] as Transform<
+        unknown,
+        unknown
+      >;
+
+      it('returns original state for fresh installs', () => {
+        const freshState = {
+          backgroundState: {},
+        };
+        const result = engineTransform.in(freshState, 'engine', {});
+        expect(result).toEqual(freshState);
+      });
+
+      it('returns original state when inboundState is null', () => {
+        const result = engineTransform.in(null, 'engine', {});
+        expect(result).toBeNull();
+      });
+
+      it('returns original state when Engine is not initialized', () => {
+        // Engine context is already cleared in beforeEach
+        const state = {
+          backgroundState: {
+            someController: { data: 'test' },
+          },
+        };
+        const result = engineTransform.in(state, 'engine', {});
+        expect(result).toEqual(state);
+      });
+
+      it('handles non-object controller values', () => {
+        const mockContext = {
+          KeyringController: {
+            metadata: {
+              persist: ['vault'],
+            },
+          },
+        } as unknown as EngineContext;
+        (Engine as unknown as MockEngine).setMockContext(mockContext);
+
+        const state = {
+          backgroundState: {
+            KeyringController: null,
+            OtherController: 'string-value',
+          },
+        };
+
+        const result = engineTransform.in(state, 'engine', {});
+        expect(result).toEqual({
+          backgroundState: {},
+        });
+      });
+    });
   });
 });
