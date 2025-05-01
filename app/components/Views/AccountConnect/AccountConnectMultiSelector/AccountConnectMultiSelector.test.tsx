@@ -146,13 +146,17 @@ describe('AccountConnectMultiSelector', () => {
       { state: { engine: { backgroundState } } },
     );
 
-    const account = getByText('test2.eth');
-    fireEvent.press(account);
+    const newAccount = getByText('test2.eth');
+    fireEvent.press(newAccount);
+
+    // tests removal of an already selected account
+    const exstingAccount = getByText('test1.eth');
+    fireEvent.press(exstingAccount);
 
     const updateButton = getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1234', '0x5678']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x5678']);
   });
 
   it('shows update button when accounts are selected', () => {
