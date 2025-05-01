@@ -112,7 +112,6 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
 import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
-import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
   networkIdUpdated,
@@ -199,6 +198,7 @@ import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
+import { captureErrorException } from '../../util/sentry';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -779,7 +779,7 @@ export class Engine {
               ] || {},
             ).length;
 
-            captureException(
+            captureErrorException(
               new Error(
                 `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
               ),

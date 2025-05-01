@@ -1,6 +1,6 @@
-import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
+import { captureErrorException } from '../../util/sentry';
 
 /**
  * Migration to remove contractExchangeRates and contractExchangeRatesByChainId from the state of TokenRatesController
@@ -17,7 +17,7 @@ export default function migrate(state: unknown) {
     state.engine.backgroundState.TokenRatesController;
 
   if (!isObject(tokenRatesControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `FATAL ERROR: Migration 48: Invalid TokenRatesController state error: '${typeof tokenRatesControllerState}'`,
       ),

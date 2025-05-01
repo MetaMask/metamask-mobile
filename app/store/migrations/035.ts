@@ -1,7 +1,7 @@
-import { captureException } from '@sentry/react-native';
 import { isObject, hasProperty } from '@metamask/utils';
 import { NetworkState, NetworkStatus } from '@metamask/network-controller';
 import { InfuraNetworkType } from '@metamask/controller-utils';
+import { captureErrorException } from '../../util/sentry';
 
 /**
  * This migration removes networkDetails and networkStatus property
@@ -13,14 +13,14 @@ import { InfuraNetworkType } from '@metamask/controller-utils';
 export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
   if (!isObject(state)) {
-    captureException(
+    captureErrorException(
       new Error(`Migration 35: Invalid root state: '${typeof state}'`),
     );
     return state;
   }
 
   if (!isObject(state.engine)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 35: Invalid root engine state: '${typeof state.engine}'`,
       ),
@@ -29,7 +29,7 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   if (!isObject(state.engine.backgroundState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 35: Invalid root engine backgroundState: '${typeof state
           .engine.backgroundState}'`,
@@ -40,7 +40,7 @@ export default async function migrate(stateAsync: unknown) {
 
   const keyringControllerState = state.engine.backgroundState.KeyringController;
   if (!isObject(keyringControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 35: Invalid vault in KeyringController: '${typeof keyringControllerState}'`,
       ),
@@ -52,7 +52,7 @@ export default async function migrate(stateAsync: unknown) {
     .NetworkController as NetworkState;
 
   if (!isObject(networkControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 35: Invalid NetworkController state: '${typeof networkControllerState}'`,
       ),
@@ -64,7 +64,7 @@ export default async function migrate(stateAsync: unknown) {
     !isObject(networkControllerState.networkDetails) ||
     !hasProperty(networkControllerState, 'networkDetails')
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 35: Invalid NetworkController networkDetails state: '${typeof networkControllerState.networkDetails}'`,
       ),
@@ -76,7 +76,7 @@ export default async function migrate(stateAsync: unknown) {
     !isObject(networkControllerState.networkConfigurations) ||
     !hasProperty(networkControllerState, 'networkConfigurations')
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 35: Invalid NetworkController networkConfigurations state: '${typeof networkControllerState.networkConfigurations}'`,
       ),
@@ -88,7 +88,7 @@ export default async function migrate(stateAsync: unknown) {
     !isObject(networkControllerState.providerConfig) ||
     !hasProperty(networkControllerState, 'providerConfig')
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 35: Invalid NetworkController providerConfig state: '${typeof networkControllerState.providerConfig}'`,
       ),

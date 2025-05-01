@@ -1,18 +1,18 @@
 import { isObject } from '@metamask/utils';
-import { captureException } from '@sentry/react-native';
+import { captureErrorException } from '../../util/sentry';
 
 export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
 
   if (!isObject(state)) {
-    captureException(
+    captureErrorException(
       new Error(`Migration 37: Invalid state error: '${typeof state}'`),
     );
     return state;
   }
 
   if (!isObject(state.engine)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 37: Invalid engine state error: '${typeof state.engine}'`,
       ),
@@ -21,7 +21,7 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   if (!isObject(state.engine.backgroundState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 37: Invalid engine backgroundState error: '${typeof state
           .engine.backgroundState}'`,
@@ -32,7 +32,7 @@ export default async function migrate(stateAsync: unknown) {
 
   const keyringControllerState = state.engine.backgroundState.KeyringController;
   if (!isObject(keyringControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 37: Invalid vault in KeyringController: '${typeof keyringControllerState}'`,
       ),
@@ -42,7 +42,7 @@ export default async function migrate(stateAsync: unknown) {
   const networkControllerState = state.engine.backgroundState.NetworkController;
 
   if (!isObject(networkControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 37: Invalid NetworkController state error: '${typeof networkControllerState}'`,
       ),

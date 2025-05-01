@@ -10,8 +10,8 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
-import { captureException } from '@sentry/react-native';
 import { isBtcMainnetAddress } from '../../core/Multichain/utils';
+import { captureErrorException } from '../../util/sentry';
 
 // Helper to check if a scope is a valid enum value
 function isValidScope(scope: string): boolean {
@@ -49,7 +49,7 @@ function getScopesForAccountType(
       return [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet];
     default:
       // Default to EVM namespace for unknown account types
-      captureException(
+      captureErrorException(
         new Error(
           `Migration ${migrationNumber}: Unknown account type ${account.type}, defaulting to EVM EOA`,
         ),
@@ -92,7 +92,7 @@ export function migration66(state: unknown, migrationNumber: number) {
       state.engine.backgroundState.AccountsController.internalAccounts.accounts,
     )
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration ${migrationNumber}: Invalid state structure for AccountsController`,
       ),

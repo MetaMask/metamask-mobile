@@ -1,6 +1,6 @@
-import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
+import { captureErrorException } from '../../util/sentry';
 
 /**
  * Migration to reset state of TokenBalancesController
@@ -17,7 +17,7 @@ export default function migrate(state: unknown) {
     state.engine.backgroundState.TokenBalancesController;
 
   if (!isObject(tokenBalancesControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `FATAL ERROR: Migration 41: Invalid TokenBalancesController state error: '${JSON.stringify(
           tokenBalancesControllerState,

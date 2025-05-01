@@ -1,10 +1,9 @@
 import { toHex } from '@metamask/controller-utils';
 import { Hex, hasProperty, isObject } from '@metamask/utils';
 import { regex } from '../../../app/util/regex';
-
+import { captureErrorException } from '../../util/sentry';
 import { isHexString } from 'ethereumjs-util';
 import { TransactionParams } from '@metamask/transaction-controller';
-import { captureException } from '@sentry/react-native';
 import {
   AddressBookEntry,
   AddressBookControllerState,
@@ -54,21 +53,21 @@ export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
   // Chaning chain id to hexadecimal chain Id on the networks already on the local state
   if (!isObject(state)) {
-    captureException(
+    captureErrorException(
       new Error(`Migration 29: Invalid state: '${typeof state}'`),
     );
     return state;
   }
 
   if (!isObject(state.engine)) {
-    captureException(
+    captureErrorException(
       new Error(`Migration 29: Invalid engine state: '${typeof state.engine}'`),
     );
     return state;
   }
 
   if (!isObject(state.engine.backgroundState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid engine backgroundState: '${typeof state.engine
           .backgroundState}'`,
@@ -82,7 +81,7 @@ export default async function migrate(stateAsync: unknown) {
     .NetworkController as NetworkState;
 
   if (!isObject(networkControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid NetworkController state: '${typeof networkControllerState}'`,
       ),
@@ -94,7 +93,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(networkControllerState, 'providerConfig') ||
     !isObject(networkControllerState.providerConfig)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid NetworkController providerConfig: '${typeof networkControllerState.providerConfig}'`,
       ),
@@ -103,7 +102,7 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   if (!networkControllerState.providerConfig.chainId) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid NetworkController providerConfig chainId: '${JSON.stringify(
           networkControllerState.providerConfig.chainId,
@@ -136,7 +135,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(networkControllerState, 'networkDetails') ||
     !isObject(networkControllerState.networkDetails)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid NetworkController networkDetails: '${JSON.stringify(
           networkControllerState.networkDetails,
@@ -162,7 +161,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(networkControllerState, 'networkConfigurations') ||
     !isObject(networkControllerState.networkConfigurations)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid NetworkController networkConfigurations: '${JSON.stringify(
           networkControllerState.networkConfigurations,
@@ -229,7 +228,7 @@ export default async function migrate(stateAsync: unknown) {
     ?.AddressBookController as AddressBookControllerState;
 
   if (!isObject(addressBookControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid AddressBookController state: '${JSON.stringify(
           addressBookControllerState,
@@ -243,7 +242,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(addressBookControllerState, 'addressBook') ||
     !isObject(addressBookControllerState.addressBook)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid AddressBookController addressBook: '${JSON.stringify(
           addressBookControllerState.addressBook,
@@ -296,7 +295,7 @@ export default async function migrate(stateAsync: unknown) {
   const swapsControllerState = state?.engine?.backgroundState?.SwapsController;
 
   if (!isObject(swapsControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid SwapsController state: '${JSON.stringify(
           swapsControllerState,
@@ -331,7 +330,7 @@ export default async function migrate(stateAsync: unknown) {
     ?.NftController as NftControllerState;
 
   if (!isObject(nftControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid NftController state: '${JSON.stringify(
           nftControllerState,
@@ -345,7 +344,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(nftControllerState, 'allNftContracts') ||
     !isObject(nftControllerState.allNftContracts)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid nftControllerState allNftsContracts: '${JSON.stringify(
           nftControllerState.allNftContracts,
@@ -403,7 +402,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(nftControllerState, 'allNfts') ||
     !isObject(nftControllerState.allNfts)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid nftControllerState allNfts: '${JSON.stringify(
           nftControllerState.allNfts,
@@ -451,7 +450,7 @@ export default async function migrate(stateAsync: unknown) {
     state?.engine?.backgroundState?.TransactionController;
 
   if (!isObject(transactionControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid TransactionController state: '${JSON.stringify(
           transactionControllerState,
@@ -485,7 +484,7 @@ export default async function migrate(stateAsync: unknown) {
     ?.TokenListController as TokenListState;
 
   if (!isObject(tokenListControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid TokenListController state: '${JSON.stringify(
           tokenListControllerState,
@@ -499,7 +498,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(tokenListControllerState, 'tokensChainsCache') ||
     !isObject(tokenListControllerState.tokensChainsCache)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid tokenListControllerState tokensChainsCache: '${JSON.stringify(
           tokenListControllerState.tokensChainsCache,
@@ -532,7 +531,7 @@ export default async function migrate(stateAsync: unknown) {
     ?.TokenRatesController as TokenRatesControllerState;
 
   if (!isObject(tokenRatesControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid TokenRatesController state: '${JSON.stringify(
           tokenRatesControllerState,
@@ -575,7 +574,7 @@ export default async function migrate(stateAsync: unknown) {
     ?.TokensController as TokensControllerState;
 
   if (!isObject(tokensControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid TokensController state: '${JSON.stringify(
           tokensControllerState,
@@ -589,7 +588,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(tokensControllerState, 'allTokens') ||
     !isObject(tokensControllerState.allTokens)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid TokensController allTokens: '${JSON.stringify(
           tokensControllerState.allTokens,
@@ -618,7 +617,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(tokensControllerState, 'allIgnoredTokens') ||
     !isObject(tokensControllerState.allIgnoredTokens)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid TokensController allIgnoredTokens: '${JSON.stringify(
           tokensControllerState.allIgnoredTokens,
@@ -647,7 +646,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(tokensControllerState, 'allDetectedTokens') ||
     !isObject(tokensControllerState.allDetectedTokens)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 29: Invalid TokensController allDetectedTokens: '${JSON.stringify(
           tokensControllerState.allDetectedTokens,

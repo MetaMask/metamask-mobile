@@ -1,6 +1,6 @@
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { captureException } from '@sentry/react-native';
+import { captureErrorException } from '../../util/sentry';
 
 /**
  * Migration 71: set completedOnboarding based on the state of the KeyringController.
@@ -28,7 +28,7 @@ const migration = (state: unknown): unknown => {
 
     return state;
   } catch (error) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 071: setting completedOnboarding failed with error: ${error}`,
       ),

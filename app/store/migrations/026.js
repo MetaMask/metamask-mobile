@@ -1,5 +1,5 @@
-import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
+import { captureErrorException } from '../../util/sentry';
 
 /**
  * This migration is to free space of unused data in the user devices
@@ -9,7 +9,7 @@ import { isObject } from '@metamask/utils';
 export default function migrate(state) {
   const keyringControllerState = state.engine.backgroundState.KeyringController;
   if (!isObject(keyringControllerState)) {
-    captureException(
+    captureErrorException(
       // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
       new Error(
         `Migration 26: Invalid vault in KeyringController: '${typeof keyringControllerState}'`,
@@ -21,7 +21,7 @@ export default function migrate(state) {
   if (phishingControllerState?.listState) {
     delete state.engine.backgroundState.PhishingController.listState;
   } else {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 26: Invalid PhishingControllerState controller state: '${JSON.stringify(
           state.engine.backgroundState.PhishingController,
@@ -38,7 +38,7 @@ export default function migrate(state) {
     state.engine.backgroundState.PhishingController.hotlistLastFetched = 0;
     state.engine.backgroundState.PhishingController.stalelistLastFetched = 0;
   } else {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 26: Invalid PhishingControllerState hotlist and stale list fetched: '${JSON.stringify(
           state.engine.backgroundState.PhishingController,

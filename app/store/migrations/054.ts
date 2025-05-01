@@ -1,6 +1,6 @@
-import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
+import { captureErrorException } from '../../util/sentry';
 
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 54)) {
@@ -10,7 +10,7 @@ export default function migrate(state: unknown) {
 
   const tokensControllerState = state.engine.backgroundState.TokensController;
   if (!isObject(tokensControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `FATAL ERROR: Migration 54: Invalid TokensController state error: '${typeof tokensControllerState}'`,
       ),

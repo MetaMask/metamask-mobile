@@ -1,5 +1,4 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
-import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
@@ -20,6 +19,7 @@ import {
   isBtcTestnetAddress,
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
+import { captureErrorException } from '../util/sentry';
 
 /**
  *
@@ -69,7 +69,7 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
       const err = new Error(
         `selectSelectedInternalAccount: Account with ID ${accountId} not found.`,
       );
-      captureException(err);
+      captureErrorException(err);
       return undefined;
     }
     return account;

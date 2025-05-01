@@ -1,5 +1,5 @@
 import { isObject } from '@metamask/utils';
-import { captureException } from '@sentry/react-native';
+import { captureErrorException } from '../../util/sentry';
 
 export interface State {
   engine: {
@@ -17,33 +17,45 @@ export interface State {
 
 export default function migrate(state: unknown) {
   if (!isObject(state)) {
-    captureException(
+    captureErrorException(
       new Error(
-        `FATAL ERROR: Migration 67: Invalid state error: '${state === null ? 'null' : typeof state}'`,
+        `FATAL ERROR: Migration 67: Invalid state error: '${
+          state === null ? 'null' : typeof state
+        }'`,
       ),
     );
     return state;
   }
   if (!isObject(state.engine)) {
-    captureException(
+    captureErrorException(
       new Error(
-        `FATAL ERROR: Migration 67: Invalid engine state error: '${state.engine === null ? 'null' : typeof state.engine}'`,
+        `FATAL ERROR: Migration 67: Invalid engine state error: '${
+          state.engine === null ? 'null' : typeof state.engine
+        }'`,
       ),
     );
     return state;
   }
   if (!isObject(state.engine.backgroundState)) {
-    captureException(
+    captureErrorException(
       new Error(
-        `FATAL ERROR: Migration 67: Invalid engine backgroundState error: '${state.engine.backgroundState === null ? 'null' : typeof state.engine.backgroundState}'`,
+        `FATAL ERROR: Migration 67: Invalid engine backgroundState error: '${
+          state.engine.backgroundState === null
+            ? 'null'
+            : typeof state.engine.backgroundState
+        }'`,
       ),
     );
     return state;
   }
   if (!isObject(state.engine.backgroundState.PreferencesController)) {
-    captureException(
+    captureErrorException(
       new Error(
-        `FATAL ERROR: Migration 67: Invalid PreferencesController state error: '${state.engine.backgroundState.PreferencesController === null ? 'null' : typeof state.engine.backgroundState.PreferencesController}'`,
+        `FATAL ERROR: Migration 67: Invalid PreferencesController state error: '${
+          state.engine.backgroundState.PreferencesController === null
+            ? 'null'
+            : typeof state.engine.backgroundState.PreferencesController
+        }'`,
       ),
     );
     return state;
@@ -67,11 +79,11 @@ export default function migrate(state: unknown) {
   if (currentOptInStatus === true) {
     // User already had it on - no migration change made
     preferences.smartTransactionsOptInStatus = true;
-    preferences.featureFlags.smartTransactionsMigrationApplied = false;  // Changed to false
+    preferences.featureFlags.smartTransactionsMigrationApplied = false; // Changed to false
   } else {
     // We're changing their setting - mark as migrated
     preferences.smartTransactionsOptInStatus = true;
-    preferences.featureFlags.smartTransactionsMigrationApplied = true;  // Changed to true
+    preferences.featureFlags.smartTransactionsMigrationApplied = true; // Changed to true
   }
 
   preferences.featureFlags.smartTransactionsBannerDismissed = false;

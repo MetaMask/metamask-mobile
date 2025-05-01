@@ -1,8 +1,8 @@
-import { captureException } from '@sentry/react-native';
 import { isObject } from 'lodash';
 import { PRICE_API_CURRENCIES } from '../../core/Multichain/constants';
 import { ensureValidState } from './util';
 import { hasProperty } from '@metamask/utils';
+import { captureErrorException } from '../../util/sentry';
 
 const DEFAULT_CURRENCY = 'usd';
 
@@ -27,7 +27,7 @@ export default function migrate(state: unknown) {
     !isObject(currencyController) ||
     !hasProperty(currencyController, 'currentCurrency')
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration: Invalid CurrencyController state type '${typeof currencyController}'`,
       ),

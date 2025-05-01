@@ -1,5 +1,4 @@
 import { hasProperty, isObject } from '@metamask/utils';
-import { captureException } from '@sentry/react-native';
 import {
   TokenListState,
   TokenRatesControllerState,
@@ -7,7 +6,7 @@ import {
 } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
 import { isHexString } from 'ethereumjs-util';
-
+import { captureErrorException } from '../../util/sentry';
 /**
  * This migration is to address the users that were impacted by the tokens missing on their wallet
  * Because the chain id was not migrated to hexadecimal format
@@ -19,7 +18,7 @@ export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
 
   if (!isObject(state)) {
-    captureException(
+    captureErrorException(
       new Error(`Migration 31: Invalid state: '${typeof state}'`),
     );
     // Force vault corruption if state is completely corrupt
@@ -27,7 +26,7 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   if (!isObject(state.engine)) {
-    captureException(
+    captureErrorException(
       new Error(`Migration 31: Invalid engine state: '${typeof state.engine}'`),
     );
     // Force vault corruption if state is completely corrupt
@@ -36,7 +35,7 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   if (!isObject(state.engine.backgroundState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 31: Invalid engine backgroundState: '${typeof state.engine
           .backgroundState}'`,
@@ -52,7 +51,7 @@ export default async function migrate(stateAsync: unknown) {
     ?.TokenListController as TokenListState;
 
   if (!isObject(tokenListControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 31: Invalid TokenListController state: '${JSON.stringify(
           tokenListControllerState,
@@ -66,7 +65,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(tokenListControllerState, 'tokensChainsCache') ||
     !isObject(tokenListControllerState.tokensChainsCache)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 31: Invalid tokenListControllerState tokensChainsCache: '${JSON.stringify(
           tokenListControllerState.tokensChainsCache,
@@ -107,7 +106,7 @@ export default async function migrate(stateAsync: unknown) {
     ?.TokenRatesController as TokenRatesControllerState;
 
   if (!isObject(tokenRatesControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 31: Invalid TokenRatesController state: '${JSON.stringify(
           tokenRatesControllerState,
@@ -159,7 +158,7 @@ export default async function migrate(stateAsync: unknown) {
     ?.TokensController as TokensControllerState;
 
   if (!isObject(tokensControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 31: Invalid TokensController state: '${JSON.stringify(
           tokensControllerState,
@@ -173,7 +172,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(tokensControllerState, 'allTokens') ||
     !isObject(tokensControllerState.allTokens)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 31: Invalid TokensController allTokens: '${JSON.stringify(
           tokensControllerState.allTokens,
@@ -208,7 +207,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(tokensControllerState, 'allIgnoredTokens') ||
     !isObject(tokensControllerState.allIgnoredTokens)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 31: Invalid TokensController allIgnoredTokens: '${JSON.stringify(
           tokensControllerState.allIgnoredTokens,
@@ -243,7 +242,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(tokensControllerState, 'allDetectedTokens') ||
     !isObject(tokensControllerState.allDetectedTokens)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 31: Invalid TokensController allDetectedTokens: '${JSON.stringify(
           tokensControllerState.allDetectedTokens,

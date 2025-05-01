@@ -1,9 +1,9 @@
-import { captureException } from '@sentry/react-native';
 import { isObject, hasProperty } from '@metamask/utils';
 import { ensureValidState } from './util';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { captureErrorException } from '../../util/sentry';
 
 /**
  * Migration to add importTime property to accounts metadata of accounts controller
@@ -20,7 +20,7 @@ export default function migrate(state: unknown) {
     state.engine.backgroundState.AccountsController;
 
   if (!isObject(accountsControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `FATAL ERROR: Migration 47: Invalid AccountsController state error: '${typeof accountsControllerState}'`,
       ),
@@ -32,7 +32,7 @@ export default function migrate(state: unknown) {
     !hasProperty(accountsControllerState, 'internalAccounts') ||
     !isObject(accountsControllerState.internalAccounts)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `FATAL ERROR: Migration 47: Invalid AccountsController internalAccounts state error: '${typeof accountsControllerState.internalAccounts}'`,
       ),
@@ -44,7 +44,7 @@ export default function migrate(state: unknown) {
     !hasProperty(accountsControllerState.internalAccounts, 'accounts') ||
     !isObject(accountsControllerState.internalAccounts.accounts)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `FATAL ERROR: Migration 47: Invalid AccountsController internalAccounts accounts state error: '${typeof accountsControllerState
           .internalAccounts.accounts}'`,
@@ -61,7 +61,7 @@ export default function migrate(state: unknown) {
     const invalidEntry = Object.entries(
       accountsControllerState.internalAccounts.accounts,
     ).find(([_, account]) => !isObject(account));
-    captureException(
+    captureErrorException(
       new Error(
         `FATAL ERROR: Migration 47: Invalid AccountsController entry with id: '${
           invalidEntry?.[0]
@@ -75,7 +75,7 @@ export default function migrate(state: unknown) {
     .PreferencesController as PreferencesState;
 
   if (!isObject(preferencesControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `FATAL ERROR: Migration 47: Invalid PreferencesController state error: '${JSON.stringify(
           preferencesControllerState,
@@ -89,7 +89,7 @@ export default function migrate(state: unknown) {
     !hasProperty(preferencesControllerState, 'identities') ||
     !isObject(preferencesControllerState.identities)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `FATAL ERROR: Migration 47: Invalid PreferencesController identities state error: '${preferencesControllerState.identities}'`,
       ),

@@ -1,7 +1,7 @@
 import { hasProperty, isObject } from '@metamask/utils';
 import migration29 from './029';
 import migration30 from './030';
-import { captureException } from '@sentry/react-native';
+import { captureErrorException } from '../../util/sentry';
 
 /**
  * Enable security alerts by default.
@@ -12,14 +12,14 @@ export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
 
   if (!isObject(state)) {
-    captureException(
+    captureErrorException(
       new Error(`Migration 32: Invalid state: '${typeof state}'`),
     );
     return {};
   }
 
   if (!isObject(state.engine)) {
-    captureException(
+    captureErrorException(
       new Error(`Migration 32: Invalid engine state: '${typeof state.engine}'`),
     );
     const { engine, ...restState } = state;
@@ -27,7 +27,7 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   if (!isObject(state.engine.backgroundState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 32: Invalid engine backgroundState: '${typeof state.engine
           .backgroundState}'`,
@@ -40,7 +40,7 @@ export default async function migrate(stateAsync: unknown) {
   const networkControllerState = state.engine.backgroundState.NetworkController;
 
   if (!isObject(networkControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 32: Invalid NetworkController state: '${typeof networkControllerState}'`,
       ),
@@ -52,7 +52,7 @@ export default async function migrate(stateAsync: unknown) {
     !hasProperty(networkControllerState, 'providerConfig') ||
     !isObject(networkControllerState.providerConfig)
   ) {
-    captureException(
+    captureErrorException(
       new Error(
         `Migration 32: Invalid NetworkController providerConfig: '${typeof networkControllerState.providerConfig}'`,
       ),

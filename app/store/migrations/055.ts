@@ -1,9 +1,9 @@
-import { captureException } from '@sentry/react-native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { parse, equal } from 'uri-js';
 import { SelectedNetworkControllerState } from '@metamask/selected-network-controller';
 import { hasProperty, isObject, RuntimeObject } from '@metamask/utils';
 import { ensureValidState } from './util';
+import { captureErrorException } from '../../util/sentry';
 
 export const version = 55;
 
@@ -77,7 +77,7 @@ export default function migrate(state: unknown) {
     ?.SelectedNetworkController as SelectedNetworkControllerState;
 
   if (!isObject(networkControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `FATAL ERROR: Migration ${version}: Invalid NetworkController state error: '${typeof networkControllerState}'`,
       ),
@@ -86,7 +86,7 @@ export default function migrate(state: unknown) {
   }
 
   if (!isObject(transactionControllerState)) {
-    captureException(
+    captureErrorException(
       new Error(
         `FATAL ERROR: Migration ${version}: Invalid TransactionController state error: '${typeof transactionControllerState}'`,
       ),

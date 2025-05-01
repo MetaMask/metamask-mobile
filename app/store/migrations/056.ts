@@ -1,6 +1,6 @@
-import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
+import { captureErrorException } from '../../util/sentry';
 
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 56)) {
@@ -12,7 +12,7 @@ export default function migrate(state: unknown) {
     state.engine.backgroundState.PreferencesController;
 
   if (!isObject(preferencesController)) {
-    captureException(
+    captureErrorException(
       new Error(
         `FATAL ERROR: Migration 56: Invalid PreferencesController state error: '${typeof preferencesController}'`,
       ),

@@ -1,5 +1,5 @@
 import DefaultPreference from 'react-native-default-preference';
-import { captureException } from '@sentry/react-native';
+import { captureErrorException } from '../../util/sentry';
 import StorageWrapper from '../storage-wrapper';
 
 /**
@@ -18,7 +18,7 @@ export default async function migrate(state: unknown) {
       }
       await DefaultPreference.clear(key);
     } catch (error) {
-      captureException(
+      captureErrorException(
         new Error(
           `Migration 50: Failed to migrate key "${key}" from DefaultPreference to MMKV! Error: ${error}`,
         ),
