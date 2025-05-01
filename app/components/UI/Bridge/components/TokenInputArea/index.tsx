@@ -31,7 +31,7 @@ import {
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
-import { getDisplayFiatValue } from '../../utils/exchange-rates';
+import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 
 const createStyles = () =>
@@ -150,7 +150,7 @@ export const TokenInputArea = forwardRef<
     nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
-    // const fiatValue = getDisplayFiatValue({
+    // const currencyValue = getDisplayCurrencyValue({
     //   token,
     //   amount,
     //   evmMultiChainMarketData,

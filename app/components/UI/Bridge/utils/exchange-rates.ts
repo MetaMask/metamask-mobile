@@ -34,7 +34,7 @@ interface GetDisplayFiatValueParams {
   nonEvmMultichainAssetRates: ReturnType<typeof selectMultichainAssetsRates>;
 }
 
-export const getDisplayFiatValue = ({
+export const getDisplayCurrencyValue = ({
   token,
   amount,
   evmMultiChainMarketData,

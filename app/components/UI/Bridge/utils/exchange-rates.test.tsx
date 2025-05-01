@@ -1,8 +1,8 @@
-import { getDisplayFiatValue } from './exchange-rates';
+import { getDisplayCurrencyValue } from './exchange-rates';
 import { Hex } from '@metamask/utils';
 
 describe('exchange-rates', () => {
-  describe('getDisplayFiatValue', () => {
+  describe('getDisplayCurrencyValue', () => {
     const mockChainId = '0x1' as Hex;
     const mockTokenAddress =
       '0x0000000000000000000000000000000000000001' as Hex;
@@ -99,7 +99,7 @@ describe('exchange-rates', () => {
     };
 
     it('should return zero when token is undefined', () => {
-      const result = getDisplayFiatValue({
+      const result = getDisplayCurrencyValue({
         token: undefined,
         amount: '1',
         evmMultiChainMarketData: mockEvmMultiChainMarketData,
@@ -113,7 +113,7 @@ describe('exchange-rates', () => {
     });
 
     it('should return zero when amount is undefined', () => {
-      const result = getDisplayFiatValue({
+      const result = getDisplayCurrencyValue({
         token: mockToken,
         amount: undefined,
         evmMultiChainMarketData: mockEvmMultiChainMarketData,
@@ -127,7 +127,7 @@ describe('exchange-rates', () => {
     });
 
     it('should calculate correct fiat value for token amount', () => {
-      const result = getDisplayFiatValue({
+      const result = getDisplayCurrencyValue({
         token: mockToken,
         amount: '1',
         evmMultiChainMarketData: mockEvmMultiChainMarketData,
@@ -142,7 +142,7 @@ describe('exchange-rates', () => {
     });
 
     it('should return "< $0.01" for very small fiat values', () => {
-      const result = getDisplayFiatValue({
+      const result = getDisplayCurrencyValue({
         token: mockToken,
         amount: '0.0000001',
         evmMultiChainMarketData: mockEvmMultiChainMarketData,
@@ -156,7 +156,7 @@ describe('exchange-rates', () => {
     });
 
     it('should handle different currencies correctly', () => {
-      const result = getDisplayFiatValue({
+      const result = getDisplayCurrencyValue({
         token: mockToken,
         amount: '1',
         evmMultiChainMarketData: mockEvmMultiChainMarketData,
@@ -171,7 +171,7 @@ describe('exchange-rates', () => {
     });
 
     it('should handle undefined market data correctly', () => {
-      const result = getDisplayFiatValue({
+      const result = getDisplayCurrencyValue({
         token: mockToken,
         amount: '1',
         evmMultiChainMarketData: undefined,
@@ -194,7 +194,7 @@ describe('exchange-rates', () => {
         },
       };
 
-      const result = getDisplayFiatValue({
+      const result = getDisplayCurrencyValue({
         token: mockToken,
         amount: '1',
         evmMultiChainMarketData: noValueMarketData,
@@ -209,7 +209,7 @@ describe('exchange-rates', () => {
 
     describe('Solana token tests', () => {
       it('should calculate correct fiat value for SOL amount', () => {
-        const result = getDisplayFiatValue({
+        const result = getDisplayCurrencyValue({
           token: mockSolanaToken,
           amount: '1',
           evmMultiChainMarketData: mockEvmMultiChainMarketData,
@@ -224,7 +224,7 @@ describe('exchange-rates', () => {
       });
 
       it('should calculate correct fiat value for SPL token amount', () => {
-        const result = getDisplayFiatValue({
+        const result = getDisplayCurrencyValue({
           token: mockSplToken,
           amount: '1',
           evmMultiChainMarketData: mockEvmMultiChainMarketData,
@@ -239,7 +239,7 @@ describe('exchange-rates', () => {
       });
 
       it('should handle different currencies for Solana tokens', () => {
-        const result = getDisplayFiatValue({
+        const result = getDisplayCurrencyValue({
           token: mockSolanaToken,
           amount: '1',
           evmMultiChainMarketData: mockEvmMultiChainMarketData,
@@ -253,7 +253,7 @@ describe('exchange-rates', () => {
       });
 
       it('should handle very small amounts for Solana tokens', () => {
-        const result = getDisplayFiatValue({
+        const result = getDisplayCurrencyValue({
           token: mockSolanaToken,
           amount: '0.0000001',
           evmMultiChainMarketData: mockEvmMultiChainMarketData,
@@ -267,7 +267,7 @@ describe('exchange-rates', () => {
       });
 
       it('should handle undefined rates for Solana tokens', () => {
-        const result = getDisplayFiatValue({
+        const result = getDisplayCurrencyValue({
           token: mockSolanaToken,
           amount: '1',
           evmMultiChainMarketData: mockEvmMultiChainMarketData,
@@ -288,7 +288,7 @@ describe('exchange-rates', () => {
           },
         };
 
-        const result = getDisplayFiatValue({
+        const result = getDisplayCurrencyValue({
           token: mockSolanaToken,
           amount: '1',
           evmMultiChainMarketData: mockEvmMultiChainMarketData,
