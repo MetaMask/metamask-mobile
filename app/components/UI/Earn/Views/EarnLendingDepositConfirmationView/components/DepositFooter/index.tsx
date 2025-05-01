@@ -40,6 +40,7 @@ interface ProgressStepperProps {
   activeStep: number;
 }
 
+// TODO: Breakout + Cleanup child components.
 const ProgressStepper = ({
   height = 10,
   stroke = 'black',

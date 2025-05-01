@@ -3585,9 +3585,20 @@
       "start_earning": "Start earning"
     },
     "service_interruption_banner": {
-      "maintenance_message": "We're down for maintenance. We'll be back online soon!"
+        "maintenance_message": "We're down for maintenance. We'll be back online soon!"
     },
-    "deposit": "Deposit"
+    "deposit": "Deposit",
+    "approve": "Approve",
+    "approval": "Approval",
+    "confirm": "Confirm",
+    "transaction_submitted": "Transaction Submitted",
+    "daily": "Daily",
+    "immediate": "Immediate",
+    "apr": "APR",
+    "protocol": "Protocol",
+    "receive_tooltip": "receive tooltip",
+    "button": "button",
+    "receive": "Receive"
   },
   "stake": {
     "stake": "Stake",
