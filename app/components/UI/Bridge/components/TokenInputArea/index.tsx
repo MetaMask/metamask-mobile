@@ -125,8 +125,8 @@ export const TokenInputArea = forwardRef<
 
     // Data for fiat value calculation
     const currentCurrency = useSelector(selectCurrentCurrency);
-    const multiChainMarketData = useSelector(selectTokenMarketData);
-    const multiChainCurrencyRates = useSelector(selectCurrencyRates);
+    const evmMultiChainMarketData = useSelector(selectTokenMarketData);
+    const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
     const networkConfigurationsByChainId = useSelector(
       selectNetworkConfigurations,
     );
@@ -141,9 +141,9 @@ export const TokenInputArea = forwardRef<
     const fiatValue = getDisplayFiatValue({
       token,
       amount,
-      multiChainMarketData,
+      evmMultiChainMarketData,
       networkConfigurationsByChainId,
-      multiChainCurrencyRates,
+      evmMultiChainCurrencyRates,
       currentCurrency,
       nonEvmMultichainAssetRates,
     });

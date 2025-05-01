@@ -15,11 +15,11 @@ import { toAssetId } from '../hooks/useAssetMetadata/utils';
 interface GetDisplayFiatValueParams {
   token: BridgeToken | undefined;
   amount: string | undefined;
-  multiChainMarketData:
+  evmMultiChainMarketData:
     | Record<Hex, Record<Hex, { price: number | undefined }>>
     | undefined;
   networkConfigurationsByChainId: Record<Hex, { nativeCurrency: string }>;
-  multiChainCurrencyRates:
+  evmMultiChainCurrencyRates:
     | Record<string, { conversionRate: number | null }>
     | undefined;
   currentCurrency: string;
@@ -29,11 +29,11 @@ interface GetDisplayFiatValueParams {
 export const getDisplayFiatValue = ({
   token,
   amount,
-  multiChainMarketData, // EVM
+  evmMultiChainMarketData,
   networkConfigurationsByChainId,
-  multiChainCurrencyRates, // EVM
+  evmMultiChainCurrencyRates,
   currentCurrency,
-  nonEvmMultichainAssetRates, // Non-EVM
+  nonEvmMultichainAssetRates,
 }: GetDisplayFiatValueParams): string => {
   if (!token || !amount) {
     return addCurrencySymbol('0', currentCurrency);
@@ -52,19 +52,19 @@ export const getDisplayFiatValue = ({
   } else {
     // EVM
     const evmChainId = token.chainId as Hex;
-    const multiChainExchangeRates = multiChainMarketData?.[evmChainId];
-    const tokenMarketData = multiChainExchangeRates?.[token.address as Hex];
+    const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
+    const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
 
     const nativeCurrency =
       networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
     const multiChainConversionRate =
-      multiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0;
+      evmMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0;
 
     balanceFiatCalculation = Number(
       balanceToFiatNumber(
         amount,
         multiChainConversionRate,
-        tokenMarketData?.price ?? 0,
+        evmTokenMarketData?.price ?? 0,
       ),
     );
   }
