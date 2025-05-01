@@ -162,9 +162,7 @@ export const TokenInputArea = forwardRef<
 
     const fiatValue =
       token?.currencyExchangeRate && amount
-        ? `${amount} ${token?.symbol} = ${
-            Number(amount) * token?.currencyExchangeRate
-          } ${currentCurrency}`
+        ? `${Number(amount) * token?.currencyExchangeRate} ${currentCurrency}`
         : undefined;
 
     // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
