@@ -61,9 +61,9 @@ export const TokenList = ({
   const { width: deviceWidth } = Dimensions.get('window');
 
   const itemHeight = 80; // Adjust this to match TokenListItem height
+  const numberOfItemsOnScreen = 6; // Adjust this to match number of items on screen
 
-  const listLength = tokenKeys.length;
-  const estimatedListHeight = itemHeight * listLength;
+  const estimatedListHeight = itemHeight * numberOfItemsOnScreen;
 
   useLayoutEffect(() => {
     listRef.current?.recomputeViewableItems();
@@ -129,7 +129,7 @@ export const TokenList = ({
           onRefresh={onRefresh}
         />
       }
-      extraData={{ isTokenNetworkFilterEqualCurrentNetwork, listLength }}
+      extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
     />
   ) : (
     <View style={styles.emptyView}>
