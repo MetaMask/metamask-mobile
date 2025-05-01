@@ -236,6 +236,7 @@ class Asset extends PureComponent {
         false,
         navigation,
         colors,
+        // TODO: remove !isNonEvmChainId check once bottom sheet options are fixed for non-EVM chains
         shouldShowMoreOptionsInNavBar && !isNonEvmChainId(chainId)
           ? () =>
               navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
