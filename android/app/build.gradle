@@ -1,7 +1,9 @@
 apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "io.sentry.android.gradle"
 apply plugin: 'com.google.gms.google-services'
+def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -49,9 +51,15 @@ react {
     // hermesFlags = ["-O", "-output-source-map"]
     //
     // Added by install-expo-modules
-    entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", rootDir.getAbsoluteFile().getParentFile().getAbsolutePath(), "android", "absolute"].execute(null, rootDir).text.trim())
-    cliFile = new File(["node", "--print", "require.resolve('@expo/cli')"].execute(null, rootDir).text.trim())
+    entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"].execute(null, rootDir).text.trim())
+    reactNativeDir = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
+    hermesCommand = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/sdks/hermesc/%OS-BIN%/hermesc"
+    codegenDir = new File(["node", "--print", "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
+    cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
     bundleCommand = "export:embed"
+
+    /* Autolinking */
+    autolinkLibrariesWithApp()
 }
 
 // Override default React Native to generate source maps for Hermes
@@ -170,7 +178,8 @@ def ndkPath() {
 android {
     ndkVersion rootProject.ext.ndkVersion
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdk rootProject.ext.compileSdkVersion
 
     namespace"io.metamask"
 
@@ -179,7 +188,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionName "7.45.0"
-        versionCode 1738
+        versionCode 1773
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -197,7 +206,17 @@ android {
       pickFirst 'lib/armeabi-v7a/libcrypto.so'
       pickFirst 'lib/x86/libcrypto.so'
       pickFirst 'lib/x86_64/libcrypto.so'
+      jniLibs {
+        useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
+      }
+      exclude 'META-INF/AL2.0'
+      exclude 'META-INF/LGPL2.1'
+      exclude 'mockito-extensions/org.mockito.plugins.MockMaker'
 	  }
+
+    androidResources {
+      ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
+    }
 
 	  signingConfigs {
       release {
@@ -235,6 +254,8 @@ android {
             manifestPlaceholders.isDebug = false
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
+            crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
+            testProguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
         }
     }
 
@@ -271,6 +292,10 @@ android {
       // Used to point to dev environment API for ramp
       it.buildConfigField 'String', 'IS_RAMP_DEV', "\"$System.env.RAMP_DEV_BUILD\""
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
@@ -282,12 +307,7 @@ dependencies {
     androidTestImplementation 'org.mockito:mockito-android:4.2.0'
     androidTestImplementation 'androidx.test:core:1.5.0'
     androidTestImplementation 'androidx.test:core-ktx:1.5.0'
-    debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
-    debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
-        exclude group:'com.squareup.okhttp3', module:'okhttp'
-    }
 
-    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}")
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
@@ -297,6 +317,15 @@ dependencies {
          exclude module: "protobuf-lite"
      }
     androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.4.0')
-}
 
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+    // Add these dependencies for androidTest
+    androidTestImplementation "com.google.guava:guava:31.1-android"
+    androidTestImplementation "org.ow2.asm:asm:9.4"
+    androidTestImplementation "net.java.dev.jna:jna:5.12.1"
+    androidTestImplementation "net.java.dev.jna:jna-platform:5.12.1"
+    androidTestImplementation "org.opentest4j:opentest4j:1.2.0"
+    
+    // Make sure you have the proper Mockito dependencies
+    androidTestImplementation "org.mockito:mockito-core:4.8.0"
+    androidTestImplementation "org.mockito:mockito-inline:4.8.0"
+}
