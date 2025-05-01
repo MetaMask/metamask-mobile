@@ -96,6 +96,11 @@ export const TokenList = ({
       estimatedItemSize={itemHeight}
       estimatedListSize={{ height: estimatedListHeight, width: deviceWidth }}
       removeClippedSubviews
+      viewabilityConfig={{
+        waitForInteraction: true,
+        itemVisiblePercentThreshold: 50,
+        minimumViewTime: 1000,
+      }}
       renderItem={renderTokenListItem}
       keyExtractor={(item, index) => {
         if (!item?.address || !item?.chainId) {
