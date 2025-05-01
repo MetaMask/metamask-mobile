@@ -12,7 +12,6 @@ import PoolStakingLearnMoreModal from '../components/PoolStakingLearnMoreModal';
 import EarnTokenList from '../../Earn/components/EarnTokenList';
 import EarnInputView from '../../Earn/Views/EarnInputView/EarnInputView';
 import EarnWithdrawInputView from '../../Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView';
-import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepositConfirmationView';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -57,11 +56,6 @@ const StakeScreenStack = () => (
       <Stack.Screen
         name={Routes.STANDALONE_CONFIRMATIONS.STAKE_CLAIM}
         component={Confirm}
-      />
-      {/* TODO: Breakout Earn screens into their own ScreenStack */}
-      <Stack.Screen
-        name={Routes.EARN.LENDING_DEPOSIT_CONFIRMATION}
-        component={EarnLendingDepositConfirmationView}
       />
     </Stack.Navigator>
   </StakeSDKProvider>

@@ -92,6 +92,7 @@ import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
+import { EarnScreenStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
@@ -868,6 +869,7 @@ const MainNavigator = () => (
       options={clearStackNavigatorOptions}
     />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
+    <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
     <Stack.Screen
       name="StakeModals"
       component={StakeModalStack}
