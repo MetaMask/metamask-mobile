@@ -7,7 +7,6 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import { strings } from '../../../../../../locales/i18n';
 import useRampNetwork from '../../../Ramp/hooks/useRampNetwork';
 import { MetaMetricsEvents } from '../../../../../components/hooks/useMetrics';
-import { TokenI } from '../../types';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
@@ -44,8 +43,36 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       TokensController: {
+        ...backgroundState.TokensController,
         tokens: [],
         detectedTokens: [],
+        allTokens: {
+          '0x1': {
+            [MOCK_ADDRESS_1]: [
+              {
+                symbol: 'ETH',
+                address: '0x00',
+                decimals: 18,
+                isETH: true,
+                balance: '0',
+              },
+              {
+                symbol: 'BAT',
+                address: '0x01',
+                decimals: 18,
+                isETH: false,
+                balance: '0',
+              },
+              {
+                symbol: 'LINK',
+                address: '0x02',
+                decimals: 18,
+                isETH: false,
+                balance: '0',
+              },
+            ],
+          },
+        },
       },
       NetworkController: {
         ...mockNetworkState({
@@ -85,16 +112,7 @@ const initialState = {
 const store = mockStore(initialState);
 
 describe('TokenListFooter', () => {
-  const mockTokens = [
-    {
-      isETH: true,
-      symbol: 'ETH',
-      balance: '0',
-    },
-  ] as TokenI[];
-
   const mockProps = {
-    tokens: mockTokens,
     goToAddToken: jest.fn(),
     showDetectedTokens: jest.fn(),
     isAddTokenEnabled: true,
@@ -125,7 +143,9 @@ describe('TokenListFooter', () => {
 
     expect(
       getByText(
-        strings('wallet.token_is_needed_to_continue', { tokenSymbol: 'ETH' }),
+        strings('wallet.token_is_needed_to_continue', {
+          tokenSymbol: 'Ethereum',
+        }),
       ),
     ).toBeDefined();
     expect(getByText(strings('wallet.next'))).toBeDefined();

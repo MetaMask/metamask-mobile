@@ -60,6 +60,7 @@ function setupBackgroundBridge(url) {
     AccountsController,
     PermissionController,
     SelectedNetworkController,
+    NetworkController,
   } = Engine.context;
 
   AccountsController.getSelectedAccount.mockReturnValue({
@@ -68,11 +69,13 @@ function setupBackgroundBridge(url) {
   PermissionController.getPermissions.mockReturnValue({
     bind: jest.fn(),
   });
-
+  PermissionController.getPermissions.mockReturnValue({
+    bind: jest.fn(),
+  });
   PermissionController.hasPermissions.mockReturnValue({
     bind: jest.fn(),
   });
-  PermissionController.hasPermission.mockReturnValue({
+  NetworkController.getNetworkConfigurationByChainId.mockReturnValue({
     bind: jest.fn(),
   });
   PermissionController.executeRestrictedMethod.mockReturnValue({

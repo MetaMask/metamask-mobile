@@ -1,9 +1,8 @@
-import { NETWORKS_CHAIN_ID } from '../constants/network';
 import { selectSmartTransactionsOptInStatus } from './preferencesController';
 import { RootState } from '../reducers';
 import { swapsSmartTxFlagEnabled } from '../reducers/swaps';
 import { isHardwareAccount } from '../util/address';
-import { selectEvmChainId, selectProviderConfig } from './networkController';
+import { selectEvmChainId, selectRpcUrlByChainId } from './networkController';
 import {
   SmartTransaction,
   SmartTransactionStatuses,
@@ -11,12 +10,16 @@ import {
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { createDeepEqualSelector } from './util';
+import { Hex } from '@metamask/utils';
+import { getIsAllowedRpcUrlForSmartTransactions } from '../util/smart-transactions';
 
 export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   [
     selectSelectedInternalAccountFormattedAddress,
     selectEvmChainId,
-    (state: RootState) => selectProviderConfig(state).rpcUrl,
+    (_state: RootState, chainId?: Hex) => chainId,
+    (state: RootState, chainId?: Hex) =>
+      selectRpcUrlByChainId(state, chainId || selectEvmChainId(state)),
     swapsSmartTxFlagEnabled,
     (state: RootState) =>
       state.engine.backgroundState.SmartTransactionsController
@@ -24,25 +27,22 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   ],
   (
     selectedAddress,
-    chainId,
+    globalChainId,
+    transactionChainId,
     providerConfigRpcUrl,
     smartTransactionsFeatureFlagEnabled,
     smartTransactionsLiveness,
   ) => {
-    const addrIshardwareAccount = selectedAddress
+    const effectiveChainId = transactionChainId || globalChainId;
+    const addressIsHardwareAccount = selectedAddress
       ? isHardwareAccount(selectedAddress)
       : false;
     const isAllowedNetwork =
-      getAllowedSmartTransactionsChainIds().includes(chainId);
-    // Only bypass RPC if we're on the default mainnet RPC.
-    const canBypassRpc =
-      chainId === NETWORKS_CHAIN_ID.MAINNET
-        ? providerConfigRpcUrl === undefined
-        : true;
+      getAllowedSmartTransactionsChainIds().includes(effectiveChainId);
     return Boolean(
       isAllowedNetwork &&
-        canBypassRpc &&
-        !addrIshardwareAccount &&
+        !addressIsHardwareAccount &&
+        getIsAllowedRpcUrlForSmartTransactions(providerConfigRpcUrl) &&
         smartTransactionsFeatureFlagEnabled &&
         smartTransactionsLiveness,
     );

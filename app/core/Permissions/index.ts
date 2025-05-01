@@ -6,6 +6,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getEthAccounts, getPermittedEthChainIds, setEthAccounts, setPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
+import { toHex } from '@metamask/controller-utils';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -104,9 +105,9 @@ function getAccountsFromSubject(subject: any) {
   if (caveat) {
     const ethAccounts = getEthAccounts(caveat.value);
     const lowercasedEthAccounts = ethAccounts.map((address: string) =>
-      address.toLowerCase(),
+      toHex(address.toLowerCase()),
     );
-    return sortAccountsByLastSelected(lowercasedEthAccounts as Hex[]);
+    return sortAccountsByLastSelected(lowercasedEthAccounts);
   }
 
   return [];

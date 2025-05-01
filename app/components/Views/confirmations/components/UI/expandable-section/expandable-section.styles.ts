@@ -35,7 +35,6 @@ const styleSheet = (params: { theme: Theme, vars: { isCompact: boolean | undefin
     expandedContentTitle: {
       color: theme.colors.text.default,
       ...fontStyles.bold,
-      fontSize: isCompact ? 16 : 14,
       width: '90%',
       textAlign: 'center',
     },

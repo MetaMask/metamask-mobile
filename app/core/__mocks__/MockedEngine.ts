@@ -60,6 +60,7 @@ export const mockedEngine = {
     },
     KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
     NetworkController: {
+      getNetworkConfigurationByChainId: jest.fn(),
       getNetworkClientById: (networkClientId: NetworkClientId) => {
         if (networkClientId === 'linea_goerli') {
           return {
