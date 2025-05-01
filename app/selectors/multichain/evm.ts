@@ -419,11 +419,6 @@ export const selectEvmTokens = createDeepEqualSelector(
         ? tokensToDisplay
         : tokensToDisplay.filter((token) => token.chainId === currentChainId);
 
-    console.log(
-      'filtered tokens',
-      filteredTokens.filter((token) => token.isStaked),
-    );
-
     // Categorize tokens as native or non-native, filtering out testnet tokens if applicable
     const nativeTokens: TokenI[] = [];
     const nonNativeTokens: TokenI[] = [];
