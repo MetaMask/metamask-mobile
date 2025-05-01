@@ -43,6 +43,7 @@ jest.mock('../../core/Engine', () => ({
     KeyringController: {
       state: {
         keyrings: ['keyring1', 'keyring2'],
+        isUnlocked: true,
       },
     },
   },
@@ -60,7 +61,6 @@ const mockMetrics = {
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 describe('logs :: generateStateLogs', () => {
-
   it('generates a valid json export', async () => {
     const mockStateInput = {
       appVersion: '1',
@@ -100,6 +100,25 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes('NftDetectionController')).toBe(false);
     expect(logs.includes('PhishingController')).toBe(false);
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
+  });
+
+  it('includes isUnlocked state from KeyringController', () => {
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+    const logs = generateStateLogs(mockStateInput);
+    const parsedLogs = JSON.parse(logs);
+
+    expect(parsedLogs.engine.backgroundState.KeyringController.isUnlocked).toBe(
+      true,
+    );
   });
 
   it('generates extra logs if values added to the state object parameter', () => {
