@@ -217,9 +217,7 @@ const UrlAutocomplete = forwardRef<
     } catch (error) {
       return;
     }
-    hide();
-    onDismiss();
-  }, [hide, onDismiss, goToSwapsHook]);
+  }, [goToSwapsHook]);
 
   const renderSectionHeader = useCallback(({section: { category }}: {section: ResultsWithCategory}) => (
     <View style={styles.categoryWrapper}>
@@ -234,7 +232,9 @@ const UrlAutocomplete = forwardRef<
     <Result
       result={item}
       onPress={() => {
-        hide();
+        if (item.category !== UrlAutocompleteCategory.Tokens) {
+            hide();
+        }
         onSelect(item);
       }}
       onSwapPress={goToSwaps}

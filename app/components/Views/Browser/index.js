@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -85,9 +85,9 @@ export const Browser = (props) => {
       navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
     } else {
       // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-      createNewTab(url || homePageUrl(), linkType);
+      createNewTab(url, linkType);
     }
-  }, [tabs, navigation, homePageUrl, createNewTab]);
+  }, [tabs, navigation, createNewTab]);
 
   const updateTabInfo = useCallback((tabID, info) => {
     updateTab(tabID, info);

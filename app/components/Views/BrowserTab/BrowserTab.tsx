@@ -138,6 +138,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   homePageUrl,
   activeChainId,
 }) => {
+  const [firstUrl, setFirstUrl] = useState(initialUrl);
+  console.log('\n\n\n>>>>>>>>>>>>>>>>\n\n\nfirstUrl', firstUrl);
   // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -493,7 +495,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
    */
   useEffect(() => {
-    if (!isTabActive || isWebViewReadyToLoad.current) return;
+    if (!isTabActive || !firstUrl || isWebViewReadyToLoad.current) return;
 
     isWebViewReadyToLoad.current = true;
 
@@ -504,7 +506,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
     getEntryScriptWeb3();
     handleFirstUrl();
-  }, [isTabActive, handleFirstUrl]);
+  }, [isTabActive, handleFirstUrl, firstUrl]);
 
   // Cleanup bridges when tab is closed
   useEffect(
@@ -1089,12 +1091,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const onSubmitEditing = useCallback(
     async (text: string) => {
       if (!text) return;
+      // Format url for browser to be navigatable by webview
+      const processedUrl = processUrlForBrowser(text, searchEngine);
+      if (!firstUrl) {
+        setFirstUrl(processedUrl);
+        return;
+      }
       setConnectionType(ConnectionType.UNKNOWN);
       urlBarRef.current?.setNativeProps({ text });
       submittedUrlRef.current = text;
       webviewRef.current?.stopLoading();
-      // Format url for browser to be navigatable by webview
-      const processedUrl = processUrlForBrowser(text, searchEngine);
       if (isENSUrl(processedUrl, ensIgnoreListRef.current)) {
         const handledEnsUrl = await handleEnsUrl(
           processedUrl.replace(regex.urlHttpToHttps, 'https://'),
@@ -1114,7 +1120,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       true;  // Required for iOS
     `);
     },
-    [searchEngine, handleEnsUrl, setConnectionType],
+    [searchEngine, handleEnsUrl, setConnectionType, firstUrl],
   );
 
   // Assign the memoized function to the ref. This is needed since onSubmitEditing is a useCallback and is accessed recursively
@@ -1209,15 +1215,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const onSelect = useCallback(
     (item: AutocompleteSearchResult) => {
-      // Unfocus the url bar and hide the autocomplete results
-      urlBarRef.current?.hide();
-
       if (item.category === 'tokens') {
         navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
           chainId: item.chainId,
           address: item.address,
         });
       } else {
+        // Unfocus the url bar and hide the autocomplete results
+        urlBarRef.current?.hide();
         onSubmitEditing(item.url);
       }
     },
@@ -1254,7 +1259,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const onFocusUrlBar = useCallback(() => {
     // Show the autocomplete results
     autocompleteRef.current?.show();
-    urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
+    if (resolvedUrlRef.current) {
+      urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
+    }
   }, []);
 
   const onChangeUrlBar = useCallback((text: string) => {
@@ -1345,9 +1352,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     [onLoadEnd],
   );
 
-  // Don't render webview unless ready to load. This should save on performance for initial app start.
-  if (!isWebViewReadyToLoad.current) return null;
-
   /**
    * Main render
    */
@@ -1400,7 +1404,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                       />
                     )}
                     source={{
-                      uri: prefixUrlWithProtocol(initialUrl),
+                      uri: prefixUrlWithProtocol(firstUrl),
                       ...(isExternalLink ? { headers: { Cookie: '' } } : null),
                     }}
                     injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
