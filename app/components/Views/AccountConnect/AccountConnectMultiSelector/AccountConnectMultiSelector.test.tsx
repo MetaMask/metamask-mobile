@@ -112,7 +112,7 @@ describe('AccountConnectMultiSelector', () => {
       <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234']} isLoading />,
     );
 
-    const selectAllbutton = getAllByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON)
+    const selectAllbutton = getAllByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON);
     fireEvent.press(selectAllbutton[0]);
 
     const updateButton = getByTestId(
@@ -121,7 +121,24 @@ describe('AccountConnectMultiSelector', () => {
     fireEvent.press(updateButton);
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1234']);
-  })
+  });
+
+  it('handles the select all button when not loading', () => {
+    const { getByTestId, getAllByTestId } = renderWithProvider(
+      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234', '0x5678']} />,
+    );
+
+    const selectAllbutton = getAllByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON);
+    fireEvent.press(selectAllbutton[0]);
+    fireEvent.press(selectAllbutton[0]);
+
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
+    fireEvent.press(updateButton);
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1234', '0x5678']);
+  });
 
   it('handles account selection correctly', () => {
     const { getByTestId, getByText } = renderWithProvider(

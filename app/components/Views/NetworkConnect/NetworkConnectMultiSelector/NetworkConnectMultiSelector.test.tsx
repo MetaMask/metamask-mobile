@@ -86,7 +86,7 @@ describe('NetworkConnectMultiSelector', () => {
       <NetworkConnectMultiSelector {...defaultProps} isLoading />,
     );
 
-    const selectAllbutton = getAllByTestId(ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON)
+    const selectAllbutton = getAllByTestId(ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON);
     fireEvent.press(selectAllbutton[0]);
 
     const updateButton = getByTestId(
@@ -95,7 +95,24 @@ describe('NetworkConnectMultiSelector', () => {
     fireEvent.press(updateButton);
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1']);
-  })
+  });
+
+  it('handles the select all button when not loading', () => {
+    const { getByTestId, getAllByTestId } = renderWithProvider(
+      <NetworkConnectMultiSelector {...defaultProps} defaultSelectedChainIds={['0x1', '0x89']} />,
+    );
+
+    const selectAllbutton = getAllByTestId(ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON);
+    fireEvent.press(selectAllbutton[0]);
+    fireEvent.press(selectAllbutton[0]);
+
+    const updateButton = getByTestId(
+      NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
+    );
+    fireEvent.press(updateButton);
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1', '0x89']);
+  });
 
   it('handles network selection correctly', () => {
     const { getByText, getByTestId } = renderWithProvider(
