@@ -21,7 +21,7 @@ const PARENT_CONTEXT_MOCK = {
   spanContext: () => ({
     spanId: 'parentSpanId',
   }),
-};
+} as Span;
 
 const TAGS_MOCK = {
   tag1: 'value1',
@@ -91,7 +91,7 @@ describe('Trace', () => {
       expect(startSpanMock).toHaveBeenCalledWith(
         {
           name: NAME_MOCK,
-          parentSpanId: PARENT_CONTEXT_MOCK.spanContext?.()?.spanId,
+          parentSpan: PARENT_CONTEXT_MOCK,
           attributes: DATA_MOCK,
           op: 'custom',
         },
@@ -121,7 +121,7 @@ describe('Trace', () => {
       expect(startSpanManualMock).toHaveBeenCalledWith(
         {
           name: NAME_MOCK,
-          parentSpanId: PARENT_CONTEXT_MOCK.spanContext?.()?.spanId,
+          parentSpan: PARENT_CONTEXT_MOCK,
           attributes: DATA_MOCK,
           op: 'custom',
         },
@@ -152,7 +152,7 @@ describe('Trace', () => {
       expect(startSpanManualMock).toHaveBeenCalledWith(
         {
           name: NAME_MOCK,
-          parentSpanId: PARENT_CONTEXT_MOCK.spanContext?.()?.spanId,
+          parentSpan: PARENT_CONTEXT_MOCK,
           attributes: DATA_MOCK,
           op: 'custom',
           startTime: 123,
