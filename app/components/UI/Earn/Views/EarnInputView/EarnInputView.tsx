@@ -152,8 +152,7 @@ const EarnInputView = () => {
       allowanceMinimalTokenUnit,
     ).isLessThan(amountTokenMinimalUnitString);
 
-    // TODO: Update when moving Earn screen stack into its own namespace.
-    navigation.navigate('StakeScreens', {
+    navigation.navigate(Routes.EARN.ROOT, {
       screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
       params: {
         token,

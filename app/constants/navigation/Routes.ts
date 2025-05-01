@@ -184,6 +184,7 @@ const Routes = {
     },
   },
   EARN: {
+    ROOT: 'EarnScreens',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
   },
   STANDALONE_CONFIRMATIONS: {
