@@ -3,7 +3,12 @@ import {
   formatChainIdToHex,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
-import { Hex, CaipAssetType, CaipChainId, isStrictHexString } from '@metamask/utils';
+import {
+  Hex,
+  CaipAssetType,
+  CaipChainId,
+  isStrictHexString,
+} from '@metamask/utils';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import {
   addCurrencySymbol,
@@ -20,7 +25,7 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import { SolScope } from '@metamask/keyring-api';
 import { toAssetId } from '../hooks/useAssetMetadata/utils';
 
-interface GetDisplayFiatValueParams {
+interface GetDisplayCurrencyValueParams {
   token: BridgeToken | undefined;
   amount: string | undefined;
   evmMultiChainMarketData:
@@ -42,21 +47,26 @@ export const getDisplayCurrencyValue = ({
   evmMultiChainCurrencyRates,
   currentCurrency,
   nonEvmMultichainAssetRates,
-}: GetDisplayFiatValueParams): string => {
+}: GetDisplayCurrencyValueParams): string => {
   if (!token || !amount) {
     return addCurrencySymbol('0', currentCurrency);
   }
 
-  let balanceFiatCalculation = 0;
+  let currencyValue = 0;
 
   if (isSolanaChainId(token.chainId)) {
     const assetId = token.address as CaipAssetType;
     // This rate is asset to fiat. Whatever the user selected display fiat currency is.
     // We don't need to have an additional conversion from native token to fiat.
-    const rate = nonEvmMultichainAssetRates?.[assetId]?.rate || '0';
-    balanceFiatCalculation = Number(
-      balanceToFiatNumber(amount, Number(rate), 1),
-    );
+    const rate = nonEvmMultichainAssetRates?.[assetId]?.rate;
+    if (rate) {
+      currencyValue = Number(balanceToFiatNumber(amount, Number(rate), 1));
+    } else {
+      currencyValue =
+        token?.currencyExchangeRate && amount
+          ? Number(amount) * token?.currencyExchangeRate
+          : 0;
+    }
   } else {
     // EVM
     const evmChainId = token.chainId as Hex;
@@ -67,19 +77,26 @@ export const getDisplayCurrencyValue = ({
     const nativeCurrency =
       networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
     const multiChainConversionRate =
-      evmMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0;
+      evmMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate;
 
-    balanceFiatCalculation = Number(
-      balanceToFiatNumber(
-        amount,
-        multiChainConversionRate,
-        evmTokenMarketData?.price ?? 0,
-      ),
-    );
+    if (multiChainConversionRate) {
+      currencyValue = Number(
+        balanceToFiatNumber(
+          amount,
+          multiChainConversionRate,
+          evmTokenMarketData?.price ?? 0,
+        ),
+      );
+    } else {
+      currencyValue =
+        token?.currencyExchangeRate && amount
+          ? Number(amount) * token?.currencyExchangeRate
+          : 0;
+    }
   }
 
-  if (balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0) {
-    return addCurrencySymbol(balanceFiatCalculation, currentCurrency);
+  if (currencyValue >= 0.01 || currencyValue === 0) {
+    return addCurrencySymbol(currencyValue, currentCurrency);
   }
 
   return `< ${addCurrencySymbol('0.01', currentCurrency)}`;

@@ -104,6 +104,7 @@ export const TokenInputArea = forwardRef<
     ref,
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
+    // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
       token,
       currencyOverride: currentCurrency,
@@ -150,20 +151,15 @@ export const TokenInputArea = forwardRef<
     nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
-    // const currencyValue = getDisplayCurrencyValue({
-    //   token,
-    //   amount,
-    //   evmMultiChainMarketData,
-    //   networkConfigurationsByChainId,
-    //   evmMultiChainCurrencyRates,
-    //   currentCurrency,
-    //   nonEvmMultichainAssetRates,
-    // });
-
-    const currencyValue =
-      token?.currencyExchangeRate && amount
-        ? `${Number(amount) * token?.currencyExchangeRate} ${currentCurrency}`
-        : undefined;
+    const currencyValue = getDisplayCurrencyValue({
+      token,
+      amount,
+      evmMultiChainMarketData,
+      networkConfigurationsByChainId,
+      evmMultiChainCurrencyRates,
+      currentCurrency,
+      nonEvmMultichainAssetRates,
+    });
 
     // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
     const formattedBalance =

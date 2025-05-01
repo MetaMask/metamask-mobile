@@ -10,6 +10,12 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 
+/**
+ * Fetches the exchange rate for a token and stores it in the Redux store
+ * @param token - The token to fetch the exchange rate for
+ * @param currencyOverride - The currency to use for the exchange rate if you want to override the current currency
+ * @param action - The action to dispatch to set the exchange rate
+ */
 export const useBridgeExchangeRates = ({
   token,
   currencyOverride,
