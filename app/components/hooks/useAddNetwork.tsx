@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
-import { PopularList } from '../../util/networks/customNetworks';
 import { noop } from 'lodash';
-import NetworkModals from '../UI/NetworkModal';
+import NetworkModals, { NetworkConfigurationOptions } from '../UI/NetworkModal';
 import { useNavigation } from '@react-navigation/native';
-type PopularNetwork = typeof PopularList[number];
 
 export const useAddNetwork = () => {
-    const [popularNetwork, setPopularNetwork] = useState<PopularNetwork | null>(null);
+    const [popularNetwork, setPopularNetwork] = useState<NetworkConfigurationOptions | null>(null);
     const [resolveAddNetwork, setResolveAddNetwork] = useState<() => void>(noop);
     const [rejectAddNetwork, setRejectAddNetwork] = useState<() => void>(noop);
     const navigation = useNavigation();
 
-    const addPopularNetwork = (network: PopularNetwork) => new Promise<void>((resolve, reject) => {
+    const addPopularNetwork = (network: NetworkConfigurationOptions) => new Promise<void>((resolve, reject) => {
         setResolveAddNetwork(() => resolve);
         setRejectAddNetwork(() => reject);
         setPopularNetwork(network);

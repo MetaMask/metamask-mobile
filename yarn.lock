@@ -5269,12 +5269,12 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^23.2.0":
-  version "23.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-23.2.0.tgz#02b0641bcf4e8ca35005f945bc4943a3baf949e3"
-  integrity sha512-DnsMUtBxDQm4tk+2+bMbEgbUEgWS2xGmN6JqA47AXGBjzpnUUKQolcyJuPX0jJA+qUSnMG9jQjuMJBf1RHSR5Q==
+"@metamask/network-controller@^23.3.0":
+  version "23.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-23.3.0.tgz#12b71fb2c02e0bcff47c1ba3d49a3541c9d193ed"
+  integrity sha512-REiPcpSyNPsxVzV1AvB3XmhXcEvccZ9qBL8fdFkJQrjGSnBDdlhMaZSro+B9CdfIVUlidhztf/rJ/2NV2BKj4g==
   dependencies:
-    "@metamask/base-controller" "^8.0.0"
+    "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.7.0"
     "@metamask/eth-block-tracker" "^11.0.3"
     "@metamask/eth-json-rpc-infura" "^10.1.1"
