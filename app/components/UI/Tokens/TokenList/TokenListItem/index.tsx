@@ -27,7 +27,6 @@ import {
   selectCurrencyRates,
 } from '../../../../../selectors/currencyRateController';
 import { RootState } from '../../../../../reducers';
-import { safeToChecksumAddress } from '../../../../../util/address';
 import {
   getTestNetImageByChainId,
   isTestNet,
@@ -73,9 +72,9 @@ import {
 } from '../../../../../selectors/multichain/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
-
+import { FlashListAssetKey } from '..';
 interface TokenListItemProps {
-  assetKey: { address: string; chainId: string | undefined };
+  assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
@@ -105,6 +104,7 @@ export const TokenListItem = React.memo(
       selectEvmAsset(state, {
         address: assetKey.address,
         chainId: assetKey.chainId ?? '',
+        isStaked: assetKey.isStaked,
       }),
     );
 
@@ -139,9 +139,6 @@ export const TokenListItem = React.memo(
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-    const itemAddress = isEvmNetworkSelected
-      ? asset && safeToChecksumAddress(asset.address)
-      : asset?.address;
 
     // Choose values based on multichain or legacy
     const exchangeRates = multiChainMarketData?.[chainId as Hex];
@@ -366,8 +363,6 @@ export const TokenListItem = React.memo(
 
     return (
       <AssetElement
-        // assign staked asset a unique key
-        key={asset.isStaked ? '0x_staked' : itemAddress || '0x'}
         onPress={onItemPress}
         onLongPress={asset.isETH || asset.isNative ? null : showRemoveMenu}
         asset={asset}
