@@ -16,25 +16,27 @@ import { dismissBanner } from '../../../reducers/banners';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { useSelectedAccountMultichainBalances } from '../../hooks/useMultichainBalances';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
 import { selectDismissedBanners } from '../../../selectors/banner';
-import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
 
 const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const hasBalance = useSelector(selectAddressHasTokenBalances);
+  const { selectedAccountMultichainBalance } =
+    useSelectedAccountMultichainBalances();
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, { style });
   const dismissedBanners = useSelector(selectDismissedBanners);
-  const isZeroBalance = !hasBalance;
+  const isZeroBalance =
+    selectedAccountMultichainBalance?.totalFiatBalance === 0;
 
   const slidesConfig = useMemo(
     () =>

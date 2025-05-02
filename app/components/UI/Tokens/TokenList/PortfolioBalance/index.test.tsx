@@ -24,7 +24,7 @@ const mockSelectedAccountMultichainBalance = {
 };
 
 jest.mock('../../../../hooks/useMultichainBalances', () => ({
-  useMultichainBalances: () => ({
+  useSelectedAccountMultichainBalances: () => ({
     selectedAccountMultichainBalance: mockSelectedAccountMultichainBalance,
   }),
 }));
