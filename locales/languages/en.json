@@ -3974,6 +3974,8 @@
     }
   },
   "defi_positions": {
+    "loading_positions": "Loading your DeFi positions...",
+    "no_positions": "You don't have any open DeFi positions.",
     "supply": "Supplied",
     "stake": "Staked",
     "borrow": "Borrowed",

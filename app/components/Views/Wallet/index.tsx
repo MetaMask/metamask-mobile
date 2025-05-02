@@ -44,6 +44,7 @@ import {
   getDecimalChainId,
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
+  isTestNet,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -127,7 +128,7 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
-import DeFiPositionsTab from '../../UI/DeFiPositions/DeFiPositionsTab';
+import DeFiPositionsTab from '../../UI/DeFiPositions/DeFiPositionsList';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
 
 const createStyles = ({ colors, typography }: Theme) =>
@@ -740,6 +741,7 @@ const Wallet = ({
         {/* TODO: Restore the flags before merging */}
         {(true ||
           (isEvmSelected &&
+            !isTestNet(chainId) &&
             basicFunctionalityEnabled &&
             assetsDefiPositionsEnabled)) && (
           <DeFiPositionsTab {...defiPositionsTabProps} />

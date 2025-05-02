@@ -4,7 +4,6 @@ import { TouchableOpacity, View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../util/theme';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
@@ -15,7 +14,6 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import createStyles from './styles';
 import I18n from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
@@ -27,6 +25,7 @@ import {
   PopularList,
   UnpopularNetworkList,
 } from '../../../util/networks/customNetworks';
+import styleSheet from './DeFiPositionsListItem.styles';
 
 interface DeFiPositionsListItemProps {
   chainId: Hex;
@@ -39,8 +38,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
   protocolAggregate,
   privacyMode = false,
 }: DeFiPositionsListItemProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = styleSheet();
 
   const navigation = useNavigation();
 
@@ -95,12 +93,12 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
   return (
     <TouchableOpacity
       onPress={() => {
-        navigation.navigate('DeFiProtocolPositionsDetails', {
+        navigation.navigate('DeFiProtocolPositionDetails', {
           protocolAggregate,
           networkIconAvatar,
         });
       }}
-      style={styles.itemWrapper}
+      style={styles.listItemWrapper}
     >
       <DeFiAvatarWithBadge
         networkIconAvatar={networkIconAvatar}
@@ -108,15 +106,11 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
         avatarIconUrl={protocolAggregate.protocolDetails.iconUrl}
       />
 
-      <View style={styles.balances}>
-        <View style={styles.assetName}>
-          <Text variant={TextVariant.BodyLGMedium}>
-            {protocolAggregate.protocolDetails.name}
-          </Text>
-        </View>
-      </View>
+      <Text style={styles.protocolNameText} variant={TextVariant.BodyLGMedium}>
+        {protocolAggregate.protocolDetails.name}
+      </Text>
 
-      <View style={styles.arrow}>
+      <View style={styles.balance}>
         <SensitiveText
           variant={TextVariant.BodyLGMedium}
           isHidden={privacyMode}

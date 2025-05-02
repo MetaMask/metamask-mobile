@@ -93,7 +93,7 @@ import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
-import DeFiProtocolPositions from '../../UI/DeFiPositions/DeFiProtocolPositions';
+import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -895,8 +895,8 @@ const MainNavigator = () => (
       options={NotificationsOptInStack.navigationOptions}
     />
     <Stack.Screen
-      name="DeFiProtocolPositionsDetails"
-      component={DeFiProtocolPositions}
+      name="DeFiProtocolPositionDetails"
+      component={DeFiProtocolPositionDetails}
       options={{
         headerShown: true,
       }}

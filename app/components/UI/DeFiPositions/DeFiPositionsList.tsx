@@ -1,89 +1,115 @@
 import React, { useMemo } from 'react';
-import { View, FlatList } from 'react-native';
+import { View, Text, FlatList } from 'react-native';
 import { useTheme } from '../../../util/theme';
-import createStyles from './styles';
-import Text from '../../../component-library/components/Texts/Text';
-import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { GroupedDeFiPositions } from '@metamask/assets-controllers';
+import { strings } from '../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import {
+  selectChainId,
+  selectIsAllNetworks,
+} from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
-import DeFiPositionsListItem from './DeFiPositionsListItem';
+import { selectDeFiPositionsByAddress } from '../../../selectors/defiPositionsController';
+import styleSheet from './DeFiPositionsList.styles';
+import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import {
   selectPrivacyMode,
   selectTokenSortConfig,
 } from '../../../selectors/preferencesController';
-import { useSelector } from 'react-redux';
+import { toHex } from '@metamask/controller-utils';
+import { sortAssets } from '../Tokens/util';
+import DeFiPositionsListItem from './DeFiPositionsListItem';
+import DeFiPositionsControlBar from './DeFiPositionsControlBar';
 
-interface DeFiPositionsListProps {
-  defiPositions: { [key: Hex]: GroupedDeFiPositions } | null | undefined;
-  //   refreshing: boolean;
-  //   isAddTokenEnabled: boolean;
-  //   onRefresh: () => void;
-  //   showRemoveMenu: (arg: TokenI) => void;
-  //   goToAddToken: () => void;
-  //   showPercentageChange?: boolean;
-  //   showNetworkBadge?: boolean;
+export interface DeFiPositionsTabProps {
+  tabLabel: string;
 }
 
-export const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
-  defiPositions,
-}: DeFiPositionsListProps) => {
-  const privacyMode = useSelector(selectPrivacyMode);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+const DeFiPositionsTab: React.FC<DeFiPositionsTabProps> = () => {
+  const theme = useTheme();
+  const styles = styleSheet({ theme });
 
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const currentChainId = useSelector(selectChainId) as Hex;
   const tokenSortConfig = useSelector(selectTokenSortConfig);
-
-  console.log('TOKEN SORT CONFIG', tokenSortConfig);
+  const defiPositions = useSelector(selectDeFiPositionsByAddress);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const formattedDeFiPositions = useMemo(() => {
     if (!defiPositions) {
+      return defiPositions;
+    }
+
+    let chainFilteredDeFiPositions: { [key: Hex]: GroupedDeFiPositions };
+    if (isAllNetworks) {
+      chainFilteredDeFiPositions = defiPositions;
+    } else if (currentChainId in defiPositions) {
+      chainFilteredDeFiPositions = {
+        [currentChainId]: defiPositions[currentChainId],
+      };
+    } else {
       return [];
     }
 
-    return Object.entries(defiPositions)
+    if (!chainFilteredDeFiPositions) {
+      return [];
+    }
+
+    const defiPositionsList = Object.entries(chainFilteredDeFiPositions)
       .map(([chainId, chainDeFiPositions]) =>
         Object.values(chainDeFiPositions.protocols).map(
           (protocolAggregate) => ({
-            chainId: toHex(chainId) as Hex,
+            chainId: toHex(chainId),
             protocolAggregate,
           }),
         ),
       )
-      .flat()
-      .sort(
-        (a, b) =>
-          b.protocolAggregate.aggregatedMarketValue -
-          a.protocolAggregate.aggregatedMarketValue,
-      );
-  }, [defiPositions]);
+      .flat();
 
-  if (formattedDeFiPositions.length === 0) {
+    const defiSortConfig = {
+      ...tokenSortConfig,
+      key:
+        tokenSortConfig.key === 'tokenFiatAmount'
+          ? 'protocolAggregate.aggregatedMarketValue'
+          : 'protocolAggregate.protocolDetails.name',
+    };
+
+    return sortAssets(defiPositionsList, defiSortConfig);
+  }, [defiPositions, isAllNetworks, currentChainId, tokenSortConfig]);
+
+  if (!formattedDeFiPositions || formattedDeFiPositions.length === 0) {
     return (
       <View style={styles.emptyView}>
-        <View style={styles.emptyTokensView}>
-          <Text style={styles.emptyTokensViewText}>
-            {/* TODO: Custom message needed */}
-            {strings('wallet.no_tokens')}
-          </Text>
-        </View>
+        <Text style={styles.emptyViewText}>
+          {strings(
+            !formattedDeFiPositions
+              ? 'defi_positions.loading_positions'
+              : 'defi_positions.no_positions',
+          )}
+        </Text>
       </View>
     );
   }
 
   return (
-    <FlatList
-      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
-      data={formattedDeFiPositions}
-      renderItem={({ item: { chainId, protocolAggregate } }) => (
-        <DeFiPositionsListItem
-          chainId={chainId}
-          protocolAggregate={protocolAggregate}
-          privacyMode={privacyMode}
+    <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
+      <DeFiPositionsControlBar />
+      <View>
+        <FlatList
+          testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
+          data={formattedDeFiPositions}
+          renderItem={({ item: { chainId, protocolAggregate } }) => (
+            <DeFiPositionsListItem
+              chainId={chainId}
+              protocolAggregate={protocolAggregate}
+              privacyMode={privacyMode}
+            />
+          )}
+          keyExtractor={(_, index) => index.toString()}
         />
-      )}
-      keyExtractor={(_, index) => index.toString()}
-    />
+      </View>
+    </View>
   );
 };
+
+export default DeFiPositionsTab;

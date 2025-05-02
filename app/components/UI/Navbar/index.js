@@ -2052,7 +2052,7 @@ export function getStakingNavbar(
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options
  */
-export function getDeFiProtocolPositionsDetailsNavbarOptions(navigation) {
+export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
   return {
     headerTitle: () => null,
     headerLeft: () => (

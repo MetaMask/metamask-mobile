@@ -4,7 +4,7 @@ import { useParams } from '../../../util/navigation/navUtils';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
-import { getDeFiProtocolPositionsDetailsNavbarOptions } from '../Navbar';
+import { getDeFiProtocolPositionDetailsNavbarOptions } from '../Navbar';
 import createStyles from './styles';
 import Text, {
   TextVariant,
@@ -12,13 +12,13 @@ import Text, {
 import { formatWithThreshold } from '../../../util/assets';
 import I18n, { strings } from '../../../../locales/i18n';
 import Summary from '../../Base/Summary';
-import { PositionType } from '@metamask/assets-controllers/dist/DeFiPositionsController/fetch-positions.cjs';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 
-const PositionTypes: PositionType[] = ['supply', 'stake', 'borrow', 'reward'];
+const PositionTypes = ['supply', 'stake', 'borrow', 'reward'] as const;
+type PositionType = (typeof PositionTypes)[number];
 
 const PositionGroupDetails = ({
   positionType,
@@ -95,7 +95,7 @@ const PositionGroupDetails = ({
   );
 };
 
-const PositionGroups = ({
+export const PositionGroups = ({
   positionType,
   positionGroups,
   networkIconAvatar,
@@ -170,7 +170,7 @@ const DeFiProtocolPositions = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getDeFiProtocolPositionsDetailsNavbarOptions(navigation),
+      getDeFiProtocolPositionDetailsNavbarOptions(navigation),
     );
   }, [navigation]);
 

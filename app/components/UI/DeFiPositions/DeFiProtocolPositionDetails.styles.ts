@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
+import { fontStyles } from '../../../styles/common';
 
 /**
  *
@@ -12,12 +13,22 @@ const styleSheet = (params: { theme: Theme }) => {
     theme: { colors },
   } = params;
   return StyleSheet.create({
-    actionBarWrapper: {
+    detailsWrapper: {
+      paddingHorizontal: 16,
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 8,
-      paddingBottom: 16,
-      paddingTop: 8,
+    },
+    alternativeText: {
+      color: colors.text.alternative,
+      ...fontStyles.normal,
+    },
+    separatorWrapper: {
+      paddingHorizontal: 16,
+    },
+    ProtocolDetailsPositionsWrapper: {
+      display: 'flex',
+      flexDirection: 'column',
+      paddingHorizontal: 16,
     },
   });
 };
