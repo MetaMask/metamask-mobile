@@ -1984,6 +1984,17 @@ workflows:
       - INFO_PLIST_NAME: 'Info.plist'
     after_run:
       - _ios_build_template
+  build_ios_devbuild:
+    envs:
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'flask'
+      - METAMASK_ENVIRONMENT: 'debug'
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - APP_NAME: "MetaMask-Flask"
+      - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+    after_run:
+      - _ios_build_template
   build_ios_flask_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
