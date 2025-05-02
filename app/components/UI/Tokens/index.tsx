@@ -99,7 +99,7 @@ const Tokens = memo(() => {
       tags: getTraceTags(store.getState()),
     });
 
-    const tokensWithBalances = tokenListData.map((token, i) => ({
+    const tokensWithBalances: TokenI[] = tokenListData.map((token, i) => ({
       ...token,
       tokenFiatAmount: isEvmSelected ? tokenFiatBalances[i] : token.balanceFiat,
     }));
@@ -108,10 +108,13 @@ const Tokens = memo(() => {
 
     endTrace({ name: TraceName.Tokens });
 
-    return tokensSorted.map(({ address, chainId }) => ({
-      address,
-      chainId,
-    }));
+    return tokensSorted
+      .filter(({ address, chainId }) => address && chainId)
+      .map(({ address, chainId, isStaked }) => ({
+        address,
+        chainId,
+        isStaked,
+      }));
   }, [tokenListData, tokenFiatBalances, isEvmSelected, tokenSortConfig]);
 
   const showRemoveMenu = useCallback(

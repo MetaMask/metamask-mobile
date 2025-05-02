@@ -514,22 +514,68 @@ export const selectEvmTokenMarketData = createDeepEqualSelector(
   },
 );
 
+/**
+ * Creates a selector that finds a specific asset (token) by its address and chain ID.
+ * This selector is particularly important for handling both native and staked assets
+ * that may share the same address (e.g., 0x00) on the same chain.
+ *
+ * The selector uses a three-level nested map structure for efficient lookups:
+ * 1. First level: chainId -> Map
+ * 2. Second level: address -> Map
+ * 3. Third level: isStaked (boolean) -> TokenI
+ *
+ * This structure allows us to:
+ * - Efficiently look up tokens by chainId and address
+ * - Properly distinguish between staked and non-staked assets that share the same address
+ * - Handle native tokens (address: 0x00) correctly
+ *
+ * @example
+ * // For native asset
+ * const nativeAsset = selectAssetByAddressAndChainId(state, {
+ *   address: '0x00',
+ *   chainId: '0x1',
+ *   isStaked: false
+ * });
+ *
+ * // For staked asset
+ * const stakedAsset = selectAssetByAddressAndChainId(state, {
+ *   address: '0x00',
+ *   chainId: '0x1',
+ *   isStaked: true
+ * });
+ *
+ * @returns A selector function that returns the matching TokenI or undefined if not found
+ */
 export const makeSelectAssetByAddressAndChainId = () =>
   createSelector(
     [
       selectEvmTokens, // TokenI[]
       selectIsEvmNetworkSelected,
-      (_state: RootState, params: { address: string; chainId: string }) =>
-        toFormattedAddress(params.address),
-      (_state: RootState, params: { address: string; chainId: string }) =>
-        params.chainId,
+      (
+        _state: RootState,
+        params: { address: string; chainId: string; isStaked?: boolean },
+      ) => toFormattedAddress(params.address),
+      (
+        _state: RootState,
+        params: { address: string; chainId: string; isStaked?: boolean },
+      ) => params.chainId,
+      (
+        _state: RootState,
+        params: { address: string; chainId: string; isStaked?: boolean },
+      ) => params.isStaked,
     ],
-    (tokens, isEvmNetworkSelected, address, chainId): TokenI | undefined => {
+    (
+      tokens,
+      isEvmNetworkSelected,
+      address,
+      chainId,
+      isStaked,
+    ): TokenI | undefined => {
       if (!isEvmNetworkSelected) {
         return undefined;
       }
       // Step 1: build nested map once per call
-      const lookup = new Map<string, Map<string, TokenI>>();
+      const lookup = new Map<string, Map<string, Map<boolean, TokenI>>>();
 
       for (const token of tokens) {
         if (!token.chainId || !token.address) {
@@ -538,16 +584,28 @@ export const makeSelectAssetByAddressAndChainId = () =>
 
         const tokenChainId = token.chainId;
         const tokenAddress = toFormattedAddress(token.address) as string;
+        const tokenIsStaked = Boolean(token.isStaked); // this is important in order to differentiate between staked and non-staked tokens on the same chain
 
         if (!lookup.has(tokenChainId)) {
           lookup.set(tokenChainId, new Map());
         }
+        const chainMap = lookup.get(tokenChainId);
 
-        lookup.get(tokenChainId)?.set(tokenAddress, token);
+        if (chainMap && !chainMap.has(tokenAddress)) {
+          chainMap.set(tokenAddress, new Map());
+        }
+        const addressMap = chainMap?.get(tokenAddress);
+
+        if (addressMap) {
+          addressMap.set(tokenIsStaked, token);
+        }
       }
 
       // Step 2: lookup
-      const token = lookup.get(chainId)?.get(address as string);
+      const token = lookup
+        .get(chainId)
+        ?.get(address as string)
+        ?.get(Boolean(isStaked));
 
       return token;
     },
