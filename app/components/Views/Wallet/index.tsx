@@ -162,7 +162,6 @@ const createStyles = ({ colors, typography }: Theme) =>
       alignItems: 'center',
     },
     banner: {
-      widht: '80%',
       marginTop: 20,
       paddingHorizontal: 16,
     },
@@ -197,7 +196,7 @@ const Wallet = ({
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -609,7 +608,7 @@ const Wallet = ({
   ]);
 
   const renderTabBar = useCallback(
-    (props) => (
+    (props: Record<string, unknown>) => (
       <View style={styles.base}>
         <DefaultTabBar
           underlineStyle={styles.tabUnderlineStyle}
@@ -640,7 +639,7 @@ const Wallet = ({
   }, []);
 
   const onChangeTab = useCallback(
-    async (obj) => {
+    async (obj: { ref: { props: { tabLabel: string } } }) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {

@@ -454,6 +454,10 @@
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
+    },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
     }
   },
   "wallet": {
@@ -738,6 +742,7 @@
     "receive": "RECEIVE"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Create a new account",
     "import_account": "Import an account",
@@ -3825,7 +3830,8 @@
       "permit_revoke": "Remove permission",
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request",
-      "contract_interaction": "Transaction request"
+      "contract_interaction": "Transaction request",
+      "transfer": "Transfer request"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -3877,7 +3883,8 @@
     "none": "None",
     "advanced_details": "Advanced details",
     "interacting_with": "Interacting with",
-    "review": "Review"
+    "review": "Review",
+    "transferRequest": "Transfer request"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",

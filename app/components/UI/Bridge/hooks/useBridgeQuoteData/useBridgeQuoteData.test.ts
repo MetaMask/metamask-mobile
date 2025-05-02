@@ -18,6 +18,7 @@ jest.mock('../../utils/quoteUtils', () => ({
 
 const mockSelectPrimaryCurrency = jest.fn();
 jest.mock('../../../../../selectors/settings', () => ({
+  ...jest.requireActual('../../../../../selectors/settings'),
   selectPrimaryCurrency: () => mockSelectPrimaryCurrency(),
 }));
 

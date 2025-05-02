@@ -271,6 +271,9 @@ describe('Carousel', () => {
         banners: {
           dismissedBanners: [],
         },
+        settings: {
+          showFiatOnTestnets: false,
+        },
         engine: {
           backgroundState: {
             ...backgroundState,
@@ -303,6 +306,9 @@ describe('Carousel', () => {
       selector({
         banners: {
           dismissedBanners: [],
+        },
+        settings: {
+          showFiatOnTestnets: false,
         },
         engine: {
           backgroundState: {

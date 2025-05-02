@@ -71,7 +71,7 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           }
         >
           Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask.
-           
+
           <Text
             accessibilityRole="text"
             onPress={[Function]}

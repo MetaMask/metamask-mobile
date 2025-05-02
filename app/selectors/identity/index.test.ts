@@ -4,6 +4,7 @@ import {
   selectIsAccountSyncingEnabled,
   selectIsAccountSyncingReadyToBeDispatched,
   selectIsSignedIn,
+  selectIsAccountSyncingEnabled,
 } from './index';
 import { RootState } from '../../reducers';
 
@@ -16,6 +17,7 @@ describe('Notification Selectors', () => {
         },
         UserStorageController: {
           isProfileSyncingEnabled: true,
+          isAccountSyncingEnabled: true,
           isProfileSyncingUpdateLoading: false,
           isAccountSyncingEnabled: true,
           isAccountSyncingReadyToBeDispatched: false,
