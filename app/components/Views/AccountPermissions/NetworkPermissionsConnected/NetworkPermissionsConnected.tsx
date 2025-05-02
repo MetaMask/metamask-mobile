@@ -18,6 +18,7 @@ import {
   ProviderConfig,
   selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
+  selectNetworkConfigurationsByCaipChainId,
 } from '../../../../selectors/networkController';
 import {
   IconColor,
@@ -64,7 +65,7 @@ const NetworkPermissionsConnected = ({
   const chainId = useSelector(selectEvmChainId);
 
   const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
+    selectNetworkConfigurationsByCaipChainId,
   );
 
   // Get permitted chain IDs
@@ -90,12 +91,14 @@ const NetworkPermissionsConnected = ({
     .map(([key, network]) => ({
       id: key,
       name: network.name,
-      rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
+      // fix this
+      // rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
       isSelected: false,
       //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       imageSource: getNetworkImageSource({
-        chainId: network?.chainId,
+        chainId: network.caipChainId,
       }),
+      caipChainId: network.caipChainId
     }));
 
   return (

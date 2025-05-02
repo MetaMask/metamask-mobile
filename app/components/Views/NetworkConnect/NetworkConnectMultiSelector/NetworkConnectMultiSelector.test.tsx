@@ -9,6 +9,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
 } from '../../../../selectors/networkController';
+import { CaipChainId } from '@metamask/utils';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -56,7 +57,7 @@ describe('NetworkConnectMultiSelector', () => {
     onSubmit: jest.fn(),
     onBack: jest.fn(),
     isRenderedAsBottomSheet: true,
-    defaultSelectedChainIds: ['0x1'],
+    defaultSelectedChainIds: ['eip155:1' as CaipChainId],
   };
 
   beforeEach(() => {
@@ -94,12 +95,12 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1']);
   });
 
   it('handles the select all button when not loading', () => {
     const { getByTestId, getAllByTestId } = renderWithProvider(
-      <NetworkConnectMultiSelector {...defaultProps} defaultSelectedChainIds={['0x1', '0x89']} />,
+      <NetworkConnectMultiSelector {...defaultProps} defaultSelectedChainIds={['eip155:1', 'eip155:137']} />,
     );
 
     const selectAllbutton = getAllByTestId(ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON);
@@ -111,7 +112,7 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1', '0x89']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1', 'eip155:137']);
   });
 
   it('handles network selection correctly', () => {
@@ -131,14 +132,14 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x89']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:137']);
   });
 
   it('shows update button when some networks are selected', () => {
     const { getByTestId } = renderWithProvider(
       <NetworkConnectMultiSelector
         {...defaultProps}
-        defaultSelectedChainIds={['0x1']}
+        defaultSelectedChainIds={['eip155:1']}
       />,
     );
     const updateButton = getByTestId(
@@ -147,7 +148,7 @@ describe('NetworkConnectMultiSelector', () => {
     expect(updateButton).toBeTruthy();
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1']);
   });
 
   it('shows disconnect button when no networks are selected', () => {

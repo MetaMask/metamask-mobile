@@ -77,7 +77,7 @@ import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurationByChainId, selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
@@ -91,6 +91,7 @@ import {
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
 import { toHex } from '@metamask/controller-utils';
+import { CaipChainId } from '@metamask/utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -159,7 +160,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
   const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
+    selectNetworkConfigurationsByCaipChainId,
   );
 
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
@@ -222,10 +223,10 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { chainId } = useNetworkInfo(hostname);
 
-  const [selectedChainIds, setSelectedChainIds] = useState<string[]>(() => {
+  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(() => {
     // Get all enabled network chain IDs from networkConfigurations
     const enabledChainIds = Object.values(networkConfigurations).map(
-      (network) => network.chainId,
+      (network) => network.caipChainId,
     );
     return enabledChainIds;
   });
@@ -237,7 +238,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         size: AvatarSize.Xs,
         name: network.name || '',
         // @ts-expect-error getNetworkImageSource not yet typed
-        imageSource: getNetworkImageSource({ chainId: network.chainId }),
+        imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
       }),
     );
 
@@ -399,17 +400,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       hostInfo.permissions,
     );
 
-    /**
-     * TODO: This should be removed as part of later UI connection refactor work for Multichain API implementation.
-     * This logic should be removed and the UI should ensure it cannot continue if no chains are selected.
-     * {@link https://github.com/MetaMask/metamask-mobile/pull/13970/files#r2042345624}
-     */
-    const chainsToPermit = chainId && selectedChainIds.length === 0 ? [chainId] : selectedChainIds;
-    const hexSelectedAddresses = selectedAddresses.map((account) =>
-      toHex(account),
-    );
-    const hexChainsToPermit = chainsToPermit.map((chain) => toHex(chain));
-
     const request: PermissionsRequest = {
       ...hostInfo,
       metadata: {
@@ -420,8 +410,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         ...hostInfo.permissions,
         ...getCaip25PermissionsResponse(
           requestedCaip25CaveatValue,
-          hexSelectedAddresses,
-          hexChainsToPermit,
+          selectedAddresses,
+          selectedChainIds,
         ),
       },
     };
@@ -518,13 +508,12 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleNetworksSelected = useCallback(
-    (newSelectedChainIds: string[]) => {
+    (newSelectedChainIds: CaipChainId[]) => {
       setSelectedChainIds(newSelectedChainIds);
 
       const newNetworkAvatars = newSelectedChainIds.map(
         (newSelectedChainId) => ({
           size: AvatarSize.Xs,
-          // @ts-expect-error - networkConfigurations is not typed
           name: networkConfigurations[newSelectedChainId]?.name || '',
           // @ts-expect-error - getNetworkImageSource is not typed
           imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),

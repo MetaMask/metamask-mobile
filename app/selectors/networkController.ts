@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
@@ -22,6 +22,14 @@ import {
   selectSelectedNonEvmNetworkSymbol,
 } from './multichainNetworkController';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+
+export type EvmAndMultichainNetworkConfigurationsWithCaipChainId = (
+  | NetworkConfiguration
+  | MultichainNetworkConfiguration
+) & {
+  caipChainId: CaipChainId;
+};
+
 
 interface InfuraRpcEndpoint {
   name?: string;
@@ -193,6 +201,36 @@ export const selectNetworkConfigurations = createSelector(
       ...evmNetworkConfigurationsByChainId,
       ...nonEvmNetworkConfigurationsByChainId,
     };
+    return networkConfigurationsByChainId;
+  },
+);
+
+export const selectNetworkConfigurationsByCaipChainId = createSelector(
+  selectEvmNetworkConfigurationsByChainId,
+  selectNonEvmNetworkConfigurationsByChainId,
+  (
+    evmNetworkConfigurationsByChainId,
+    nonEvmNetworkConfigurationsByChainId,
+  ): Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> => {
+    const networkConfigurationsByChainId: Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> = {
+    };
+
+    Object.entries(nonEvmNetworkConfigurationsByChainId).forEach(([_caipChainId, networkConfiguration]) => {
+      const caipChainId = _caipChainId as CaipChainId;
+      networkConfigurationsByChainId[caipChainId] = {
+        ...networkConfiguration,
+        caipChainId
+      }
+    })
+
+    Object.entries(evmNetworkConfigurationsByChainId).forEach(([chainId, networkConfiguration]) => {
+      const caipChainId: CaipChainId = `eip155:${parseInt(chainId, 16)}`
+      networkConfigurationsByChainId[caipChainId] = {
+        ...networkConfiguration,
+        caipChainId
+      }
+    })
+
     return networkConfigurationsByChainId;
   },
 );

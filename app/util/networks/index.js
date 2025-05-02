@@ -494,7 +494,7 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
  *
  * @param {object} params - Params that contains information about the network.
  * @param {string} params.networkType - Type of network from the provider.
- * @param {string} params.chainId - ChainID of the network.
+ * @param {string} params.chainId - Hex EVM chain ID or CAIP chain ID of the network.
  * @returns {Object} - Image source of the network.
  */
 export const getNetworkImageSource = ({ networkType, chainId }) => {

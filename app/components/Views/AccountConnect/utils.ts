@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, Hex } from '@metamask/utils';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
@@ -81,13 +81,13 @@ export function getRequestedCaip25CaveatValue(
  * Modifies the requested CAIP-25 permissions object after UI confirmation.
  *
  * @param caip25CaveatValue - The requested CAIP-25 caveat value to modify.
- * @param ethAccountAddresses - The list of permitted eth addresses.
- * @param ethChainIds - The list of permitted eth chainIds.
+ * @param caipAccountIds - The list of permitted CAIP account IDs.
+ * @param caipChainIds - The list of permitted CAIP chain IDs.
  */
 export function getCaip25PermissionsResponse(
   caip25CaveatValue: Caip25CaveatValue,
-  ethAccountAddresses: Hex[],
-  ethChainIds: Hex[],
+  caipAccountIds: CaipAccountId[],
+  caipChainIds: CaipChainId[],
 ): {
   [Caip25EndowmentPermissionName]: {
     caveats: [{ type: string; value: Caip25CaveatValue }];
