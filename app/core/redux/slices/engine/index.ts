@@ -11,8 +11,8 @@ const initialState = {
 export const initBgState = createAction('INIT_BG_STATE');
 
 // Create an action to update the background state
-export const updateBgState = createAction('UPDATE_BG_STATE', (key) => ({
-  payload: key,
+export const updateBgState = createAction('UPDATE_BG_STATE', (payload) => ({
+  payload,
 }));
 
 // TODO: Replace "any" with type

@@ -104,27 +104,29 @@ export class EngineService {
       () => !this.engineInitialized,
     );
 
-    const updatedControllers = new Set<string>()
+    const updatedControllers = new Set<string>();
 
+    // Reduce the amount of state updates being flushed by using debouncing
+    // and a running list of controllers to update.
     const flushStateDebounced = debounce(() => {
       if (!engine.context.KeyringController.metadata.vault) {
         Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
       }
       ReduxService.store.dispatch({
         type: UPDATE_BG_STATE_KEY,
-        payload: { updatedControllers: updatedControllers.values() }
+        payload: { updatedControllers: updatedControllers.values() },
       });
       updatedControllers.clear();
     }, 200);
 
-    const updateReduxStateDebounced = (controllerName: string) => {
+    const updateReduxState = (controllerName: string) => {
       updatedControllers.add(controllerName);
       flushStateDebounced();
-    }
+    };
 
     BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
       engine.controllerMessenger.subscribe(eventName, () =>
-        updateReduxStateDebounced(eventName.split(':')[0]),
+        updateReduxState(eventName.split(':')[0]),
       );
     });
   };

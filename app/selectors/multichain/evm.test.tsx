@@ -1037,7 +1037,7 @@ describe('re-renders', () => {
       store.dispatch({
         type: 'UPDATE_BG_STATE',
         payload: {
-          key: 'TokensController',
+          updatedControllers: ['TokensController'],
         },
       });
     });
@@ -1057,7 +1057,7 @@ describe('re-renders', () => {
       store.dispatch({
         type: 'UPDATE_BG_STATE',
         payload: {
-          key: 'TokensController',
+          updatedControllers: ['TokensController'],
         },
       });
     });
