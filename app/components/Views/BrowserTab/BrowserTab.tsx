@@ -1452,7 +1452,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
               activeUrl={resolvedUrlRef.current}
               isHomepage={isHomepage}
               getMaskedUrl={getMaskedUrl}
-              onSubmitEditing={onSubmitEditing}
               title={titleRef}
               reload={reload}
               sessionENSNames={sessionENSNamesRef.current}
