@@ -49,15 +49,6 @@ const MigratedStorage = {
   },
   async setItem(key: string, value: string) {
     try {
-      // Check if Engine is initialized by trying to access context
-      try {
-        if (Engine.context) {
-          // This is just to trigger the error if engine does not exist
-        }
-      } catch (error) {
-        // Engine not initialized, skipping setItem
-        return;
-      }
       return await debouncedSetItem(key, value);
     } catch (error) {
       Logger.error(error as Error, {
@@ -101,23 +92,24 @@ const persistTransform = createTransform(
       return inboundState;
     }
 
-    const filteredControllers = Object.entries(controllers).reduce<
-      Record<string, Record<string, unknown>>
-    >((acc, [key, value]) => {
-      if (!value || typeof value !== 'object') return acc;
+    const persistableControllersState: Record<
+      string,
+      Record<string, unknown>
+    > = {};
+    for (const [key, value] of Object.entries(controllers)) {
+      if (!value || typeof value !== 'object') continue;
 
       const persistedState = getPersistentState(
         value,
         // @ts-expect-error - EngineContext have stateless controllers, so metadata is not available
         Engine.context[key as keyof EngineContext]?.metadata,
       );
-      acc[key] = persistedState;
-      return acc;
-    }, {});
+      persistableControllersState[key] = persistedState;
+    }
     // Reconstruct data to persist
     const newState = {
       backgroundState: {
-        ...filteredControllers,
+        ...persistableControllersState,
       },
     };
 

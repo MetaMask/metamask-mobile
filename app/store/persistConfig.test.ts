@@ -224,12 +224,6 @@ describe('persistConfig', () => {
       );
     });
 
-    it('not set item if Engine is not initialized', async () => {
-      // Engine context is already cleared in beforeEach
-      await persistConfig.storage.setItem(mockKey, mockValue);
-      expect(FilesystemStorage.setItem).not.toHaveBeenCalled();
-    });
-
     it('remove item using FilesystemStorage', async () => {
       await persistConfig.storage.removeItem(mockKey);
       expect(FilesystemStorage.removeItem).toHaveBeenCalledWith(mockKey);
