@@ -7,7 +7,8 @@ const ReactNativePostMessageStream = require('./ReactNativePostMessageStream');
 
 const INPAGE = 'metamask-inpage';
 const CONTENT_SCRIPT = 'metamask-contentscript';
-const PROVIDER = 'metamask-provider';
+// EIP-1193 provider channel name
+const METAMASK_EIP_1193_PROVIDER = 'metamask-provider';
 
 // Setup stream for content script communication
 const metamaskStream = new ReactNativePostMessageStream({
@@ -16,9 +17,13 @@ const metamaskStream = new ReactNativePostMessageStream({
 });
 
 const init = () => {
-  // Initialize provider object (window.ethereum)
+  // Multiplex the raw stream and initialize provider on the EIP-1193 channel
+  const mux = new ObjectMultiplex();
+  pipeline(metamaskStream, mux, metamaskStream, (err) =>
+    logStreamDisconnectWarning('MetaMask Inpage Multiplex', err),
+  );
   initializeProvider({
-    connectionStream: metamaskStream,
+    connectionStream: mux.createStream(METAMASK_EIP_1193_PROVIDER),
     shouldSendMetadata: false,
     providerInfo: {
       uuid: uuid(),
@@ -38,7 +43,6 @@ const init = () => {
     enumerable: false,
     writable: false,
   });
-
 }
 
 // Functions
@@ -72,8 +76,8 @@ function setupProviderStreams() {
     notifyProviderOfStreamFailure();
   });
 
-  // forward communication across inpage-background for these channels only
-  forwardTrafficBetweenMuxes(PROVIDER, pageMux, appMux);
+  // forward communication across inpage-background for the EIP-1193 provider channel
+  forwardTrafficBetweenMuxes(METAMASK_EIP_1193_PROVIDER, pageMux, appMux);
 
   // add web3 shim
   shimWeb3(window.ethereum);
@@ -123,7 +127,7 @@ function notifyProviderOfStreamFailure() {
       target: INPAGE, // the post-message-stream "target"
       data: {
         // this object gets passed to object-multiplex
-        name: PROVIDER, // the object-multiplex channel name
+        name: METAMASK_EIP_1193_PROVIDER, // the object-multiplex channel name
         data: {
           jsonrpc: '2.0',
           method: 'METAMASK_STREAM_FAILURE',

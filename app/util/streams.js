@@ -1,7 +1,7 @@
 /* eslint-disable import/no-commonjs */
 const Through = require('through2');
 import ObjectMultiplex from '@metamask/object-multiplex';
-const pump = require('pump');
+import { pipeline } from 'readable-stream';
 
 /**
  * Returns a stream transform that parses JSON strings passing through
@@ -33,7 +33,7 @@ function jsonStringifyStream() {
  */
 function setupMultiplex(connectionStream) {
   const mux = new ObjectMultiplex();
-  pump(connectionStream, mux, connectionStream, (err) => {
+  pipeline(connectionStream, mux, connectionStream, (err) => {
     if (err) {
       console.warn(err);
     }
