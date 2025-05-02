@@ -7676,7 +7676,7 @@
     "@sentry-internal/replay-canvas" "8.54.0"
     "@sentry/core" "8.54.0"
 
-"@sentry/browser@^8.54.0":
+"@sentry/browser@8.55.0", "@sentry/browser@^8.54.0":
   version "8.55.0"
   resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-8.55.0.tgz#9a489e2a54d29c65e6271b4ee594b43679cab7bd"
   integrity sha512-1A31mCEWCjaMxJt6qGUK+aDnLDcK6AwLAZnqpSchNysGni1pSn1RWSmk9TBF8qyTds5FH8B31H480uxMPUJ7Cw==
@@ -7777,6 +7777,15 @@
   dependencies:
     "@sentry/browser" "8.54.0"
     "@sentry/core" "8.54.0"
+    hoist-non-react-statics "^3.3.2"
+
+"@sentry/react@^8.54.0":
+  version "8.55.0"
+  resolved "https://registry.yarnpkg.com/@sentry/react/-/react-8.55.0.tgz#309f005837956a98e79275ef8c2c2b5952c8be93"
+  integrity sha512-/qNBvFLpvSa/Rmia0jpKfJdy16d4YZaAnH/TuKLAtm0BWlsPQzbXCU4h8C5Hsst0Do0zG613MEtEmWpWrVOqWA==
+  dependencies:
+    "@sentry/browser" "8.55.0"
+    "@sentry/core" "8.55.0"
     hoist-non-react-statics "^3.3.2"
 
 "@sentry/types@8.54.0":

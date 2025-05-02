@@ -255,6 +255,7 @@
     "@segment/sovran-react-native": "^1.0.4",
     "@sentry/browser": "^8.54.0",
     "@sentry/core": "^8.54.0",
+    "@sentry/react": "^8.54.0",
     "@sentry/react-native": "^6.10.0",
     "@shopify/flash-list": "^1.7.6",
     "@solana/addresses": "2.0.0",
