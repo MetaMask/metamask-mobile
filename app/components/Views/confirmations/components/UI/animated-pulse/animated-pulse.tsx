@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Animated, ViewProps } from 'react-native';
 
 interface AnimatedPulseProps extends ViewProps {
@@ -26,7 +26,10 @@ const AnimatedPulse = ({
   useEffect(() => {
     if (isCurrentlyPulsingRef.current && !isPulsing) {
       // Set the number of cycles we need to complete
-      cyclesNeededRef.current = Math.max(minCycles, cyclesCompletedRef.current + 1);
+      cyclesNeededRef.current = Math.max(
+        minCycles,
+        cyclesCompletedRef.current + 1,
+      );
     } else if (!isCurrentlyPulsingRef.current && isPulsing) {
       // Reset cycle count when starting to pulse again
       cyclesCompletedRef.current = 0;
@@ -35,7 +38,7 @@ const AnimatedPulse = ({
   }, [isPulsing, minCycles]);
 
   // Start a single pulse cycle and decide what to do next
-  const runSinglePulseCycle = () => {
+  const runSinglePulseCycle = useCallback(() => {
     // Create and store the new animation
     const sequence = Animated.sequence([
       Animated.timing(opacity, {
@@ -61,7 +64,10 @@ const AnimatedPulse = ({
         // Continue pulsing if:
         // 1. isPulsing is true, OR
         // 2. We haven't completed the minimum required cycles
-        if (isCurrentlyPulsingRef.current || cyclesCompletedRef.current < cyclesNeededRef.current) {
+        if (
+          isCurrentlyPulsingRef.current ||
+          cyclesCompletedRef.current < cyclesNeededRef.current
+        ) {
           // Schedule the next cycle
           runSinglePulseCycle();
         } else {
@@ -78,14 +84,16 @@ const AnimatedPulse = ({
         }
       }
     });
-  };
+  }, [opacity, durationFadeIn, durationFadeOut, durationFadeInFinal]);
 
   // Handle animation lifecycle
   useEffect(() => {
     // Only start animation if:
     // 1. We should be pulsing, OR
     // 2. We just stopped pulsing but need to complete cycles
-    const shouldAnimate = isPulsing || (!isPulsing && cyclesCompletedRef.current < cyclesNeededRef.current);
+    const shouldAnimate =
+      isPulsing ||
+      (!isPulsing && cyclesCompletedRef.current < cyclesNeededRef.current);
 
     if (shouldAnimate && !currentAnimationRef.current) {
       runSinglePulseCycle();
@@ -105,17 +113,10 @@ const AnimatedPulse = ({
         currentAnimationRef.current = null;
       }
     };
-  }, [
-    isPulsing,
-    opacity,
-    runSinglePulseCycle,
-  ]);
+  }, [isPulsing, opacity, runSinglePulseCycle]);
 
   return (
-    <Animated.View
-      style={{ opacity }}
-      {...props}
-    >
+    <Animated.View style={{ opacity }} {...props}>
       {children}
     </Animated.View>
   );
