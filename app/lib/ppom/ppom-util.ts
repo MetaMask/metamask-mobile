@@ -80,12 +80,8 @@ async function validateRequest(
 
   if (req.method === 'eth_sendTransaction') {
     const internalAccounts = AccountsController.listAccounts();
-    const toAddress: string | undefined = (
-      req?.params?.[0] as Record<string, string>
-    ).to;
-    const fromAddress: string | undefined = (
-      req?.params?.[0] as Record<string, string>
-    ).from;
+    const { from: fromAddress, to: toAddress } = req
+      ?.params?.[0] as Partial<TransactionParams>;
 
     if (
       internalAccounts.some(
