@@ -539,7 +539,7 @@ export function setupSentry() {
   const dsn = process.env.MM_SENTRY_DSN;
 
   // Disable Sentry for E2E tests or when DSN is not provided
-  if (isE2E || !dsn) {
+  if (!dsn) {
     return;
   }
 
@@ -562,12 +562,12 @@ export function setupSentry() {
       environment,
       integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
-      tracesSampleRate: isDev || isQa ? 1.0 : 0.03,
+      tracesSampleRate: 1.0,
       profilesSampleRate: 1.0,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
-      enabled: metricsOptIn === AGREED,
+      enabled: true,
     });
   };
   init();

@@ -315,7 +315,14 @@ function getTraceKey(request: TraceRequest) {
  * @param request - The trace request.
  */
 function initScope(scope: Scope, request: TraceRequest) {
-  const tags = request.tags ?? {};
+  const IS_QA = process.env['METAMASK_ENVIRONMENT'] === 'qa';
+
+  const tags = request.tags
+    ? {
+        ...request.tags,
+        wallet_branch: process.env.GIT_BRANCH,
+      }
+    : { wallet_branch: process.env.GIT_BRANCH };
 
   for (const [key, value] of Object.entries(tags)) {
     if (typeof value !== 'number') {
