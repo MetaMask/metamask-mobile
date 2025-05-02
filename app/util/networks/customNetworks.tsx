@@ -233,6 +233,9 @@ export const NETWORK_CHAIN_ID: {
   readonly XRPLEVM_TESTNET: '0x161c28';
   readonly MATCHAIN_MAINNET: '0x2ba';
   readonly FLOW_MAINNET: '0x2eb';
+  readonly LENS: '0xe8';
+  readonly PLUME: '0x18232';
+
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -246,6 +249,8 @@ export const NETWORK_CHAIN_ID: {
   XRPLEVM_TESTNET: '0x161c28',
   MATCHAIN_MAINNET: '0x2ba',
   FLOW_MAINNET: '0x2eb',
+  LENS: '0xe8',
+  PLUME: '0x18232',
   ...CHAIN_IDS,
 };
 
@@ -264,4 +269,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.MATCHAIN_MAINNET]: require('../../images/matchain.png'),
   [NETWORK_CHAIN_ID.FLOW_MAINNET]: require('../../images/flow.png'),
+  [NETWORK_CHAIN_ID.LENS]: require('../../images/lens.png'),
+  [NETWORK_CHAIN_ID.PLUME]: require('../../images/plume.png'),
 };
