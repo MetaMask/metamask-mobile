@@ -1,5 +1,11 @@
-import { getDisplayCurrencyValue } from './exchange-rates';
+import { SolScope } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
+import { handleFetch } from '@metamask/controller-utils';
+import { getDisplayCurrencyValue, fetchTokenExchangeRates } from './exchange-rates';
+import { fetchTokenContractExchangeRates } from '@metamask/assets-controllers';
+
+jest.mock('@metamask/controller-utils');
+jest.mock('@metamask/assets-controllers');
 
 describe('exchange-rates', () => {
   describe('getDisplayCurrencyValue', () => {
@@ -299,6 +305,103 @@ describe('exchange-rates', () => {
         });
 
         expect(result).toBe('$0');
+      });
+    });
+  });
+
+  describe('fetchTokenExchangeRates', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('Solana chain', () => {
+      const solanaChainId = SolScope.Mainnet;
+      const tokenAddresses = ['token1', 'token2'];
+      const currency = 'USD';
+
+      it('should fetch exchange rates for Solana tokens', async () => {
+        const mockResponse = {
+          'sol:token1': { price: 1.5 },
+          'sol:token2': { price: 2.5 },
+        };
+        (handleFetch as jest.Mock).mockResolvedValue(mockResponse);
+
+        const result = await fetchTokenExchangeRates(
+          solanaChainId,
+          currency,
+          ...tokenAddresses
+        );
+
+        expect(handleFetch).toHaveBeenCalledWith(
+          expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices')
+        );
+        expect(result).toEqual({
+          'sol:token1': 1.5,
+          'sol:token2': 2.5,
+        });
+      });
+
+      it('should handle empty response for Solana tokens', async () => {
+        (handleFetch as jest.Mock).mockResolvedValue({});
+
+        const result = await fetchTokenExchangeRates(
+          solanaChainId,
+          currency,
+          ...tokenAddresses
+        );
+
+        expect(result).toEqual({});
+      });
+    });
+
+    describe('EVM chain', () => {
+      const evmChainId = '0x1';
+      const tokenAddresses = ['0x123', '0x456'];
+      const currency = 'USD';
+
+      it('should fetch exchange rates for EVM tokens', async () => {
+        const mockResponse = {
+          '0x123': 1.5,
+          '0x456': 2.5,
+        };
+        (fetchTokenContractExchangeRates as jest.Mock).mockResolvedValue(mockResponse);
+
+        const result = await fetchTokenExchangeRates(
+          evmChainId,
+          currency,
+          ...tokenAddresses
+        );
+
+        expect(result).toEqual({
+          '0x123': 1.5,
+          '0x456': 2.5,
+        });
+      });
+
+      it('should handle empty response for EVM tokens', async () => {
+        (fetchTokenContractExchangeRates as jest.Mock).mockResolvedValue({});
+
+        const result = await fetchTokenExchangeRates(
+          evmChainId,
+          currency,
+          ...tokenAddresses
+        );
+
+        expect(result).toEqual({});
+      });
+    });
+
+    describe('Error handling', () => {
+      it('should handle fetch errors gracefully', async () => {
+        (fetchTokenContractExchangeRates as jest.Mock).mockRejectedValue(new Error('API error'));
+
+        const result = await fetchTokenExchangeRates(
+          '0x1',
+          'USD',
+          '0x123'
+        );
+
+        expect(result).toEqual({});
       });
     });
   });

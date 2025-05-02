@@ -114,6 +114,9 @@ export const fetchTokenExchangeRates = async (
   currency: string,
   ...tokenAddresses: string[]
 ) => {
+  try {
+
+  
   let exchangeRates: Record<string, number | undefined> = {};
 
   // Solana
@@ -162,7 +165,10 @@ export const fetchTokenExchangeRates = async (
       return acc;
     },
     {},
-  );
+    );
+  } catch (error) {
+    return {};
+  }
 };
 
 // This fetches the exchange rate for a token in a given currency. This is only called when the exchange
