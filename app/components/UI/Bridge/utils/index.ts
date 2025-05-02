@@ -1,4 +1,9 @@
-import { CaipChainId, SolScope } from '@metamask/keyring-api';
+import {
+  CaipChainId,
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  SolScope
+///: END:ONLY_INCLUDE_IF(keyring-snaps)
+} from '@metamask/keyring-api';
 import AppConstants from '../../../../core/AppConstants';
 import { Hex } from '@metamask/utils';
 import {
