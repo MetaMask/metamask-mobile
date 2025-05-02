@@ -363,7 +363,6 @@ export class Engine {
       }),
     });
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
-      state: initialState.RemoteFeatureFlagController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
         allowedActions: [],
@@ -971,6 +970,7 @@ export class Engine {
           'TokenRatesController:getState',
           'MultichainAssetsRatesController:getState',
           'CurrencyRateController:getState',
+          'RemoteFeatureFlagController:getState',
         ],
         allowedEvents: [],
       }),
