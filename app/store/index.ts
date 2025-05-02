@@ -14,6 +14,7 @@ import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
 import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
+import { toggleBasicFunctionality } from '../actions/settings';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -40,15 +41,15 @@ const createStoreAndPersistor = async () => {
   // from fixtures can be provided to preload the store; otherwise, it remains undefined.
 
   const middlewares = [sagaMiddleware, thunk];
-
+/*
   if (__DEV__) {
     // Add redux flipper middleware for debugging Redux with Flipper
     // Flipper's client side plugin is https://github.com/jk-gan/flipper-plugin-redux-debugger, which needs to be added as a plugin
     // flipper-plugin-redux-debugger is named redux-debugger in Flipper's plugin list
-    /* eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+    /* eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires 
     const createReduxFlipperDebugger = require('redux-flipper').default;
     middlewares.push(createReduxFlipperDebugger());
-  }
+  }*/
 
   store = configureStore({
     reducer: pReducer,
@@ -67,6 +68,8 @@ const createStoreAndPersistor = async () => {
     endTrace({ name: TraceName.StoreInit });
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
+    // This sets the basic functionality value from the persisted state when the app is restarted
+    store.dispatch(toggleBasicFunctionality(store.getState().settings.basicFunctionalityEnabled));
   };
 
   persistor = persistStore(store, null, onPersistComplete);

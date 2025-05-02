@@ -21,3 +21,8 @@ export interface QuoteResponse {
   trade: TxData;
   estimatedProcessingTimeInSeconds: number;
 }
+// TODO: remove this once we move to Unified Swaps
+export enum BridgeViewMode {
+  Swap = 'Swap',
+  Bridge = 'Bridge'
+}

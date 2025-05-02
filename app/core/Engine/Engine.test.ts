@@ -26,6 +26,7 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
   selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
+  ...jest.requireActual('../../selectors/settings'),
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
 jest.mock('../../util/phishingDetection', () => ({
@@ -277,6 +278,20 @@ describe('Engine', () => {
     });
   });
 
+  it('does not pass initial RemoteFeatureFlagController state to the controller', () => {
+    const state = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 20000000000000,
+      },
+    };
+    const engine = Engine.init(state);
+    expect(engine.datamodel.state.RemoteFeatureFlagController).toStrictEqual({
+      remoteFeatureFlags: {},
+      cacheTimestamp: 0,
+    });
+  });
+
   describe('getTotalEvmFiatAccountBalance', () => {
     let engine: EngineClass;
     afterEach(() => engine?.destroyEngineInstance());
@@ -310,9 +325,6 @@ describe('Engine', () => {
           [chainId]: {
             [selectedAddress]: { balance: (ethBalance * 1e18).toString() },
           },
-        },
-        accounts: {
-          [selectedAddress]: { balance: (ethBalance * 1e18).toString() },
         },
       },
       NetworkController: mockNetworkState({
@@ -403,14 +415,6 @@ describe('Engine', () => {
       engine = Engine.init({
         ...state,
         TokensController: {
-          tokens: tokens.map(({ address, balance, decimals, symbol }) => ({
-            address,
-            balance,
-            decimals,
-            symbol,
-          })),
-          ignoredTokens: [],
-          detectedTokens: [],
           allTokens: {
             [chainId]: {
               [selectedAddress]: tokens.map(
@@ -515,22 +519,8 @@ describe('Engine', () => {
               },
             },
           },
-          accounts: {
-            [selectedAddress]: {
-              balance: (ethBalance * 1e18).toString(),
-              stakedBalance: (stakedEthBalance * 1e18).toString(),
-            },
-          },
         },
         TokensController: {
-          tokens: tokens.map(({ address, balance, decimals, symbol }) => ({
-            address,
-            balance,
-            decimals,
-            symbol,
-          })),
-          ignoredTokens: [],
-          detectedTokens: [],
           allTokens: {
             [chainId]: {
               [selectedAddress]: tokens.map(

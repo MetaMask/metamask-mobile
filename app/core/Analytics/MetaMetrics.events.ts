@@ -277,6 +277,8 @@ enum EVENT_NAME {
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
+  BRIDGE_PAGE_VIEWED = 'Bridge Page Viewed',
+  SWAP_PAGE_VIEWED = 'Swap Page Viewed', // Temporary event until unified swap/bridge is done
 
   // Earn
   EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
@@ -364,6 +366,7 @@ enum EVENT_NAME {
   ACTIONS_BUTTON_CLICKED = 'Global Actions Button Clicked',
   RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
   SWAP_BUTTON_CLICKED = 'Swaps Button Clicked',
+  BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
   SEND_BUTTON_CLICKED = 'Send Button Clicked',
   EARN_BUTTON_CLICKED = 'Earn Button Clicked',
   // Edit account name
@@ -381,6 +384,9 @@ enum EVENT_NAME {
 
   // Remove an account
   ACCOUNT_REMOVED = 'Account removed',
+  ACCOUNT_REMOVE_FAILED = 'Account remove failed',
+  // Account added
+  ACCOUNT_ADDED = 'Account Added',
 
   //Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
@@ -408,7 +414,7 @@ enum EVENT_NAME {
   PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
   LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
 
-  // Profile Syncing
+  // Backup and sync
   ACCOUNTS_SYNC_ADDED = 'Accounts Sync Added',
   ACCOUNTS_SYNC_NAME_UPDATED = 'Accounts Sync Name Updated',
   ACCOUNTS_SYNC_ERRONEOUS_SITUATION = 'Accounts Sync Erroneous Situation',
@@ -421,10 +427,6 @@ enum EVENT_NAME {
 
   // Tooltip
   TOOLTIP_OPENED = 'Tooltip Opened',
-
-  // RPC Failover
-  RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
-  RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
 }
 
 enum ACTIONS {
@@ -493,11 +495,11 @@ const events = {
     EVENT_NAME.CONNECT_REQUEST_OTPFAILURE,
   ),
   CONNECT_REQUEST_CANCELLED: generateOpt(EVENT_NAME.CONNECT_REQUEST_CANCELLED),
-  
+
   // Phishing events
   PHISHING_PAGE_DISPLAYED: generateOpt(EVENT_NAME.PHISHING_PAGE_DISPLAYED),
   PROCEED_ANYWAY_CLICKED: generateOpt(EVENT_NAME.PROCEED_ANYWAY_CLICKED),
-  
+
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
@@ -834,6 +836,7 @@ const events = {
   ACTIONS_BUTTON_CLICKED: generateOpt(EVENT_NAME.ACTIONS_BUTTON_CLICKED),
   RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
+  BRIDGE_BUTTON_CLICKED: generateOpt(EVENT_NAME.BRIDGE_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
   EARN_BUTTON_CLICKED: generateOpt(EVENT_NAME.EARN_BUTTON_CLICKED),
   NETWORK_SELECTOR_PRESSED: generateOpt(EVENT_NAME.NETWORK_SELECTOR),
@@ -863,6 +866,8 @@ const events = {
 
   // Remove an account
   ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
+  ACCOUNT_REMOVE_FAILED: generateOpt(EVENT_NAME.ACCOUNT_REMOVE_FAILED),
+  ACCOUNT_ADDED: generateOpt(EVENT_NAME.ACCOUNT_ADDED),
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
@@ -915,7 +920,7 @@ const events = {
   ),
   PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
   LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
-  // Profile Syncing
+  // Backup and sync
   ACCOUNTS_SYNC_ADDED: generateOpt(EVENT_NAME.ACCOUNTS_SYNC_ADDED),
   ACCOUNTS_SYNC_NAME_UPDATED: generateOpt(
     EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
@@ -1017,9 +1022,9 @@ const events = {
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
 
-  // RPC Failover
-  RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
-  RPC_SERVICE_DEGRADED: generateOpt(EVENT_NAME.RPC_SERVICE_DEGRADED),
+  // Bridge
+  BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),
+  SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
 };
 
 /**

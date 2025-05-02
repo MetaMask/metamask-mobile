@@ -64,7 +64,9 @@ jest.mock('../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
 }));
 jest.mock('../Permissions', () => ({
-  getPermittedAccounts: jest.fn().mockResolvedValue(['0x1234567890abcdef1234567890abcdef12345678']),
+  getPermittedAccounts: jest
+    .fn()
+    .mockResolvedValue(['0x1234567890abcdef1234567890abcdef12345678']),
   getPermittedChains: jest.fn().mockResolvedValue(['eip155:1']),
 }));
 jest.mock('../../store', () => ({
@@ -86,8 +88,8 @@ jest.mock('./wc-utils', () => ({
       chains: ['eip155:1'],
       methods: ['eth_sendTransaction'],
       events: ['chainChanged', 'accountsChanged'],
-      accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678']
-    }
+      accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
+    },
   }),
   normalizeOrigin: jest.fn().mockImplementation((url) => url),
 }));
@@ -145,7 +147,9 @@ describe('WalletConnect2Session', () => {
           getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x2' }),
         },
         PermissionController: {
-          createPermissionMiddleware: jest.fn().mockReturnValue(() => ({ result: true })),
+          createPermissionMiddleware: jest
+            .fn()
+            .mockReturnValue(() => ({ result: true })),
         },
       },
       writable: true,
@@ -184,7 +188,9 @@ describe('WalletConnect2Session', () => {
   it('rejects invalid chainId', async () => {
     const mockRespondSessionRequest = jest
       .spyOn(mockClient, 'respondSessionRequest')
-      .mockImplementation(async () => { /* empty implementation */ });
+      .mockImplementation(async () => {
+        /* empty implementation */
+      });
 
     const requestEvent = {
       id: '1',
@@ -198,8 +204,8 @@ describe('WalletConnect2Session', () => {
       },
       verifyContext: {
         verified: {
-          origin: 'https://example.com'
-        }
+          origin: 'https://example.com',
+        },
       },
     };
 
@@ -287,18 +293,20 @@ describe('WalletConnect2Session', () => {
           chains: ['eip155:1'],
           methods: ['eth_sendTransaction'],
           events: ['chainChanged', 'accountsChanged'],
-          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678']
-        }
-      }
+          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
+        },
+      },
     });
   });
 
   it('subscribes to chain changes', async () => {
     // eslint-disable-next-line no-empty-function
     let subscriberCallback: () => void = () => {};
-    (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
-      subscriberCallback = callback;
-    });
+    (store.subscribe as jest.Mock).mockImplementation(
+      (callback: () => void) => {
+        subscriberCallback = callback;
+      },
+    );
 
     // Mock initial chain ID
     (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
@@ -311,7 +319,10 @@ describe('WalletConnect2Session', () => {
       navigation: mockNavigation,
     });
 
-    const handleChainChangeSpy = jest.spyOn(session as any, 'handleChainChange');
+    const handleChainChangeSpy = jest.spyOn(
+      session as any,
+      'handleChainChange',
+    );
 
     // Change the chain ID
     (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
@@ -331,9 +342,11 @@ describe('WalletConnect2Session', () => {
   it('does not trigger handleChainChange when handler is already running', async () => {
     // eslint-disable-next-line no-empty-function
     let subscriberCallback: () => void = () => {};
-    (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
-      subscriberCallback = callback;
-    });
+    (store.subscribe as jest.Mock).mockImplementation(
+      (callback: () => void) => {
+        subscriberCallback = callback;
+      },
+    );
 
     (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
 
@@ -347,7 +360,10 @@ describe('WalletConnect2Session', () => {
 
     (session as any).isHandlingChainChange = true;
 
-    const handleChainChangeSpy = jest.spyOn(session as any, 'handleChainChange');
+    const handleChainChangeSpy = jest.spyOn(
+      session as any,
+      'handleChainChange',
+    );
 
     (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
 
@@ -363,9 +379,11 @@ describe('WalletConnect2Session', () => {
   it('logs warning on handleChainChange error', async () => {
     // eslint-disable-next-line no-empty-function
     let subscriberCallback: () => void = () => {};
-    (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
-      subscriberCallback = callback;
-    });
+    (store.subscribe as jest.Mock).mockImplementation(
+      (callback: () => void) => {
+        subscriberCallback = callback;
+      },
+    );
 
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
@@ -380,7 +398,9 @@ describe('WalletConnect2Session', () => {
     });
 
     const error = new Error('Chain change failed');
-    jest.spyOn(session as any, 'handleChainChange').mockRejectedValueOnce(error);
+    jest
+      .spyOn(session as any, 'handleChainChange')
+      .mockRejectedValueOnce(error);
 
     (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
 
@@ -390,7 +410,7 @@ describe('WalletConnect2Session', () => {
 
     expect(consoleWarnSpy).toHaveBeenCalledWith(
       'WC2::store.subscribe Error handling chain change:',
-      error
+      error,
     );
 
     consoleWarnSpy.mockRestore();
@@ -410,7 +430,7 @@ describe('WalletConnect2Session', () => {
       session.setDeeplink(false);
       session.redirect('test');
       jest.runAllTimers();
-      
+
       expect(Linking.openURL).not.toHaveBeenCalled();
       expect(Minimizer.goBack).not.toHaveBeenCalled();
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
@@ -418,7 +438,7 @@ describe('WalletConnect2Session', () => {
 
     it('allows backward navigation for non-iOS devices', () => {
       (Device.isIos as jest.Mock).mockReturnValue(false);
-      
+
       session.redirect('test');
       jest.runAllTimers();
 
@@ -493,7 +513,7 @@ describe('WalletConnect2Session', () => {
           Routes.MODAL.ROOT_MODAL_FLOW,
           {
             screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-          }
+          },
         );
         expect(Linking.openURL).not.toHaveBeenCalled();
       });
@@ -512,7 +532,9 @@ describe('WalletConnect2Session', () => {
           },
         } as any;
 
-        (Linking.openURL as jest.Mock).mockReturnValue(Promise.reject(new Error('Failed to open URL')));
+        (Linking.openURL as jest.Mock).mockReturnValue(
+          Promise.reject(new Error('Failed to open URL')),
+        );
 
         session.redirect('test');
         jest.runAllTimers();
@@ -525,16 +547,16 @@ describe('WalletConnect2Session', () => {
           Routes.MODAL.ROOT_MODAL_FLOW,
           {
             screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-          }
+          },
         );
         expect(DevLogger.log).toHaveBeenLastCalledWith(
-          `WC2::redirect error while opening ${mockPeerLink} with error Error: Failed to open URL`
+          `WC2::redirect error while opening ${mockPeerLink} with error Error: Failed to open URL`,
         );
       });
 
       it('skips iOS specific logic for iOS versions below 17', () => {
         jest.spyOn(Platform, 'Version', 'get').mockReturnValue('16.0');
-        
+
         session.redirect('test');
         jest.runAllTimers();
 
@@ -555,74 +577,118 @@ describe('WalletConnect2Session', () => {
     afterEach(() => {
       jest.runAllTimers();
       jest.clearAllTimers();
-    })
+    });
 
     it('calls redirect when requestId exists in requestsToRedirect', () => {
       const requestId = '123';
-      
+
       // Set up the requestsToRedirect object with the test ID
-      (session as any).requestsToRedirect = { 
-        [requestId]: true 
+      (session as any).requestsToRedirect = {
+        [requestId]: true,
       };
-      
+
       // Spy on the redirect method
       const redirectSpy = jest.spyOn(session, 'redirect');
-      
+
       // Call the method under test
       session.needsRedirect(requestId);
-      
+
       // Verify redirect was called with the expected parameter
       expect(redirectSpy).toHaveBeenCalledWith(`needsRedirect_${requestId}`);
-      
+
       // Verify the ID was removed from requestsToRedirect
       expect((session as any).requestsToRedirect[requestId]).toBeUndefined();
     });
 
     it('does not call redirect when requestId does not exist', () => {
       const requestId = '123';
-      
+
       // Set up empty requestsToRedirect object
       (session as any).requestsToRedirect = {};
-      
+
       // Spy on the redirect method
       const redirectSpy = jest.spyOn(session, 'redirect');
-      
+
       // Call the method under test
       session.needsRedirect(requestId);
-      
+
       // Verify redirect was not called
       expect(redirectSpy).not.toHaveBeenCalled();
     });
 
     it('handles multiple requests correctly', () => {
       // Set up multiple request IDs
-      (session as any).requestsToRedirect = { 
+      (session as any).requestsToRedirect = {
         '123': true,
         '456': true,
-        '789': true
+        '789': true,
       };
-      
+
       const redirectSpy = jest.spyOn(session, 'redirect');
-      
+
       // Process first request
       session.needsRedirect('123');
       expect(redirectSpy).toHaveBeenCalledWith('needsRedirect_123');
       expect((session as any).requestsToRedirect['123']).toBeUndefined();
-      
+
       // Other requests should still be there
       expect((session as any).requestsToRedirect['456']).toBe(true);
       expect((session as any).requestsToRedirect['789']).toBe(true);
-      
+
       // Reset the spy
       redirectSpy.mockClear();
-      
+
       // Process second request
       session.needsRedirect('456');
       expect(redirectSpy).toHaveBeenCalledWith('needsRedirect_456');
       expect((session as any).requestsToRedirect['456']).toBeUndefined();
-      
+
       // And the third request should still be there
       expect((session as any).requestsToRedirect['789']).toBe(true);
+    });
+  });
+
+  it('handles wallet_switchEthereumChain correctly', async () => {
+    // Setup spies
+    const handleChainChangeSpy = jest.spyOn(
+      session as any,
+      'handleChainChange',
+    );
+    const approveRequestSpy = jest.spyOn(session, 'approveRequest');
+
+    // Create a mock switch chain request
+    const chainIdHex = '0x89'; // Polygon
+    const switchChainRequest = {
+      id: '42',
+      topic: mockSession.topic,
+      params: {
+        request: {
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: chainIdHex }],
+        },
+        chainId: 'eip155:1', // Current chain before switch
+      },
+      verifyContext: {
+        verified: {
+          origin: 'https://example.com',
+        },
+      },
+    };
+
+    // Store the request ID in the topicByRequestId map
+    (session as any).topicByRequestId[switchChainRequest.id] =
+      switchChainRequest.topic;
+
+    // Call handleRequest with the switchChainRequest
+    await session.handleRequest(switchChainRequest as any);
+
+    // Verify handleChainChange was called with the decimal chain ID
+    expect(handleChainChangeSpy).toHaveBeenCalledWith(parseInt(chainIdHex, 16)); // 137 in decimal
+
+    // Verify approveRequest was called with the correct parameters
+    expect(approveRequestSpy).toHaveBeenCalledWith({
+      id: switchChainRequest.id + '',
+      result: true,
     });
   });
 });

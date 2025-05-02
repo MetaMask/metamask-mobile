@@ -12,18 +12,16 @@ import { strings } from '../../../../locales/i18n';
 import styles from './ProfileSyncing.styles';
 import { ProfileSyncingComponentProps } from './ProfileSyncing.types';
 import AppConstants from '../../../core/AppConstants';
-import {
-  useEnableProfileSyncing,
-  useDisableProfileSyncing,
-} from '../../../util/identity/hooks/useProfileSyncing';
+import { useBackupAndSync } from '../../../util/identity/hooks/useBackupAndSync';
 import { RootState } from '../../../reducers';
 import { useSelector } from 'react-redux';
 import {
-  selectIsProfileSyncingEnabled,
-  selectIsProfileSyncingUpdateLoading,
+  selectIsBackupAndSyncEnabled,
+  selectIsBackupAndSyncUpdateLoading,
 } from '../../../selectors/identity';
 import Routes from '../../../constants/navigation/Routes';
 import SwitchLoadingModal from '../Notification/SwitchLoadingModal';
+import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
 
 const ProfileSyncingComponent = ({
   handleSwitchToggle,
@@ -35,25 +33,22 @@ const ProfileSyncingComponent = ({
 
   const navigation = useNavigation();
 
-  const isProfileSyncingUpdateLoading = useSelector(
-    selectIsProfileSyncingUpdateLoading,
+  const isBackupAndSyncUpdateLoading = useSelector(
+    selectIsBackupAndSyncUpdateLoading,
   );
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
   const isBasicFunctionalityEnabled = useSelector((state: RootState) =>
     Boolean(state?.settings?.basicFunctionalityEnabled),
   );
 
-  const { enableProfileSyncing, error: enableProfileSyncingError } =
-    useEnableProfileSyncing();
-  const { disableProfileSyncing, error: disableProfileSyncingError } =
-    useDisableProfileSyncing();
+  const { error, setIsBackupAndSyncFeatureEnabled } = useBackupAndSync();
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
 
   const handleProfileSyncingToggle = async () => {
-    if (isProfileSyncingEnabled) {
+    if (isBackupAndSyncEnabled) {
       setLoadingMessage(strings('app_settings.disabling_profile_sync'));
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.PROFILE_SYNCING,
@@ -61,7 +56,10 @@ const ProfileSyncingComponent = ({
     } else {
       setLoadingMessage(strings('app_settings.enabling_profile_sync'));
       InteractionManager.runAfterInteractions(async () => {
-        await enableProfileSyncing();
+        await setIsBackupAndSyncFeatureEnabled(
+          BACKUPANDSYNC_FEATURES.main,
+          true,
+        );
       });
     }
   };
@@ -71,20 +69,22 @@ const ProfileSyncingComponent = ({
     handleSwitchToggle();
   };
 
-  const modalError =
-    enableProfileSyncingError ?? disableProfileSyncingError ?? undefined;
+  const modalError = error ?? undefined;
 
   useEffect(() => {
     const reactToBasicFunctionalityBeingDisabled = async () => {
       if (!isBasicFunctionalityEnabled) {
         setLoadingMessage(strings('app_settings.disabling_profile_sync'));
         InteractionManager.runAfterInteractions(async () => {
-          await disableProfileSyncing();
+          await setIsBackupAndSyncFeatureEnabled(
+            BACKUPANDSYNC_FEATURES.main,
+            false,
+          );
         });
       }
     };
     reactToBasicFunctionalityBeingDisabled();
-  }, [isBasicFunctionalityEnabled, disableProfileSyncing]);
+  }, [isBasicFunctionalityEnabled, setIsBackupAndSyncFeatureEnabled]);
 
   return (
     <View style={styles.setting}>
@@ -93,7 +93,7 @@ const ProfileSyncingComponent = ({
           {strings('profile_sync.title')}
         </Text>
         <Switch
-          value={!!isProfileSyncingEnabled}
+          value={!!isBackupAndSyncEnabled}
           onValueChange={onChange}
           trackColor={{
             true: colors.primary.default,
@@ -111,7 +111,7 @@ const ProfileSyncingComponent = ({
         </Text>
       </Text>
       <SwitchLoadingModal
-        loading={isProfileSyncingUpdateLoading}
+        loading={isBackupAndSyncUpdateLoading}
         loadingText={loadingMessage}
         error={modalError}
       />

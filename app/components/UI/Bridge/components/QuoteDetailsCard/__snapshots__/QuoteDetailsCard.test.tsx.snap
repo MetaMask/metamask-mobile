@@ -150,7 +150,13 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -312,6 +319,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                             "borderRadius": 8,
                             "borderWidth": 1,
                             "gap": 12,
+                            "marginBottom": 12,
                             "overflow": "hidden",
                             "paddingHorizontal": 16,
                             "paddingVertical": 12,
@@ -1320,7 +1328,13 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1328,6 +1342,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1482,6 +1497,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             "borderRadius": 8,
                             "borderWidth": 1,
                             "gap": 12,
+                            "marginBottom": 12,
                             "overflow": "hidden",
                             "paddingHorizontal": 16,
                             "paddingVertical": 12,

@@ -10,9 +10,10 @@ import {
   selectMultichainBalances,
   MULTICHAIN_NETWORK_TO_ASSET_TYPES,
   selectMultichainTransactions,
-  selectMultichainTokenList,
   selectSelectedAccountMultichainNetworkAggregatedBalance,
   selectSolanaAccountTransactions,
+  selectMultichainHistoricalPrices,
+  makeSelectNonEvmAssetById,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -587,101 +588,6 @@ describe('MultichainNonEvm Selectors', () => {
     });
   });
 
-  describe('selectMultichainTokenList', () => {
-    it('returns a list of tokens', () => {
-      const selectedInternalAccountId = 'ae247df6-3911-47f7-9e36-28e6a7d96078';
-      const state = getNonEvmState();
-      const mockBalances = {
-        [selectedInternalAccountId]: {
-          [MultichainNativeAssets.Bitcoin]: { amount: '10', unit: 'BTC' },
-        },
-      };
-      const mockAssets = {
-        [selectedInternalAccountId]: [MultichainNativeAssets.Bitcoin],
-      };
-      const mockAssetsMetadata = {
-        [MultichainNativeAssets.Bitcoin]: {
-          name: 'Bitcoin',
-          symbol: 'BTC',
-          units: [{ name: 'Bitcoin', symbol: 'BTC', decimals: 8 }],
-          iconUrl: 'https://example.com/btc.png',
-          fungible: true as const,
-        },
-      };
-      const mockAssetsRates = {
-        [MultichainNativeAssets.Bitcoin]: { rate: '2000', conversionTime: 0 },
-      };
-      state.engine.backgroundState.MultichainBalancesController.balances =
-        mockBalances;
-      state.engine.backgroundState.MultichainAssetsController.accountsAssets =
-        mockAssets;
-      state.engine.backgroundState.MultichainAssetsController.assetsMetadata =
-        mockAssetsMetadata;
-      state.engine.backgroundState.MultichainAssetsRatesController.conversionRates =
-        mockAssetsRates;
-
-      const tokenList = selectMultichainTokenList(state);
-
-      expect(tokenList.length).toEqual(1);
-      expect(tokenList[0].name).toEqual('Bitcoin');
-      expect(tokenList[0].symbol).toEqual('BTC');
-      expect(tokenList[0].balance).toEqual('10');
-    });
-
-    it('filters out tokens not matching nonEVM network chain ID', () => {
-      const selectedInternalAccountId = 'ae247df6-3911-47f7-9e36-28e6a7d96078';
-      const state = getNonEvmState();
-
-      const nonMatchingAssetId =
-        'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f'; // Ethereum Mainnet
-
-      state.engine.backgroundState.MultichainBalancesController.balances = {
-        [selectedInternalAccountId]: {
-          [nonMatchingAssetId]: { amount: '5', unit: 'DAI' },
-        },
-      };
-      state.engine.backgroundState.MultichainAssetsController.accountsAssets = {
-        [selectedInternalAccountId]: [nonMatchingAssetId],
-      };
-
-      const tokenList = selectMultichainTokenList(state);
-      expect(tokenList).toEqual([]);
-    });
-
-    it('returns an empty array if selected account is undefined', () => {
-      const state = getNonEvmState();
-      state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
-        'foo';
-
-      const tokenList = selectMultichainTokenList(state);
-
-      expect(tokenList).toEqual([]);
-    });
-
-    it('uses fallback metadata when asset metadata is missing', () => {
-      const selectedInternalAccountId = 'ae247df6-3911-47f7-9e36-28e6a7d96078';
-      const state = getNonEvmState();
-
-      const btcCaip = 'bip122:000000000019d6689c085ae165831e93/slip44:0';
-
-      state.engine.backgroundState.MultichainBalancesController.balances = {
-        [selectedInternalAccountId]: {
-          [btcCaip]: { amount: '1', unit: 'BTC' },
-        },
-      };
-      state.engine.backgroundState.MultichainAssetsController.accountsAssets = {
-        [selectedInternalAccountId]: [btcCaip],
-      };
-      state.engine.backgroundState.MultichainAssetsController.assetsMetadata =
-        {}; // fallback will be used
-
-      const tokenList = selectMultichainTokenList(state);
-      expect(tokenList[0].name).toBe('BTC');
-      expect(tokenList[0].symbol).toBe('BTC');
-      expect(tokenList[0].balance).toBe('1');
-    });
-  });
-
   describe('selectMultichainNetworkAggregatedBalance', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -784,7 +690,7 @@ describe('MultichainNonEvm Selectors', () => {
       // Should return undefined values since there are no Solana assets
       expect(result.totalNativeTokenBalance).toBeUndefined();
       expect(result.totalBalanceFiat).toBeUndefined();
-      expect(result.balances).toEqual({
+      expect(result.tokenBalances).toEqual({
         [btcNativeAssetId]: { amount: '0.5', unit: 'BTC' },
       });
     });
@@ -843,6 +749,149 @@ describe('MultichainNonEvm Selectors', () => {
         next: null,
         transactions: [],
       });
+    });
+  });
+
+  describe('selectMultichainHistoricalPrices', () => {
+    const testAsset = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+
+    it('returns empty object if no historical prices are available', () => {
+      const state = getEvmState(undefined);
+      state.engine.backgroundState.MultichainAssetsRatesController.historicalPrices =
+        {};
+
+      expect(selectMultichainHistoricalPrices(state)).toStrictEqual({});
+    });
+
+    it('Returns historical prices for a given asset', () => {
+      const testCurrency = 'usd';
+      const state = getEvmState(undefined);
+      const mockHistoricalPricesForAsset = {
+        [testCurrency]: {
+          intervals: {},
+          updateTime: 1737542312,
+          expirationTime: 1737542312,
+        },
+      };
+      state.engine.backgroundState.MultichainAssetsRatesController.historicalPrices =
+        {
+          [testAsset]: mockHistoricalPricesForAsset,
+        };
+
+      expect(selectMultichainHistoricalPrices(state)).toStrictEqual({
+        [testAsset]: mockHistoricalPricesForAsset,
+      });
+    });
+  });
+
+  describe('makeSelectNonEvmAssetById', () => {
+    const selectNonEvmAssetById = makeSelectNonEvmAssetById();
+    const mockAccountId = MOCK_ACCOUNT_BIP122_P2WPKH.id;
+    const mockAssetId = MultichainNativeAssets.Bitcoin;
+    const mockRate = '25000.00';
+
+    const mockState = getNonEvmState(MOCK_ACCOUNT_BIP122_P2WPKH, mockRate);
+
+    it('should return undefined when EVM network is selected', () => {
+      const evmState = getEvmState();
+      const result = selectNonEvmAssetById(evmState, {
+        accountId: mockAccountId,
+        assetId: mockAssetId,
+      });
+      expect(result).toBeUndefined();
+    });
+
+    it('should throw error when accountId is not provided', () => {
+      expect(() => {
+        selectNonEvmAssetById(mockState, {
+          accountId: undefined,
+          assetId: mockAssetId,
+        });
+      }).toThrow('Account ID is required to fetch asset.');
+    });
+
+    it('should return asset with correct structure for native asset', () => {
+      const result = selectNonEvmAssetById(mockState, {
+        accountId: mockAccountId,
+        assetId: mockAssetId,
+      });
+
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('symbol', 'BTC');
+      expect(result).toHaveProperty('address', mockAssetId);
+      expect(result).toHaveProperty('chainId', BtcScope.Mainnet);
+    });
+
+    it('should handle missing balance gracefully', () => {
+      const stateWithoutBalance = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            MultichainBalancesController: {
+              balances: {},
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectNonEvmAssetById(stateWithoutBalance, {
+        accountId: mockAccountId,
+        assetId: mockAssetId,
+      });
+
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('balance', undefined);
+      expect(result).toHaveProperty('balanceFiat', undefined);
+    });
+
+    it('should handle missing metadata gracefully', () => {
+      const stateWithoutMetadata = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            MultichainAssetsController: {
+              assetsMetadata: {},
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectNonEvmAssetById(stateWithoutMetadata, {
+        accountId: mockAccountId,
+        assetId: mockAssetId,
+      });
+
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('name', 'BTC');
+      expect(result).toHaveProperty('symbol', 'BTC');
+      expect(result).toHaveProperty('decimals', 0);
+    });
+
+    it('should handle missing rates gracefully', () => {
+      const stateWithoutRates = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            MultichainAssetsRatesController: {
+              assetsRates: {},
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectNonEvmAssetById(stateWithoutRates, {
+        accountId: mockAccountId,
+        assetId: mockAssetId,
+      });
+
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('balanceFiat', '0');
     });
   });
 });

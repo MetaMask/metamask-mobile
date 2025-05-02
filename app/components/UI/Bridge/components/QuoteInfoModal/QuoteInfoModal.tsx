@@ -5,14 +5,9 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './QuoteInfoModal.styles';
@@ -26,14 +21,16 @@ const QuoteInfoModal = () => {
     navigation.goBack();
   };
 
-  const footerButtonProps = [
-    {
-      label: strings('bridge.see_other_quotes'),
-      variant: ButtonVariants.Secondary,
-      size: ButtonSize.Lg,
-      onPress: handleClose,
-    },
-  ];
+  // TODO: Footer button implementation will be added in a future version
+  // This will allow users to see other quotes after viewing the current quote details
+  // const footerButtonProps = [
+  //   {
+  //     label: strings('bridge.see_other_quotes'),
+  //     variant: ButtonVariants.Secondary,
+  //     size: ButtonSize.Lg,
+  //     onPress: handleClose,
+  //   },
+  // ];
 
   return (
     <BottomSheet ref={sheetRef}>
@@ -46,10 +43,11 @@ const QuoteInfoModal = () => {
         <Text variant={TextVariant.BodyMD}>
           {strings('bridge.quote_info_content')}
         </Text>
+        {/* TODO: Footer component will be re-enabled when the footer button functionality is implemented
         <BottomSheetFooter
           buttonPropsArray={footerButtonProps}
           style={styles.footer}
-        />
+        /> */}
       </View>
     </BottomSheet>
   );

@@ -5,20 +5,25 @@ import {
   selectDestToken,
   selectSourceAmount,
   selectSlippage,
+  selectBridgeQuotes,
+  selectIsSubmittingTx,
+  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
-import {
-  BridgeFeatureFlagsKey,
-  RequestStatus,
-} from '@metamask/bridge-controller';
-import { useMemo } from 'react';
+import { RequestStatus } from '@metamask/bridge-controller';
+import { useCallback, useMemo } from 'react';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
-
+import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import {
   isQuoteExpired,
   getQuoteRefreshRate,
   shouldRefreshQuote,
 } from '../../utils/quoteUtils';
 
+import { selectTicker } from '../../../../../selectors/networkController';
+import { formatAmount } from '../../../SimulationDetails/formatAmount';
+import { BigNumber } from 'bignumber.js';
+import I18n from '../../../../../../locales/i18n';
+import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 /**
  * Hook for getting bridge quote data without request logic
  */
@@ -28,33 +33,36 @@ export const useBridgeQuoteData = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const slippage = useSelector(selectSlippage);
+  const isSubmittingTx = useSelector(selectIsSubmittingTx);
+  const locale = I18n.locale;
+  const fiatFormatter = useFiatFormatter();
+  const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
+  const ticker = useSelector(selectTicker);
+  const quotes = useSelector(selectBridgeQuotes);
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
 
   const {
     quoteFetchError,
     quotesLoadingStatus,
     quotesLastFetched,
-    quotes,
     quotesRefreshCount,
-    bridgeFeatureFlags,
     quoteRequest,
   } = bridgeControllerState;
 
   const refreshRate = getQuoteRefreshRate(bridgeFeatureFlags, sourceToken);
-
-  const mobileConfig =
-    bridgeFeatureFlags?.[BridgeFeatureFlagsKey.MOBILE_CONFIG];
-  const maxRefreshCount = mobileConfig?.maxRefreshCount ?? 5; // Default to 5 refresh attempts
+  const maxRefreshCount = bridgeFeatureFlags?.maxRefreshCount ?? 5; // Default to 5 refresh attempts
   const { insufficientBal } = quoteRequest;
 
   const willRefresh = shouldRefreshQuote(
     insufficientBal ?? false,
     quotesRefreshCount,
     maxRefreshCount,
+    isSubmittingTx,
   );
 
   const isExpired = isQuoteExpired(willRefresh, refreshRate, quotesLastFetched);
 
-  const bestQuote = quotes?.[0];
+  const bestQuote = quotes?.recommendedQuote;
 
   const activeQuote = isExpired && !willRefresh ? undefined : bestQuote;
 
@@ -74,6 +82,28 @@ export const useBridgeQuoteData = () => {
       ? undefined
       : Number(destTokenAmount) / Number(sourceAmount);
 
+  const getNetworkFee = useCallback(() => {
+    if (!activeQuote?.totalNetworkFee) return '-';
+
+    const { totalNetworkFee } = activeQuote;
+
+    const { amount, valueInCurrency } = totalNetworkFee;
+
+    if (!amount || !valueInCurrency) return '-';
+
+    const formattedAmount = `${formatAmount(
+      locale,
+      new BigNumber(amount),
+    )} ${ticker}`;
+    const formattedValueInCurrency = fiatFormatter(
+      new BigNumber(valueInCurrency),
+    );
+
+    return primaryCurrency === 'ETH'
+      ? formattedAmount
+      : formattedValueInCurrency;
+  }, [activeQuote, locale, ticker, fiatFormatter, primaryCurrency]);
+
   const formattedQuoteData = useMemo(() => {
     if (!activeQuote) return undefined;
 
@@ -90,19 +120,36 @@ export const useBridgeQuoteData = () => {
       : '--';
 
     return {
-      networkFee: '44', // TODO: Needs quote metadata in bridge controller
+      networkFee: getNetworkFee(),
       estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
       rate,
-      priceImpact: `${priceImpactPercentage.toFixed(2)}%`, //TODO: Need to calculate this
+      priceImpact: `${priceImpactPercentage.toFixed(2)}%`,
       slippage: `${slippage}%`,
     };
-  }, [activeQuote, sourceToken, destToken, quoteRate, slippage]);
+  }, [
+    activeQuote,
+    quoteRate,
+    sourceToken?.symbol,
+    destToken?.symbol,
+    getNetworkFee,
+    slippage,
+  ]);
+
+  const isLoading = quotesLoadingStatus === RequestStatus.LOADING;
+
+  const isNoQuotesAvailable = Boolean(
+    !bestQuote && quotesLastFetched && !isLoading,
+  );
 
   return {
+    bestQuote,
     quoteFetchError,
     activeQuote,
     destTokenAmount: formattedDestTokenAmount,
     isLoading: quotesLoadingStatus === RequestStatus.LOADING,
     formattedQuoteData,
+    isNoQuotesAvailable,
+    willRefresh,
+    isExpired,
   };
 };

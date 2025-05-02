@@ -1,8 +1,15 @@
-import { useBridgeQuoteRequest } from './';
+import { DEBOUNCE_WAIT, useBridgeQuoteRequest } from './';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { createBridgeTestState } from '../../testUtils';
 import Engine from '../../../../../core/Engine';
 import { act } from '@testing-library/react-native';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+
+// Mock isSolanaChainId
+jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
+  isSolanaChainId: jest.fn(),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -10,6 +17,10 @@ jest.mock('../../../../../core/Engine', () => ({
       updateBridgeQuoteRequestParams: jest.fn(),
     },
   },
+}));
+
+jest.mock('../useUnifiedSwapBridgeContext', () => ({
+  useUnifiedSwapBridgeContext: jest.fn(),
 }));
 
 jest.useFakeTimers();
@@ -47,7 +58,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
     expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
   });
@@ -65,7 +76,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     spyUpdateBridgeQuoteRequestParams.mockClear();
@@ -85,7 +96,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     spyUpdateBridgeQuoteRequestParams.mockClear();
@@ -105,7 +116,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     spyUpdateBridgeQuoteRequestParams.mockClear();
@@ -125,7 +136,7 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     spyUpdateBridgeQuoteRequestParams.mockClear();
@@ -145,13 +156,14 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
       expect.objectContaining({
         srcTokenAmount: '1500000000000000000', // 1.5 ETH in wei
       }),
+      undefined,
     );
   });
 
@@ -168,13 +180,14 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
       expect.objectContaining({
         srcTokenAmount: '0',
       }),
+      undefined,
     );
   });
 
@@ -202,13 +215,14 @@ describe('useBridgeQuoteRequest', () => {
 
     await act(async () => {
       await result.current();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
       expect.objectContaining({
         srcTokenAmount: '1000500000', // 1000.5 with 6 decimals
       }),
+      undefined,
     );
   });
 
@@ -225,16 +239,67 @@ describe('useBridgeQuoteRequest', () => {
       result.current();
 
       // Advance timer by less than debounce time
-      jest.advanceTimersByTime(200);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT - 100);
 
       // Should not have been called yet
       expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
 
       // Advance timer past debounce time
-      jest.advanceTimersByTime(100);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT + 100);
 
       // Should have been called exactly once
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('uses destAddress as destWalletAddress when destination chain is Solana', async () => {
+    const solanaDestChainId = '0xfa'; // Solana chain ID
+    const evmSourceChainId = '0x1'; // Ethereum chain ID
+    const destSolanaAddress = 'FakeS0LanaAddr3ss111111111111111111111111111';
+
+    // Mock isSolanaChainId to return true for Solana chain ID and false for EVM chain ID
+    (isSolanaChainId as jest.Mock).mockImplementation(
+      (chainId) => chainId === solanaDestChainId,
+    );
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        selectedDestChainId: solanaDestChainId,
+        destAddress: destSolanaAddress,
+        sourceToken: {
+          address: '0x0000000000000000000000000000000000000000',
+          symbol: 'ETH',
+          decimals: 18,
+          chainId: evmSourceChainId,
+          name: 'Ethereum',
+        },
+        destToken: {
+          address: '0x0000000000000000000000000000000000000000',
+          symbol: 'SOL',
+          decimals: 9,
+          chainId: solanaDestChainId,
+          name: 'Solana',
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+      state: testState,
+    });
+
+    await act(async () => {
+      await result.current();
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+    });
+
+    expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+      expect.objectContaining({
+        destWalletAddress: destSolanaAddress,
+      }),
+      undefined,
+    );
+
+    // Reset mock
+    (isSolanaChainId as jest.Mock).mockReset();
   });
 });

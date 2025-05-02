@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View, BackHandler } from 'react-native';
+import { Pressable, View, BackHandler, LayoutChangeEvent } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -83,6 +83,10 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+
+import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
+import { isNonEvmAddress } from '../../../../../core/Multichain/utils';
+import { trace, endTrace, TraceName } from '../../../../../util/trace';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -244,9 +248,14 @@ const BuildQuote = () => {
     [selectedAsset],
   );
 
+  const addressForBalance = useMemo(
+    () => (isNonEvmAddress(selectedAddress) ? undefined : selectedAddress),
+    [selectedAddress],
+  );
+
   const { addressBalance } = useAddressBalance(
     assetForBalance as Asset,
-    selectedAddress,
+    addressForBalance,
     true,
   );
 
@@ -397,7 +406,7 @@ const BuildQuote = () => {
   const onAmountInputPress = useCallback(() => setAmountFocused(true), []);
 
   const handleKeypadChange = useCallback(
-    ({ value, valueAsNumber }) => {
+    ({ value, valueAsNumber }: { value: string; valueAsNumber: number }) => {
       setAmount(`${value}`);
       setAmountNumber(valueAsNumber);
       if (isSell) {
@@ -451,7 +460,7 @@ const BuildQuote = () => {
     ],
   );
 
-  const onKeypadLayout = useCallback((event) => {
+  const onKeypadLayout = useCallback((event: LayoutChangeEvent) => {
     const { height } = event.nativeEvent.layout;
     keyboardHeight.current = height;
   }, []);
@@ -504,7 +513,7 @@ const BuildQuote = () => {
   }, [toggleTokenSelectorModal]);
 
   const handleAssetPress = useCallback(
-    (newAsset) => {
+    (newAsset: CryptoCurrency) => {
       setSelectedAsset(newAsset);
       hideTokenSelectorModal();
     },
@@ -521,7 +530,7 @@ const BuildQuote = () => {
   }, [toggleFiatSelectorModal]);
 
   const handleCurrencyPress = useCallback(
-    (fiatCurrency) => {
+    (fiatCurrency: FiatCurrency) => {
       setSelectedFiatCurrencyId(fiatCurrency?.id);
       setAmount('0');
       setAmountNumber(0);
@@ -535,7 +544,7 @@ const BuildQuote = () => {
    */
 
   const handleChangePaymentMethod = useCallback(
-    (paymentMethodId) => {
+    (paymentMethodId?: Payment['id']) => {
       if (paymentMethodId) {
         setSelectedPaymentMethodId(paymentMethodId);
       }
@@ -563,6 +572,12 @@ const BuildQuote = () => {
         location: screenLocation,
       };
 
+      trace({
+        name: TraceName.RampQuoteLoading,
+        tags: {
+          rampType,
+        },
+      });
       if (isBuy) {
         trackEvent('ONRAMP_QUOTES_REQUESTED', {
           ...analyticsPayload,
@@ -580,6 +595,7 @@ const BuildQuote = () => {
       }
     }
   }, [
+    rampType,
     screenLocation,
     amount,
     amountNumber,
@@ -634,6 +650,23 @@ const BuildQuote = () => {
     errorPaymentMethods,
     errorCryptoCurrencies,
   ]);
+
+  const [shouldEndTrace, setShouldEndTrace] = useState(true);
+  useEffect(() => {
+    if (
+      shouldEndTrace &&
+      !sdkError &&
+      !error &&
+      !isFetching &&
+      cryptoCurrencies &&
+      cryptoCurrencies.length > 0
+    ) {
+      endTrace({
+        name: TraceName.LoadRampExperience,
+      });
+      setShouldEndTrace(false);
+    }
+  }, [cryptoCurrencies, error, isFetching, rampType, sdkError, shouldEndTrace]);
 
   if (sdkError) {
     return (

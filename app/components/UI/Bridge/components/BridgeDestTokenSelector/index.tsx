@@ -1,20 +1,24 @@
 import React, { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectDestToken, selectSelectedDestChainId, selectSourceToken, setDestToken } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { BridgeDestNetworksBar } from '../BridgeDestNetworksBar';
-import { BridgeTokenSelectorBase } from '../BridgeTokenSelectorBase';
+import { BridgeTokenSelectorBase, SkeletonItem } from '../BridgeTokenSelectorBase';
 import { IconColor, IconName } from '../../../../../component-library/components/Icons/Icon';
 import ButtonIcon, { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { StyleSheet } from 'react-native';
 import { useTokens } from '../../hooks/useTokens';
-import { BridgeToken } from '../../types';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import { PopularList } from '../../../../../util/networks/customNetworks';
+
+export interface BridgeDestTokenSelectorRouteParams {
+  bridgeViewMode: BridgeViewMode;
+}
 
 const createStyles = () => StyleSheet.create({
   infoButton: {
@@ -25,14 +29,15 @@ export const BridgeDestTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<{ params: BridgeDestTokenSelectorRouteParams }, 'params'>>();
+
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedDestToken = useSelector(selectDestToken);
-
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const selectedSourceToken = useSelector(selectSourceToken);
   const { tokens: tokensList, pending } = useTokens({
-    topTokensChainId: selectedDestChainId as Hex,
-    balanceChainIds: [selectedDestChainId as Hex],
+    topTokensChainId: selectedDestChainId,
+    balanceChainIds: selectedDestChainId ? [selectedDestChainId] : [],
     tokensToExclude: selectedSourceToken ? [selectedSourceToken] : [],
   });
   const handleTokenPress = useCallback(
@@ -44,7 +49,12 @@ export const BridgeDestTokenSelector: React.FC = () => {
   );
 
   const renderToken = useCallback(
-    ({ item }: { item: BridgeToken }) => {
+    ({ item }: { item: BridgeToken | null }) => {
+      // This is to support a partial loading state for top tokens
+      // We can show tokens with balance immediately, but we need to wait for the top tokens to load
+      if (!item) {
+        return <SkeletonItem />;
+      }
 
       // Open the asset details screen as a bottom sheet
       const handleInfoButtonPress = () => navigation.navigate('Asset', { ...item });
@@ -62,7 +72,6 @@ export const BridgeDestTokenSelector: React.FC = () => {
         networkName={networkName}
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         networkImageSource={getNetworkImageSource({ chainId: item.chainId as Hex })}
-        shouldShowBalance={false}
         isSelected={
           selectedDestToken?.address === item.address &&
           selectedDestToken?.chainId === item.chainId
@@ -83,10 +92,11 @@ export const BridgeDestTokenSelector: React.FC = () => {
 
   return (
     <BridgeTokenSelectorBase
-      networksBar={<BridgeDestNetworksBar />}
+      networksBar={route.params.bridgeViewMode === BridgeViewMode.Bridge ? <BridgeDestNetworksBar /> : undefined}
       renderTokenItem={renderToken}
       tokensList={tokensList}
       pending={pending}
+      chainIdToFetchMetadata={selectedDestChainId}
     />
   );
 };
