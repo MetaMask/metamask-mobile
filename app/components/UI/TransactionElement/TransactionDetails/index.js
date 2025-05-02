@@ -160,6 +160,7 @@ class TransactionDetails extends PureComponent {
     shouldUseSmartTransaction: PropTypes.bool,
   };
 
+  // temp comment
   state = {
     rpcBlockExplorer: undefined,
     renderTxActions: true,
