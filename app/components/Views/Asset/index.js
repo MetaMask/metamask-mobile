@@ -74,7 +74,7 @@ import {
   selectSupportedSwapTokenAddressesForChainId,
 } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
+import { selectIsBridgeEnabledSource } from '../../../core/redux/slices/bridge';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -187,6 +187,10 @@ class Asset extends PureComponent {
      * Function to set the swaps liveness
      */
     setLiveness: PropTypes.func,
+    /**
+     * Boolean that indicates if bridge is enabled for the source chain
+     */
+    isBridgeEnabledSource: PropTypes.bool,
   };
 
   state = {
@@ -539,7 +543,7 @@ class Asset extends PureComponent {
     const displaySwapsButton =
       isNetworkAllowed && isAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
-    const displayBridgeButton = isBridgeAllowed(asset.chainId);
+    const displayBridgeButton = this.props.isBridgeEnabledSource;
 
     const displayBuyButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
@@ -616,6 +620,10 @@ const mapStateToProps = (state, { route }) => ({
     getRampNetworks(state),
   ),
   networkClientId: selectNetworkClientId(state),
+  isBridgeEnabledSource: selectIsBridgeEnabledSource(
+    state,
+    route.params.chainId,
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

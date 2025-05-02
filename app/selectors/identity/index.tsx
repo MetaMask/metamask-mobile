@@ -25,12 +25,12 @@ export const selectIsSignedIn = createSelector(
 );
 
 // User Storage
-export const selectIsProfileSyncingEnabled = createSelector(
+export const selectIsBackupAndSyncEnabled = createSelector(
   selectUserStorageControllerState,
   (userStorageControllerState: UserStorageState) =>
     userStorageControllerState?.isProfileSyncingEnabled,
 );
-export const selectIsProfileSyncingUpdateLoading = createSelector(
+export const selectIsBackupAndSyncUpdateLoading = createSelector(
   selectUserStorageControllerState,
   (userStorageControllerState: UserStorageState) =>
     userStorageControllerState.isProfileSyncingUpdateLoading,

@@ -1,8 +1,5 @@
 import { createBridgeControllerState, createBridgeTestState } from './index';
-import {
-  getDefaultBridgeControllerState,
-  BridgeFeatureFlagsKey,
-} from '@metamask/bridge-controller';
+import { getDefaultBridgeControllerState } from '@metamask/bridge-controller';
 import { initialState } from '../_mocks_/initialState';
 import { mockBridgeReducerState } from '../_mocks_/bridgeReducerState';
 
@@ -15,20 +12,6 @@ describe('Bridge Test Utilities', () => {
 
     it('merges provided overrides with default state', () => {
       const overrides = {
-        bridgeFeatureFlags: {
-          [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
-            refreshRate: 60000,
-            maxRefreshCount: 3,
-            support: true,
-            chains: {},
-          },
-          [BridgeFeatureFlagsKey.EXTENSION_CONFIG]: {
-            refreshRate: 60000,
-            maxRefreshCount: 3,
-            support: true,
-            chains: {},
-          },
-        },
         quotes: [],
       };
 
@@ -46,12 +29,8 @@ describe('Bridge Test Utilities', () => {
       };
 
       const result = createBridgeControllerState(overrides);
-      const defaultState = getDefaultBridgeControllerState();
 
       expect(result.quotes).toEqual([]);
-      expect(result.bridgeFeatureFlags).toEqual(
-        defaultState.bridgeFeatureFlags,
-      );
     });
   });
 
@@ -74,20 +53,6 @@ describe('Bridge Test Utilities', () => {
 
     it('merges bridge controller overrides with default state', () => {
       const bridgeControllerOverrides = {
-        bridgeFeatureFlags: {
-          [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
-            refreshRate: 60000,
-            maxRefreshCount: 3,
-            support: true,
-            chains: {},
-          },
-          [BridgeFeatureFlagsKey.EXTENSION_CONFIG]: {
-            refreshRate: 60000,
-            maxRefreshCount: 3,
-            support: true,
-            chains: {},
-          },
-        },
         quotes: [],
       };
 

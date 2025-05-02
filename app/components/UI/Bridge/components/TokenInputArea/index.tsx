@@ -200,7 +200,10 @@ export const TokenInputArea = forwardRef<
     const { quoteRequest } = useSelector(selectBridgeControllerState);
     const isInsufficientBalance = quoteRequest?.insufficientBal;
 
-    const nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
+    let nonEvmMultichainAssetRates = {};
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
+    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
     const fiatValue = getDisplayFiatValue({
       token,
