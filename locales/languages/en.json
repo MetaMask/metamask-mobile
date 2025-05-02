@@ -450,6 +450,10 @@
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
+    },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
     }
   },
   "wallet": {
@@ -3730,6 +3734,10 @@
     "sheet": {
       "title_off": "Turn off basic functionality",
       "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
+      "description_off2": "Turning this off also disables all features within",
+      "description_off2_related_features1": "security and privacy, backup and sync",
+      "description_off2_related_features1_and": "and",
+      "description_off2_related_features2": "notifications.",
       "title_on": "Turn on basic functionality",
       "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "I understand and want to continue",
@@ -3943,6 +3951,27 @@
     "transaction_details": "Transaction Details",
     "bridge_to_chain": "Bridge to {{chainName}}",
     "recipient": "Recipient"
+  },
+  "backupAndSync": {
+    "title": "Backup and sync",
+    "description": "Back up your accounts and sync settings.",
+    "enabling": "Enabling backup and sync",
+    "disabling": "Disabling backup and sync",
+    "enable": {
+      "title": "Turn on backup and sync",
+      "confirmation": "When you turn on backup and sync, you’re also turning on basic functionality. Do you want to continue?",
+      "description": "Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask.",
+      "updatePreferences": "You can update your preferences at any time in",
+      "settingsPath": "Settings > Backup and sync."
+    },
+    "privacyLink": "Learn how we protect your privacy",
+    "features": {
+      "accounts": "Accounts"
+    },
+    "manageWhatYouSync": {
+      "title": "Manage what you sync",
+      "description": "Turn on what’s synced between your devices."
+    }
   },
   "defi_positions": {
     "supply": "Supplied",
