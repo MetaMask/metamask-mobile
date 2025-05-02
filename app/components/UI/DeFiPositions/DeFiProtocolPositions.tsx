@@ -1,43 +1,31 @@
 import React, { Fragment, useEffect } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
-import { useParams } from '../../../../util/navigation/navUtils';
+import { useParams } from '../../../util/navigation/navUtils';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../../util/theme';
-import { getDeFiProtocolPositionsDetailsNavbarOptions } from '../../Navbar';
-import createStyles from '../styles';
+import { useTheme } from '../../../util/theme';
+import { getDeFiProtocolPositionsDetailsNavbarOptions } from '../Navbar';
+import createStyles from './styles';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import { formatWithThreshold } from '../../../../util/assets';
-import I18n from '../../../../../locales/i18n';
-import Summary from '../../../Base/Summary';
+} from '../../../component-library/components/Texts/Text';
+import { formatWithThreshold } from '../../../util/assets';
+import I18n, { strings } from '../../../../locales/i18n';
+import Summary from '../../Base/Summary';
 import { PositionType } from '@metamask/assets-controllers/dist/DeFiPositionsController/fetch-positions.cjs';
 import SensitiveText, {
   SensitiveTextLength,
-} from '../../../../component-library/components/Texts/SensitiveText';
+} from '../../../component-library/components/Texts/SensitiveText';
+import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 
-const PositionTypeLabels: Record<PositionType, string> = {
-  supply: 'Supplied',
-  stake: 'Staked',
-  borrow: 'Borrowed',
-  reward: 'Rewards',
-};
+const PositionTypes: PositionType[] = ['supply', 'stake', 'borrow', 'reward'];
 
 const PositionGroupDetails = ({
-  positionTypeLabel,
+  positionType,
   tokens,
   networkIconAvatar,
 }: {
-  positionTypeLabel: string;
+  positionType: PositionType;
   tokens: {
     name: string;
     symbol: string;
@@ -57,28 +45,16 @@ const PositionGroupDetails = ({
   return (
     <View>
       <Text style={styles.PositionTypeLabel} variant={TextVariant.BodyMDMedium}>
-        {positionTypeLabel}
+        {strings(`defi_positions.${positionType}`)}
       </Text>
       {tokens.map((token, i) => (
         <View key={i} style={styles.underlyingBalancesWrapper}>
           <View>
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={networkIconAvatar}
-                />
-              }
-            >
-              <AvatarToken
-                name={token.name}
-                imageSource={{
-                  uri: token.iconUrl,
-                }}
-                size={AvatarSize.Md}
-              />
-            </BadgeWrapper>
+            <DeFiAvatarWithBadge
+              networkIconAvatar={networkIconAvatar}
+              avatarName={token.name}
+              avatarIconUrl={token.iconUrl}
+            />
           </View>
 
           <View style={styles.balances}>
@@ -120,11 +96,11 @@ const PositionGroupDetails = ({
 };
 
 const PositionGroups = ({
-  positionTypeLabel,
+  positionType,
   positionGroups,
   networkIconAvatar,
 }: {
-  positionTypeLabel: string;
+  positionType: PositionType;
   positionGroups: NonNullable<
     GroupedDeFiPositions['protocols'][number]['positionTypes'][PositionType]
   >;
@@ -163,12 +139,12 @@ const PositionGroups = ({
         return (
           <Fragment key={position.key}>
             <PositionGroupDetails
-              positionTypeLabel={positionTypeLabel}
+              positionType={positionType}
               tokens={position.underlyings}
               networkIconAvatar={networkIconAvatar}
             />
             <PositionGroupDetails
-              positionTypeLabel={PositionTypeLabels.reward}
+              positionType={'reward'}
               tokens={position.underlyingRewards}
               networkIconAvatar={networkIconAvatar}
             />
@@ -180,17 +156,17 @@ const PositionGroups = ({
   );
 };
 
-interface DeFiProtocolPositionsDetailsParams {
+interface DeFiProtocolPositionsParams {
   protocolAggregate: GroupedDeFiPositions['protocols'][number];
   networkIconAvatar: ImageSourcePropType | undefined;
 }
 
-const DeFiProtocolPositionsDetails = () => {
+const DeFiProtocolPositions = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const { protocolAggregate, networkIconAvatar } =
-    useParams<DeFiProtocolPositionsDetailsParams>();
+    useParams<DeFiProtocolPositionsParams>();
 
   useEffect(() => {
     navigation.setOptions(
@@ -219,49 +195,36 @@ const DeFiProtocolPositionsDetails = () => {
         </View>
 
         <View>
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkIconAvatar}
-              />
-            }
-          >
-            <AvatarToken
-              name={protocolAggregate.protocolDetails.name}
-              imageSource={{ uri: protocolAggregate.protocolDetails.iconUrl }}
-              size={AvatarSize.Md}
-            />
-          </BadgeWrapper>
+          <DeFiAvatarWithBadge
+            networkIconAvatar={networkIconAvatar}
+            avatarName={protocolAggregate.protocolDetails.name}
+            avatarIconUrl={protocolAggregate.protocolDetails.iconUrl}
+          />
         </View>
       </View>
       <View style={styles.separatorWrapper}>
         <Summary.Separator />
       </View>
       <View style={styles.ProtocolDetailsPositionsWrapper}>
-        {Object.entries(PositionTypeLabels).map(
-          ([positionTypeKey, positionTypeLabel]: [string, string]) => {
-            const positionGroups =
-              protocolAggregate.positionTypes[positionTypeKey as PositionType];
+        {PositionTypes.map((positionType) => {
+          const positionGroups = protocolAggregate.positionTypes[positionType];
 
-            if (!positionGroups) {
-              return null;
-            }
+          if (!positionGroups) {
+            return null;
+          }
 
-            return (
-              <PositionGroups
-                key={positionTypeKey}
-                positionTypeLabel={positionTypeLabel}
-                positionGroups={positionGroups}
-                networkIconAvatar={networkIconAvatar}
-              />
-            );
-          },
-        )}
+          return (
+            <PositionGroups
+              key={positionType}
+              positionType={positionType}
+              positionGroups={positionGroups}
+              networkIconAvatar={networkIconAvatar}
+            />
+          );
+        })}
       </View>
     </View>
   );
 };
 
-export default DeFiProtocolPositionsDetails;
+export default DeFiProtocolPositions;

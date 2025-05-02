@@ -3,48 +3,42 @@ import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
+} from '../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../util/theme';
 import SensitiveText, {
   SensitiveTextLength,
-} from '../../../../component-library/components/Texts/SensitiveText';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
+} from '../../../component-library/components/Texts/SensitiveText';
 import { useNavigation } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
-import { getDefaultNetworkByChainId } from '../../../../util/networks';
+import { GroupedDeFiPositions } from '@metamask/assets-controllers';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
+import createStyles from './styles';
+import I18n from '../../../../locales/i18n';
+import { formatWithThreshold } from '../../../util/assets';
+import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
+import { AvatarProps } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
+import { getDefaultNetworkByChainId } from '../../../util/networks';
 import {
   CustomNetworkImgMapping,
   PopularList,
   UnpopularNetworkList,
-} from '../../../../util/networks/customNetworks';
-import { GroupedDeFiPositions } from '@metamask/assets-controllers';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
-import createStyles from '../styles';
-import I18n from '../../../../../locales/i18n';
-import { formatWithThreshold } from '../../../../util/assets';
-import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
-import { AvatarProps } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+} from '../../../util/networks/customNetworks';
 
-interface DeFiProtocolPositionListItemProps {
+interface DeFiPositionsListItemProps {
   chainId: Hex;
   protocolAggregate: GroupedDeFiPositions['protocols'][number];
   privacyMode?: boolean;
 }
 
-const DeFiProtocolPositionListItem = ({
+const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
   chainId,
   protocolAggregate,
   privacyMode = false,
-}: DeFiProtocolPositionListItemProps) => {
+}: DeFiPositionsListItemProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -108,21 +102,11 @@ const DeFiProtocolPositionListItem = ({
       }}
       style={styles.itemWrapper}
     >
-      <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            imageSource={networkIconAvatar}
-          />
-        }
-      >
-        <AvatarToken
-          name={protocolAggregate.protocolDetails.name}
-          imageSource={{ uri: protocolAggregate.protocolDetails.iconUrl }}
-          size={AvatarSize.Md}
-        />
-      </BadgeWrapper>
+      <DeFiAvatarWithBadge
+        networkIconAvatar={networkIconAvatar}
+        avatarName={protocolAggregate.protocolDetails.name}
+        avatarIconUrl={protocolAggregate.protocolDetails.iconUrl}
+      />
 
       <View style={styles.balances}>
         <View style={styles.assetName}>
@@ -150,4 +134,4 @@ const DeFiProtocolPositionListItem = ({
     </TouchableOpacity>
   );
 };
-export default DeFiProtocolPositionListItem;
+export default DeFiPositionsListItem;

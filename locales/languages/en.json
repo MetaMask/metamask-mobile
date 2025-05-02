@@ -3943,5 +3943,11 @@
     "transaction_details": "Transaction Details",
     "bridge_to_chain": "Bridge to {{chainName}}",
     "recipient": "Recipient"
+  },
+  "defi_positions": {
+    "supply": "Supplied",
+    "stake": "Staked",
+    "borrow": "Borrowed",
+    "reward": "Rewards"
   }
 }

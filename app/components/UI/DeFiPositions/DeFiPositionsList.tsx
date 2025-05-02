@@ -1,18 +1,18 @@
 import React, { useMemo } from 'react';
 import { View, FlatList } from 'react-native';
-import { useTheme } from '../../../../util/theme';
-import createStyles from '../styles';
-import Text from '../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../locales/i18n';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { useTheme } from '../../../util/theme';
+import createStyles from './styles';
+import Text from '../../../component-library/components/Texts/Text';
+import { strings } from '../../../../locales/i18n';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-import DeFiProtocolPositionListItem from '../DeFiProtocolPositionListItem';
-import { selectPrivacyMode } from '../../../../selectors/preferencesController';
+import DeFiPositionsListItem from './DeFiPositionsListItem';
+import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { useSelector } from 'react-redux';
 
-interface DeFiProtocolPositionsListProps {
+interface DeFiPositionsListProps {
   defiPositions: { [key: Hex]: GroupedDeFiPositions } | null;
   //   refreshing: boolean;
   //   isAddTokenEnabled: boolean;
@@ -23,9 +23,9 @@ interface DeFiProtocolPositionsListProps {
   //   showNetworkBadge?: boolean;
 }
 
-export const DeFiProtocolPositionsList = ({
+export const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
   defiPositions,
-}: DeFiProtocolPositionsListProps) => {
+}: DeFiPositionsListProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -70,7 +70,7 @@ export const DeFiProtocolPositionsList = ({
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={formattedDeFiPositions}
       renderItem={({ item: { chainId, protocolAggregate } }) => (
-        <DeFiProtocolPositionListItem
+        <DeFiPositionsListItem
           chainId={chainId}
           protocolAggregate={protocolAggregate}
           privacyMode={privacyMode}

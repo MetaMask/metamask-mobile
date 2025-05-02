@@ -16,15 +16,15 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { Hex } from '@metamask/utils';
-import { DeFiProtocolPositionsList } from './DeFiProtocolPositionsList';
+import { DeFiPositionsList } from './DeFiPositionsList';
 import { selectDeFiPositionsByAddress } from '../../../selectors/defiPositionsController';
 import { isTestNet } from '../../../util/networks';
 
-export interface DeFiPositionsProps {
+export interface DeFiPositionsTabProps {
   tabLabel: string;
 }
 
-const DeFiPositions: React.FC<DeFiPositionsProps> = () => {
+const DeFiPositionsTab: React.FC<DeFiPositionsTabProps> = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -33,20 +33,9 @@ const DeFiPositions: React.FC<DeFiPositionsProps> = () => {
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId);
-
   const defiPositions = useSelector(selectDeFiPositionsByAddress);
 
-  // Logger.log('PROPERTIES', {
-  //   isAllNetworks,
-  //   isPopularNetwork,
-  //   isEvmSelected,
-  //   networkName,
-  //   currentChainId,
-  //   portfolioViewEnabled: isPortfolioViewEnabled(),
-  //   defiPositions,
-  // });
-
-  const refinedDeFiPositions = useMemo(() => {
+  const chainFilteredDeFiPositions = useMemo(() => {
     if (!defiPositions) {
       return null;
     }
@@ -55,13 +44,8 @@ const DeFiPositions: React.FC<DeFiPositionsProps> = () => {
       return defiPositions;
     }
 
-    const currentChainPositions = defiPositions?.[currentChainId as Hex];
-    if (!currentChainPositions) {
-      return null;
-    }
-
     return {
-      [currentChainId]: currentChainPositions,
+      [currentChainId]: defiPositions[currentChainId as Hex],
     };
   }, [defiPositions, isAllNetworks, currentChainId]);
 
@@ -106,10 +90,10 @@ const DeFiPositions: React.FC<DeFiPositionsProps> = () => {
         </View>
       </View>
       <View>
-        <DeFiProtocolPositionsList defiPositions={refinedDeFiPositions} />
+        <DeFiPositionsList defiPositions={chainFilteredDeFiPositions} />
       </View>
     </View>
   );
 };
 
-export default DeFiPositions;
+export default DeFiPositionsTab;

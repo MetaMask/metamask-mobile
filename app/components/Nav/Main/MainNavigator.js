@@ -93,7 +93,7 @@ import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
-import DeFiProtocolPositionsDetails from '../../UI/DeFiPositions/DeFiProtocolPositionsDetails';
+import DeFiProtocolPositions from '../../UI/DeFiPositions/DeFiProtocolPositions';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -896,7 +896,7 @@ const MainNavigator = () => (
     />
     <Stack.Screen
       name="DeFiProtocolPositionsDetails"
-      component={DeFiProtocolPositionsDetails}
+      component={DeFiProtocolPositions}
       options={{
         headerShown: true,
       }}

@@ -127,7 +127,7 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
-import DeFiPositions from '../../UI/DeFiPositions';
+import DeFiPositionsTab from '../../UI/DeFiPositions/DeFiPositionsTab';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
 
 const createStyles = ({ colors, typography }: Theme) =>
@@ -742,7 +742,7 @@ const Wallet = ({
           (isEvmSelected &&
             basicFunctionalityEnabled &&
             assetsDefiPositionsEnabled)) && (
-          <DeFiPositions {...defiPositionsTabProps} />
+          <DeFiPositionsTab {...defiPositionsTabProps} />
         )}
         {isEvmSelected && (
           <CollectibleContracts {...collectibleContractsTabProps} />
