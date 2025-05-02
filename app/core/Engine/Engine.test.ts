@@ -26,6 +26,7 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
   selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
+  ...jest.requireActual('../../selectors/settings'),
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
 jest.mock('../../util/phishingDetection', () => ({
