@@ -1984,7 +1984,7 @@ workflows:
       - INFO_PLIST_NAME: 'Info.plist'
     after_run:
       - _ios_build_template
-  build_ios_devbuild:
+  build_ios_flask_devbuild:
     envs:
       - IS_DEV_BUILD: 'true'
       - METAMASK_BUILD_TYPE: 'flask'
