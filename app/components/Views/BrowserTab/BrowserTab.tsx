@@ -691,7 +691,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     isFocused,
     isInTabsView,
     isTabActive,
-    isPerDappSelectedNetworkEnabled,
   ]);
 
   /**
@@ -749,7 +748,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       addToBrowserHistory,
       navigation,
       checkTabPermissions,
-      isPerDappSelectedNetworkEnabled,
     ],
   );
 
@@ -1073,7 +1071,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     isFocused,
     isInTabsView,
     isTabActive,
-    isPerDappSelectedNetworkEnabled,
   ]);
 
   const handleEnsUrl = useCallback(

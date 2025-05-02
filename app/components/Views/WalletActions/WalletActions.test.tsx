@@ -265,7 +265,6 @@ jest.mock('../../../util/trace', () => ({
 }));
 
 describe('WalletActions', () => {
-  it('should renderWithProvider correctly', () => {});
   afterEach(() => {
     mockNavigate.mockClear();
   });

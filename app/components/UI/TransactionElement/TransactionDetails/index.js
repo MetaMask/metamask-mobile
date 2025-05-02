@@ -153,7 +153,10 @@ class TransactionDetails extends PureComponent {
     swapsTransactions: PropTypes.object,
     swapsTokens: PropTypes.array,
     primaryCurrency: PropTypes.string,
-
+    /**
+     * Chain ID string
+     */
+    chainId: PropTypes.string,
     /**
      * Boolean that indicates if smart transaction should be used
      */

@@ -188,10 +188,6 @@ class TransactionElement extends PureComponent {
      */
     txChainId: PropTypes.string,
     /**
-     * Network configurations by chain id
-     */
-    networkConfigurationsByChainId: PropTypes.object,
-    /**
      * Navigation object for routing
      */
     navigation: PropTypes.shape({
