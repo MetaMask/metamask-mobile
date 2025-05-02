@@ -1,7 +1,7 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
 import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
 import FixtureBuilder from './fixture-builder';
-import { AnvilManager } from '../seeder/anvil-manager';
+import { AnvilManager, defaultOptions } from '../seeder/anvil-manager';
 import Ganache from '../../app/util/test/ganache';
 
 import GanacheSeeder from '../../app/util/test/ganache-seeder';
@@ -131,23 +131,19 @@ export async function withFixtures(options, testSuite) {
 
   try {
     let contractRegistry;
-    // if (ganacheOptions && !disableGanache) {
+    if (!disableGanache) {
       // await ganacheServer.start(ganacheOptions);
 
       await anvilServer.start({
         mnemonic: 'drive manage close raven tape average sausage pledge riot furnace august tip',
-        ...(ganacheOptions || {})
+        ...ganacheOptions
       });
-      // await anvilServer.setAccountBalance(DEFAULT_FIXTURE_ACCOUNT, '1200');
       await anvilServer.setAccountBalance('1200');
-
+}
       if (smartContract) {
-        // const ganacheSeeder = new GanacheSeeder(ganacheServer.getProvider());
-
         const ganacheSeeder = new GanacheSeeder(anvilServer.getProvider());
         await ganacheSeeder.deploySmartContract(smartContract);
         contractRegistry = ganacheSeeder.getContractRegistry();
-      //}
       }
     
 
@@ -233,8 +229,4 @@ export async function withFixtures(options, testSuite) {
 }
 
 // SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
-export const defaultGanacheOptions = {
-  hardfork: 'london',
-  mnemonic:
-    'drive manage close raven tape average sausage pledge riot furnace august tip',
-};
+export const defaultGanacheOptions = defaultOptions;

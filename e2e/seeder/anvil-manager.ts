@@ -30,7 +30,7 @@ export const defaultOptions = {
   hardfork: 'Muirglacier' as Hardfork,
   host: '127.0.0.1',
   mnemonic:
-'drive manage close raven tape average sausage pledge riot furnace august tip',
+    'drive manage close raven tape average sausage pledge riot furnace august tip',
   port: 8545,
   noMining: false,
 };
@@ -70,13 +70,12 @@ class AnvilManager {
     try {
       // eslint-disable-next-line no-console
       console.log('Starting Anvil server...');
-      
+
       // Create and start the server instance
       this.server = createAnvil({
         ...options,
-        startTimeout: 30000, // 30 seconds
       });
-      
+
       await this.server.start();
       // eslint-disable-next-line no-console
       console.log(`Server started on port ${port}`);
@@ -110,7 +109,7 @@ class AnvilManager {
     return accounts;
   }
   async getChainDetails() {
-    const {publicClient} = this.getProvider();
+    const { publicClient } = this.getProvider();
     const logs = await publicClient.getLogs();
 
     return logs;
@@ -147,6 +146,6 @@ class AnvilManager {
       console.log(`Error stopping server: ${e}`);
       throw e;
     }
-  } 
+  }
 }
 export { AnvilManager };
