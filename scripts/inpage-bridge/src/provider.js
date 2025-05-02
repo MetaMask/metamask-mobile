@@ -1,6 +1,6 @@
 const { initializeProvider, shimWeb3 } = require('@metamask/providers');
-const ObjectMultiplex = require('@metamask/object-multiplex');
-const pump = require('pump');
+import ObjectMultiplex from '@metamask/object-multiplex';
+import { pipeline } from 'readable-stream';
 const { v4: uuid } = require('uuid');
 const MobilePortStream = require('./MobilePortStream');
 const ReactNativePostMessageStream = require('./ReactNativePostMessageStream');
@@ -64,10 +64,10 @@ function setupProviderStreams() {
   const appMux = new ObjectMultiplex();
   appMux.setMaxListeners(25);
 
-  pump(pageMux, pageStream, pageMux, (err) =>
+  pipeline(pageMux, pageStream, pageMux, (err) =>
     logStreamDisconnectWarning('MetaMask Inpage Multiplex', err),
   );
-  pump(appMux, appStream, appMux, (err) => {
+  pipeline(appMux, appStream, appMux, (err) => {
     logStreamDisconnectWarning('MetaMask Background Multiplex', err);
     notifyProviderOfStreamFailure();
   });
@@ -89,7 +89,7 @@ function setupProviderStreams() {
 function forwardTrafficBetweenMuxes(channelName, muxA, muxB) {
   const channelA = muxA.createStream(channelName);
   const channelB = muxB.createStream(channelName);
-  pump(channelA, channelB, channelA, (err) =>
+  pipeline(channelA, channelB, channelA, (err) =>
     logStreamDisconnectWarning(
       `MetaMask muxed traffic for channel "${channelName}" failed.`,
       err,
