@@ -101,7 +101,7 @@ import {
   getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectIsProfileSyncingEnabled } from '../../../selectors/identity';
+import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
 
@@ -194,7 +194,7 @@ const Wallet = ({
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -339,7 +339,7 @@ const Wallet = ({
     selectIsMetamaskNotificationsEnabled,
   );
 
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
@@ -485,7 +485,7 @@ const Wallet = ({
         navigation,
         colors,
         isNotificationEnabled,
-        isProfileSyncingEnabled,
+        isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
       ),
@@ -500,7 +500,7 @@ const Wallet = ({
     networkImageSource,
     onTitlePress,
     isNotificationEnabled,
-    isProfileSyncingEnabled,
+    isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
   ]);
