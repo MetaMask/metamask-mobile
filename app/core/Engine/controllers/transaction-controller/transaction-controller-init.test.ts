@@ -246,6 +246,12 @@ describe('Transaction Controller Init', () => {
     const MOCK_TRANSACTION_META = {
       id: '123',
       chainId: '0x1',
+      status: 'approved',
+      time: 123,
+      txParams: {
+        from: '0x123',
+      },
+      networkClientId: 'selectedNetworkClientId',
     } as TransactionMeta;
 
     const hooks = testConstructorOption('hooks');
@@ -254,10 +260,7 @@ describe('Transaction Controller Init', () => {
 
     expect(submitSmartTransactionHookMock).toHaveBeenCalledTimes(1);
     expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledTimes(1);
-    expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledWith(
-      undefined,
-      MOCK_TRANSACTION_META.chainId,
-    );
+    expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledWith(undefined, MOCK_TRANSACTION_META.chainId);
     expect(selectSwapsChainFeatureFlagsMock).toHaveBeenCalledTimes(1);
     expect(submitSmartTransactionHookMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -303,7 +306,7 @@ describe('Transaction Controller Init', () => {
     );
 
     // Non-redesigned transaction types
-    expect(isEnabledFn({ type: TransactionType.simpleSend })).toBe(false);
+    expect(isEnabledFn({ type: TransactionType.bridge })).toBe(false);
   });
 
   it('gets network state from network controller on option getNetworkState', () => {

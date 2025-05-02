@@ -446,6 +446,10 @@
     "multisrp": {
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
+    },
+    "solana": {
+      "title": "Solana is now supported",
+      "subtitle": "Create a Solana account to get started"
     }
   },
   "wallet": {
@@ -730,6 +734,7 @@
     "receive": "RECEIVE"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Create a new account",
     "import_account": "Import an account",
@@ -982,11 +987,9 @@
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",
-    "network_rpc_url_label": "RPC URL",
+    "network_rpc_url_label": "RPC Url",
     "network_rpc_name_label": "RPC Name",
     "network_rpc_placeholder": "New RPC Network",
-    "network_failover_rpc_url_label": "Failover RPC URL",
-    "failover": "Failover",
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
     "network_symbol_label": "Symbol",
@@ -3507,6 +3510,7 @@
     "connect_hardware_wallet": "Connect an account",
     "import_wallet_or_account": "Import a wallet or account",
     "add_account": "Create a new account",
+    "add_multichain_account": "Create a new {{networkName}} account",
     "create_an_account": "Create a new account",
     "add_new_account": "Ethereum account",
     "import_srp":"Secret Recovery Phrase",
@@ -3514,7 +3518,11 @@
     "import_account": "Private key",
     "add_bitcoin_account_testnet": "Bitcoin testnet account",
     "add_bitcoin_account_mainnet": "Bitcoin account",
-    "add_solana_account": "Solana account"
+    "add_solana_account": "Solana account",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "Show NFT",
@@ -3537,13 +3545,14 @@
     "title": "Solana on MetaMask",
     "create_solana_account": "Create Solana account",
     "not_now": "Not now",
-    "got_it": "Got it",
+    "view_solana_account": "View Solana account",
     "feature_1_title": "Send, receive, and swap tokens",
     "feature_1_description": "Transfer and transact with tokens such as SOL, USDC, and more.",
     "feature_2_title": "Import Solana accounts",
     "feature_2_description": "Import a Secret Recovery Phrase to migrate your Solana account from an other wallet.",
     "feature_3_title": "More features coming soon",
-    "feature_3_description": "Solana dapps, NFTs, hardware wallet support, and more coming soon."
+    "feature_3_description": "Solana dapps, NFTs, hardware wallet support, and more coming soon.",
+    "learn_more": "Learn more about Solana accounts"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
@@ -3577,6 +3586,9 @@
       "body_prefix": "You could earn up to",
       "body_suffix": "per year by lending your {{tokenSymbol}}.",
       "start_earning": "Start earning"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "We're down for maintenance. We'll be back online soon!"
     }
   },
   "stake": {
@@ -3806,7 +3818,8 @@
       "permit_revoke": "Remove permission",
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request",
-      "contract_interaction": "Transaction request"
+      "contract_interaction": "Transaction request",
+      "transfer": "Transfer request"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -3857,7 +3870,9 @@
     "unlimited": "Unlimited",
     "none": "None",
     "advanced_details": "Advanced details",
-    "interacting_with": "Interacting with"
+    "interacting_with": "Interacting with",
+    "review": "Review",
+    "transferRequest": "Transfer request"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -3907,6 +3922,11 @@
     "title": "Bridge",
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
   },
   "bridge_transaction_details": {
     "status": "Status",

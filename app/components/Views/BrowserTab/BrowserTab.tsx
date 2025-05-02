@@ -771,7 +771,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     // TODO: Make sure to replace with cache hits once EPD has been deprecated.
     if (!isProductSafetyDappScanningEnabled()) {
       const scanResult = getPhishingTestResult(urlToLoad);
-      if (scanResult.result) {
+      let whitelistUrlInput = prefixUrlWithProtocol(urlToLoad);
+      whitelistUrlInput = whitelistUrlInput.replace(/\/$/, ''); // removes trailing slash
+      if (scanResult.result && !whitelist.includes(whitelistUrlInput)) {
         handleNotAllowedUrl(urlToLoad);
         return false;
       }

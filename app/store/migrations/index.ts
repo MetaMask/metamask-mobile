@@ -73,7 +73,6 @@ import migration69 from './069';
 import migration70 from './070';
 import migration71 from './071';
 import migration72 from './072';
-import migration73 from './073';
 import migration74 from './074';
 
 // Add migrations above this line
@@ -164,7 +163,6 @@ export const migrationList: MigrationsList = {
   70: migration70,
   71: migration71,
   72: migration72,
-  73: migration73,
   74: migration74,
 };
 
