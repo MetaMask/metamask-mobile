@@ -5445,10 +5445,10 @@
     loglevel "^1.8.1"
     siwe "^2.3.2"
 
-"@metamask/providers@^18.3.1":
-  version "18.3.1"
-  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-18.3.1.tgz#b49351134cbe77034db67774cc4ff473e259158c"
-  integrity sha512-4wHCA24KDwq/eVnAu+/+N7BEuMNN63kdN295u8Wkdc76puyig3lJdcGGne+TEjiILG34twr9rjZPOWTCwOUcDg==
+"@metamask/providers@^22.0.1":
+  version "22.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-22.0.1.tgz#eedb84ac13dd771d5d86e7a89968e3280f655be6"
+  integrity sha512-RWB32NLL2DIgUII17UY7R3n2eU5fTrXXA0Z137VIO7pQeLcL9xiVqfqhtCDKfMW9K7Pw68U4Qme4lhLrhJcZBQ==
   dependencies:
     "@metamask/json-rpc-engine" "^10.0.2"
     "@metamask/json-rpc-middleware-stream" "^8.0.6"
@@ -5462,10 +5462,10 @@
     is-stream "^2.0.0"
     readable-stream "^3.6.2"
 
-"@metamask/providers@^22.0.1":
-  version "22.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-22.0.1.tgz#eedb84ac13dd771d5d86e7a89968e3280f655be6"
-  integrity sha512-RWB32NLL2DIgUII17UY7R3n2eU5fTrXXA0Z137VIO7pQeLcL9xiVqfqhtCDKfMW9K7Pw68U4Qme4lhLrhJcZBQ==
+"@metamask/providers@^22.1.0":
+  version "22.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-22.1.0.tgz#13efe37debcdf4d2b3ef68daddbc35794453118a"
+  integrity sha512-lu639mkH78GLSLVUGW+XI6viHI5NAOwoJe+B9OmQm/rVmLuvy2ZSQVrsrT3n00Pt1WLeq1J6Ee/gML3RxVc4Aw==
   dependencies:
     "@metamask/json-rpc-engine" "^10.0.2"
     "@metamask/json-rpc-middleware-stream" "^8.0.6"
