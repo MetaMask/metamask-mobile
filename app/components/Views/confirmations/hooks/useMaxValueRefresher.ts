@@ -48,6 +48,7 @@ export function useMaxValueRefresher() {
       setValueJustUpdated(true);
     }
   }, [
+    balanceWeiInHex,
     id,
     maxValueMode,
     preciseNativeFeeInHex,

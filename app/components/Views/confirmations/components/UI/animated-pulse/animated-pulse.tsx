@@ -105,7 +105,11 @@ const AnimatedPulse = ({
         currentAnimationRef.current = null;
       }
     };
-  }, [isPulsing]);
+  }, [
+    isPulsing,
+    opacity,
+    runSinglePulseCycle,
+  ]);
 
   return (
     <Animated.View
