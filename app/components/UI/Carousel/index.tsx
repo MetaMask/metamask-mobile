@@ -16,26 +16,25 @@ import { dismissBanner } from '../../../reducers/banners';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { useMultichainBalances } from '../../hooks/useMultichainBalances';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
 import { selectDismissedBanners } from '../../../selectors/banner';
+import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
 
-export const Carousel: FC<CarouselProps> = ({ style }) => {
+const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { selectedAccountMultichainBalance } = useMultichainBalances();
+  const hasBalance = useSelector(selectAddressHasTokenBalances);
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, { style });
   const dismissedBanners = useSelector(selectDismissedBanners);
-  const isZeroBalance =
-    selectedAccountMultichainBalance?.totalFiatBalance === 0;
+  const isZeroBalance = !hasBalance;
 
   const slidesConfig = useMemo(
     () =>
@@ -233,4 +232,6 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   );
 };
 
+// Split memo component so we still see a Component name when profiling
+export const Carousel = React.memo(CarouselComponent);
 export default Carousel;
