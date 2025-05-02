@@ -11,9 +11,7 @@ import Engine from '../../../../core/Engine';
  * TEMP: This file is only to be used as a stopgap until the same functionality is available from the earn-controller and/or earn-sdk.
  */
 const ETH_MAINNET_INFURA_URL = `https://mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
-
-const AAVE_V3_POOL_CONTRACT_ADDRESS =
-  '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2';
+const BASE_INFURA_URL = `https://base-mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
 
 // Minimal ERC20 ABI containing only needed function signatures/
 const erc20Abi = [
@@ -22,16 +20,42 @@ const erc20Abi = [
   'function approve(address spender, uint256 amount)',
 ];
 
+const CHAIN_ID_TO_INFURA_URL_MAPPING: Record<string, string> = {
+  '0x1': ETH_MAINNET_INFURA_URL,
+  '0x2105': BASE_INFURA_URL,
+};
+
+const ETHEREUM_MAINNET_AAVE_V3_POOL_CONTRACT_ADDRESS =
+  '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2';
+
+const BASE_AAVE_V3_POOL_CONTRACT_ADDRESS =
+  '0xA238Dd80C259a72e81d7e4664a9801593F98d1c5';
+
+export const CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS: Record<string, string> =
+  {
+    '0x1': ETHEREUM_MAINNET_AAVE_V3_POOL_CONTRACT_ADDRESS,
+    '0x2105': BASE_AAVE_V3_POOL_CONTRACT_ADDRESS,
+  };
+
 export const getErc20SpendingLimit = async (
   account: string,
   tokenAddress: string,
-): Promise<string> => {
-  const provider = new ethers.providers.JsonRpcProvider(ETH_MAINNET_INFURA_URL);
+  chainId: string,
+): Promise<string | undefined> => {
+  const infuraUrl = CHAIN_ID_TO_INFURA_URL_MAPPING[chainId];
+
+  if (!infuraUrl) return;
+
+  const spenderAddress = CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[chainId];
+
+  if (!spenderAddress) return;
+
+  const provider = new ethers.providers.JsonRpcProvider(infuraUrl);
 
   const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, provider);
 
   const remainingAllowanceLowestDenomination = await tokenContract
-    .allowance(account, AAVE_V3_POOL_CONTRACT_ADDRESS)
+    .allowance(account, spenderAddress)
     .catch(() => '0');
 
   return remainingAllowanceLowestDenomination.toString() ?? '0';
@@ -39,10 +63,18 @@ export const getErc20SpendingLimit = async (
 
 const getApprovalEncodedTransactionData = (
   tokenAddress: string,
-  spenderAddress: string,
   minimalTokenAmount: string,
+  chainId: string,
 ) => {
-  const provider = new ethers.providers.JsonRpcProvider(ETH_MAINNET_INFURA_URL);
+  const infuraUrl = CHAIN_ID_TO_INFURA_URL_MAPPING[chainId];
+
+  if (!infuraUrl) return;
+
+  const spenderAddress = CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[chainId];
+
+  if (!spenderAddress) return;
+
+  const provider = new ethers.providers.JsonRpcProvider(infuraUrl);
 
   const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, provider);
 
@@ -112,7 +144,6 @@ export const generateLendingDepositTransaction = (
   minimalTokenAmount: string,
   activeAccountAddress: string,
   tokenAddress: string,
-  lendingPoolContractAddress: string,
   chainId: string,
 ) => {
   const encodedSupplyTransactionData = getLendingSupplyEncodedTransactionData(
@@ -120,6 +151,11 @@ export const generateLendingDepositTransaction = (
     minimalTokenAmount,
     activeAccountAddress,
   );
+
+  const lendingPoolContractAddress =
+    CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[chainId];
+
+  if (!lendingPoolContractAddress) return;
 
   const txParams = generateLendingDepositTxParams(
     activeAccountAddress,
@@ -139,15 +175,16 @@ export const generateLendingAllowanceIncreaseTransaction = (
   minimalTokenAmount: string,
   senderAddress: string,
   tokenAddress: string,
-  lendingPoolContractAddress: string,
   chainId: string,
 ) => {
   const encodedLendingApprovalTransactionData =
     getApprovalEncodedTransactionData(
       tokenAddress,
-      lendingPoolContractAddress,
       minimalTokenAmount,
+      chainId,
     );
+
+  if (!encodedLendingApprovalTransactionData) return;
 
   const txParams = generateLendingApprovalTxParams(
     senderAddress,

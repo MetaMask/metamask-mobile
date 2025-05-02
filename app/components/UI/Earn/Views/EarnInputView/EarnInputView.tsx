@@ -46,12 +46,11 @@ import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import useEarnInputHandlers from '../../hooks/useEarnInput';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { getErc20SpendingLimit } from '../../utils/tempLending';
-import BigNumber from 'bignumber.js';
 import {
-  AAVE_V3_POOL_CONTRACT_ADDRESS,
-  STABLECOIN_TOKEN_CONTRACT_ADDRESS_MAP,
-} from '../../constants/tempToken';
+  CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
+  getErc20SpendingLimit,
+} from '../../utils/tempLending';
+import BigNumber from 'bignumber.js';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -135,22 +134,22 @@ const EarnInputView = () => {
     // TODO: Add GasCostImpact for lending deposit flow.
     const amountTokenMinimalUnitString = amountTokenMinimalUnit.toString();
 
-    const tokenContractAddress =
-      // @ts-expect-error temp until we use TransactionController for token addresses.
-      STABLECOIN_TOKEN_CONTRACT_ADDRESS_MAP[earnToken?.chainId][
-        earnToken?.symbol
-      ];
+    const tokenContractAddress = earnToken?.address;
 
-    if (!tokenContractAddress) return;
+    if (!tokenContractAddress || !earnToken?.chainId) return;
 
     const allowanceMinimalTokenUnit = await getErc20SpendingLimit(
       activeAccount.address,
       tokenContractAddress,
+      earnToken.chainId,
     );
 
     const needsAllowanceIncrease = new BigNumber(
-      allowanceMinimalTokenUnit,
+      allowanceMinimalTokenUnit ?? '',
     ).isLessThan(amountTokenMinimalUnitString);
+
+    const lendingPoolContractAddress =
+      CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[earnToken.chainId] ?? '';
 
     navigation.navigate(Routes.EARN.ROOT, {
       screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
@@ -165,8 +164,7 @@ const EarnInputView = () => {
         annualRewardRate,
         // TODO: Replace hardcoded protocol in future iteration.
         lendingProtocol: 'AAVE v3',
-        // TODO: Replace hardcoded protocol contract address in future iteration.
-        lendingContractAddress: AAVE_V3_POOL_CONTRACT_ADDRESS,
+        lendingContractAddress: lendingPoolContractAddress,
         action: needsAllowanceIncrease
           ? EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE
           : EARN_INPUT_VIEW_ACTIONS.LEND,
@@ -179,8 +177,8 @@ const EarnInputView = () => {
     annualRewardRate,
     annualRewardsFiat,
     annualRewardsToken,
+    earnToken?.address,
     earnToken?.chainId,
-    earnToken?.symbol,
     navigation,
     token,
   ]);
