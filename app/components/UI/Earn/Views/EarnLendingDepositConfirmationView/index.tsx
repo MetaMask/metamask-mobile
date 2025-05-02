@@ -31,10 +31,6 @@ import Toast, {
 } from '../../../../../component-library/components/Toast';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  STABLECOIN_TOKEN_CONTRACT_ADDRESS_MAP,
-  AAVE_V3_POOL_CONTRACT_ADDRESS,
-} from '../../constants/tempToken';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -203,7 +199,9 @@ const EarnLendingDepositConfirmationView = () => {
         createAllowanceTxEventListeners(transactionId);
       }
 
-      if (transactionType === TransactionType.lendingDeposit) {
+      // TEMP: The lendingDeposit TransactionType has been added to the TransactionController but not released yet.
+      // if (transactionType === TransactionType.lendingDeposit) {
+      if (transactionType === 'lendingDeposit') {
         createDepositTxEventListeners(transactionId);
       }
     },
@@ -249,11 +247,7 @@ const EarnLendingDepositConfirmationView = () => {
     let txParams: TransactionParams;
     let txOptions;
 
-    const tokenContractAddress =
-      // @ts-expect-error temp until we use TransactionController for token addresses.
-      STABLECOIN_TOKEN_CONTRACT_ADDRESS_MAP[earnToken?.chainId][
-        earnToken?.symbol
-      ];
+    const tokenContractAddress = earnToken?.address;
 
     if (!tokenContractAddress) return;
 
@@ -264,9 +258,10 @@ const EarnLendingDepositConfirmationView = () => {
           amountTokenMinimalUnit,
           activeAccount.address,
           tokenContractAddress,
-          AAVE_V3_POOL_CONTRACT_ADDRESS,
           earnToken.chainId,
         );
+
+      if (!allowanceIncreaseTransaction) return;
 
       txParams = allowanceIncreaseTransaction.txParams;
       txOptions = allowanceIncreaseTransaction.txOptions;
@@ -279,9 +274,10 @@ const EarnLendingDepositConfirmationView = () => {
         amountTokenMinimalUnit,
         activeAccount.address,
         tokenContractAddress,
-        AAVE_V3_POOL_CONTRACT_ADDRESS,
         earnToken.chainId,
       );
+
+      if (!depositTransaction) return;
 
       txParams = depositTransaction.txParams;
       txOptions = depositTransaction.txOptions;
@@ -330,6 +326,7 @@ const EarnLendingDepositConfirmationView = () => {
         />
         <DepositReceiveSection
           token={token}
+          // TODO: Replace MOCK_DATA before launch
           receiptTokenName={MOCK_DATA_TO_REPLACE.RECEIPT_TOKEN_NAME}
           receiptTokenAmount={MOCK_DATA_TO_REPLACE.RECEIPT_TOKEN_AMOUNT.TOKEN}
           receiptTokenAmountFiat={

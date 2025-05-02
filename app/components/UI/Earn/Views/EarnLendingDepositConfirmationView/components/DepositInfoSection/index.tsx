@@ -21,7 +21,7 @@ export const STABLECOIN_DEPOSIT_TEST_IDS = {
   DEPOSIT_DETAILS_SECTION: 'depositDetailsSection',
 };
 
-interface DepositInfoSection {
+interface DepositInfoSectionProps {
   token: TokenI;
   lendingContractAddress: string;
   lendingProtocol: string;
@@ -41,7 +41,7 @@ const DepositInfoSection = ({
   token,
   lendingContractAddress,
   lendingProtocol,
-}: DepositInfoSection) => {
+}: DepositInfoSectionProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const useBlockieIcon = useSelector(
