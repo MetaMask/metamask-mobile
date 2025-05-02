@@ -14,9 +14,10 @@ import {
 
 // Filters user's tokens to only return the supported and enabled earn tokens.
 const useEarnTokens = () => {
-  const tokens = useSelector((state: RootState) =>
-    isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
+  const tokensFromSelector = useSelector((state: RootState) =>
+    selectAccountTokensAcrossChains(state),
   );
+  const tokens = isPortfolioViewEnabled() ? tokensFromSelector : {};
 
   const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
 

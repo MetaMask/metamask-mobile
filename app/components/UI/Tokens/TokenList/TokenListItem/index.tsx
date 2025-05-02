@@ -77,6 +77,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
+import { isEqual } from 'lodash';
 
 interface TokenListItemProps {
   assetKey: { address: string; chainId: string | undefined };
@@ -119,6 +120,7 @@ export const TokenListItem = React.memo(
         accountId: selectedAccount?.id,
         assetId: assetKey.address,
       }),
+      isEqual,
     );
     ///: END:ONLY_INCLUDE_IF
 
