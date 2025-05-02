@@ -1,6 +1,6 @@
+import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { captureErrorException } from '../../util/sentry';
 
 /**
  * Migration to overwrite MATIC token ticker to POL
@@ -16,7 +16,7 @@ export default function migrate(state: unknown) {
   const networkControllerState = state.engine.backgroundState.NetworkController;
 
   if (!isObject(networkControllerState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 51: Invalid NetworkController state error: '${typeof networkControllerState}'`,
       ),
@@ -25,7 +25,7 @@ export default function migrate(state: unknown) {
   }
 
   if (!isObject(networkControllerState.networkConfigurations)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 51: NetworkController networkConfigurations not found: '${JSON.stringify(
           networkControllerState.networkConfigurations,
@@ -36,7 +36,7 @@ export default function migrate(state: unknown) {
   }
 
   if (!isObject(networkControllerState.providerConfig)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 51: providerConfig not found: '${JSON.stringify(
           networkControllerState.providerConfig,

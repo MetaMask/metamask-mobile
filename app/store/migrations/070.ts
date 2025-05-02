@@ -1,6 +1,6 @@
 import { hasProperty } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { captureErrorException } from '../../util/sentry';
+import { captureException } from '@sentry/react-native';
 
 /**
  * Migration 70: Remove 'staking' reducer data
@@ -25,7 +25,7 @@ const migration = (state: unknown): unknown => {
 
     return state;
   } catch (error) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 070: removing staking key failed with error: ${error}`,
       ),

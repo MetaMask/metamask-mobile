@@ -1,20 +1,20 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SEPOLIA } from '../../constants/network';
-import { captureErrorException } from '../../util/sentry';
+import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import NetworkList from '../../util/networks';
 
 export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
   if (!isObject(state)) {
-    captureErrorException(
+    captureException(
       new Error(`Migration 33: Invalid state error: '${typeof state}'`),
     );
     return state;
   }
 
   if (!isObject(state.engine)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 33: Invalid engine state error: '${typeof state.engine}'`,
       ),
@@ -23,7 +23,7 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   if (!isObject(state.engine.backgroundState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 33: Invalid engine backgroundState error: '${typeof state
           .engine.backgroundState}'`,
@@ -33,7 +33,7 @@ export default async function migrate(stateAsync: unknown) {
   }
   const networkControllerState = state.engine.backgroundState.NetworkController;
   if (!isObject(networkControllerState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 33: Invalid NetworkController state error: '${typeof networkControllerState}'`,
       ),
@@ -42,7 +42,7 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   if (!isObject(networkControllerState.providerConfig)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 33: NetworkController providerConfig not found: '${networkControllerState.providerConfig}'`,
       ),
@@ -51,7 +51,7 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   if (!networkControllerState.providerConfig.chainId) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 33: NetworkController providerConfig chainId not found: '${JSON.stringify(
           networkControllerState.providerConfig.chainId,

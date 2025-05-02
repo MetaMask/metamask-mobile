@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { View } from 'react-native-animatable';
+import { captureException } from '@sentry/react-native';
 import { deflate } from 'react-native-gzip';
 
 import { strings } from '../../../../../../../locales/i18n';
@@ -32,7 +33,6 @@ import BlockaidVersionInfo from '../../../../../../lib/ppom/blockaid-version';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../../util/walletconnect';
 import AppConstants from '../../../../../../core/AppConstants';
 import { ConfirmationTopSheetSelectorsIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
-import { captureErrorException } from '../../../../../../util/sentry';
 
 const getReportUrl = (encodedData: string) =>
   `${FALSE_POSITIVE_REPORT_BASE_URL}?data=${encodeURIComponent(
@@ -136,7 +136,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     const unidentifiedReasonError = new Error(
       `BlockaidBannerAlert: Unidentified reason '${reason}'`,
     );
-    captureErrorException(unidentifiedReasonError);
+    captureException(unidentifiedReasonError);
   }
 
   const renderDetails = () =>

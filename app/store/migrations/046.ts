@@ -1,10 +1,11 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { NetworkType } from '@metamask/controller-utils';
 import { LINEA_SEPOLIA_BLOCK_EXPLORER } from '../../../app/constants/urls';
 import { ensureValidState } from './util';
 import { CHAINLIST_CURRENCY_SYMBOLS_MAP } from '../../constants/network';
-import { captureErrorException } from '../../util/sentry';
+
 interface NetworkState {
   providerConfig: {
     chainId: string;
@@ -23,7 +24,7 @@ export default function migrate(state: unknown) {
   }
 
   if (!isObject(state.engine)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 46: Invalid engine state error: '${typeof state.engine}'`,
       ),
@@ -32,7 +33,7 @@ export default function migrate(state: unknown) {
   }
 
   if (!isObject(state.engine.backgroundState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 46: Invalid engine backgroundState error: '${typeof state
           .engine.backgroundState}'`,
@@ -43,7 +44,7 @@ export default function migrate(state: unknown) {
   const networkControllerState = state.engine.backgroundState
     .NetworkController as NetworkState;
   if (!isObject(networkControllerState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 46: Invalid NetworkController state error: '${typeof networkControllerState}'`,
       ),
@@ -52,7 +53,7 @@ export default function migrate(state: unknown) {
   }
 
   if (!networkControllerState.providerConfig) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 46: NetworkController providerConfig not found: '${JSON.stringify(
           networkControllerState.providerConfig,
@@ -63,7 +64,7 @@ export default function migrate(state: unknown) {
   }
 
   if (!networkControllerState.providerConfig.chainId) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 46: NetworkController providerConfig chainId not found: '${JSON.stringify(
           networkControllerState.providerConfig.chainId,

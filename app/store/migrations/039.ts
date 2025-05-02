@@ -1,5 +1,5 @@
 import { isObject } from '@metamask/utils';
-import { captureErrorException } from '../../util/sentry';
+import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
 
 export default function migrate(state: unknown) {
@@ -8,7 +8,7 @@ export default function migrate(state: unknown) {
   }
 
   if (!isObject(state.engine.backgroundState.TransactionController)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 39: Invalid TransactionController state: '${state.engine.backgroundState.TransactionController}'`,
       ),
@@ -20,7 +20,7 @@ export default function migrate(state: unknown) {
     state.engine.backgroundState.TransactionController;
 
   if (!Array.isArray(transactionControllerState.transactions)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 39: Missing transactions property from TransactionController: '${typeof state
           .engine.backgroundState.TransactionController}'`,

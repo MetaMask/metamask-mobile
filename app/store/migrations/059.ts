@@ -1,7 +1,7 @@
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 import Logger from '../../util/Logger';
-import { captureErrorException } from '../../util/sentry';
+import { captureException } from '@sentry/react-native';
 
 /**
  * Migration for checking if selectedAccount on AccountsController is undefined
@@ -51,7 +51,7 @@ export default function migrate(state: unknown) {
           `Migration 59: Setting selectedAccount to the id of the first account.`,
         );
         if (firstAccount.id === undefined) {
-          captureErrorException(
+          captureException(
             new Error(
               `Migration 59: selectedAccount will be undefined because firstAccount.id is undefined.`,
             ),

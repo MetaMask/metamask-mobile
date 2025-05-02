@@ -1,4 +1,5 @@
 import { isObject, hasProperty } from '@metamask/utils';
+import { captureException } from '@sentry/react-native';
 import { ValidState, ensureValidState } from './util';
 import {
   AccountsControllerState,
@@ -7,14 +8,14 @@ import {
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isDefaultAccountName } from '../../util/ENSUtils';
 import { ETH_EOA_METHODS } from '../../constants/eth-methods';
-import { captureErrorException } from '../../util/sentry';
+
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 42)) {
     return state;
   }
 
   if (!isObject(state.engine.backgroundState.AccountsController)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 42: Invalid AccountsController state: '${typeof state.engine
           .backgroundState.AccountsController}'`,
@@ -29,7 +30,7 @@ export default function migrate(state: unknown) {
       'internalAccounts',
     )
   ) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 42: Missing internalAccounts property from AccountsController: '${typeof state
           .engine.backgroundState.AccountsController}'`,
@@ -91,7 +92,7 @@ function mergeInternalAccounts(state: ValidState) {
     addressMap[selectedAddress] || Object.keys(mergedAccounts)[0]; // Default to the first account in the list
   accountsController.internalAccounts.accounts = mergedAccounts;
   if (newSelectedAccountId === undefined) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 42: selectedAccount will be undefined because newSelectedAccountId is undefined. selectedAddress: ${selectedAddress}, addressMap[selectedAddress]: ${addressMap[selectedAddress]}`,
       ),

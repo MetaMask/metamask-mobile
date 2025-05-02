@@ -1,5 +1,8 @@
-import { addBreadcrumb, withScope } from '@sentry/react-native';
-import { captureErrorException } from '../../util/sentry';
+import {
+  addBreadcrumb,
+  captureException,
+  withScope,
+} from '@sentry/react-native';
 import StorageWrapper from '../../store/storage-wrapper';
 import { METRICS_OPT_IN, AGREED, DEBUG } from '../../constants/storage';
 
@@ -89,10 +92,10 @@ export class AsyncLogger {
           typeof extra === 'string' ? { message: extra } : extra;
         withScope((scope) => {
           scope.setExtras(extras);
-          captureErrorException(exception);
+          captureException(exception);
         });
       } else {
-        captureErrorException(exception);
+        captureException(exception);
       }
     }
   }

@@ -1,6 +1,6 @@
+import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { captureErrorException } from '../../util/sentry';
 
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 38)) {
@@ -10,7 +10,7 @@ export default function migrate(state: unknown) {
   const currencyRateState = state.engine.backgroundState.CurrencyRateController;
 
   if (!isObject(currencyRateState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 38: Invalid CurrencyRateController state error: '${JSON.stringify(
           currencyRateState,

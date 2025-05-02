@@ -1,6 +1,6 @@
 import { hasProperty, isObject } from '@metamask/utils';
+import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
-import { captureErrorException } from '../../util/sentry';
 
 /**
  * Migration 74: Remove `tokens`, `detectedTokens`, and `ignoredTokens` from `TokensController`
@@ -49,7 +49,7 @@ const migration = (state: unknown): unknown => {
 
     return state;
   } catch (error) {
-    captureErrorException(
+    captureException(
       new Error(`Migration ${migrationVersion} failed: ${error}`),
     );
     return state;

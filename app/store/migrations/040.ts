@@ -1,6 +1,6 @@
+import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { captureErrorException } from '../../util/sentry';
 
 /**
  * Migration to remove metadata from Permissioned accounts
@@ -17,7 +17,7 @@ export default function migrate(state: unknown) {
     state.engine.backgroundState.PermissionController;
 
   if (!isObject(permissionControllerState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 40: Invalid PermissionController state error: '${JSON.stringify(
           permissionControllerState,

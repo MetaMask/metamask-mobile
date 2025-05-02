@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/react-native';
 import { isObject, hasProperty, Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
@@ -7,7 +8,7 @@ import {
 } from '@metamask/network-controller';
 import { ensureValidState } from './util';
 import { RootState } from '../../reducers';
-import { captureErrorException } from '../../util/sentry';
+
 /**
  * This migration checks if `selectedNetworkClientId` exists in any entry within `networkConfigurationsByChainId`.
  * If it does not, or if `selectedNetworkClientId` is undefined or invalid, it sets `selectedNetworkClientId` to `'mainnet'`.
@@ -70,7 +71,7 @@ function isValidNetworkControllerState(
     !isObject(networkControllerState) ||
     !hasProperty(state.engine.backgroundState, 'NetworkController')
   ) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration ${migrationVersion}: Invalid or missing 'NetworkController' in backgroundState: '${typeof networkControllerState}'`,
       ),
@@ -82,7 +83,7 @@ function isValidNetworkControllerState(
     !hasProperty(networkControllerState, 'networkConfigurationsByChainId') ||
     !isObject(networkControllerState.networkConfigurationsByChainId)
   ) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration ${migrationVersion}: Missing or invalid 'networkConfigurationsByChainId' in NetworkController`,
       ),
@@ -117,7 +118,7 @@ function doesNetworkClientIdExist(
         return true;
       }
     } else {
-      captureErrorException(
+      captureException(
         new Error(
           `Migration ${migrationVersion}: Invalid network configuration or missing 'rpcEndpoints' for chainId: '${chainId}'`,
         ),

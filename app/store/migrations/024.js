@@ -1,6 +1,7 @@
 import { isObject } from '@metamask/utils';
+import { captureException } from '@sentry/react-native';
 import { NetworkStatus } from '@metamask/network-controller';
-import { captureErrorException } from '../../util/sentry';
+
 /**
  * Migrate NetworkController state, splitting old `network` property into
  * `networkId` and `networkStatus`. This is required to update to v8 of the
@@ -19,14 +20,14 @@ export default function migrate(state) {
   const networkControllerState = state.engine.backgroundState.NetworkController;
 
   if (!isObject(networkControllerState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 24: Invalid network controller state: '${typeof networkControllerState}'`,
       ),
     );
     return state;
   } else if (typeof networkControllerState.network !== 'string') {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 24: Invalid network state: '${typeof networkControllerState.network}'`,
       ),

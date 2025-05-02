@@ -1,7 +1,7 @@
+import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 import { AccountsControllerState } from '@metamask/accounts-controller';
-import { captureErrorException } from '../../util/sentry';
 
 /**
  * Validates AccountsController state
@@ -14,7 +14,7 @@ function isAccountsControllerState(
   migrationNumber: number,
 ): state is AccountsControllerState {
   if (!isObject(state)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration ${migrationNumber}: Invalid AccountsController state error: AccountsController state is not an object, type: '${typeof state}'`,
       ),
@@ -23,7 +23,7 @@ function isAccountsControllerState(
   }
 
   if (!hasProperty(state, 'internalAccounts')) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration ${migrationNumber}: Invalid AccountsController state error: missing internalAccounts`,
       ),
@@ -32,7 +32,7 @@ function isAccountsControllerState(
   }
 
   if (!isObject(state.internalAccounts)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration ${migrationNumber}: Invalid AccountsController state error: internalAccounts is not an object, type: '${typeof state.internalAccounts}'`,
       ),
@@ -41,7 +41,7 @@ function isAccountsControllerState(
   }
 
   if (!hasProperty(state.internalAccounts, 'accounts')) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration ${migrationNumber}: Invalid AccountsController state error: missing internalAccounts.accounts`,
       ),
@@ -50,7 +50,7 @@ function isAccountsControllerState(
   }
 
   if (!isObject(state.internalAccounts.accounts)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration ${migrationNumber}: Invalid AccountsController state error: internalAccounts.accounts is not an object, type: '${typeof state
           .internalAccounts.accounts}'`,
@@ -91,7 +91,7 @@ export const migration52 = (state: unknown, migrationNumber: number) => {
     (!selectedAccount || (selectedAccount && !accounts[selectedAccount]))
   ) {
     if (Object.values(accounts)[0].id === undefined) {
-      captureErrorException(
+      captureException(
         new Error(
           `Migration 52: selectedAccount will be undefined because Object.values(accounts)[0].id is undefined.`,
         ),

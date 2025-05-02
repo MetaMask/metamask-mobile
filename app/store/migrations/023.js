@@ -1,7 +1,8 @@
 import { isObject, hasProperty } from '@metamask/utils';
+import { captureException } from '@sentry/react-native';
 import { mapValues } from 'lodash';
 import ambiguousNetworks from './migration-data/amibiguous-networks.json';
-import { captureErrorException } from '../../util/sentry';
+
 /**
  * Migrate address book state to be keyed by chain ID rather than network ID.
  *
@@ -25,7 +26,7 @@ import { captureErrorException } from '../../util/sentry';
 export default function migrate(state) {
   const keyringControllerState = state.engine.backgroundState.KeyringController;
   if (!isObject(keyringControllerState)) {
-    captureErrorException(
+    captureException(
       // @ts-expect-error We are not returning state not to stop the flow of Vault recovery
       new Error(
         `Migration 23: Invalid vault in KeyringController: '${typeof keyringControllerState}'`,
@@ -38,7 +39,7 @@ export default function migrate(state) {
     state.engine.backgroundState.AddressBookController;
 
   if (!isObject(networkControllerState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 23: Invalid network controller state: '${typeof networkControllerState}'`,
       ),
@@ -48,7 +49,7 @@ export default function migrate(state) {
     !hasProperty(networkControllerState, 'networkConfigurations') ||
     !isObject(networkControllerState.networkConfigurations)
   ) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 23: Invalid network configuration state: '${typeof networkControllerState.networkConfigurations}'`,
       ),
@@ -65,7 +66,7 @@ export default function migrate(state) {
       ([_networkConfigId, networkConfiguration]) =>
         !hasProperty(networkConfiguration, 'chainId'),
     );
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 23: Network configuration missing chain ID, id '${invalidConfigurationId}', keys '${Object.keys(
           invalidConfiguration,
@@ -74,7 +75,7 @@ export default function migrate(state) {
     );
     return state;
   } else if (!isObject(addressBookControllerState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 23: Invalid address book controller state: '${typeof addressBookControllerState}'`,
       ),
@@ -84,7 +85,7 @@ export default function migrate(state) {
     !hasProperty(addressBookControllerState, 'addressBook') ||
     !isObject(addressBookControllerState.addressBook)
   ) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 23: Invalid address book state: '${typeof addressBookControllerState.addressBook}'`,
       ),
@@ -98,7 +99,7 @@ export default function migrate(state) {
     const [networkId, invalidEntries] = Object.entries(
       addressBookControllerState.addressBook,
     ).find(([_networkId, addressEntries]) => !isObject(addressEntries));
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 23: Address book configuration invalid, network id '${networkId}', type '${typeof invalidEntries}'`,
       ),
@@ -122,7 +123,7 @@ export default function migrate(state) {
     const invalidEntry = Object.values(invalidEntries).find(
       (addressEntry) => !hasProperty(addressEntry, 'chainId'),
     );
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 23: Address book configuration entry missing chain ID, network id '${networkId}', keys '${Object.keys(
           invalidEntry,
@@ -131,7 +132,7 @@ export default function migrate(state) {
     );
     return state;
   } else if (!isObject(state.user)) {
-    captureErrorException(
+    captureException(
       new Error(`Migration 23: Invalid user state: '${typeof state.user}'`),
     );
     return state;

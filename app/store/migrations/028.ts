@@ -1,8 +1,8 @@
 import { hasProperty, isObject } from '@metamask/utils';
+import { captureException } from '@sentry/react-native';
 import { deepJSONParse } from '../../util/general';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
-import { captureErrorException } from '../../util/sentry';
 
 export const controllerList = [
   { name: 'AccountTrackerController' },
@@ -62,7 +62,7 @@ export const controllerList = [
  */
 export default async function migrate(state: unknown) {
   if (!isObject(state)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 28: Invalid root state: root state is not an object`,
       ),
@@ -102,7 +102,7 @@ export default async function migrate(state: unknown) {
           }
         }
       } catch (e) {
-        captureErrorException(
+        captureException(
           new Error(
             `Migration 28: Failed to populate root object with persisted controller data for key ${persistedControllerKey}: ${String(
               e,
@@ -134,7 +134,7 @@ export default async function migrate(state: unknown) {
         // Remove persisted controller file
         await FilesystemStorage.removeItem(persistedControllerKey);
       } catch (e) {
-        captureErrorException(
+        captureException(
           new Error(
             `Migration 28: Failed to remove key ${persistedControllerKey}: ${String(
               e,
@@ -147,7 +147,7 @@ export default async function migrate(state: unknown) {
     // Execute deleting persisted controller files in parallel
     await Promise.all(controllerDeleteMigration);
   } catch (e) {
-    captureErrorException(
+    captureException(
       new Error(`Migration 28: Failed to get root data: ${String(e)}`),
     );
   }

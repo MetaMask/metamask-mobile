@@ -1,6 +1,6 @@
+import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { captureErrorException } from '../../util/sentry';
 
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 53)) {
@@ -10,7 +10,7 @@ export default function migrate(state: unknown) {
 
   const networkControllerState = state.engine.backgroundState.NetworkController;
   if (!isObject(networkControllerState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 53: Invalid NetworkController state error: '${typeof networkControllerState}'`,
       ),

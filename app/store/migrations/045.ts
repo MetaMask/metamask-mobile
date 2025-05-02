@@ -1,6 +1,6 @@
+import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { captureErrorException } from '../../util/sentry';
 
 /**
  * Migration to update state of GasFeeController
@@ -16,7 +16,7 @@ export default function migrate(state: unknown) {
   const gasFeeControllerState = state.engine.backgroundState.GasFeeController;
 
   if (!isObject(gasFeeControllerState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 45: Invalid GasFeeController state error: '${JSON.stringify(
           gasFeeControllerState,

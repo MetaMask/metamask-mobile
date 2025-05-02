@@ -1,5 +1,5 @@
+import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
-import { captureErrorException } from '../../../util/sentry';
 
 export interface ValidState {
   engine: {
@@ -13,7 +13,7 @@ export function ensureValidState<T>(
   migrationNumber: number,
 ): state is T & ValidState {
   if (!isObject(state)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration ${migrationNumber}: Invalid state error: '${typeof state}'`,
       ),
@@ -22,7 +22,7 @@ export function ensureValidState<T>(
   }
 
   if (!isObject(state.engine)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration ${migrationNumber}: Invalid engine state error: '${typeof state.engine}'`,
       ),
@@ -31,7 +31,7 @@ export function ensureValidState<T>(
   }
 
   if (!isObject(state.engine.backgroundState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration ${migrationNumber}: Invalid engine backgroundState error: '${typeof state
           .engine.backgroundState}'`,

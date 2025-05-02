@@ -1,10 +1,10 @@
 import { EthAccountType, EthScope } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isObject, hasProperty } from '@metamask/utils';
+import { captureException } from '@sentry/react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { ETH_EOA_METHODS } from '../../constants/eth-methods';
-import { captureErrorException } from '../../util/sentry';
 
 export interface Identity {
   name: string;
@@ -15,14 +15,14 @@ export interface Identity {
 
 export default function migrate(state: unknown) {
   if (!isObject(state)) {
-    captureErrorException(
+    captureException(
       new Error(`Migration 36: Invalid root state: '${typeof state}'`),
     );
     return state;
   }
 
   if (!isObject(state.engine)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 36: Invalid root engine state: '${typeof state.engine}'`,
       ),
@@ -31,7 +31,7 @@ export default function migrate(state: unknown) {
   }
 
   if (!isObject(state.engine.backgroundState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 36: Invalid root engine backgroundState: '${typeof state
           .engine.backgroundState}'`,
@@ -42,7 +42,7 @@ export default function migrate(state: unknown) {
 
   const keyringControllerState = state.engine.backgroundState.KeyringController;
   if (!isObject(keyringControllerState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 36: Invalid vault in KeyringController: '${typeof keyringControllerState}'`,
       ),
@@ -50,7 +50,7 @@ export default function migrate(state: unknown) {
   }
 
   if (!isObject(state.engine.backgroundState.PreferencesController)) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 36: Invalid PreferencesController state: '${typeof state
           .engine.backgroundState.PreferencesController}'`,
@@ -64,7 +64,7 @@ export default function migrate(state: unknown) {
       'identities',
     )
   ) {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 36: Missing identities property from PreferencesController: '${typeof state
           .engine.backgroundState.PreferencesController}'`,
@@ -99,7 +99,7 @@ function createInternalAccountsForAccountsController(
   } = state.engine.backgroundState.PreferencesController?.identities || {};
 
   if (Object.keys(identities).length === 0) {
-    captureErrorException(
+    captureException(
       new Error(`Migration 36: PreferencesController?.identities are empty'`),
     );
     return;
@@ -160,7 +160,7 @@ function createSelectedAccountForAccountsController(
 
   // Handle the case where the selectedAddress from preferences controller is either not defined or not a string
   if (!selectedAddress || typeof selectedAddress !== 'string') {
-    captureErrorException(
+    captureException(
       new Error(
         `Migration 36: Invalid selectedAddress. state.engine.backgroundState.PreferencesController?.selectedAddress is not a string:'${typeof selectedAddress}'. Setting selectedAddress to the first account.`,
       ),
@@ -173,7 +173,7 @@ function createSelectedAccountForAccountsController(
 
     if (internalAccount) {
       if (internalAccount.id === undefined) {
-        captureErrorException(
+        captureException(
           new Error(
             `Migration 36: selectedAccount will be undefined because internalAccount.id is undefined.`,
           ),
@@ -190,7 +190,7 @@ function createSelectedAccountForAccountsController(
   const selectedAccount = findInternalAccountByAddress(state, selectedAddress);
   if (selectedAccount) {
     if (selectedAccount.id === undefined) {
-      captureErrorException(
+      captureException(
         new Error(
           `Migration 36: selectedAccount will be undefined because selectedAccount.id is undefined.`,
         ),

@@ -1,6 +1,6 @@
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { captureErrorException } from '../../util/sentry';
+import { captureException } from '@sentry/react-native';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 
 /**
@@ -25,7 +25,7 @@ export default function migrate(state: unknown) {
   const networkControllerState = state.engine.backgroundState.NetworkController;
 
   if (!isObject(networkControllerState)) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 43: Invalid NetworkController state: '${typeof networkControllerState}'`,
       ),
@@ -37,7 +37,7 @@ export default function migrate(state: unknown) {
     !isObject(networkControllerState.networkConfigurations) ||
     !hasProperty(networkControllerState, 'networkConfigurations')
   ) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 43: Invalid NetworkController networkConfigurations state: '${typeof networkControllerState.networkConfigurations}'`,
       ),
@@ -53,7 +53,7 @@ export default function migrate(state: unknown) {
     const invalidEntry = Object.entries(
       networkControllerState.networkConfigurations,
     ).find(([_, networkConfiguration]) => !isObject(networkConfiguration));
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 43: Invalid NetworkController network configuration entry with id: '${
           invalidEntry?.[0]
@@ -67,7 +67,7 @@ export default function migrate(state: unknown) {
     !isObject(networkControllerState.providerConfig) ||
     !hasProperty(networkControllerState, 'providerConfig')
   ) {
-    captureErrorException(
+    captureException(
       new Error(
         `FATAL ERROR: Migration 43: Invalid NetworkController providerConfig state: '${typeof networkControllerState.providerConfig}'`,
       ),

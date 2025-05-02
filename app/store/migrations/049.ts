@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { captureErrorException } from '../../util/sentry';
+import { captureException } from '@sentry/react-native';
 import { MMKV } from 'react-native-mmkv';
 
 export const storage = new MMKV();
@@ -15,7 +15,7 @@ export default async function migrate(state: unknown) {
       }
       await AsyncStorage.removeItem(key);
     } catch (error) {
-      captureErrorException(
+      captureException(
         new Error(
           `Failed to migrate key "${key}" from AsyncStorage to MMKV! Error: ${error}`,
         ),
