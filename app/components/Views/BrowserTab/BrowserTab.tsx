@@ -173,6 +173,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
   //const [resolvedUrl, setResolvedUrl] = useState('');
   const resolvedUrlRef = useRef('');
+  const isLastSelectedTokenRef = useRef(false);
   // Tracks currently loading URL to prevent phishing alerts when user navigates away from malicious sites before detection completes
   const loadingUrlRef = useRef('');
   const submittedUrlRef = useRef('');
@@ -1100,6 +1101,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     async (text: string) => {
       if (!text) return;
 
+      isLastSelectedTokenRef.current = false;
       hideAutocomplete();
       // Format url for browser to be navigatable by webview
       const processedUrl = processUrlForBrowser(text, searchEngine);
@@ -1226,6 +1228,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const onSelect = useCallback(
     (item: AutocompleteSearchResult) => {
       if (item.category === 'tokens') {
+        isLastSelectedTokenRef.current = true;
         navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
           chainId: item.chainId,
           address: item.address,
@@ -1261,7 +1264,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const onFocusUrlBar = useCallback(() => {
     // Show the autocomplete results
     autocompleteRef.current?.show();
-    if (resolvedUrlRef.current) {
+    if (resolvedUrlRef.current && !isLastSelectedTokenRef.current) {
       urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
     }
   }, []);
