@@ -64,6 +64,7 @@ export async function backupVault(
   const keyringVault = keyringState.vault as string;
 
   try {
+    // Does a primary backup exist?
     const existingBackup = await getInternetCredentials(VAULT_BACKUP_KEY);
 
     // An existing backup exists, backup it to the temp key
@@ -85,10 +86,10 @@ export async function backupVault(
       if (!tempBackupResult) {
         throw new Error(TEMP_VAULT_BACKUP_FAILED);
       }
-
-      // Clear any existing vault backup first to prevent "item already exists" errors
-      await _resetVaultBackup();
     }
+
+    // Clear any existing vault backup first to prevent "item already exists" errors
+    await _resetVaultBackup();
 
     // Backup primary vault
     const backupResult = await setInternetCredentials(
@@ -129,10 +130,19 @@ export async function backupVault(
   }
  */
 export async function getVaultFromBackup(): Promise<KeyringBackupResponse> {
-  const credentials = await getInternetCredentials(VAULT_BACKUP_KEY);
-  if (credentials) {
-    return { success: true, vault: credentials.password };
+  const primaryVaultCredentials = await getInternetCredentials(
+    VAULT_BACKUP_KEY,
+  );
+  if (primaryVaultCredentials) {
+    return { success: true, vault: primaryVaultCredentials.password };
   }
+  const temporaryVaultCredentials = await getInternetCredentials(
+    VAULT_BACKUP_TEMP_KEY,
+  );
+  if (temporaryVaultCredentials) {
+    return { success: true, vault: temporaryVaultCredentials.password };
+  }
+
   const vaultFetchError = new Error(VAULT_BACKUP_KEY);
   Logger.error(vaultFetchError, VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP);
   return { success: false, error: VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP };
