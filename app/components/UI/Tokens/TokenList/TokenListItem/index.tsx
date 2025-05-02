@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import {
-  CaipAssetId,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
+  CaipAssetId,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
   Hex,
   isCaipChainId,
