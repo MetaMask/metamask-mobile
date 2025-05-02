@@ -400,7 +400,7 @@
     "through2": "3.0.1",
     "unicode-confusables": "^0.1.1",
     "uri-js": "^4.4.1",
-    "url": "0.11.0",
+    "url": "0.11.4",
     "url-parse": "1.5.9",
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
