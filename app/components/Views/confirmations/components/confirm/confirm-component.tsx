@@ -1,15 +1,12 @@
 import React from 'react';
-import {
-  StyleSheet,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { Footer } from '../footer';
 import Info from '../info-root';
+import { ConfirmationContextProvider } from '../../context/confirmation-context';
 import { LedgerContextProvider } from '../../context/ledger-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import Title from '../title';
@@ -32,22 +29,24 @@ const ConfirmWrapped = ({
   const alerts = useConfirmationAlerts();
 
   return (
-    <AlertsContextProvider alerts={alerts}>
-      <QRHardwareContextProvider>
-        <LedgerContextProvider>
-          <Title />
-          <ScrollView style={styles.scrollView} nestedScrollEnabled>
-            <TouchableWithoutFeedback>
-              <>
-                <GeneralAlertBanner />
-                <Info route={route} />
-              </>
-            </TouchableWithoutFeedback>
-          </ScrollView>
-          <Footer />
-        </LedgerContextProvider>
-      </QRHardwareContextProvider>
-    </AlertsContextProvider>
+    <ConfirmationContextProvider>
+      <AlertsContextProvider alerts={alerts}>
+        <QRHardwareContextProvider>
+          <LedgerContextProvider>
+            <Title />
+            <ScrollView style={styles.scrollView} nestedScrollEnabled>
+              <TouchableWithoutFeedback>
+                <>
+                  <GeneralAlertBanner />
+                  <Info route={route} />
+                </>
+              </TouchableWithoutFeedback>
+            </ScrollView>
+            <Footer />
+          </LedgerContextProvider>
+        </QRHardwareContextProvider>
+      </AlertsContextProvider>
+    </ConfirmationContextProvider>
   );
 };
 

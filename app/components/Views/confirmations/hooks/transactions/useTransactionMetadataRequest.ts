@@ -16,7 +16,7 @@ export function useTransactionMetadataRequest() {
   );
 
   useEffect(() => {
-    // TODO: This is a temporary solution to force token list to be fetched for chainId of 
+    // TODO: This is a temporary solution to force token list to be fetched for chainId of
     // transaction in order to get proper display names for simulation details.
     // We may remove this once we have a better way to single token information.
     if (transactionMetadata?.chainId) {

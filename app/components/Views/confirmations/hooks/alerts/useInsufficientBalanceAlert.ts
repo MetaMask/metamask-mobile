@@ -11,6 +11,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
+import { selectTransactionState } from '../../../../../reducers/transaction';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
@@ -27,9 +28,10 @@ export const useInsufficientBalanceAlert = () => {
     transactionMetadata?.chainId as Hex,
     transactionMetadata?.txParams?.from as string,
   );
+  const { maxValueMode } = useSelector(selectTransactionState);
 
   return useMemo(() => {
-    if (!transactionMetadata) {
+    if (!transactionMetadata || maxValueMode) {
       return [];
     }
 
@@ -77,5 +79,11 @@ export const useInsufficientBalanceAlert = () => {
         skipConfirmation: true,
       },
     ];
-  }, [navigation, networkConfigurations, transactionMetadata, balanceWeiInHex]);
+  }, [
+    balanceWeiInHex,
+    maxValueMode,
+    navigation,
+    networkConfigurations,
+    transactionMetadata,
+  ]);
 };

@@ -166,3 +166,5 @@ const transactionReducer = (state = initialState, action) => {
   }
 };
 export default transactionReducer;
+
+export const selectTransactionState = (state) => state.transaction;

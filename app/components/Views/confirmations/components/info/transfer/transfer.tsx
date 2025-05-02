@@ -7,6 +7,7 @@ import { SimulationDetails } from '../../../../../UI/SimulationDetails/Simulatio
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import useNavbar from '../../../hooks/ui/useNavbar';
+import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
 import FromTo from '../../rows/transactions/from-to';
 import GasFeesDetails from '../../rows/transactions/gas-fee-details';
 import TokenHero from '../../rows/transactions/token-hero';
@@ -18,7 +19,7 @@ const Transfer = () => {
   const { trackPageViewedEvent } = useConfirmationMetricEvents();
 
   useNavbar(strings('confirm.review'));
-
+  useMaxValueRefresher();
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
