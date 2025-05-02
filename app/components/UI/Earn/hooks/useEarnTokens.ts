@@ -15,7 +15,7 @@ import {
 // Filters user's tokens to only return the supported and enabled earn tokens.
 const useEarnTokens = () => {
   const tokens = useSelector((state: RootState) =>
-    isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
+    selectAccountTokensAcrossChains(state),
   );
 
   const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
@@ -31,7 +31,7 @@ const useEarnTokens = () => {
   } = useStakingEligibility();
 
   const supportedStablecoins = useMemo(() => {
-    if (isLoadingStakingEligibility) return [];
+    if (isLoadingStakingEligibility || !isPortfolioViewEnabled()) return [];
 
     const allTokens = Object.values(tokens).flat() as TokenI[];
 
