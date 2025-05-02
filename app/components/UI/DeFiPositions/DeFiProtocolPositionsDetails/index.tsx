@@ -185,7 +185,7 @@ interface DeFiProtocolPositionsDetailsParams {
   networkIconAvatar: ImageSourcePropType | undefined;
 }
 
-const DefiProtocolPositionsDetails = () => {
+const DeFiProtocolPositionsDetails = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
@@ -264,4 +264,4 @@ const DefiProtocolPositionsDetails = () => {
   );
 };
 
-export default DefiProtocolPositionsDetails;
+export default DeFiProtocolPositionsDetails;

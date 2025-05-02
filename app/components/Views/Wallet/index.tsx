@@ -116,7 +116,6 @@ import { Hex } from '@metamask/utils';
 import { Nft, Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import DeFiPositions from '../../UI/DeFiPositions';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
 ///: END:ONLY_INCLUDE_IF
@@ -128,6 +127,7 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
+import DeFiPositions from '../../UI/DeFiPositions';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
 
 const createStyles = ({ colors, typography }: Theme) =>
@@ -739,7 +739,9 @@ const Wallet = ({
         <Tokens {...tokensTabProps} />
         {/* TODO: Restore the flags before merging */}
         {(true ||
-          (basicFunctionalityEnabled && assetsDefiPositionsEnabled)) && (
+          (isEvmSelected &&
+            basicFunctionalityEnabled &&
+            assetsDefiPositionsEnabled)) && (
           <DeFiPositions {...defiPositionsTabProps} />
         )}
         {isEvmSelected && (
