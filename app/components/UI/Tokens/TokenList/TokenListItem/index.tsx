@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
+  CaipAssetId,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
   Hex,
   isCaipChainId,
@@ -68,8 +69,8 @@ import { CustomNetworkNativeImgMapping } from './CustomNetworkNativeImgMapping';
 import { TraceName, trace } from '../../../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
+  makeSelectNonEvmAssetById,
   selectMultichainAssetsRates,
-  selectNonEvmAssetById,
 } from '../../../../../selectors/multichain/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
@@ -112,10 +113,12 @@ export const TokenListItem = React.memo(
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const selectedAccount = useSelector(selectSelectedInternalAccount);
+    const selectNonEvmAsset = useMemo(makeSelectNonEvmAssetById, []);
+
     const nonEvmAsset = useSelector((state: RootState) =>
-      selectNonEvmAssetById(state, {
+      selectNonEvmAsset(state, {
         accountId: selectedAccount?.id,
-        assetId: assetKey.address,
+        assetId: assetKey.address as CaipAssetId,
       }),
     );
     ///: END:ONLY_INCLUDE_IF
