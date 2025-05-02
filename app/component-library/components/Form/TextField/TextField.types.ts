@@ -1,6 +1,6 @@
 // External dependencies.
 import { InputProps } from './foundation/Input/Input.types';
-import { ViewStyle } from 'react-native';
+
 /**
  * TextFieldSize.
  */
