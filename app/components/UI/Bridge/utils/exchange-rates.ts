@@ -52,8 +52,6 @@ export const getDisplayCurrencyValue = ({
     return addCurrencySymbol('0', currentCurrency);
   }
 
-  console.log('token', token);
-
   let currencyValue = 0;
 
   if (isSolanaChainId(token.chainId)) {
