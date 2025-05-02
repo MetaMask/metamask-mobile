@@ -5,7 +5,7 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
-import { hasProperty } from '@metamask/utils';
+import { hasProperty, Hex } from '@metamask/utils';
 import { ApprovalController } from '@metamask/approval-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
@@ -109,6 +109,7 @@ export const TransactionControllerInit: ControllerInitFunction<
         // @ts-expect-error - TransactionMeta mismatch type with TypedTransaction from '@ethereumjs/tx'
         sign: (...args) => keyringController.signTransaction(...args),
         state: persistedState.TransactionController,
+        publicKeyEIP7702: process.env.EIP_7702_PUBLIC_KEY as Hex | undefined,
       });
 
     addTransactionControllerListeners({
