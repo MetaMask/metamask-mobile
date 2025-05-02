@@ -13,5 +13,6 @@ export const selectDeFiPositionsByAddress = createDeepEqualSelector(
   (
     defiPositionsControllerState: DeFiPositionsControllerState,
     selectedAddress: string | undefined,
-  ) => defiPositionsControllerState?.allDeFiPositions[selectedAddress as Hex],
+  ): DeFiPositionsControllerState['allDeFiPositions'][string] | undefined =>
+    defiPositionsControllerState?.allDeFiPositions[selectedAddress as Hex],
 );

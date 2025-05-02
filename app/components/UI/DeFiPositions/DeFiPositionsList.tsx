@@ -9,11 +9,14 @@ import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import DeFiPositionsListItem from './DeFiPositionsListItem';
-import { selectPrivacyMode } from '../../../selectors/preferencesController';
+import {
+  selectPrivacyMode,
+  selectTokenSortConfig,
+} from '../../../selectors/preferencesController';
 import { useSelector } from 'react-redux';
 
 interface DeFiPositionsListProps {
-  defiPositions: { [key: Hex]: GroupedDeFiPositions } | null;
+  defiPositions: { [key: Hex]: GroupedDeFiPositions } | null | undefined;
   //   refreshing: boolean;
   //   isAddTokenEnabled: boolean;
   //   onRefresh: () => void;
@@ -29,6 +32,10 @@ export const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const tokenSortConfig = useSelector(selectTokenSortConfig);
+
+  console.log('TOKEN SORT CONFIG', tokenSortConfig);
 
   const formattedDeFiPositions = useMemo(() => {
     if (!defiPositions) {

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
@@ -19,25 +19,32 @@ import { Hex } from '@metamask/utils';
 import { DeFiPositionsList } from './DeFiPositionsList';
 import { selectDeFiPositionsByAddress } from '../../../selectors/defiPositionsController';
 import { isTestNet } from '../../../util/networks';
+import styleSheet from './DeFiPositionsTab.styles';
+import {
+  createTokenBottomSheetFilterNavDetails,
+  createTokensBottomSheetNavDetails,
+} from '../Tokens/TokensBottomSheet';
+import { useNavigation } from '@react-navigation/native';
 
 export interface DeFiPositionsTabProps {
   tabLabel: string;
 }
 
 const DeFiPositionsTab: React.FC<DeFiPositionsTabProps> = () => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const styles2 = createStyles(theme.colors);
+  const styles = styleSheet({ theme });
 
+  const navigation = useNavigation();
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId);
   const defiPositions = useSelector(selectDeFiPositionsByAddress);
 
   const chainFilteredDeFiPositions = useMemo(() => {
     if (!defiPositions) {
-      return null;
+      return defiPositions;
     }
 
     if (isAllNetworks) {
@@ -49,45 +56,45 @@ const DeFiPositionsTab: React.FC<DeFiPositionsTabProps> = () => {
     };
   }, [defiPositions, isAllNetworks, currentChainId]);
 
+  const showFilterControls = useCallback(() => {
+    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+  }, [navigation]);
+
+  const showSortControls = useCallback(() => {
+    navigation.navigate(...createTokensBottomSheetNavDetails({}));
+  }, [navigation]);
+
   return (
-    <View
-      style={styles.wrapper}
-      testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
-    >
+    <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
       <View style={styles.actionBarWrapper}>
-        <View style={styles.controlButtonOuterWrapper}>
-          <ButtonBase
-            testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-            label={
-              <Text style={styles.controlButtonText} numberOfLines={1}>
-                {isAllNetworks && isPopularNetwork && isEvmSelected
-                  ? `${strings('app_settings.popular')} ${strings(
-                      'app_settings.networks',
-                    )}`
-                  : networkName ?? strings('wallet.current_network')}
-              </Text>
-            }
-            isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
-            // onPress={isEvmSelected ? showFilterControls : () => null}
-            onPress={() => null}
-            endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
-            style={
-              isTestNet(currentChainId) || !isPopularNetwork
-                ? styles.controlButtonDisabled
-                : styles.controlButton
-            }
-            disabled={isTestNet(currentChainId) || !isPopularNetwork}
-          />
-          <View style={styles.controlButtonInnerWrapper}>
-            <ButtonIcon
-              testID={WalletViewSelectorsIDs.SORT_BY}
-              // onPress={showSortControls}
-              onPress={() => null}
-              iconName={IconName.SwapVertical}
-              style={styles.controlIconButton}
-            />
-          </View>
-        </View>
+        <ButtonBase
+          testID={WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER}
+          label={
+            <Text numberOfLines={1}>
+              {isAllNetworks && isPopularNetwork
+                ? `${strings('app_settings.popular')} ${strings(
+                    'app_settings.networks',
+                  )}`
+                : networkName ?? strings('wallet.current_network')}
+            </Text>
+          }
+          isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
+          onPress={showFilterControls}
+          endIconName={IconName.ArrowDown}
+          style={
+            isTestNet(currentChainId) || !isPopularNetwork
+              ? styles2.controlButtonDisabled
+              : styles2.controlButton
+          }
+          disabled={isTestNet(currentChainId) || !isPopularNetwork}
+        />
+        <ButtonIcon
+          testID={WalletViewSelectorsIDs.DEFI_POSITIONS_SORT_BY}
+          onPress={showSortControls}
+          // onPress={() => null}
+          iconName={IconName.SwapVertical}
+          style={styles2.controlIconButton}
+        />
       </View>
       <View>
         <DeFiPositionsList defiPositions={chainFilteredDeFiPositions} />

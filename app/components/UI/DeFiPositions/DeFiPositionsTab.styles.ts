@@ -12,9 +12,12 @@ const styleSheet = (params: { theme: Theme }) => {
     theme: { colors },
   } = params;
   return StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
+    actionBarWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 8,
+      paddingBottom: 16,
+      paddingTop: 8,
     },
   });
 };
