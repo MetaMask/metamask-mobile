@@ -5,7 +5,6 @@ import {
   setMeasurement,
   Scope,
 } from '@sentry/react-native';
-import performance from 'react-native-performance';
 import type { Span, StartSpanOptions, MeasurementUnit } from '@sentry/types';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 
@@ -199,7 +198,7 @@ export function endTrace(request: EndTraceRequest) {
   tracesByKey.delete(key);
 
   const { request: pendingRequest, startTime } = pendingTrace;
-  const endTime = timestamp ?? getPerformanceTimestamp();
+  const endTime = timestamp
   const duration = endTime - startTime;
 
   log('Finished trace', name, id, duration, { request: pendingRequest });
@@ -240,7 +239,7 @@ function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
 
 function startTrace(request: TraceRequest): TraceContext {
   const { name, startTime: requestStartTime } = request;
-  const startTime = requestStartTime ?? getPerformanceTimestamp();
+  const startTime = requestStartTime
   const id = getTraceId(request);
 
   const callback = (span: Span | undefined) => {
@@ -339,10 +338,6 @@ function initSpan(_span: Span, request: TraceRequest) {
       sentrySetMeasurement(key, value, 'none');
     }
   }
-}
-
-function getPerformanceTimestamp(): number {
-  return performance.timeOrigin + performance.now();
 }
 
 function tryCatchMaybePromise<T>(

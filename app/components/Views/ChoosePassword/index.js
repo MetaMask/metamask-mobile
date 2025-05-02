@@ -345,11 +345,14 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: true });
       const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
+      console.log('this.state.biometryChoice', this.state.biometryChoice);
+      console.log('this.state.rememberMe', this.state.rememberMe);
       const authType = await Authentication.componentAuthenticationType(
         this.state.biometryChoice,
         this.state.rememberMe,
       );
 
+      console.log('authType', authType);
       if (previous_screen === ONBOARDING) {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
@@ -416,6 +419,7 @@ class ChoosePassword extends PureComponent {
         newAuthData,
       );
     } catch (err) {
+      console.log('err', err);
       throw Error(strings('choose_password.disable_biometric_error'));
     }
     this.setState({

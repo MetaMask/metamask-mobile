@@ -2,9 +2,7 @@
 /* eslint-disable react/display-name */
 // Third party dependencies.
 import React, { useContext } from 'react';
-import { Alert } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-
+import { Alert, View } from 'react-native';
 // External dependencies.
 import Button, { ButtonVariants } from '../Buttons/Button';
 
@@ -25,11 +23,11 @@ const ToastMeta = {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (Story: any) => (
-      <SafeAreaProvider>
+      <View>
         <ToastContextWrapper>
           <Story />
         </ToastContextWrapper>
-      </SafeAreaProvider>
+      </View>
     ),
   ],
   argTypes: {

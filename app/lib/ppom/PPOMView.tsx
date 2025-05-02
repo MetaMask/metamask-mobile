@@ -125,14 +125,6 @@ export class PPOMView extends Component {
   }
 
   render() {
-    return (
-      <View style={styles.webViewContainer}>
-        <WebView
-          ref={this.webViewRef}
-          source={{ html }}
-          onMessage={this.invoke.listener}
-        />
-      </View>
-    );
+    return null
   }
 }

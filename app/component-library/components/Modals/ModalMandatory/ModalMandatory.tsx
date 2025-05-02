@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { WebView } from '@metamask/react-native-webview';
 
 // External dependencies.
 import ButtonPrimary from '../../Buttons/Button/variants/ButtonPrimary';
@@ -39,11 +38,10 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(stylesheet, {});
   const modalRef = useRef<ReusableModalRef>(null);
-  const webViewRef = useRef<WebView>(null);
 
   const [isWebViewLoaded, setIsWebViewLoaded] = useState<boolean>(false);
-  const [isScrollEnded, setIsScrollEnded] = useState<boolean>(false);
-  const [isCheckboxSelected, setIsCheckboxSelected] = useState<boolean>(false);
+  const [isScrollEnded, setIsScrollEnded] = useState<boolean>(true);
+  const [isCheckboxSelected, setIsCheckboxSelected] = useState<boolean>(true);
 
   const scrollRef = useRef<ScrollView>(null);
 
@@ -96,7 +94,6 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         scrollToEndWebView();
         return;
       }
-      webViewRef.current?.injectJavaScript(scrollToEndJS);
     }
     scrollRef.current?.scrollToEnd({ animated: true });
   };
@@ -178,22 +175,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
       ? { uri: webviewBody.uri }
       : { html: webviewBody.html };
 
-    return (
-      <WebView
-        ref={webViewRef}
-        nestedScrollEnabled
-        source={source}
-        injectedJavaScript={isScrollEndedJS}
-        onLoad={() => setIsWebViewLoaded(true)}
-        onMessage={onMessage}
-        onScroll={({ nativeEvent }) =>
-          isCloseToBottom(nativeEvent as NativeScrollEvent)
-        }
-        {...(source.uri && {
-          onShouldStartLoadWithRequest: (req) => source.uri === req.url,
-        })}
-      />
-    );
+    return null
   };
 
   const renderBody = () => {

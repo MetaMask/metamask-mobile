@@ -1,8 +1,7 @@
-import React from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import React, { View} from 'react';
 
 const withSafeArea = (story: any) => (
-  <SafeAreaProvider>{story()}</SafeAreaProvider>
+  <View>{story()}</View>
 );
 
 export default withSafeArea;

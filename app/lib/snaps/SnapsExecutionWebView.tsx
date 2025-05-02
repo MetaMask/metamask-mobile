@@ -107,23 +107,7 @@ export class SnapsExecutionWebView extends Component {
   }
 
   render() {
-    return (
-      <View style={styles.container}>
-        {Object.entries(this.webViews).map(([key, { props }]) => (
-          <WebView
-            testID={key}
-            key={key}
-            ref={props.ref}
-            source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
-            onMessage={props.onWebViewMessage}
-            onError={props.onWebViewError}
-            onLoadEnd={props.onWebViewLoad}
-            originWhitelist={['*']}
-            javaScriptEnabled
-          />
-        ))}
-      </View>
-    );
+    return null
   }
 }
 ///: END:ONLY_INCLUDE_IF
