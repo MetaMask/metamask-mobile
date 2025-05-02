@@ -259,6 +259,7 @@
     "@solana/addresses": "2.0.0",
     "@tradle/react-native-http": "2.0.1",
     "@types/he": "^1.2.3",
+    "@viem/anvil": "^0.0.10",
     "@types/react-test-renderer": "^18.0.0",
     "@walletconnect/client": "^1.8.0",
     "@walletconnect/core": "^2.19.2",
@@ -398,6 +399,7 @@
     "url-parse": "1.5.9",
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
+    "viem": "^2.28.0",
     "vm-browserify": "1.1.2",
     "zxcvbn": "4.4.2"
   },
@@ -628,6 +630,8 @@
       "appium>@appium/support>sharp": false,
       "@metamask/eth-ledger-bridge-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false,
       "@storybook/addon-ondevice-controls>core-js": false,
+      "viem>ws>bufferutil": false,
+      "viem>ws>utf-8-validate": false,
       "detox>@wix-pilot/core>canvas": true
     }
   },
