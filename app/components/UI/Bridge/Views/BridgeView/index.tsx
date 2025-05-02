@@ -34,8 +34,9 @@ import {
   selectIsEvmSolanaBridge,
   selectIsSolanaSwap,
   setSlippage,
+  selectIsSubmittingTx,
+  setIsSubmittingTx,
 } from '../../../../../core/redux/slices/bridge';
-import { ethers } from 'ethers';
 import {
   useNavigation,
   useRoute,
@@ -47,7 +48,6 @@ import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
@@ -71,11 +71,16 @@ import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
-  const [isSubmittingTx, setIsSubmittingTx] = useState(false);
-  // The same as getUseExternalServices in Extension
-  const isBasicFunctionalityEnabled = useSelector(
-    selectBasicFunctionalityEnabled,
-  );
+  const isSubmittingTx = useSelector(selectIsSubmittingTx);
+
+  // Ref necessary to avoid race condition between Redux state and component state
+  // Without it, the component would reset the bridge state when it shouldn't
+  const isSubmittingTxRef = useRef(isSubmittingTx);
+
+  // Update ref when Redux state changes
+  useEffect(() => {
+    isSubmittingTxRef.current = isSubmittingTx;
+  }, [isSubmittingTx]);
 
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
@@ -138,10 +143,7 @@ const BridgeView = () => {
   });
 
   const isValidSourceAmount =
-    !!sourceAmount &&
-    sourceAmount !== '.' &&
-    sourceToken?.decimals &&
-    !ethers.utils.parseUnits(sourceAmount, sourceToken.decimals).isZero();
+    sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
   const hasValidBridgeInputs =
     isValidSourceAmount && !!sourceToken && !!destToken;
@@ -149,7 +151,8 @@ const BridgeView = () => {
   const hasInsufficientBalance = quoteRequest?.insufficientBal;
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
-  const shouldDisplayKeypad = isInputFocused || !hasValidBridgeInputs;
+  const shouldDisplayKeypad =
+    isInputFocused || !hasValidBridgeInputs || !activeQuote;
   const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
 
   // Compute error state directly from dependencies
@@ -178,10 +181,13 @@ const BridgeView = () => {
   // Reset bridge state when component unmounts
   useEffect(
     () => () => {
-      dispatch(resetBridgeState());
-      // Clear bridge controller state if available
-      if (Engine.context.BridgeController?.resetState) {
-        Engine.context.BridgeController.resetState();
+      // Only reset state if we're not in the middle of a transaction
+      if (!isSubmittingTxRef.current) {
+        dispatch(resetBridgeState());
+        // Clear bridge controller state if available
+        if (Engine.context.BridgeController?.resetState) {
+          Engine.context.BridgeController.resetState();
+        }
       }
     },
     [dispatch],
@@ -190,23 +196,6 @@ const BridgeView = () => {
   useEffect(() => {
     navigation.setOptions(getBridgeNavbar(navigation, route, colors));
   }, [navigation, route, colors]);
-
-  useEffect(() => {
-    const setBridgeFeatureFlags = async () => {
-      try {
-        if (
-          isBasicFunctionalityEnabled &&
-          Engine.context.BridgeController?.setBridgeFeatureFlags
-        ) {
-          await Engine.context.BridgeController.setBridgeFeatureFlags();
-        }
-      } catch (error) {
-        console.error('Error setting bridge feature flags', error);
-      }
-    };
-
-    setBridgeFeatureFlags();
-  }, [isBasicFunctionalityEnabled]);
 
   const hasTrackedPageView = useRef(false);
   useEffect(() => {
@@ -251,11 +240,12 @@ const BridgeView = () => {
 
   const handleContinue = async () => {
     if (activeQuote) {
-      setIsSubmittingTx(true);
+      dispatch(setIsSubmittingTx(true));
       await submitBridgeTx({
         quoteResponse: activeQuote,
       });
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      dispatch(setIsSubmittingTx(false));
     }
   };
 

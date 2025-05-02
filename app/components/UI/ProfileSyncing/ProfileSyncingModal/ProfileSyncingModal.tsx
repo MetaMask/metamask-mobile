@@ -15,19 +15,20 @@ import {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
-import { useDisableProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
+import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
+import { useBackupAndSync } from '../../../../util/identity/hooks/useBackupAndSync';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import ModalContent from '../../Notification/Modal';
 import { InteractionManager } from 'react-native';
+import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
 
 const ProfileSyncingModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
-  const { disableProfileSyncing } = useDisableProfileSyncing();
+  const { setIsBackupAndSyncFeatureEnabled } = useBackupAndSync();
 
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -35,9 +36,12 @@ const ProfileSyncingModal = () => {
   // TODO: Handle errror/loading states from enabling/disabling profile syncing
   const closeBottomSheet = () => {
     bottomSheetRef.current?.onCloseBottomSheet(async () => {
-      if (isProfileSyncingEnabled) {
+      if (isBackupAndSyncEnabled) {
         InteractionManager.runAfterInteractions(async () => {
-          await disableProfileSyncing();
+          await setIsBackupAndSyncFeatureEnabled(
+            BACKUPANDSYNC_FEATURES.main,
+            false,
+          );
         });
       }
       trackEvent(
@@ -45,8 +49,8 @@ const ProfileSyncingModal = () => {
           .addProperties({
             settings_group: 'security_privacy',
             settings_type: 'profile_syncing',
-            old_value: isProfileSyncingEnabled,
-            new_value: !isProfileSyncingEnabled,
+            old_value: isBackupAndSyncEnabled,
+            new_value: !isBackupAndSyncEnabled,
             was_notifications_on: isMetamaskNotificationsEnabled,
           })
           .build(),
@@ -62,7 +66,7 @@ const ProfileSyncingModal = () => {
     bottomSheetRef.current?.onCloseBottomSheet();
   };
 
-  const turnContent = !isProfileSyncingEnabled
+  const turnContent = !isBackupAndSyncEnabled
     ? {
         icon: {
           name: IconName.Check,
@@ -95,7 +99,7 @@ const ProfileSyncingModal = () => {
         btnLabelCta={turnContent.bottomSheetCTA}
         isChecked={isChecked}
         setIsChecked={setIsChecked}
-        hascheckBox={isProfileSyncingEnabled}
+        hascheckBox={isBackupAndSyncEnabled}
         handleCta={handleCta}
         handleCancel={handleCancel}
       />
