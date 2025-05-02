@@ -247,8 +247,26 @@ buildAndroidRunQA(){
 
 buildAndroidRunFlask(){
 	prebuild_android
-	#react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
-	npx expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug'
+	# Add debug info
+	echo "METAMASK_BUILD_TYPE: ${METAMASK_BUILD_TYPE}"
+	echo "Running with Flask variant, which should use app ID: io.metamask.flask"
+	
+	# Build the debug app explicitly first to ensure we have the proper app ID
+	cd android && ./gradlew assembleFlaskDebug --no-daemon && cd ..
+	
+	# Install the explicitly built APK with the correct package name
+	adb install -r android/app/build/outputs/apk/flask/debug/app-flask-debug.apk
+	
+	# Launch the app
+	echo "Launching app: io.metamask.flask"
+	adb shell am start -n io.metamask.flask/io.metamask.MainActivity
+	
+	# Provide instructions for starting the development server
+	echo ""
+	echo "🚀 App installed and launched successfully!"
+	echo "📱 Now start the Metro development server in a separate terminal with:"
+	echo "    yarn watch"
+	echo ""
 }
 
 buildIosDevBuild(){
