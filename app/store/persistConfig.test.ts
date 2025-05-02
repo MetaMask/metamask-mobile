@@ -7,11 +7,38 @@ import Engine from '../core/Engine';
 import { Transform } from 'redux-persist';
 import { EngineContext } from '../core/Engine/types';
 
+interface FieldMetadata {
+  persist: boolean;
+  anonymous: boolean;
+}
+
+interface ControllerMetadata {
+  [key: string]: FieldMetadata;
+}
+
 // Mock dependencies
 jest.mock('@react-native-async-storage/async-storage');
 jest.mock('redux-persist-filesystem-storage');
 jest.mock('../util/device');
 jest.mock('../util/Logger');
+jest.mock('@metamask/base-controller', () => ({
+  getPersistentState: (
+    state: Record<string, unknown>,
+    metadata: ControllerMetadata | undefined,
+  ) => {
+    if (!metadata) return {};
+    return Object.entries(state).reduce<Record<string, unknown>>(
+      (acc, [key, value]) => {
+        const fieldMetadata = metadata[key];
+        if (fieldMetadata?.persist) {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {},
+    );
+  },
+}));
 
 // Mock redux-persist
 jest.mock('redux-persist', () => ({
@@ -261,7 +288,12 @@ describe('persistConfig', () => {
         const mockContext = {
           KeyringController: {
             metadata: {
-              persist: ['vault'],
+              vault: { persist: true, anonymous: false },
+              isUnlocked: { persist: false, anonymous: true },
+              keyrings: { persist: false, anonymous: false },
+              keyringsMetadata: { persist: true, anonymous: false },
+              encryptionKey: { persist: false, anonymous: false },
+              encryptionSalt: { persist: false, anonymous: false },
             },
           },
         } as unknown as EngineContext;
@@ -277,6 +309,143 @@ describe('persistConfig', () => {
         const result = engineTransform.in(state, 'engine', {});
         expect(result).toEqual({
           backgroundState: {},
+        });
+      });
+
+      it('filters controller state based on metadata', () => {
+        const mockContext = {
+          KeyringController: {
+            metadata: {
+              vault: { persist: true, anonymous: false },
+              isUnlocked: { persist: false, anonymous: true },
+              keyrings: { persist: false, anonymous: false },
+              keyringsMetadata: { persist: true, anonymous: false },
+              encryptionKey: { persist: false, anonymous: false },
+              encryptionSalt: { persist: false, anonymous: false },
+            },
+          },
+        } as unknown as EngineContext;
+        (Engine as unknown as MockEngine).setMockContext(mockContext);
+
+        const state = {
+          backgroundState: {
+            KeyringController: {
+              vault: 'encrypted-vault-data',
+              isUnlocked: true,
+              keyrings: ['keyring1', 'keyring2'],
+              keyringsMetadata: { keyring1: { name: 'HD Key Tree' } },
+              encryptionKey: 'secret-key',
+              encryptionSalt: 'salt-value',
+            },
+          },
+        };
+
+        const result = engineTransform.in(state, 'engine', {});
+        expect(result).toEqual({
+          backgroundState: {
+            KeyringController: {
+              vault: 'encrypted-vault-data',
+              keyringsMetadata: { keyring1: { name: 'HD Key Tree' } },
+            },
+          },
+        });
+      });
+
+      it('handles multiple controllers with different metadata', () => {
+        const mockContext = {
+          KeyringController: {
+            metadata: {
+              vault: { persist: true, anonymous: false },
+              isUnlocked: { persist: false, anonymous: true },
+              keyrings: { persist: false, anonymous: false },
+              keyringsMetadata: { persist: true, anonymous: false },
+              encryptionKey: { persist: false, anonymous: false },
+              encryptionSalt: { persist: false, anonymous: false },
+            },
+          },
+          PreferencesController: {
+            metadata: {
+              selectedAddress: { persist: true, anonymous: false },
+              identities: { persist: true, anonymous: false },
+              frequentRpcList: { persist: true, anonymous: false },
+              currentLocale: { persist: true, anonymous: false },
+              useBlockie: { persist: true, anonymous: false },
+              useCurrencyRateCheck: { persist: true, anonymous: false },
+              useTokenDetection: { persist: true, anonymous: false },
+              useNftDetection: { persist: true, anonymous: false },
+              useCollectibleDetection: { persist: true, anonymous: false },
+              useMultiAccountBalanceChecker: {
+                persist: true,
+                anonymous: false,
+              },
+              useAddressBarEnsResolution: { persist: true, anonymous: false },
+              useTransactionSimulations: { persist: true, anonymous: false },
+              useGasFeesInEth: { persist: true, anonymous: false },
+              useNonceField: { persist: true, anonymous: false },
+              usePhishDetect: { persist: true, anonymous: false },
+              useTokenAutodetect: { persist: true, anonymous: false },
+            },
+          },
+        } as unknown as EngineContext;
+        (Engine as unknown as MockEngine).setMockContext(mockContext);
+
+        const state = {
+          backgroundState: {
+            KeyringController: {
+              vault: 'encrypted-vault-data',
+              isUnlocked: true,
+              keyrings: ['keyring1', 'keyring2'],
+              keyringsMetadata: { keyring1: { name: 'HD Key Tree' } },
+              encryptionKey: 'secret-key',
+              encryptionSalt: 'salt-value',
+            },
+            PreferencesController: {
+              selectedAddress: '0x123',
+              identities: { '0x123': { name: 'Account 1' } },
+              frequentRpcList: [],
+              currentLocale: 'en',
+              useBlockie: true,
+              useCurrencyRateCheck: true,
+              useTokenDetection: true,
+              useNftDetection: true,
+              useCollectibleDetection: true,
+              useMultiAccountBalanceChecker: true,
+              useAddressBarEnsResolution: true,
+              useTransactionSimulations: true,
+              useGasFeesInEth: true,
+              useNonceField: true,
+              usePhishDetect: true,
+              useTokenAutodetect: true,
+            },
+          },
+        };
+
+        const result = engineTransform.in(state, 'engine', {});
+        expect(result).toEqual({
+          backgroundState: {
+            KeyringController: {
+              vault: 'encrypted-vault-data',
+              keyringsMetadata: { keyring1: { name: 'HD Key Tree' } },
+            },
+            PreferencesController: {
+              selectedAddress: '0x123',
+              identities: { '0x123': { name: 'Account 1' } },
+              frequentRpcList: [],
+              currentLocale: 'en',
+              useBlockie: true,
+              useCurrencyRateCheck: true,
+              useTokenDetection: true,
+              useNftDetection: true,
+              useCollectibleDetection: true,
+              useMultiAccountBalanceChecker: true,
+              useAddressBarEnsResolution: true,
+              useTransactionSimulations: true,
+              useGasFeesInEth: true,
+              useNonceField: true,
+              usePhishDetect: true,
+              useTokenAutodetect: true,
+            },
+          },
         });
       });
     });
