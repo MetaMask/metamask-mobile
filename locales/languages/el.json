@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Ύποπτο αίτημα σύνδεσης",
       "message": "Ο ιστότοπος που υποβάλλει το αίτημα δεν είναι ο ιστότοπος στον οποίο συνδέεστε. Ενδέχεται να πρόκειται για απόπειρα κλοπής των στοιχείων σύνδεσής σας."
+    },
+    "insufficient_balance": {
+      "title": "Ανεπαρκές ποσό",
+      "message": "Δεν έχετε αρκετά %{nativeCurrency} στον λογαριασμό σας για να πληρώσετε τα τέλη δικτύου.",
+      "buy_action": "Αγοράστε %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "σε"
   },
   "autocomplete": {
-    "placeholder": "Αναζήτηση ανά ιστότοπο ή διεύθυνση",
+    "placeholder": "Αναζήτηση ανά token, ιστότοπο ή διεύθυνση",
     "recents": "Πρόσφατα",
     "favorites": "Αγαπημένα",
-    "sites": "Ιστότοποι"
+    "sites": "Ιστότοποι",
+    "tokens": "Token"
   },
   "navigation": {
     "back": "Πίσω",
@@ -438,8 +444,8 @@
       "subtitle": "Διαχειριστείτε την προβολή του υπολοίπου σας στις ρυθμίσεις"
     },
     "multisrp": {
-      "title": "Add multiple Secret Recovery Phrases",
-      "subtitle": "Import and use multiple wallets in MetaMask"
+      "title": "Προσθήκη πολλαπλών Φράσεων Μυστικής Ανάκτησης",
+      "subtitle": "Εισαγωγή και χρήση πολλαπλών πορτοφολιών στο MetaMask"
     }
   },
   "wallet": {
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "Η Μυστική Φράση Ανάκτησης από την οποία θα δημιουργηθεί ο νέος σας λογαριασμός",
     "accounts": "λογαριασμοί",
     "show_accounts": "Εμφάνιση",
-    "hide_accounts": "Απόκρυψη"
+    "hide_accounts": "Απόκρυψη",
+    "labels": {
+      "bitcoin_testnet_account_name": "Λογαριασμός στο Bitcoin Testnet",
+      "bitcoin_account_name": "Λογαριασμός στο Bitcoin",
+      "solana_devnet_account_name": "Λογαριασμός στο Solana Devnet",
+      "solana_testnet_account_name": "Λογαριασμός στο Solana Testnet",
+      "solana_account_name": "Λογαριασμός στο Solana"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Απέτυχε η δημιουργία λογαριασμού στο {{clientType}}"
+    }
   },
   "toast": {
     "connected_and_active": "συνδεδεμένοι και ενεργοί.",
@@ -966,11 +982,11 @@
     "networks_desc": "Προσθέστε και επεξεργαστείτε προσαρμοσμένα δίκτυα RPC",
     "network_name_label": "Όνομα Δικτύου",
     "network_name_placeholder": "Όνομα Δικτύου (προαιρετικό)",
-    "network_rpc_url_label": "RPC URL",
+    "network_rpc_url_label": "Διεύθυνση URL του RPC",
     "network_rpc_name_label": "Όνομα του RPC",
     "network_rpc_placeholder": "Νέο Δίκτυο RPC",
-    "network_failover_rpc_url_label": "Failover RPC URL",
-    "failover": "Failover",
+    "network_failover_rpc_url_label": "Απέτυχε η διεύθυνση URL του RPC",
+    "failover": "Αποτυχία",
     "network_chain_id_label": "Αναγνωριστικό αλυσίδας",
     "network_chain_id_placeholder": "Αναγνωριστικό αλυσίδας",
     "network_symbol_label": "Σύμβολο",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snaps",
       "description": "Επισκόπηση και διαχείριση των snaps σας",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Ανοίγει σε νέα καρτέλα"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Αφαίρεση του snap",
         "remove_snap_section_description": "Αυτή η ενέργεια θα διαγράψει το snap, τα δεδομένα του και τις άδειες που του έχουν χορηγηθεί.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "ΑΡΓΑ",
     "hex_data": "Δεκαεξαδικά Δεδομένα",
     "custom_nonce": "Αριθμός συναλλαγής (nonce)",
+    "custom_nonce_tooltip": "Αυτός είναι ο αριθμός συναλλαγής του λογαριασμού. Το nonce για την πρώτη συναλλαγή είναι 0 και αυξάνεται με διαδοχική σειρά.",
     "this_is_an_advanced": "Αυτή είναι μια λειτουργία για προχωρημένους που χρησιμοποιείται για να ακυρώσει ή να επιταχύνει τυχόν εκκρεμείς συναλλαγές.",
     "current_suggested_nonce": "Τρέχον προτεινόμενο nonce:",
     "edit_transaction_nonce": "Επεξεργασία nonce συναλλαγής",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "Μη διαθέσιμο",
     "smart_contract_interaction": "Αλληλεπίδραση έξυπνου συμβολαίου",
     "swaps_transaction": "Συναλλαγή ανταλλαγής",
+    "bridge_transaction": "Διασύνδεση",
     "approve": "Έγκριση",
     "increase_allowance": "Αύξηση των αποδοχών",
     "set_approval_for_all": "Ορίστε την έγκριση για όλους",
@@ -2090,7 +2113,7 @@
     "info_text_2": "Αυτό θα διασφαλίσει ότι μόνο εσείς έχετε πρόσβαση στα χρήματά σας και θα σας επιτρέψει να ανακτήσετε το πορτοφόλι σας εάν χάσετε τη συσκευή σας.",
     "cta_text": "Δημιουργία κωδικού πρόσβασης",
     "creating_password": "Δημιουργία κωδικού πρόσβασης...",
-    "srp_list_selection": "Select Secret Recovery Phrase"
+    "srp_list_selection": "Επιλέξτε τη Μυστική Φράση Ανάκτησης"
   },
   "account_backup_step_1": {
     "remind_me_later": "Υπενθυμίστε μου αργότερα",
@@ -2731,7 +2754,7 @@
     "minimum": "Η ελάχιστη κατάθεση είναι",
     "maximum": "Η μέγιστη κατάθεση είναι",
     "insufficient_balance": "Το ποσό αυτό είναι μεγαλύτερο από το υπόλοιπό σας",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "Δεν έχετε αρκετά {{currency}} για να καλύψετε τα τέλη συναλλαγών.",
     "enter_larger_amount": "Πληκτρολογήστε μεγαλύτερο ποσό για να συνεχίσετε",
     "enter_smaller_amount": "Πληκτρολογήστε μικρότερο ποσό για να συνεχίσετε",
     "enter_lower_gas_fees": "Πληκτρολογήστε ένα χαμηλότερο ποσό για την καταβολή των τελών συναλλαγών",
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Ανταλλαγή",
     "onboarding": {
       "get_the": "Πάρτε την",
       "best_price": "καλύτερη τιμή",
@@ -3780,19 +3804,22 @@
       "permit": "Αίτημα ανώτατου ορίου δαπανών",
       "permit_revoke": "Κατάργηση άδειας",
       "permit_NFTs": "Αίτημα ανάληψης",
-      "signature_siwe": "Αίτημα σύνδεσης"
+      "signature_siwe": "Αίτημα σύνδεσης",
+      "contract_interaction": "Αίτημα συναλλαγής"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
       "permit_NFTs": "Αυτός ο ιστότοπος θέλει άδεια για την ανάληψη των NFT σας.",
       "signature": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν επιβεβαιώσετε.",
-      "signature_siwe": "Ένας ιστότοπος θέλει να συνδεθείτε για να αποδείξετε ότι είστε ο κάτοχος αυτού του λογαριασμού."
+      "signature_siwe": "Ένας ιστότοπος θέλει να συνδεθείτε για να αποδείξετε ότι είστε ο κάτοχος αυτού του λογαριασμού.",
+      "contract_interaction": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν το επιβεβαιώσετε."
     },
     "request_from": "Ζητήθηκε από",
     "staking_from": "Ποντάρισμα από",
     "signing_in_with": "Σύνδεση με",
     "message": "Μήνυμα",
     "personal_sign_tooltip": "Αυτός ο ιστότοπος ζητάει την υπογραφή σας",
+    "transaction_tooltip": "Αυτός ο ιστότοπος ζητά κάτι για τη συναλλαγή σας",
     "details": "Λεπτομέρειες",
     "qr_get_sign": "Λήψη υπογραφής",
     "qr_scan_text": "Σαρώστε με το πορτοφόλι υλικού σας",
@@ -3827,7 +3854,10 @@
       "unavailable": "Μη διαθέσιμο"
     },
     "unlimited": "Απεριόριστα",
-    "none": "Τίποτα"
+    "none": "Τίποτα",
+    "advanced_details": "Λεπτομέρειες για προχωρημένους",
+    "interacting_with": "Αλληλεπίδραση με",
+    "review": "Review"
   },
   "change_in_simulation_modal": {
     "title": "Τα αποτελέσματα έχουν αλλάξει",
@@ -3868,6 +3898,34 @@
     "time": "Ώρα",
     "quote_info_content": "Αυτή η προσφορά παρέχει την καλύτερη απόδοση από την αναζήτησή μας. Βασίζεται στο επιτόκιο swap (ανταλλαγής), συμπεριλαμβανομένων των τελών διασύνδεσης και μια χρέωση 0,875% στο MetaMask, αλλά όχι των τελών συναλλαγών. Τα τέλη συναλλαγών ποικίλλουν ανάλογα με τη δραστηριότητα του δικτύου και την πολυπλοκότητα της συναλλαγής.",
     "quote_info_title": "Γιατί προτείνουμε αυτή την προσφορά",
-    "see_other_quotes": "Δείτε άλλες προσφορές"
+    "see_other_quotes": "Δείτε άλλες προσφορές",
+    "receive_at": "Θα λάβετε στις",
+    "error_banner_description": "Αυτή η διαδρομή συναλλαγών δεν είναι διαθέσιμη προς το παρόν. Δοκιμάστε να αλλάξετε το ποσό, το δίκτυο ή το token και θα βρούμε την καλύτερη επιλογή.",
+    "insufficient_funds": "Ανεπαρκές ποσό",
+    "select_amount": "Επιλέξτε ποσό",
+    "bridge_to": "Διασύνδεση προς",
+    "title": "Διασύνδεση",
+    "submitting_transaction": "Υποβολή",
+    "fetching_quote": "Λήψη προσφοράς"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Κατάσταση",
+    "date": "Ημερομηνία",
+    "total_gas_fee": "Σύνολο τελών συναλλαγών",
+    "estimated_completion": "Εκτ. ολοκλήρωση",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} ελήφθη στο {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Ελήφθησαν {{destSymbol}} στο {{destChainName}}",
+    "bridge_step_action_swap_complete": "Ανταλλάξατε {{srcSymbol}} για {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Ανταλλαγή {{srcSymbol}} για {{destSymbol}}",
+    "view_on_block_explorer": "Προβολή στο Block Explorer",
+    "block_explorer_description": "Αυτή η συναλλαγή βρίσκεται σε δύο δίκτυα. Ο πρώτος σύνδεσμος εμφανίζει την πηγή, ο δεύτερος εμφανίζει τον προορισμό μόλις επιβεβαιωθεί.",
+    "transaction_details": "Λεπτομέρειες συναλλαγής",
+    "bridge_to_chain": "Διασύνδεση προς {{chainName}}",
+    "recipient": "Αποδέκτης"
   }
 }

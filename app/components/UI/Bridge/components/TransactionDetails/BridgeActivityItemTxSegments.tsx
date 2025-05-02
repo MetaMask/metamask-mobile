@@ -1,9 +1,6 @@
 import React from 'react';
 import { TransactionStatus } from '@metamask/transaction-controller';
-import {
-  BridgeHistoryItem,
-  StatusTypes,
-} from '@metamask/bridge-status-controller';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
@@ -11,6 +8,7 @@ import { Box } from '../../../Box/Box';
 import Segment from './Segment';
 import { FlexDirection } from '../../../Box/box.types';
 import { Transaction } from '@metamask/keyring-api';
+import { StatusTypes } from '@metamask/bridge-controller';
 
 const getTxIndex = (srcTxStatus: StatusTypes) => {
   if (srcTxStatus === StatusTypes.PENDING) {
@@ -24,7 +22,9 @@ const getTxIndex = (srcTxStatus: StatusTypes) => {
   throw new Error('No more possible states for srcTxStatus');
 };
 
-const getSrcTxStatus = (transactionStatus: TransactionStatus | Transaction['status']) =>
+const getSrcTxStatus = (
+  transactionStatus: TransactionStatus | Transaction['status'],
+) =>
   transactionStatus === TransactionStatus.confirmed
     ? StatusTypes.COMPLETE
     : StatusTypes.PENDING;

@@ -1,4 +1,3 @@
-import { NETWORKS_CHAIN_ID } from '../constants/network';
 import { selectSmartTransactionsOptInStatus } from './preferencesController';
 import { RootState } from '../reducers';
 import { swapsSmartTxFlagEnabled } from '../reducers/swaps';
@@ -11,23 +10,8 @@ import {
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { createDeepEqualSelector } from './util';
-import { isProduction } from '../util/environment';
 import { Hex } from '@metamask/utils';
-
-const getIsAllowedRpcUrlForSmartTransactions = (rpcUrl?: string) => {
-  // Allow in non-production environments.
-  if (!isProduction()) {
-    return true;
-  }
-
-  const hostname = rpcUrl && new URL(rpcUrl).hostname;
-
-  return (
-    hostname?.endsWith('.infura.io') ||
-    hostname?.endsWith('.binance.org') ||
-    false
-  );
-};
+import { getIsAllowedRpcUrlForSmartTransactions } from '../util/smart-transactions';
 
 export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   [
@@ -59,10 +43,8 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
       isAllowedNetwork &&
         !addressIsHardwareAccount &&
         getIsAllowedRpcUrlForSmartTransactions(providerConfigRpcUrl) &&
-        smartTransactionsFeatureFlagEnabled,
-      // TODO: "fetchLiveness" fn from the STX controller has to be called with the right networkClientId,
-      // and then the smartTransactionsState?.liveness will return the correct value.
-      // smartTransactionsLiveness,
+        smartTransactionsFeatureFlagEnabled &&
+        smartTransactionsLiveness,
     );
   },
 );

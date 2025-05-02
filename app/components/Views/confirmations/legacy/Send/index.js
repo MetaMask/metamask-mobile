@@ -822,7 +822,7 @@ const mapStateToProps = (state) => {
     tokenList: selectTokenList(state),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(
       state,
-      state.transaction?.chainId, // TODO: Verify if this is correct.
+      state.transaction?.chainId,
     ),
   };
 };

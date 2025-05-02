@@ -205,7 +205,7 @@ export function useSwitchNetworks({
         await MultichainNetworkController.setActiveNetwork(clientId);
 
         closeRpcModal?.();
-        AccountTrackerController.refresh();
+        AccountTrackerController.refresh([clientId]);
 
         // Update incoming transactions after a delay
         setTimeout(async () => {

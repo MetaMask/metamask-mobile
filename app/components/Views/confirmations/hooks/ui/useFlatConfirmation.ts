@@ -1,12 +1,11 @@
 import { TransactionType } from '@metamask/transaction-controller';
 
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-
-const FLAT_TRANSACTION_CONFIRMATIONS: TransactionType[] = [
-  TransactionType.stakingDeposit,
-  TransactionType.stakingUnstake,
-  TransactionType.stakingClaim,
-];
+import {
+  MMM_ORIGIN,
+  REDESIGNED_TRANSFER_TYPES,
+  FLAT_TRANSACTION_CONFIRMATIONS,
+} from '../../constants/confirmations';
 
 export const useFlatConfirmation = () => {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -14,6 +13,15 @@ export const useFlatConfirmation = () => {
   const isFlatConfirmation = FLAT_TRANSACTION_CONFIRMATIONS.includes(
     transactionMetadata?.type as TransactionType,
   );
+
+  if (
+    REDESIGNED_TRANSFER_TYPES.includes(
+      transactionMetadata?.type as TransactionType,
+    ) &&
+    transactionMetadata?.origin === MMM_ORIGIN
+  ) {
+    return { isFlatConfirmation: true };
+  }
 
   return { isFlatConfirmation };
 };
