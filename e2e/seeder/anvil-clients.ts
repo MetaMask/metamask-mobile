@@ -14,7 +14,6 @@ import { anvil as baseAnvil } from 'viem/chains';
  * - testClient: For testing and development operations
  * - walletClient: For wallet operations and signing transactions
  */
-
 function createAnvilClients(chainId: number, port: number) {
   const anvil = {
     ...baseAnvil,
@@ -23,26 +22,26 @@ function createAnvilClients(chainId: number, port: number) {
       default: {
         http: [`http://localhost:${port}`],
       },
-    };
-  
-    const publicClient = createPublicClient({
-      chain: anvil,
-      transport: http(`http://localhost:${port}`),
-    });
-  
-    const testClient = createTestClient({
-      chain: anvil,
-      mode: 'anvil',
-      transport: http(`http://localhost:${port}`),
-    });
-  
-    const walletClient = createWalletClient({
-      chain: anvil,
-      transport: http(`http://localhost:${port}`),
-    });
-  
-    return { publicClient, testClient, walletClient };
-  }
-  
-  export { createAnvilClients };
-  
+    },
+  };
+
+  const publicClient = createPublicClient({
+    chain: anvil,
+    transport: http(`http://localhost:${port}`),
+  });
+
+  const testClient = createTestClient({
+    chain: anvil,
+    mode: 'anvil',
+    transport: http(`http://localhost:${port}`),
+  });
+
+  const walletClient = createWalletClient({
+    chain: anvil,
+    transport: http(`http://localhost:${port}`),
+  });
+
+  return { publicClient, testClient, walletClient };
+}
+
+export { createAnvilClients };
