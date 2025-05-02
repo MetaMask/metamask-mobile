@@ -7,14 +7,6 @@ interface AnimatedPulseProps extends ViewProps {
   minCycles?: number;
 }
 
-/**
- * @todo move to components-temp
- * @see {@link https://github.com/MetaMask/metamask-mobile/issues/13117}
- *
- * AnimatedPulse component
- * @param {AnimatedPulseProps} props - The props for the AnimatedPulse component
- * @returns {React.ReactNode} The AnimatedPulse component
- */
 const AnimatedPulse = ({
   children,
   isPulsing = true,
