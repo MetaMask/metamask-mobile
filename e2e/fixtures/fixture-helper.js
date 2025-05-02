@@ -1,7 +1,9 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
 import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
 import FixtureBuilder from './fixture-builder';
+import { AnvilManager } from '../seeder/anvil-manager';
 import Ganache from '../../app/util/test/ganache';
+
 import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import path from 'path';
@@ -115,9 +117,13 @@ export async function withFixtures(options, testSuite) {
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
   }
 
-  let ganacheServer;
+  let anvilServer;
+  // let ganacheServer;
+
   if (!disableGanache) {
-    ganacheServer = new Ganache();
+    anvilServer = new AnvilManager();
+    // ganacheServer = new Ganache();
+
   }
   const dappBasePort = getLocalTestDappPort();
   let numberOfDapps = dapp ? 1 : 0;
@@ -125,15 +131,25 @@ export async function withFixtures(options, testSuite) {
 
   try {
     let contractRegistry;
-    if (ganacheOptions && !disableGanache) {
-      await ganacheServer.start(ganacheOptions);
+    // if (ganacheOptions && !disableGanache) {
+      // await ganacheServer.start(ganacheOptions);
+
+      await anvilServer.start({
+        mnemonic: 'drive manage close raven tape average sausage pledge riot furnace august tip',
+        ...(ganacheOptions || {})
+      });
+      // await anvilServer.setAccountBalance(DEFAULT_FIXTURE_ACCOUNT, '1200');
+      await anvilServer.setAccountBalance('1200');
 
       if (smartContract) {
-        const ganacheSeeder = new GanacheSeeder(ganacheServer.getProvider());
+        // const ganacheSeeder = new GanacheSeeder(ganacheServer.getProvider());
+
+        const ganacheSeeder = new GanacheSeeder(anvilServer.getProvider());
         await ganacheSeeder.deploySmartContract(smartContract);
         contractRegistry = ganacheSeeder.getContractRegistry();
+      //}
       }
-    }
+    
 
     if (dapp) {
       if (dappOptions?.numberOfDapps) {
@@ -171,26 +187,28 @@ export async function withFixtures(options, testSuite) {
     );
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
-      if (restartDevice) {
-        await TestHelpers.launchApp({
-          delete: true,
-          launchArgs: {
-            fixtureServerPort: `${getFixturesServerPort()}`,
-            detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-            mockServerPort: `${mockServerPort}`,
-            ...(launchArgs || {}),
-          },
-        });
+    if (restartDevice) {
+      await TestHelpers.launchApp({
+        delete: true,
+        launchArgs: {
+          fixtureServerPort: `${getFixturesServerPort()}`,
+          detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+          mockServerPort: `${mockServerPort}`,
+          ...(launchArgs || {}),
+        },
+      });
     }
 
-    await testSuite({ contractRegistry, mockServer });
+    await testSuite({ contractRegistry, mockServer, anvilServer }); // temporarily passing Anvil server
   } catch (error) {
     console.error(error);
     throw error;
   } finally {
-    if (ganacheOptions && !disableGanache) {
-      await ganacheServer.quit();
-    }
+    // if (ganacheOptions && !disableGanache) {
+      await anvilServer.quit();
+      // await ganacheServer.quit();
+
+    // }
     if (dapp) {
       for (let i = 0; i < numberOfDapps; i++) {
         if (dappServer[i] && dappServer[i].listening) {
