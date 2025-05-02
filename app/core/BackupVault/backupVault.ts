@@ -44,10 +44,10 @@ const _resetTemporaryVaultBackup = async (): Promise<void> => {
 /**
  * Clears all vault backups from react-native-keychain
  */
-export const clearAllVaultBackups = async (): Promise<void> => {
+export async function clearAllVaultBackups() {
   await _resetVaultBackup();
   await _resetTemporaryVaultBackup();
-};
+}
 
 /**
  * places the vault in react-native-keychain for backup
