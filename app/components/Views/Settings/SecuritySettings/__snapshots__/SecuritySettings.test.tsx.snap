@@ -665,7 +665,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
       >
         This feature alerts you to malicious activity by actively reviewing transaction and signature requests.
-
+         
         <Text
           accessibilityRole="text"
           onPress={[Function]}
@@ -795,7 +795,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
           >
-            MetaMask offers basic features like token details and gas settings through internet services. When you use internet services, your IP address is shared, in this case with MetaMask. This is just like when you visit any website. MetaMask uses this data temporarily and never sells your data. You can use a VPN or turn off these services, but it may affect your MetaMask experience. Read our
+            MetaMask offers basic features like token details and gas settings through internet services. When you use internet services, your IP address is shared, in this case with MetaMask. This is just like when you visit any website. MetaMask uses this data temporarily and never sells your data. You can use a VPN or turn off these services, but it may affect your MetaMask experience. Read our 
             <Text
               accessibilityRole="text"
               onPress={[Function]}
@@ -1281,7 +1281,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          MetaMask uses a third-party service called
+          MetaMask uses a third-party service called 
           <Text
             accessibilityRole="text"
             style={
@@ -1295,10 +1295,10 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
           >
-            chainid.network
+            chainid.network 
           </Text>
-          to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to
-
+          to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  
+           
           chainid.network
         </Text>
       </View>
@@ -1892,7 +1892,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions.
+          Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. 
           <Text
             accessibilityRole="link"
             accessible={true}
@@ -2446,7 +2446,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         >
           Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.
-
+           
           <Text
             accessibilityRole="link"
             accessible={true}
@@ -2622,7 +2622,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           >
             This will delete historical
           </Text>
-
+           
           <Text
             accessibilityRole="link"
             accessible={true}
@@ -2658,7 +2658,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               MetaMetrics
             </Text>
           </Text>
-
+           
           <Text
             accessibilityRole="text"
             style={
@@ -2674,7 +2674,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           >
             data associated with your wallet.
           </Text>
-
+           
           <Text
             accessibilityRole="text"
             style={
@@ -2690,7 +2690,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           >
             Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 30 days. View our
           </Text>
-
+           
           <Text
             accessibilityRole="link"
             accessible={true}
