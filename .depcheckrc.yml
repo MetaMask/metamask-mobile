@@ -8,6 +8,8 @@ ignores:
   - '@lavamoat/allow-scripts'
   - '@lavamoat/git-safe-dependencies'
   - 'babel-plugin-inline-import'
+  # This is used in index.d.ts
+  - '@sentry/react'
   # This is used on the patch for TokenRatesController of Assets controllers, for we to be able to use the last version of it
   - cockatiel
 
