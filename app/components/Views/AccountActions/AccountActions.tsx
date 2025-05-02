@@ -220,6 +220,15 @@ const AccountActions = () => {
     });
   };
 
+  const goToSwitchAccountType = () => {
+    navigate(Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE, {
+      screen: Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE,
+      params: {
+        address: selectedAddress,
+      },
+    });
+  };
+
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
@@ -492,6 +501,13 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
+        {process.env.MM_SMART_ACCOUNT_UI_ENABLED && (
+          <AccountAction
+            actionTitle={strings('account_actions.switch_to_smart_account')}
+            iconName={IconName.ArrowOpposite}
+            onPress={goToSwitchAccountType}
+          />
+        )}
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}
