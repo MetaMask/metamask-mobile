@@ -649,8 +649,8 @@ export const calculateAmountsEIP1559 = ({
   gasFeeMinNative,
   gasFeeMaxNative,
   gasFeeMaxConversion,
-  gasFeeMinHex,
   gasFeeMaxHex,
+  gasFeeMinHex,
 }) => {
   // amount numbers
   const amountConversion = getValueFromWeiHex({
@@ -1651,10 +1651,7 @@ export function isNFTTokenStandard(tokenStandard) {
  * @param {TransactionController} transactionController - The transaction controller
  * @returns {TransactionMeta} The transaction meta object
  */
-export function getTransactionById(
-  transactionId: string,
-  transactionController: TransactionController,
-) {
+export function getTransactionById(transactionId, transactionController) {
   return transactionController.state.transactions.find(
     (tx) => tx.id === transactionId,
   );
