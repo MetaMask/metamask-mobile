@@ -65,7 +65,7 @@ import { AvatarVariant } from '../../../component-library/components/Avatars/Ava
 import NetworkPermissionsConnected from './NetworkPermissionsConnected';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
-import { Hex } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
@@ -86,6 +86,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const accountsLength = useSelector(selectAccountsLength);
+  // TODO: Fix this
   const currentChainId = useSelector(selectEvmChainId);
 
   const nonTestnetNetworks = useSelector(
@@ -133,7 +134,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { evmAccounts: accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
-  const previousPermittedAccounts = useRef<string[]>();
+  const previousPermittedAccounts = useRef<CaipAccountId[]>();
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
   const [networkSelectorUserIntent, setNetworkSelectorUserIntent] = useState(
@@ -218,6 +219,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       unpermitted: [],
     };
 
+    // TODO: fix this
     accounts.forEach((account) => {
       const lowercasedAccount = account.address.toLowerCase();
       if (permittedAccounts.includes(lowercasedAccount)) {
@@ -278,7 +280,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [setIsLoading],
   );
 
-  const handleSelectChainIds = useCallback(async (chainIds: string[]) => {
+  const handleSelectChainIds = useCallback(async (chainIds: CaipChainId[]) => {
     if (chainIds.length === 0) {
       toggleRevokeAllPermissionsModal();
       return;

@@ -1,9 +1,9 @@
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
-import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, Hex, KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getEthAccounts, getPermittedEthChainIds, setEthAccounts, setPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromPermission, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, setEthAccounts, setPermittedEthChainIds} from '@metamask/chain-agnostic-permission';
 import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
 import { toHex } from '@metamask/controller-utils';
@@ -106,42 +106,27 @@ function getAccountsFromSubject(subject: any) {
     ({ type }: CaveatConstraint) => type === Caip25CaveatType,
   );
   if (caveat) {
-    const ethAccounts = getEthAccounts(caveat.value);
-    const lowercasedEthAccounts = ethAccounts.map((address: string) =>
-      toHex(address.toLowerCase()),
-    );
-    return sortAccountsByLastSelected(lowercasedEthAccounts);
+    return getCaipAccountIdsFromCaip25CaveatValue(caveat.value)
   }
 
   return [];
 }
 
+// TODO: Verify the usage of this method which use to return lowercased and ordered evm hex addresses
 export const getPermittedAccountsByHostname = (
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
   hostname: string,
-): string[] => {
+): CaipAccountId[] => {
   const { subjects } = state;
-  const accountsByHostname = Object.keys(subjects).reduce(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (acc: any, subjectKey) => {
-      const accounts = getAccountsFromSubject(subjects[subjectKey]);
-      if (accounts.length > 0) {
-        acc[subjectKey] = accounts;
-      }
-      return acc;
-    },
-    {},
-  );
-
-  return accountsByHostname?.[hostname] || [];
+  const subject = subjects[hostname]
+  return subject ? getAccountsFromSubject(subject) : []
 };
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getPermittedChainIdsFromSubject(subject: any) {
+function getPermittedScopesFromSubject(subject: any) {
   const caveats =
     subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
@@ -152,7 +137,7 @@ function getPermittedChainIdsFromSubject(subject: any) {
     ({ type }: CaveatConstraint) => type === Caip25CaveatType,
   );
   if (caveat) {
-    return getPermittedEthChainIds(caveat.value);
+    return getAllScopesFromPermission(caveat.value);
   }
 
   return [];
@@ -163,22 +148,25 @@ export const getPermittedChainIdsByHostname = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
   hostname: string,
-): string[] => {
+): CaipChainId[] => {
   const { subjects } = state;
-  const chainIdsByHostname = Object.keys(subjects).reduce(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (acc: any, subjectKey) => {
-      const chainIds = getPermittedChainIdsFromSubject(subjects[subjectKey]);
-      if (chainIds.length > 0) {
-        acc[subjectKey] = chainIds;
-      }
-      return acc;
-    },
-    {},
-  );
-
-  return chainIdsByHostname?.[hostname] || [];
+  const subject = subjects[hostname]
+  if (!subject) {
+    return []
+  }
+  const permittedScopes = getPermittedScopesFromSubject(subject)
+    // our `endowment:caip25` permission can include a special class of `wallet` scopes,
+  // see https://github.com/ChainAgnostic/namespaces/tree/main/wallet &
+  // https://github.com/ChainAgnostic/namespaces/blob/main/wallet/caip2.md
+  // amongs the other chainId scopes. We want to exclude the `wallet` scopes here.
+  return permittedScopes.filter((caipChainId: CaipChainId) => {
+    try {
+      const { namespace } = parseCaipChainId(caipChainId);
+      return namespace !== KnownCaipNamespace.Wallet;
+    } catch (err) {
+      return false;
+    }
+  });
 };
 
 /**

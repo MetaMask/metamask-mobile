@@ -13,6 +13,7 @@ import { AccountConnectScreens } from '../AccountConnect.types';
 import { AccountConnectSingleSelectorProps } from './AccountConnectSingleSelector.types';
 import styles from './AccountConnectSingleSelector.styles';
 import { USER_INTENT } from '../../../../constants/permissions';
+import { CaipAccountId } from '@metamask/utils';
 
 const AccountConnectSingleSelector = ({
   accounts,
@@ -29,7 +30,7 @@ const AccountConnectSingleSelector = ({
   );
 
   const onSelectAccount = useCallback(
-    (address: string) => {
+    (address: CaipAccountId) => {
       onSetScreen(AccountConnectScreens.SingleConnect);
       onSetSelectedAddresses([address]);
     },

@@ -28,8 +28,6 @@ import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectInternalAccounts,
-  selectPreviouslySelectedEvmAccount,
-  selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
@@ -77,21 +75,18 @@ import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurationByChainId, selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import {
   getCaip25PermissionsResponse,
   getRequestedCaip25CaveatValue,
 } from './utils';
-import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
-import { toHex } from '@metamask/controller-utils';
-import { CaipChainId } from '@metamask/utils';
+import { CaipAccountId, CaipChainId } from '@metamask/utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -110,26 +105,12 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
-  const selectedWalletAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
-
-  const previouslySelectedEvmAccount = useSelector(
-    selectPreviouslySelectedEvmAccount,
-  );
-
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
-    selectedWalletAddress && isEvmSelected
-      ? [selectedWalletAddress]
-      : [
-          previouslySelectedEvmAccount
-            ? getFormattedAddressFromInternalAccount(
-                previouslySelectedEvmAccount,
-              )
-            : '',
-        ],
-  );
+  // TODO: Fix default selected address logic
+  // const selectedWalletAddress = useSelector(
+  //   selectSelectedInternalAccountFormattedAddress,
+  // );
+  // const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>([]);
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
@@ -473,6 +454,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     chainId,
   ]);
 
+  // This only handles EVM
   const handleCreateAccount = useCallback(
     async (isMultiSelect?: boolean) => {
       const { KeyringController } = Engine.context;
@@ -482,7 +464,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         const checksummedAddress = safeToChecksumAddress(
           addedAccountAddress,
         ) as string;
-        !isMultiSelect && setSelectedAddresses([checksummedAddress]);
+        !isMultiSelect && setSelectedAddresses([`eip155:0:${checksummedAddress}`]);
         trackEvent(
           createEventBuilder(
             MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
@@ -500,7 +482,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleAccountsSelected = useCallback(
-    (newSelectedAccountAddresses: string[]) => {
+    (newSelectedAccountAddresses: CaipAccountId[]) => {
       setSelectedAddresses(newSelectedAccountAddresses);
       setScreen(AccountConnectScreens.SingleConnect);
     },
@@ -628,6 +610,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         }
       : undefined;
     return (
+      // TODO: does this need to be refactored too?..
       <AccountConnectSingle
         onSetSelectedAddresses={setSelectedAddresses}
         connection={sdkConnection}
