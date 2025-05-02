@@ -13,7 +13,7 @@ import {
   selectSelectedAccountMultichainNetworkAggregatedBalance,
   selectSolanaAccountTransactions,
   selectMultichainHistoricalPrices,
-  selectNonEvmAssetById,
+  makeSelectNonEvmAssetById,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -784,7 +784,8 @@ describe('MultichainNonEvm Selectors', () => {
     });
   });
 
-  describe('selectNonEvmAssetById', () => {
+  describe('makeSelectNonEvmAssetById', () => {
+    const selectNonEvmAssetById = makeSelectNonEvmAssetById();
     const mockAccountId = MOCK_ACCOUNT_BIP122_P2WPKH.id;
     const mockAssetId = MultichainNativeAssets.Bitcoin;
     const mockRate = '25000.00';
