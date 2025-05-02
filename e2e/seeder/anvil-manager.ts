@@ -115,19 +115,29 @@ class AnvilManager {
     return logs;
   }
 
-  async setAccountBalance(balance: string): Promise<void> {
+  async setAccountBalance( balance: string, address?: Hex): Promise<void> {
     // eslint-disable-next-line no-console
     // console.log(`Setting balance for ${address} to ${balance} ETH`);
     const { testClient } = this.getProvider();
     const accounts = await this.getAccounts();
-    const account = accounts[0] as Hex;
-    const balanceInWei = BigInt(balance) * BigInt(10) ** BigInt(18);
+
+    // Determining which address to use: if address is provided and not empty, use it
+    // Otherwise, use the first account from getAccounts()
+    let accountAddress: Hex;
+    if (address !== undefined) {
+      accountAddress = address;
+    } else {
+      accountAddress = accounts[0] as Hex;
+    }
+
+    const weiMultiplier = BigInt('1000000000000000000'); // 10^18
+    const balanceInWei = BigInt(balance) * weiMultiplier;
     await testClient.setBalance({
-      address: account,
+      address: accountAddress,
       value: balanceInWei,
     });
     // eslint-disable-next-line no-console
-    console.log(`Balance set for ${account}`);
+    console.log(`Balance set for ${accountAddress}`);
   }
 
   async quit(): Promise<void> {
@@ -138,7 +148,6 @@ class AnvilManager {
       // eslint-disable-next-line no-console
       console.log('Stopping server...');
       await this.server.stop();
-      this.server = undefined;
       // eslint-disable-next-line no-console
       console.log('Server stopped');
     } catch (e) {
