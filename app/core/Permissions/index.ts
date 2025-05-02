@@ -3,7 +3,7 @@ import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
 import { CaipAccountId, CaipChainId, Hex, KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromPermission, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, setEthAccounts, setPermittedEthChainIds} from '@metamask/chain-agnostic-permission';
+import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromCaip25CaveatValue, getAllScopesFromPermission, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, setEthAccounts, setPermittedEthChainIds} from '@metamask/chain-agnostic-permission';
 import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
 import { toHex } from '@metamask/controller-utils';
@@ -137,7 +137,7 @@ function getPermittedScopesFromSubject(subject: any) {
     ({ type }: CaveatConstraint) => type === Caip25CaveatType,
   );
   if (caveat) {
-    return getAllScopesFromPermission(caveat.value);
+    return getAllScopesFromCaip25CaveatValue(caveat.value);
   }
 
   return [];
