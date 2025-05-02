@@ -57,7 +57,7 @@
     "release:ios": "./scripts/build.sh ios release",
     "release:android:qa": "./scripts/build.sh android QA && open android/app/build/outputs/apk/release/",
     "test": "yarn test:unit",
-    "test:unit": "jest app/components/UI/SRPList/SRPList.test.tsx",
+    "test:unit": "jest ./app/ ./locales/",
     "test:unit:update": "time jest -u ./app/",
     "test:api-specs": "detox reset-lock-file && detox test -c ios.sim.apiSpecs",
     "test:e2e:ios:build:qa-release": "IS_TEST='true' detox build -c ios.sim.qa",
