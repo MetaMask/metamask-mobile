@@ -30,10 +30,17 @@ export const selectIsBackupAndSyncEnabled = createSelector(
   (userStorageControllerState: UserStorageState) =>
     userStorageControllerState?.isProfileSyncingEnabled,
 );
+
 export const selectIsBackupAndSyncUpdateLoading = createSelector(
   selectUserStorageControllerState,
   (userStorageControllerState: UserStorageState) =>
     userStorageControllerState.isProfileSyncingUpdateLoading,
+);
+
+export const selectIsAccountSyncingEnabled = createSelector(
+  selectUserStorageControllerState,
+  (userStorageControllerState: UserStorageState) =>
+    userStorageControllerState?.isAccountSyncingEnabled,
 );
 
 export const selectIsAccountSyncingReadyToBeDispatched = createSelector(
