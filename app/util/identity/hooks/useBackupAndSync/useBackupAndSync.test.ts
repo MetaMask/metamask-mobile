@@ -2,25 +2,22 @@ import { act } from '@testing-library/react-hooks';
 import { renderHookWithProvider } from '../../../test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as actions from '../../../../actions/identity';
-import {
-  useDisableProfileSyncing,
-  useEnableProfileSyncing,
-} from './useProfileSyncing';
+import { useBackupAndSync } from './useBackupAndSync';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
 
-describe('useEnableProfileSyncing()', () => {
-  it('should enable profile syncing', async () => {
+describe('useBackupAndSync()', () => {
+  it('enables backup and sync', async () => {
     const mockSetIsBackupAndSyncFeatureEnabledAction = jest.spyOn(
       actions,
       'setIsBackupAndSyncFeatureEnabled',
     );
 
-    const { result } = renderHookWithProvider(
-      () => useEnableProfileSyncing(),
-      {},
-    );
+    const { result } = renderHookWithProvider(() => useBackupAndSync(), {});
     await act(async () => {
-      await result.current.enableProfileSyncing();
+      await result.current.setIsBackupAndSyncFeatureEnabled(
+        BACKUPANDSYNC_FEATURES.main,
+        true,
+      );
     });
 
     expect(mockSetIsBackupAndSyncFeatureEnabledAction).toHaveBeenCalledWith(
@@ -28,19 +25,19 @@ describe('useEnableProfileSyncing()', () => {
       true,
     );
   });
-});
 
-describe('useDisableProfileSyncing()', () => {
-  it('should disable profile syncing', async () => {
+  it('disables backup and sync', async () => {
     const mockSetIsBackupAndSyncFeatureEnabledAction = jest.spyOn(
       actions,
       'setIsBackupAndSyncFeatureEnabled',
     );
 
-    const { result } = renderHookWithProvider(() => useDisableProfileSyncing());
-
+    const { result } = renderHookWithProvider(() => useBackupAndSync(), {});
     await act(async () => {
-      await result.current.disableProfileSyncing();
+      await result.current.setIsBackupAndSyncFeatureEnabled(
+        BACKUPANDSYNC_FEATURES.main,
+        false,
+      );
     });
 
     expect(mockSetIsBackupAndSyncFeatureEnabledAction).toHaveBeenCalledWith(

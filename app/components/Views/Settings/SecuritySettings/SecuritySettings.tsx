@@ -76,7 +76,7 @@ import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
+import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
@@ -115,7 +115,7 @@ const Settings: React.FC = () => {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
@@ -512,8 +512,8 @@ const Settings: React.FC = () => {
         .addProperties({
           settings_group: 'security_privacy',
           settings_type: 'profile_syncing',
-          old_value: isProfileSyncingEnabled,
-          new_value: !isProfileSyncingEnabled,
+          old_value: isBackupAndSyncEnabled,
+          new_value: !isBackupAndSyncEnabled,
           was_notifications_on: isNotificationEnabled,
         })
         .build(),
