@@ -42,7 +42,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
             }
           }
         >
-          [missing "en.backupAndSync.title" translation]
+          Backup and sync
         </Text>
         <RCTSwitch
           accessibilityRole="switch"
@@ -80,7 +80,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
           }
         }
       >
-        [missing "en.backupAndSync.enable.description" translation]
+        Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask.
         <Text
           accessibilityRole="text"
           onPress={[Function]}
@@ -95,7 +95,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
             }
           }
         >
-          [missing "en.backupAndSync.privacyLink" translation]
+          Learn how we protect your privacy
         </Text>
       </Text>
     </View>
@@ -130,7 +130,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
             }
           }
         >
-          [missing "en.backupAndSync.manageWhatYouSync.title" translation]
+          Manage what you sync
         </Text>
         <Text
           accessibilityRole="text"
@@ -145,7 +145,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
             }
           }
         >
-          [missing "en.backupAndSync.manageWhatYouSync.description" translation]
+          Turn on what’s synced between your devices.
         </Text>
       </View>
       <View
@@ -191,7 +191,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
               }
             }
           >
-            [missing "en.backupAndSync.features.accounts" translation]
+            Accounts
           </Text>
         </View>
         <RCTSwitch

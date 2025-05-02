@@ -152,7 +152,7 @@ exports[`ConfirmTurnOnBackupAndSyncModal renders correctly 1`] = `
             }
           }
         >
-          [missing "en.backupAndSync.enable.title" translation]
+          Turn on backup and sync
         </Text>
         <Text
           accessibilityRole="text"
@@ -170,7 +170,7 @@ exports[`ConfirmTurnOnBackupAndSyncModal renders correctly 1`] = `
             }
           }
         >
-          [missing "en.backupAndSync.enable.confirmation" translation]
+          When you turn on backup and sync, you’re also turning on basic functionality. Do you want to continue?
         </Text>
         <View
           style={

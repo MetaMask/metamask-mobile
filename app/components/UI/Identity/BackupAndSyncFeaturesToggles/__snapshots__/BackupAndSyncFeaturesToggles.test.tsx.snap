@@ -32,7 +32,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
         }
       }
     >
-      [missing "en.backupAndSync.manageWhatYouSync.title" translation]
+      Manage what you sync
     </Text>
     <Text
       accessibilityRole="text"
@@ -47,7 +47,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
         }
       }
     >
-      [missing "en.backupAndSync.manageWhatYouSync.description" translation]
+      Turn on what’s synced between your devices.
     </Text>
   </View>
   <View
@@ -93,7 +93,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
           }
         }
       >
-        [missing "en.backupAndSync.features.accounts" translation]
+        Accounts
       </Text>
     </View>
     <RCTSwitch
