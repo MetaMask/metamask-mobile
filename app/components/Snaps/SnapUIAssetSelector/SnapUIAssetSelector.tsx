@@ -4,7 +4,7 @@ import { SnapUISelector } from '../SnapUISelector/SnapUISelector';
 import { strings } from '../../../../locales/i18n';
 import { SnapUIAsset, useSnapAssetSelectorData } from './useSnapAssetDisplay';
 import { Box } from '../../UI/Box/Box';
-import { AlignItems, BackgroundColor, FlexDirection, TextAlign } from '../../UI/Box/box.types';
+import { AlignItems, BackgroundColor, FlexDirection } from '../../UI/Box/box.types';
 import BadgeWrapper, { BadgePosition } from '../../../component-library/components/Badges/BadgeWrapper';
 import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
@@ -40,7 +40,7 @@ const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewS
     flexDirection={FlexDirection.Row}
     gap={16}
     // eslint-disable-next-line react-native/no-inline-styles
-    style={{ overflow: 'hidden', width: '100%' }}
+    style={{ overflow: 'hidden', flex: 1 }}
   >
     <Box alignItems={AlignItems.center}>
       <BadgeWrapper
@@ -131,11 +131,12 @@ export const SnapUIAssetSelector: FunctionComponent<
 
   return (
     <SnapUISelector
-      title={strings('snaps.snap_ui.asset_selector.title')}
+      title={strings('app_settings.snaps.snap_ui.asset_selector.title')}
       options={options}
       optionComponents={optionComponents}
       disabled={disabled || assets.length === 0}
       style={style}
+      isParentFlexRow={isParentFlexRow}
       {...props}
     />
   );

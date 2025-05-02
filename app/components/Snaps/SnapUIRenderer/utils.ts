@@ -24,7 +24,7 @@ export interface MapToTemplateParams {
   element: JSXElement;
   form?: string;
   useFooter?: boolean;
-  parentIsFlexRow?: boolean;
+  isParentFlexRow?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
   t?: (key: string) => string;

@@ -52,13 +52,13 @@ const styleSheet = (params: { theme: Theme, vars: { selected?: boolean, isParent
     },
     selectedPill: {
       position: 'absolute',
-      height: '100%',
+      height: 'auto',
       marginRight: 12,
-      bottom: 8,
+      bottom: 4,
       width: 4,
       top: 4,
       left: 4,
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.primary.default,
       borderRadius: 9999,
     },
     helpText: {
