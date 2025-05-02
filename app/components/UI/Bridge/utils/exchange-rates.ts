@@ -52,6 +52,8 @@ export const getDisplayCurrencyValue = ({
     return addCurrencySymbol('0', currentCurrency);
   }
 
+  console.log('token', token);
+
   let currencyValue = 0;
 
   if (isSolanaChainId(token.chainId)) {
@@ -79,12 +81,12 @@ export const getDisplayCurrencyValue = ({
     const multiChainConversionRate =
       evmMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate;
 
-    if (multiChainConversionRate) {
+    if (multiChainConversionRate && evmTokenMarketData?.price) {
       currencyValue = Number(
         balanceToFiatNumber(
           amount,
           multiChainConversionRate,
-          evmTokenMarketData?.price ?? 0,
+          evmTokenMarketData.price,
         ),
       );
     } else {
