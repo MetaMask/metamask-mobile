@@ -937,9 +937,8 @@ describe('WC2Manager', () => {
       await sessionDeleteCallback({ topic: 'test-topic' });
 
       // Verify that deeplinkSessions was updated and stored
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(
-        (manager as unknown as { deeplinkSessions: Record<string, any> })
+        (manager as unknown as { deeplinkSessions: Record<string, unknown> })
           .deeplinkSessions['test-pairing'],
       ).toBeUndefined();
       expect(storageSetItemSpy).toHaveBeenCalledWith(

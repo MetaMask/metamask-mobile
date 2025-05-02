@@ -321,7 +321,7 @@ function TransactionNotification(props) {
                 </Text>
                 <Ionicons
                   onPress={onCloseDetails}
-                  name={'ios-close'}
+                  name={'close'}
                   size={38}
                   style={styles.closeIcon}
                 />
