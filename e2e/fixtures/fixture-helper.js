@@ -132,19 +132,21 @@ export async function withFixtures(options, testSuite) {
   try {
     let contractRegistry;
     if (!disableGanache) {
-      // await ganacheServer.start(ganacheOptions);
+            // await ganacheServer.start(ganacheOptions);
 
+      anvilServer = new AnvilManager();
       await anvilServer.start({
-        mnemonic: 'drive manage close raven tape average sausage pledge riot furnace august tip',
-        ...ganacheOptions
+        ...defaultOptions,
+        ...(ganacheOptions || {})
       });
       await anvilServer.setAccountBalance('1200');
-}
-      if (smartContract) {
-        const ganacheSeeder = new GanacheSeeder(anvilServer.getProvider());
-        await ganacheSeeder.deploySmartContract(smartContract);
-        contractRegistry = ganacheSeeder.getContractRegistry();
-      }
+    }
+
+    if (smartContract) {
+      const ganacheSeeder = new GanacheSeeder(anvilServer.getProvider());
+      await ganacheSeeder.deploySmartContract(smartContract);
+      contractRegistry = ganacheSeeder.getContractRegistry();
+    }
     
 
     if (dapp) {
