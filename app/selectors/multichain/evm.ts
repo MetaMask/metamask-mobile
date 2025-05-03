@@ -44,7 +44,7 @@ import { selectTokenMarketData } from '../tokenRatesController';
 import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
 import { selectTokenList } from '../tokenListController';
-import { safeToChecksumAddress, toFormattedAddress } from '../../util/address';
+import { toFormattedAddress } from '../../util/address';
 
 interface NativeTokenBalance {
   balance: string;
