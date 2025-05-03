@@ -36,6 +36,7 @@ import {
   setSlippage,
   selectIsSubmittingTx,
   setIsSubmittingTx,
+  selectIsSolanaToEvm,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import {
@@ -115,6 +116,7 @@ const BridgeView = () => {
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
+  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
   // The ref is typed to only expose the blur method we need
@@ -244,6 +246,11 @@ const BridgeView = () => {
   const handleContinue = async () => {
     if (activeQuote) {
       dispatch(setIsSubmittingTx(true));
+      // TEMPORARY: If tx originates from Solana, navigate to transactions view BEFORE submitting the tx
+      // Necessary because snaps prevents navigation after tx is submitted
+      if (isSolanaSwap || isSolanaToEvm) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      }
       await submitBridgeTx({
         quoteResponse: activeQuote,
       });
