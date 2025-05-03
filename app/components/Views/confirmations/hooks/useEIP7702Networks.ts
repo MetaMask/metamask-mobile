@@ -35,6 +35,7 @@ export const useEIP7702Networks = (address: string) => {
       ),
     [networks],
   );
+
   const networkList = useMemo(
     () => ({ ...nonTestNetworks, ...testNetworks }),
     [nonTestNetworks, testNetworks],
@@ -54,6 +55,7 @@ export const useEIP7702Networks = (address: string) => {
       if (!value) {
         return [];
       }
+
       const networksSupporting7702: EIP7702NetworkConfiguration[] = [];
       Object.values(networkList).forEach((network) => {
         try {

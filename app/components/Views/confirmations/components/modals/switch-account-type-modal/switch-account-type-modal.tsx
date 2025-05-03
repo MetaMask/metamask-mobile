@@ -9,11 +9,11 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import Loader from '../../../../../../component-library/components-temp/Loader';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
+import Spinner from '../../../../../UI/AnimatedSpinner';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useEIP7702Networks } from '../../../hooks/useEIP7702Networks';
 import AccountNetworkRow from './account-network-row';
@@ -32,8 +32,10 @@ const SwitchAccountTypeModal = () => {
   return (
     <BottomSheet>
       <View style={styles.wrapper} testID="network-data-loader">
-        {pending ? (
-          <Loader />
+        {pending || true ? (
+          <View style={styles.spinner}>
+            <Spinner />
+          </View>
         ) : (
           <>
             <View style={styles.account_info}>
@@ -48,7 +50,10 @@ const SwitchAccountTypeModal = () => {
             </View>
             <View>
               {network7702List?.map((networkConfiguration) => (
-                <AccountNetworkRow network={networkConfiguration} />
+                <AccountNetworkRow
+                  network={networkConfiguration}
+                  address={address}
+                />
               ))}
             </View>
           </>
