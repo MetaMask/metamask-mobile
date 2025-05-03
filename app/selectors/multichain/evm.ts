@@ -500,12 +500,13 @@ export const selectEvmTokenMarketData = createDeepEqualSelector(
     }
 
     // Get checksummed address
-    const checksumAddress = safeToChecksumAddress(tokenAddress);
-    if (!checksumAddress) return null;
+    const formattedAddress = toFormattedAddress(tokenAddress);
+    console.log('formattedAddress: ', formattedAddress);
+    if (!formattedAddress) return null;
 
     // Get token metadata and market data
-    const tokenMetadata = tokenList?.[checksumAddress.toLowerCase()];
-    const tokenMarketData = marketData?.[chainId]?.[checksumAddress as Hex];
+    const tokenMetadata = tokenList?.[formattedAddress.toLowerCase()];
+    const tokenMarketData = marketData?.[chainId]?.[formattedAddress as Hex];
 
     return {
       metadata: tokenMetadata,
