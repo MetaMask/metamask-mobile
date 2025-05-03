@@ -37,7 +37,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   onSend,
   onReceive,
 }) => {
-  const { isEvmNetworkSelected } = useSelector(selectIsEvmNetworkSelected);
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
 
