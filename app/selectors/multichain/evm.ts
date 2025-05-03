@@ -501,7 +501,6 @@ export const selectEvmTokenMarketData = createDeepEqualSelector(
 
     // Get checksummed address
     const formattedAddress = toFormattedAddress(tokenAddress);
-    console.log('formattedAddress: ', formattedAddress);
     if (!formattedAddress) return null;
 
     // Get token metadata and market data
