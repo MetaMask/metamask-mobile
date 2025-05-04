@@ -111,37 +111,38 @@ describe(SmokeConfirmations('Create Solana account'), () => {
     await Assertions.checkIfTextRegexExists(NEW_ACCOUNT_NAME, 0);
   });
 
-  // TODO: feature is not implemented yet
   it.skip('should be able to reveal private key of created solana account', async () => {
-    await loginToApp();
-    await Assertions.checkIfVisible(WalletView.container);
+    // Create a Solana account to reveal the private key for
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
     await AccountListBottomSheet.tapAddAccountButton();
-    await AddAccountBottomSheet.tapCreateSolanaAccount();
-    await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 1);
-
-    await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
+    await AddAccountBottomSheet.tapAddSolanaAccount();
+    await AddNewHdAccountComponent.tapConfirm();
+    await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 2);
+    
+    // Access the account actions and reveal private key
+    await WalletView.tapIdenticon();
+    await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
     await AccountActionsBottomSheet.tapShowPrivateKey();
+    
+    // Enter password to reveal the private key
     await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
-      PASSWORD,
+      PASSWORD
     );
+    
+    // Tap the reveal button to show the private key
     await RevealPrivateKey.tapToReveal();
+    
+    // Verify that the private key is displayed
+    await Assertions.checkIfVisible(RevealPrivateKey.privateKey);
+    
+    // Optional: Copy to clipboard and/or close the view
+    await RevealPrivateKey.tapToCopyCredentialToClipboard();
+    await RevealPrivateKey.tapDoneButton();
   });
 
-  //TODO: Waiting for removal feature to be implemented
+  //TODO: Waiting for removal feature to be implemented PLACEHOLDER
   it.skip('should remove a solana account after creation', async () => {
-    // Check that we are on the wallet screen
-    await Assertions.checkIfVisible(WalletView.container);
-    await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-    await AccountListBottomSheet.tapAddAccountButton();
-    await AddAccountBottomSheet.tapCreateSolanaAccount();
-    await TabBarComponent.tapWallet();
-    await TestHelpers.delay(1000);
-    await Assertions.checkIfElementHasString(
-      WalletView.accountName,
-      'Solana Test Wallet',
-    );
+   
   });
 });
