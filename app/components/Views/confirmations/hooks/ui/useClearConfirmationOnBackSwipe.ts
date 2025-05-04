@@ -8,7 +8,8 @@ import { useConfirmActions } from '../useConfirmActions';
 import { useStandaloneConfirmation } from './useStandaloneConfirmation';
 
 const useClearConfirmationOnBackSwipe = () => {
-  const navigation = useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const navigation =
+    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { isStandaloneConfirmation } = useStandaloneConfirmation();
   const { onReject } = useConfirmActions();
 
@@ -20,7 +21,7 @@ const useClearConfirmationOnBackSwipe = () => {
 
       return unsubscribe;
     }
-  }, [navigation, onReject]);
+  }, [isStandaloneConfirmation, navigation, onReject]);
 
   useEffect(() => {
     if (isStandaloneConfirmation && Device.isAndroid()) {
@@ -29,14 +30,14 @@ const useClearConfirmationOnBackSwipe = () => {
         () => {
           onReject();
           return true;
-        }
+        },
       );
 
       return () => {
         backHandlerSubscription.remove();
       };
     }
-  }, [onReject]);
+  }, [isStandaloneConfirmation, onReject]);
 };
 
 export default useClearConfirmationOnBackSwipe;
