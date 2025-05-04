@@ -26,6 +26,7 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
 import Engine from '../../../core/Engine';
 import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
+import { SolanaNewFeatureSheetSelectorsIDs, SolanaNewFeatureSheetSelectorsText } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
 
 const SolanaNewFeatureContent = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -113,6 +114,7 @@ const SolanaNewFeatureContent = () => {
       ref={sheetRef}
       onClose={handleSheetClose}
       shouldNavigateBack={false}
+      testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET}
     >
       <View style={styles.wrapper}>
         <SolanaLogo name="solana-logo" height={65} />
@@ -135,6 +137,7 @@ const SolanaNewFeatureContent = () => {
           variant={ButtonVariants.Link}
           label={strings('solana_new_feature_content.learn_more')}
           onPress={onLearnMoreClicked}
+          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON}
         />
         <Button
           variant={ButtonVariants.Primary}
@@ -147,6 +150,7 @@ const SolanaNewFeatureContent = () => {
             hasExistingSolanaAccount ? viewSolanaAccount : createSolanaAccount
           }
           width={ButtonWidthTypes.Full}
+          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON}
         />
 
         <Button

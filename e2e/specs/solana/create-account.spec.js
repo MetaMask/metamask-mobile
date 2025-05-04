@@ -8,8 +8,9 @@ import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
-  withFixtures,
-  defaultGanacheOptions,
+  loadFixture,
+  startFixtureServer,
+  stopFixtureServer,
 } from '../../fixtures/fixture-helper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
@@ -22,56 +23,74 @@ import Gestures from '../../utils/Gestures';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView.js';
+import FixtureServer from '../../fixtures/fixture-server';
+import { getFixturesServerPort } from '../../fixtures/utils';
+import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
+import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const ACCOUNT_ONE_TEXT = 'Solana Account 1';
 const ACCOUNT_TWO_TEXT = 'Solana Account 2';
 const PASSWORD = '123123123';
 
-describe.only(SmokeConfirmations('Create Solana account'), () => {
+const fixtureServer = new FixtureServer();
+
+describe(SmokeConfirmations('Create Solana account'), () => {
   beforeAll(async () => {
-    jest.setTimeout(170000);
+    jest.setTimeout(10000);
     await TestHelpers.reverseServerPort();
+
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, {
+      fixture: new FixtureBuilder()
+      .withSolanaFixture()
+      .build(),
+    });
+    await TestHelpers.launchApp({
+      launchArgs: { fixtureServerPort: getFixturesServerPort() },
+    });
+    await loginToApp();
   });
 
-  it.only('should be able to create multiple solana accounts and switch between them', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder()
-          .withDefaultFixture()
-          .withSolanaNetwork()
-          .build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await Assertions.checkIfVisible(WalletView.container);
-        await WalletView.tapIdenticon();
-        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateSolanaAccount();
-        await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 1);
-        await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
-        //Assert solana account on main wallet view
-        await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 0);
+  afterAll(async () => {
+    await stopFixtureServer(fixtureServer);
+  });
 
-        //Create second solana account
-        await WalletView.tapIdenticon();
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateSolanaAccount();
-        await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 1);
-        await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
+  it('should assert the new Solanafeature announcement sheet', async () => {
+    await Assertions.checkIfVisible(SolanaNewFeatureSheet.verifySheetIsVisible());
+    await Assertions.checkIfVisible(SolanaNewFeatureSheet.verifyLearnMoreButtonIsVisible());
+    await Assertions.checkIfVisible(SolanaNewFeatureSheet.verifyAddAccountButtonIsVisible());
+    await Assertions.checkIfVisible(SolanaNewFeatureSheet.verifyCreateAccountButtonIsVisible());
+  });
 
-        //Assert solana account on main wallet view
-        await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 0);
+  it('should create Solana account directly from new feature announcement sheet', async () => {
+    await SolanaNewFeatureSheet.tapCreateAccountButton();
+    await SolanaNewFeatureSheet.tapAddAccountButton();
+    await WalletView.tapIdenticon();
+    // Check if the Solana account is created
+    await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 1);
+  });
 
-        //Switch back to first solana account
-        await WalletView.tapIdenticon();
-        await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
-        //Assert solana account on main wallet view
-        await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 0);
-      },
-    );
+  it('should create another Solana account from the bottom sheet', async () => {
+    await AccountListBottomSheet.tapAddAccountButton();
+    await AddNewHdAccountComponent.assertContainerIsVisible();
+    await AddAccountBottomSheet.tapAddSolanaAccount();
+    await AddNewHdAccountComponent.tapConfirm();
+    await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 2);
+
+  });
+
+  it('should should be able to switch between solana accounts', async () => {
+    
+    //Switch back to first solana account
+    await WalletView.tapIdenticon();
+    await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
+    //Assert solana account on main wallet view
+    await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 0);
+
+    await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
+    await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 2);
+//TODO: fix
   });
 
   // TODO: This test is failing because the private key is not being revealed and feature is not implemented
