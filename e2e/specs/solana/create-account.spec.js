@@ -27,10 +27,11 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import EditAccountNameView from '../../pages/wallet/EditAccountNameView';
 
-const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const ACCOUNT_ONE_TEXT = 'Solana Account 1';
 const ACCOUNT_TWO_TEXT = 'Solana Account 2';
+const NEW_ACCOUNT_NAME = 'Solana Account New Name';
 const PASSWORD = '123123123';
 
 const fixtureServer = new FixtureServer();
@@ -42,9 +43,7 @@ describe(SmokeConfirmations('Create Solana account'), () => {
 
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, {
-      fixture: new FixtureBuilder()
-      .withSolanaFixture()
-      .build(),
+      fixture: new FixtureBuilder().withSolanaFixture().build(),
     });
     await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: getFixturesServerPort() },
@@ -57,10 +56,18 @@ describe(SmokeConfirmations('Create Solana account'), () => {
   });
 
   it('should assert the new Solanafeature announcement sheet', async () => {
-    await Assertions.checkIfVisible(SolanaNewFeatureSheet.verifySheetIsVisible());
-    await Assertions.checkIfVisible(SolanaNewFeatureSheet.verifyLearnMoreButtonIsVisible());
-    await Assertions.checkIfVisible(SolanaNewFeatureSheet.verifyAddAccountButtonIsVisible());
-    await Assertions.checkIfVisible(SolanaNewFeatureSheet.verifyCreateAccountButtonIsVisible());
+    await Assertions.checkIfVisible(
+      SolanaNewFeatureSheet.verifySheetIsVisible(),
+    );
+    await Assertions.checkIfVisible(
+      SolanaNewFeatureSheet.verifyLearnMoreButtonIsVisible(),
+    );
+    await Assertions.checkIfVisible(
+      SolanaNewFeatureSheet.verifyAddAccountButtonIsVisible(),
+    );
+    await Assertions.checkIfVisible(
+      SolanaNewFeatureSheet.verifyCreateAccountButtonIsVisible(),
+    );
   });
 
   it('should create Solana account directly from new feature announcement sheet', async () => {
@@ -77,23 +84,34 @@ describe(SmokeConfirmations('Create Solana account'), () => {
     await AddAccountBottomSheet.tapAddSolanaAccount();
     await AddNewHdAccountComponent.tapConfirm();
     await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 2);
-
   });
 
   it('should should be able to switch between solana accounts', async () => {
-    
     //Switch back to first solana account
     await WalletView.tapIdenticon();
-    await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
-    //Assert solana account on main wallet view
+    // Select first Solana 
+    await AccountListBottomSheet.tapAccountOffCenter(1, 0.5, 0.5);
+    //Assert solana account 1 on main wallet view
     await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 0);
 
-    await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
-    await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 2);
-//TODO: fix
+    //Switch to second solana account
+    await WalletView.tapIdenticon();
+    // Select second Solana 
+    await AccountListBottomSheet.tapAccountOffCenter(2, 0.5, 0.5);
+    //Assert solana account 2 on main wallet view
+    await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 0);
   });
 
-  // TODO: This test is failing because the private key is not being revealed and feature is not implemented
+  it('should be able to rename Solana account', async () => {
+    await WalletView.tapIdenticon();
+    await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
+    await AccountActionsBottomSheet.tapEditAccount();
+    await EditAccountNameView.updateAccountName(NEW_ACCOUNT_NAME);
+    await EditAccountNameView.tapSave();
+    await Assertions.checkIfTextRegexExists(NEW_ACCOUNT_NAME, 0);
+  });
+
+  // TODO: feature is not implemented yet
   it.skip('should be able to reveal private key of created solana account', async () => {
     await loginToApp();
     await Assertions.checkIfVisible(WalletView.container);
