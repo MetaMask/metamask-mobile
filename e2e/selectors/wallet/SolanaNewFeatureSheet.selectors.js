@@ -5,6 +5,7 @@ export const SolanaNewFeatureSheetSelectorsIDs = {
   SOLANA_CREATE_ACCOUNT_BUTTON: 'solana-create-account-button',
   SOLANA_LEARN_MORE_BUTTON: 'solana-learn-more-button',
   SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET: SNAP_ACCOUNT_CUSTOM_NAME_ADD_ACCOUNT_BUTTON,
+  SOLANA_NOT_NOW_BUTTON: 'solana-not-now-button',
 };
 
 export const SolanaNewFeatureSheetSelectorsText = {

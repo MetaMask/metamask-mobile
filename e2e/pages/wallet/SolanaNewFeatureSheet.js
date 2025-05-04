@@ -19,6 +19,10 @@ class SolanaNewFeatureSheet {
     return element(by.id(SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON));
   }
 
+  get notNowButton() {
+    return element(by.id(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON));
+  }
+
   get addAccountButton() {
     return element(by.id(SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET));
   }
@@ -38,6 +42,10 @@ class SolanaNewFeatureSheet {
 
   async verifyCreateAccountButtonIsVisible() {
     await Assertions.checkIfVisible(SolanaNewFeatureSheetSelectorsIDs.CREATE_ACCOUNT_BUTTON);
+  }
+
+  async tapNotNowButton() {
+    await Gestures.waitAndTap(this.notNowButton);
   }
 }
 

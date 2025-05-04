@@ -40,7 +40,9 @@ describe(SmokeConfirmations('Create Solana account'), () => {
 
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, {
-      fixture: new FixtureBuilder().withSolanaFixture().build(),
+      fixture: new FixtureBuilder()
+      .withSolanaFixture()
+      .build(),
     });
     await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: getFixturesServerPort() },
@@ -78,7 +80,11 @@ describe(SmokeConfirmations('Create Solana account'), () => {
   it('should create another Solana account from the bottom sheet', async () => {
     await AccountListBottomSheet.tapAddAccountButton();
     await AddNewHdAccountComponent.assertContainerIsVisible();
+
+    await device.disableSynchronization();
     await AddAccountBottomSheet.tapAddSolanaAccount();
+    await device.enableSynchronization();
+
     await AddNewHdAccountComponent.tapConfirm();
     await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 2);
   });
