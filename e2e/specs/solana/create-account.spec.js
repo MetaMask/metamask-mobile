@@ -131,28 +131,17 @@ describe(SmokeConfirmations('Create Solana account'), () => {
 
   //TODO: Waiting for removal feature to be implemented
   it.skip('should remove a solana account after creation', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-      },
-      async () => {
-        await loginToApp();
-
-        // Check that we are on the wallet screen
-        await Assertions.checkIfVisible(WalletView.container);
-        await WalletView.tapIdenticon();
-        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateSolanaAccount();
-        await TabBarComponent.tapWallet();
-        await TestHelpers.delay(1000);
-        await Assertions.checkIfElementHasString(
-          WalletView.accountName,
-          'Solana Test Wallet',
-        );
-      },
+    // Check that we are on the wallet screen
+    await Assertions.checkIfVisible(WalletView.container);
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+    await AccountListBottomSheet.tapAddAccountButton();
+    await AddAccountBottomSheet.tapCreateSolanaAccount();
+    await TabBarComponent.tapWallet();
+    await TestHelpers.delay(1000);
+    await Assertions.checkIfElementHasString(
+      WalletView.accountName,
+      'Solana Test Wallet',
     );
   });
 });
