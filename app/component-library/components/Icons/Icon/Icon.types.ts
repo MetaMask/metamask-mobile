@@ -160,6 +160,7 @@ export enum IconName {
   Login = 'Login',
   Logout = 'Logout',
   Menu = 'Menu',
+  MetamaskFox = 'MetamaskFox',
   MessageQuestion = 'MessageQuestion',
   Messages = 'Messages',
   MinusBold = 'MinusBold',

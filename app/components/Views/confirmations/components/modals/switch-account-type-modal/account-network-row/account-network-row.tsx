@@ -40,17 +40,21 @@ const AccountNetworkRow = ({
   const networkImage = getNetworkImageSource({ networkType: 'evm', chainId });
 
   const onSwitch = useCallback(async () => {
+    if (isSupported) {
+      await downgradeAccount(address);
+    } else if (upgradeContractAddress) {
+      await upgradeAccount(address, upgradeContractAddress);
+    }
+    // This navigation below is to close account modal.
     navigation.navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,
       params: {
         screen: Routes.WALLET_VIEW,
       },
     });
-    if (isSupported) {
-      await downgradeAccount(address);
-    } else if (upgradeContractAddress) {
-      await upgradeAccount(address, upgradeContractAddress);
-    }
+    // This navigation to confirmation modal
+    // is needed as above navigation lands on home page
+    navigation.navigate(Routes.CONFIRMATION_REQUEST_MODAL);
   }, [
     address,
     downgradeAccount,

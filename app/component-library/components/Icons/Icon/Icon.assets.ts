@@ -92,6 +92,7 @@ import logoutSVG from './assets/logout.svg';
 import menuSVG from './assets/menu.svg';
 import messagequestionSVG from './assets/message-question.svg';
 import messagesSVG from './assets/messages.svg';
+import metamaskfoxSVG from './assets/metamask-fox.svg';
 import minusboldSVG from './assets/minus-bold.svg';
 import minussquareSVG from './assets/minus-square.svg';
 import minusSVG from './assets/minus.svg';
@@ -258,6 +259,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Login]: loginSVG,
   [IconName.Logout]: logoutSVG,
   [IconName.Menu]: menuSVG,
+  [IconName.MetamaskFox]: metamaskfoxSVG,
   [IconName.MessageQuestion]: messagequestionSVG,
   [IconName.Messages]: messagesSVG,
   [IconName.MinusBold]: minusboldSVG,
