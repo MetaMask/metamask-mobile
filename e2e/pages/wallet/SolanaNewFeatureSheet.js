@@ -24,10 +24,6 @@ class SolanaNewFeatureSheet {
   }
 
   // Interaction methods
-  async waitForSheetToBeVisible(timeout = 15000) {
-    await Assertions.checkIfVisible(SolanaNewFeatureSheetSelectorsIDs.FEATURE_SHEET, timeout);
-  }
-
   async tapCreateAccountButton() {
     await Gestures.waitAndTap(this.createAccountButton);
   }
@@ -39,19 +35,6 @@ class SolanaNewFeatureSheet {
   async tapLearnMoreButton() {
     await Gestures.waitAndTap(this.learnMoreButton);
   }
-
-  async verifySheetIsVisible() {
-    await Assertions.checkIfVisible(SolanaNewFeatureSheetSelectorsIDs.FEATURE_SHEET);
-  }
-
-  async verifyLearnMoreButtonIsVisible() {
-    await Assertions.checkIfVisible(SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON);
-  }
-
-  async verifyAddAccountButtonIsVisible() {
-    await Assertions.checkIfVisible(SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET);
-  }
-
 
   async verifyCreateAccountButtonIsVisible() {
     await Assertions.checkIfVisible(SolanaNewFeatureSheetSelectorsIDs.CREATE_ACCOUNT_BUTTON);

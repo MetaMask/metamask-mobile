@@ -24,6 +24,7 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import EditAccountNameView from '../../pages/wallet/EditAccountNameView';
+import { SolanaNewFeatureSheetSelectorsIDs } from '../../selectors/wallet/SolanaNewFeatureSheet.selectors';
 
 const ACCOUNT_ONE_TEXT = 'Solana Account 1';
 const ACCOUNT_TWO_TEXT = 'Solana Account 2';
@@ -53,16 +54,16 @@ describe(SmokeConfirmations('Create Solana account'), () => {
 
   it('should assert the new Solanafeature announcement sheet', async () => {
     await Assertions.checkIfVisible(
-      SolanaNewFeatureSheet.verifySheetIsVisible(),
+      SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET,
     );
     await Assertions.checkIfVisible(
-      SolanaNewFeatureSheet.verifyLearnMoreButtonIsVisible(),
+      SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON,
     );
     await Assertions.checkIfVisible(
-      SolanaNewFeatureSheet.verifyAddAccountButtonIsVisible(),
+      SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET,
     );
     await Assertions.checkIfVisible(
-      SolanaNewFeatureSheet.verifyCreateAccountButtonIsVisible(),
+      SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON,
     );
   });
 
@@ -85,14 +86,14 @@ describe(SmokeConfirmations('Create Solana account'), () => {
   it('should should be able to switch between solana accounts', async () => {
     //Switch back to first solana account
     await WalletView.tapIdenticon();
-    // Select first Solana 
+    // Select first Solana
     await AccountListBottomSheet.tapAccountOffCenter(1, 0.5, 0.5);
     //Assert solana account 1 on main wallet view
     await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 0);
 
     //Switch to second solana account
     await WalletView.tapIdenticon();
-    // Select second Solana 
+    // Select second Solana
     await AccountListBottomSheet.tapAccountOffCenter(2, 0.5, 0.5);
     //Assert solana account 2 on main wallet view
     await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 0);
@@ -115,30 +116,28 @@ describe(SmokeConfirmations('Create Solana account'), () => {
     await AddAccountBottomSheet.tapAddSolanaAccount();
     await AddNewHdAccountComponent.tapConfirm();
     await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 2);
-    
+
     // Access the account actions and reveal private key
     await WalletView.tapIdenticon();
     await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
     await AccountActionsBottomSheet.tapShowPrivateKey();
-    
+
     // Enter password to reveal the private key
     await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
-      PASSWORD
+      PASSWORD,
     );
-    
+
     // Tap the reveal button to show the private key
     await RevealPrivateKey.tapToReveal();
-    
+
     // Verify that the private key is displayed
     await Assertions.checkIfVisible(RevealPrivateKey.privateKey);
-    
+
     // Optional: Copy to clipboard and/or close the view
     await RevealPrivateKey.tapToCopyCredentialToClipboard();
     await RevealPrivateKey.tapDoneButton();
   });
 
   //TODO: Waiting for removal feature to be implemented PLACEHOLDER
-  it.skip('should remove a solana account after creation', async () => {
-   
-  });
+  it.skip('should remove a solana account after creation', async () => {});
 });
