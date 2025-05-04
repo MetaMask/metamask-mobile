@@ -5,23 +5,25 @@ import { BackHandler } from 'react-native';
 import Device from '../../../../../util/device';
 import { StakeNavigationParamsList } from '../../../../UI/Stake/types';
 import { useConfirmActions } from '../useConfirmActions';
+import { useStandaloneConfirmation } from './useStandaloneConfirmation';
 
 const useClearConfirmationOnBackSwipe = () => {
   const navigation = useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const { isStandaloneConfirmation } = useStandaloneConfirmation();
   const { onReject } = useConfirmActions();
 
   useEffect(() => {
-    if (Device.isIos()) {
+    if (isStandaloneConfirmation && Device.isIos()) {
       const unsubscribe = navigation.addListener('gestureEnd', () => {
         onReject();
       });
 
-    return unsubscribe;
+      return unsubscribe;
     }
   }, [navigation, onReject]);
 
   useEffect(() => {
-    if (Device.isAndroid()) {
+    if (isStandaloneConfirmation && Device.isAndroid()) {
       const backHandlerSubscription = BackHandler.addEventListener(
         'hardwareBackPress',
         () => {

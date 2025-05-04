@@ -2,8 +2,9 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { BackHandler } from 'react-native';
 import Device from '../../../../../util/device';
-import useClearConfirmationOnBackSwipe from './useClearConfirmationOnBackSwipe';
 import { useConfirmActions } from '../useConfirmActions';
+import { useStandaloneConfirmation } from './useStandaloneConfirmation';
+import useClearConfirmationOnBackSwipe from './useClearConfirmationOnBackSwipe';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -16,6 +17,10 @@ jest.mock('../useConfirmActions', () => ({
 jest.mock('../../../../../util/device', () => ({
   isIos: jest.fn(),
   isAndroid: jest.fn(),
+}));
+
+jest.mock('./useStandaloneConfirmation', () => ({
+  useStandaloneConfirmation: jest.fn(),
 }));
 
 describe('useClearConfirmationOnBackSwipe', () => {
@@ -40,17 +45,34 @@ describe('useClearConfirmationOnBackSwipe', () => {
     });
   });
 
+  it('does not set up back handler if confirmation is not standalone', () => {
+    (useStandaloneConfirmation as jest.Mock).mockReturnValue({
+      isStandaloneConfirmation: false,
+    });
+
+    renderHook(() => useClearConfirmationOnBackSwipe());
+
+    expect(mockAddListener).not.toHaveBeenCalled();
+    expect(mockOnReject).not.toHaveBeenCalled();
+  });
+
   describe('iOS behavior', () => {
     beforeEach(() => {
       (Device.isIos as jest.Mock).mockReturnValue(true);
       (Device.isAndroid as jest.Mock).mockReturnValue(false);
+      (useStandaloneConfirmation as jest.Mock).mockReturnValue({
+        isStandaloneConfirmation: true,
+      });
     });
 
     it('should add a gestureEnd listener when mounted', () => {
       renderHook(() => useClearConfirmationOnBackSwipe());
 
       expect(mockAddListener).toHaveBeenCalledTimes(1);
-      expect(mockAddListener).toHaveBeenCalledWith('gestureEnd', expect.any(Function));
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'gestureEnd',
+        expect.any(Function),
+      );
     });
 
     it('should call onReject when gestureEnd event is triggered', () => {
@@ -79,6 +101,9 @@ describe('useClearConfirmationOnBackSwipe', () => {
     beforeEach(() => {
       (Device.isIos as jest.Mock).mockReturnValue(false);
       (Device.isAndroid as jest.Mock).mockReturnValue(true);
+      (useStandaloneConfirmation as jest.Mock).mockReturnValue({
+        isStandaloneConfirmation: true,
+      });
     });
 
     it('should add a hardware back press listener when mounted', () => {
@@ -86,13 +111,14 @@ describe('useClearConfirmationOnBackSwipe', () => {
 
       expect(BackHandler.addEventListener).toHaveBeenCalledWith(
         'hardwareBackPress',
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
     it('should call onReject when hardware back press is triggered', () => {
       renderHook(() => useClearConfirmationOnBackSwipe());
-      const backHandlerCallback = (BackHandler.addEventListener as jest.Mock).mock.calls[0][1];
+      const backHandlerCallback = (BackHandler.addEventListener as jest.Mock)
+        .mock.calls[0][1];
       const result = backHandlerCallback();
 
       expect(mockOnReject).toHaveBeenCalledTimes(1);
