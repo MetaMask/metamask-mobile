@@ -12,14 +12,10 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import Gestures from '../../utils/Gestures';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView.js';
