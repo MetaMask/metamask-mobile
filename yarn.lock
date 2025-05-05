@@ -5389,7 +5389,7 @@
     immer "^9.0.6"
     nanoid "^3.3.8"
 
-"@metamask/phishing-controller@^12.4.1", "@metamask/phishing-controller@^12.5.0":
+"@metamask/phishing-controller@^12.5.0":
   version "12.5.0"
   resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.5.0.tgz#b65502a32e5be891a7edfde5d5dbdb78b904557c"
   integrity sha512-h34Gfh0gnZ5cf+hE7HaCpVWEdtDDDx3XoMd15nT+R4kW50mJNNWSo6ptZ9uaxJFlbW53wII9vzvurKZPIOMZFg==
