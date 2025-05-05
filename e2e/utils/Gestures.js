@@ -241,6 +241,18 @@ static async typeTextByIdAtIndex(elementId, index, text) {
       .whileElement(scrollableElement)
       .scroll(scrollAmount, direction);
   }
+
+  /**
+   * Get an element by text starting with the specified pattern.
+   *
+   * @param {string} startingText - Text pattern to match at the beginning of element text
+   * @returns {Promise<Detox.IndexableNativeElement>} - A promise resolving to the matching element
+   */
+  static getElementByTextStartingWith(startingText) {
+    return element(
+      by.text(new RegExp(`^${startingText}.*`))
+    );
+  }
 }
 
 export default Gestures;
