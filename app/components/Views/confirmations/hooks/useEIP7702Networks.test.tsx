@@ -50,14 +50,6 @@ const MOCK_NETWORK_CONFIG = {
   },
 };
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    TransactionController: {
-      isAtomicBatchSupported: () => Promise.resolve(mockNetworkBatchSupport),
-    },
-  },
-}));
-
 const mockNetworkBatchSupport = [
   {
     chainId: '0xaa36a7',
@@ -66,6 +58,14 @@ const mockNetworkBatchSupport = [
     upgradeContractAddress: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
   },
 ] as IsAtomicBatchSupportedResult;
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    TransactionController: {
+      isAtomicBatchSupported: () => Promise.resolve(mockNetworkBatchSupport),
+    },
+  },
+}));
 
 function runHook() {
   const { result, rerender } = renderHookWithProvider(
@@ -81,7 +81,7 @@ const MockComponent = () => {
     <View>
       <Text>{`Total networks - ${network7702List?.length}`}</Text>
       {network7702List?.map(({ name }) => (
-        <Text>{name}</Text>
+        <Text key={name}>{name}</Text>
       ))}
     </View>
   );

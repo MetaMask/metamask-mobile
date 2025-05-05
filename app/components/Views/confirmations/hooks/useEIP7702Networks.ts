@@ -57,9 +57,9 @@ export const useEIP7702Networks = (address: string) => {
       const networksSupporting7702: EIP7702NetworkConfiguration[] = [];
       Object.values(networkList).forEach((network) => {
         try {
-          const atomicBatchResult = value.find(({ chainId }) => {
-            return chainId === network.chainId;
-          });
+          const atomicBatchResult = value.find(
+            ({ chainId }) => chainId === network.chainId,
+          );
           if (atomicBatchResult) {
             networksSupporting7702.push({
               ...atomicBatchResult,
