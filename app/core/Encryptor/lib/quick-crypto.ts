@@ -28,7 +28,6 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
     opts: KeyDerivationOptions,
   ): Promise<string> => {
     const passBuffer = Buffer.from(password, 'utf-8');
-    // const saltBuffer = Buffer.from(salt, 'utf-8');
 
     const baseKey = await Crypto.subtle.importKey(
       'raw',
@@ -60,12 +59,12 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
    * @returns A promise that resolves to the encrypted data as a base64 string.
    */
   encrypt = async (data: string, key: string, iv: string): Promise<string> => {
-    const bufferIv = Buffer.from(iv, 'hex');
     const dataBuffer = Buffer.from(data, 'utf-8');
+    const ivBuffer = Buffer.from(iv, 'hex');
     const cryptoKey = await this.importKey(key);
 
     const encryptedData = await Crypto.subtle.encrypt(
-      { name: 'AES-CBC', iv: bufferIv },
+      { name: 'AES-CBC', iv: ivBuffer },
       // @ts-expect-error - This should be as CryptoKey but the type is not exported
       cryptoKey,
       dataBuffer

@@ -12,7 +12,7 @@ import { EncryptionLibrary, KeyDerivationOptions } from './../types';
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
 
-export function assertIsKdfAlgorithm(algorithm: string) {
+export function assertIsKdfAlgorithm(algorithm: string) asserts algorithm is KDF_ALGORITHM {
   if (algorithm !== KDF_ALGORITHM) {
     throw new Error('Unsupported KDF algorithm');
   }
