@@ -1109,10 +1109,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       urlBarRef.current?.setNativeProps({ text });
       submittedUrlRef.current = text;
       webviewRef.current?.stopLoading();
-      if (!firstUrl) {
-        setFirstUrl(processedUrl);
-        return;
-      }
       if (isENSUrl(processedUrl, ensIgnoreListRef.current)) {
         const handledEnsUrl = await handleEnsUrl(
           processedUrl.replace(regex.urlHttpToHttps, 'https://'),
@@ -1125,6 +1121,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           return;
         }
         return onSubmitEditingRef.current(handledEnsUrl);
+      } else if (!firstUrl) {
+        setFirstUrl(processedUrl);
+        return;
       }
       // Directly update url in webview
       webviewRef.current?.injectJavaScript(`
