@@ -17,7 +17,7 @@ describe('Erc20TokenHero', () => {
     fiatValue: '1',
   };
 
-  it('renders correctly', () => {
+  it('renders USDC token correctly', () => {
     const { toJSON } = renderWithProvider(
       <Erc20TokenHero {...defaultProps} />,
       {
