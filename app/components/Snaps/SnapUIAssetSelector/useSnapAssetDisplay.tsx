@@ -16,7 +16,6 @@ import { AllowedBridgeChainIds, NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { RootState } from '../../../reducers';
 import { getNonEvmNetworkImageSourceByChainId } from '../../../util/networks/customNetworks';
-import { TokenWithFiatAmount } from '../../../constants/assets';
 
 /**
  * An asset for the SnapUIAssetSelector.
@@ -31,6 +30,16 @@ export interface SnapUIAsset {
   address: CaipAssetType;
   networkName: string;
   networkIcon?: string;
+}
+
+interface TokenWithFiatAmount {
+  image: string;
+  symbol: string;
+  name: string;
+  balance: string;
+  secondary: string;
+  chainId: CaipChainId;
+  address: CaipAssetType;
 }
 
 /**
@@ -68,7 +77,7 @@ export const useSnapAssetSelectorData = ({
   );
   const networks = useSelector(selectNetworkConfigurations);
 
-  const assets = useSelector((state: RootState) => 
+  const assets = useSelector((state: RootState) =>
     selectMultichainTokenListForAccountId(state, account?.id)
   ) as unknown as TokenWithFiatAmount[];
 
