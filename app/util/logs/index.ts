@@ -25,7 +25,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
 
-  // Remove Keyring controller data
+  // Remove Keyring controller data  so that encrypted vault is not included in logs
   delete fullState.engine.backgroundState.KeyringController;
 
   if (!loggedIn) {
