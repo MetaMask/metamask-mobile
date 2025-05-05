@@ -62,6 +62,9 @@ export const box: UIComponentFactory<BoxElement> = ({
     mapToTemplate({
       ...params,
       element: children as JSXElement,
+      // We have to pass this information down to the children so that they can
+      // hide the balance and fiat in inline mode when the asset selector has a sibling element
+      // and to reduce the padding of the snap ui selector when it has a sibling element.
       isParentFlexRow: e.props.direction === 'horizontal',
     }),
   ) as NonEmptyArray<UIComponent>,
