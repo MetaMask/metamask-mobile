@@ -64,82 +64,32 @@ The communication between the in-app browser and the provider relies on a SYN/AC
 
 This handshake ensures both sides of the communication are ready before RPC messages flow, preventing message loss during initialization.
 
-## Current Issues
+### Message Routing Issues Identified in Logs
+Analysis of the debug logs reveals several specific communication problems:
 
-### 1. ObjectMultiplex Stream Duplication Error
-The primary error is:
-```
-Uncaught (in promise) Error: ObjectMultiplex - Substream for name "metamask-provider" already exists
-```
+1. **Target Mismatches**: The most frequent error seen in logs is:
+   ```
+   [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+   ```
+   - Both streams (inpage and contentscript) receive all postMessage events from the window
+   - Each validates the target field to determine if the message is for them
+   - The logs show messages are consistently being rejected due to incorrect target field
 
-This occurs because we're trying to create multiple streams with the same name on the same multiplexer instance:
+2. **One-Way Communication**: Messages flow from dApp to native code but not back:
+   - RPC requests like `eth_accounts` are sent from inpage → contentscript
+   - MobilePortStream correctly adds the `toNative` flag and forwards to ReactNativeWebView
+   - When messages return from native code, they're filtered out:
+   ```
+   [METAMASK-DEBUG] InpageBridge MobilePortStream: ignoring outgoing message: {method: 'eth_accounts', ... toNative: true}
+   ```
+   - No responses are ever delivered back to the dApp
 
-```javascript
-// First creation - successful
-const providerStream = mux.createStream(METAMASK_EIP_1193_PROVIDER);
+3. **SYN/ACK Partial Completion**: The handshake completes but:
+   - Inpage and contentscript streams successfully exchange SYN/ACK
+   - Both streams uncork and begin accepting messages
+   - However, the multiplexed provider subchannel communication fails
 
-// Later - fails with the error
-const pageProviderChannel = mux.createStream(METAMASK_EIP_1193_PROVIDER);
-```
-
-### 2. Communication Issues
-- The debug logs show SYN messages being sent repeatedly, indicating connection establishment issues
-- Target/origin mismatches in PostMessageStream communications
-- Message routing problems between inpage and content script contexts
-
-### 3. Connection Flow
-Current debug logs show:
-1. Provider bridge initialization
-2. PostMessageStream creation and SYN messages sent
-3. Provider streams setup attempted 
-4. Error at multiplex stream creation
-5. Continuous retries for connection
-
-## Proposed Solutions
-
-### 1. Fix Stream Duplication
-Modify `provider.js` to reuse the existing `providerStream` instead of creating a new one:
-
-```javascript
-// INSTEAD OF:
-const pageProviderChannel = mux.createStream(METAMASK_EIP_1193_PROVIDER);
-
-// USE:
-// Reuse the providerStream created earlier
-```
-
-Then update the pipeline connection to:
-
-```javascript
-pipeline(
-  providerStream,
-  appProviderChannel,
-  providerStream,
-  (err) => logStreamDisconnectWarning(...)
-);
-```
-
-### 2. Ensure Consistent Naming
-- Use the same constant `METAMASK_EIP_1193_PROVIDER` consistently across all modules
-- Ensure target/name consistency in PostMessageStream and MobilePortStream implementations
-
-### 3. Review Message Routing
-- Verify the message routing between inpage <-> content script <-> background
-- Ensure proper origin and target handling in message stream implementations
-- Review SYN/ACK handshake mechanism which appears to be failing
-
-### 4. Improve Developer Experience
-- Create a development build mode that doesn't rely on full `yarn setup` for provider changes
-- Consider implementing direct Metro aliasing instead of using rn-nodeify
-- Add a watch mode for the inpage bridge that recompiles on changes
-
-## Next Steps
-1. Apply the stream duplication fix
-2. Test with a DApp that uses provider methods
-3. Verify that the communication channels are properly established
-4. Analyze message flow with debug logs to ensure proper routing
-5. Consider refactoring the stream creation pattern to avoid multiplexer naming conflicts
-6. Begin migration away from rn-nodeify for faster development iteration
-
-## Reference Implementation
-The updated implementation mirrors patterns used in metamask-extension while ensuring backward compatibility with existing RPC middleware and snap functionality.
+4. **Inconsistent Message Format**: The message structure changes as it passes through layers:
+   - Different wrapping formats between postMessage streams and MobilePortStream
+   - The origin field is added in some contexts but not in others
+   - The direction of the message is tracked via toNative flag but may be causing confusion
