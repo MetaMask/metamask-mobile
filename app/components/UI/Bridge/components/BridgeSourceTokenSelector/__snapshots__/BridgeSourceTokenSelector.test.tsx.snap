@@ -150,7 +150,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -867,7 +874,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               onScrollEndDrag={[Function]}
                               removeClippedSubviews={false}
                               renderItem={[Function]}
-                              scrollEventThrottle={50}
+                              scrollEventThrottle={0.0001}
                               stickyHeaderIndices={[]}
                               viewabilityConfigCallbackPairs={[]}
                             >
@@ -878,10 +885,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1138,10 +1147,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1398,10 +1409,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1690,10 +1703,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1950,10 +1965,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {

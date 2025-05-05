@@ -14,6 +14,10 @@ import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 
 const mockNavigate = jest.fn();
 
@@ -28,6 +32,17 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../../../hooks/useMetrics');
+
+// Mock the environment variables
+jest.mock('../../../../../util/environment', () => ({
+  isProduction: jest.fn().mockReturnValue(false),
+}));
+
+// Mock the feature flags selector
+jest.mock('../../../Earn/selectors/featureFlags', () => ({
+  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
+  selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
+}));
 
 (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
   trackEvent: jest.fn(),
@@ -130,6 +145,7 @@ describe('StakeButton', () => {
 
   it('renders correctly', () => {
     const { getByTestId } = renderComponent();
+
     expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
 
@@ -234,5 +250,22 @@ describe('StakeButton', () => {
         },
       });
     });
+  });
+
+  it('does not render button when all earn experiences are disabled', () => {
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(false);
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
+
+    const { queryByTestId } = renderComponent();
+
+    expect(queryByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeNull();
   });
 });
