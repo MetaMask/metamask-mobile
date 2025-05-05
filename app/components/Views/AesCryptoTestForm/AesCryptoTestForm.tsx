@@ -146,14 +146,14 @@ const AesCryptoTestForm = () => {
   return (
     <ScrollView testID={aesCryptoFormScrollIdentifier}>
       <SafeAreaView style={styles.container}>
-        {/* <View style={styles.container}>
+        <View style={styles.container}>
           <Text variant={TextVariant.HeadingSM} style={styles.formTitle}>
             Current selected address
           </Text>
           <Text variant={TextVariant.HeadingSM} testID={accountAddress}>
             {selectedFormattedAddress}
           </Text>
-        </View> */}
+        </View>
         <TestForm
           title={strings('aes_crypto_test_form.generate_random_salt')}
           buttonLabel={strings('aes_crypto_test_form.generate')}

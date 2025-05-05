@@ -50,10 +50,10 @@ describe(
       await SettingsView.tapAesCryptoTestForm();
 
       // Assert the address derived from SRP
-      // await Assertions.checkIfElementToHaveText(
-      //   AesCryptoTestForm.accountAddress,
-      //   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
-      // );
+      await Assertions.checkIfElementToHaveText(
+        AesCryptoTestForm.accountAddress,
+        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      );
 
       const encryptionKey = await AesCryptoTestForm.generateEncryptionKey(
         PASSWORD_ONE,
@@ -65,6 +65,7 @@ describe(
       );
       await AesCryptoTestForm.decryptWithKey(encryptionKey);
 
+      await TestHelpers.delay(10000);
       await Assertions.checkIfElementHasLabel(
         AesCryptoTestForm.decryptWithKeyResponse,
         DATA_TO_ENCRYPT_ONE,
