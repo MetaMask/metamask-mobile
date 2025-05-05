@@ -18,7 +18,6 @@ import { TokenListItem } from './TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import Logger from '../../../../util/Logger';
 
 export interface FlashListAssetKey {
   address: string;
