@@ -5,6 +5,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Asset from './';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 
 const mockInitialState = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -78,6 +79,11 @@ const mockInitialState = {
 
 jest.unmock('react-native/Libraries/Interaction/InteractionManager');
 
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isPortfolioViewEnabled: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('../../../core/Engine', () => {
   const {
     MOCK_ADDRESS_1,
@@ -144,6 +150,27 @@ describe('Asset', () => {
     );
 
     expect(mockSetOptions).toHaveBeenCalled();
+  });
+
+  it('should display swaps button if the asset is allowed', () => {
+    const { toJSON } = renderWithProvider(
+      <Asset
+        navigation={{ setOptions: jest.fn() }}
+        route={{
+          params: {
+            symbol: 'ETH',
+            address: 'something',
+            isETH: true,
+            chainId: '0x1',
+          },
+        }}
+      />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should not display swaps button if the asset is not allowed', () => {
