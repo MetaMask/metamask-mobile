@@ -1,4 +1,5 @@
 import { IsAtomicBatchSupportedResult } from '@metamask/transaction-controller';
+// eslint-disable-next-line import/no-namespace
 import * as ReactRedux from 'react-redux';
 
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
@@ -66,8 +67,10 @@ function runHook() {
 }
 
 describe('useEIP7702Networks', () => {
-  jest.spyOn(ReactRedux, 'useSelector').mockReturnValue([MOCK_NETWORK_CONFIG]);
   it('returns pending as true initially', () => {
+    jest
+      .spyOn(ReactRedux, 'useSelector')
+      .mockReturnValue([MOCK_NETWORK_CONFIG]);
     const { result } = runHook();
     expect(result.pending).toBe(true);
     expect(result.network7702List).toHaveLength(0);

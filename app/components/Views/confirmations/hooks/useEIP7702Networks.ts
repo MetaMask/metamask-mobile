@@ -50,6 +50,7 @@ export const useEIP7702Networks = (address: string) => {
     });
   }, [address, networkList]);
 
+  console.log('================================', networkList);
   const network7702List: EIP7702NetworkConfiguration[] | undefined =
     useMemo(() => {
       if (!value) {

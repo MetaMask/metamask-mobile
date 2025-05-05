@@ -1,7 +1,9 @@
 import React from 'react';
+// eslint-disable-next-line import/no-namespace
 import * as ReactRedux from 'react-redux';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+// eslint-disable-next-line import/no-namespace
 import * as Networks7702 from '../../hooks/useEIP7702Networks';
 import { EIP7702NetworkConfiguration } from '../../hooks/useEIP7702Networks';
 import SwitchAccountTypeModal from './switch-account-type-modal';
