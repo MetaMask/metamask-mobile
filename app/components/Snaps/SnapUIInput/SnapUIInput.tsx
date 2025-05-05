@@ -77,6 +77,7 @@ export const SnapUIInput = ({
         onChangeText={handleChange}
         autoCapitalize="none"
         autoCorrect={false}
+        // We set a max height of 58px and let the input grow to fill the rest of the height next to a taller sibling element.
         // eslint-disable-next-line react-native/no-inline-styles
         style={{ maxHeight: 58, flexGrow: 1 }}
       />
