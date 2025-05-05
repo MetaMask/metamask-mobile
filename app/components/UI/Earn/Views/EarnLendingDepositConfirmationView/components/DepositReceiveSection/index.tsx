@@ -19,7 +19,7 @@ import { AvatarSize } from '../../../../../../../component-library/components/Av
 import { TokenI } from '../../../../../Tokens/types';
 import { strings } from '../../../../../../../../locales/i18n';
 
-interface DepositReceiveSectionProps {
+export interface DepositReceiveSectionProps {
   token: TokenI;
   receiptTokenName: string;
   receiptTokenAmount: string;

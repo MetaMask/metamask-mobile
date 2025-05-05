@@ -21,19 +21,19 @@ export const STABLECOIN_DEPOSIT_TEST_IDS = {
   DEPOSIT_DETAILS_SECTION: 'depositDetailsSection',
 };
 
-interface DepositInfoSectionProps {
+export interface DepositInfoSectionProps {
   token: TokenI;
   lendingContractAddress: string;
   lendingProtocol: string;
 }
 
 // TODO: Replace mock data with actual values before launch
-const MOCK_DATA_TO_REPLACE = {
+export const MOCK_DATA_TO_REPLACE = {
   EST_ANNUAL_REWARD: {
     FIAT: '$5.00',
     TOKEN: '5 DAI',
   },
-  REWARD_FREQUENCY: strings('earn.daily'),
+  REWARD_FREQUENCY: strings('earn.every_minute'),
   WITHDRAWAL_TIME: strings('earn.immediate'),
 };
 

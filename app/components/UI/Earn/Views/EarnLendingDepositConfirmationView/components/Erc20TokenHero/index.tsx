@@ -66,15 +66,17 @@ const NetworkAndTokenImage = ({ token }: { token: TokenI }) => {
   );
 };
 
+export interface Erc20TokenHeroProps {
+  token: TokenI;
+  amountTokenMinimalUnit: string;
+  fiatValue: string;
+}
+
 const Erc20TokenHero = ({
   token,
   amountTokenMinimalUnit,
   fiatValue,
-}: {
-  token: TokenI;
-  amountTokenMinimalUnit: string;
-  fiatValue: string;
-}) => {
+}: Erc20TokenHeroProps) => {
   const { styles } = useStyles(styleSheet, {});
   const fiatFormatter = useFiatFormatter();
 
