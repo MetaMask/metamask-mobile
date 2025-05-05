@@ -163,7 +163,8 @@ export const generateLendingDepositTransaction = (
     encodedSupplyTransactionData,
   );
 
-  const txOptions = getTxOptions(chainId, TransactionType.lendingDeposit);
+  // TODO: Remove type assertion once "lendingDeposit" is available from @metamask/transaction-controller
+  const txOptions = getTxOptions(chainId, 'lendingDeposit' as TransactionType);
 
   return {
     txParams,
