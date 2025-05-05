@@ -253,7 +253,9 @@ export const TokenListItem = React.memo(
         mainBalance = undefined;
       } else {
         mainBalance =
-          balanceFiat ?? strings('wallet.unable_to_find_conversion_rate');
+          // TODO: troubleshoot capitalization with fallback
+          // balanceFiat ?? strings('wallet.unable_to_find_conversion_rate');
+          balanceFiat ?? '';
       }
     }
 
@@ -264,7 +266,9 @@ export const TokenListItem = React.memo(
 
     if (balanceFiat === TOKEN_RATE_UNDEFINED) {
       mainBalance = balanceValueFormatted;
-      secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
+      // TODO: troubleshoot capitalization with fallback
+      // secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
+      secondaryBalance = '';
     }
 
     asset = asset && { ...asset, balanceFiat, isStaked: asset?.isStaked };
@@ -432,7 +436,7 @@ export const TokenListItem = React.memo(
            * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
            */}
           <View style={styles.assetName}>
-            <Text variant={TextVariant.BodyLGMedium}>
+            <Text variant={TextVariant.BodyLGMedium} numberOfLines={1}>
               {asset.name || asset.symbol}
             </Text>
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}

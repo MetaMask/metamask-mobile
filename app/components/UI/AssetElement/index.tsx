@@ -39,7 +39,7 @@ const createStyles = (colors: Colors) =>
       alignItems: 'flex-start',
     },
     arrow: {
-      flex: 1,
+      flexShrink: 0,
       alignSelf: 'flex-end',
       alignItems: 'flex-end',
     },
