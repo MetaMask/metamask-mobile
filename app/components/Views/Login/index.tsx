@@ -135,7 +135,9 @@ const Login: React.FC = () => {
   const {
     trackEvent,
     createEventBuilder,
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
     isEnabled: isMetricsEnabled,
+    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   } = useMetrics();
   const dispatch = useDispatch();
   const setOnboardingWizardStep = (step: number) =>
@@ -324,7 +326,6 @@ const Login: React.FC = () => {
       // Get onboarding wizard state
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
 
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       if (oauthLoginSuccess) {
         if (onboardingWizard) {
           setOnboardingWizardStep(1);
@@ -351,7 +352,6 @@ const Login: React.FC = () => {
           });
         }
       } else {
-        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
         // eslint-disable-next-line no-lonely-if
         if (onboardingWizard) {
           navigation.replace(Routes.ONBOARDING.HOME_NAV);
@@ -359,9 +359,7 @@ const Login: React.FC = () => {
           setOnboardingWizardStep(1);
           navigation.replace(Routes.ONBOARDING.HOME_NAV);
         }
-        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       }
-      ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setPassword('');

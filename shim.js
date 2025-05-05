@@ -60,6 +60,10 @@ if (typeof localStorage !== 'undefined') {
 // crypto is loaded first, so it can populate global.crypto
 // require('crypto')
 
+import Crypto from 'react-native-quick-crypto';
+
+global.crypto = Crypto;
+
 if (enableApiCallLogs || isTest) {
   (async () => {
     const raw = LaunchArguments.value();

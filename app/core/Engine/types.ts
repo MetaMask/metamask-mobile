@@ -275,6 +275,7 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
+import { EncryptionKey } from '../Encryptor/types';
 
 /**
  * Controllers that area always instantiated
@@ -489,7 +490,7 @@ export type Controllers = {
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-  SeedlessOnboardingController: SeedlessOnboardingController;
+  SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   ///: END:ONLY_INCLUDE_IF
 };
 
