@@ -2,7 +2,9 @@
 import React from 'react';
 import { TextProps, View, ViewStyle } from 'react-native';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import Badge, {
+  BadgeVariant,
+} from '../../../component-library/components/Badges/Badge';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
@@ -22,6 +24,7 @@ import { NameProperties, NameType } from './Name.types';
 const NameLabel: React.FC<{
   displayNameVariant: DisplayNameVariant;
   ellipsizeMode: TextProps['ellipsizeMode'];
+  children: React.ReactNode;
 }> = ({ displayNameVariant, ellipsizeMode, children }) => {
   const { styles } = useStyles(styleSheet, { displayNameVariant });
   return (
@@ -36,7 +39,10 @@ const NameLabel: React.FC<{
   );
 };
 
-const UnknownEthereumAddress: React.FC<{ address: string, style?: ViewStyle }> = ({ address, style }) => {
+const UnknownEthereumAddress: React.FC<{
+  address: string;
+  style?: ViewStyle;
+}> = ({ address, style }) => {
   const displayNameVariant = DisplayNameVariant.Unknown;
   const { styles } = useStyles(styleSheet, { displayNameVariant });
 
@@ -80,9 +86,13 @@ const Name: React.FC<NameProperties> = ({
   const MIDDLE_SECTION_ELLIPSIS = '...';
   const truncatedName =
     name && name.length > MAX_CHAR_LENGTH
-      ? `${name.slice(0, (MAX_CHAR_LENGTH - MIDDLE_SECTION_ELLIPSIS.length) / 2)}${MIDDLE_SECTION_ELLIPSIS}${name.slice(-(MAX_CHAR_LENGTH - MIDDLE_SECTION_ELLIPSIS.length) / 2)}`
+      ? `${name.slice(
+          0,
+          (MAX_CHAR_LENGTH - MIDDLE_SECTION_ELLIPSIS.length) / 2,
+        )}${MIDDLE_SECTION_ELLIPSIS}${name.slice(
+          -(MAX_CHAR_LENGTH - MIDDLE_SECTION_ELLIPSIS.length) / 2,
+        )}`
       : name;
-
 
   return (
     <View style={[styles.base, style]}>
@@ -95,10 +105,10 @@ const Name: React.FC<NameProperties> = ({
         />
       ) : (
         <Identicon
-        address={value}
-        diameter={16}
-        imageUri={image}
-        customStyle={styles.image}
+          address={value}
+          diameter={16}
+          imageUri={image}
+          customStyle={styles.image}
         />
       )}
       <NameLabel displayNameVariant={variant} ellipsizeMode="tail">

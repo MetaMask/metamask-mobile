@@ -135,7 +135,7 @@ class ImportPrivateKeySuccess extends PureComponent {
             </TouchableOpacity>
             <View style={styles.top}>
               <Icon
-                name="ios-checkmark-circle-outline"
+                name="checkmark-circle-outline"
                 style={styles.icon}
                 color={colors.success.default}
               />
