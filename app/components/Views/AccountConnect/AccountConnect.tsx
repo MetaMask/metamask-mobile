@@ -112,6 +112,13 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
+  const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
+    {
+      size: AvatarSize;
+      name: string;
+      imageSource: ImageSourcePropType;
+    }[]
+  >([]);
 
   const requestedCaip25CaveatValue = getRequestedCaip25CaveatValue(
     hostInfo.permissions,
@@ -142,7 +149,20 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? supportedRequestedCaipChainIds
       : allNetworksList;
 
-  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(defaultSelectedChainIds as CaipChainId[]);
+  const [selectedChainIds, _setSelectedChainIds] = useState<CaipChainId[]>(defaultSelectedChainIds as CaipChainId[]);
+  const setSelectedChainIds = useCallback((newSelectedChainIds: CaipChainId[]) => {
+    _setSelectedChainIds(newSelectedChainIds);
+
+    const newNetworkAvatars = newSelectedChainIds.map(
+      (newSelectedChainId) => ({
+        size: AvatarSize.Xs,
+        name: networkConfigurations[newSelectedChainId]?.name || '',
+        // @ts-expect-error - getNetworkImageSource is not typed
+        imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
+      }),
+    );
+    setSelectedNetworkAvatars(newNetworkAvatars);
+  }, [networkConfigurations, setSelectedNetworkAvatars])
 
   // all accounts that match the requested namespaces
   const supportedAccountsForRequestedNamespaces = allAccounts.filter(
@@ -198,14 +218,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
   const isMountedRef = useRef(true);
-
-  const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
-    {
-      size: AvatarSize;
-      name: string;
-      imageSource: ImageSourcePropType;
-    }[]
-  >([]);
 
   const { toastRef } = useContext(ToastContext);
 
@@ -589,16 +601,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const handleNetworksSelected = useCallback(
     (newSelectedChainIds: CaipChainId[]) => {
       setSelectedChainIds(newSelectedChainIds);
-
-      const newNetworkAvatars = newSelectedChainIds.map(
-        (newSelectedChainId) => ({
-          size: AvatarSize.Xs,
-          name: networkConfigurations[newSelectedChainId]?.name || '',
-          // @ts-expect-error - getNetworkImageSource is not typed
-          imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
-        }),
-      );
-      setSelectedNetworkAvatars(newNetworkAvatars);
       setScreen(AccountConnectScreens.SingleConnect);
     },
     [networkConfigurations, setScreen],
