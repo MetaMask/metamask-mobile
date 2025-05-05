@@ -31,6 +31,7 @@ import Toast, {
 } from '../../../../../component-library/components/Toast';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -90,6 +91,9 @@ const EarnLendingDepositConfirmationView = () => {
   const [isDepositLoading, setIsDepositLoading] = useState(false);
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
 
   const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
 
@@ -209,7 +213,6 @@ const EarnLendingDepositConfirmationView = () => {
   );
 
   // Route param guards
-  // TODO: Re-evaluate if these are necessary. Ideally we shouldn't navigate to this page if route params are missing to begin with.
   if (
     isEmpty(token) ||
     !amountTokenMinimalUnit ||
@@ -310,6 +313,10 @@ const EarnLendingDepositConfirmationView = () => {
     // 3. Setup Transaction Event Listeners
     createTransactionEventListeners(transactionId, txType);
   };
+
+  if (!isStablecoinLendingEnabled) {
+    return null;
+  }
 
   return (
     <View style={styles.pageContainer}>
