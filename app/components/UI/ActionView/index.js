@@ -87,6 +87,7 @@ export default function ActionView({
   scrollViewTestID,
   rootStyle,
   buttonContainerStyle,
+  contentContainerStyle,
 }) {
   const { colors } = useTheme();
   confirmText = confirmText || strings('action_view.confirm');
@@ -101,6 +102,7 @@ export default function ActionView({
         resetScrollToCoords={{ x: 0, y: 0 }}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         testID={scrollViewTestID}
+        contentContainerStyle={contentContainerStyle}
       >
         <View style={styles.container}>
           <TouchableWithoutFeedback
@@ -171,6 +173,7 @@ ActionView.defaultProps = {
   cancelTestID: '',
   showCancelButton: true,
   showConfirmButton: true,
+  contentContainerStyle: undefined,
 };
 
 ActionView.propTypes = {
@@ -256,4 +259,5 @@ ActionView.propTypes = {
    * Optional View styles. Applies to action container
    */
   buttonContainerStyle: PropTypes.object,
+  contentContainerStyle: PropTypes.object,
 };

@@ -349,6 +349,7 @@ const RevealPrivateCredential = ({
       inactiveTextColor={colors.text.alternative}
       backgroundColor={colors.background.default}
       tabStyle={styles.tabStyle}
+      // @ts-expect-error - TextStyle is not correctly at react-native-scrollable-tab-view, this library is outdated
       textStyle={styles.textStyle}
       style={styles.tabBar}
     />
@@ -635,6 +636,7 @@ const RevealPrivateCredential = ({
         scrollViewTestID={
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
         }
+        contentContainerStyle={styles.stretch}
       >
         <>
           <View style={[styles.rowWrapper, styles.normalText]}>
@@ -649,7 +651,7 @@ const RevealPrivateCredential = ({
 
           {renderWarning(credentialSlug)}
 
-          <View style={styles.rowWrapper}>
+          <View style={[styles.rowWrapper, styles.stretch]}>
             {unlocked ? renderTabView(credentialSlug) : renderPasswordEntry()}
           </View>
         </>

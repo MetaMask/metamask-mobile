@@ -37,7 +37,6 @@ import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
-import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import Text, {
   TextColor,
   TextVariant,
@@ -47,6 +46,9 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
+import {
+  UserProfileProperty
+} from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -144,18 +146,20 @@ class OptinMetrics extends PureComponent {
      * Used to control the action buttons state.
      */
     isActionEnabled: false,
+    /**
+     * Tracks the scroll view's content height.
+     */
+    scrollViewContentHeight: undefined,
+    /**
+     * Tracks when scroll view has scrolled to end.
+     * Needed to prevent scroll event from setting state multiple times.
+     */
+    isEndReached: false,
+    /**
+     * Tracks the scroll view's height.
+     */
+    scrollViewHeight: undefined
   };
-
-  /**
-   * Tracks when scroll view has scrolled to end.
-   * Needed to prevent scroll event from setting state multiple times.
-   */
-  isEndReached = false;
-
-  /**
-   * Tracks the scroll view's content height.
-   */
-  scrollViewContentHeight = undefined;
 
   getStyles = () => {
     const { colors, typography } = this.context;
@@ -164,24 +168,24 @@ class OptinMetrics extends PureComponent {
 
   actionsList = isPastPrivacyPolicyDate
     ? [1, 2, 3].map((value) => ({
-        action: value,
-        prefix: strings(`privacy_policy.action_description_${value}_prefix`),
-        description: strings(
-          `privacy_policy.action_description_${value}_description`,
-        ),
-      }))
+      action: value,
+      prefix: strings(`privacy_policy.action_description_${value}_prefix`),
+      description: strings(
+        `privacy_policy.action_description_${value}_description`,
+      ),
+    }))
     : [1, 2, 3, 4, 5].map((value) => {
-        const actionVal = value <= 2 ? 0 : 1;
-        return {
-          action: actionVal,
-          prefix: actionVal
-            ? `${strings('privacy_policy.action_description_never_legacy')} `
-            : '',
-          description: strings(
-            `privacy_policy.action_description_${value}_legacy`,
-          ),
-        };
-      });
+      const actionVal = value <= 2 ? 0 : 1;
+      return {
+        action: actionVal,
+        prefix: actionVal
+          ? `${strings('privacy_policy.action_description_never_legacy')} `
+          : '',
+        description: strings(
+          `privacy_policy.action_description_${value}_legacy`,
+        ),
+      };
+    });
 
   updateNavBar = () => {
     const { navigation } = this.props;
@@ -194,9 +198,26 @@ class OptinMetrics extends PureComponent {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
   }
 
-  componentDidUpdate = () => {
+  componentDidUpdate(_, prevState) {
+    // Update the navbar
     this.updateNavBar();
-  };
+
+    const { scrollViewContentHeight, isEndReached, scrollViewHeight } = this.state;
+    
+    // Only run this check if any of the relevant values have changed
+    if (
+      prevState.scrollViewContentHeight !== scrollViewContentHeight ||
+      prevState.isEndReached !== isEndReached ||
+      prevState.scrollViewHeight !== scrollViewHeight
+    ) {
+      if (scrollViewContentHeight === undefined || isEndReached) return;
+      
+      // Check if content fits view port of scroll view
+      if (scrollViewHeight >= scrollViewContentHeight) {
+        this.onScrollEndReached();
+      }
+    }
+  }
 
   componentWillUnmount() {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
@@ -515,7 +536,7 @@ class OptinMetrics extends PureComponent {
    * Triggered when scroll view has reached end of content.
    */
   onScrollEndReached = () => {
-    this.isEndReached = true;
+    this.setState({ isEndReached: true });
     this.setState({ isActionEnabled: true });
   };
 
@@ -525,7 +546,7 @@ class OptinMetrics extends PureComponent {
    * @param {number} _
    * @param {number} height
    */
-  onContentSizeChange = (_, height) => (this.scrollViewContentHeight = height);
+  onContentSizeChange = (_, height) => (this.setState({ scrollViewContentHeight: height }));
 
   /**
    * Layout event for the ScrollView.
@@ -533,11 +554,8 @@ class OptinMetrics extends PureComponent {
    * @param {Object} event
    */
   onLayout = ({ nativeEvent }) => {
-    if (this.scrollViewContentHeight === undefined || this.isEndReached) return;
     const scrollViewHeight = nativeEvent.layout.height;
-    // Check if content fits view port of scroll view.
-    if (scrollViewHeight >= this.scrollViewContentHeight)
-      this.onScrollEndReached();
+    this.setState({ scrollViewHeight });
   };
 
   /**
@@ -546,7 +564,7 @@ class OptinMetrics extends PureComponent {
    * @param {Object} event
    */
   onScroll = ({ nativeEvent }) => {
-    if (this.isEndReached) return;
+    if (this.state.isEndReached) return;
     const currentYOffset = nativeEvent.contentOffset.y;
     const paddingAllowance = 16;
     const endThreshold =
