@@ -59,9 +59,9 @@ class Gestures {
  * @param {number} timeout - Timeout for waiting (default: 15000ms)
  */
 static async waitAndTapByTextPrefix(textPattern, index = 0, timeout = 15000) {
-  const matcher = element(by.text(new RegExp(`^${textPattern}.*`))).atIndex(index);
-  await waitFor(matcher).toBeVisible().withTimeout(timeout);
-  await matcher.tap();
+  const element = element(by.text(new RegExp(`^${textPattern}.*`))).atIndex(index);
+  await waitFor(element).toBeVisible().withTimeout(timeout);
+  await element.tap();
 }
 
   /**
