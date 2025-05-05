@@ -160,6 +160,7 @@ import {
   SnapControllerGetSnapStateAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/snaps';
+import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import {
@@ -1506,6 +1507,27 @@ export class Engine {
         store.dispatch(networkIdWillUpdate());
       },
     );
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    this.controllerMessenger.subscribe(
+      `${snapController.name}:snapTerminated`,
+      (truncatedSnap) => {
+        const approvals = Object.values(
+          approvalController.state.pendingApprovals,
+        ).filter(
+          (approval) =>
+            approval.origin === truncatedSnap.id &&
+            approval.type.startsWith(RestrictedMethods.snap_dialog),
+        );
+        for (const approval of approvals) {
+          approvalController.reject(
+            approval.id,
+            new Error('Snap was terminated.'),
+          );
+        }
+      },
+    );
+    ///: END:ONLY_INCLUDE_IF
 
     this.configureControllersOnNetworkChange();
     this.startPolling();
