@@ -80,6 +80,7 @@ const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewS
     </Box>
     <Box
       flexDirection={FlexDirection.Column}
+      // We hide the balance and fiat in inline mode when the asset selector has a sibling element
       // eslint-disable-next-line react-native/no-inline-styles
       style={{ marginLeft: 'auto', ...(context === 'inline' && isParentFlexRow ? { display: 'none' } : {}) }}
       alignItems={AlignItems.flexEnd}
