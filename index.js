@@ -23,6 +23,9 @@ import { Performance } from './app/core/Performance';
 import { handleCustomError, setReactNativeDefaultHandler } from './app/core/ErrorHandler';
 Performance.setupPerformanceObservers();
 
+import { enableFreeze } from "react-native-screens";
+enableFreeze(true);
+
 LogBox.ignoreAllLogs();
 // List of warnings that we're ignoring
 LogBox.ignoreLogs([
