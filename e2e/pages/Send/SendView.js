@@ -23,6 +23,10 @@ class SendView {
     return Matchers.getElementByID(SendViewSelectorsIDs.INVALID_ADDRESS_ERROR);
   }
 
+  get sendSOLTransactionButton() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.SEND_TRANSACTION_BUTTON);
+  }
+
   get nextButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON)
@@ -108,6 +112,10 @@ class SendView {
   async splitAddressText(){
     const attributes = await (await this.sendAddressConfirmation).getAttributes();
     return await attributes.label.split(' ');
+  }
+
+  async tapSendSOLTransactionButton() {
+    await Gestures.waitAndTap(this.sendSOLTransactionButton);
   }
 }
 export default new SendView();

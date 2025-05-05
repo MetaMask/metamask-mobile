@@ -73,24 +73,6 @@ describe(
       await device.enableSynchronization();
       // Assert account created, which is an existing account with SOL
       await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 1);
-
-      await device.enableSynchronization();
-      await WalletView.tapIdenticon();
-      await device.disableSynchronization();
-      await AccountListBottomSheet.tapAddAccountButton();
-      await AddAccountBottomSheet.tapAddSolanaAccount();
-      await AddNewHdAccountComponent.tapConfirm();
-      await device.enableSynchronization();
-      // Assert account created, which is an existing receive account
-      await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 1);
-    });
-
-    it('Switch back to send account', async () => {
-      await WalletView.tapIdenticon();
-      // Select first Solana
-      await AccountListBottomSheet.tapAccountOffCenter(1, 0.5, 0.5);
-      //Assert solana account 1 on main wallet view
-      await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 0);
     });
 
     it('should check validation of invalid address', async () => {
@@ -101,7 +83,7 @@ describe(
         SendView.invalidAddressError,
         INVALID_ADDRESS_ERROR,
       );
-      // Snap UI components prove tricky for testID's require more time
+      // TODOSnap UI components prove tricky for testID's require more time
       await Gestures.waitAndTapByTextPrefix('Cancel');
     });
 
@@ -112,14 +94,17 @@ describe(
 
       // Snap UI components prove tricky for testID's require more time
       await Gestures.waitAndTapByTextPrefix('Continue');
-      await Assertions.checkIfTextIsDisplayed(SendViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW)
-
+      await Assertions.checkIfTextIsDisplayed(
+        SendViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
+      );
       // Snap UI components prove tricky for testID's require more time
-      // Tap Send to confirm send
-      await Gestures.waitAndTapByTextPrefix('Send', 9);
-
+      await SendView.tapSendSOLTransactionButton();
       // Assert transaction is sent
-      await Assertions.checkIfTextIsDisplayed(element(by.text(new RegExp(`^${'0.0009 SOL was successfully sent'}.*`))))
+      await Assertions.checkIfTextIsDisplayed(
+        element(
+          by.text(new RegExp(`^${'0.0009 SOL was successfully sent'}.*`)),
+        ),
+      );
     });
   },
 );
