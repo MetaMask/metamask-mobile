@@ -8,6 +8,7 @@ function configureStore(initialState: any) {
   return configureStoreBase({
     reducer: rootReducer,
     preloadedState: initialState,
+    // Required for dispatching actions made with createAsyncThunk in tests
     middleware: [thunk]
   });
 }
