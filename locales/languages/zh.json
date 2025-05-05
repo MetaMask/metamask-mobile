@@ -860,8 +860,6 @@
     "reset_notifications_description": "重设通知意味着您要删除通知存储密钥并重设所有通知历史记录。您确定要这样做吗？",
     "reset_notifications": "重设通知",
     "reset_notifications_success": "已删除/重新创建通知存储密钥，并重设通知历史记录。",
-    "enabling_profile_sync": "正在启用配置文件同步...",
-    "disabling_profile_sync": "正在禁用配置文件同步...",
     "notifications_dismiss_modal": "关闭",
     "select_rpc_url": "选择 RPC（远程过程调用）URL",
     "title": "设置",
@@ -3293,15 +3291,6 @@
   "remember_me": {
     "enable_remember_me": "打开“记住我”",
     "enable_remember_me_description": "在“记住我”功能打开时，任何有访问您手机权限的人都可以访问您的 MetaMask 账户。"
-  },
-  "profile_sync": {
-    "title": "配置文件同步",
-    "disable_warning": "如果您关闭配置文件同步，您将无法收到通知。",
-    "enable_description": "创建配置文件，MetaMask 用以在您的不同设备之间同步某些设置。这是获取通知的必需条件。 ",
-    "enable_description2": " 以了解详情。",
-    "enable_privacy_link": "了解我们如何保护您的隐私",
-    "bottomSheetTurnOn": "开启配置文件同步",
-    "bottomSheetTurnOff": "关闭配置文件同步"
   },
   "turn_off_remember_me": {
     "title": "输入密码以关闭“记住我”",

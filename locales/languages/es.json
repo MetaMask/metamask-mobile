@@ -860,8 +860,6 @@
     "reset_notifications_description": "Restablecer notificaciones significa que está eliminando sus claves de almacenamiento de notificaciones y reiniciando todo su historial de notificaciones. ¿Está seguro de que desea hacer esto?",
     "reset_notifications": "Restablecer notificaciones",
     "reset_notifications_success": "Se eliminó/recreó la clave de almacenamiento de notificaciones y se restableció el historial de notificaciones.",
-    "enabling_profile_sync": "Activando la sincronización de perfiles...",
-    "disabling_profile_sync": "Desactivando la sincronización de perfiles...",
     "notifications_dismiss_modal": "Ignorar",
     "select_rpc_url": "Seleccionar URL de RPC",
     "title": "Configuración",
@@ -3293,15 +3291,6 @@
   "remember_me": {
     "enable_remember_me": "Activar Recordarme",
     "enable_remember_me_description": "Cuando Recordarme está activado, cualquier persona con acceso a su teléfono puede acceder a su cuenta de MetaMask."
-  },
-  "profile_sync": {
-    "title": "Sincronización de perfil",
-    "disable_warning": "Si desactiva la sincronización de perfiles, no podrá recibir notificaciones.",
-    "enable_description": "Crea un perfil que MetaMask utiliza para sincronizar algunas configuraciones entre sus dispositivos. Esto es necesario para recibir notificaciones. ",
-    "enable_description2": " para más información.",
-    "enable_privacy_link": "Descubra cómo protegemos su privacidad",
-    "bottomSheetTurnOn": "Activar la sincronización de perfiles",
-    "bottomSheetTurnOff": "Desactivar la sincronización de perfiles"
   },
   "turn_off_remember_me": {
     "title": "Ingrese su contraseña para desactivar Recordarme",

@@ -860,8 +860,6 @@
     "reset_notifications_description": "Ang pag-reset sa mga notipikasyon, ay nangangahulungan na tinatanggal mo ang iyong mga storage key ng mga notipikasyon at inire-reset ang lahat ng iyong kasaysayan ng notipikasyon. Sigurado ka ba na gusto mo itong gawin?",
     "reset_notifications": "I-reset ang mga notipikasyon",
     "reset_notifications_success": "Tinanggal/nilikha muli ang storage key ng mga notipikasyon, at ini-reset ang kasaysayan ng mga notipikasyon.",
-    "enabling_profile_sync": "Pinapagana ang pag-sync ng profile...",
-    "disabling_profile_sync": "Hindi pinapagana ang pag-sync ng profile...",
     "notifications_dismiss_modal": "I-dismiss",
     "select_rpc_url": "Pumili ng RPC URL",
     "title": "Mga Setting",
@@ -3293,15 +3291,6 @@
   "remember_me": {
     "enable_remember_me": "I-on ang Tandaan ako",
     "enable_remember_me_description": "Kapag naka-on ang tandaan ako, sinumang may access sa iyong telepono ay makaka-access sa iyong MetaMask account."
-  },
-  "profile_sync": {
-    "title": "Pag-sync ng Profile",
-    "disable_warning": "Kapag in-off mo ang pag-sync ng profile, hindi ka makakatanggap ng mga notipikasyon.",
-    "enable_description": "Lilikha ng profile na gagamitin ng MetaMask upang i-sync ang ilang mga setting sa iyong mga device. Kailangan ito para makakuha ng mga notipikasyon. ",
-    "enable_description2": " upang matuto pa.",
-    "enable_privacy_link": "Matutunan kung paano namin protektahan ang iyong pagkapribado",
-    "bottomSheetTurnOn": "I-on ang Profile Sync",
-    "bottomSheetTurnOff": "I-off ang Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Ilagay ang iyong password para i-off ang Tandaan ako",

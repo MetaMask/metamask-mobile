@@ -860,8 +860,6 @@
     "reset_notifications_description": "Đặt lại thông báo có nghĩa là bạn đang xóa các khóa lưu trữ thông báo và đặt lại toàn bộ lịch sử thông báo. Bạn có chắc chắn muốn thực hiện điều này không?",
     "reset_notifications": "Đặt lại thông báo",
     "reset_notifications_success": "Khóa lưu trữ thông báo đã bị xóa/được tạo lại và lịch sử thông báo đã được đặt lại.",
-    "enabling_profile_sync": "Đang bật đồng bộ hồ sơ...",
-    "disabling_profile_sync": "Đang tắt đồng bộ hồ sơ...",
     "notifications_dismiss_modal": "Đóng",
     "select_rpc_url": "Chọn URL RPC",
     "title": "Cài đặt",
@@ -3293,15 +3291,6 @@
   "remember_me": {
     "enable_remember_me": "Bật Ghi nhớ",
     "enable_remember_me_description": "Khi bật Ghi nhớ, bất kỳ ai có quyền truy cập vào điện thoại của bạn đều có thể truy cập vào tài khoản MetaMask của bạn."
-  },
-  "profile_sync": {
-    "title": "Đồng bộ hồ sơ",
-    "disable_warning": "Nếu tắt đồng bộ hồ sơ, bạn sẽ không nhận được thông báo.",
-    "enable_description": "Tạo một hồ sơ mà MetaMask sử dụng để đồng bộ một số chế độ cài đặt giữa các thiết bị của bạn. Đây là thao tác cần thiết để nhận được thông báo. ",
-    "enable_description2": " để tìm hiểu thêm.",
-    "enable_privacy_link": "Tìm hiểu cách chúng tôi bảo vệ quyền riêng tư của bạn",
-    "bottomSheetTurnOn": "Bật Đồng bộ hồ sơ",
-    "bottomSheetTurnOff": "Tắt Đồng bộ hồ sơ"
   },
   "turn_off_remember_me": {
     "title": "Nhập mật khẩu để tắt Ghi nhớ",
