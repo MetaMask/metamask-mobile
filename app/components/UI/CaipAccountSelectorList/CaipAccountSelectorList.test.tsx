@@ -220,6 +220,7 @@ const CaipAccountSelectorListUseAccounts: React.FC<CaipAccountSelectorListProps>
       ensByAccountAddress={ensByAccountAddress}
       isRemoveAccountEnabled
       privacyMode={privacyMode}
+      selectedAddresses={[]}
     />
   );
 };
@@ -626,7 +627,7 @@ describe('CaipAccountSelectorList', () => {
       testAccounts = accounts;
 
       return (
-        <CaipAccountSelectorList accounts={accounts} ensByAccountAddress={{}} />
+        <CaipAccountSelectorList selectedAddresses={[]} accounts={accounts} ensByAccountAddress={{}} />
       );
     };
 
@@ -664,7 +665,7 @@ describe('CaipAccountSelectorList', () => {
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
           isMultiSelect
-          selectedAddresses={[BUSINESS_ACCOUNT]}
+          selectedAddresses={[`eip155:0:${BUSINESS_ACCOUNT}`]}
         />
       );
     };
@@ -688,7 +689,7 @@ describe('CaipAccountSelectorList', () => {
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
           isSelectWithoutMenu
-          selectedAddresses={[BUSINESS_ACCOUNT]}
+          selectedAddresses={[`eip155:0:${BUSINESS_ACCOUNT}`]}
         />
       );
     };
@@ -717,6 +718,7 @@ describe('CaipAccountSelectorList', () => {
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
           isSelectionDisabled
+          selectedAddresses={[]}
         />
       );
     };
@@ -844,6 +846,7 @@ describe('CaipAccountSelectorList', () => {
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
           isRemoveAccountEnabled={false}
+          selectedAddresses={[]}
         />
       );
     };
@@ -945,6 +948,7 @@ describe('CaipAccountSelectorList', () => {
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
           isAutoScrollEnabled={false}
+          selectedAddresses={[]}
         />
       );
     };

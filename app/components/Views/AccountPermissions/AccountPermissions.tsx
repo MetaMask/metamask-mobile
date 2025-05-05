@@ -286,6 +286,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       return;
     }
 
+      // TODO: Fix this. currentChainId is EVM hex
       // Check if current network was originally permitted and is now being removed
       const wasCurrentNetworkOriginallyPermitted =
         permittedChainIds.includes(currentChainId);

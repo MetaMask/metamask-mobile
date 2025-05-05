@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, Hex } from '@metamask/utils';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
@@ -224,15 +224,15 @@ describe('getCaip25PermissionsResponse', () => {
       isMultichainOrigin: false,
       sessionProperties: {},
     };
-    const ethAccountAddresses: Hex[] = [
-      '0x0000000000000000000000000000000000000001',
+    const accountIds: CaipAccountId[] = [
+      'eip155:0:0x0000000000000000000000000000000000000001',
     ];
-    const ethChainIds: Hex[] = ['0x1'];
+    const chainIds: CaipChainId[] = ['eip155:1'];
 
     const result = getCaip25PermissionsResponse(
       initialCaveatValue,
-      ethAccountAddresses,
-      ethChainIds,
+      accountIds,
+      chainIds,
     );
 
     expect(result).toEqual({
@@ -265,13 +265,13 @@ describe('getCaip25PermissionsResponse', () => {
       isMultichainOrigin: false,
       sessionProperties: {},
     };
-    const ethAccountAddresses: Hex[] = [];
-    const ethChainIds: Hex[] = ['0x1'];
+    const accountIds: CaipAccountId[] = [];
+    const chainIds: CaipChainId[] = ['eip155:1'];
 
     const result = getCaip25PermissionsResponse(
       initialCaveatValue,
-      ethAccountAddresses,
-      ethChainIds,
+      accountIds,
+      chainIds,
     );
 
     expect(result).toEqual({
@@ -306,15 +306,15 @@ describe('getCaip25PermissionsResponse', () => {
       isMultichainOrigin: false,
       sessionProperties: {},
     };
-    const ethAccountAddresses: Hex[] = [
-      '0x0000000000000000000000000000000000000002',
+    const accountIds: CaipAccountId[] = [
+      'eip155:0:0x0000000000000000000000000000000000000002',
     ];
-    const ethChainIds: Hex[] = ['0xa'];
+    const chainIds: CaipChainId[] = ['eip155:10'];
 
     const result = getCaip25PermissionsResponse(
       initialCaveatValue,
-      ethAccountAddresses,
-      ethChainIds,
+      accountIds,
+      chainIds,
     );
 
     expect(result).toEqual({
