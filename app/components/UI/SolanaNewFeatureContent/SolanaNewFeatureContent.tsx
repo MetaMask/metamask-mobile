@@ -159,7 +159,6 @@ const SolanaNewFeatureContent = () => {
           onPress={handleClose}
           style={styles.cancelButton}
           testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
-
         />
       </View>
     </BottomSheet>

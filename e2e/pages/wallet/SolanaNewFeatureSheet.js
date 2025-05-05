@@ -3,6 +3,7 @@
 import { SolanaNewFeatureSheetSelectorsIDs } from '../../selectors/wallet/SolanaNewFeatureSheet.selectors';
 import Gestures from '../../utils/Gestures';
 import Assertions from '../../utils/Assertions';
+import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 
 class SolanaNewFeatureSheet {
   // Sheet container
@@ -27,6 +28,10 @@ class SolanaNewFeatureSheet {
     return element(by.id(SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET));
   }
 
+  get carouselLogo() {
+    return element(by.id(WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE));
+  }
+
   // Interaction methods
   async tapCreateAccountButton() {
     await Gestures.waitAndTap(this.createAccountButton);
@@ -46,6 +51,10 @@ class SolanaNewFeatureSheet {
 
   async tapNotNowButton() {
     await Gestures.waitAndTap(this.notNowButton);
+  }
+
+  async swipeWithCarouselLogo() {
+    await Gestures.swipe(this.learnMoreButton, 'down', 'fast');
   }
 }
 

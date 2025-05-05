@@ -29,7 +29,7 @@ class Gestures {
 
   /**
    * Taps at the center of an element, or at specified normalized coordinates
-   * 
+   *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
    * @param {number} x - Normalized x-coordinate (0-1, default: 0.5 for center)
    * @param {number} y - Normalized y-coordinate (0-1, default: 0.5 for center)
@@ -50,14 +50,19 @@ class Gestures {
     await element.tap();
   }
 
-  /**
-   * Tap an element with text partial text matching before tapping it
-   *
-   * @param {string} textPattern - Regular expression pattern to match the text
-   */
-  static async tapTextBeginingWith(textPattern) {
-    await element(by.text(new RegExp(`^/${textPattern} .*$/`))).tap();
-  }
+
+/**
+ * Wait for an element whose text starts with the specified pattern to be visible and then tap it
+ *
+ * @param {string} textPattern - Text prefix to match at the beginning of element text
+ * @param {number} index - Index of the element if multiple elements match (0-based)
+ * @param {number} timeout - Timeout for waiting (default: 15000ms)
+ */
+static async waitAndTapByTextPrefix(textPattern, index = 0, timeout = 15000) {
+  const matcher = element(by.text(new RegExp(`^${textPattern}.*`))).atIndex(index);
+  await waitFor(matcher).toBeVisible().withTimeout(timeout);
+  await matcher.tap();
+}
 
   /**
    * Wait for an element to be visible and then tap it.
@@ -144,6 +149,24 @@ class Gestures {
 
     await element.replaceText(text);
   }
+
+  /**
+ * Type text into an element with specified index
+ *
+ * @param {string} elementId - ID of the element to type into
+ * @param {number} index - Index of the element (0-based)
+ * @param {string} text - Text to type
+ */
+static async typeTextByIdAtIndex(elementId, index, text) {
+  // Create a direct reference to element at index
+  const targetElement = element(by.id(elementId)).atIndex(index);
+  
+  // Wait for element to be visible
+  await waitFor(targetElement).toBeVisible().withTimeout(10000);
+  
+  // Type text into the element
+  await targetElement.replaceText(text);
+}
 
   /**
    * Swipe on an element identified by ID.

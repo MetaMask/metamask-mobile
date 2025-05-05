@@ -15,6 +15,14 @@ class SendView {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_INPUT);
   }
 
+  get solanaAddressInputField() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.SOLANA_INPUT_ADDRESS_FIELD);
+  }
+
+  get invalidAddressError() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.INVALID_ADDRESS_ERROR);
+  }
+
   get nextButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON)
@@ -82,6 +90,15 @@ class SendView {
   async tapAddAddressToAddressBook() {
     await Gestures.waitAndTap(this.addAddressButton);
   }
+
+  async inputSolanaAddress(address) {
+    await Gestures.replaceTextInField(this.solanaAddressInputField, address);
+  }
+
+  async inputSolanaAmount(amount) {
+    await Gestures.typeTextByIdAtIndex(SendViewSelectorsIDs.SOLANA_INPUT_ADDRESS_FIELD, 1, amount);
+  }
+
 
   async removeAddress() {
     await Gestures.waitAndTap(this.removeAddressButton);

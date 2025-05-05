@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeConfirmations } from '../../tags';
+import {SmokeNetworkExpansion } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import AmountView from '../../pages/Send/AmountView';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
@@ -33,7 +33,7 @@ const PASSWORD = '123123123';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeConfirmations('Create Solana account'), () => {
+describe(SmokeNetworkExpansion('Create Solana account'), () => {
   beforeAll(async () => {
     jest.setTimeout(10000);
     await TestHelpers.reverseServerPort();
