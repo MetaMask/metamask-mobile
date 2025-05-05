@@ -295,14 +295,22 @@ const EarnInputView = () => {
 
   const handleEarnPress = useCallback(async () => {
     // Stablecoin Lending Flow
-    if (earnToken?.experience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (
+      earnToken?.experience === EARN_EXPERIENCES.STABLECOIN_LENDING &&
+      isStablecoinLendingEnabled
+    ) {
       await handleLendingFlow();
       return;
     }
 
     // Pooled-Staking Flow
     await handlePooledStakingFlow();
-  }, [earnToken?.experience, handlePooledStakingFlow, handleLendingFlow]);
+  }, [
+    earnToken?.experience,
+    isStablecoinLendingEnabled,
+    handlePooledStakingFlow,
+    handleLendingFlow,
+  ]);
 
   const handleMaxButtonPress = () => {
     if (!isStablecoinLendingEnabled || token.isETH) {
