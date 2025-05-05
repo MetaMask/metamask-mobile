@@ -254,8 +254,8 @@ export const TokenListItem = React.memo(
       } else {
         mainBalance =
           // TODO: troubleshoot capitalization with fallback
-          // balanceFiat ?? strings('wallet.unable_to_find_conversion_rate');
-          balanceFiat ?? '';
+          balanceFiat ?? strings('wallet.unable_to_find_conversion_rate');
+        // balanceFiat ?? '';
       }
     }
 
@@ -267,8 +267,8 @@ export const TokenListItem = React.memo(
     if (balanceFiat === TOKEN_RATE_UNDEFINED) {
       mainBalance = balanceValueFormatted;
       // TODO: troubleshoot capitalization with fallback
-      // secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
-      secondaryBalance = '';
+      secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
+      // secondaryBalance = '';
     }
 
     asset = asset && { ...asset, balanceFiat, isStaked: asset?.isStaked };

@@ -53,7 +53,7 @@ const createStyles = (colors: Colors) =>
       color: colors.text.alternative,
       paddingHorizontal: 0,
       ...fontStyles.normal,
-      textTransform: 'uppercase',
+      // textTransform: 'uppercase',
     },
   });
 
