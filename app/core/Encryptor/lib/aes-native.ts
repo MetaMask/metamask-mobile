@@ -1,18 +1,40 @@
 import { NativeModules } from 'react-native';
 import {
   KDF_ALGORITHM,
-  ShaAlgorithm,
-  CipherAlgorithmAesCrypto,
   SHA256_DIGEST_LENGTH,
   LEGACY_DERIVATION_OPTIONS,
 } from './../constants';
 import { EncryptionLibrary, KeyDerivationOptions } from './../types';
 
+/**
+ * Supported SHA algorithms in react-native-aes v3.0.3
+ */
+enum ShaAlgorithmAesCrypto {
+  Sha256 = 'sha256',
+  Sha512 = 'sha512',
+}
+
+/**
+ * Supported cipher algorithms in react-native-aes v3.0.3
+ *
+ * Important Note: Make sure to validate the compatibility of the algorithm with the underlying library.
+ * The react-native-aes-crypto does a string validation for the algorithm, so it's important to make sure
+ * we're using the correct string.
+ *
+ * References:
+ * - encrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When-,encrypting,-and%20decypting%20the
+ * - decrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When%20encrypting%20and-,decypting,-the%20library%20uses
+ */
+enum CipherAlgorithmAesCrypto {
+  cbc = 'aes-cbc-pkcs7padding',
+  ctr = 'aes-ctr-pkcs5padding',
+}
+
 // Actual native libraries
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
 
-export function assertIsKdfAlgorithm(algorithm: string) {
+export function assertIsKdfAlgorithm(algorithm: string): asserts algorithm is typeof KDF_ALGORITHM {
   if (algorithm !== KDF_ALGORITHM) {
     throw new Error('Unsupported KDF algorithm');
   }
@@ -41,7 +63,7 @@ class AesEncryptionLibrary implements EncryptionLibrary {
       // - https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
       // - https://eprint.iacr.org/2010/548.pdf
       SHA256_DIGEST_LENGTH,
-      ShaAlgorithm.Sha512,
+      ShaAlgorithmAesCrypto.Sha512,
     );
   };
 
