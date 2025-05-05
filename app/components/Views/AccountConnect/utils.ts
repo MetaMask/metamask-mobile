@@ -3,9 +3,12 @@ import {
   Caip25CaveatType,
   Caip25CaveatValue,
   Caip25EndowmentPermissionName,
+  setChainIdsInCaip25CaveatValue,
   setEthAccounts,
+  setNonSCACaipAccountIdsInCaip25CaveatValue,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
+import Logger from '../../../util/Logger';
 
 /**
  * Takes in an incoming value and attempts to return the {@link Caip25CaveatValue}.
@@ -93,14 +96,14 @@ export function getCaip25PermissionsResponse(
     caveats: [{ type: string; value: Caip25CaveatValue }];
   };
 } {
-  const caveatValueWithChains = setPermittedEthChainIds(
+  const caveatValueWithChains = setChainIdsInCaip25CaveatValue(
     caip25CaveatValue,
-    ethChainIds,
+    caipChainIds,
   );
 
-  const caveatValueWithAccounts = setEthAccounts(
+  const caveatValueWithAccounts = setNonSCACaipAccountIdsInCaip25CaveatValue(
     caveatValueWithChains,
-    ethAccountAddresses,
+    caipAccountIds,
   );
 
   return {
