@@ -4,6 +4,7 @@ import { decimalToHex } from '../../../../../../util/conversions';
 import { updateTransactionGasFees } from '../../../../../../util/transaction-controller';
 import { useSupportsEIP1559 } from '../../../hooks/transactions/useSupportsEIP1559';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
 import UpdateEIP1559Tx from '../../../legacy/components/UpdateEIP1559Tx';
 import BottomModal from '../../UI/bottom-modal';
 
@@ -15,6 +16,7 @@ const GasFeeModals = (
   }) => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { supportsEIP1559 } = useSupportsEIP1559(transactionMetadata as TransactionMeta);
+  const feeCalculations = useFeeCalculations(transactionMetadata as TransactionMeta);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onSave = async (transactionObject: any) => {
@@ -63,6 +65,10 @@ const GasFeeModals = (
         dontIgnoreOptions
         defaultStopUpdateGas
         isRedesignedTransaction
+        injectedRedesignedGas={{
+          feeCalculations,
+        }}
+        injectedTransactionMeta={transactionMetadata}
       />
     </BottomModal>
   );

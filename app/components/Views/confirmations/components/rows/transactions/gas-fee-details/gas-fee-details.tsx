@@ -39,6 +39,9 @@ const GasFeesDetails = () => {
 
   const isConfirmationWithGasFeeModals = [
     TransactionType.contractInteraction,
+    TransactionType.simpleSend,
+    TransactionType.tokenMethodTransfer,
+    TransactionType.tokenMethodTransferFrom,
   ].includes(transactionMetadata.type as TransactionType);
 
   const InfoSectionComponent = (

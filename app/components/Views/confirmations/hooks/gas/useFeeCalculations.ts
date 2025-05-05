@@ -26,9 +26,10 @@ const HEX_ZERO = '0x0';
 
 export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
   const chainId = transactionMeta?.chainId;
-  const { nativeCurrency } = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, chainId as Hex),
-  ) || {};
+  const { nativeCurrency } =
+    useSelector((state: RootState) =>
+      selectNetworkConfigurationByChainId(state, chainId as Hex),
+    ) || {};
   const fiatFormatter = useFiatFormatter();
   const nativeConversionRate = useSelector((state: RootState) =>
     selectConversionRateByChainId(state, chainId as Hex),
@@ -56,21 +57,19 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
         nativeConversionRate as number,
       );
       const locale = I18n.locale;
-      const nativeCurrencyFee = `${
-        formatAmount(
-          locale,
-          new BigNumber(
-            getValueFromWeiHex({
-              value: hexFee,
-              fromCurrency: 'WEI',
-              toCurrency: 'ETH',
-              numberOfDecimals: 4,
-              conversionRate: 1,
-              toDenomination: 'ETH',
-            }) || 0
-          )
-        )
-      } ${nativeCurrency}`;
+      const nativeCurrencyFee = `${formatAmount(
+        locale,
+        new BigNumber(
+          getValueFromWeiHex({
+            value: hexFee,
+            fromCurrency: 'WEI',
+            toCurrency: 'ETH',
+            numberOfDecimals: 4,
+            conversionRate: 1,
+            toDenomination: 'ETH',
+          }) || 0,
+        ),
+      )} ${nativeCurrency}`;
 
       const decimalCurrentCurrencyFee = Number(
         getValueFromWeiHex({
@@ -121,6 +120,8 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
         currentCurrencyFee: null,
         nativeCurrencyFee: null,
         preciseNativeFeeInHex: null,
+        currentCurrencyMaxFee: null,
+        nativeCurrencyMaxFee: null,
       };
     }
 
@@ -144,6 +145,11 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
       gasLimitNoBuffer as Hex,
     );
 
+    const estimatedMaxFee = multiplyHexes(
+      supportsEIP1559 ? (maxFeePerGas as Hex) : (gasPrice as Hex),
+      gasLimitNoBuffer as Hex,
+    );
+
     // If there is a L1 and L2 component to the gas fee, add them together
     const hasLayer1GasFee = Boolean(layer1GasFee);
     if (hasLayer1GasFee) {
@@ -151,10 +157,33 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
         estimatedFee,
         layer1GasFee,
       ) as Hex;
-      return getFeesFromHex(estimatedTotalFeesForL2);
+
+      const estimatedTotalFeesForL2Result = addHexes(
+        estimatedMaxFee,
+        layer1GasFee,
+      ) as Hex;
+
+      const estimatedMinFeeWithL1Fees = getFeesFromHex(estimatedTotalFeesForL2);
+      const estimatedMaxFeeWithL1FeesResult = getFeesFromHex(
+        estimatedTotalFeesForL2Result,
+      );
+
+      return {
+        ...estimatedMinFeeWithL1Fees,
+        currentCurrencyMaxFee:
+          estimatedMaxFeeWithL1FeesResult.currentCurrencyFee,
+        nativeCurrencyMaxFee: estimatedMaxFeeWithL1FeesResult.nativeCurrencyFee,
+      };
     }
 
-    return getFeesFromHex(estimatedFee);
+    const estimatedMinFee = getFeesFromHex(estimatedFee);
+    const estimatedMaxFeeResult = getFeesFromHex(estimatedMaxFee);
+
+    return {
+      ...estimatedMinFee,
+      currentCurrencyMaxFee: estimatedMaxFeeResult.currentCurrencyFee,
+      nativeCurrencyMaxFee: estimatedMaxFeeResult.nativeCurrencyFee,
+    };
   }, [
     estimatedBaseFee,
     gasPrice,
@@ -169,5 +198,7 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
     estimatedFeeFiat: estimatedFees.currentCurrencyFee,
     estimatedFeeNative: estimatedFees.nativeCurrencyFee,
     preciseNativeFeeInHex: estimatedFees.preciseNativeFeeInHex,
+    currentCurrencyMaxFee: estimatedFees.currentCurrencyMaxFee,
+    nativeCurrencyMaxFee: estimatedFees.nativeCurrencyMaxFee,
   };
 };

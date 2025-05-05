@@ -60,6 +60,8 @@ const EditGasFee1559Update = ({
   selectedGasObject,
   onlyGas,
   isRedesignedTransaction,
+  injectedRedesignedGas,
+  injectedTransactionMeta,
 }) => {
   const [modalInfo, updateModalInfo] = useState({
     isVisible: false,
@@ -188,10 +190,15 @@ const EditGasFee1559Update = ({
 
   const changedGasLimit = useCallback(
     (value) => {
-      const newGas = { ...gasTransaction, suggestedGasLimit: value };
-      changeGas(newGas, null);
+      if(injectedTransactionMeta) {
+
+      
+      } else {
+        const newGas = { ...gasTransaction, suggestedGasLimit: value };
+        changeGas(newGas, null);
+      }
     },
-    [changeGas, gasTransaction],
+    [changeGas, gasTransaction, injectedTransactionMeta],
   );
 
   const changedMaxPriorityFee = useCallback(
@@ -650,27 +657,35 @@ const EditGasFee1559Update = ({
                   numberOfLines={1}
                   noMargin
                 >
-                  ~
-                  {switchNativeCurrencyDisplayOptions(
-                    renderableGasFeeMinNative,
-                    renderableGasFeeMinConversion,
-                  )}
+                  ~ {
+                    injectedRedesignedGas ? injectedRedesignedGas?.feeCalculations?.estimatedFeeNative :
+                    switchNativeCurrencyDisplayOptions(
+                      renderableGasFeeMinNative,
+                      renderableGasFeeMinConversion,
+                    )
+                  }
+
                 </Text>
               </View>
               <Text big black style={styles.subheader} noMargin>
                 <Text bold black noMargin>
                   {strings('edit_gas_fee_eip1559.max_fee')}:{' '}
                 </Text>
-                {switchNativeCurrencyDisplayOptions(
-                  renderableGasFeeMaxNative,
-                  renderableGasFeeMaxConversion,
-                )}{' '}
-                (
-                {switchNativeCurrencyDisplayOptions(
-                  renderableGasFeeMaxConversion,
-                  renderableGasFeeMaxNative,
-                )}
-                )
+                {
+                  injectedRedesignedGas ? injectedRedesignedGas?.feeCalculations?.nativeCurrencyMaxFee :
+                  switchNativeCurrencyDisplayOptions(
+                    renderableGasFeeMaxNative,
+                    renderableGasFeeMaxConversion,
+                  )
+                }
+                {' '}
+                {
+                  injectedRedesignedGas ? injectedRedesignedGas?.feeCalculations?.currentCurrencyMaxFee :
+                  switchNativeCurrencyDisplayOptions(
+                    renderableGasFeeMaxConversion,
+                    renderableGasFeeMaxNative,
+                  )
+                }
               </Text>
               <View style={styles.labelTextContainer}>
                 <Text

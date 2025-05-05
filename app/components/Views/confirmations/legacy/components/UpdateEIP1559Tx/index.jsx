@@ -43,6 +43,8 @@ const UpdateEIP1559Tx = ({
   dontIgnoreOptions = false,
   defaultStopUpdateGas = false,
   isRedesignedTransaction = false,
+  injectedRedesignedGas,
+  injectedTransactionMeta,
 }) => {
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [gasSelected, setGasSelected] = useState(
@@ -240,6 +242,7 @@ const UpdateEIP1559Tx = ({
     suggestedGasLimit,
   };
   return (
+    <>
     <EditGasFee1559Update
       dappSuggestedGas={dappSuggestedGas}
       selectedGasValue={gasSelected}
@@ -262,7 +265,10 @@ const UpdateEIP1559Tx = ({
       selectedGasObject={selectedGasObject}
       onlyGas
       isRedesignedTransaction={isRedesignedTransaction}
+      injectedRedesignedGas={injectedRedesignedGas}
+      injectedTransactionMeta={injectedTransactionMeta}
     />
+    </>
   );
 };
 
