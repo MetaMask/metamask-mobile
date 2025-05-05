@@ -56,7 +56,11 @@ const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
   description: 'Validating the confirmation in progress.',
 };
 
-async function validateRequest(req: PPOMRequest, transactionId?: string) {
+async function validateRequest(
+  req: PPOMRequest,
+  transactionId?: string,
+  securityAlertId?: string,
+) {
   const {
     AccountsController,
     NetworkController,
@@ -70,25 +74,21 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
   );
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
   const isBlockaidFeatEnabled = await isBlockaidFeatureEnabled();
-  if (
-    !ppomController ||
-    !isBlockaidFeatEnabled ||
-    !isConfirmationMethod
-  ) {
+  if (!ppomController || !isBlockaidFeatEnabled || !isConfirmationMethod) {
     return;
   }
 
   if (req.method === 'eth_sendTransaction') {
     const internalAccounts = AccountsController.listAccounts();
-    const toAddress: string | undefined = (
-      req?.params?.[0] as Record<string, string>
-    ).to;
+    const { from: fromAddress, to: toAddress } = req
+      ?.params?.[0] as Partial<TransactionParams>;
 
     if (
       internalAccounts.some(
         ({ address }: { address: string }) =>
           address?.toLowerCase() === toAddress?.toLowerCase(),
-      )
+      ) &&
+      toAddress !== fromAddress
     ) {
       return;
     }
@@ -107,6 +107,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
       req,
       SECURITY_ALERT_RESPONSE_IN_PROGRESS,
       transactionId,
+      { securityAlertId },
     );
 
     const normalizedRequest = normalizeRequest(req);
@@ -129,6 +130,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
 
     setSecurityAlertResponse(req, securityAlertResponse, transactionId, {
       updateControllerState: true,
+      securityAlertId,
     });
   }
 }
@@ -177,7 +179,10 @@ function setSecurityAlertResponse(
   request: PPOMRequest,
   response: SecurityAlertResponse,
   transactionId?: string,
-  { updateControllerState }: { updateControllerState?: boolean } = {},
+  {
+    updateControllerState,
+    securityAlertId,
+  }: { updateControllerState?: boolean; securityAlertId?: string } = {},
 ) {
   if (isTransactionRequest(request)) {
     store.dispatch(
@@ -185,8 +190,11 @@ function setSecurityAlertResponse(
     );
 
     if (updateControllerState) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      updateSecurityAlertResponse(transactionId as string, response as any);
+      updateSecurityAlertResponse(
+        transactionId as string,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { ...response, securityAlertId } as any,
+      );
     }
   } else {
     store.dispatch(setSignatureRequestSecurityAlertResponse(response));
@@ -235,7 +243,13 @@ function clearSignatureSecurityAlertResponse() {
   store.dispatch(setSignatureRequestSecurityAlertResponse());
 }
 
+function createValidatorForSecurityAlertId(securityAlertId: string) {
+  return (req: PPOMRequest, transactionId?: string) =>
+    validateRequest(req, transactionId, securityAlertId);
+}
+
 export default {
   validateRequest,
+  createValidatorForSecurityAlertId,
   clearSignatureSecurityAlertResponse,
 };

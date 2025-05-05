@@ -447,6 +447,10 @@
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
     },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
+    },
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
@@ -1695,7 +1699,6 @@
     "share": "Share",
     "bookmark": "Bookmark",
     "add_to_favorites": "Add to Favorites",
-    "go_to_favorites": "Go to Favorites",
     "error": "Error",
     "cancel": "Cancel",
     "go_back": "Go back",

@@ -1,9 +1,9 @@
 import {
   selectIsBackupAndSyncEnabled,
   selectIsBackupAndSyncUpdateLoading,
+  selectIsAccountSyncingEnabled,
   selectIsAccountSyncingReadyToBeDispatched,
   selectIsSignedIn,
-  selectIsAccountSyncingEnabled,
 } from './index';
 import { RootState } from '../../reducers';
 
