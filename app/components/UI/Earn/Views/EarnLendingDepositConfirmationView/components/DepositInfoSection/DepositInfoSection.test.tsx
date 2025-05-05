@@ -1,7 +1,7 @@
 import React from 'react';
 import DepositInfoSection, { DepositInfoSectionProps } from '.';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { MOCK_USDC_MAINNET_ASSET } from '../../../../../Stake/__mocks__/mockData';
+import { MOCK_USDC_MAINNET_ASSET } from '../../../../../Stake/__mocks__/stakeMockData';
 import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../../../utils/tempLending';
 import { TokenI } from '../../../../../Tokens/types';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';

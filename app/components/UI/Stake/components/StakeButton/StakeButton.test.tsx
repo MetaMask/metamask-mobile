@@ -4,7 +4,7 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import StakeButton from './index';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { MOCK_ETH_MAINNET_ASSET } from '../../__mocks__/mockData';
+import { MOCK_ETH_MAINNET_ASSET } from '../../__mocks__/stakeMockData';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { mockNetworkState } from '../../../../../util/test/network';

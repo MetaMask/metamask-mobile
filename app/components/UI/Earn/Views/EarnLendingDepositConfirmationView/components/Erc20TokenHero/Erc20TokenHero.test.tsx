@@ -2,7 +2,7 @@ import React from 'react';
 import Erc20TokenHero, { Erc20TokenHeroProps } from './index';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { MOCK_USDC_MAINNET_ASSET } from '../../../../../Stake/__mocks__/mockData';
+import { MOCK_USDC_MAINNET_ASSET } from '../../../../../Stake/__mocks__/stakeMockData';
 
 describe('Erc20TokenHero', () => {
   const mockInitialState = {

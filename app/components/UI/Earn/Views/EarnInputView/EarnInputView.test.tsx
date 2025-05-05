@@ -32,7 +32,7 @@ import { getStakingNavbar } from '../../../Navbar';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_VAULT_RESPONSE,
-} from '../../../Stake/__mocks__/mockData';
+} from '../../../Stake/__mocks__/stakeMockData';
 import { MOCK_VAULT_APY_AVERAGES } from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 // eslint-disable-next-line import/no-namespace

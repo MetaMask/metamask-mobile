@@ -11,7 +11,7 @@ import {
   MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
   MOCK_USDC_BASE_MAINNET_ASSET,
   MOCK_USDC_MAINNET_ASSET,
-} from '../../../Stake/__mocks__/mockData';
+} from '../../../Stake/__mocks__/stakeMockData';
 import Engine from '../../../../../core/Engine';
 import * as tokenUtils from '../../../Earn/utils/token';
 import * as useStakingEligibilityHook from '../../../Stake/hooks/useStakingEligibility';
