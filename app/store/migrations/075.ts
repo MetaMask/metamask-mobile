@@ -6,6 +6,7 @@ import { captureException } from '@sentry/react-native';
  * Migration 75: Remove `contractBalances` from `TokenBalancesController`
  * remove `internalTransactions` from `TransactionController`
  * remove `isCustomNetwork` from `NetworkController`
+ * remove `encryptionKey` from `KeyringController`
  * from the app storage
  */
 
@@ -21,6 +22,8 @@ const migration = (state: unknown): unknown => {
     state.engine.backgroundState.TransactionController;
 
   const networkControllerState = state.engine.backgroundState.NetworkController;
+
+  const keyringControllerState = state.engine.backgroundState.KeyringController;
 
   if (!isObject(tokenBalancesControllerState)) {
     captureException(
@@ -49,6 +52,15 @@ const migration = (state: unknown): unknown => {
     return state;
   }
 
+  if (!isObject(keyringControllerState)) {
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 75: Invalid KeyringController state error: '${typeof keyringControllerState}'`,
+      ),
+    );
+    return state;
+  }
+
   if ('contractBalances' in tokenBalancesControllerState) {
     delete tokenBalancesControllerState.contractBalances;
   }
@@ -59,6 +71,10 @@ const migration = (state: unknown): unknown => {
 
   if ('isCustomNetwork' in networkControllerState) {
     delete networkControllerState.isCustomNetwork;
+  }
+
+  if ('encryptionKey' in keyringControllerState) {
+    delete keyringControllerState.encryptionKey;
   }
 
   return state;

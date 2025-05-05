@@ -26,6 +26,9 @@ const createTestState = () => ({
       NetworkController: {
         isCustomNetwork: true,
       },
+      KeyringController: {
+        encryptionKey: 'some-key',
+      },
     },
   },
 });
@@ -55,6 +58,7 @@ describe('Migration 75: Remove specific properties from controllers', () => {
           TokenBalancesController: {},
           TransactionController: {},
           NetworkController: {},
+          KeyringController: {},
         },
       },
     };
@@ -86,7 +90,7 @@ describe('Migration 75: Remove specific properties from controllers', () => {
           },
         },
       },
-      test: 'invalid TransactionController state',
+      test: 'invalid TokenBalancesController state',
       expectedError:
         "FATAL ERROR: Migration 75: Invalid TokenBalancesController state error: 'undefined'",
     },
@@ -94,13 +98,43 @@ describe('Migration 75: Remove specific properties from controllers', () => {
       state: {
         engine: {
           backgroundState: {
+            TokenBalancesController: {},
+            TransactionController: 'invalid',
+          },
+        },
+      },
+      test: 'invalid TransactionController state',
+      expectedError:
+        "FATAL ERROR: Migration 75: Invalid TransactionController state error: 'string'",
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            TokenBalancesController: {},
+            TransactionController: {},
             NetworkController: 'invalid',
           },
         },
       },
       test: 'invalid NetworkController state',
       expectedError:
-        "FATAL ERROR: Migration 75: Invalid TokenBalancesController state error: 'undefined'",
+        "FATAL ERROR: Migration 75: Invalid NetworkController state error: 'string'",
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            TokenBalancesController: {},
+            TransactionController: {},
+            NetworkController: {},
+            KeyringController: 'invalid',
+          },
+        },
+      },
+      test: 'invalid KeyringController state',
+      expectedError:
+        "FATAL ERROR: Migration 75: Invalid KeyringController state error: 'string'",
     },
   ])(
     'captures exception and returns state unchanged for invalid state - $test',
