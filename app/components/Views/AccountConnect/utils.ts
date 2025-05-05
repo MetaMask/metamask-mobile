@@ -1,4 +1,4 @@
-import { CaipAccountId, CaipChainId, Hex } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, CaipNamespace, Hex, parseCaipAccountId } from '@metamask/utils';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
@@ -9,6 +9,7 @@ import {
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
 import Logger from '../../../util/Logger';
+import { Account } from '../../hooks/useAccounts';
 
 /**
  * Takes in an incoming value and attempts to return the {@link Caip25CaveatValue}.
@@ -116,4 +117,62 @@ export function getCaip25PermissionsResponse(
       ],
     },
   };
+}
+
+
+/**
+ * Gets the default accounts for the requested namespaces.
+ * We need at least one default per requested namespace
+ * if there are more explicitly requested accounts, use those instead
+ * for that namespace
+ *
+ * @param requestedNamespaces - The namespaces requested.
+ * @param supportedRequestedAccounts - The supported requested accounts.
+ * @param allAccounts - All available accounts.
+ */
+export function getDefaultAccounts(
+  requestedNamespaces: CaipNamespace[],
+  supportedRequestedAccounts: Account[],
+  allAccounts: Account[],
+): Account[] {
+  const defaultAccounts: Account[] = [];
+  const satisfiedNamespaces = new Set<CaipNamespace>();
+
+  supportedRequestedAccounts.forEach((account) => {
+    const {
+      chain: { namespace },
+    } = parseCaipAccountId(account.caipAccountId);
+    if (requestedNamespaces.includes(namespace)) {
+      defaultAccounts.push(account);
+      satisfiedNamespaces.add(namespace);
+    }
+  });
+
+  const unsatisfiedNamespaces = requestedNamespaces.filter(
+    (namespace) => !satisfiedNamespaces.has(namespace),
+  );
+
+  if (unsatisfiedNamespaces.length > 0) {
+    // fix this
+    // const allAccountsSortedByLastSelected =
+    //   sortSelectedInternalAccounts(allAccounts);
+    const allAccountsSortedByLastSelected = allAccounts
+
+    for (const namespace of unsatisfiedNamespaces) {
+      const defaultAccountForNamespace = allAccountsSortedByLastSelected.find(
+        (account) => {
+          const {
+            chain: { namespace: accountNamespace },
+          } = parseCaipAccountId(account.caipAccountId);
+          return accountNamespace === namespace;
+        },
+      );
+
+      if (defaultAccountForNamespace) {
+        defaultAccounts.push(defaultAccountForNamespace);
+      }
+    }
+  }
+
+  return defaultAccounts;
 }

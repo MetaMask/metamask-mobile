@@ -80,13 +80,16 @@ import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import {
   getCaip25PermissionsResponse,
+  getDefaultAccounts,
   getRequestedCaip25CaveatValue,
 } from './utils';
 import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
-import { CaipAccountId, CaipChainId } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, KnownCaipNamespace, parseCaipAccountId, parseCaipChainId } from '@metamask/utils';
+import { getAllNamespacesFromCaip25CaveatValue, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue } from '@metamask/chain-agnostic-permission';
+import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -100,25 +103,96 @@ const AccountConnect = (props: AccountConnectProps) => {
   const styles = createStyles();
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
+  // Fix this naming
+  const { accounts: allAccounts, evmAccounts: accounts, ensByAccountAddress } = useAccounts({
+    isLoading,
+  });
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
-  // TODO: Fix default selected address logic
-  // const selectedWalletAddress = useSelector(
-  //   selectSelectedInternalAccountFormattedAddress,
-  // );
-  // const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>([]);
+
+  const requestedCaip25CaveatValue = getRequestedCaip25CaveatValue(
+    hostInfo.permissions,
+  );
+
+  const requestedCaipAccountIds = getCaipAccountIdsFromCaip25CaveatValue(
+    requestedCaip25CaveatValue,
+  );
+  const requestedCaipChainIds = getAllScopesFromCaip25CaveatValue(
+    requestedCaip25CaveatValue,
+  );
+
+  const requestedNamespaces = getAllNamespacesFromCaip25CaveatValue(
+    requestedCaip25CaveatValue,
+  );
+
+  const networkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+  const allNetworksList = Object.keys(networkConfigurations) as CaipChainId[];
+
+  const supportedRequestedCaipChainIds = requestedCaipChainIds.filter(
+    (caipChainId) => allNetworksList.includes(caipChainId as CaipChainId),
+  );
+
+  const defaultSelectedChainIds =
+    supportedRequestedCaipChainIds.length > 0
+      ? supportedRequestedCaipChainIds
+      : allNetworksList;
+
+  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(defaultSelectedChainIds as CaipChainId[]);
+
+  // all accounts that match the requested namespaces
+  const supportedAccountsForRequestedNamespaces = allAccounts.filter(
+    (account) => {
+      const {
+        chain: { namespace },
+      } = parseCaipAccountId(account.caipAccountId);
+      return requestedNamespaces.includes(namespace);
+    },
+  );
+
+  const supportedRequestedAccounts = requestedCaipAccountIds.reduce(
+    (acc, account) => {
+      const supportedRequestedAccount =
+        supportedAccountsForRequestedNamespaces.find(({ caipAccountId }) => {
+          const {
+            chain: { namespace },
+          } = parseCaipAccountId(caipAccountId);
+          // EIP155 (EVM) addresses are not case sensitive
+          if (namespace === KnownCaipNamespace.Eip155) {
+            return isEqualCaseInsensitive(caipAccountId, account);
+          }
+          return caipAccountId === account;
+        });
+      if (supportedRequestedAccount) {
+        acc.push(supportedRequestedAccount);
+      }
+      return acc;
+    },
+    [] as Account[],
+  );
+
+  const defaultAccounts = getDefaultAccounts(
+    requestedNamespaces,
+    supportedRequestedAccounts,
+    supportedAccountsForRequestedNamespaces,
+  );
+
+  const defaultCaipAccountAddresses = defaultAccounts.map(
+    ({ caipAccountId }) => caipAccountId,
+  );
+
+  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(
+    defaultCaipAccountAddresses
+  );
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
   );
-  const { evmAccounts: accounts, ensByAccountAddress } = useAccounts({
-    isLoading,
-  });
   const previousIdentitiesListSize = useRef<number>();
   const internalAccounts = useSelector(selectInternalAccounts);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
@@ -139,10 +213,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const inappBrowserOrigin: string = useSelector(getActiveTabUrl, isEqual);
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
-
-  const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
 
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
@@ -203,14 +273,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       : domainTitle;
 
   const { chainId } = useNetworkInfo(hostname);
-
-  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(() => {
-    // Get all enabled network chain IDs from networkConfigurations
-    const enabledChainIds = Object.values(networkConfigurations).map(
-      (network) => network.caipChainId,
-    );
-    return enabledChainIds;
-  });
 
   useEffect(() => {
     // Create network avatars for all enabled networks
@@ -377,10 +439,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleConnect = useCallback(async () => {
-    const requestedCaip25CaveatValue = getRequestedCaip25CaveatValue(
-      hostInfo.permissions,
-    );
-
     const request: PermissionsRequest = {
       ...hostInfo,
       metadata: {
