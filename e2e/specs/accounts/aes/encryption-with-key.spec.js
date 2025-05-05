@@ -64,6 +64,8 @@ describe(
         DATA_TO_ENCRYPT_ONE,
       );
       await AesCryptoTestForm.decryptWithKey(encryptionKey);
+
+      await TestHelpers.delay(5000);
       await Assertions.checkIfElementHasLabel(
         AesCryptoTestForm.decryptWithKeyResponse,
         DATA_TO_ENCRYPT_ONE,
