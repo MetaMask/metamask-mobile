@@ -4760,6 +4760,14 @@
     "@metamask/utils" "^11.2.0"
     immer "^9.0.6"
 
+"@metamask/base-controller@^8.0.1":
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.0.1.tgz#5ac066e101dcc2ea187900ce7c0b08b13c573fff"
+  integrity sha512-Yzf4Eipl7TIcS6PpDf+Fbb8Z1zMUEB0boMWJG0Jo2XhRM8Azb3yA1k5tashgEaacbl9Qs6HgGOe0P3eKzPzoJw==
+  dependencies:
+    "@metamask/utils" "^11.2.0"
+    immer "^9.0.6"
+
 "@metamask/bitcoin-wallet-snap@^0.9.0":
   version "0.9.0"
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
@@ -5150,14 +5158,14 @@
     "@metamask/utils" "^11.1.0"
     bech32 "^2.0.0"
 
-"@metamask/keyring-controller@^21.0.4":
-  version "21.0.4"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.4.tgz#d7f262478382d347292aaa3ccc81311af21dcd05"
-  integrity sha512-8YJFllustIfHZ1Y8MDXKPuv2EEA/09zQ6eStvDh7yJVafMbOKkRs3IzuaEUbws0G4PAWNn4pNkuMlrkEk95PJw==
+"@metamask/keyring-controller@npm:@metamask-previews/keyring-controller@21.0.4-preview-b84ab30f":
+  version "21.0.4-preview-b84ab30f"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/keyring-controller/-/keyring-controller-21.0.4-preview-b84ab30f.tgz#d81ddc73fd4f650a914f8e918985b059e3bb7d0d"
+  integrity sha512-chsa/6cgLfoppLo7UEj2dFJx7Kmw5xd8VCTTG09U7rDULcPtoYXKnJjQgjLXF3oy3brBHHQrgTGI9Gj1GsODpA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
-    "@metamask/base-controller" "^8.0.0"
+    "@metamask/base-controller" "^8.0.1"
     "@metamask/browser-passworder" "^4.3.0"
     "@metamask/eth-hd-keyring" "^12.0.0"
     "@metamask/eth-sig-util" "^8.2.0"
@@ -5168,6 +5176,7 @@
     async-mutex "^0.5.0"
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
+    lodash "^4.17.21"
     ulid "^2.3.0"
 
 "@metamask/keyring-internal-api@^4.0.3":
