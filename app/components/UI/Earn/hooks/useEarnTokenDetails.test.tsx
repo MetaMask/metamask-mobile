@@ -7,6 +7,7 @@ import { Hex } from '@metamask/utils';
 import { useEarnTokenDetails } from './useEarnTokenDetails';
 import { MOCK_ETH_MAINNET_ASSET } from '../../Stake/__mocks__/mockData';
 import useBalance from '../../Stake/hooks/useBalance';
+import { EARN_EXPERIENCES } from '../constants/experiences';
 
 jest.mock('../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
@@ -137,6 +138,7 @@ describe('useEarnTokenDetails', () => {
       balanceFiatNumber: 200000,
       balanceMinimalUnit: '1000000000000000000',
       estimatedAnnualRewardsFormatted: '$4600',
+      experience: EARN_EXPERIENCES.POOLED_STAKING,
     });
   });
 
@@ -156,6 +158,7 @@ describe('useEarnTokenDetails', () => {
       balanceFiatNumber: 100,
       balanceMinimalUnit: '100000000',
       estimatedAnnualRewardsFormatted: '$5',
+      experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
     });
   });
 

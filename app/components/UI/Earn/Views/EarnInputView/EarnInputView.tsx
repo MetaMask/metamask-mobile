@@ -240,9 +240,6 @@ const EarnInputView = () => {
       );
       navigation.navigate('StakeScreens', {
         screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
-        params: {
-          token,
-        },
       });
 
       const withRedesignedPropEventProperties = {
@@ -289,7 +286,6 @@ const EarnInputView = () => {
     isHighGasCostImpact,
     isStakingDepositRedesignedEnabled,
     navigation,
-    token,
     trackEvent,
   ]);
 

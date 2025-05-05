@@ -21,6 +21,7 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../selectors/featureFlags';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
@@ -351,6 +352,7 @@ describe('EarnTokenList', () => {
           balanceMinimalUnit: '0',
           apr: '2.3',
           estimatedAnnualRewardsFormatted: '',
+          experience: EARN_EXPERIENCES.POOLED_STAKING,
         },
       },
       screen: 'Stake',
@@ -396,6 +398,7 @@ describe('EarnTokenList', () => {
           balanceMinimalUnit: '0',
           apr: '4.5',
           estimatedAnnualRewardsFormatted: '',
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
         },
       },
       screen: 'Stake',
