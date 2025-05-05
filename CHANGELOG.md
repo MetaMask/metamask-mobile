@@ -6,9 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- fix(bridge): show "Auto" slippage for Solana swaps
 
 ### Added
 
+- feat(identity): rebrand "Profile syncing" to "Backup and sync", adding a dedicated settings menu and more ([#15003](https://github.com/MetaMask/metamask-mobile/pull/15003))
 - feat(bridge): implement quote expiration handling in Bridge feature ([#14872](https://github.com/MetaMask/metamask-mobile/pull/14872))
 - feat(bridge): use dynamic slippage for single-chain Solana swaps ([#14805](https://github.com/MetaMask/metamask-mobile/pull/14805))
 - feat(bridge): enhance bridging with network fee estimation and UI improvements ([#14786](https://github.com/MetaMask/metamask-mobile/pull/14786))
