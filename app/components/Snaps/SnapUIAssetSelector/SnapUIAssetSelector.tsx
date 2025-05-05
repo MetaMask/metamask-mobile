@@ -1,17 +1,17 @@
 import React, { FunctionComponent } from 'react';
 import { CaipAccountId, CaipChainId } from '@metamask/utils';
 import { SnapUISelector } from '../SnapUISelector/SnapUISelector';
+import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { SnapUIAsset, useSnapAssetSelectorData } from './useSnapAssetDisplay';
 import { Box } from '../../UI/Box/Box';
-import { AlignItems, BackgroundColor, FlexDirection } from '../../UI/Box/box.types';
+import { AlignItems, FlexDirection } from '../../UI/Box/box.types';
 import BadgeWrapper, { BadgePosition } from '../../../component-library/components/Badges/BadgeWrapper';
 import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, { TextColor, TextVariant } from '../../../component-library/components/Texts/Text';
 import { ImageSourcePropType, ViewStyle } from 'react-native';
-import { BadgeAnchorElementShape } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 /**
  * An option for the SnapUIAssetSelector.
  *
@@ -27,7 +27,13 @@ import { BadgeAnchorElementShape } from '../../../component-library/components/B
  * @param props.context - The rendering context ('inline' or 'modal').
  * @returns The Asset Selector option.
  */
-const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewStyle, isParentFlexRow?: boolean, context?: 'inline' | 'modal' }> = ({
+const SnapUIAssetSelectorOption: FunctionComponent<
+  SnapUIAsset & {
+    style?: ViewStyle;
+    isParentFlexRow?: boolean;
+    context?: 'inline' | 'modal';
+  }
+> = ({
   icon,
   symbol,
   name,
@@ -37,63 +43,79 @@ const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewS
   networkIcon,
   isParentFlexRow = false,
   context = 'inline',
-}) => (
-  <Box
-    alignItems={AlignItems.center}
-    flexDirection={FlexDirection.Row}
-    gap={16}
-    // eslint-disable-next-line react-native/no-inline-styles
-    style={{ overflow: 'hidden', flex: 1 }}
-  >
-    <Box alignItems={AlignItems.center}>
-      <BadgeWrapper
-        badgeElement={
-          <AvatarNetwork
-            size={AvatarSize.Xs}
-            name={networkName}
-            imageSource={networkIcon as ImageSourcePropType}
-            style={{ backgroundColor: BackgroundColor.backgroundDefault }}
-          />
-        }
-        badgePosition={BadgePosition.BottomRight}
-        anchorElementShape={BadgeAnchorElementShape.Circular}
-        parentSize={24}
-      >
-        <AvatarToken size={AvatarSize.Sm} imageSource={{ uri: icon }} />
-      </BadgeWrapper>
-    </Box>
+}) => {
+  const theme = useTheme();
+
+  const avatarNetworkBadgeStyle = {
+    borderWidth: 1,
+    borderColor: theme.colors.background.default,
+    ...theme.shadows.size.xs,
+    backgroundColor: theme.colors.background.default,
+    borderRadius: 4,
+  };
+
+  return (
     <Box
-      flexDirection={FlexDirection.Column}
+      alignItems={AlignItems.center}
+      flexDirection={FlexDirection.Row}
+      gap={16}
       // eslint-disable-next-line react-native/no-inline-styles
-      style={{ overflow: 'hidden' }}
+      style={{ overflow: 'hidden', flex: 1 }}
     >
-      <Text variant={TextVariant.BodyMDMedium} ellipsizeMode="tail">
-        {name}
-      </Text>
-      <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodySM}
-        ellipsizeMode="tail"
+      {/* eslint-disable-next-line react-native/no-inline-styles */}
+      <Box alignItems={AlignItems.center}>
+        <BadgeWrapper
+          badgeElement={
+            <AvatarNetwork
+              size={AvatarSize.Xs}
+              name={networkName}
+              imageSource={networkIcon as ImageSourcePropType}
+              style={avatarNetworkBadgeStyle}
+            />
+          }
+          badgePosition={BadgePosition.BottomRight}
+          parentSize={16}
+        >
+          <AvatarToken size={AvatarSize.Sm} imageSource={{ uri: icon }} />
+        </BadgeWrapper>
+      </Box>
+      <Box
+        flexDirection={FlexDirection.Column}
+        // eslint-disable-next-line react-native/no-inline-styles
+        style={{ overflow: 'hidden' }}
       >
-        {networkName}
-      </Text>
+        <Text variant={TextVariant.BodyMDMedium} ellipsizeMode="tail">
+          {name}
+        </Text>
+        <Text
+          color={TextColor.Alternative}
+          variant={TextVariant.BodySM}
+          ellipsizeMode="tail"
+        >
+          {networkName}
+        </Text>
+      </Box>
+      <Box
+        flexDirection={FlexDirection.Column}
+        // We hide the balance and fiat in inline mode when the asset selector has a sibling element
+        // eslint-disable-next-line react-native/no-inline-styles
+        style={{
+          marginLeft: 'auto',
+          marginRight: 8,
+          ...(context === 'inline' && isParentFlexRow ? { display: 'none' } : {}),
+        }}
+        alignItems={AlignItems.flexEnd}
+      >
+        <Text variant={TextVariant.BodySMMedium}>
+          {balance} {symbol}
+        </Text>
+        <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
+          {fiat}
+        </Text>
+      </Box>
     </Box>
-    <Box
-      flexDirection={FlexDirection.Column}
-      // We hide the balance and fiat in inline mode when the asset selector has a sibling element
-      // eslint-disable-next-line react-native/no-inline-styles
-      style={{ marginLeft: 'auto', ...(context === 'inline' && isParentFlexRow ? { display: 'none' } : {}) }}
-      alignItems={AlignItems.flexEnd}
-    >
-      <Text variant={TextVariant.BodySMMedium}>
-        {balance} {symbol}
-      </Text>
-      <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
-        {fiat}
-      </Text>
-    </Box>
-  </Box>
-);
+  );
+};
 
 /**
  * The props for the SnapUIAssetSelector.
