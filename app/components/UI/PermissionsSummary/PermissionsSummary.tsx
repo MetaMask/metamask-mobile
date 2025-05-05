@@ -232,7 +232,7 @@ const PermissionsSummary = ({
 
     if (accountAddresses.length === 1 && accounts?.length >= 1) {
       const matchedAccount = accounts.find(
-        (account) => account.address === accountAddresses[0],
+        (account) => account.caipAccountId === accountAddresses[0],
       );
 
       return `${strings('permissions.requesting_for')}${
