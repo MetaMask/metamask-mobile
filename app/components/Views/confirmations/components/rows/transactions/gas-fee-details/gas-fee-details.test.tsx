@@ -35,6 +35,9 @@ jest.mock('../../../../../../../core/Engine', () => ({
         return undefined;
       }),
     },
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
   },
 }));
 

@@ -15,13 +15,11 @@ const styleSheet = (
     primaryValue: {
       ...fontStyles.normal,
       color: theme.colors.text.default,
-      fontSize: 14,
       textDecorationLine: isEIP1559 ? 'underline' : 'none',
     },
     secondaryValue: {
       ...fontStyles.normal,
       color: theme.colors.text.alternative,
-      fontSize: 14,
       marginRight: 8,
       textDecorationLine: isEIP1559 ? 'underline' : 'none',
     },

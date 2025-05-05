@@ -22,7 +22,11 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
-import { parseCaipAssetType } from '@metamask/utils';
+import {
+  CaipAssetId,
+  CaipAssetType,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -31,6 +35,8 @@ import {
   MultichainBalancesControllerState,
 } from '@metamask/assets-controllers';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { TokenI } from '../../components/UI/Tokens/types';
+import { createSelector } from 'reselect';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -109,7 +115,7 @@ export const selectMultichainShouldShowFiat = createDeepEqualSelector(
   selectMultichainIsMainnet,
   selectIsEvmNetworkSelected,
   selectShowFiatInTestnets,
-  (multichainIsMainnet, isEvmSelected, shouldShowFiatOnTestnets) => {
+  (multichainIsMainnet, isEvmSelected, shouldShowFiatOnTestnets): boolean => {
     const isTestnet = !multichainIsMainnet;
     if (isEvmSelected) {
       return isTestnet ? shouldShowFiatOnTestnets : true; // Is it safe to assume that we default show fiat for mainnet?
@@ -194,6 +200,7 @@ export const selectMultichainTransactions = createDeepEqualSelector(
     multichainTransactionsControllerState.nonEvmTransactions,
 );
 
+// TODO: refactor this file to use createDeepEqualSelector
 export function selectMultichainAssets(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsController.accountsAssets;
 }
@@ -202,10 +209,15 @@ export function selectMultichainAssetsMetadata(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsController.assetsMetadata;
 }
 
-export function selectMultichainAssetsRates(state: RootState) {
+export function selectMultichainAssetsRatesState(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
     .conversionRates;
 }
+
+export const selectMultichainAssetsRates = createDeepEqualSelector(
+  selectMultichainAssetsRatesState,
+  (conversionRates) => conversionRates,
+);
 
 export function selectMultichainHistoricalPrices(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
@@ -283,19 +295,11 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
     return tokens;
   },
 );
-
-export const selectMultichainTokenList = createDeepEqualSelector(
-  (state: RootState) => state,
-  selectSelectedInternalAccount,
-  (state, selectedAccount) => {
-    return selectMultichainTokenListForAccountId(state, selectedAccount?.id);
-  },
-);
-
 export interface MultichainNetworkAggregatedBalance {
   totalNativeTokenBalance: Balance | undefined;
   totalBalanceFiat: number | undefined;
-  balances: Record<string, Balance> | undefined;
+  tokenBalances: Record<string, Balance> | undefined;
+  fiatBalances: Record<CaipAssetType, string> | undefined;
 }
 
 export const getMultichainNetworkAggregatedBalance = (
@@ -314,6 +318,7 @@ export const getMultichainNetworkAggregatedBalance = (
   // Default values for native token
   let totalNativeTokenBalance: Balance | undefined;
   let totalBalanceFiat: BigNumber | undefined;
+  const fiatBalances: Record<string, string> = {};
 
   for (const assetId of assetIds) {
     const { chainId } = parseCaipAssetType(assetId);
@@ -330,6 +335,7 @@ export const getMultichainNetworkAggregatedBalance = (
       balance.amount && rate
         ? new BigNumber(balance.amount).times(rate)
         : new BigNumber(0);
+    fiatBalances[assetId] = balanceInFiat.toString();
 
     // Only update native token balance if this is the native asset
     if (assetId === nativeAsset) {
@@ -349,7 +355,8 @@ export const getMultichainNetworkAggregatedBalance = (
     totalBalanceFiat: totalBalanceFiat
       ? totalBalanceFiat.toNumber()
       : undefined,
-    balances,
+    tokenBalances: balances,
+    fiatBalances,
   };
 };
 
@@ -371,7 +378,8 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
         return {
           totalNativeTokenBalance: undefined,
           totalBalanceFiat: undefined,
-          balances: {},
+          tokenBalances: {},
+          fiatBalances: {},
         };
       }
       return getMultichainNetworkAggregatedBalance(
@@ -437,5 +445,74 @@ export const selectSolanaAccountTransactions = createDeepEqualSelector(
     );
   },
 );
+
+export const makeSelectNonEvmAssetById = () =>
+  createSelector(
+    [
+      selectIsEvmNetworkSelected,
+      selectMultichainBalances,
+      selectMultichainAssetsMetadata,
+      selectMultichainAssetsRates,
+      (_: RootState, params: { accountId?: string; assetId: string }) =>
+        params.accountId,
+      (_: RootState, params: { accountId?: string; assetId: string }) =>
+        params.assetId as CaipAssetId,
+    ],
+    (
+      isEvmNetworkSelected,
+      multichainBalances,
+      assetsMetadata,
+      assetsRates,
+      accountId,
+      assetId,
+    ): TokenI | undefined => {
+      if (isEvmNetworkSelected) {
+        return undefined;
+      }
+      if (!accountId) {
+        throw new Error('Account ID is required to fetch asset.');
+      }
+
+      const balance = multichainBalances?.[accountId]?.[assetId] || {
+        amount: undefined,
+        unit: '',
+      };
+
+      const { chainId, assetNamespace } = parseCaipAssetType(assetId);
+      const isNative = assetNamespace === 'slip44';
+      const rate = assetsRates?.[assetId]?.rate || '0';
+
+      const balanceInFiat = balance.amount
+        ? new BigNumber(balance.amount).times(rate)
+        : undefined;
+
+      const assetMetadataFallback = {
+        name: balance.unit || '',
+        symbol: balance.unit || '',
+        fungible: true,
+        units: [{ name: assetId, symbol: balance.unit || '', decimals: 0 }],
+      };
+
+      const metadata = assetsMetadata?.[assetId] || assetMetadataFallback;
+      const decimals = metadata.units[0]?.decimals || 0;
+
+      return {
+        name: metadata.name ?? '',
+        address: assetId,
+        symbol: metadata.symbol ?? '',
+        image: metadata.iconUrl,
+        logo: metadata.iconUrl,
+        decimals,
+        chainId,
+        isNative,
+        balance: balance.amount,
+        balanceFiat: balanceInFiat ? balanceInFiat.toString() : undefined,
+        isStaked: false,
+        aggregators: [],
+        isETH: false,
+        ticker: metadata.symbol,
+      };
+    },
+  );
 
 ///: END:ONLY_INCLUDE_IF

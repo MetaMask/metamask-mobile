@@ -84,6 +84,7 @@ const Routes = {
     NOTIFICATIONS: 'NotificationsSettings',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
+    BACKUP_AND_SYNC: 'BackupAndSyncSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
@@ -115,6 +116,7 @@ const Routes = {
     TOKEN_SORT: 'TokenSort',
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
+    CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
     ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
     SELECT_SRP: 'SelectSRP',
     ///: END:ONLY_INCLUDE_IF
@@ -154,12 +156,13 @@ const Routes = {
       DEST_NETWORK_SELECTOR: 'BridgeDestNetworkSelector',
       QUOTE_INFO_MODAL: 'QuoteInfoModal',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
+      QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
   LOCK_SCREEN: 'LockScreen',
-  CONFIRM_FLAT_PAGE: 'Confirmation Flat Page',
-  CONFIRM_MODAL: 'Confirmation Modal',
+  CONFIRMATION_REQUEST_FLAT: 'ConfirmationRequestFlat',
+  CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
@@ -184,6 +187,7 @@ const Routes = {
     STAKE_DEPOSIT: 'RedesignedStakeDeposit',
     STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
     STAKE_CLAIM: 'RedesignedStakeClaim',
+    TRANSFER: 'RedesignedTransfer',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   MULTI_SRP: {
@@ -197,6 +201,7 @@ const Routes = {
   },
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
+  EDIT_ACCOUNT_NAME: 'EditAccountName',
 };
 
 export default Routes;
