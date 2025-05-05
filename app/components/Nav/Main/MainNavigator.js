@@ -561,6 +561,9 @@ const HomeTabs = () => {
         <Tab.Navigator
           initialRouteName={Routes.WALLET.HOME}
           tabBar={renderTabBar}
+          screenOptions={{
+            unmountOnBlur: true,
+          }}
         >
           <Tab.Screen
             name={Routes.WALLET.HOME}

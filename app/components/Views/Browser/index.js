@@ -3,7 +3,6 @@ import React, { useCallback, useContext, useEffect, useRef, useState } from 'rea
 import { View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
-import { useIsFocused } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import {
@@ -53,7 +52,7 @@ export const Browser = (props) => {
     activeTab: activeTabId,
     tabs,
   } = props;
-  const isFocused = useIsFocused();
+
   const previousTabs = useRef(null);
   const { top: topInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { topInset });
@@ -377,9 +376,6 @@ export const Browser = (props) => {
       homePageUrl={homePageUrl()}
     />
   ) : null), [tabs, route.params?.showTabs, newTab, homePageUrl, updateTabInfo, showTabs]);
-
-  // If screen is not focused, return null
-  if (!isFocused) return null;
 
   return (
     <View
