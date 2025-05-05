@@ -7,16 +7,16 @@ import { useRoute } from '@react-navigation/native';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import Loader from '../../../../../component-library/components-temp/Loader';
+} from '../../../../../../component-library/components/Avatars/Avatar';
+import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import Loader from '../../../../../../component-library/components-temp/Loader';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { selectInternalAccounts } from '../../../../../selectors/accountsController';
-import { useStyles } from '../../../../hooks/useStyles';
-import { useEIP7702Networks } from '../../hooks/useEIP7702Networks';
-import AccountNetworkRow from '../account-network-row';
+} from '../../../../../../component-library/components/Texts/Text';
+import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
+import { useStyles } from '../../../../../hooks/useStyles';
+import { useEIP7702Networks } from '../../../hooks/useEIP7702Networks';
+import AccountNetworkRow from './account-network-row';
 import styleSheet from './switch-account-type-modal.styles';
 
 const SwitchAccountTypeModal = () => {

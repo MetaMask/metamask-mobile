@@ -1,54 +1,18 @@
 import React from 'react';
 import { IsAtomicBatchSupportedResult } from '@metamask/transaction-controller';
-// eslint-disable-next-line import/no-namespace
-import * as ReactRedux from 'react-redux';
 import { View } from 'react-native';
 import { waitFor } from '@testing-library/react-native';
 
+import {
+  MOCK_MULTICHAIN_NETWORK_CONTROLLER_STATE,
+  MOCK_NETWORK_CONTROLLER_STATE,
+} from '../../../../../e2e/specs/identity/account-syncing/mock-data';
 import Text from '../../../../component-library/components/Texts/Text';
 import renderWithProvider, {
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
+import { RootState } from '../../../../reducers';
 import { useEIP7702Networks } from './useEIP7702Networks';
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
-
-const MOCK_NETWORK_CONFIG = {
-  '0xaa36a7': {
-    blockExplorerUrls: [],
-    chainId: '0xaa36a7',
-    defaultRpcEndpointIndex: 0,
-    name: 'Sepolia',
-    nativeCurrency: 'SepoliaETH',
-    rpcEndpoints: [
-      {
-        failoverUrls: [],
-        networkClientId: 'sepolia',
-        type: 'infura',
-        url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
-      },
-    ],
-  },
-  '0x18c6': {
-    blockExplorerUrls: ['https://megaexplorer.xyz'],
-    chainId: '0x18c6',
-    defaultRpcEndpointIndex: 0,
-    defaultBlockExplorerUrlIndex: 0,
-    name: 'Mega Testnet',
-    nativeCurrency: 'MegaETH',
-    rpcEndpoints: [
-      {
-        failoverUrls: [],
-        networkClientId: 'megaeth-testnet',
-        type: 'custom',
-        url: 'https://carrot.megaeth.com/rpc',
-      },
-    ],
-  },
-};
 
 const mockNetworkBatchSupport = [
   {
@@ -67,10 +31,19 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+const MOCK_STATE = {
+  engine: {
+    backgroundState: {
+      NetworkController: MOCK_NETWORK_CONTROLLER_STATE,
+      MultichainNetworkController: MOCK_MULTICHAIN_NETWORK_CONTROLLER_STATE,
+    },
+  },
+} as unknown as RootState;
+
 function runHook() {
   const { result, rerender } = renderHookWithProvider(
     () => useEIP7702Networks('0x0'),
-    {},
+    { state: MOCK_STATE },
   );
   return { result: result.current, rerender };
 }
@@ -89,15 +62,15 @@ const MockComponent = () => {
 
 describe('useEIP7702Networks', () => {
   it('returns pending as true initially', () => {
-    jest.spyOn(ReactRedux, 'useSelector').mockReturnValue(MOCK_NETWORK_CONFIG);
     const { result } = runHook();
     expect(result.pending).toBe(true);
     expect(result.network7702List).toHaveLength(0);
   });
 
   it('returns list of networks', async () => {
-    jest.spyOn(ReactRedux, 'useSelector').mockReturnValue(MOCK_NETWORK_CONFIG);
-    const { queryByText } = renderWithProvider(<MockComponent />, {});
+    const { queryByText } = renderWithProvider(<MockComponent />, {
+      state: MOCK_STATE,
+    });
     await waitFor(() => {
       expect(queryByText('Total networks - 1')).toBeTruthy();
       expect(queryByText('Sepolia')).toBeTruthy();

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { EIP7702NetworkConfiguration } from '../../hooks/useEIP7702Networks';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { EIP7702NetworkConfiguration } from '../../../../hooks/useEIP7702Networks';
 import AccountNetworkRow from './account-network-row';
 
 const MOCK_NETWORK = {

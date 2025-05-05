@@ -1,11 +1,14 @@
 import React from 'react';
-// eslint-disable-next-line import/no-namespace
-import * as ReactRedux from 'react-redux';
 
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import {
+  MOCK_ACCOUNT_CONTROLLER_STATE,
+  MOCK_KEYRING_CONTROLLER_STATE,
+} from '../../../../../../../e2e/specs/identity/account-syncing/mock-data';
+import { RootState } from '../../../../../../reducers';
 // eslint-disable-next-line import/no-namespace
-import * as Networks7702 from '../../hooks/useEIP7702Networks';
-import { EIP7702NetworkConfiguration } from '../../hooks/useEIP7702Networks';
+import * as Networks7702 from '../../../hooks/useEIP7702Networks';
+import { EIP7702NetworkConfiguration } from '../../../hooks/useEIP7702Networks';
 import SwitchAccountTypeModal from './switch-account-type-modal';
 
 const MOCK_NETWORK = {
@@ -26,33 +29,6 @@ const MOCK_NETWORK = {
     },
   ],
 } as unknown as EIP7702NetworkConfiguration;
-
-const MOCK_ACCOUNT = {
-  id: '94b520b3-a0c9-4cbd-a689-441a01630331',
-  address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
-  options: {},
-  methods: [
-    'personal_sign',
-    'eth_sign',
-    'eth_signTransaction',
-    'eth_signTypedData_v1',
-    'eth_signTypedData_v3',
-    'eth_signTypedData_v4',
-  ],
-  scopes: ['eip155:0'],
-  type: 'eip155:eoa',
-  metadata: {
-    name: 'Account 1',
-    importTime: 1746181774143,
-    keyring: { type: 'HD Key Tree' },
-    lastSelected: 1746191007939,
-  },
-};
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -79,6 +55,15 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+const MOCK_STATE = {
+  engine: {
+    backgroundState: {
+      AccountsController: MOCK_ACCOUNT_CONTROLLER_STATE,
+      KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
+    },
+  },
+} as unknown as RootState;
+
 describe('Switch Account Type Modal', () => {
   it('displays information correctly', () => {
     jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
@@ -86,9 +71,10 @@ describe('Switch Account Type Modal', () => {
       network7702List: [MOCK_NETWORK],
       networkSupporting7702Present: true,
     });
-    jest.spyOn(ReactRedux, 'useSelector').mockReturnValue([MOCK_ACCOUNT]);
 
-    const { getByText } = renderWithProvider(<SwitchAccountTypeModal />, {});
+    const { getByText } = renderWithProvider(<SwitchAccountTypeModal />, {
+      state: MOCK_STATE,
+    });
     expect(getByText('Account 1')).toBeTruthy();
     expect(getByText('Sepolia')).toBeTruthy();
     expect(getByText('Smart Account')).toBeTruthy();
@@ -101,9 +87,10 @@ describe('Switch Account Type Modal', () => {
       network7702List: [],
       networkSupporting7702Present: false,
     });
-    jest.spyOn(ReactRedux, 'useSelector').mockReturnValue([MOCK_ACCOUNT]);
 
-    const container = renderWithProvider(<SwitchAccountTypeModal />, {});
+    const container = renderWithProvider(<SwitchAccountTypeModal />, {
+      state: MOCK_STATE,
+    });
     const { queryByText } = container;
     expect(queryByText('Account 1')).toBeNull();
     expect(queryByText('Sepolia')).toBeNull();
