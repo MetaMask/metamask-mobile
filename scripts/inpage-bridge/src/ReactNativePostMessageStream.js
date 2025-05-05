@@ -77,6 +77,14 @@ PostMessageStream.prototype._onMessage = function (event) {
       return;
     }
     
+    // Special debugging for JSON-RPC responses
+    if (msg.data && typeof msg.data === 'object' && 
+        msg.data.data && typeof msg.data.data === 'object' &&
+        (msg.data.data.result !== undefined || msg.data.data.error !== undefined)) {
+      console.log(`[METAMASK-DEBUG] PostMessageStream received RPC response:`, 
+        JSON.stringify({ id: msg.data.data.id, hasResult: !!msg.data.data.result, hasError: !!msg.data.data.error }));
+    }
+    
     // Debug: log parsed message
     console.log(`[METAMASK-DEBUG] PostMessageStream._onMessage processed [${this._name} <- ${this._target}]:`, 
       typeof msg.data === 'object' ? JSON.stringify(msg.data) : msg.data);

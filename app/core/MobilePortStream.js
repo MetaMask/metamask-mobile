@@ -27,9 +27,29 @@ export default class PortDuplexStream extends Duplex {
    */
   _onMessage = function (msg) {
     try {
-      // eslint-disable-next-line no-console
-      console.log(`[METAMASK-DEBUG] MobilePortStream._onMessage:`, 
-        typeof msg === 'object' ? JSON.stringify(msg) : msg);
+      // Check if this is a JSON-RPC response message
+      const isJsonRpcResponse = msg && 
+                             typeof msg === 'object' && 
+                             msg.name === 'metamask-provider' && 
+                             msg.data && 
+                             typeof msg.data === 'object' && 
+                             msg.data.id !== undefined && 
+                             (msg.data.result !== undefined || msg.data.error !== undefined);
+      
+      if (isJsonRpcResponse) {
+        // eslint-disable-next-line no-console
+        console.log(`[METAMASK-DEBUG] MobilePortStream._onMessage JSON-RPC RESPONSE:`, 
+          JSON.stringify({
+            name: msg.name,
+            id: msg.data.id,
+            hasResult: !!msg.data.result,
+            hasError: !!msg.data.error
+          }));
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(`[METAMASK-DEBUG] MobilePortStream._onMessage:`, 
+          typeof msg === 'object' ? JSON.stringify(msg) : msg);
+      }
       
       if (Buffer.isBuffer(msg)) {
         delete msg._isBuffer;
@@ -77,9 +97,41 @@ export default class PortDuplexStream extends Duplex {
    */
   _write = function (msg, encoding, cb) {
     try {
-      // eslint-disable-next-line no-console
-      console.log(`[METAMASK-DEBUG] MobilePortStream._write:`, 
-        typeof msg === 'object' ? JSON.stringify(msg) : msg);
+      // Check if this is a JSON-RPC response being sent
+      const isJsonRpcResponse = msg && 
+                             typeof msg === 'object' && 
+                             msg.name === 'metamask-provider' && 
+                             msg.data && 
+                             typeof msg.data === 'object' && 
+                             msg.data.id !== undefined && 
+                             (msg.data.result !== undefined || msg.data.error !== undefined);
+      
+      if (isJsonRpcResponse) {
+        // eslint-disable-next-line no-console
+        console.log(`[METAMASK-DEBUG] MobilePortStream._write JSON-RPC RESPONSE:`, 
+          JSON.stringify({
+            name: msg.name,
+            id: msg.data.id,
+            hasResult: !!msg.data.result,
+            hasError: !!msg.data.error
+          }));
+          
+        // Make sure toNative flag is cleared if present
+        if (msg.data.toNative) {
+          delete msg.data.toNative;
+          // eslint-disable-next-line no-console
+          console.log(`[METAMASK-DEBUG] MobilePortStream removed toNative flag from outgoing response`);
+        }
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(`[METAMASK-DEBUG] MobilePortStream._write:`, 
+          typeof msg === 'object' ? JSON.stringify(msg) : msg);
+      }
+      
+      if (!this._port) {
+        console.error(`[METAMASK-DEBUG] MobilePortStream._write error: this._port is undefined`);
+        return cb(new Error('MobilePortStream - port is undefined'));
+      }
         
       if (Buffer.isBuffer(msg)) {
         const data = msg.toJSON();

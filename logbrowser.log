@@ -1,158 +1,396 @@
+ [METAMASK-DEBUG] PostMessageStream created: name=metamask-inpage, target=metamask-contentscript, origin=https://portfolio.metamask.io
+ [METAMASK-DEBUG] PostMessageStream sending initial SYN [metamask-inpage -> metamask-contentscript]
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: SYN
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+ [METAMASK-DEBUG] Provider init starting
+ [METAMASK-DEBUG] Provider created EIP-1193 provider stream
+ [METAMASK-DEBUG] Provider initialized
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":"SYN"}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+ [METAMASK-DEBUG] Setting up provider streams
+ [METAMASK-DEBUG] PostMessageStream created: name=metamask-contentscript, target=metamask-inpage, origin=https://portfolio.metamask.io
+ [METAMASK-DEBUG] PostMessageStream sending initial SYN [metamask-contentscript -> metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: SYN
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+ [METAMASK-DEBUG] InpageBridge MobilePortStream created: name=metamask-contentscript, origin=https://portfolio.metamask.io
+ [METAMASK-DEBUG] Forwarding traffic for EIP-1193 provider channel
+ [METAMASK-DEBUG] Web3 shimmed
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":"SYN"}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: SYN
+ [METAMASK-DEBUG] PostMessageStream received SYN, sending ACK [metamask-inpage -> metamask-contentscript]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":"SYN"}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":"SYN"}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: received non-object data: SYN
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":"ACK"}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":"ACK"}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: ACK
+ [METAMASK-DEBUG] PostMessageStream received ACK, init=false, haveSyn=false [metamask-contentscript <- metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream sending ACK [metamask-contentscript -> metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream uncorking [metamask-contentscript]
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":"ACK"}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: received non-object data: ACK
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":"ACK"}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+ ObjectMultiplex - malformed chunk without name "[object Object]"
+value @ unknown
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":"ACK"}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: ACK
+ [METAMASK-DEBUG] PostMessageStream received ACK, init=false, haveSyn=true [metamask-inpage <- metamask-contentscript]
+ [METAMASK-DEBUG] PostMessageStream uncorking [metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":"ACK"}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":"ACK"}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: received non-object data: ACK
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, direction=outgoing
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: restructuring message for multiplex
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing formatted message: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, direction=outgoing
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: restructuring message for multiplex
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing formatted message: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123013,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":844123014,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+ MetaMask: Failed to get initial state. Please report this bug. 
+_initializeStateAsync @ unknown
+tokens:3 Uncaught (in promise) 
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ No `HydrateFallback` element provided to render during initial hydration
+(anonymous) @ sentry-CyqbsyPQ.js:5
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, direction=outgoing
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: restructuring message for multiplex
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing formatted message: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123015,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, direction=outgoing
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: restructuring message for multiplex
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing formatted message: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123016,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+ [GETFEEDBACK ERROR] Invalid API call. Function not recognized.
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"metamask_accountsChanged","params":[]}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=undefined
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"metamask_accountsChanged","params":[]}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=undefined
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"name":"metamask-provider","data":{"method":"metamask_accountsChanged","params":[]}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"name":"metamask-provider","data":{"method":"metamask_accountsChanged","params":[]}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"metamask_accountsChanged","params":[]}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, direction=outgoing
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: restructuring message for multiplex
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing formatted message: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, direction=outgoing
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: restructuring message for multiplex
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing formatted message: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, direction=outgoing
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: restructuring message for multiplex
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing formatted message: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"metamask_accountsChanged","params":[]}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"metamask_accountsChanged","params":[]}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"metamask_accountsChanged","params":[]}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"metamask_accountsChanged","params":[]}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123017,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123018,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019,"toNative":true}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019,"toNative":true}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+ [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":844123019,"toNative":true}}}
+ [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+staking.api.cx.metamask.io/v1/pooled-staking/eligibility?addresses=:1  Failed to load resource: the server responded with a status of 406 ()
+ Error getting MetaMask version: 
+(anonymous) @ sentry-CyqbsyPQ.js:5
+ Error getting MetaMask version: 
+(anonymous) @ sentry-CyqbsyPQ.js:5
+ Error getting MetaMask version: 
+(anonymous) @ sentry-CyqbsyPQ.js:5
+ [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020}}
+ [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020}}}
+ [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+ [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020}}}
+ [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020}}
+ [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, direction=outgoing
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: restructuring message for multiplex
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing formatted message: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123020,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, direction=outgoing
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: restructuring message for multiplex
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing formatted message: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123021,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, direction=outgoing
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: restructuring message for multiplex
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing formatted message: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123022,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, direction=outgoing
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: restructuring message for multiplex
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing formatted message: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123023,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, direction=outgoing
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: restructuring message for multiplex
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: pushing formatted message: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024,"toNative":true}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-inpage]
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage RAW: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":844123024,"toNative":true}}}
+sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: target mismatch - expected=metamask-contentscript, got=metamask-inpage
 
-VM92:3 [METAMASK-DEBUG] PostMessageStream created: name=metamask-inpage, target=metamask-contentscript, origin=https://portfolio.metamask.io
-VM92:3 [METAMASK-DEBUG] PostMessageStream sending initial SYN [metamask-inpage -> metamask-contentscript]
-VM92:3 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: SYN
-VM92:3 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":"SYN"}
-VM92:3 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"name":"metamask-provider","data":{"method":"metamask_accountsChanged","params":[]}}
-VM92:3 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=undefined
-VM92:3 [METAMASK-DEBUG] PostMessageStream created: name=metamask-contentscript, target=metamask-inpage, origin=https://portfolio.metamask.io
-VM92:3 [METAMASK-DEBUG] PostMessageStream sending initial SYN [metamask-contentscript -> metamask-inpage]
-VM92:3 [METAMASK-DEBUG] PostMessageStream._write [metamask-contentscript -> metamask-inpage]: SYN
-VM92:3 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-contentscript -> metamask-inpage]
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":"SYN"}
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: SYN
-VM92:3 [METAMASK-DEBUG] PostMessageStream received SYN, sending ACK [metamask-inpage -> metamask-contentscript]
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":"SYN"}
-VM92:3 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":"SYN"}
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":"ACK"}
-VM92:3 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":"ACK"}
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: ACK
-VM92:3 [METAMASK-DEBUG] PostMessageStream received ACK, init=false, haveSyn=false [metamask-contentscript <- metamask-inpage]
-VM92:3 [METAMASK-DEBUG] PostMessageStream sending ACK [metamask-contentscript -> metamask-inpage]
-VM92:3 [METAMASK-DEBUG] PostMessageStream uncorking [metamask-contentscript]
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":"ACK"}
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-inpage","data":"ACK"}
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-inpage <- metamask-contentscript]: ACK
-VM92:3 [METAMASK-DEBUG] PostMessageStream received ACK, init=false, haveSyn=true [metamask-inpage <- metamask-contentscript]
-VM92:3 [METAMASK-DEBUG] PostMessageStream uncorking [metamask-inpage]
-VM92:3 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089271}}
-VM92:3 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
-VM92:3 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089272}}
-VM92:3 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-inpage","data":"ACK"}
-VM92:3 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-contentscript, got=metamask-inpage
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-inpage","data":"ACK"}
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089271}}}
-VM92:3 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089271}}}
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089271}}
-VM92:3 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089271}}
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, setting toNative=true
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089271,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089271,"toNative":true}}}
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream: ignoring outgoing message: {method: 'metamask_getProviderState', jsonrpc: '2.0', id: 3762089271, toNative: true}
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089272}}}
-VM92:3 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089272}}}
-VM92:3 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089272}}
-VM92:3 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089272}}
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, setting toNative=true
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089272,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"metamask_getProviderState","jsonrpc":"2.0","id":3762089272,"toNative":true}}}
-VM92:3 [METAMASK-DEBUG] InpageBridge MobilePortStream: ignoring outgoing message: {method: 'metamask_getProviderState', jsonrpc: '2.0', id: 3762089272, toNative: true}
-
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089273}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089273}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089273}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089273}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089273}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, setting toNative=true
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089273,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089273,"toNative":true}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: ignoring outgoing message: {method: 'eth_accounts', jsonrpc: '2.0', id: 3762089273, toNative: true}
-
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089274}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089275}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089276}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089277}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089274}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089274}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089274}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089274}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, setting toNative=true
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089274,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089274,"toNative":true}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: ignoring outgoing message: {method: 'web3_clientVersion', params: Array(0), jsonrpc: '2.0', id: 3762089274, toNative: true}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089275}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089275}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089275}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089275}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, setting toNative=true
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089275,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089275,"toNative":true}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: ignoring outgoing message: {method: 'web3_clientVersion', params: Array(0), jsonrpc: '2.0', id: 3762089275, toNative: true}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089276}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089276}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089276}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089276}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, setting toNative=true
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089276,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"web3_clientVersion","params":[],"jsonrpc":"2.0","id":3762089276,"toNative":true}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: ignoring outgoing message: {method: 'web3_clientVersion', params: Array(0), jsonrpc: '2.0', id: 3762089276, toNative: true}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089277}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089277}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089277}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089277}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, setting toNative=true
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089277,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089277,"toNative":true}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: ignoring outgoing message: {method: 'eth_accounts', jsonrpc: '2.0', id: 3762089277, toNative: true}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089278}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089278}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089278}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089278}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089278}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, setting toNative=true
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089278,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089278,"toNative":true}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: ignoring outgoing message: {method: 'eth_accounts', jsonrpc: '2.0', id: 3762089278, toNative: true}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089279}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089279}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089279}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089279}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089279}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, setting toNative=true
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089279,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089279,"toNative":true}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: ignoring outgoing message: {method: 'eth_accounts', jsonrpc: '2.0', id: 3762089279, toNative: true}
-sentry-CyqbsyPQ.js:23 XHR finished loading: POST "https://events.launchdarkly.com/events/bulk/633b910ae5f23510ced859ee".
-
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._write [metamask-inpage -> metamask-contentscript]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089280}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message posted successfully [metamask-inpage -> metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-inpage <- metamask-contentscript]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089280}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream message target mismatch: expected=metamask-inpage, got=metamask-contentscript
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage raw data [metamask-contentscript <- metamask-inpage]: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089280}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream._onMessage processed [metamask-contentscript <- metamask-inpage]: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089280}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] PostMessageStream pushing message to stream [metamask-contentscript]
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._write: {"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089280}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, setting toNative=true
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView: {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089280,"toNative":true}},"origin":"https://portfolio.metamask.io/explore/tokens"}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=https://portfolio.metamask.io {"target":"metamask-contentscript","data":{"name":"metamask-provider","data":{"method":"eth_accounts","jsonrpc":"2.0","id":3762089280,"toNative":true}}}
-sentry-CyqbsyPQ.js:5 [METAMASK-DEBUG] InpageBridge MobilePortStream: ignoring outgoing message: {method: 'eth_accounts', jsonrpc: '2.0', id: 3762089280, toNative: true}
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.
+tokens:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 ()
+sentry-CyqbsyPQ.js:23 XHR finished loading: GET "https://price.api.cx.metamask.io/v1/exchange-rates?baseCurrency=usd".
+(anonymous) @ sentry-CyqbsyPQ.js:23
+(anonymous) @ sentry-CyqbsyPQ.js:5
+(anonymous) @ metafi-B8VVh79w.js:10
+aa @ metafi-B8VVh79w.js:10
+Nm @ metafi-B8VVh79w.js:10
+gr.request @ metafi-B8VVh79w.js:10
+gr.<computed> @ metafi-B8VVh79w.js:10
+(anonymous) @ metafi-B8VVh79w.js:9
+(anonymous) @ bootstrap-B8yHNDPG.js:823
+(anonymous) @ bootstrap-B8yHNDPG.js:44
+Wt @ bootstrap-B8yHNDPG.js:44
+(anonymous) @ bootstrap-B8yHNDPG.js:44
+(anonymous) @ bootstrap-B8yHNDPG.js:44
+__async$1 @ bootstrap-B8yHNDPG.js:44
+(anonymous) @ bootstrap-B8yHNDPG.js:44
+(anonymous) @ bootstrap-B8yHNDPG.js:44
+(anonymous) @ bootstrap-B8yHNDPG.js:44
+(anonymous) @ bootstrap-B8yHNDPG.js:1925
+r @ sentry-CyqbsyPQ.js:23
+sentry-CyqbsyPQ.js:23 [Violation] 'setInterval' handler took 170ms

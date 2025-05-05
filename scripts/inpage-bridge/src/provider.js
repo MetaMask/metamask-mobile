@@ -17,13 +17,20 @@ const metamaskStream = new ReactNativePostMessageStream({
 });
 
 const init = () => {
+  console.log(`[METAMASK-DEBUG] Provider init starting`);
   // Multiplex the raw stream and initialize provider on the EIP-1193 channel
   const mux = new ObjectMultiplex();
   pipeline(metamaskStream, mux, metamaskStream, (err) =>
     logStreamDisconnectWarning('MetaMask Inpage Multiplex', err),
   );
+  
+  // Create the provider engine
+  const providerStream = mux.createStream(METAMASK_EIP_1193_PROVIDER);
+  console.log(`[METAMASK-DEBUG] Provider created EIP-1193 provider stream`);
+  
+  // Initialize the provider
   initializeProvider({
-    connectionStream: mux.createStream(METAMASK_EIP_1193_PROVIDER),
+    connectionStream: providerStream,
     shouldSendMetadata: false,
     providerInfo: {
       uuid: uuid(),
@@ -32,6 +39,8 @@ const init = () => {
       rdns: process.env.METAMASK_BUILD_APP_ID,
     },
   });
+  
+  console.log(`[METAMASK-DEBUG] Provider initialized`);
 
   // Set content script post-setup function
   Object.defineProperty(window, '_metamaskSetupProvider', {
@@ -51,6 +60,7 @@ const init = () => {
  * Setup function called from content script after the DOM is ready.
  */
 function setupProviderStreams() {
+  console.log(`[METAMASK-DEBUG] Setting up provider streams`);
   // the transport-specific streams for communication between inpage and background
   const pageStream = new ReactNativePostMessageStream({
     name: CONTENT_SCRIPT,
@@ -77,10 +87,12 @@ function setupProviderStreams() {
   });
 
   // forward communication across inpage-background for the EIP-1193 provider channel
+  console.log(`[METAMASK-DEBUG] Forwarding traffic for EIP-1193 provider channel`);
   forwardTrafficBetweenMuxes(METAMASK_EIP_1193_PROVIDER, pageMux, appMux);
 
   // add web3 shim
   shimWeb3(window.ethereum);
+  console.log(`[METAMASK-DEBUG] Web3 shimmed`);
 }
 
 /**

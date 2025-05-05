@@ -406,15 +406,66 @@ export class BackgroundBridge extends EventEmitter {
     DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge setupProviderConnection`);
     this.engine = this.setupProviderEngine();
 
+    // Add a response listener to ensure JSON-RPC responses are properly routed
+    this.engine.on('response', (response) => {
+      try {
+        DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge direct response from engine:`, 
+          JSON.stringify({id: response.id, method: response?.method, hasResult: !!response.result, hasError: !!response.error}));
+        
+        // Make sure we have a valid response to send
+        if (response && (response.result !== undefined || response.error !== undefined)) {
+          // Send the response directly to the WebView with the provider channel name
+          // This bypasses the normal stream flow which might be dropping responses
+          DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge posting direct response to WebView`);
+          this.port.postMessage({
+            name: METAMASK_EIP_1193_PROVIDER,
+            data: response
+          });
+        } else {
+          DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge received empty or invalid response from engine: ${JSON.stringify(response)}`);
+        }
+      } catch (error) {
+        DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge error in response handler: ${error.message}`);
+      }
+    });
+    
     // setup connection
     const providerStream = createEngineStream({ engine: this.engine });
+
+    // Add event handler for data to track responses
+    providerStream.on('data', (data) => {
+      // When we get responses from the engine, log them for debugging
+      try {
+        if (data && typeof data === 'object') {
+          if (data.id !== undefined && (data.result !== undefined || data.error !== undefined)) {
+            DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge response flowing to outStream:`, 
+              JSON.stringify({ id: data.id, hasResult: !!data.result, hasError: !!data.error }));
+            
+            // Remove any toNative flag that might be present in the response
+            if (data.toNative) {
+              delete data.toNative;
+            }
+
+            // Also try to send the response directly through our direct channel as a fallback
+            // This helps ensure responses make it back even if the stream processing drops them
+            this.port.postMessage({
+              name: METAMASK_EIP_1193_PROVIDER,
+              data: data
+            });
+            DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge sent additional direct copy of response`);
+          }
+        }
+      } catch (error) {
+        DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge error in data handler: ${error.message}`);
+      }
+    });
 
     DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge setting up pump between streams`);
     pump(outStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
       this.engine.destroy();
       if (err) {
-        console.error(`[METAMASK-DEBUG] Error with provider stream connection: ${err}`);
+        DevLogger.log(`[METAMASK-DEBUG] Error with provider stream connection:`, err);
         Logger.log('Error with provider stream conn', err);
       }
     });
@@ -534,7 +585,69 @@ export class BackgroundBridge extends EventEmitter {
 
   sendNotification(payload) {
     DevLogger.log(`BackgroundBridge::sendNotification: `, payload);
-    this.engine && this.engine.emit('notification', payload);
+    
+    // Add more detailed debug logs for troubleshooting
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge sending notification: ${JSON.stringify(payload)}`);
+    
+    if (this.engine) {
+      try {
+        // For provider notifications to work with newer @metamask/providers (v22+), we need to ensure
+        // proper formatting of responses
+        
+        // Clean up any remaining toNative flags that may interfere with processing
+        if (payload && typeof payload === 'object') {
+          // Check for direct result format
+          if (payload.result !== undefined && payload.id !== undefined && payload.toNative) {
+            delete payload.toNative;
+          }
+          
+          // Check for nested params format
+          if (payload.params && typeof payload.params === 'object') {
+            if (payload.params.data && payload.params.data.toNative) {
+              delete payload.params.data.toNative;
+            }
+          }
+          
+          // Check various payload formats
+          if (payload.data && payload.data.toNative) {
+            delete payload.data.toNative;
+          }
+        }
+        
+        DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge emitting notification after format cleanup`);
+        
+        // For methods like eth_requestAccounts that require a response rather than a notification
+        // Check if this is a json-rpc response that should be handled differently
+        if (payload && 
+            typeof payload === 'object' && 
+            payload.id !== undefined && 
+            (payload.result !== undefined || payload.error !== undefined)) {
+          
+          DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge detected JSON-RPC response in notification: ${JSON.stringify({
+            id: payload.id,
+            hasResult: !!payload.result,
+            hasError: !!payload.error
+          })}`);
+          
+          // Try both methods to ensure the response makes it back
+          this.engine.emit('response', payload);
+          
+          // Also try direct posting through port for critical methods
+          this.port.postMessage({
+            name: METAMASK_EIP_1193_PROVIDER,
+            data: payload
+          });
+          
+          return;
+        }
+        
+        this.engine.emit('notification', payload);
+      } catch (error) {
+        DevLogger.log(`[METAMASK-DEBUG] Error in BackgroundBridge sendNotification: ${error.message}`);
+      }
+    } else {
+      DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge cannot send notification - engine is not initialized`);
+    }
   }
 
   /**
