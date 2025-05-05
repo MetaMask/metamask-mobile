@@ -84,6 +84,7 @@ const Routes = {
     NOTIFICATIONS: 'NotificationsSettings',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
+    BACKUP_AND_SYNC: 'BackupAndSyncSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
@@ -115,6 +116,7 @@ const Routes = {
     TOKEN_SORT: 'TokenSort',
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
+    CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
     ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
     SELECT_SRP: 'SelectSRP',
     ///: END:ONLY_INCLUDE_IF
@@ -199,6 +201,7 @@ const Routes = {
   },
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
+  EDIT_ACCOUNT_NAME: 'EditAccountName',
 };
 
 export default Routes;
