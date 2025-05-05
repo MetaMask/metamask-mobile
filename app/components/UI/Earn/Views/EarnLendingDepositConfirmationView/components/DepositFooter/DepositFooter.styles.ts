@@ -14,16 +14,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingVertical: 12,
     },
-    incompleteStep: {
-      backgroundColor: theme.colors.background.alternative,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    completeStep: {
-      backgroundColor: theme.colors.primary.default,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
     bottomTextContainer: {
       flexDirection: 'column',
       justifyContent: 'center',
@@ -35,15 +25,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     linkText: {
       textDecorationLine: 'underline',
-    },
-    allStepsContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-evenly',
-    },
-    stepContainer: {
-      alignItems: 'center',
-      position: 'relative',
-      bottom: 17,
     },
   });
 };
