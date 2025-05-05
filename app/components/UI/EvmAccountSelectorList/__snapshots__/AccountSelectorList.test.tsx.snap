@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountSelectorList renders all accounts with balances 1`] = `
+exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
 <RCTScrollView
   collapsable={false}
   data={
@@ -847,7 +847,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
 </RCTScrollView>
 `;
 
-exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
+exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = `
 <RCTScrollView
   collapsable={false}
   data={
@@ -1606,7 +1606,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
 </RCTScrollView>
 `;
 
-exports[`AccountSelectorList renders correctly 1`] = `
+exports[`EvmAccountSelectorList renders correctly 1`] = `
 <RCTScrollView
   collapsable={false}
   data={

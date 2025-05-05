@@ -13,7 +13,7 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
-import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
+import EvmAccountSelectorList from '../../../../components/UI/EvmAccountSelectorList';
 import { removePermittedAccounts } from '../../../../core/Permissions';
 import UntypedEngine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -140,7 +140,7 @@ const AccountPermissionsRevoke = ({
           </Text>
         </View>
       </View>
-      <AccountSelectorList
+      <EvmAccountSelectorList
         renderRightAccessory={(address, name) => (
           <Button
             variant={ButtonVariants.Secondary}

@@ -3,7 +3,7 @@ import React from 'react';
 import { waitFor, within, fireEvent } from '@testing-library/react-native';
 import { Alert, AlertButton, View } from 'react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import AccountSelectorList from './AccountSelectorList';
+import EvmAccountSelectorList from './EvmAccountSelectorList';
 import { useAccounts, Account } from '../../hooks/useAccounts';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -16,11 +16,11 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { AccountSelectorListProps } from './AccountSelectorList.types';
+import { EvmAccountSelectorListProps } from './EvmAccountSelectorList.types';
 import Engine from '../../../core/Engine';
 import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { ACCOUNT_SELECTOR_LIST_TESTID } from './AccountSelectorList.constants';
+import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -204,7 +204,7 @@ const defaultAccountsMock = [
   },
 ];
 
-const AccountSelectorListUseAccounts: React.FC<AccountSelectorListProps> = ({
+const EvmAccountSelectorListUseAccounts: React.FC<EvmAccountSelectorListProps> = ({
   privacyMode = false,
 }) => {
   // Set the mock implementation for this specific component render
@@ -213,7 +213,7 @@ const AccountSelectorListUseAccounts: React.FC<AccountSelectorListProps> = ({
   }
   const { accounts, ensByAccountAddress } = useAccounts();
   return (
-    <AccountSelectorList
+    <EvmAccountSelectorList
       onSelectAccount={onSelectAccount}
       onRemoveImportedAccount={onRemoveImportedAccount}
       accounts={accounts}
@@ -226,10 +226,10 @@ const AccountSelectorListUseAccounts: React.FC<AccountSelectorListProps> = ({
 
 const RIGHT_ACCESSORY_TEST_ID = 'right-accessory';
 
-const AccountSelectorListRightAccessoryUseAccounts = () => {
+const EvmAccountSelectorListRightAccessoryUseAccounts = () => {
   const { accounts, ensByAccountAddress } = useAccounts();
   return (
-    <AccountSelectorList
+    <EvmAccountSelectorList
       renderRightAccessory={(address, name) => (
         <View testID={RIGHT_ACCESSORY_TEST_ID}>{`${address} - ${name}`}</View>
       )}
@@ -245,10 +245,10 @@ const renderComponent = (
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any = {},
-  AccountSelectorListTest = AccountSelectorListUseAccounts,
-) => renderWithProvider(<AccountSelectorListTest {...state} />, { state });
+  EvmAccountSelectorListTest = EvmAccountSelectorListUseAccounts,
+) => renderWithProvider(<EvmAccountSelectorListTest {...state} />, { state });
 
-describe('AccountSelectorList', () => {
+describe('EvmAccountSelectorList', () => {
   beforeEach(() => {
     // Reset all mocks before each test
     jest.clearAllMocks();
@@ -308,7 +308,7 @@ describe('AccountSelectorList', () => {
   it('renders all accounts with right accessory', async () => {
     const { getAllByTestId, toJSON } = renderComponent(
       initialState,
-      AccountSelectorListRightAccessoryUseAccounts,
+      EvmAccountSelectorListRightAccessoryUseAccounts,
     );
 
     await waitFor(() => {
@@ -613,7 +613,7 @@ describe('AccountSelectorList', () => {
 
     // Create a component that explicitly verifies the account data
     let testAccounts: Account[] = [];
-    const AccountSelectorListBalanceErrorTest = () => {
+    const EvmAccountSelectorListBalanceErrorTest = () => {
       // Mock useAccounts hook inline to ensure it's used in this test
       (useAccounts as jest.Mock).mockReturnValue({
         accounts: [mockAccount],
@@ -626,11 +626,11 @@ describe('AccountSelectorList', () => {
       testAccounts = accounts;
 
       return (
-        <AccountSelectorList accounts={accounts} ensByAccountAddress={{}} />
+        <EvmAccountSelectorList accounts={accounts} ensByAccountAddress={{}} />
       );
     };
 
-    renderComponent({}, AccountSelectorListBalanceErrorTest);
+    renderComponent({}, EvmAccountSelectorListBalanceErrorTest);
 
     // Verify the account data has the balance error
     expect(testAccounts[0].balanceError).toBe('Balance error message');
@@ -638,7 +638,7 @@ describe('AccountSelectorList', () => {
 
   it('renders in multi-select mode', () => {
     // Create a test component with multi-select mode
-    const AccountSelectorListMultiSelectTest = () => {
+    const EvmAccountSelectorListMultiSelectTest = () => {
       (useAccounts as jest.Mock).mockReturnValue({
         accounts: [
           {
@@ -659,7 +659,7 @@ describe('AccountSelectorList', () => {
 
       const { accounts, ensByAccountAddress } = useAccounts();
       return (
-        <AccountSelectorList
+        <EvmAccountSelectorList
           onSelectAccount={onSelectAccount}
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
@@ -672,7 +672,7 @@ describe('AccountSelectorList', () => {
     // Modified test to not check props directly
     const { getByTestId } = renderComponent(
       {},
-      AccountSelectorListMultiSelectTest,
+      EvmAccountSelectorListMultiSelectTest,
     );
 
     // Simply check if the component renders
@@ -680,10 +680,10 @@ describe('AccountSelectorList', () => {
   });
 
   it('renders in select-without-menu mode', async () => {
-    const AccountSelectorListSelectWithoutMenuTest: React.FC = () => {
+    const EvmAccountSelectorListSelectWithoutMenuTest: React.FC = () => {
       const { accounts, ensByAccountAddress } = useAccounts();
       return (
-        <AccountSelectorList
+        <EvmAccountSelectorList
           onSelectAccount={onSelectAccount}
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
@@ -695,7 +695,7 @@ describe('AccountSelectorList', () => {
 
     const { getAllByTestId } = renderComponent(
       initialState,
-      AccountSelectorListSelectWithoutMenuTest,
+      EvmAccountSelectorListSelectWithoutMenuTest,
     );
 
     await waitFor(() => {
@@ -709,10 +709,10 @@ describe('AccountSelectorList', () => {
     // Clear any previous calls
     onSelectAccount.mockClear();
 
-    const AccountSelectorListDisabledSelectionTest: React.FC = () => {
+    const EvmAccountSelectorListDisabledSelectionTest: React.FC = () => {
       const { accounts, ensByAccountAddress } = useAccounts();
       return (
-        <AccountSelectorList
+        <EvmAccountSelectorList
           onSelectAccount={onSelectAccount}
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
@@ -723,7 +723,7 @@ describe('AccountSelectorList', () => {
 
     const { getAllByTestId } = renderComponent(
       initialState,
-      AccountSelectorListDisabledSelectionTest,
+      EvmAccountSelectorListDisabledSelectionTest,
     );
 
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
@@ -835,10 +835,10 @@ describe('AccountSelectorList', () => {
       ensByAccountAddress: {},
     }));
 
-    const AccountSelectorListNoRemoveTest: React.FC = () => {
+    const EvmAccountSelectorListNoRemoveTest: React.FC = () => {
       const { accounts, ensByAccountAddress } = useAccounts();
       return (
-        <AccountSelectorList
+        <EvmAccountSelectorList
           onSelectAccount={onSelectAccount}
           onRemoveImportedAccount={onRemoveImportedAccount}
           accounts={accounts}
@@ -850,7 +850,7 @@ describe('AccountSelectorList', () => {
 
     const { getAllByTestId } = renderComponent(
       initialState,
-      AccountSelectorListNoRemoveTest,
+      EvmAccountSelectorListNoRemoveTest,
     );
 
     // Find all cell elements
@@ -937,10 +937,10 @@ describe('AccountSelectorList', () => {
     jest.spyOn(React, 'useRef').mockImplementation(() => mockFlatListRef);
 
     // Create test component with auto-scroll disabled
-    const AccountSelectorListNoAutoScrollTest: React.FC = () => {
+    const EvmAccountSelectorListNoAutoScrollTest: React.FC = () => {
       const { accounts, ensByAccountAddress } = useAccounts();
       return (
-        <AccountSelectorList
+        <EvmAccountSelectorList
           onSelectAccount={onSelectAccount}
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
@@ -951,7 +951,7 @@ describe('AccountSelectorList', () => {
 
     const { getByTestId } = renderComponent(
       initialState,
-      AccountSelectorListNoAutoScrollTest,
+      EvmAccountSelectorListNoAutoScrollTest,
     );
 
     // Get the FlatList and trigger content size change

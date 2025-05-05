@@ -5,7 +5,7 @@ import { View } from 'react-native';
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
+import EvmAccountSelectorList from '../../../../components/UI/EvmAccountSelectorList';
 import { strings } from '../../../../../locales/i18n';
 import { AccountConnectScreens } from '../AccountConnect.types';
 
@@ -67,7 +67,7 @@ const AccountConnectSingleSelector = ({
   return (
     <>
       <SheetHeader onBack={onBack} title={strings('accounts.accounts_title')} />
-      <AccountSelectorList
+      <EvmAccountSelectorList
         onSelectAccount={onSelectAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
