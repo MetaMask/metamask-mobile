@@ -15,7 +15,6 @@ import {
 } from '../../../selectors/networkController';
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
-import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -36,10 +35,10 @@ import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
 } from '../../UI/Ramp/routes/utils';
+import { trace, TraceName } from '../../../util/trace';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
-import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
@@ -49,7 +48,14 @@ import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 ///: END:ONLY_INCLUDE_IF
-import { useSwapBridgeNavigation, SwapBridgeNavigationLocation } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { RampType } from '../../../reducers/fiatOrders/types';
+import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import { RootState } from '../../../reducers';
+import { selectIsBridgeEnabledSource } from '../../../core/redux/slices/bridge';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -59,18 +65,25 @@ const WalletActions = () => {
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
   const swapsIsLive = useSelector(swapsLivenessSelector);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
   const { trackEvent, createEventBuilder } = useMetrics();
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   ///: END:ONLY_INCLUDE_IF
+  const isBridgeEnabledSource = useSelector((state: RootState) =>
+    selectIsBridgeEnabledSource(state, chainId),
+  );
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TabBar,
-    sourcePage: 'MainView',
-  });
+  const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } =
+    useSwapBridgeNavigation({
+      location: SwapBridgeNavigationLocation.TabBar,
+      sourcePage: 'MainView',
+    });
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -142,6 +155,13 @@ const WalletActions = () => {
         })
         .build(),
     );
+
+    trace({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: RampType.BUY,
+      },
+    });
   }, [
     closeBottomSheetAndNavigate,
     navigate,
@@ -164,6 +184,13 @@ const WalletActions = () => {
         })
         .build(),
     );
+
+    trace({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: RampType.SELL,
+      },
+    });
   }, [
     closeBottomSheetAndNavigate,
     navigate,
@@ -261,24 +288,7 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       goToBridgeBase();
     });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BRIDGE_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Bridge',
-          tokenSymbol: '',
-          location: 'TabBar',
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [
-    closeBottomSheetAndNavigate,
-    goToBridgeBase,
-    trackEvent,
-    chainId,
-    createEventBuilder,
-  ]);
+  }, [closeBottomSheetAndNavigate, goToBridgeBase]);
 
   const sendIconStyle = useMemo(
     () => ({
@@ -323,7 +333,7 @@ const WalletActions = () => {
             disabled={!canSignTransactions || !swapsIsLive}
           />
         )}
-        {isBridgeAllowed(chainId) && (
+        {isBridgeEnabledSource && (
           <WalletAction
             actionType={WalletActionType.Bridge}
             iconName={IconName.Bridge}
@@ -352,7 +362,7 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
-        {isStablecoinLendingFeatureEnabled() && (
+        {isStablecoinLendingEnabled && (
           <WalletAction
             actionType={WalletActionType.Earn}
             iconName={IconName.Plant}
