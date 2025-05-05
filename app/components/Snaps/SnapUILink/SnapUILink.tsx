@@ -1,5 +1,4 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { LinkChildren } from '@metamask/snaps-sdk/jsx';
 import React from 'react';
 import { Text, StyleSheet, Linking, View } from 'react-native';
 import Icon, {
@@ -21,7 +20,7 @@ const styles = StyleSheet.create({
 });
 
 export interface SnapUILinkProps {
-  children: LinkChildren;
+  children: React.ReactNode;
   href: string;
 }
 

@@ -14,6 +14,7 @@ const getSegmentStyle = (type: StatusTypes | null) =>
       height: 4,
       width: 0,
       borderRadius: 9999,
+      // @ts-expect-error - bridge team needs to fix this with animated api since transition does not exist in react native
       transition: 'width 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55)',
       ...(type === StatusTypes.PENDING && { width: '50%' }),
       ...(type === StatusTypes.COMPLETE && { width: '100%' }),

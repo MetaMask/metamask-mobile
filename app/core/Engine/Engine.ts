@@ -25,8 +25,8 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
-  getDefaultNetworkControllerState,
   NetworkController,
+  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
@@ -160,6 +160,7 @@ import {
   SnapControllerGetSnapStateAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/snaps';
+import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import {
@@ -196,13 +197,6 @@ import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
-import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
-import {
-  onRpcEndpointDegraded,
-  onRpcEndpointUnavailable,
-} from './controllers/network-controller/messenger-action-handlers';
-import { INFURA_PROJECT_ID } from '../../constants/network';
-import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
@@ -311,100 +305,22 @@ export class Engine {
       },
     });
 
-    const networkControllerMessenger = this.controllerMessenger.getRestricted({
-      name: 'NetworkController',
-      allowedEvents: [],
-      allowedActions: [],
-    });
-
-    const additionalDefaultNetworks = [ChainId['megaeth-testnet']];
-
-    let initialNetworkControllerState = initialState.NetworkController;
-    if (!initialNetworkControllerState) {
-      initialNetworkControllerState = getDefaultNetworkControllerState(
-        additionalDefaultNetworks,
-      );
-
-      // Add failovers for default Infura RPC endpoints
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId.mainnet
-      ].rpcEndpoints[0].failoverUrls =
-        getFailoverUrlsForInfuraNetwork('ethereum-mainnet');
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId['linea-mainnet']
-      ].rpcEndpoints[0].failoverUrls =
-        getFailoverUrlsForInfuraNetwork('linea-mainnet');
-    }
-
-    const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
     const networkControllerOpts = {
-      infuraProjectId,
-      state: initialNetworkControllerState,
-      messenger: networkControllerMessenger,
-      getRpcServiceOptions: (rpcEndpointUrl: string) => {
-        const commonOptions = {
-          fetch: globalThis.fetch.bind(globalThis),
-          btoa: globalThis.btoa.bind(globalThis),
-        };
-
-        if (getIsQuicknodeEndpointUrl(rpcEndpointUrl)) {
-          return {
-            ...commonOptions,
-            policyOptions: {
-              // There is currently a bug in the block tracker (and probably
-              // also the middleware layers) that result in a flurry of retries
-              // when an RPC endpoint goes down, causing us to pretty
-              // immediately enter a 30-minute cooldown period during which all
-              // requests will be dropped. This isn't a problem for Infura, as
-              // we need a long cooldown anyway to prevent spamming it while it
-              // is down. But Quicknode is a different story. When we fail over
-              // to it, we expect it to be down at first while it is being
-              // automatically activated. So dropping requests for a lengthy
-              // period would defeat the point. Shortening the cooldown period
-              // mitigates this problem.
-              circuitBreakDuration: 5000,
-            },
-          };
-        }
-
-        return commonOptions;
-      },
-      additionalDefaultNetworks,
+      infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+      state: initialState.NetworkController,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'NetworkController',
+        allowedEvents: [],
+        allowedActions: [],
+      }) as unknown as NetworkControllerMessenger,
+      getRpcServiceOptions: () => ({
+        fetch,
+        btoa,
+      }),
+      additionalDefaultNetworks: [ChainId['megaeth-testnet']],
     };
     const networkController = new NetworkController(networkControllerOpts);
-    networkControllerMessenger.subscribe(
-      'NetworkController:rpcEndpointUnavailable',
-      async ({ chainId, endpointUrl, error }) => {
-        onRpcEndpointUnavailable({
-          chainId,
-          endpointUrl,
-          infuraProjectId,
-          error,
-          trackEvent: ({ event, properties }) => {
-            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-              .addProperties(properties)
-              .build();
-            MetaMetrics.getInstance().trackEvent(metricsEvent);
-          },
-        });
-      },
-    );
-    networkControllerMessenger.subscribe(
-      'NetworkController:rpcEndpointDegraded',
-      async ({ chainId, endpointUrl }) => {
-        onRpcEndpointDegraded({
-          chainId,
-          endpointUrl,
-          infuraProjectId,
-          trackEvent: ({ event, properties }) => {
-            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-              .addProperties(properties)
-              .build();
-            MetaMetrics.getInstance().trackEvent(metricsEvent);
-          },
-        });
-      },
-    );
+
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
@@ -450,7 +366,6 @@ export class Engine {
       }),
     });
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
-      state: initialState.RemoteFeatureFlagController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
         allowedActions: [],
@@ -1058,6 +973,7 @@ export class Engine {
           'TokenRatesController:getState',
           'MultichainAssetsRatesController:getState',
           'CurrencyRateController:getState',
+          'RemoteFeatureFlagController:getState',
         ],
         allowedEvents: [],
       }),
@@ -1100,7 +1016,6 @@ export class Engine {
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
-          'TokensController:addDetectedTokens',
           'BridgeController:getBridgeERC20Allowance',
           'BridgeController:trackUnifiedSwapBridgeEvent',
           'GasFeeController:getState',
@@ -1601,6 +1516,27 @@ export class Engine {
       },
     );
 
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    this.controllerMessenger.subscribe(
+      `${snapController.name}:snapTerminated`,
+      (truncatedSnap) => {
+        const approvals = Object.values(
+          approvalController.state.pendingApprovals,
+        ).filter(
+          (approval) =>
+            approval.origin === truncatedSnap.id &&
+            approval.type.startsWith(RestrictedMethods.snap_dialog),
+        );
+        for (const approval of approvals) {
+          approvalController.reject(
+            approval.id,
+            new Error('Snap was terminated.'),
+          );
+        }
+      },
+    );
+    ///: END:ONLY_INCLUDE_IF
+
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
@@ -1651,7 +1587,15 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    AccountTrackerController.refresh();
+    AccountTrackerController.refresh([
+      NetworkController.state.networkConfigurationsByChainId[
+        getGlobalChainId(NetworkController)
+      ]?.rpcEndpoints?.[
+        NetworkController.state.networkConfigurationsByChainId[
+          getGlobalChainId(NetworkController)
+        ]?.defaultRpcEndpointIndex
+      ]?.networkClientId,
+    ]);
   }
 
   getTotalEvmFiatAccountBalance = (
