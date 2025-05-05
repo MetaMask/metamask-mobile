@@ -160,6 +160,7 @@ const BackupAndSyncToggle = ({
           }}
           thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
+          testID="toggle-backupAndSync"
         />
       </View>
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

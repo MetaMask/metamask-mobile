@@ -215,12 +215,14 @@ describe('Carousel', () => {
       CAROUSEL_THIRD_SLIDE,
       CAROUSEL_FOURTH_SLIDE,
       CAROUSEL_FIFTH_SLIDE,
+      CAROUSEL_SEVENTH_SLIDE,
     } = WalletViewSelectorsIDs;
     const firstSlide = getByTestId(CAROUSEL_FIRST_SLIDE);
     const secondSlide = getByTestId(CAROUSEL_SECOND_SLIDE);
     const thirdSlide = getByTestId(CAROUSEL_THIRD_SLIDE);
     const fourthSlide = getByTestId(CAROUSEL_FOURTH_SLIDE);
     const fifthSlide = getByTestId(CAROUSEL_FIFTH_SLIDE);
+    const seventhSlide = getByTestId(CAROUSEL_SEVENTH_SLIDE);
 
     // Test card banner
     fireEvent.press(firstSlide);
@@ -242,6 +244,10 @@ describe('Carousel', () => {
 
     // Test multisrp banner
     fireEvent.press(fifthSlide);
+    expect(mockNavigate).toHaveBeenCalled();
+
+    // Test backup and sync banner
+    fireEvent.press(seventhSlide);
     expect(mockNavigate).toHaveBeenCalled();
   });
 
@@ -291,6 +297,7 @@ describe('Carousel', () => {
     const solanaBanner = queryByTestId(
       WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE,
     );
+
     expect(solanaBanner).toBeNull();
   });
 

@@ -129,11 +129,10 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             }
           }
         >
-          Profile Sync
+          Backup and sync
         </Text>
         <RCTSwitch
           accessibilityRole="switch"
-          disabled={true}
           onChange={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
@@ -150,6 +149,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
               },
             ]
           }
+          testID="toggle-backupAndSync"
           thumbTintColor="#ffffff"
           tintColor="#b7bbc866"
           value={false}
@@ -168,7 +168,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           }
         }
       >
-        Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. 
+        Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask.
         <Text
           accessibilityRole="text"
           onPress={[Function]}

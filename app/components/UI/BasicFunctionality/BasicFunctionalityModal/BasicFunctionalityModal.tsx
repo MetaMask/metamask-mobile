@@ -121,6 +121,20 @@ const BasicFunctionalityModal = ({ route }: Props) => {
       <Text variant={TextVariant.BodyMD} style={styles.description}>
         {strings('default_settings.sheet.description_off')}
       </Text>
+      <Text variant={TextVariant.BodyMD} style={styles.description}>
+        {strings('default_settings.sheet.description_off2')}{' '}
+        <Text variant={TextVariant.BodyMDBold} style={styles.description}>
+          {strings('default_settings.sheet.description_off2_related_features1')}{' '}
+        </Text>
+        <Text variant={TextVariant.BodyMD} style={styles.description}>
+          {strings(
+            'default_settings.sheet.description_off2_related_features1_and',
+          )}{' '}
+        </Text>
+        <Text variant={TextVariant.BodyMDBold} style={styles.description}>
+          {strings('default_settings.sheet.description_off2_related_features2')}
+        </Text>
+      </Text>
       <View style={styles.bottom}>
         <Checkbox
           label={strings('default_settings.sheet.checkbox_label')}

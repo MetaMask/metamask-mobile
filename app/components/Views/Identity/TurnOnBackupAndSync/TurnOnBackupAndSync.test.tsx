@@ -3,13 +3,9 @@ import React from 'react';
 import TurnOnBackupAndSync, {
   turnOnBackupAndSyncTestIds,
 } from './TurnOnBackupAndSync';
-
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-
 import Routes from '../../../../constants/navigation/Routes';
-
 import { fireEvent, waitFor } from '@testing-library/react-native';
-
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
 
 const MOCK_STORE_STATE = {
@@ -18,13 +14,11 @@ const MOCK_STORE_STATE = {
       UserStorageController: {
         isProfileSyncingEnabled: true,
       },
-
       AuthenticationController: {
         isSignedIn: true,
       },
     },
   },
-
   settings: {
     basicFunctionalityEnabled: true,
   },
@@ -37,13 +31,10 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
 );
 
 const mockNavigate = jest.fn();
-
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
-
   return {
     ...actualNav,
-
     useNavigation: () => ({
       navigate: mockNavigate,
     }),
@@ -51,11 +42,9 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockSetIsBackupAndSyncFeatureEnabled = jest.fn();
-
 jest.mock('../../../../util/identity/hooks/useBackupAndSync', () => ({
   useBackupAndSync: () => ({
     setIsBackupAndSyncFeatureEnabled: mockSetIsBackupAndSyncFeatureEnabled,
-
     error: null,
   }),
 }));
@@ -69,7 +58,6 @@ describe('TurnOnBackupAndSync', () => {
     const { toJSON } = renderWithProvider(<TurnOnBackupAndSync />, {
       state: MOCK_STORE_STATE,
     });
-
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -77,11 +65,9 @@ describe('TurnOnBackupAndSync', () => {
     const { getByTestId } = renderWithProvider(<TurnOnBackupAndSync />, {
       state: {
         ...MOCK_STORE_STATE,
-
         engine: {
           backgroundState: {
             ...MOCK_STORE_STATE.engine.backgroundState,
-
             UserStorageController: {
               isProfileSyncingEnabled: false,
             },
@@ -91,16 +77,13 @@ describe('TurnOnBackupAndSync', () => {
     });
 
     const switchElement = getByTestId(turnOnBackupAndSyncTestIds.enableButton);
-
     fireEvent.press(switchElement);
 
     await waitFor(() => {
       expect(mockSetIsBackupAndSyncFeatureEnabled).toHaveBeenCalledWith(
         BACKUPANDSYNC_FEATURES.main,
-
         true,
       );
-
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
         screen: Routes.SETTINGS.BACKUP_AND_SYNC,
       });
@@ -111,35 +94,28 @@ describe('TurnOnBackupAndSync', () => {
     const { getByTestId } = renderWithProvider(<TurnOnBackupAndSync />, {
       state: {
         ...MOCK_STORE_STATE,
-
         engine: {
           backgroundState: {
             ...MOCK_STORE_STATE.engine.backgroundState,
-
             UserStorageController: {
               isProfileSyncingEnabled: false,
             },
           },
         },
-
         settings: {
           ...MOCK_STORE_STATE.settings,
-
           basicFunctionalityEnabled: false,
         },
       },
     });
 
     const switchElement = getByTestId(turnOnBackupAndSyncTestIds.enableButton);
-
     fireEvent.press(switchElement);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC,
-
       params: {
         enableBackupAndSync: expect.any(Function),
-
         trackEnableBackupAndSyncEvent: expect.any(Function),
       },
     });

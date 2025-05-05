@@ -62,6 +62,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
               },
             ]
           }
+          testID="toggle-backupAndSync"
           thumbTintColor="#ffffff"
           tintColor="#b7bbc866"
           value={true}
