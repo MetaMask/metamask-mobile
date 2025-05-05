@@ -860,6 +860,8 @@
     "reset_notifications_description": "通知をリセットすると、通知ストレージキーが削除され、通知履歴がすべてリセットされます。よろしいですか？",
     "reset_notifications": "通知をリセット",
     "reset_notifications_success": "通知ストレージキーが削除/再作成され、通知履歴がリセットされました。",
+    "enabling_profile_sync": "プロファイルの同期を有効にしています...",
+    "disabling_profile_sync": "プロファイルの同期を無効にしています...",
     "notifications_dismiss_modal": "閉じる",
     "select_rpc_url": "RPC URLを選択",
     "title": "設定",
@@ -3291,6 +3293,15 @@
   "remember_me": {
     "enable_remember_me": "認証情報の保存を有効にする",
     "enable_remember_me_description": "認証情報の保存を有効にすると、携帯にアクセスできる人は誰でもMetaMaskアカウントにアクセスできるようになります。"
+  },
+  "profile_sync": {
+    "title": "プロファイルの同期",
+    "disable_warning": "プロファイルの同期をオフにすると、通知を受け取ることができなくなります。",
+    "enable_description": "MetaMaskが一部の設定をデバイス間で同期するために使用するプロファイルを作成します。これは通知の受取に必要です。",
+    "enable_description2": "をお読みください。",
+    "enable_privacy_link": "当社がどのようにユーザーのプライバシーを保護するのか、ご覧ください",
+    "bottomSheetTurnOn": "プロファイルの同期をオンにしています",
+    "bottomSheetTurnOff": "プロファイルの同期をオフにしています"
   },
   "turn_off_remember_me": {
     "title": "認証情報の保存を無効にするには、パスワードを入力してください",

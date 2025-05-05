@@ -860,6 +860,8 @@
     "reset_notifications_description": "Mereset notifikasi berarti Anda menghapus kunci penyimpanan notifikasi dan mereset semua riwayat notifikasi. Yakin ingin melakukan ini?",
     "reset_notifications": "Reset notifikasi",
     "reset_notifications_success": "Kunci penyimpanan notifikasi dihapus/dibuat ulang dan riwayat notifikasi direset.",
+    "enabling_profile_sync": "Mengaktifkan sinkronisasi profil...",
+    "disabling_profile_sync": "Menonaktifkan sinkronisasi profil...",
     "notifications_dismiss_modal": "Lewatkan",
     "select_rpc_url": "Pilih URL RPC",
     "title": "Pengaturan",
@@ -3291,6 +3293,15 @@
   "remember_me": {
     "enable_remember_me": "Aktifkan Ingatkan saya",
     "enable_remember_me_description": "Saat Ingatkan saya aktif, siapa pun yang memiliki akses ke ponsel Anda dapat mengakses akun MetaMask Anda."
+  },
+  "profile_sync": {
+    "title": "Sinkronisasi Profil",
+    "disable_warning": "Jika sinkronisasi profil dinonaktifkan, Anda tidak dapat menerima notifikasi.",
+    "enable_description": "Membuat profil yang digunakan MetaMask untuk menyinkronkan beberapa pengaturan di antara perangkat Anda. Ini diperlukan untuk mendapatkan notifikasi. ",
+    "enable_description2": " untuk selengkapnya.",
+    "enable_privacy_link": "Pelajari cara kami melindungi privasi Anda",
+    "bottomSheetTurnOn": "Mengaktifkan Sinkronisasi Profil",
+    "bottomSheetTurnOff": "Menonaktifkan Sinkronisasi Profil"
   },
   "turn_off_remember_me": {
     "title": "Masukkan kata sandi Anda untuk menonaktifkan Ingatkan saya",

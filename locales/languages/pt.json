@@ -860,6 +860,8 @@
     "reset_notifications_description": "Redefinir as notificações significa que você está excluindo suas chaves de armazenamento de notificações e redefinindo todo o seu histórico de notificações. Tem certeza de que deseja fazer isso?",
     "reset_notifications": "Redefinir notificações",
     "reset_notifications_success": "Chave de armazenamento de notificações excluída/recriada e histórico de notificações redefinido.",
+    "enabling_profile_sync": "Ativando sincronização de perfil...",
+    "disabling_profile_sync": "Desativando sincronização de perfil...",
     "notifications_dismiss_modal": "Ignorar",
     "select_rpc_url": "Selecionar URL da RPC",
     "title": "Configurações",
@@ -3291,6 +3293,15 @@
   "remember_me": {
     "enable_remember_me": "Ativar \"Lembrar de mim\"",
     "enable_remember_me_description": "Quando \"Lembrar de mim\" estiver ativado, qualquer pessoa com acesso ao seu telefone poderá acessar sua conta da MetaMask."
+  },
+  "profile_sync": {
+    "title": "Sincronização de perfil",
+    "disable_warning": "Se você desativar a sincronização de perfil, não poderá receber notificações.",
+    "enable_description": "Cria um perfil que o MetaMask usa para sincronizar algumas configurações entre seus dispositivos. Isso é necessário para receber notificações. ",
+    "enable_description2": " para saber mais.",
+    "enable_privacy_link": "Saiba como protegemos sua privacidade",
+    "bottomSheetTurnOn": "Ativando a sincronização de perfil",
+    "bottomSheetTurnOff": "Desativando a sincronização de perfil"
   },
   "turn_off_remember_me": {
     "title": "Insira sua senha para desativar \"Lembrar de mim\"",

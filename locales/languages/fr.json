@@ -860,6 +860,8 @@
     "reset_notifications_description": "La réinitialisation des notifications entrainera la suppression des clés de stockage des notifications et de l’historique des notifications. Êtes-vous sûr(e) de vouloir continuer ?",
     "reset_notifications": "Réinitialiser les notifications",
     "reset_notifications_success": "La clé de stockage des notifications a été supprimée/recréée et l’historique des notifications a été réinitialisé.",
+    "enabling_profile_sync": "Activation de la synchronisation des profils…",
+    "disabling_profile_sync": "Désactivation de la synchronisation des profils…",
     "notifications_dismiss_modal": "Annuler",
     "select_rpc_url": "Sélectionner l’URL du RPC",
     "title": "Paramètres",
@@ -3291,6 +3293,15 @@
   "remember_me": {
     "enable_remember_me": "Activer l'option « Se souvenir de moi »",
     "enable_remember_me_description": "Lorsque l'option « Se souvenir de moi » est activée, toute personne ayant accès à votre téléphone peut accéder à votre compte MetaMask."
+  },
+  "profile_sync": {
+    "title": "Synchronisation du profil",
+    "disable_warning": "Si vous désactivez la synchronisation du profil, vous ne pourrez plus recevoir de notifications.",
+    "enable_description": "Crée un profil que MetaMask utilise pour synchroniser certains paramètres entre vos appareils. Ceci est nécessaire pour activer les notifications. ",
+    "enable_description2": " pour en savoir plus.",
+    "enable_privacy_link": "Découvrez comment nous protégeons vos données personnelles",
+    "bottomSheetTurnOn": "Activation de la synchronisation du profil",
+    "bottomSheetTurnOff": "Désactivation de la synchronisation du profil"
   },
   "turn_off_remember_me": {
     "title": "Saisissez votre mot de passe pour désactiver l'option « Se souvenir de moi »",
