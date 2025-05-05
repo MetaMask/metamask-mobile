@@ -36,9 +36,16 @@ export enum ShaAlgorithm {
  * - encrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When-,encrypting,-and%20decypting%20the
  * - decrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When%20encrypting%20and-,decypting,-the%20library%20uses
  */
-export enum CipherAlgorithm {
+export enum CipherAlgorithmAesCrypto {
   cbc = 'aes-cbc-pkcs7padding',
   ctr = 'aes-ctr-pkcs5padding',
+}
+
+/**
+ * Supported cipher algorithms in react-native-quick-crypto v0.7.13
+ */
+export enum CipherAlgorithmQuickCrypto {
+  cbc = 'AES-CBC',
 }
 
 /**

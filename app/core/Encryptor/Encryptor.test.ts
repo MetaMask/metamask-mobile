@@ -15,7 +15,7 @@ describe('Encryptor', () => {
   });
 
   describe('encrypt', () => {
-    it('should encrypt an object correctly', async () => {
+    it('encrypts an object correctly', async () => {
       const password = 'testPassword';
       const objectToEncrypt = { key: 'value' };
 
@@ -33,7 +33,7 @@ describe('Encryptor', () => {
   });
 
   describe('decrypt', () => {
-    it('should decrypt a string correctly', async () => {
+    it('decrypts a string correctly', async () => {
       const password = 'testPassword';
       const mockVault = {
         cipher: 'mockedCipher',
@@ -230,7 +230,7 @@ describe('Encryptor', () => {
   });
 
   describe('encryptWithDetail', () => {
-    it('should encrypt data and return vault with exported key string', async () => {
+    it('encrypts data and returns the vault with the exported key string', async () => {
       const password = 'testPassword';
       const dataToEncrypt = { test: 'data' };
       const mockSalt = 'mockSalt';
@@ -276,7 +276,7 @@ describe('Encryptor', () => {
       jest.clearAllMocks();
     });
 
-    it('should decrypt vault and return data with key details', async () => {
+    it('decrypts the vault and returns the data with key details', async () => {
       const password = 'testPassword';
       const originalData = { test: 'data' };
       const { vault } = await encryptor.encryptWithDetail(
@@ -298,7 +298,7 @@ describe('Encryptor', () => {
       expect(importedKey).toHaveProperty('keyMetadata');
     });
 
-    it('should handle legacy vaults without keyMetadata', async () => {
+    it('handles legacy vaults without keyMetadata', async () => {
       const password = 'testPassword';
       const mockVault = {
         cipher: 'mockedCipher',

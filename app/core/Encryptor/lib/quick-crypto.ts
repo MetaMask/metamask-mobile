@@ -2,6 +2,7 @@ import Crypto from 'react-native-quick-crypto';
 import { bytesToHex, remove0x } from '@metamask/utils';
 import { EncryptionLibrary, KeyDerivationOptions } from './../types';
 import { getRandomBytes } from '../bytes';
+import { CipherAlgorithmQuickCrypto, KDF_ALGORITHM } from '../constants';
 
 class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
   /**
@@ -32,14 +33,14 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
     const baseKey = await Crypto.subtle.importKey(
       'raw',
       passBuffer,
-      { name: 'PBKDF2' },
+      { name: KDF_ALGORITHM },
       false,
       ['deriveBits', 'deriveKey'],
     );
 
     const derivedBits = await Crypto.subtle.deriveBits(
       {
-        name: 'PBKDF2',
+        name: KDF_ALGORITHM,
         salt,
         iterations: opts.params.iterations,
         hash: 'SHA-512',
@@ -64,7 +65,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
     const cryptoKey = await this.importKey(key);
 
     const encryptedData = await Crypto.subtle.encrypt(
-      { name: 'AES-CBC', iv: ivBuffer },
+      { name: CipherAlgorithmQuickCrypto.cbc, iv: ivBuffer },
       // @ts-expect-error - This should be as CryptoKey but the type is not exported
       cryptoKey,
       dataBuffer
@@ -85,7 +86,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
     const cryptoKey = await this.importKey(key);
 
     const decryptedData = await Crypto.subtle.decrypt(
-      { name: 'AES-CBC', iv: ivBuffer },
+      { name: CipherAlgorithmQuickCrypto.cbc, iv: ivBuffer },
       // @ts-expect-error - This should be CryptoKey but the type is not exported
       cryptoKey,
       dataBuffer,
@@ -103,7 +104,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
     const importedKey = await Crypto.subtle.importKey(
       'raw',
       keyBuffer,
-      { name: 'AES-CBC', length: 256 },
+      { name: CipherAlgorithmQuickCrypto.cbc, length: 256 },
       true,
       ['encrypt', 'decrypt'],
     );

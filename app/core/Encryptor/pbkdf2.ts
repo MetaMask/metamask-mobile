@@ -1,5 +1,6 @@
 import Crypto from 'react-native-quick-crypto';
 import { bytesLengthToBitsLength } from '../../util/bytes';
+import { KDF_ALGORITHM } from './constants';
 
 /**
  * Derives a key using PBKDF2.
@@ -19,14 +20,14 @@ const pbkdf2 = async (
   const key = await Crypto.subtle.importKey(
     'raw',
     password,
-    { name: 'PBKDF2' },
+    { name: KDF_ALGORITHM },
     false,
     ['deriveBits', 'deriveKey'],
   );
 
   const derivedBits = await Crypto.subtle.deriveBits(
     // @ts-expect-error - Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'string'.
-    { name: 'PBKDF2', salt, iterations, hash: 'SHA-512' },
+    { name: KDF_ALGORITHM, salt, iterations, hash: 'SHA-512' },
     key,
     bytesLengthToBitsLength(keyLength)
   );

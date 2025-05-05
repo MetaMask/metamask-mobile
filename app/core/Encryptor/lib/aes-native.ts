@@ -2,7 +2,7 @@ import { NativeModules } from 'react-native';
 import {
   KDF_ALGORITHM,
   ShaAlgorithm,
-  CipherAlgorithm,
+  CipherAlgorithmAesCrypto,
   SHA256_DIGEST_LENGTH,
   LEGACY_DERIVATION_OPTIONS,
 } from './../constants';
@@ -12,12 +12,16 @@ import { EncryptionLibrary, KeyDerivationOptions } from './../types';
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
 
-export function assertIsKdfAlgorithm(algorithm: string) asserts algorithm is KDF_ALGORITHM {
+export function assertIsKdfAlgorithm(algorithm: string) {
   if (algorithm !== KDF_ALGORITHM) {
     throw new Error('Unsupported KDF algorithm');
   }
 }
 
+/**
+ * @deprecated This class is deprecated and will be removed in future versions.
+ * Please use `QuickCryptoEncryptionLibrary` instead.
+ */
 class AesEncryptionLibrary implements EncryptionLibrary {
   deriveKey = async (
     password: string,
@@ -47,14 +51,15 @@ class AesEncryptionLibrary implements EncryptionLibrary {
     await Aes.randomKey(size);
 
   encrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
-    await Aes.encrypt(data, key, iv, CipherAlgorithm.cbc);
+    await Aes.encrypt(data, key, iv, CipherAlgorithmAesCrypto.cbc);
 
   decrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
-    await Aes.decrypt(data, key, iv, CipherAlgorithm.cbc);
+    await Aes.decrypt(data, key, iv, CipherAlgorithmAesCrypto.cbc);
 }
 
 /**
- * This library was mainly used in a legacy context.
+ * @deprecated This class is deprecated and will be removed in future versions.
+ * Please use `QuickCryptoEncryptionLibrary` instead.
  */
 class AesForkedEncryptionLibrary implements EncryptionLibrary {
   deriveKey = async (
@@ -92,5 +97,12 @@ class AesForkedEncryptionLibrary implements EncryptionLibrary {
 }
 
 // Those wrappers are stateless, we can build them only once!
+
+/**
+ * @deprecated - This class is deprecated and will be removed in future versions.
+ */
 export const AesLib = new AesEncryptionLibrary();
+/**
+ * @deprecated - This class is deprecated and will be removed in future versions.
+ */
 export const AesForkedLib = new AesForkedEncryptionLibrary();
