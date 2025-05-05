@@ -1,5 +1,8 @@
 import './shim.js';
 
+import { enableFreeze } from "react-native-screens";
+enableFreeze(true);
+
 // Needed to polyfill random number generation.
 import 'react-native-get-random-values';
 import '@walletconnect/react-native-compat';
@@ -22,9 +25,6 @@ import { isE2E } from './app/util/test/utils.js';
 import { Performance } from './app/core/Performance';
 import { handleCustomError, setReactNativeDefaultHandler } from './app/core/ErrorHandler';
 Performance.setupPerformanceObservers();
-
-import { enableFreeze } from "react-native-screens";
-enableFreeze(true);
 
 LogBox.ignoreAllLogs();
 // List of warnings that we're ignoring
