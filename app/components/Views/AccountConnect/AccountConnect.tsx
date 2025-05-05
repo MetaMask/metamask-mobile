@@ -415,6 +415,7 @@ const AccountConnect = (props: AccountConnectProps) => {
           .addProperties({
             number_of_accounts: accountsLength,
             number_of_accounts_connected: connectedAccountLength,
+            // TODO: Fix this. Not accurate
             account_type: getAddressAccountType(activeAddress),
             source: eventSource,
           })
