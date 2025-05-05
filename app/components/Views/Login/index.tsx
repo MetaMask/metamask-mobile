@@ -223,12 +223,14 @@ const Login: React.FC = () => {
             return;
           } catch (e) {
             throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${e}`);
+            console.log('============  Error: Login/ handleVaultCorruption:');
           }
         } else {
           throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
         }
       } else if (backupResult.error) {
         throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
+        console.log('============ Error: Login/ handleVaultCorruption: getVaultFromBackup failed to retrieve vault;');
       }
     } catch (e: unknown) {
       Logger.error(e as Error);
@@ -310,6 +312,7 @@ const Login: React.FC = () => {
         containsErrorMessage(loginError, VAULT_ERROR) ||
         containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
       ) {
+        console.log('============ Error: Cannot unlock without a previous vault.')
         try {
           await handleVaultCorruption();
         } catch (vaultCorruptionErr: unknown) {
@@ -319,6 +322,7 @@ const Login: React.FC = () => {
             vaultCorruptionError,
             'Failed to handle vault corruption',
           );
+          console.log('============ Failed to handle vault corruption');
           setLoading(false);
           setError(strings('login.clean_vault_error'));
         }

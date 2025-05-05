@@ -20,7 +20,7 @@ import { ensureValidState } from './util';
  */
 const migration = (state: unknown): unknown => {
   const migrationVersion = 72;
-
+  console.log('============ Migration 72 START ============');
   // Ensure the state is valid for migration
   if (!ensureValidState(state, migrationVersion)) {
     return state;
