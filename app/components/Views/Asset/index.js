@@ -75,6 +75,10 @@ import {
 } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { SolScope } from '@metamask/keyring-api';
+import { selectIsBridgeEnabledSource } from '../../../core/redux/slices/bridge';
+///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -525,17 +529,26 @@ class Asset extends PureComponent {
       ? isSwapsAllowed(asset.chainId)
       : isSwapsAllowed(chainId);
 
-    let isSwapsAssetAllowed;
+    // EVM Swaps
+    let isEvmSwapsAssetAllowed;
     if (asset.isETH || asset.isNative) {
-      isSwapsAssetAllowed = true;
+      isEvmSwapsAssetAllowed = true;
     } else if (isAssetFromSearch(asset)) {
-      isSwapsAssetAllowed = this.props.searchDiscoverySwapsTokens?.includes(
+      isEvmSwapsAssetAllowed = this.props.searchDiscoverySwapsTokens?.includes(
         asset.address?.toLowerCase(),
       );
     } else {
-      isSwapsAssetAllowed =
+      isEvmSwapsAssetAllowed =
         asset.address?.toLowerCase() in this.props.swapsTokens;
     }
+    let isSwapsAssetAllowed = isEvmSwapsAssetAllowed;
+
+    // Solana Swaps
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    if (asset.chainId === SolScope.Mainnet) {
+      isSwapsAssetAllowed = true;
+    }
+    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
     const displaySwapsButton =
       isSwapsNetworkAllowed && isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
@@ -590,36 +603,51 @@ class Asset extends PureComponent {
 
 Asset.contextType = ThemeContext;
 
-const mapStateToProps = (state, { route }) => ({
-  swapsIsLive: isPortfolioViewEnabled()
+const mapStateToProps = (state, { route }) => {
+  const evmSwapsIsLive = isPortfolioViewEnabled()
     ? swapsLivenessMultichainSelector(state, route.params.chainId)
-    : swapsLivenessSelector(state),
-  swapsTokens: isPortfolioViewEnabled()
-    ? swapsTokensMultiChainObjectSelector(state)
-    : swapsTokensObjectSelector(state),
-  searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
-    state,
-    route.params.chainId,
-  ),
-  swapsTransactions: selectSwapsTransactions(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  selectedInternalAccount: selectSelectedInternalAccount(state),
-  chainId: selectChainId(state),
-  tokens: selectTokens(state),
-  transactions: selectTransactions(state),
-  rpcUrl: selectRpcUrl(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-  isNetworkRampSupported: isNetworkRampSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  networkClientId: selectNetworkClientId(state),
-});
+    : swapsLivenessSelector(state);
+  let swapsIsLive = evmSwapsIsLive;
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  if (route.params.chainId === SolScope.Mainnet) {
+    const solanaSwapsIsLive = selectIsBridgeEnabledSource(
+      state,
+      route.params.chainId,
+    );
+    swapsIsLive = solanaSwapsIsLive;
+  }
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+
+  return {
+    swapsIsLive,
+    swapsTokens: isPortfolioViewEnabled()
+      ? swapsTokensMultiChainObjectSelector(state)
+      : swapsTokensObjectSelector(state),
+    searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
+      state,
+      route.params.chainId,
+    ),
+    swapsTransactions: selectSwapsTransactions(state),
+    conversionRate: selectConversionRate(state),
+    currentCurrency: selectCurrentCurrency(state),
+    selectedInternalAccount: selectSelectedInternalAccount(state),
+    chainId: selectChainId(state),
+    tokens: selectTokens(state),
+    transactions: selectTransactions(state),
+    rpcUrl: selectRpcUrl(state),
+    networkConfigurations: selectNetworkConfigurations(state),
+    isNetworkRampSupported: isNetworkRampSupported(
+      selectChainId(state),
+      getRampNetworks(state),
+    ),
+    isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
+      selectChainId(state),
+      getRampNetworks(state),
+    ),
+    networkClientId: selectNetworkClientId(state),
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setLiveness: (chainId, featureFlags) =>
