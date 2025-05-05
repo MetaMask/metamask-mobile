@@ -4,10 +4,10 @@ const styleSheet = () =>
   StyleSheet.create({
     wrapper: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 4,
+      justifyContent: 'space-between',
       paddingHorizontal: 32,
+      paddingVertical: 4,
     },
     left_section: {
       flexDirection: 'row',

@@ -208,6 +208,7 @@ jest.mock('@react-navigation/native', () => {
 import { useRoute } from '@react-navigation/native';
 import { RootState } from '../../../reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { getByText } from '@testing-library/react';
 
 // Set the implementation after the mock is defined
 const mockedUseRoute = jest.mocked(useRoute);
@@ -625,6 +626,34 @@ describe('AccountActions', () => {
       );
 
       expect(revealButton).toBeNull();
+    });
+  });
+
+  describe('switch account type', () => {
+    it('displayed option to switch account type', () => {
+      const { getByText } = renderWithProvider(<AccountActions />, {
+        state: initialState,
+      });
+
+      expect(getByText('Switch to Smart account')).toBeTruthy();
+    });
+
+    it('calls navigate function when option to switch account type is clicked', () => {
+      const { getByText } = renderWithProvider(<AccountActions />, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByText('Switch to Smart account'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ConfirmationSwitchAccountType',
+        {
+          params: {
+            address: '0x123',
+          },
+          screen: 'ConfirmationSwitchAccountType',
+        },
+      );
     });
   });
 });

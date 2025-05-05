@@ -2,11 +2,6 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { getNetworkImageSource } from '../../../../../util/networks';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -14,6 +9,11 @@ import Avatar, {
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import { getNetworkImageSource } from '../../../../../util/networks';
 import { useStyles } from '../../../../hooks/useStyles';
 import { EIP7702NetworkConfiguration } from '../../hooks/useEIP7702Networks';
 import styleSheet from './account-network-row.styles';
