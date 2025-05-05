@@ -42,6 +42,9 @@ import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMe
 import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
 import createTracingMiddleware from '../createTracingMiddleware';
 
+// Define a consistent channel name for the MetaMask EIP-1193 provider
+export const METAMASK_EIP_1193_PROVIDER = 'metamask-provider';
+
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
     store.getState().engine.backgroundState.NetworkController;
@@ -71,6 +74,8 @@ export class BackgroundBridge extends EventEmitter {
   }) {
     super();
     this.url = url;
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge constructor - url: ${url}, isMainFrame: ${isMainFrame}, isRemoteConn: ${isRemoteConn}, isWalletConnect: ${isWalletConnect}, isMMSDK: ${isMMSDK}`);
+
     // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
     this.hostname = new URL(url).hostname;
     this.remoteConnHost = remoteConnHost;
@@ -86,11 +91,12 @@ export class BackgroundBridge extends EventEmitter {
 
     this.createMiddleware = getRpcMethodMiddleware;
 
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge creating port - hostname: ${this.hostname}, channelId: ${this.channelId}`);
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
-      ? new WalletConnectPort(wcRequestActions)
-      : new Port(this._webviewRef, isMainFrame);
+        ? new WalletConnectPort(wcRequestActions)
+        : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
 
@@ -104,6 +110,7 @@ export class BackgroundBridge extends EventEmitter {
       networkClientId,
     );
 
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge network - clientId: ${networkClientId}, chainId: ${networkClient.configuration.chainId}`);
     this.lastChainIdSent = networkClient.configuration.chainId;
 
     this.networkVersionSent = parseInt(
@@ -115,14 +122,18 @@ export class BackgroundBridge extends EventEmitter {
     this.addressSent =
       Engine.context.AccountsController.getSelectedAccount().address.toLowerCase();
 
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge creating MobilePortStream and multiplexer`);
     const portStream = new MobilePortStream(this.port, url);
     // setup multiplexing
     const mux = setupMultiplex(portStream);
+
+    // Connect features with appropriate provider channel name
+    const providerChannelName = isWalletConnect ? 'walletconnect-provider' : METAMASK_EIP_1193_PROVIDER;
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge setting up provider connection with channel: ${providerChannelName}`);
+
     // connect features
     this.setupProviderConnection(
-      mux.createStream(
-        isWalletConnect ? 'walletconnect-provider' : 'metamask-provider',
-      ),
+      mux.createStream(providerChannelName),
     );
 
     Engine.controllerMessenger.subscribe(
@@ -159,6 +170,7 @@ export class BackgroundBridge extends EventEmitter {
             `PermissionController:stateChange event`,
             subjectWithPermission,
           );
+          DevLogger.log(`[METAMASK-DEBUG] PermissionController:stateChange for ${this.channelId}`, JSON.stringify(subjectWithPermission));
           // Inform dapp about updated permissions
           const selectedAddress = this.getState().selectedAddress;
           this.notifySelectedAddressChanged(selectedAddress);
@@ -167,6 +179,7 @@ export class BackgroundBridge extends EventEmitter {
       );
     } catch (err) {
       DevLogger.log(`Error in BackgroundBridge: ${err}`);
+      console.error(`[METAMASK-DEBUG] Error setting up permission controller subscription: ${err}`);
     }
 
     this.on('update', () => this.onStateUpdate());
@@ -174,6 +187,7 @@ export class BackgroundBridge extends EventEmitter {
     if (this.isRemoteConn) {
       const memState = this.getState();
       const selectedAddress = memState.selectedAddress;
+      DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge remote connection, notifying chain and address: ${selectedAddress}`);
       this.notifyChainChanged();
       this.notifySelectedAddressChanged(selectedAddress);
     }
@@ -183,6 +197,7 @@ export class BackgroundBridge extends EventEmitter {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
 
+    console.log(`[METAMASK-DEBUG] BackgroundBridge onUnlock - isRemoteConn: ${this.isRemoteConn}`);
     if (this.isRemoteConn) {
       // Not sending the lock event in case of a remote connection as this is handled correctly already by the SDK
       // In case we want to send, use  new structure
@@ -209,6 +224,7 @@ export class BackgroundBridge extends EventEmitter {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
 
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge onLock - isRemoteConn: ${this.isRemoteConn}`);
     if (this.isRemoteConn) {
       // Not sending the lock event in case of a remote connection as this is handled correctly already by the SDK
       // In case we want to send, use  new structure
@@ -228,6 +244,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   async getProviderNetworkState(origin = METAMASK_DOMAIN) {
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge getProviderNetworkState for origin: ${origin}`);
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
       origin,
@@ -256,6 +273,7 @@ export class BackgroundBridge extends EventEmitter {
       this.deprecatedNetworkVersions[networkClientId] = networkVersion;
     }
 
+    DevLogger.log(`[METAMASK-DEBUG] Provider network state: chainId=${chainId}, networkVersion=${networkVersion ?? 'loading'}`);
     return {
       chainId,
       networkVersion: networkVersion ?? 'loading',
@@ -263,6 +281,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   async notifyChainChanged(params) {
+    console.log(`[METAMASK-DEBUG] BackgroundBridge notifyChainChanged: ${JSON.stringify(params)}`);
     DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotification({
       method: NOTIFICATION_NAMES.chainChanged,
@@ -360,10 +379,12 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onMessage = (msg) => {
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge onMessage: ${JSON.stringify(msg)}`);
     this.port.emit('message', { name: msg.name, data: msg.data });
   };
 
   onDisconnect = () => {
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge onDisconnect called`);
     this.disconnected = true;
     Engine.controllerMessenger.unsubscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -382,15 +403,20 @@ export class BackgroundBridge extends EventEmitter {
    * @param {*} outStream - The stream to provide over.
    */
   setupProviderConnection(outStream) {
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge setupProviderConnection`);
     this.engine = this.setupProviderEngine();
 
     // setup connection
     const providerStream = createEngineStream({ engine: this.engine });
 
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge setting up pump between streams`);
     pump(outStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
       this.engine.destroy();
-      if (err) Logger.log('Error with provider stream conn', err);
+      if (err) {
+        console.error(`[METAMASK-DEBUG] Error with provider stream connection: ${err}`);
+        Logger.log('Error with provider stream conn', err);
+      }
     });
   }
 
@@ -399,6 +425,8 @@ export class BackgroundBridge extends EventEmitter {
    **/
   setupProviderEngine() {
     const origin = this.hostname;
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge setupProviderEngine for origin: ${origin}`);
+
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
 
@@ -412,14 +440,16 @@ export class BackgroundBridge extends EventEmitter {
         origin,
       );
 
+      DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge creating filter and subscription middleware`);
     // create filter polyfill middleware
     const filterMiddleware = createFilterMiddleware(proxyClient);
 
     // create subscription polyfill middleware
     const subscriptionManager = createSubscriptionManager(proxyClient);
-    subscriptionManager.events.on('notification', (message) =>
-      engine.emit('notification', message),
-    );
+    subscriptionManager.events.on('notification', (message) => {
+      DevLogger.log(`[METAMASK-DEBUG] Subscription notification: ${JSON.stringify(message)}`);
+      engine.emit('notification', message);
+    });
 
     // metadata
     engine.push(createOriginMiddleware({ origin }));
@@ -432,11 +462,15 @@ export class BackgroundBridge extends EventEmitter {
     // Handle unsupported RPC Methods
     engine.push(createUnsupportedMethodMiddleware());
 
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge adding legacy method middleware`);
     // Legacy RPC methods that need to be implemented ahead of the permission middleware
     engine.push(
       createLegacyMethodMiddleware({
-        getAccounts: async () =>
-          await getPermittedAccounts(this.isMMSDK ? this.channelId : origin),
+        getAccounts: async () => {
+          const accounts = await getPermittedAccounts(this.isMMSDK ? this.channelId : origin);
+          console.log(`[METAMASK-DEBUG] Legacy getAccounts for ${this.isMMSDK ? this.channelId : origin}: ${JSON.stringify(accounts)}`);
+          return accounts;
+        },
       }),
     );
 
@@ -448,6 +482,7 @@ export class BackgroundBridge extends EventEmitter {
     if (this.isMMSDK || this.isWalletConnect) {
       engine.push((req, _res, next, end) => {
         if (['wallet_snap'].includes(req.method)) {
+          console.log(`[METAMASK-DEBUG] Blocking unsupported method ${req.method} for SDK/WalletConnect`);
           return end(rpcErrors.methodNotFound({ data: { method: req.method } }));
         }
         return next();
@@ -456,6 +491,7 @@ export class BackgroundBridge extends EventEmitter {
     ///: END:ONLY_INCLUDE_IF
 
     // Append PermissionController middleware
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge adding permission middleware for ${this.isMMSDK ? this.channelId : origin}`);
     engine.push(
       Engine.context.PermissionController.createPermissionMiddleware({
         // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
@@ -490,7 +526,9 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(createSanitizationMiddleware());
 
     // forward to metamask primary provider
+    DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge adding provider as middleware`);
     engine.push(providerAsMiddleware(proxyClient.provider));
+
     return engine;
   }
 

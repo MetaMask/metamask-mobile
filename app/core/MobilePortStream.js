@@ -12,6 +12,8 @@ export default class PortDuplexStream extends Duplex {
     });
     this._port = port;
     this._url = url;
+    // eslint-disable-next-line no-console
+    console.log(`[METAMASK-DEBUG] MobilePortStream created for url: ${url}`);
     this._port.addListener('message', this._onMessage.bind(this));
     this._port.addListener('disconnect', this._onDisconnect.bind(this));
   }
@@ -24,12 +26,25 @@ export default class PortDuplexStream extends Duplex {
    * @param {Object} msg - Payload from the onMessage listener of Port
    */
   _onMessage = function (msg) {
-    if (Buffer.isBuffer(msg)) {
-      delete msg._isBuffer;
-      const data = new Buffer(msg);
-      this.push(data);
-    } else {
-      this.push(msg);
+    try {
+      // eslint-disable-next-line no-console
+      console.log(`[METAMASK-DEBUG] MobilePortStream._onMessage:`, 
+        typeof msg === 'object' ? JSON.stringify(msg) : msg);
+      
+      if (Buffer.isBuffer(msg)) {
+        delete msg._isBuffer;
+        const data = new Buffer(msg);
+        // eslint-disable-next-line no-console
+        console.log(`[METAMASK-DEBUG] MobilePortStream pushing buffer data`);
+        this.push(data);
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(`[METAMASK-DEBUG] MobilePortStream pushing message data`);
+        this.push(msg);
+      }
+    } catch (err) {
+      console.error(`[METAMASK-DEBUG] Error in MobilePortStream._onMessage:`, err);
+      this.emit('error', err);
     }
   };
 
@@ -40,6 +55,9 @@ export default class PortDuplexStream extends Duplex {
    * @private
    */
   _onDisconnect = function () {
+    // eslint-disable-next-line no-console
+    console.log(`[METAMASK-DEBUG] MobilePortStream disconnected`);
+    this.end();
     this.destroy && this.destroy();
   };
 
@@ -59,16 +77,25 @@ export default class PortDuplexStream extends Duplex {
    */
   _write = function (msg, encoding, cb) {
     try {
+      // eslint-disable-next-line no-console
+      console.log(`[METAMASK-DEBUG] MobilePortStream._write:`, 
+        typeof msg === 'object' ? JSON.stringify(msg) : msg);
+        
       if (Buffer.isBuffer(msg)) {
         const data = msg.toJSON();
         data._isBuffer = true;
+        // eslint-disable-next-line no-console
+        console.log(`[METAMASK-DEBUG] MobilePortStream posting buffer message`);
         this._port.postMessage(data, this._url);
       } else {
+        // eslint-disable-next-line no-console
+        console.log(`[METAMASK-DEBUG] MobilePortStream posting regular message`);
         this._port.postMessage(msg, this._url);
       }
+      cb();
     } catch (err) {
-      return cb(new Error('PortDuplexStream - disconnected'));
+      console.error(`[METAMASK-DEBUG] Error in MobilePortStream._write:`, err);
+      cb(new Error('PortDuplexStream - disconnected'));
     }
-    cb();
   };
 }

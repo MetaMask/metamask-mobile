@@ -34,12 +34,16 @@ function MobilePortStream(port) {
  */
 MobilePortStream.prototype._onMessage = function (event) {
   const msg = event.data;
+  console.log(`[METAMASK-DEBUG] InpageBridge MobilePortStream._onMessage: origin=${event.origin}`, 
+    typeof msg === 'object' ? JSON.stringify(msg) : msg);
 
   // validate message
   if (this._origin !== '*' && event.origin !== this._origin) {
+    console.warn(`[METAMASK-DEBUG] InpageBridge MobilePortStream: origin mismatch: expected=${this._origin}, got=${event.origin}`);
     return;
   }
   if (!msg || typeof msg !== 'object') {
+    console.warn(`[METAMASK-DEBUG] InpageBridge MobilePortStream: invalid message format:`, msg);
     return;
   }
   if (!msg.data || typeof msg.data !== 'object') {
@@ -48,16 +52,23 @@ MobilePortStream.prototype._onMessage = function (event) {
   if (msg.target && msg.target !== this._name) {
     return;
   }
+  
   // Filter outgoing messages
   if (msg.data.data && msg.data.data.toNative) {
+    console.log(`[METAMASK-DEBUG] InpageBridge MobilePortStream: ignoring outgoing message:`, msg.data.data);
     return;
   }
 
+  console.log(`[METAMASK-DEBUG] InpageBridge MobilePortStream: valid message received:`, 
+    typeof msg === 'object' ? JSON.stringify(msg) : msg);
+
   if (Buffer.isBuffer(msg)) {
+    console.log(`[METAMASK-DEBUG] InpageBridge MobilePortStream: processing buffer message`);
     delete msg._isBuffer;
     const data = Buffer.from(msg);
     this.push(data);
   } else {
+    console.log(`[METAMASK-DEBUG] InpageBridge MobilePortStream: pushing regular message to stream`);
     this.push(msg);
   }
 };
@@ -69,6 +80,7 @@ MobilePortStream.prototype._onMessage = function (event) {
  * @private
  */
 MobilePortStream.prototype._onDisconnect = function () {
+  console.log(`[METAMASK-DEBUG] InpageBridge MobilePortStream._onDisconnect called`);
   this.destroy();
 };
 
@@ -87,22 +99,35 @@ MobilePortStream.prototype._read = noop;
  * @param {Function} cb Called when writing is complete or an error occurs
  */
 MobilePortStream.prototype._write = function (msg, _encoding, cb) {
+  console.log(`[METAMASK-DEBUG] InpageBridge MobilePortStream._write:`, 
+    typeof msg === 'object' ? JSON.stringify(msg) : msg);
+  
   try {
+    let payload;
     if (Buffer.isBuffer(msg)) {
+      console.log(`[METAMASK-DEBUG] InpageBridge MobilePortStream: preparing buffer payload`);
       const data = msg.toJSON();
       data._isBuffer = true;
-      window.ReactNativeWebView.postMessage(
-        JSON.stringify({ ...data, origin: window.location.href }),
-      );
+      payload = { target: this._name, data, origin: window.location.href };
     } else {
+      // Special handling for SYN/ACK messages - these should be filtered out
+      if (msg === 'SYN' || msg === 'ACK') {
+        console.log(`[METAMASK-DEBUG] InpageBridge MobilePortStream: skipping direct SYN/ACK message`);
+        return cb();
+      }
+      
+      console.log(`[METAMASK-DEBUG] InpageBridge MobilePortStream: preparing regular payload, setting toNative=${!!msg.data}`);
       if (msg.data) {
         msg.data.toNative = true;
       }
-      window.ReactNativeWebView.postMessage(
-        JSON.stringify({ ...msg, origin: window.location.href }),
-      );
+      payload = { target: this._name, data: msg, origin: window.location.href };
     }
+    
+    console.log(`[METAMASK-DEBUG] InpageBridge MobilePortStream: sending to ReactNativeWebView:`, 
+      typeof payload === 'object' ? JSON.stringify(payload) : payload);
+    window.ReactNativeWebView.postMessage(JSON.stringify(payload));
   } catch (err) {
+    console.error(`[METAMASK-DEBUG] InpageBridge MobilePortStream._write error:`, err);
     return cb(new Error('MobilePortStream - disconnected'));
   }
   return cb();
