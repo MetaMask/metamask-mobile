@@ -583,7 +583,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       setSelectedAddresses(newSelectedAccountAddresses);
       setScreen(AccountConnectScreens.SingleConnect);
     },
-    [setSelectedAddresses, setScreen],
+    [setSelectedAddresses, setScreen, selectedChainIds, allNetworksList, setSelectedChainIds],
   );
 
   const handleNetworksSelected = useCallback(
