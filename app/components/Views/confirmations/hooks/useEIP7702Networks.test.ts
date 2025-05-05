@@ -1,9 +1,15 @@
 import { IsAtomicBatchSupportedResult } from '@metamask/transaction-controller';
+import * as ReactRedux from 'react-redux';
 
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { useEIP7702Networks } from './useEIP7702Networks';
 
-const mockNetworkConfig = {
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+const MOCK_NETWORK_CONFIG = {
   'eip155:1': {
     chainId: 'eip155:1',
     isEvm: true,
@@ -60,6 +66,7 @@ function runHook() {
 }
 
 describe('useEIP7702Networks', () => {
+  jest.spyOn(ReactRedux, 'useSelector').mockReturnValue([MOCK_NETWORK_CONFIG]);
   it('returns pending as true initially', () => {
     const { result } = runHook();
     expect(result.pending).toBe(true);
