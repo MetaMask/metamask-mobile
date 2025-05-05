@@ -613,7 +613,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     return (
       // TODO: does this need to be refactored too?..
       <AccountConnectSingle
-        onSetSelectedAddresses={setSelectedAddresses}
+        onSetSelectedAddresses={handleAccountsSelected}
         connection={sdkConnection}
         onSetScreen={setScreen}
         onUserAction={setUserIntent}
@@ -672,7 +672,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
         onSetScreen={setScreen}
-        onSetSelectedAddresses={setSelectedAddresses}
+        onSetSelectedAddresses={handleAccountsSelected}
         selectedAddresses={selectedAddresses}
         isLoading={isLoading}
         onUserAction={setUserIntent}
