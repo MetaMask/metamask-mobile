@@ -74,7 +74,7 @@ import {
   selectSupportedSwapTokenAddressesForChainId,
 } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { selectIsBridgeEnabledSource } from '../../../core/redux/slices/bridge';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -187,10 +187,6 @@ class Asset extends PureComponent {
      * Function to set the swaps liveness
      */
     setLiveness: PropTypes.func,
-    /**
-     * Boolean that indicates if bridge is enabled for the source chain
-     */
-    isBridgeEnabledSource: PropTypes.bool,
   };
 
   state = {
@@ -525,25 +521,28 @@ class Asset extends PureComponent {
     const styles = createStyles(colors);
     const asset = navigation && params;
     const isSwapsFeatureLive = this.props.swapsIsLive;
-    const isNetworkAllowed = isPortfolioViewEnabled()
+    const isSwapsNetworkAllowed = isPortfolioViewEnabled()
       ? isSwapsAllowed(asset.chainId)
       : isSwapsAllowed(chainId);
 
-    let isAssetAllowed;
+    let isSwapsAssetAllowed;
     if (asset.isETH || asset.isNative) {
-      isAssetAllowed = true;
+      isSwapsAssetAllowed = true;
     } else if (isAssetFromSearch(asset)) {
-      isAssetAllowed = this.props.searchDiscoverySwapsTokens?.includes(
+      isSwapsAssetAllowed = this.props.searchDiscoverySwapsTokens?.includes(
         asset.address?.toLowerCase(),
       );
     } else {
-      isAssetAllowed = asset.address?.toLowerCase() in this.props.swapsTokens;
+      isSwapsAssetAllowed =
+        asset.address?.toLowerCase() in this.props.swapsTokens;
     }
 
     const displaySwapsButton =
-      isNetworkAllowed && isAssetAllowed && AppConstants.SWAPS.ACTIVE;
+      isSwapsNetworkAllowed && isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
-    const displayBridgeButton = this.props.isBridgeEnabledSource;
+    const displayBridgeButton = isPortfolioViewEnabled()
+      ? isBridgeAllowed(asset.chainId)
+      : isBridgeAllowed(chainId);
 
     const displayBuyButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
@@ -620,10 +619,6 @@ const mapStateToProps = (state, { route }) => ({
     getRampNetworks(state),
   ),
   networkClientId: selectNetworkClientId(state),
-  isBridgeEnabledSource: selectIsBridgeEnabledSource(
-    state,
-    route.params.chainId,
-  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({
