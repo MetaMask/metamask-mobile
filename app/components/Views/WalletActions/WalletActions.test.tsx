@@ -31,7 +31,7 @@ import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { trace, TraceName } from '../../../util/trace';
 import { RampType } from '../../../reducers/fiatOrders/types';
-import { selectIsBridgeEnabledSource } from '../../../core/redux/slices/bridge';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
 
 jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
   sendMultichainTransaction: jest.fn(),
@@ -131,6 +131,10 @@ jest.mock('../../../components/UI/Swaps/utils', () => ({
   isSwapsAllowed: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../UI/Bridge/utils', () => ({
+  isBridgeAllowed: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('../../UI/Ramp/hooks/useRampNetwork', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue([true]),
@@ -149,6 +153,7 @@ jest.mock('../../../core/AppConstants', () => ({
     PROJECT_ID: 'test-project-id',
   },
   BRIDGE: {
+    ACTIVE: true,
     URL: 'https://bridge.metamask.io',
   },
 }));
@@ -301,9 +306,7 @@ describe('WalletActions', () => {
 
   it('should not show the buy button and swap button if the chain does not allow buying', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
-    (selectIsBridgeEnabledSource as unknown as jest.Mock).mockReturnValue(
-      false,
-    );
+    (isBridgeAllowed as jest.Mock).mockReturnValue(false);
     jest
       .requireMock('../../UI/Ramp/hooks/useRampNetwork')
       .default.mockReturnValue([false]);
@@ -412,7 +415,6 @@ describe('WalletActions', () => {
   it('should call the goToSwaps function when the Swap button is pressed', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
     (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
-    (selectIsBridgeEnabledSource as unknown as jest.Mock).mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -455,7 +457,7 @@ describe('WalletActions', () => {
   });
 
   it('should call the goToBridge function when the Bridge button is pressed', () => {
-    (selectIsBridgeEnabledSource as unknown as jest.Mock).mockReturnValue(true);
+    (isBridgeAllowed as jest.Mock).mockReturnValue(true);
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
     });
@@ -487,7 +489,7 @@ describe('WalletActions', () => {
     (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
-    (selectIsBridgeEnabledSource as unknown as jest.Mock).mockReturnValue(true);
+    (isBridgeAllowed as jest.Mock).mockReturnValue(true);
     jest
       .requireMock('../../UI/Ramp/hooks/useRampNetwork')
       .default.mockReturnValue([true]);
