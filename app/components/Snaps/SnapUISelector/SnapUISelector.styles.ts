@@ -40,7 +40,7 @@ const styleSheet = (params: { theme: Theme, vars: { selected?: boolean, isParent
       paddingLeft: vars.isParentFlexRow ? 8 : 16,
     },
     modalButton: {
-      backgroundColor: vars.selected ? colors.background.muted : importedColors.transparent,
+      backgroundColor: vars.selected ? colors.primary.muted : importedColors.transparent,
       height: 'auto',
       minHeight: 48,
       maxHeight: 58,
