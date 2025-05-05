@@ -208,7 +208,6 @@ jest.mock('@react-navigation/native', () => {
 import { useRoute } from '@react-navigation/native';
 import { RootState } from '../../../reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { getByText } from '@testing-library/react';
 
 // Set the implementation after the mock is defined
 const mockedUseRoute = jest.mocked(useRoute);
