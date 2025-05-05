@@ -88,7 +88,7 @@ function validateCapabilities(sendCalls: SendCalls) {
 
   const requiredCallCapabilities = calls.flatMap((call) =>
     Object.keys(call.capabilities ?? {}).filter(
-      (name) => !call.capabilities?.[name].optional,
+      (name) => call.capabilities?.[name].optional !== true,
     ),
   );
 
