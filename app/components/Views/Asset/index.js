@@ -20,8 +20,6 @@ import AppConstants from '../../../core/AppConstants';
 import {
   getFeatureFlagChainId,
   setSwapsLiveness,
-  swapsLivenessMultichainSelector,
-  swapsLivenessSelector,
   swapsTokensMultiChainObjectSelector,
   swapsTokensObjectSelector,
 } from '../../../reducers/swaps';
@@ -69,35 +67,10 @@ import {
 } from '../../../selectors/transactionController';
 import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
-import {
-  isAssetFromSearch,
-  selectSupportedSwapTokenAddressesForChainId,
-} from '../../../selectors/tokenSearchDiscoveryDataController';
+import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SolScope } from '@metamask/keyring-api';
-import { selectIsBridgeEnabledSource } from '../../../core/redux/slices/bridge';
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
-
-export const getSwapsIsLive = (state, route) => {
-  const evmSwapsIsLive = isPortfolioViewEnabled()
-    ? swapsLivenessMultichainSelector(state, route.params.chainId)
-    : swapsLivenessSelector(state);
-  let swapsIsLive = evmSwapsIsLive;
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (route.params.chainId === SolScope.Mainnet) {
-    const solanaSwapsIsLive = selectIsBridgeEnabledSource(
-      state,
-      route.params.chainId,
-    );
-    swapsIsLive = solanaSwapsIsLive;
-  }
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-
-  return swapsIsLive;
-};
+import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -548,26 +521,11 @@ class Asset extends PureComponent {
       ? isSwapsAllowed(asset.chainId)
       : isSwapsAllowed(chainId);
 
-    // EVM Swaps
-    let isEvmSwapsAssetAllowed;
-    if (asset.isETH || asset.isNative) {
-      isEvmSwapsAssetAllowed = true;
-    } else if (isAssetFromSearch(asset)) {
-      isEvmSwapsAssetAllowed = this.props.searchDiscoverySwapsTokens?.includes(
-        asset.address?.toLowerCase(),
-      );
-    } else {
-      isEvmSwapsAssetAllowed =
-        asset.address?.toLowerCase() in this.props.swapsTokens;
-    }
-    let isSwapsAssetAllowed = isEvmSwapsAssetAllowed;
-
-    // Solana Swaps
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (asset.chainId === SolScope.Mainnet) {
-      isSwapsAssetAllowed = true;
-    }
-    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+    const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
+      asset,
+      searchDiscoverySwapsTokens: this.props.searchDiscoverySwapsTokens,
+      swapsTokens: this.props.swapsTokens,
+    });
 
     const displaySwapsButton =
       isSwapsNetworkAllowed && isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
@@ -623,7 +581,7 @@ class Asset extends PureComponent {
 Asset.contextType = ThemeContext;
 
 const mapStateToProps = (state, { route }) => ({
-  swapsIsLive: getSwapsIsLive(state, route),
+  swapsIsLive: getSwapsIsLive(state, route.params.chainId),
   swapsTokens: isPortfolioViewEnabled()
     ? swapsTokensMultiChainObjectSelector(state)
     : swapsTokensObjectSelector(state),

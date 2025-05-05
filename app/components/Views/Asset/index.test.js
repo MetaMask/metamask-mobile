@@ -3,9 +3,8 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller/';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import Asset, { getSwapsIsLive } from './';
+import Asset from './';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { deepClone } from '@metamask/snaps-utils';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 
 const mockInitialState = {
@@ -194,126 +193,5 @@ describe('Asset', () => {
     );
 
     expect(toJSON()).toMatchSnapshot();
-  });
-});
-
-describe('getSwapsIsLive', () => {
-  const mockState = {
-    swaps: {
-      isLive: true,
-      '0x1': { isLive: true },
-    },
-    engine: {
-      backgroundState: {
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags: {
-            bridgeConfig: {
-              support: true,
-              chains: {
-                1: {
-                  isActiveDest: true,
-                  isActiveSrc: true,
-                },
-                1151111081099710: {
-                  isActiveDest: true,
-                  isActiveSrc: true,
-                  refreshRate: 10000,
-                  topAssets: [
-                    'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                    '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN',
-                    'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
-                    '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxsDx8F8k8k3uYw1PDC',
-                    '3iQL8BFS2vE7mww4ehAqQHAsbmRNCrPxizWAT2Zfyr9y',
-                    '9zNQRsGLjNKwCUU5Gq5LR8beUCPzQMVMqKAi3SSZh54u',
-                    'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
-                    'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof',
-                    '21AErpiB8uSb94oQKRcwuHqyHF93njAxBSbdUrpupump',
-                  ],
-                },
-              },
-              maxRefreshCount: 5,
-              refreshRate: 30000,
-            },
-          },
-        },
-      },
-    },
-  };
-  const mockRoute = {
-    params: {
-      chainId: '0x1',
-    },
-  };
-  describe('EVM', () => {
-    it('should return true for EVM chain when swaps is live', () => {
-      const result = getSwapsIsLive(mockState, mockRoute);
-      expect(result).toBe(true);
-    });
-
-    it('should return false for EVM chain when swaps is not live', () => {
-      const result = getSwapsIsLive(
-        {
-          ...mockState,
-          swaps: { ...mockState.swaps, '0x1': { isLive: false } },
-        },
-        mockRoute,
-      );
-      expect(result).toBe(false);
-    });
-
-    it('should return false for EVM chain when swaps state is null', () => {
-      const result = getSwapsIsLive(
-        {
-          ...mockState,
-          swaps: { ...mockState.swaps, '0x1': null },
-        },
-        mockRoute,
-      );
-      expect(result).toBe(false);
-    });
-
-    it('should return the correct value for EVM chain when portfolio view is disabled', () => {
-      jest
-        .spyOn(require('../../../util/networks'), 'isPortfolioViewEnabled')
-        .mockReturnValue(false);
-      const result = getSwapsIsLive(mockState, mockRoute);
-      expect(result).toBe(true);
-    });
-  });
-
-  describe('Solana', () => {
-    it('should return true for Solana chain when bridge is enabled', () => {
-      const result = getSwapsIsLive(mockState, {
-        params: {
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        },
-      });
-      expect(result).toBe(true);
-    });
-
-    it('should return false for Solana chain when bridge is not enabled', () => {
-      const newState = deepClone(mockState);
-      newState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfig.chains[1151111081099710] =
-        {
-          isActiveDest: false,
-          isActiveSrc: false,
-        };
-      const result = getSwapsIsLive(newState, {
-        params: {
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        },
-      });
-      expect(result).toBe(false);
-    });
-  });
-
-  it('should handle portfolio view enabled case', () => {
-    const result = getSwapsIsLive(mockState, mockRoute);
-    expect(result).toBe(true);
-  });
-
-  it('should handle portfolio view disabled case', () => {
-    const result = getSwapsIsLive(mockState, mockRoute);
-    expect(result).toBe(true);
   });
 });
