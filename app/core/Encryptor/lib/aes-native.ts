@@ -9,7 +9,7 @@ import { EncryptionLibrary, KeyDerivationOptions } from './../types';
 /**
  * Supported SHA algorithms in react-native-aes v3.0.3
  */
-enum ShaAlgorithmAesCrypto {
+enum HashAlgorithmAesCrypto {
   Sha256 = 'sha256',
   Sha512 = 'sha512',
 }
@@ -26,8 +26,8 @@ enum ShaAlgorithmAesCrypto {
  * - decrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When%20encrypting%20and-,decypting,-the%20library%20uses
  */
 enum CipherAlgorithmAesCrypto {
-  cbc = 'aes-cbc-pkcs7padding',
-  ctr = 'aes-ctr-pkcs5padding',
+  Cbc = 'aes-cbc-pkcs7padding',
+  Ctr = 'aes-ctr-pkcs5padding',
 }
 
 // Actual native libraries
@@ -63,7 +63,7 @@ class AesEncryptionLibrary implements EncryptionLibrary {
       // - https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
       // - https://eprint.iacr.org/2010/548.pdf
       SHA256_DIGEST_LENGTH,
-      ShaAlgorithmAesCrypto.Sha512,
+      HashAlgorithmAesCrypto.Sha512,
     );
   };
 
@@ -73,10 +73,10 @@ class AesEncryptionLibrary implements EncryptionLibrary {
     await Aes.randomKey(size);
 
   encrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
-    await Aes.encrypt(data, key, iv, CipherAlgorithmAesCrypto.cbc);
+    await Aes.encrypt(data, key, iv, CipherAlgorithmAesCrypto.Cbc);
 
   decrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
-    await Aes.decrypt(data, key, iv, CipherAlgorithmAesCrypto.cbc);
+    await Aes.decrypt(data, key, iv, CipherAlgorithmAesCrypto.Cbc);
 }
 
 /**

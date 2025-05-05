@@ -8,14 +8,14 @@ import { KDF_ALGORITHM } from '../constants';
  * AES cipher algorithm used in QuickCrypto.
  */
 export enum CipherAlgorithmQuickCrypto {
-  cbc = 'AES-CBC',
+  Cbc = 'AES-CBC',
 }
 
 /**
  * SHA algorithm used in QuickCrypto.
  */
-export enum ShaAlgorithmQuickCrypto {
-  sha512 = 'SHA-512',
+export enum HashAlgorithmQuickCrypto {
+  Sha512 = 'SHA-512',
 }
 
 /**
@@ -60,7 +60,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
         name: KDF_ALGORITHM,
         salt,
         iterations: opts.params.iterations,
-        hash: ShaAlgorithmQuickCrypto.sha512,
+        hash: HashAlgorithmQuickCrypto.Sha512,
       },
       baseKey,
       256
@@ -82,7 +82,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
     const cryptoKey = await this.importKey(key);
 
     const encryptedData = await Crypto.subtle.encrypt(
-      { name: CipherAlgorithmQuickCrypto.cbc, iv: ivBuffer },
+      { name: CipherAlgorithmQuickCrypto.Cbc, iv: ivBuffer },
       // @ts-expect-error - This should be as CryptoKey but the type is not exported
       cryptoKey,
       dataBuffer
@@ -103,7 +103,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
     const cryptoKey = await this.importKey(key);
 
     const decryptedData = await Crypto.subtle.decrypt(
-      { name: CipherAlgorithmQuickCrypto.cbc, iv: ivBuffer },
+      { name: CipherAlgorithmQuickCrypto.Cbc, iv: ivBuffer },
       // @ts-expect-error - This should be CryptoKey but the type is not exported
       cryptoKey,
       dataBuffer,
@@ -121,7 +121,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
     const importedKey = await Crypto.subtle.importKey(
       'raw',
       keyBuffer,
-      { name: CipherAlgorithmQuickCrypto.cbc, length: 256 },
+      { name: CipherAlgorithmQuickCrypto.Cbc, length: 256 },
       true,
       ['encrypt', 'decrypt'],
     );
