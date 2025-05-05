@@ -68,7 +68,7 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 
 export interface BridgeRouteParams {
-  token: BridgeToken;
+  token?: BridgeToken;
   sourcePage: string;
   bridgeViewMode: BridgeViewMode;
 }

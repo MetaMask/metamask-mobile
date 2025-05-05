@@ -9,7 +9,7 @@ import { BridgeViewMode, BridgeToken } from '../../types';
 
 // Need to pass in the initial source token to avoid a race condition with useInitialSourceToken
 // Can't just use selectSourceToken because of race condition
-export const useInitialDestToken = (initialSourceToken: BridgeToken) => {
+export const useInitialDestToken = (initialSourceToken?: BridgeToken) => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const dispatch = useDispatch();
   const chainId = useSelector(selectChainId);

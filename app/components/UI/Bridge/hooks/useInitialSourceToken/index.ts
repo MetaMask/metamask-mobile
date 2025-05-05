@@ -27,7 +27,7 @@ const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   return nativeSourceTokenFormatted;
 };
 
-export const useInitialSourceToken = (initialSourceToken: BridgeToken) => {
+export const useInitialSourceToken = (initialSourceToken?: BridgeToken) => {
   const dispatch = useDispatch();
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
