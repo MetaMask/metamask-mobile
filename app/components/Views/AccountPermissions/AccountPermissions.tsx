@@ -155,7 +155,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         );
       }
     } catch (e) {
-      Logger.error(e as Error, 'Error getting permitted chains caveat');
+      // TODO: error could be shown to the user
+      // Create an UI interface for that.
+      Logger.log(e as Error, 'Error getting permitted chains caveat');
     }
 
     const networks = Object.entries(networkConfigurations)
@@ -788,7 +790,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
             );
           }
         } catch (e) {
-          Logger.error(e as Error, 'Error getting permitted chains caveat');
+          // TODO: error could be shown to the user
+          // Create an UI interface for that.
+          Logger.log(e as Error, 'Error getting permitted chains caveat');
         }
 
         // Add current chainId if no chains are permitted yet
