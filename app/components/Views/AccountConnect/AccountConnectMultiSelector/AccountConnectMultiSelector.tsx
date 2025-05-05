@@ -31,6 +31,7 @@ import {
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
+import { CaipAccountId } from '@metamask/utils';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -51,7 +52,7 @@ const AccountConnectMultiSelector = ({
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
   );
 
-  const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
+  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>([]);
 
   useEffect(() => {
     setSelectedAddresses(defaultSelectedAddresses);
@@ -61,7 +62,7 @@ const AccountConnectMultiSelector = ({
   ]);
 
   const onSelectAccount = useCallback(
-    (accAddress: string) => {
+    (accAddress: CaipAccountId) => {
       const updatedSelectedAccountAddresses = selectedAddresses.filter(
         (selectedAccountId) => !isEqualCaseInsensitive(selectedAccountId, accAddress),
       );
@@ -86,7 +87,7 @@ const AccountConnectMultiSelector = ({
   }, [onSubmit]);
 
   const areAllAccountsSelected = accounts
-    .every(({ address }) => selectedAddresses.includes(address));
+    .every(({ caipAccountId }) => selectedAddresses.includes(caipAccountId));
 
   const areAnyAccountsSelected = selectedAddresses?.length !== 0;
   const areNoAccountsSelected = selectedAddresses?.length === 0;
@@ -98,7 +99,7 @@ const AccountConnectMultiSelector = ({
     const selectAll = () => {
       if (isLoading) return;
       const allSelectedAccountAddresses = accounts.map(
-        ({ address }) => address,
+        ({ caipAccountId }) => caipAccountId,
       );
       setSelectedAddresses(allSelectedAccountAddresses);
     };
