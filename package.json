@@ -214,7 +214,7 @@
     "@metamask/selected-network-controller": "^22.0.0",
     "@metamask/signature-controller": "^27.1.0",
     "@metamask/slip44": "^4.1.0",
-    "@metamask/smart-transactions-controller": "^16.2.0",
+    "@metamask/smart-transactions-controller": "^16.3.1",
     "@metamask/snaps-controllers": "^11.2.3",
     "@metamask/snaps-execution-environments": "^7.2.2",
     "@metamask/snaps-rpc-methods": "^12.1.0",
