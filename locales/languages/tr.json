@@ -860,6 +860,8 @@
     "reset_notifications_description": "Bildirimlerin sıfırlanması, bildirim depolama anahtarlarınızı sildiğiniz ve tüm bildirim geçmişinizi sıfırladığınız anlamına gelir. Bunu yapmak istediğinizden emin misiniz?",
     "reset_notifications": "Bildirimleri sıfırla",
     "reset_notifications_success": "Bildirim depolama anahtarı silindi/yeniden oluşturuldu ve bildirim geçmişi sıfırlandı.",
+    "enabling_profile_sync": "Profil senkronizasyonu etkinleştiriliyor...",
+    "disabling_profile_sync": "Profil senkronizasyonu devre dışı bırakılıyor...",
     "notifications_dismiss_modal": "Yok say",
     "select_rpc_url": "RPC URL adresini seç",
     "title": "Ayarlar",
@@ -3291,6 +3293,15 @@
   "remember_me": {
     "enable_remember_me": "Beni Hatırla özelliğini aç",
     "enable_remember_me_description": "Beni Hatırla özelliği açıldığında telefonunuza erişimi olan herkes MetaMask hesabınıza erişim sağlayabilir."
+  },
+  "profile_sync": {
+    "title": "Profil Senkronizasyonu",
+    "disable_warning": "Profil senkronizasyonunu kapatırsanız bildirimleri alamayacaksınız.",
+    "enable_description": "MetaMask'in cihazlarınız arasında bazı ayarları senkronize etmek için kullandığı bir profil oluşturur. Bildirim almak için bu gereklidir. ",
+    "enable_description2": " daha fazla bilgi edinin.",
+    "enable_privacy_link": "Gizliliğinizi nasıl koruduğumuzu öğrenin",
+    "bottomSheetTurnOn": "Profil Senkronizasyonu Açılıyor",
+    "bottomSheetTurnOff": "Profil Senkronizasyonu Kapatılıyor"
   },
   "turn_off_remember_me": {
     "title": "Beni Hatırla özelliğini kapatmak için şifrenizi girin",
