@@ -52,16 +52,22 @@ const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
     onSelect(value);
   };
 
-  const buttonChildren = (
+  const buttonChildren = React.isValidElement(children) ? (
+    React.cloneElement(children as React.ReactElement<any>, { context: 'modal' })
+  ) : (
+    children
+  );
+
+  const buttonContent = (
     <>
-      {children}
+      {buttonChildren}
       {selected && <Box style={styles.selectedPill} />}
     </>
   );
 
   return (
     <ButtonBase
-      label={buttonChildren}
+      label={buttonContent}
       width={ButtonWidthTypes.Full}
       onPress={handlePress}
       style={styles.modalButton}
@@ -108,7 +114,6 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
     handleModalClose();
   };
 
-
   /**
    * Find the index of the selected option in the options array.
    * If the option is an object, use the provided key to compare the values.
@@ -121,8 +126,13 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
       : option.value === selectedOptionValue,
   );
 
+  const selectedOptionComponent = optionComponents[selectedOptionIndex];
 
-  const selectedOption = optionComponents[selectedOptionIndex];
+  const inlineButtonLabel = React.isValidElement(selectedOptionComponent) ? (
+    React.cloneElement(selectedOptionComponent as React.ReactElement<any>, { context: 'inline' })
+  ) : (
+    selectedOptionComponent
+  );
 
   return (
     <>
@@ -130,7 +140,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
         {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
         <ButtonBase
           width={ButtonWidthTypes.Full}
-          label={selectedOption}
+          label={inlineButtonLabel}
           isDisabled={disabled}
           endIconName={IconName.ArrowDown}
           onPress={handleModalOpen}

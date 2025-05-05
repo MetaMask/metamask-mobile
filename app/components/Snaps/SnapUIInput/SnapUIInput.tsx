@@ -78,7 +78,7 @@ export const SnapUIInput = ({
         autoCapitalize="none"
         autoCorrect={false}
         // eslint-disable-next-line react-native/no-inline-styles
-        style={{ maxHeight: 58, height: '100%' }}
+        style={{ maxHeight: 58, flexGrow: 1 }}
       />
       {error && (
         // eslint-disable-next-line react-native/no-inline-styles

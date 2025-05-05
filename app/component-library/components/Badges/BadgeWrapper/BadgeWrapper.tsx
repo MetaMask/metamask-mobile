@@ -21,9 +21,12 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   children,
   badgeElement,
   style,
+  parentSize,
 }) => {
-  const { size: containerSize, onLayout: onLayoutContainerSize } =
+  const { size, onLayout: onLayoutContainerSize } =
     useComponentSize();
+
+  const containerSize = parentSize ? { height: parentSize, width: parentSize } : size;
 
   const { styles } = useStyles(styleSheet, {
     style,

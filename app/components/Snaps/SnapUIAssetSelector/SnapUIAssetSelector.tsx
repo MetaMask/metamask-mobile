@@ -11,6 +11,7 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, { TextColor, TextVariant } from '../../../component-library/components/Texts/Text';
 import { ImageSourcePropType, ViewStyle } from 'react-native';
+import { BadgeAnchorElementShape } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 /**
  * An option for the SnapUIAssetSelector.
  *
@@ -23,9 +24,10 @@ import { ImageSourcePropType, ViewStyle } from 'react-native';
  * @param props.networkName - The network name.
  * @param props.networkIcon - The network icon.
  * @param props.isParentFlexRow - Whether the parent has flex-direction: row.
+ * @param props.context - The rendering context ('inline' or 'modal').
  * @returns The Asset Selector option.
  */
-const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewStyle, isParentFlexRow?: boolean }> = ({
+const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewStyle, isParentFlexRow?: boolean, context?: 'inline' | 'modal' }> = ({
   icon,
   symbol,
   name,
@@ -33,7 +35,8 @@ const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewS
   fiat,
   networkName,
   networkIcon,
-  isParentFlexRow,
+  isParentFlexRow = false,
+  context = 'inline',
 }) => (
   <Box
     alignItems={AlignItems.center}
@@ -53,6 +56,8 @@ const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewS
           />
         }
         badgePosition={BadgePosition.BottomRight}
+        anchorElementShape={BadgeAnchorElementShape.Circular}
+        parentSize={24}
       >
         <AvatarToken size={AvatarSize.Sm} imageSource={{ uri: icon }} />
       </BadgeWrapper>
@@ -76,7 +81,7 @@ const SnapUIAssetSelectorOption: FunctionComponent<SnapUIAsset & { style?: ViewS
     <Box
       flexDirection={FlexDirection.Column}
       // eslint-disable-next-line react-native/no-inline-styles
-      style={{ marginLeft: 'auto', ...(isParentFlexRow ? { display: 'none' } : {}) }}
+      style={{ marginLeft: 'auto', ...(context === 'inline' && isParentFlexRow ? { display: 'none' } : {}) }}
       alignItems={AlignItems.flexEnd}
     >
       <Text variant={TextVariant.BodySMMedium}>
