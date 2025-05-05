@@ -146,6 +146,27 @@ describe('Asset', () => {
     expect(mockSetOptions).toHaveBeenCalled();
   });
 
+  it('should display swaps button if the asset is allowed', () => {
+    const { toJSON } = renderWithProvider(
+      <Asset
+        navigation={{ setOptions: jest.fn() }}
+        route={{
+          params: {
+            symbol: 'ETH',
+            address: 'something',
+            isETH: true,
+            chainId: '0x1',
+          },
+        }}
+      />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('should not display swaps button if the asset is not allowed', () => {
     jest.spyOn(swapsUtils, 'fetchSwapsFeatureFlags').mockRejectedValue('error');
     const { toJSON } = renderWithProvider(
