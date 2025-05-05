@@ -540,10 +540,9 @@ class Asset extends PureComponent {
     const displaySwapsButton =
       isSwapsNetworkAllowed && isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
-    const isBridgeNetworkAllowed = isPortfolioViewEnabled()
+    const displayBridgeButton = isPortfolioViewEnabled()
       ? isBridgeAllowed(asset.chainId)
       : isBridgeAllowed(chainId);
-    const displayBridgeButton = isBridgeNetworkAllowed;
 
     const displayBuyButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
