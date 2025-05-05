@@ -164,7 +164,7 @@ export const SnapUIAssetSelector: FunctionComponent<
       optionComponents={optionComponents}
       disabled={disabled || assets.length === 0}
       style={style}
-      isParentFlexRow={isParentFlexRow}
+      compact={isParentFlexRow}
       {...props}
     />
   );

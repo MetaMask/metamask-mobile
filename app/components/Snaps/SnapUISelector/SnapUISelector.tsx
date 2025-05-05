@@ -28,7 +28,7 @@ export interface SnapUISelectorProps {
   error?: string;
   disabled?: boolean;
   style?: ViewStyle;
-  isParentFlexRow?: boolean;
+  compact?: boolean;
 }
 
 interface SelectorItemProps {
@@ -88,9 +88,9 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   error,
   disabled,
   style,
-  isParentFlexRow = false,
+  compact = false,
 }) => {
-  const { styles } = useStyles(stylesheet, { isParentFlexRow });
+  const { styles } = useStyles(stylesheet, { compact });
   const { handleInputChange, getValue } = useSnapInterfaceContext();
 
   const initialValue = getValue(name, form);

@@ -9,7 +9,7 @@ import { colors as importedColors } from '../../../styles/common';
  * @param params.theme App theme from ThemeContext.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme, vars: { selected?: boolean, isParentFlexRow?: boolean } }) => {
+const styleSheet = (params: { theme: Theme, vars: { selected?: boolean, compact?: boolean } }) => {
   const { theme, vars } = params;
   const { colors } = theme;
   return StyleSheet.create({
@@ -36,8 +36,8 @@ const styleSheet = (params: { theme: Theme, vars: { selected?: boolean, isParent
       borderRadius: 8,
       paddingTop: 8,
       paddingBottom: 8,
-      paddingRight: vars.isParentFlexRow ? 8 : 16,
-      paddingLeft: vars.isParentFlexRow ? 8 : 16,
+      paddingRight: vars.compact ? 8 : 16,
+      paddingLeft: vars.compact ? 8 : 16,
     },
     modalButton: {
       backgroundColor: vars.selected ? colors.primary.muted : importedColors.transparent,
