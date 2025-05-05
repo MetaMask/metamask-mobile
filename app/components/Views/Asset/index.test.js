@@ -6,6 +6,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import Asset, { getSwapsIsLive } from './';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { deepClone } from '@metamask/snaps-utils';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 
 const mockInitialState = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -78,6 +79,11 @@ const mockInitialState = {
 };
 
 jest.unmock('react-native/Libraries/Interaction/InteractionManager');
+
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isPortfolioViewEnabled: jest.fn().mockReturnValue(true),
+}));
 
 jest.mock('../../../core/Engine', () => {
   const {
@@ -264,6 +270,14 @@ describe('getSwapsIsLive', () => {
         mockRoute,
       );
       expect(result).toBe(false);
+    });
+
+    it('should return the correct value for EVM chain when portfolio view is disabled', () => {
+      jest
+        .spyOn(require('../../../util/networks'), 'isPortfolioViewEnabled')
+        .mockReturnValue(false);
+      const result = getSwapsIsLive(mockState, mockRoute);
+      expect(result).toBe(true);
     });
   });
 
