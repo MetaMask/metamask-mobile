@@ -406,59 +406,33 @@ export class BackgroundBridge extends EventEmitter {
     DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge setupProviderConnection`);
     this.engine = this.setupProviderEngine();
 
-    // Add a response listener to ensure JSON-RPC responses are properly routed
-    this.engine.on('response', (response) => {
-      try {
-        DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge direct response from engine:`, 
-          JSON.stringify({id: response.id, method: response?.method, hasResult: !!response.result, hasError: !!response.error}));
-        
-        // Make sure we have a valid response to send
-        if (response && (response.result !== undefined || response.error !== undefined)) {
-          // Send the response directly to the WebView with the provider channel name
-          // This bypasses the normal stream flow which might be dropping responses
-          DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge posting direct response to WebView`);
-          this.port.postMessage({
-            name: METAMASK_EIP_1193_PROVIDER,
-            data: response
-          });
-        } else {
-          DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge received empty or invalid response from engine: ${JSON.stringify(response)}`);
+    // The key issue here is that the newer @metamask/providers package expects
+    // responses to be emitted as 'response' events, but the engine isn't emitting them.
+    // Fix: Monkey patch the engine.handle method to emit responses
+    const originalHandle = this.engine.handle.bind(this.engine);
+    this.engine.handle = (req, res, next, end) => {
+      originalHandle(req, res, (err) => {
+        if (next) {
+          next(err);
         }
-      } catch (error) {
-        DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge error in response handler: ${error.message}`);
-      }
-    });
+        
+        // If this is a JSON-RPC response (has id + result/error), 
+        // manually emit a 'response' event for the engine
+        if (req?.id !== undefined && (res?.result !== undefined || res?.error !== undefined)) {
+          // This is the key fix - manually emit the 'response' event that the provider expects
+          const response = {
+            id: req.id,
+            jsonrpc: '2.0',
+            result: res.result,
+            error: res.error
+          };
+          this.engine.emit('response', response);
+        }
+      });
+    };
     
     // setup connection
     const providerStream = createEngineStream({ engine: this.engine });
-
-    // Add event handler for data to track responses
-    providerStream.on('data', (data) => {
-      // When we get responses from the engine, log them for debugging
-      try {
-        if (data && typeof data === 'object') {
-          if (data.id !== undefined && (data.result !== undefined || data.error !== undefined)) {
-            DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge response flowing to outStream:`, 
-              JSON.stringify({ id: data.id, hasResult: !!data.result, hasError: !!data.error }));
-            
-            // Remove any toNative flag that might be present in the response
-            if (data.toNative) {
-              delete data.toNative;
-            }
-
-            // Also try to send the response directly through our direct channel as a fallback
-            // This helps ensure responses make it back even if the stream processing drops them
-            this.port.postMessage({
-              name: METAMASK_EIP_1193_PROVIDER,
-              data: data
-            });
-            DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge sent additional direct copy of response`);
-          }
-        }
-      } catch (error) {
-        DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge error in data handler: ${error.message}`);
-      }
-    });
 
     DevLogger.log(`[METAMASK-DEBUG] BackgroundBridge setting up pump between streams`);
     pump(outStream, providerStream, outStream, (err) => {
