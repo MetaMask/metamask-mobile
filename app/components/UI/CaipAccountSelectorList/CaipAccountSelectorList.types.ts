@@ -4,17 +4,18 @@ import { FlatListProps } from 'react-native';
 
 // External dependencies.
 import { Account, UseAccounts } from '../../hooks/useAccounts';
+import { CaipAccountId } from '@metamask/utils';
 
 /**
- * EvmAccountSelectorList props.
+ * CaipAccountSelectorList props.
  */
-export interface EvmAccountSelectorListProps
+export interface CaipAccountSelectorListProps
   extends Partial<FlatListProps<Account>>,
     Omit<UseAccounts, 'evmAccounts'> {
   /**
    * Optional callback to trigger when account is selected.
    */
-  onSelectAccount?: (address: string, isSelected: boolean) => void;
+  onSelectAccount?: (address: CaipAccountId, isSelected: boolean) => void;
   /**
    * Optional callback to trigger when imported account is removed.
    */
@@ -32,7 +33,7 @@ export interface EvmAccountSelectorListProps
    * Scenarios where this can be used includes temporarily showing one or more selected accounts.
    * This is required for multi select to work since the list does not track selected accounts by itself.
    */
-  selectedAddresses?: string[];
+  selectedAddresses: CaipAccountId[];
   /**
    * Optional boolean that indicates if list should be used as multi select.
    */

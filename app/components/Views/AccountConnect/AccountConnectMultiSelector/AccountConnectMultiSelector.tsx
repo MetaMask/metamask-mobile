@@ -14,7 +14,7 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import EvmAccountSelectorList from '../../../UI/EvmAccountSelectorList';
+import CaipAccountSelectorList from '../../../UI/CaipAccountSelectorList';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../../component-library/components/Form/HelpText';
@@ -203,7 +203,7 @@ const AccountConnectMultiSelector = ({
             </Text>
             {accounts?.length > 0 && renderSelectAllCheckbox()}
           </View>
-          <EvmAccountSelectorList
+          <CaipAccountSelectorList
             onSelectAccount={onSelectAccount}
             accounts={accounts}
             ensByAccountAddress={ensByAccountAddress}
