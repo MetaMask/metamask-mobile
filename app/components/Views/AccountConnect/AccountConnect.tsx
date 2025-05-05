@@ -484,6 +484,44 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const handleAccountsSelected = useCallback(
     (newSelectedAccountAddresses: CaipAccountId[]) => {
+      let updatedSelectedChains = [...selectedChainIds];
+
+      newSelectedAccountAddresses.forEach((caipAccountAddress) => {
+        const {
+          chain: { namespace: accountNamespace },
+        } = parseCaipAccountId(caipAccountAddress);
+
+        const existsSelectedChainForNamespace = updatedSelectedChains.some(
+          (caipChainId) => {
+            try {
+              const { namespace: chainNamespace } =
+                parseCaipChainId(caipChainId);
+              return accountNamespace === chainNamespace;
+            } catch (err) {
+              return false;
+            }
+          },
+        );
+
+        if (!existsSelectedChainForNamespace) {
+          const chainIdsForNamespace = allNetworksList.filter((caipChainId) => {
+            try {
+              const { namespace: chainNamespace } =
+                parseCaipChainId(caipChainId);
+              return accountNamespace === chainNamespace;
+            } catch (err) {
+              return false;
+            }
+          });
+
+          updatedSelectedChains = [
+            ...updatedSelectedChains,
+            ...chainIdsForNamespace,
+          ];
+        }
+      });
+
+      setSelectedChainIds(updatedSelectedChains);
       setSelectedAddresses(newSelectedAccountAddresses);
       setScreen(AccountConnectScreens.SingleConnect);
     },
