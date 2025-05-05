@@ -80,6 +80,25 @@ import { SolScope } from '@metamask/keyring-api';
 import { selectIsBridgeEnabledSource } from '../../../core/redux/slices/bridge';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
+export const getSwapsIsLive = (state, route) => {
+  const evmSwapsIsLive = isPortfolioViewEnabled()
+    ? swapsLivenessMultichainSelector(state, route.params.chainId)
+    : swapsLivenessSelector(state);
+  let swapsIsLive = evmSwapsIsLive;
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  if (route.params.chainId === SolScope.Mainnet) {
+    const solanaSwapsIsLive = selectIsBridgeEnabledSource(
+      state,
+      route.params.chainId,
+    );
+    swapsIsLive = solanaSwapsIsLive;
+  }
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+
+  return swapsIsLive;
+};
+
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -603,51 +622,34 @@ class Asset extends PureComponent {
 
 Asset.contextType = ThemeContext;
 
-const mapStateToProps = (state, { route }) => {
-  const evmSwapsIsLive = isPortfolioViewEnabled()
-    ? swapsLivenessMultichainSelector(state, route.params.chainId)
-    : swapsLivenessSelector(state);
-  let swapsIsLive = evmSwapsIsLive;
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (route.params.chainId === SolScope.Mainnet) {
-    const solanaSwapsIsLive = selectIsBridgeEnabledSource(
-      state,
-      route.params.chainId,
-    );
-    swapsIsLive = solanaSwapsIsLive;
-  }
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-
-  return {
-    swapsIsLive,
-    swapsTokens: isPortfolioViewEnabled()
-      ? swapsTokensMultiChainObjectSelector(state)
-      : swapsTokensObjectSelector(state),
-    searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
-      state,
-      route.params.chainId,
-    ),
-    swapsTransactions: selectSwapsTransactions(state),
-    conversionRate: selectConversionRate(state),
-    currentCurrency: selectCurrentCurrency(state),
-    selectedInternalAccount: selectSelectedInternalAccount(state),
-    chainId: selectChainId(state),
-    tokens: selectTokens(state),
-    transactions: selectTransactions(state),
-    rpcUrl: selectRpcUrl(state),
-    networkConfigurations: selectNetworkConfigurations(state),
-    isNetworkRampSupported: isNetworkRampSupported(
-      selectChainId(state),
-      getRampNetworks(state),
-    ),
-    isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
-      selectChainId(state),
-      getRampNetworks(state),
-    ),
-    networkClientId: selectNetworkClientId(state),
-  };
-};
+const mapStateToProps = (state, { route }) => ({
+  swapsIsLive: getSwapsIsLive(state, route),
+  swapsTokens: isPortfolioViewEnabled()
+    ? swapsTokensMultiChainObjectSelector(state)
+    : swapsTokensObjectSelector(state),
+  searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
+    state,
+    route.params.chainId,
+  ),
+  swapsTransactions: selectSwapsTransactions(state),
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  selectedInternalAccount: selectSelectedInternalAccount(state),
+  chainId: selectChainId(state),
+  tokens: selectTokens(state),
+  transactions: selectTransactions(state),
+  rpcUrl: selectRpcUrl(state),
+  networkConfigurations: selectNetworkConfigurations(state),
+  isNetworkRampSupported: isNetworkRampSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
+  isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
+  networkClientId: selectNetworkClientId(state),
+});
 
 const mapDispatchToProps = (dispatch) => ({
   setLiveness: (chainId, featureFlags) =>
