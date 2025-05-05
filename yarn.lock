@@ -5302,10 +5302,10 @@
     "@metamask/controller-utils" "^11.5.0"
     uuid "^8.3.2"
 
-"@metamask/message-signing-snap@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/message-signing-snap/-/message-signing-snap-1.1.1.tgz#3112e8c7d6068fc75d141981c23210fc649a4e17"
-  integrity sha512-rAxCyc9yNUfpclgO084JjvuBepsn05GL7rZCXsJQUJphDP5Qms12lMfOLCTfiL4Jqt0GMG/UnqkBHp4ZUuOIZQ==
+"@metamask/message-signing-snap@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.npmjs.org/@metamask/message-signing-snap/-/message-signing-snap-1.1.2.tgz#701ace646077976ba22feda85e7968a1ea4c8642"
+  integrity sha512-TANi87ujo7WwyHubWy0iFoYFIh5t5ztvfZ/OqrA0rdZ2d58+6Bvj89jbi1tFWQPT//azwCF5jwQBnJAIVlAwBQ==
 
 "@metamask/metamask-eth-abis@3.1.1", "@metamask/metamask-eth-abis@^3.1.1":
   version "3.1.1"
