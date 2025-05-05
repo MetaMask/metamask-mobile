@@ -1,7 +1,7 @@
 import React from 'react';
 import DepositReceiveSection, { DepositReceiveSectionProps } from './index';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { MOCK_USDC_MAINNET_ASSET } from '../../../../../Stake/__mocks__/mockData';
+import { MOCK_USDC_MAINNET_ASSET } from '../../../../../Stake/__mocks__/stakeMockData';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 
 jest.mock('@react-navigation/native', () => {

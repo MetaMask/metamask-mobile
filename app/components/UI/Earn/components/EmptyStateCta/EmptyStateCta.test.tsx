@@ -2,7 +2,7 @@ import React from 'react';
 import EarnEmptyStateCta from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TokenI } from '../../../Tokens/types';
-import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/mockData';
+import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { strings } from '../../../../../../locales/i18n';

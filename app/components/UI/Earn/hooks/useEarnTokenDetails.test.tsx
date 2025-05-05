@@ -5,7 +5,7 @@ import { TokenI } from '../../Tokens/types';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { Hex } from '@metamask/utils';
 import { useEarnTokenDetails } from './useEarnTokenDetails';
-import { MOCK_ETH_MAINNET_ASSET } from '../../Stake/__mocks__/mockData';
+import { MOCK_ETH_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
 import useBalance from '../../Stake/hooks/useBalance';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 
