@@ -1,7 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectIsBridgeEnabledSource } from '../../../core/redux/slices/bridge';
+///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   swapsLivenessMultichainSelector,
   swapsLivenessSelector,
@@ -40,9 +40,10 @@ export const getIsSwapsAssetAllowed = ({
     isNative: boolean;
     address: string;
     chainId: string;
+    isFromSearch?: boolean;
   };
   searchDiscoverySwapsTokens: string[];
-  swapsTokens: string[];
+  swapsTokens: Record<string, unknown>;
 }) => {
   // EVM Swaps
   let isEvmSwapsAssetAllowed;
