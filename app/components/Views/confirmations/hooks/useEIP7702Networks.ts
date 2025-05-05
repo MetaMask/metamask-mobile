@@ -35,7 +35,6 @@ export const useEIP7702Networks = (address: string) => {
       ),
     [networks],
   );
-
   const networkList = useMemo(
     () => ({ ...nonTestNetworks, ...testNetworks }),
     [nonTestNetworks, testNetworks],
@@ -50,19 +49,17 @@ export const useEIP7702Networks = (address: string) => {
     });
   }, [address, networkList]);
 
-  console.log('================================', networkList);
   const network7702List: EIP7702NetworkConfiguration[] | undefined =
     useMemo(() => {
       if (!value) {
         return [];
       }
-
       const networksSupporting7702: EIP7702NetworkConfiguration[] = [];
       Object.values(networkList).forEach((network) => {
         try {
-          const atomicBatchResult = value.find(
-            ({ chainId }) => chainId === network.chainId,
-          );
+          const atomicBatchResult = value.find(({ chainId }) => {
+            return chainId === network.chainId;
+          });
           if (atomicBatchResult) {
             networksSupporting7702.push({
               ...atomicBatchResult,
