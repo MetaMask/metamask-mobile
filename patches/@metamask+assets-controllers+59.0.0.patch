@@ -1,3 +1,363 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsController/MultichainAssetsController.cjs b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsController/MultichainAssetsController.cjs
+index 73fb4b1..0fa10c8 100644
+--- a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsController/MultichainAssetsController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsController/MultichainAssetsController.cjs
+@@ -97,32 +97,50 @@ _MultichainAssetsController_snaps = new WeakMap(), _MultichainAssetsController_c
+  */
+ async function _MultichainAssetsController_handleAccountAssetListUpdated(event) {
+     __classPrivateFieldGet(this, _MultichainAssetsController_instances, "m", _MultichainAssetsController_assertControllerMutexIsLocked).call(this);
+-    const assetsToUpdate = event.assets;
+-    let assetsForMetadataRefresh = new Set([]);
+-    for (const accountId in assetsToUpdate) {
+-        if ((0, utils_1.hasProperty)(assetsToUpdate, accountId)) {
+-            const { added, removed } = assetsToUpdate[accountId];
+-            if (added.length > 0 || removed.length > 0) {
+-                const existing = this.state.accountsAssets[accountId] || [];
+-                const assets = new Set([
+-                    ...existing,
+-                    ...added.filter((asset) => (0, utils_1.isCaipAssetType)(asset)),
+-                ]);
+-                for (const removedAsset of removed) {
+-                    assets.delete(removedAsset);
+-                }
+-                assetsForMetadataRefresh = new Set([
+-                    ...assetsForMetadataRefresh,
+-                    ...assets,
+-                ]);
+-                this.update((state) => {
+-                    state.accountsAssets[accountId] = Array.from(assets);
+-                });
++    const assetsForMetadataRefresh = new Set([]);
++    const accountsAndAssetsToUpdate = {};
++    for (const [accountId, { added, removed }] of Object.entries(event.assets)) {
++        if (added.length > 0 || removed.length > 0) {
++            const existing = this.state.accountsAssets[accountId] || [];
++            // In case accountsAndAssetsToUpdate event is fired with "added" assets that already exist, we don't want to add them again
++            const filteredToBeAddedAssets = added.filter((asset) => !existing.includes(asset) && (0, utils_1.isCaipAssetType)(asset));
++            // In case accountsAndAssetsToUpdate event is fired with "removed" assets that don't exist, we don't want to remove them
++            const filteredToBeRemovedAssets = removed.filter((asset) => existing.includes(asset) && (0, utils_1.isCaipAssetType)(asset));
++            if (filteredToBeAddedAssets.length > 0 ||
++                filteredToBeRemovedAssets.length > 0) {
++                accountsAndAssetsToUpdate[accountId] = {
++                    added: filteredToBeAddedAssets,
++                    removed: filteredToBeRemovedAssets,
++                };
++            }
++            for (const asset of existing) {
++                assetsForMetadataRefresh.add(asset);
++            }
++            for (const asset of filteredToBeAddedAssets) {
++                assetsForMetadataRefresh.add(asset);
++            }
++            for (const asset of filteredToBeRemovedAssets) {
++                assetsForMetadataRefresh.delete(asset);
+             }
+         }
+     }
++    this.update((state) => {
++        for (const [accountId, { added, removed }] of Object.entries(accountsAndAssetsToUpdate)) {
++            const assets = new Set([
++                ...(state.accountsAssets[accountId] || []),
++                ...added,
++            ]);
++            for (const asset of removed) {
++                assets.delete(asset);
++            }
++            state.accountsAssets[accountId] = Array.from(assets);
++        }
++    });
+     // Trigger fetching metadata for new assets
+     await __classPrivateFieldGet(this, _MultichainAssetsController_instances, "m", _MultichainAssetsController_refreshAssetsMetadata).call(this, Array.from(assetsForMetadataRefresh));
++    this.messagingSystem.publish(`${controllerName}:accountAssetListUpdated`, {
++        assets: accountsAndAssetsToUpdate,
++    });
+ }, _MultichainAssetsController_isNonEvmAccount = function _MultichainAssetsController_isNonEvmAccount(account) {
+     return (!(0, keyring_api_1.isEvmAccountType)(account.type) &&
+         // Non-EVM accounts are backed by a Snap for now
+@@ -146,6 +164,14 @@ async function _MultichainAssetsController_handleOnAccountAdded(account) {
+         this.update((state) => {
+             state.accountsAssets[account.id] = assets;
+         });
++        this.messagingSystem.publish(`${controllerName}:accountAssetListUpdated`, {
++            assets: {
++                [account.id]: {
++                    added: assets,
++                    removed: [],
++                },
++            },
++        });
+     }
+ }, _MultichainAssetsController_handleOnAccountRemovedEvent = 
+ /**
+diff --git a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsController/MultichainAssetsController.d.cts b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsController/MultichainAssetsController.d.cts
+index 65135bd..6ea2b5c 100644
+--- a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsController/MultichainAssetsController.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsController/MultichainAssetsController.d.cts
+@@ -18,6 +18,10 @@ export type AssetMetadataResponse = {
+         [asset: CaipAssetType]: FungibleAssetMetadata;
+     };
+ };
++export type MultichainAssetsControllerAccountAssetListUpdatedEvent = {
++    type: `${typeof controllerName}:accountAssetListUpdated`;
++    payload: AccountsControllerAccountAssetListUpdatedEvent['payload'];
++};
+ /**
+  * Constructs the default {@link MultichainAssetsController} state. This allows
+  * consumers to provide a partial state object when initializing the controller
+@@ -46,7 +50,7 @@ export type MultichainAssetsControllerActions = MultichainAssetsControllerGetSta
+ /**
+  * Events emitted by {@link MultichainAssetsController}.
+  */
+-export type MultichainAssetsControllerEvents = MultichainAssetsControllerStateChangeEvent;
++export type MultichainAssetsControllerEvents = MultichainAssetsControllerStateChangeEvent | MultichainAssetsControllerAccountAssetListUpdatedEvent;
+ /**
+  * Actions that this controller is allowed to call.
+  */
+diff --git a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsController/index.d.cts b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsController/index.d.cts
+index 025650c..244097f 100644
+--- a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsController/index.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsController/index.d.cts
+@@ -1,3 +1,3 @@
+ export { MultichainAssetsController, getDefaultMultichainAssetsControllerState, } from "./MultichainAssetsController.cjs";
+-export type { MultichainAssetsControllerState, MultichainAssetsControllerGetStateAction, MultichainAssetsControllerStateChangeEvent, MultichainAssetsControllerActions, MultichainAssetsControllerEvents, MultichainAssetsControllerMessenger, } from "./MultichainAssetsController.cjs";
++export type { MultichainAssetsControllerAccountAssetListUpdatedEvent, MultichainAssetsControllerState, MultichainAssetsControllerGetStateAction, MultichainAssetsControllerStateChangeEvent, MultichainAssetsControllerActions, MultichainAssetsControllerEvents, MultichainAssetsControllerMessenger, } from "./MultichainAssetsController.cjs";
+ //# sourceMappingURL=index.d.cts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.cjs b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.cjs
+index 4f739fe..9c6f018 100644
+--- a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.cjs
+@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _MultichainAssetsRatesController_instances, _MultichainAssetsRatesController_mutex, _MultichainAssetsRatesController_currentCurrency, _MultichainAssetsRatesController_accountsAssets, _MultichainAssetsRatesController_isUnlocked, _MultichainAssetsRatesController_isNonEvmAccount, _MultichainAssetsRatesController_listMultichainAccounts, _MultichainAssetsRatesController_listAccounts, _MultichainAssetsRatesController_getAssetsForAccount, _MultichainAssetsRatesController_buildConversions, _MultichainAssetsRatesController_flattenRates, _MultichainAssetsRatesController_buildUpdatedRates, _MultichainAssetsRatesController_applyUpdatedRates, _MultichainAssetsRatesController_handleSnapRequest;
++var _MultichainAssetsRatesController_instances, _MultichainAssetsRatesController_updateAssetsRatesForNewAssets, _MultichainAssetsRatesController_getUpdatedRatesFor, _MultichainAssetsRatesController_getAccount, _MultichainAssetsRatesController_mutex, _MultichainAssetsRatesController_currentCurrency, _MultichainAssetsRatesController_accountsAssets, _MultichainAssetsRatesController_isUnlocked, _MultichainAssetsRatesController_isNonEvmAccount, _MultichainAssetsRatesController_listMultichainAccounts, _MultichainAssetsRatesController_listAccounts, _MultichainAssetsRatesController_getAssetsForAccount, _MultichainAssetsRatesController_buildConversions, _MultichainAssetsRatesController_flattenRates, _MultichainAssetsRatesController_buildUpdatedRates, _MultichainAssetsRatesController_applyUpdatedRates, _MultichainAssetsRatesController_handleSnapRequest;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.MultichainAssetsRatesController = exports.getDefaultMultichainAssetsRatesControllerState = void 0;
+ const keyring_api_1 = require("@metamask/keyring-api");
+@@ -82,9 +82,13 @@ class MultichainAssetsRatesController extends (0, polling_controller_1.StaticInt
+             __classPrivateFieldSet(this, _MultichainAssetsRatesController_currentCurrency, currencyRatesState.currentCurrency, "f");
+             await this.updateAssetsRates();
+         });
+-        this.messagingSystem.subscribe('MultichainAssetsController:stateChange', async (multichainAssetsState) => {
+-            __classPrivateFieldSet(this, _MultichainAssetsRatesController_accountsAssets, multichainAssetsState.accountsAssets, "f");
+-            await this.updateAssetsRates();
++        this.messagingSystem.subscribe('MultichainAssetsController:accountAssetListUpdated', async ({ assets }) => {
++            const newAccountAssets = Object.entries(assets).map(([accountId, { added }]) => ({
++                accountId,
++                assets: [...added],
++            }));
++            // TODO; removed can be used in future for further cleanup
++            await __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_updateAssetsRatesForNewAssets).call(this, newAccountAssets);
+         });
+     }
+     /**
+@@ -120,23 +124,9 @@ class MultichainAssetsRatesController extends (0, polling_controller_1.StaticInt
+                 if (assets?.length === 0) {
+                     continue;
+                 }
+-                // Build the conversions array
+-                const conversions = __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_buildConversions).call(this, assets);
+-                // Retrieve rates from Snap
+-                const accountRates = (await __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_handleSnapRequest).call(this, {
+-                    snapId: account?.metadata.snap?.id,
+-                    handler: snaps_utils_1.HandlerType.OnAssetsConversion,
+-                    params: {
+-                        ...conversions,
+-                        includeMarketData: true,
+-                    },
+-                }));
+-                // Flatten nested rates if needed
+-                const flattenedRates = __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_flattenRates).call(this, accountRates);
+-                // Build the updatedRates object for these assets
+-                const updatedRates = __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_buildUpdatedRates).call(this, assets, flattenedRates);
++                const rates = await __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_getUpdatedRatesFor).call(this, account, assets);
+                 // Apply these updated rates to controller state
+-                __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_applyUpdatedRates).call(this, updatedRates);
++                __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_applyUpdatedRates).call(this, rates);
+             }
+         })().finally(() => {
+             releaseLock();
+@@ -200,6 +190,55 @@ _MultichainAssetsRatesController_mutex = new WeakMap(), _MultichainAssetsRatesCo
+ }, _MultichainAssetsRatesController_listAccounts = function _MultichainAssetsRatesController_listAccounts() {
+     const accounts = __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_listMultichainAccounts).call(this);
+     return accounts.filter((account) => __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_isNonEvmAccount).call(this, account));
++}, _MultichainAssetsRatesController_getUpdatedRatesFor = async function _MultichainAssetsRatesController_getUpdatedRatesFor(account, assets) {
++    // Build the conversions array
++    const conversions = __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_buildConversions).call(this, assets);
++    // Retrieve rates from Snap
++    const accountRates = (await __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_handleSnapRequest).call(this, {
++        snapId: account?.metadata.snap?.id,
++        handler: snaps_utils_1.HandlerType.OnAssetsConversion,
++        params: {
++            ...conversions,
++            includeMarketData: true,
++        },
++    }));
++    // Flatten nested rates if needed
++    const flattenedRates = __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_flattenRates).call(this, accountRates);
++    // Build the updatedRates object for these assets
++    const updatedRates = __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_buildUpdatedRates).call(this, assets, flattenedRates);
++    return updatedRates;
++}, _MultichainAssetsRatesController_updateAssetsRatesForNewAssets = 
++/**
++ * Updates the conversion rates for new assets.
++ *
++ * @param accounts - The accounts to update the conversion rates for.
++ * @returns A promise that resolves when the rates are updated.
++ */
++async function _MultichainAssetsRatesController_updateAssetsRatesForNewAssets(accounts) {
++    const releaseLock = await __classPrivateFieldGet(this, _MultichainAssetsRatesController_mutex, "f").acquire();
++    return (async () => {
++        if (!this.isActive) {
++            return;
++        }
++        const allNewRates = {};
++        for (const { accountId, assets } of accounts) {
++            const account = __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_getAccount).call(this, accountId);
++            const rates = await __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_getUpdatedRatesFor).call(this, account, assets);
++            // Track new rates
++            for (const [asset, rate] of Object.entries(rates)) {
++                allNewRates[asset] = rate;
++            }
++        }
++        __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_applyUpdatedRates).call(this, allNewRates);
++    })().finally(() => {
++        releaseLock();
++    });
++}, _MultichainAssetsRatesController_getAccount = function _MultichainAssetsRatesController_getAccount(accountId) {
++    const account = __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_listAccounts).call(this).find((multichainAccount) => multichainAccount.id === accountId);
++    if (!account) {
++        throw new Error(`Unknown account: ${accountId}`);
++    }
++    return account;
+ }, _MultichainAssetsRatesController_getAssetsForAccount = function _MultichainAssetsRatesController_getAssetsForAccount(accountId) {
+     return __classPrivateFieldGet(this, _MultichainAssetsRatesController_accountsAssets, "f")?.[accountId] ?? [];
+ }, _MultichainAssetsRatesController_buildConversions = function _MultichainAssetsRatesController_buildConversions(assets) {
+diff --git a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.d.cts b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.d.cts
+index 30c6e49..9d660cd 100644
+--- a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.d.cts
+@@ -5,7 +5,7 @@ import type { KeyringControllerLockEvent, KeyringControllerUnlockEvent } from "@
+ import type { HandleSnapRequest } from "@metamask/snaps-controllers";
+ import type { AssetConversion, HistoricalPriceIntervals } from "@metamask/snaps-sdk";
+ import type { CurrencyRateStateChange, GetCurrencyRateState } from "../CurrencyRateController.cjs";
+-import type { MultichainAssetsControllerGetStateAction, MultichainAssetsControllerStateChangeEvent } from "../MultichainAssetsController/index.cjs";
++import type { MultichainAssetsControllerGetStateAction, MultichainAssetsControllerStateChangeEvent, MultichainAssetsControllerAccountAssetListUpdatedEvent } from "../MultichainAssetsController/index.cjs";
+ /**
+  * The name of the MultichainAssetsRatesController.
+  */
+@@ -61,7 +61,7 @@ export type AllowedActions = HandleSnapRequest | AccountsControllerListMultichai
+ /**
+  * Events that this controller is allowed to subscribe to.
+  */
+-export type AllowedEvents = KeyringControllerLockEvent | KeyringControllerUnlockEvent | AccountsControllerAccountAddedEvent | CurrencyRateStateChange | MultichainAssetsControllerStateChangeEvent;
++export type AllowedEvents = KeyringControllerLockEvent | KeyringControllerUnlockEvent | AccountsControllerAccountAddedEvent | CurrencyRateStateChange | MultichainAssetsControllerStateChangeEvent | MultichainAssetsControllerAccountAssetListUpdatedEvent ;
+ /**
+  * Messenger type for the MultichainAssetsRatesController.
+  */
+diff --git a/node_modules/@metamask/assets-controllers/dist/MultichainBalancesController/MultichainBalancesController.cjs b/node_modules/@metamask/assets-controllers/dist/MultichainBalancesController/MultichainBalancesController.cjs
+index 25490de..6a7e21b 100644
+--- a/node_modules/@metamask/assets-controllers/dist/MultichainBalancesController/MultichainBalancesController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/MultichainBalancesController/MultichainBalancesController.cjs
+@@ -4,7 +4,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _MultichainBalancesController_instances, _MultichainBalancesController_updateBalance, _MultichainBalancesController_listMultichainAccounts, _MultichainBalancesController_listAccounts, _MultichainBalancesController_listAccountAssets, _MultichainBalancesController_getAccount, _MultichainBalancesController_isNonEvmAccount, _MultichainBalancesController_handleOnAccountBalancesUpdated, _MultichainBalancesController_handleOnAccountRemoved, _MultichainBalancesController_getBalances, _MultichainBalancesController_getClient;
++var _MultichainBalancesController_instances, _MultichainBalancesController_handleOnAccountAssetListUpdated, _MultichainBalancesController_updateBalance, _MultichainBalancesController_listMultichainAccounts, _MultichainBalancesController_listAccounts, _MultichainBalancesController_listAccountAssets, _MultichainBalancesController_getAccount, _MultichainBalancesController_isNonEvmAccount, _MultichainBalancesController_handleOnAccountBalancesUpdated, _MultichainBalancesController_handleOnAccountRemoved, _MultichainBalancesController_getBalances, _MultichainBalancesController_getClient;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.MultichainBalancesController = exports.getDefaultMultichainBalancesControllerState = void 0;
+ const base_controller_1 = require("@metamask/base-controller");
+@@ -61,13 +61,12 @@ class MultichainBalancesController extends base_controller_1.BaseController {
+         }
+         this.messagingSystem.subscribe('AccountsController:accountRemoved', (account) => __classPrivateFieldGet(this, _MultichainBalancesController_instances, "m", _MultichainBalancesController_handleOnAccountRemoved).call(this, account));
+         this.messagingSystem.subscribe('AccountsController:accountBalancesUpdated', (balanceUpdate) => __classPrivateFieldGet(this, _MultichainBalancesController_instances, "m", _MultichainBalancesController_handleOnAccountBalancesUpdated).call(this, balanceUpdate));
+-        // TODO: Maybe add a MultichainAssetsController:accountAssetListUpdated event instead of using the entire state.
+-        // Since MultichainAssetsController already listens for the AccountsController:accountAdded, we can rely in it for that event
+-        // and not listen for it also here, in this controller, since it would be redundant
+-        this.messagingSystem.subscribe('MultichainAssetsController:stateChange', async (assetsState) => {
+-            for (const accountId of Object.keys(assetsState.accountsAssets)) {
+-                await __classPrivateFieldGet(this, _MultichainBalancesController_instances, "m", _MultichainBalancesController_updateBalance).call(this, accountId, assetsState.accountsAssets[accountId]);
+-            }
++        this.messagingSystem.subscribe('MultichainAssetsController:accountAssetListUpdated', async ({ assets }) => {
++            const newAccountAssets = Object.entries(assets).map(([accountId, { added }]) => ({
++                accountId,
++                assets: [...added],
++            }));
++            await __classPrivateFieldGet(this, _MultichainBalancesController_instances, "m", _MultichainBalancesController_handleOnAccountAssetListUpdated).call(this, newAccountAssets);
+         });
+     }
+     /**
+@@ -81,7 +80,44 @@ class MultichainBalancesController extends base_controller_1.BaseController {
+     }
+ }
+ exports.MultichainBalancesController = MultichainBalancesController;
+-_MultichainBalancesController_instances = new WeakSet(), _MultichainBalancesController_updateBalance = 
++_MultichainBalancesController_instances = new WeakSet(), _MultichainBalancesController_handleOnAccountAssetListUpdated = 
++/**
++ * Updates the balances for the given accounts.
++ *
++ * @param accounts - The accounts to update the balances for.
++ */
++async function _MultichainBalancesController_handleOnAccountAssetListUpdated(accounts) {
++    const { isUnlocked } = this.messagingSystem.call('KeyringController:getState');
++    if (!isUnlocked) {
++        return;
++    }
++    const balancesToUpdate = {};
++    for (const { accountId, assets } of accounts) {
++        const account = __classPrivateFieldGet(this, _MultichainBalancesController_instances, "m", _MultichainBalancesController_getAccount).call(this, accountId);
++        if (account.metadata.snap) {
++            const accountBalance = await __classPrivateFieldGet(this, _MultichainBalancesController_instances, "m", _MultichainBalancesController_getBalances).call(this, account.id, account.metadata.snap.id, assets);
++            balancesToUpdate[accountId] = accountBalance;
++        }
++    }
++    if (Object.keys(balancesToUpdate).length === 0) {
++        return;
++    }
++    this.update((state) => {
++        for (const [accountId, accountBalances] of Object.entries(balancesToUpdate)) {
++            if (!state.balances[accountId] ||
++                Object.keys(state.balances[accountId]).length === 0) {
++                state.balances[accountId] = accountBalances;
++            }
++            else {
++                for (const assetId in accountBalances) {
++                    if (!state.balances[accountId][assetId]) {
++                        state.balances[accountId][assetId] = accountBalances[assetId];
++                    }
++                }
++            }
++        }
++    });
++}, _MultichainBalancesController_updateBalance = 
+ /**
+  * Updates the balances of one account. This method doesn't return
+  * anything, but it updates the state of the controller.
+diff --git a/node_modules/@metamask/assets-controllers/dist/MultichainBalancesController/MultichainBalancesController.d.cts b/node_modules/@metamask/assets-controllers/dist/MultichainBalancesController/MultichainBalancesController.d.cts
+index 5d492e7..bd6cbd6 100644
+--- a/node_modules/@metamask/assets-controllers/dist/MultichainBalancesController/MultichainBalancesController.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/MultichainBalancesController/MultichainBalancesController.d.cts
+@@ -2,7 +2,7 @@ import type { AccountsControllerAccountAddedEvent, AccountsControllerAccountRemo
+ import { BaseController, type ControllerGetStateAction, type ControllerStateChangeEvent, type RestrictedMessenger } from "@metamask/base-controller";
+ import type { KeyringControllerGetStateAction } from "@metamask/keyring-controller";
+ import type { HandleSnapRequest } from "@metamask/snaps-controllers";
+-import type { MultichainAssetsControllerGetStateAction, MultichainAssetsControllerStateChangeEvent } from "../MultichainAssetsController/index.cjs";
++import type { MultichainAssetsControllerGetStateAction, MultichainAssetsControllerAccountAssetListUpdatedEvent } from "../MultichainAssetsController/index.cjs";
+ declare const controllerName = "MultichainBalancesController";
+ /**
+  * State used by the {@link MultichainBalancesController} to cache account balances.
+@@ -49,7 +49,7 @@ type AllowedActions = HandleSnapRequest | AccountsControllerListMultichainAccoun
+ /**
+  * Events that this controller is allowed to subscribe.
+  */
+-type AllowedEvents = AccountsControllerAccountAddedEvent | AccountsControllerAccountRemovedEvent | AccountsControllerAccountBalancesUpdatesEvent | MultichainAssetsControllerStateChangeEvent;
++type AllowedEvents = AccountsControllerAccountAddedEvent | AccountsControllerAccountRemovedEvent | AccountsControllerAccountBalancesUpdatesEvent | MultichainAssetsControllerAccountAssetListUpdatedEvent;
+ /**
+  * Messenger type for the MultichainBalancesController.
+  */
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 index 0f15eb6..96e5a68 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
@@ -54,7 +414,7 @@ index 0f15eb6..96e5a68 100644
 +_NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new WeakMap(), _NftController_chainId = new WeakMap(), _NftController_ipfsGateway = new WeakMap(), _NftController_displayNftMedia = new WeakMap(), _NftController_useIpfsSubdomains = new WeakMap(), _NftController_isIpfsGatewayEnabled = new WeakMap(), _NftController_onNftAdded = new WeakMap(), _NftController_instances = new WeakSet(), _NftController_onNetworkControllerNetworkDidChange = function _NftController_onNetworkControllerNetworkDidChange({ selectedNetworkClientId, }) {
      const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
      __classPrivateFieldSet(this, _NftController_chainId, chainId, "f");
- }, _NftController_onPreferencesControllerStateChange =
+ }, _NftController_onPreferencesControllerStateChange = 
 @@ -605,20 +605,20 @@ _NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new Wea
   * Handles the state change of the preference controller.
   * @param preferencesState - The new state of the preference controller.
@@ -161,3 +521,16 @@ index 4384784..e35e71c 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
+diff --git a/node_modules/@metamask/assets-controllers/dist/index.d.cts b/node_modules/@metamask/assets-controllers/dist/index.d.cts
+index 96124ba..ee3e930 100644
+--- a/node_modules/@metamask/assets-controllers/dist/index.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/index.d.cts
+@@ -24,7 +24,7 @@ export type { RatesControllerState, RatesControllerEvents, RatesControllerAction
+ export { MultichainBalancesController } from "./MultichainBalancesController/index.cjs";
+ export type { MultichainBalancesControllerState, MultichainBalancesControllerGetStateAction, MultichainBalancesControllerStateChange, MultichainBalancesControllerActions, MultichainBalancesControllerEvents, MultichainBalancesControllerMessenger, } from "./MultichainBalancesController/index.cjs";
+ export { MultichainAssetsController, getDefaultMultichainAssetsControllerState, } from "./MultichainAssetsController/index.cjs";
+-export type { MultichainAssetsControllerState, MultichainAssetsControllerGetStateAction, MultichainAssetsControllerStateChangeEvent, MultichainAssetsControllerActions, MultichainAssetsControllerEvents, MultichainAssetsControllerMessenger, } from "./MultichainAssetsController/index.cjs";
++export type { MultichainAssetsControllerState, MultichainAssetsControllerGetStateAction, MultichainAssetsControllerStateChangeEvent, MultichainAssetsControllerActions, MultichainAssetsControllerEvents, MultichainAssetsControllerMessenger, MultichainAssetsControllerAccountAssetListUpdatedEvent } from "./MultichainAssetsController/index.cjs";
+ export { MultichainAssetsRatesController, getDefaultMultichainAssetsRatesControllerState, } from "./MultichainAssetsRatesController/index.cjs";
+ export type { MultichainAssetsRatesControllerState, MultichainAssetsRatesControllerActions, MultichainAssetsRatesControllerEvents, MultichainAssetsRatesControllerGetStateAction, MultichainAssetsRatesControllerStateChange, MultichainAssetsRatesControllerMessenger, } from "./MultichainAssetsRatesController/index.cjs";
+ export { TokenSearchDiscoveryDataController } from "./TokenSearchDiscoveryDataController/index.cjs";
