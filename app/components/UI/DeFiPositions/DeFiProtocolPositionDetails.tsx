@@ -14,7 +14,7 @@ import I18n from '../../../../locales/i18n';
 import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import Summary from '../../Base/Summary';
 import { PositionTypes } from './position-types';
-import { PositionGroups } from './DeFiProtocolPositions';
+import DeFiProtocolPositionTypeGroup from './DeFiProtocolPositionTypeGroup';
 
 interface DeFiProtocolPositionDetailsParams {
   protocolAggregate: GroupedDeFiPositions['protocols'][number];
@@ -66,7 +66,7 @@ const DeFiProtocolPositionDetails = () => {
       <View style={styles.separatorWrapper}>
         <Summary.Separator />
       </View>
-      <View style={styles.ProtocolDetailsPositionsWrapper}>
+      <View style={styles.protocolDetailsPositionsWrapper}>
         {PositionTypes.map((positionType) => {
           const positionGroups = protocolAggregate.positionTypes[positionType];
 
@@ -75,7 +75,7 @@ const DeFiProtocolPositionDetails = () => {
           }
 
           return (
-            <PositionGroups
+            <DeFiProtocolPositionTypeGroup
               key={positionType}
               positionType={positionType}
               positionGroups={positionGroups}

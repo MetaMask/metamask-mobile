@@ -13,22 +13,27 @@ const styleSheet = (params: { theme: Theme }) => {
     theme: { colors },
   } = params;
   return StyleSheet.create({
-    detailsWrapper: {
-      paddingHorizontal: 16,
+    positionTypeLabel: {
+      color: colors.text.alternative,
+      fontWeight: 'bold',
+      ...fontStyles.normal,
+    },
+    underlyingBalancesWrapper: {
+      display: 'flex',
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 12,
+    },
+    assetSymbolText: {
+      marginLeft: 20,
+    },
+    balance: {
+      flex: 1,
+      alignItems: 'flex-end',
     },
     alternativeText: {
       color: colors.text.alternative,
       ...fontStyles.normal,
-    },
-    separatorWrapper: {
-      paddingHorizontal: 16,
-    },
-    protocolDetailsPositionsWrapper: {
-      display: 'flex',
-      flexDirection: 'column',
-      paddingHorizontal: 16,
     },
   });
 };
