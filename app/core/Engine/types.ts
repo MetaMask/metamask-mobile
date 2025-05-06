@@ -275,7 +275,9 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { EncryptionKey } from '../Encryptor/types';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 /**
  * Controllers that area always instantiated

@@ -24849,9 +24849,9 @@ react-native-get-random-values@^1.8.0:
   dependencies:
     fast-base64-decode "^1.0.0"
 
-"react-native-google-acm@git+https://github.com/Web3Auth/react-native-google-acm.git#402c5dcc9244aadcce9b1f3b05668e67a8b97625":
+"react-native-google-acm@git+https://github.com/Web3Auth/react-native-google-acm.git#615d6a7fe7aea53c5722442f48e75b0cf5917c8d":
   version "0.1.0"
-  resolved "git+https://github.com/Web3Auth/react-native-google-acm.git#402c5dcc9244aadcce9b1f3b05668e67a8b97625"
+  resolved "git+https://github.com/Web3Auth/react-native-google-acm.git#615d6a7fe7aea53c5722442f48e75b0cf5917c8d"
 
 react-native-gzip@^1.1.0:
   version "1.1.0"
