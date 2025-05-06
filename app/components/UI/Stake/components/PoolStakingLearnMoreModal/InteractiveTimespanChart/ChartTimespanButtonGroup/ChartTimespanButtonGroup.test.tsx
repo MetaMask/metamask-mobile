@@ -36,6 +36,10 @@ describe('ChartTimespanButtonGroup', () => {
       // Component hierarchy: ChartTimespanButton < Text < Text < RCTText
     )?.parent?.parent?.parent;
 
+    if (!oneMonthButton) {
+      throw new Error('Could not find one month button');
+    }
+
     const INACTIVE_COLOR = lightTheme.colors.background.default;
     const ACTIVE_COLOR = lightTheme.colors.background.muted;
 

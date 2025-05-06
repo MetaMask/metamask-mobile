@@ -1,14 +1,12 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import BridgeStepList from './BridgeStepList';
-import { NetworkConfiguration } from '@metamask/network-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import {
   BridgeHistoryItem,
-  StatusTypes,
   ActionTypes,
 } from '@metamask/bridge-status-controller';
-import { Step } from '@metamask/bridge-controller';
+import { StatusTypes, Step } from '@metamask/bridge-controller';
 
 jest.mock('./StepProgressBarItem', () => ({
   __esModule: true,
@@ -22,11 +20,6 @@ jest.mock('./BridgeStepDescription', () => ({
 }));
 
 describe('BridgeStepList', () => {
-  const mockNetworkConfigurations = {
-    '0x1': { chainId: '0x1' } as unknown as NetworkConfiguration,
-    '0x89': { chainId: '0x89' } as unknown as NetworkConfiguration,
-  };
-
   const mockSteps = [
     {
       action: ActionTypes.BRIDGE,
@@ -85,7 +78,6 @@ describe('BridgeStepList', () => {
       <BridgeStepList
         bridgeHistoryItem={mockBridgeHistoryItem}
         srcChainTxMeta={mockSrcChainTxMeta}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
       />,
     );
   });
@@ -100,7 +92,6 @@ describe('BridgeStepList', () => {
       <BridgeStepList
         bridgeHistoryItem={mockBridgeHistoryItem}
         srcChainTxMeta={mockSrcChainTxMeta}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
       />,
     );
 
@@ -111,11 +102,7 @@ describe('BridgeStepList', () => {
   });
 
   it('handles missing bridgeHistoryItem', () => {
-    render(
-      <BridgeStepList
-        networkConfigurationsByChainId={mockNetworkConfigurations}
-      />,
-    );
+    render(<BridgeStepList />);
 
     const StepProgressBarItem = jest.requireMock(
       './StepProgressBarItem',
@@ -129,12 +116,7 @@ describe('BridgeStepList', () => {
     ).getStepStatus;
     mockGetStepStatus.mockReturnValue(StatusTypes.PENDING);
 
-    render(
-      <BridgeStepList
-        bridgeHistoryItem={mockBridgeHistoryItem}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
-      />,
-    );
+    render(<BridgeStepList bridgeHistoryItem={mockBridgeHistoryItem} />);
 
     const StepProgressBarItem = jest.requireMock(
       './StepProgressBarItem',
@@ -154,7 +136,6 @@ describe('BridgeStepList', () => {
       <BridgeStepList
         bridgeHistoryItem={mockBridgeHistoryItem}
         srcChainTxMeta={mockSrcChainTxMeta}
-        networkConfigurationsByChainId={mockNetworkConfigurations}
       />,
     );
 

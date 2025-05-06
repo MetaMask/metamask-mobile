@@ -8,7 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './NftOptions.styles';
 import Text, {
@@ -46,14 +46,9 @@ const NftOptions = (props: Props) => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-
-  const chainIdHex = toHex(collectible.chainId); // only if collectible.chainId is number
-  const config = networkConfigurations[chainIdHex];
-  const nftNetworkClientId =
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    config?.rpcEndpoints?.[config.defaultRpcEndpointIndex]?.networkClientId;
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   const goToWalletPage = () => {
     navigation.navigate(Routes.WALLET.HOME, {
@@ -99,6 +94,10 @@ const NftOptions = (props: Props) => {
 
   const removeNft = () => {
     const { NftController } = Engine.context;
+    const nftChainNetwork = networkConfigurations[toHex(collectible.chainId)];
+    const nftNetworkClientId =
+      nftChainNetwork?.rpcEndpoints?.[nftChainNetwork?.defaultRpcEndpointIndex]
+        .networkClientId;
     removeFavoriteCollectible(
       selectedAddress,
       collectible.chainId,

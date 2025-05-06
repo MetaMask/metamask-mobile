@@ -1,0 +1,2167 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SnapUIRenderer adds a footer if required 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 80,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "left",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "left",
+                }
+              }
+            >
+              Hello world!
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View
+      flexDirection="row"
+      gap={16}
+      padding={16}
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "alignItems": "center",
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Close
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoFocus={false}
+                  editable={true}
+                  id="input"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="bar"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoFocus={false}
+                  editable={true}
+                  id="input"
+                  keyboardType="numeric"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value=""
+                />
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoFocus={false}
+                  editable={true}
+                  id="input2"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  secureTextEntry={true}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value=""
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={2}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoFocus={false}
+                  editable={true}
+                  id="input"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="bar"
+                />
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoFocus={false}
+                  editable={true}
+                  id="input2"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="foo"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={2}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer renders basic UI 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "left",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "left",
+                }
+              }
+            >
+              Hello world!
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer renders complex nested components 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 80,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            backgroundColor="#f3f5f9"
+            borderRadius={8}
+            color="Default"
+            flexDirection="column"
+            gap={8}
+            justifyContent="flex-start"
+            padding={16}
+            style={
+              [
+                {
+                  "backgroundColor": "#f3f5f9",
+                  "color": "Default",
+                  "flexDirection": "column",
+                  "gap": 8,
+                  "justifyContent": "flex-start",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderRadius": 8,
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "flexWrap": "wrap",
+                    "justifyContent": "space-between",
+                    "paddingBottom": 8,
+                    "paddingHorizontal": 8,
+                  },
+                  {
+                    "marginLeft": -8,
+                    "marginRight": -8,
+                    "paddingBottom": 0,
+                    "paddingTop": 0,
+                  },
+                ]
+              }
+              testID="snap-ui-info-row"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "flex-start",
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "minHeight": 38,
+                    "paddingEnd": 4,
+                  }
+                }
+                testID="snap-ui-info-row-label-container"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Medium",
+                      "fontSize": 16,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="snap-ui-info-row-label"
+                >
+                  Key
+                </Text>
+              </View>
+              <View
+                testID="snap-ui-info-row-children-container"
+              >
+                <View
+                  alignItems="center"
+                  flexDirection="row"
+                  gap={4}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 4,
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#9ca1af",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    Extra
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    Value
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View
+              alignItems="center"
+              flexDirection="row"
+              justifyContent="space-between"
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                  },
+                  {
+                    "flex": 1,
+                  },
+                ]
+              }
+              testID="snaps-ui-card"
+            >
+              <View
+                alignItems="center"
+                flexDirection="row"
+                gap={16}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "aspectRatio": 1,
+                        "borderRadius": 999,
+                        "height": 32,
+                        "maxHeight": "100%",
+                        "maxWidth": "100%",
+                        "overflow": "hidden",
+                        "width": 32,
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  <RNSVGSvgView
+                    bbHeight="100%"
+                    bbWidth="100%"
+                    focusable={false}
+                    height="100%"
+                    style={
+                      [
+                        {
+                          "backgroundColor": "transparent",
+                          "borderWidth": 0,
+                        },
+                        {
+                          "flex": 1,
+                        },
+                        {
+                          "flex": 0,
+                          "height": "100%",
+                          "width": "100%",
+                        },
+                      ]
+                    }
+                    testID="snaps-ui-image"
+                    width="100%"
+                    xml="<svg />"
+                  >
+                    <RNSVGGroup
+                      fill={
+                        {
+                          "payload": 4278190080,
+                          "type": 0,
+                        }
+                      }
+                    />
+                  </RNSVGSvgView>
+                </View>
+                <View
+                  flexDirection="column"
+                  style={
+                    [
+                      {
+                        "flexDirection": "column",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    ellipsizeMode="tail"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 16,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    CardTitle
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    ellipsizeMode="tail"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    CardDescription
+                  </Text>
+                </View>
+              </View>
+              <View
+                flexDirection="column"
+                style={
+                  [
+                    {
+                      "flexDirection": "column",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  ellipsizeMode="tail"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Medium",
+                      "fontSize": 16,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "textAlign": "right",
+                    }
+                  }
+                >
+                  CardValue
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  ellipsizeMode="tail"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "textAlign": "right",
+                    }
+                  }
+                >
+                  CardExtra
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View
+      flexDirection="row"
+      gap={16}
+      padding={16}
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#121314",
+            "borderRadius": 24,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 50,
+                "borderWidth": 0,
+                "height": 24,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              m
+            </Text>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": undefined,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": undefined,
+                }
+              }
+            >
+              Foo
+            </Text>
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer renders footers 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 80,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "left",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "left",
+                }
+              }
+            >
+              Hello world!
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View
+      flexDirection="row"
+      gap={16}
+      padding={16}
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#121314",
+            "borderRadius": 24,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 50,
+                "borderWidth": 0,
+                "height": 24,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              m
+            </Text>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": undefined,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": undefined,
+                }
+              }
+            >
+              Foo
+            </Text>
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer renders loading state 1`] = `
+<ActivityIndicator
+  color="#1292B4"
+  size="large"
+/>
+`;
+
+exports[`SnapUIRenderer supports fields with multiple components 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            flexDirection="column"
+            gap={8}
+            style={
+              [
+                {
+                  "flexDirection": "column",
+                  "gap": 8,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {},
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="label"
+              >
+                My Input
+              </Text>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <View
+                    color="Default"
+                    flexDirection="column"
+                    gap={8}
+                    justifyContent="flex-start"
+                    style={
+                      [
+                        {
+                          "color": "Default",
+                          "flexDirection": "column",
+                          "gap": 8,
+                          "justifyContent": "flex-start",
+                        },
+                        {
+                          "height": "100%",
+                          "justifyContent": "center",
+                          "padding": 0,
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "aspectRatio": 1,
+                            "borderRadius": 0,
+                            "height": 32,
+                            "maxHeight": "100%",
+                            "maxWidth": "100%",
+                            "overflow": "hidden",
+                            "width": 32,
+                          },
+                          undefined,
+                        ]
+                      }
+                    >
+                      <RNSVGSvgView
+                        align="xMidYMid"
+                        bbHeight="100%"
+                        bbWidth="100%"
+                        focusable={false}
+                        height="100%"
+                        meetOrSlice={0}
+                        minX={0}
+                        minY={0}
+                        style={
+                          [
+                            {
+                              "backgroundColor": "transparent",
+                              "borderWidth": 0,
+                            },
+                            {
+                              "flex": 1,
+                            },
+                            {
+                              "flex": 0,
+                              "height": "100%",
+                              "width": "100%",
+                            },
+                          ]
+                        }
+                        testID="snaps-ui-image"
+                        vbHeight={32}
+                        vbWidth={32}
+                        width="100%"
+                        xml="<svg height="32" width="32" />"
+                      >
+                        <RNSVGGroup
+                          fill={
+                            {
+                              "payload": 4278190080,
+                              "type": 0,
+                            }
+                          }
+                        />
+                      </RNSVGSvgView>
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoFocus={false}
+                    editable={true}
+                    id="input"
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="input"
+                    value=""
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "marginLeft": 8,
+                    }
+                  }
+                  testID="textfield-endacccessory"
+                >
+                  <TouchableOpacity
+                    disabled={false}
+                    id="submit"
+                    onPress={[Function]}
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#4459ff",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 16,
+                          "fontWeight": undefined,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": undefined,
+                        }
+                      }
+                    >
+                      Submit
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer supports interactive inputs 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoFocus={false}
+                  editable={true}
+                  id="input"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="a"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer supports the onCancel prop 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 80,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "left",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "left",
+                }
+              }
+            >
+              Hello world!
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View
+      flexDirection="row"
+      gap={16}
+      padding={16}
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[MockFunction]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#121314",
+            "borderRadius": 24,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 50,
+                "borderWidth": 0,
+                "height": 24,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              m
+            </Text>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": undefined,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": undefined,
+                }
+              }
+            >
+              Foo
+            </Text>
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;

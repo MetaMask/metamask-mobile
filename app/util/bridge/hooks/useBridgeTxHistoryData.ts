@@ -4,6 +4,8 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import { Transaction } from '@metamask/keyring-api';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 
 export const FINAL_NON_CONFIRMED_STATUSES = [
   TransactionStatus.failed,
@@ -12,7 +14,8 @@ export const FINAL_NON_CONFIRMED_STATUSES = [
 ];
 
 export interface UseBridgeTxHistoryDataProps {
-  txMeta: TransactionMeta;
+  evmTxMeta?: TransactionMeta;
+  multiChainTx?: Transaction;
 }
 
 /**
@@ -20,15 +23,26 @@ export interface UseBridgeTxHistoryDataProps {
  * This hook provides access to the bridge-specific transaction details that aren't
  * available in the standard transaction metadata.
  *
- * @param txMeta - The transaction metadata
+ * @param evmTxMeta - The EVM transaction metadata
+ * @param multiChainTx - The multi-chain transaction
  * @returns The bridge transaction history item and whether the bridge is complete
  */
 export function useBridgeTxHistoryData({
-  txMeta,
+  evmTxMeta,
+  multiChainTx,
 }: UseBridgeTxHistoryDataProps) {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-  const srcTxMetaId = txMeta.id;
-  const bridgeHistoryItem = bridgeHistory[srcTxMetaId];
+
+  let bridgeHistoryItem: BridgeHistoryItem | undefined;
+  if (evmTxMeta) {
+    const srcTxMetaId = evmTxMeta?.id;
+    bridgeHistoryItem = srcTxMetaId ? bridgeHistory[srcTxMetaId] : undefined;
+  } else if (multiChainTx) {
+    const srcTxHash = multiChainTx?.id;
+    bridgeHistoryItem = Object.values(bridgeHistory).find(
+      (item) => item.status.srcChain.txHash === srcTxHash,
+    );
+  }
 
   // By complete, this means BOTH source and dest tx are confirmed
   const isBridgeComplete = bridgeHistoryItem

@@ -19,6 +19,6 @@ describe('SelectButton', () => {
     const { queryByTestId } = render(
       <SelectButton {...SAMPLE_SELECTBUTTON_PROPS} />,
     );
-    expect(queryByTestId(SELECTBUTTON_TESTID).props.style.minHeight).toBe(40);
+    expect(queryByTestId(SELECTBUTTON_TESTID)?.props.style.minHeight).toBe(40);
   });
 });
