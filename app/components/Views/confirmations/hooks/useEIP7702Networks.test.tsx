@@ -3,15 +3,15 @@ import { IsAtomicBatchSupportedResult } from '@metamask/transaction-controller';
 import { View } from 'react-native';
 import { waitFor } from '@testing-library/react-native';
 
-import {
-  MOCK_MULTICHAIN_NETWORK_CONTROLLER_STATE,
-  MOCK_NETWORK_CONTROLLER_STATE,
-} from '../../../../../e2e/specs/identity/account-syncing/mock-data';
 import Text from '../../../../component-library/components/Texts/Text';
 import renderWithProvider, {
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../reducers';
+import {
+  MOCK_MULTICHAIN_NETWORK_CONTROLLER_STATE,
+  MOCK_NETWORK_CONTROLLER_STATE,
+} from '../mock-data';
 import { useEIP7702Networks } from './useEIP7702Networks';
 
 const mockNetworkBatchSupport = [
