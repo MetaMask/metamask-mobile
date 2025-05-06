@@ -6,6 +6,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+
+jest.mock('../../../../components/hooks/useMetrics');
 
 const MOCK_STORE_STATE = {
   engine: {
@@ -29,6 +34,21 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
   callback(),
 );
 
+const mockTrackEvent = jest.fn();
+(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+  trackEvent: mockTrackEvent,
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  enable: jest.fn(),
+  addTraitsToUser: jest.fn(),
+  createDataDeletionTask: jest.fn(),
+  checkDataDeleteStatus: jest.fn(),
+  getDeleteRegulationCreationDate: jest.fn(),
+  getDeleteRegulationId: jest.fn(),
+  isDataRecorded: jest.fn(),
+  isEnabled: jest.fn(),
+  getMetaMetricsId: jest.fn(),
+});
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -48,7 +68,7 @@ jest.mock('../../../../util/identity/hooks/useBackupAndSync', () => ({
   }),
 }));
 
-const mockTrackEvent = jest.fn();
+const mockTrackEventOverride = jest.fn();
 
 describe('BackupAndSyncToggle', () => {
   beforeEach(() => {
@@ -58,7 +78,7 @@ describe('BackupAndSyncToggle', () => {
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(
       <BackupAndSyncToggle
-        trackBackupAndSyncToggleEventOverride={mockTrackEvent}
+        trackBackupAndSyncToggleEventOverride={mockTrackEventOverride}
       />,
       {
         state: MOCK_STORE_STATE,
@@ -67,10 +87,39 @@ describe('BackupAndSyncToggle', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('tracks the event when the toggle is changed', async () => {
+    const { getByRole } = renderWithProvider(<BackupAndSyncToggle />, {
+      state: MOCK_STORE_STATE,
+    });
+
+    const switchElement = getByRole('switch');
+
+    act(() => {
+      fireEvent(switchElement, 'onValueChange', true);
+    });
+
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.SETTINGS_UPDATED,
+    )
+      .addProperties({
+        settings_group: 'backup_and_sync',
+        settings_type: 'main',
+        old_value: true,
+        new_value: false,
+        was_notifications_on: false,
+      })
+      .build();
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
+    });
+  });
+
   it('disables backup and sync when basic functionality is disabled', async () => {
     const { store } = renderWithProvider(
       <BackupAndSyncToggle
-        trackBackupAndSyncToggleEventOverride={mockTrackEvent}
+        trackBackupAndSyncToggleEventOverride={mockTrackEventOverride}
       />,
       {
         state: MOCK_STORE_STATE,
@@ -92,7 +141,7 @@ describe('BackupAndSyncToggle', () => {
   it('enables backup and sync when toggling the switch on', async () => {
     const { getByRole } = renderWithProvider(
       <BackupAndSyncToggle
-        trackBackupAndSyncToggleEventOverride={mockTrackEvent}
+        trackBackupAndSyncToggleEventOverride={mockTrackEventOverride}
       />,
       {
         state: {
@@ -120,14 +169,14 @@ describe('BackupAndSyncToggle', () => {
         BACKUPANDSYNC_FEATURES.main,
         true,
       );
-      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockTrackEventOverride).toHaveBeenCalled();
     });
   });
 
   it('opens a modal when trying to enable backup and sync while basic functionality is off', () => {
     const { getByRole } = renderWithProvider(
       <BackupAndSyncToggle
-        trackBackupAndSyncToggleEventOverride={mockTrackEvent}
+        trackBackupAndSyncToggleEventOverride={mockTrackEventOverride}
       />,
       {
         state: {
