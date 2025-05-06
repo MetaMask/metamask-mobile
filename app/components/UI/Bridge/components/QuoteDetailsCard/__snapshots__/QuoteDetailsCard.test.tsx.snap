@@ -537,6 +537,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                           >
                             <SvgMock
                               color="#9ca1af"
+                              fill="currentColor"
                               height={16}
                               name="ArrowDown"
                               style={
@@ -1104,6 +1105,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     </Text>
                                     <SvgMock
                                       color="#9ca1af"
+                                      fill="currentColor"
                                       height={16}
                                       name="Edit"
                                       style={
@@ -1715,6 +1717,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                           >
                             <SvgMock
                               color="#9ca1af"
+                              fill="currentColor"
                               height={16}
                               name="ArrowDown"
                               style={

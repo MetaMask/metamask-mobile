@@ -564,6 +564,7 @@ exports[`Wallet should render correctly 1`] = `
                   >
                     <SvgMock
                       color="#121314"
+                      fill="currentColor"
                       height={24}
                       name="Notification"
                       style={
@@ -1754,6 +1755,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                   >
                     <SvgMock
                       color="#121314"
+                      fill="currentColor"
                       height={24}
                       name="Notification"
                       style={
@@ -2944,6 +2946,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                   >
                     <SvgMock
                       color="#121314"
+                      fill="currentColor"
                       height={24}
                       name="Notification"
                       style={

@@ -3493,6 +3493,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 </Text>
                 <SvgMock
                   color="#4459ff"
+                  fill="currentColor"
                   height={16}
                   name="Copy"
                   style={
