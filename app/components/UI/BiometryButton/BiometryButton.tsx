@@ -43,7 +43,7 @@ const BiometryButton = ({
             size={IconSize.Lg}
             style={styles.fixCenterIcon}
             name={IconName.ScanFocus}
-            // name="ios-finger-print"
+            // TODO name="ios-finger-print"
             testID={LoginViewSelectors.IOS_TOUCH_ID_ICON}
           />
         );
@@ -53,6 +53,7 @@ const BiometryButton = ({
             color={IconColor.Default}
             size={IconSize.Lg}
             style={styles.fixCenterIcon}
+            // TODO: check correct icon
             name={IconName.Lock}
             testID={LoginViewSelectors.IOS_PASSCODE_ICON}
           />
@@ -113,8 +114,8 @@ const BiometryButton = ({
         color={IconColor.Default}
         style={styles.fixCenterIcon}
         size={IconSize.Lg}
+        // TODO: replace with name="finger-print"
         name={IconName.Scan}
-        // name="ios-finger-print"
         testID={LoginViewSelectors.FALLBACK_FINGERPRINT_ICON}
       />
     );

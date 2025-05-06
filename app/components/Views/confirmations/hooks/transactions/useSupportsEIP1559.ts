@@ -4,12 +4,16 @@ import {
   TransactionMeta,
 } from '@metamask/transaction-controller';
 
-import { selectIsEIP1559Network } from '../../../../../selectors/networkController';
+import { checkNetworkAndAccountSupports1559 } from '../../../../../selectors/networkController';
+import { RootState } from '../../../../../reducers';
 
 export function useSupportsEIP1559(transactionMeta: TransactionMeta) {
+  const { networkClientId } = transactionMeta;
   const isLegacyTxn =
     transactionMeta?.txParams?.type === TransactionEnvelopeType.legacy;
-  const networkSupportsEIP1559 = useSelector(selectIsEIP1559Network);
+  const networkSupportsEIP1559 = useSelector((state: RootState) =>
+    checkNetworkAndAccountSupports1559(state, networkClientId),
+  );
 
   const supportsEIP1559 = networkSupportsEIP1559 && !isLegacyTxn;
 
