@@ -49,7 +49,6 @@ import {
   AccountPermissionsScreens,
 } from './AccountPermissions.types';
 import AccountPermissionsConnected from './AccountPermissionsConnected';
-import AccountPermissionsRevoke from './AccountPermissionsRevoke';
 import { USER_INTENT } from '../../../constants/permissions';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
@@ -666,35 +665,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ],
   );
 
-  const renderRevokeScreen = useCallback(
-    () => (
-      <AccountPermissionsRevoke
-        accounts={accountsFilteredByPermissions.permitted}
-        onSetPermissionsScreen={setPermissionsScreen}
-        ensByAccountAddress={ensByAccountAddress}
-        permittedAddresses={permittedAccounts}
-        isLoading={isLoading}
-        favicon={faviconSource}
-        urlWithProtocol={urlWithProtocol}
-        hostname={hostname}
-        secureIcon={secureIcon}
-        accountAvatarType={accountAvatarType}
-      />
-    ),
-    [
-      ensByAccountAddress,
-      isLoading,
-      permittedAccounts,
-      accountsFilteredByPermissions,
-      setPermissionsScreen,
-      faviconSource,
-      hostname,
-      urlWithProtocol,
-      secureIcon,
-      accountAvatarType,
-    ],
-  );
-
   const renderChooseFromPermittedNetworksScreen = useCallback(
     () => (
       <NetworkPermissionsConnected
@@ -807,8 +777,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         return renderEditAccountsPermissionsScreen();
       case AccountPermissionsScreens.ConnectMoreNetworks:
         return renderConnectNetworksScreen();
-      case AccountPermissionsScreens.Revoke:
-        return renderRevokeScreen();
       case AccountPermissionsScreens.ChooseFromPermittedNetworks:
         return renderChooseFromPermittedNetworksScreen();
       case AccountPermissionsScreens.PermissionsSummary:
@@ -823,7 +791,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     renderConnectMoreAccountsScreen,
     renderEditAccountsPermissionsScreen,
     renderConnectNetworksScreen,
-    renderRevokeScreen,
     renderChooseFromPermittedNetworksScreen,
     renderPermissionsSummaryScreen,
     renderNetworkPermissionSummaryScreen,
