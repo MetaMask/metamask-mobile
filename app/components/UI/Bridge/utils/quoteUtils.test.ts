@@ -11,7 +11,7 @@ import type {
 import { Hex } from '@metamask/utils';
 
 describe('quoteUtils', () => {
-  const DEFAULT_REFRESH_RATE = 5 * 1000; // 5 seconds
+  const DEFAULT_REFRESH_RATE = 30 * 1000; // 30 seconds
 
   describe('getQuoteRefreshRate', () => {
     const mockChainConfig: ChainConfiguration = {

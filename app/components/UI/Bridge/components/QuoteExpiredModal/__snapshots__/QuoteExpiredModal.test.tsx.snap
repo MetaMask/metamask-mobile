@@ -239,7 +239,7 @@ exports[`QuoteExpiredModal renders correctly 1`] = `
               }
             }
           >
-            Rates update every 10 seconds, so tap Get new quote when you're ready.
+            Rates update every 15 seconds, so tap Get new quote when you're ready.
           </Text>
         </View>
         <View
