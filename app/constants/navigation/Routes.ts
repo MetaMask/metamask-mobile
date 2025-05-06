@@ -162,6 +162,7 @@ const Routes = {
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_FLAT: 'ConfirmationRequestFlat',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
+  CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
