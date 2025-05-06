@@ -162,7 +162,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
         isSelected: false,
         chainId: network?.chainId,
-        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         imageSource: getNetworkImageSource({
           chainId: network?.chainId,
         }),

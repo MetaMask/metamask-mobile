@@ -26,6 +26,7 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
   selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
+  ...jest.requireActual('../../selectors/settings'),
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
 jest.mock('../../util/phishingDetection', () => ({
@@ -279,6 +280,20 @@ describe('Engine', () => {
       conversionRate: 0,
       conversionDate: 0,
       usdConversionRate: null,
+    });
+  });
+
+  it('does not pass initial RemoteFeatureFlagController state to the controller', () => {
+    const state = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 20000000000000,
+      },
+    };
+    const engine = Engine.init(state);
+    expect(engine.datamodel.state.RemoteFeatureFlagController).toStrictEqual({
+      remoteFeatureFlags: {},
+      cacheTimestamp: 0,
     });
   });
 
