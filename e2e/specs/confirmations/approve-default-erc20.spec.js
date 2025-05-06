@@ -17,6 +17,7 @@ import Assertions from '../../utils/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { buildPermissions } from '../../fixtures/utils';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const EXPECTED_TOKEN_AMOUNT = '7';
@@ -41,7 +42,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
