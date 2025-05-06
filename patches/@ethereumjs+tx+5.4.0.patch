@@ -1,7 +1,7 @@
-diff --git a/dist/cjs/util.js b/dist/cjs/util.js
-index d60cf924ee8144ee49dd07e8e910d87a2c4bfb6a..ea5494530c05f4c831e301b88fef7855c89f2885 100644
---- a/dist/cjs/util.js
-+++ b/dist/cjs/util.js
+diff --git a/node_modules/@ethereumjs/tx/dist/cjs/util.js b/node_modules/@ethereumjs/tx/dist/cjs/util.js
+index d60cf92..ea54945 100644
+--- a/node_modules/@ethereumjs/tx/dist/cjs/util.js
++++ b/node_modules/@ethereumjs/tx/dist/cjs/util.js
 @@ -119,14 +119,11 @@ class AuthorizationLists {
                  }
                  const chainId = (0, util_1.hexToBytes)(item.chainId);
@@ -63,10 +63,10 @@ index d60cf924ee8144ee49dd07e8e910d87a2c4bfb6a..ea5494530c05f4c831e301b88fef7855
          }
      }
      static getDataFeeEIP7702(authorityList, common) {
-diff --git a/dist/esm/util.js b/dist/esm/util.js
-index 36fa7e9917f72b042efc753ba5d1c9cd0d5572db..de454fa2f09a98b2a8716e173d1cd1f87101a490 100644
---- a/dist/esm/util.js
-+++ b/dist/esm/util.js
+diff --git a/node_modules/@ethereumjs/tx/dist/esm/util.js b/node_modules/@ethereumjs/tx/dist/esm/util.js
+index 36fa7e9..de454fa 100644
+--- a/node_modules/@ethereumjs/tx/dist/esm/util.js
++++ b/node_modules/@ethereumjs/tx/dist/esm/util.js
 @@ -114,14 +114,11 @@ export class AuthorizationLists {
                  }
                  const chainId = hexToBytes(item.chainId);

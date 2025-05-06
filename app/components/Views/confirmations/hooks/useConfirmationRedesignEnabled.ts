@@ -66,12 +66,12 @@ function isRedesignedTransaction({
     return confirmationRedesignFlags?.contract_interaction;
   }
 
-  if (
-    transactionMetadata?.type === TransactionType.revokeDelegation ||
-    transactionMetadata?.type === TransactionType.batch
-  ) {
-    return true;
-  }
+  // if (
+  //   transactionMetadata?.type === TransactionType.revokeDelegation ||
+  //   transactionMetadata?.type === TransactionType.batch
+  // ) {
+  //   return true;
+  // }
 
   if (
     REDESIGNED_TRANSFER_TYPES.includes(
