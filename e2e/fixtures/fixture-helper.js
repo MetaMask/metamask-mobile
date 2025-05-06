@@ -1,7 +1,7 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
 import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
 import FixtureBuilder from './fixture-builder';
-import { AnvilManager } from '../seeder/anvil-manager';
+import { AnvilManager, defaultOptions } from '../seeder/anvil-manager';
 import Ganache from '../../app/util/test/ganache';
 
 import GanacheSeeder from '../../app/util/test/ganache-seeder';
@@ -51,18 +51,29 @@ const isFixtureServerStarted = async () => {
 function normalizeLocalNodeOptions(localNodeOptions) {
   if (typeof localNodeOptions === 'string') {
     // Case 1: Passing a string
-    return [{ type: localNodeOptions, options: localNodeOptions === 'ganache' ? defaultGanacheOptions : {} }];
+    return [{ 
+      type: localNodeOptions, 
+      options: localNodeOptions === 'ganache' ? defaultGanacheOptions : 
+              localNodeOptions === 'anvil' ? defaultOptions : {} 
+    }];
   } else if (Array.isArray(localNodeOptions)) {
     return localNodeOptions.map((node) => {
       if (typeof node === 'string') {
         // Case 2: Array of strings
-        return { type: node, options: node === 'ganache' ? defaultGanacheOptions : {} };
+        return { 
+          type: node, 
+          options: node === 'ganache' ? defaultGanacheOptions : 
+                  node === 'anvil' ? defaultOptions : {} 
+        };
       }
       if (typeof node === 'object' && node !== null) {
         // Case 3: Array of objects
+        const type = node.type || 'anvil';
         return {
-          type: node.type || 'anvil',
-          options: node.options || {},
+          type,
+          options: type === 'ganache' ? { ...defaultGanacheOptions, ...(node.options || {}) } :
+                  type === 'anvil' ? { ...defaultOptions, ...(node.options || {}) } :
+                  (node.options || {}),
         };
       }
       throw new Error(`Invalid localNodeOptions entry: ${node}`);

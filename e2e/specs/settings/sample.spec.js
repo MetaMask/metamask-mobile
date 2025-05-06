@@ -25,7 +25,7 @@ describe(SmokeNetworkAbstractions('NFT Details page'), () => {
     await withFixtures({
       fixture: new FixtureBuilder().withGanacheNetwork().build(),
       restartDevice: true,
-      localNodeOptions: [{ type: 'anvil', options: { mnemonic: 'drive manage close raven tape average sausage pledge riot furnace august tip' } }],
+      localNodeOptions: [{ type: 'anvil' }],
     //   ganacheOptions: defaultGanacheOptions,
     }, async () => {
       // Launch app and login
