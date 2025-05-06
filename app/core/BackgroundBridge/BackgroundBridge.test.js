@@ -5,6 +5,7 @@ import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193Method
 import createEthAccountsMethodMiddleware from '../RPCMethods/createEthAccountsMethodMiddleware';
 import { getPermittedAccounts } from '../Permissions';
 import { getCaip25PermissionFromLegacyPermissions } from '../../util/permissions';
+import AppConstants from '../AppConstants';
 
 jest.mock('../../util/permissions', () => ({
   getCaip25PermissionFromLegacyPermissions: jest.fn(),
@@ -78,6 +79,9 @@ function setupBackgroundBridge(url) {
   NetworkController.getNetworkConfigurationByChainId.mockReturnValue({
     bind: jest.fn(),
   });
+  NetworkController.findNetworkClientIdByChainId.mockReturnValue({
+    bind: jest.fn(),
+  });
   PermissionController.executeRestrictedMethod.mockReturnValue({
     bind: jest.fn(),
   });
@@ -109,7 +113,7 @@ function setupBackgroundBridge(url) {
 
 describe('BackgroundBridge', () => {
   beforeEach(() => jest.clearAllMocks());
-  describe('constructor', () => {
+  describe('constructor - with MULTICHAIN_API disabled', () => {
     const { KeyringController, PermissionController } = Engine.context;
 
     it('creates Eip1193MethodMiddleware with expected hooks', async () => {
@@ -189,6 +193,95 @@ describe('BackgroundBridge', () => {
       // Assert getAccounts
       ethAccountsMethodMiddlewareHooks.getAccounts();
       expect(getPermittedAccounts).toHaveBeenCalledWith(bridge.channelId);
+    });
+  });
+
+  // TODO: [ffmcgee] clean this test up
+  describe('constructor - with MULTICHAIN_API enabled', () => {
+    const originalMultichainApi = AppConstants.MULTICHAIN_API;
+
+    beforeEach(() => {
+      // Mock AppConstants.MULTICHAIN_API to be true
+      AppConstants.MULTICHAIN_API = true;
+
+      // Spy on setupProviderConnectionCaip
+      jest.spyOn(BackgroundBridge.prototype, 'setupProviderConnectionCaip');
+
+      // Mock MultichainSubscriptionManager and MultichainMiddlewareManager
+      // jest.mock('../MultichainSubscriptionManager', () => {
+      //   return jest.fn().mockImplementation(() => ({
+      //     // Add any methods that might be called
+      //   }));
+      // });
+
+      // jest.mock('../MultichainMiddlewareManager', () => {
+      //   return jest.fn().mockImplementation(() => ({
+      //     // Add any methods that might be called
+      //   }));
+      // });
+    });
+
+    afterEach(() => {
+      // Restore original value
+      AppConstants.MULTICHAIN_API = originalMultichainApi;
+
+      // Restore the spy
+      BackgroundBridge.prototype.setupProviderConnectionCaip.mockRestore();
+    });
+
+    it('initializes multichain components and calls setupProviderConnectionCaip when MULTICHAIN_API is true', () => {
+      const url = 'https://www.mock.io';
+
+      // Act
+      const bridge = setupBackgroundBridge(url);
+
+      // Assert
+      expect(bridge.multichainSubscriptionManager).toBeTruthy();
+      expect(bridge.multichainMiddlewareManager).toBeTruthy();
+      expect(
+        BackgroundBridge.prototype.setupProviderConnectionCaip,
+      ).toHaveBeenCalled();
+
+      // Verify it was called with a stream named 'metamask-multichain-provider'
+      // const callArgs =
+      //   BackgroundBridge.prototype.setupProviderConnectionCaip.mock.calls[0];
+      // expect(callArgs[0].name).toBe('metamask-multichain-provider');
+    });
+
+    it('handles errors when setting up multichain provider connection', () => {
+      const url = 'https://www.mock.io';
+
+      // Mock setupProviderConnectionCaip to throw an error
+      BackgroundBridge.prototype.setupProviderConnectionCaip.mockImplementation(
+        () => {
+          throw new Error('Setup failed');
+        },
+      );
+
+      // Act - this should not throw despite the error in setupProviderConnectionCaip
+      const bridge = setupBackgroundBridge(url);
+
+      // Assert
+      expect(
+        BackgroundBridge.prototype.setupProviderConnectionCaip,
+      ).toHaveBeenCalled();
+    });
+
+    it('does not initialize multichain components when MULTICHAIN_API is false', () => {
+      // Set MULTICHAIN_API to false for this test
+      AppConstants.MULTICHAIN_API = false;
+
+      const url = 'https://www.mock.io';
+
+      // Act
+      const bridge = setupBackgroundBridge(url);
+
+      // Assert
+      expect(bridge.multichainSubscriptionManager).toBeNull();
+      expect(bridge.multichainMiddlewareManager).toBeNull();
+      expect(
+        BackgroundBridge.prototype.setupProviderConnectionCaip,
+      ).not.toHaveBeenCalled();
     });
   });
 });

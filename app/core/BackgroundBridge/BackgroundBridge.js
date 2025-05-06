@@ -227,7 +227,6 @@ export class BackgroundBridge extends EventEmitter {
       }
     }
 
-    // TODO: [ffmcgee] invoking this will probably now break unit test for this class. Address it.
     this.setupControllerEventSubscriptions();
 
     try {
