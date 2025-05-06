@@ -180,18 +180,20 @@ export const MOCK_ACCOUNT_CONTROLLER_STATE = {
 };
 
 export const MOCK_KEYRING_CONTROLLER_STATE = {
-  encryptionKey:
-    'eyJrZXkiOiI4MWJlNTI4ZmE5YjNjZWYyYzhlNjRjZDYzZGUzZWNiMjI3MDZiYjkxNWVjZDA2N2YzNTI0MmIzNjUzMTA3ZDNlIiwia2V5TWV0YWRhdGEiOnsiYWxnb3JpdGhtIjoiUEJLREYyIiwicGFyYW1zIjp7Iml0ZXJhdGlvbnMiOjUwMDB9fSwiZXhwb3J0YWJsZSI6dHJ1ZSwibGliIjoib3JpZ2luYWwifQ==',
-  encryptionSalt: '8kIQmE68v/69QfTev/LYgK6EuEkwFVd1zq+nJKc6vAQ=',
   isUnlocked: true,
   keyrings: [
-    { accounts: [Array], type: 'HD Key Tree' },
-    { accounts: [Array], type: 'QR Hardware Wallet Device' },
+    {
+      type: 'HD Key Tree',
+      accounts: [
+        '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        '0x089595380921f555d52ab6f5a49defdaab23b444',
+        '0xa4a80ce0afdfb8e6bd1221d3b18a1653eee6d19d',
+      ],
+    },
+    { type: 'QR Hardware Wallet Device', accounts: [] },
   ],
   keyringsMetadata: [
     { id: '01JT88PPSFQW1C2SGPKTS874ZX', name: '' },
     { id: '01JT88PSBXWQ36YBFJWHJAC9T2', name: '' },
   ],
-  vault:
-    '{"cipher":"JJm0oiUlVsTTbh3t3iTmyMG2ZypYuagmL1iAKr4Q1d1Jd9MLI5ngq3R9nn4YILl9eTBhWq5bL+7E85LIVK+erMM4OTJo/uZsMB+8eNUDMHBPvxB0XgoTzgNe75UCclLh+xfHYvHjNutmbt/OzL8slaAcrFW/e+KEHfN9YT4cI5i1aFaC4HYFw2Zf05jdTMnDMBHsrf3ArCeYhnVq5pMWgMrNpCz1+7/SYkSkF4hlPAwUBMT7gxVMBApk4mTXS38lEcBYGR2TORaNVpYX1WUsX7/1MbIj1B2vmHNz9UJWFujuodOxQ1EzjEpFLgJ/FykEAVeLUW8NAhZldn7tZWfgsxppVlMcTpn7V7/kSxAic6wRwRwhrFB7Rz+0h0VFmPVrs6Su2QmEetAptdxfOeb583dvrhfj0NRo4d9IMvIBfgey92gvAvim9pkrmtH9K6+FQ23gCcwXrnC0B/pSO9y1ONc9CflmGlo/o4TP+B5Mw+dBoFBOQ+zuOL/YLFEgyDiDVLhyxrm4JFHcprfg5Sejpd28Z7myx9IA+L7WYHamTZLr090rD8dT7DydW3vQXZjMA8lFSVjhixwN6HE1tXrADzWtzf+1hfOUFezWLrgqYmmojzUq/BtFvmt4cQeAgPMfTcbF1NXEth41ghBsYrjxr8XcGJ7WL7dp1umMUCVofhCgW1CR9rvEC0p8fqdDaWEgokJgOPxG69ueOf2FlQwlW7hKFHiYDad3H63JW2cEGdamkqjAwTY/4cQ/m+im0ai3tsgjmlXr9k43dwEl1dNOHhp/ICTzZKZXxWyXlI1ZjokrzUz1zawdVuj8fujvnXPPlvyEYGMMg2HamJltbnnoXA==","iv":"23ac7cbac25da7618b302ee6b4ae3698","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"8kIQmE68v/69QfTev/LYgK6EuEkwFVd1zq+nJKc6vAQ="}',
 };

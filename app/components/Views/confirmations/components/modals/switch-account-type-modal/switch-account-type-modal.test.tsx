@@ -72,9 +72,12 @@ describe('Switch Account Type Modal', () => {
       networkSupporting7702Present: true,
     });
 
-    const { getByText } = renderWithProvider(<SwitchAccountTypeModal />, {
-      state: MOCK_STATE,
-    });
+    const { getByTestId, getByText } = renderWithProvider(
+      <SwitchAccountTypeModal />,
+      {
+        state: MOCK_STATE,
+      },
+    );
     expect(getByText('Account 1')).toBeTruthy();
     expect(getByText('Sepolia')).toBeTruthy();
     expect(getByText('Smart Account')).toBeTruthy();
@@ -91,11 +94,11 @@ describe('Switch Account Type Modal', () => {
     const container = renderWithProvider(<SwitchAccountTypeModal />, {
       state: MOCK_STATE,
     });
-    const { queryByText } = container;
+    const { getByTestId, queryByText } = container;
     expect(queryByText('Account 1')).toBeNull();
     expect(queryByText('Sepolia')).toBeNull();
     expect(queryByText('Smart Account')).toBeNull();
     expect(queryByText('Switch')).toBeNull();
-    expect(container).toMatchSnapshot();
+    expect(getByTestId('network-data-loader')).toBeTruthy();
   });
 });

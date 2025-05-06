@@ -136,7 +136,7 @@ import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
 import AddNewAccount from '../../Views/AddNewAccount';
-import SwitchAccountTypeModal from '../../Views/confirmations/components/switch-account-type-modal';
+import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
