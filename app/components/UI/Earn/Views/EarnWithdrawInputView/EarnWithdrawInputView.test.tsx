@@ -1,17 +1,22 @@
-import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import EarnWithdrawInputView from './EarnWithdrawInputView';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import BN4 from 'bnjs4';
+import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
+import {
+  ConfirmationRedesignRemoteFlags,
+  selectConfirmationRedesignFlags,
+} from '../../../../../selectors/featureFlagController/confirmations';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_MAINNET_ASSET,
 } from '../../../Stake/__mocks__/mockData';
+import EarnWithdrawInputView from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
-import BN4 from 'bnjs4';
+import { flushPromises } from '../../../../../util/test/utils';
 
 jest.mock('../../../../../selectors/multichain', () => ({
   selectAccountTokensAcrossChains: jest.fn(() => ({
@@ -129,15 +134,23 @@ jest.mock('../../../Stake/hooks/usePoolStakedUnstake', () => ({
   }),
 }));
 
-jest.mock('../../../../../selectors/featureFlagController', () => ({
-  selectConfirmationRedesignFlags: jest.fn(() => ({
-    staking_confirmations: false,
-  })),
+jest.mock('../../../../../selectors/featureFlagController/confirmations');
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(false),
 }));
 
 describe('UnstakeInputView', () => {
+  const selectConfirmationRedesignFlagsMock = jest.mocked(
+    selectConfirmationRedesignFlags,
+  );
+
   beforeEach(() => {
     jest.useFakeTimers();
+
+    selectConfirmationRedesignFlagsMock.mockReturnValue({
+      staking_confirmations: false,
+    } as unknown as ConfirmationRedesignRemoteFlags);
   });
 
   it('render matches snapshot', () => {
@@ -219,6 +232,10 @@ describe('UnstakeInputView', () => {
         () => ({
           attemptUnstakeTransaction: mockAttemptUnstakeTransaction,
         });
+
+      selectConfirmationRedesignFlagsMock.mockReturnValue({
+        staking_confirmations: true,
+      } as unknown as ConfirmationRedesignRemoteFlags);
     });
 
     afterEach(() => {
@@ -234,9 +251,8 @@ describe('UnstakeInputView', () => {
 
       fireEvent.press(screen.getByText('Review'));
 
-      jest.useRealTimers();
-      // Wait for the async operation to complete
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      jest.useFakeTimers({ legacyFakeTimers: true });
+      await flushPromises();
 
       expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {

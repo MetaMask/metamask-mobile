@@ -1,6 +1,6 @@
 /* eslint-disable import/no-namespace */
 import * as Sentry from '@sentry/react-native';
-import { Dedupe, ExtraErrorData } from '@sentry/integrations';
+import { dedupeIntegration, extraErrorDataIntegration } from '@sentry/browser';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import StorageWrapper from '../../store/storage-wrapper';
 import { regex } from '../regex';
@@ -219,6 +219,7 @@ export const sentryStateMask = {
       UserStorageController: {
         isProfileSyncingEnabled: true,
         isProfileSyncingUpdateLoading: false,
+        isAccountSyncingEnabled: true,
         hasAccountSyncingSyncedAtLeastOnce: false,
         isAccountSyncingReadyToBeDispatched: false,
         isAccountSyncingInProgress: false,
@@ -548,7 +549,7 @@ export function setupSentry() {
   const init = async () => {
     const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
 
-    const integrations = [new Dedupe(), new ExtraErrorData()];
+    const integrations = [dedupeIntegration(), extraErrorDataIntegration()];
     const environment = deriveSentryEnvironment(
       __DEV__,
       METAMASK_ENVIRONMENT,
@@ -567,6 +568,8 @@ export function setupSentry() {
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
       enabled: metricsOptIn === AGREED,
+      // Use tracePropagationTargets from v5 SDK as default
+      tracePropagationTargets: ['localhost', /^\/(?!\/)/],
     });
   };
   init();

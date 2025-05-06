@@ -1094,7 +1094,7 @@ exports[`AssetOverview should render correctly 1`] = `
             {
               "alignItems": "flex-end",
               "alignSelf": "flex-end",
-              "flex": 1,
+              "flexShrink": 0,
             }
           }
         >
@@ -1125,7 +1125,6 @@ exports[`AssetOverview should render correctly 1`] = `
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "paddingHorizontal": 0,
-                "textTransform": "uppercase",
               }
             }
             testID="secondary-balance-test-id"
@@ -1142,7 +1141,16 @@ exports[`AssetOverview should render correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-    />
+    >
+      <View
+        style={
+          {
+            "gap": 24,
+            "marginTop": 24,
+          }
+        }
+      />
+    </View>
   </View>
 </View>
 `;
@@ -2138,7 +2146,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                     },
                   ]
                 }
-                testID="PLACE HOLDER"
+                testID="Ethereum"
               />
               <View
                 collapsable={false}
@@ -2278,7 +2286,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             {
               "alignItems": "flex-end",
               "alignSelf": "flex-end",
-              "flex": 1,
+              "flexShrink": 0,
             }
           }
         >
@@ -2309,7 +2317,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "paddingHorizontal": 0,
-                "textTransform": "uppercase",
               }
             }
             testID="secondary-balance-test-id"
@@ -2326,7 +2333,16 @@ exports[`AssetOverview should render native balances even if there are no accoun
           "paddingHorizontal": 16,
         }
       }
-    />
+    >
+      <View
+        style={
+          {
+            "gap": 24,
+            "marginTop": 24,
+          }
+        }
+      />
+    </View>
   </View>
 </View>
 `;
@@ -2380,41 +2396,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         }
         testID="token-price"
       >
-        <View
-          style={
-            {
-              "paddingTop": 8,
-            }
-          }
-        >
-          <View
-            onLayout={[Function]}
-          >
-            <View
-              style={
-                {
-                  "position": "relative",
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 6,
-                      "height": 32,
-                      "width": 100,
-                    },
-                    {
-                      "backgroundColor": "#E1E9EE",
-                      "overflow": "hidden",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </View>
-        </View>
+        $151.23
       </Text>
       <Text
         accessibilityRole="text"
@@ -2429,76 +2411,111 @@ exports[`AssetOverview should render native balances when non evm network is sel
           }
         }
       >
-        <View
+        <Text
+          accessibilityRole="text"
           style={
             {
-              "paddingTop": 2,
+              "color": "#1c7e33",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
           }
-          testID="loading-price-diff"
         >
-          <View
-            onLayout={[Function]}
-          >
-            <View
-              style={
+          <Text
+            allowFontScaling={false}
+            selectable={false}
+            style={
+              [
                 {
-                  "position": "relative",
-                }
+                  "color": undefined,
+                  "fontSize": 16,
+                },
+                {
+                  "marginTop": 10,
+                },
+                {
+                  "fontFamily": "Feather",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                {},
+              ]
+            }
+          >
+            
+          </Text>
+           
+          $151.23
+           (
+          +
+          Infinity
+          %)
+           
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
               }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 6,
-                      "height": 18,
-                      "width": 150,
-                    },
-                    {
-                      "backgroundColor": "#E1E9EE",
-                      "overflow": "hidden",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </View>
-        </View>
+            }
+          >
+            Today
+          </Text>
+        </Text>
       </Text>
     </View>
     <View
       style={
         {
-          "paddingHorizontal": 16,
-          "paddingTop": 10,
+          "height": 576.96,
+          "marginVertical": 10,
+          "paddingLeft": 0,
+          "paddingRight": 0,
+          "paddingTop": 0,
           "width": 750,
         }
       }
     >
       <View
-        onLayout={[Function]}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
       >
         <View
           style={
             {
-              "position": "relative",
+              "flex": 1,
             }
           }
         >
           <View
+            onLayout={[Function]}
             style={
-              [
-                {
-                  "borderRadius": 6,
-                  "height": 586.96,
-                  "width": 718,
-                },
-                {
-                  "backgroundColor": "#E1E9EE",
-                  "overflow": "hidden",
-                },
-              ]
+              {
+                "flex": 1,
+              }
             }
           />
         </View>
@@ -2668,37 +2685,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
           }
         >
           1Y
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderRadius": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 8,
-            "paddingLeft": 10,
-            "paddingVertical": 2,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 3,
-              "lineHeight": 22,
-              "textAlign": "center",
-            }
-          }
-        >
-          3Y
         </Text>
       </TouchableOpacity>
     </View>
@@ -3062,112 +3048,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               false,
             ]
           }
-          testID="token-send-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              height={24}
-              name="Arrow2Upright"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 18,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Send
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
           testID="token-receive-button"
         >
           <View
@@ -3322,7 +3202,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                     },
                   ]
                 }
-                testID="PLACE HOLDER"
+                testID="Ethereum"
               />
               <View
                 collapsable={false}
@@ -3459,7 +3339,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
             {
               "alignItems": "flex-end",
               "alignSelf": "flex-end",
-              "flex": 1,
+              "flexShrink": 0,
             }
           }
         >
@@ -3490,7 +3370,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "paddingHorizontal": 0,
-                "textTransform": "uppercase",
               }
             }
             testID="secondary-balance-test-id"
@@ -3507,7 +3386,156 @@ exports[`AssetOverview should render native balances when non evm network is sel
           "paddingHorizontal": 16,
         }
       }
-    />
+    >
+      <View
+        style={
+          {
+            "gap": 24,
+            "marginTop": 24,
+          }
+        }
+      >
+        <View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 18,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingVertical": 8,
+              }
+            }
+          >
+            Token details
+          </Text>
+          <View
+            style={
+              {
+                "paddingBottom": 8,
+                "paddingTop": 8,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                    "paddingVertical": 4,
+                  },
+                  {
+                    "paddingTop": 0,
+                  },
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Contract address
+              </Text>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#4459ff1a",
+                    "borderRadius": 20,
+                    "flexDirection": "row",
+                    "marginLeft": 8,
+                    "paddingHorizontal": 8,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  solana:...4:501
+                </Text>
+                <SvgMock
+                  color="#4459ff"
+                  height={16}
+                  name="Copy"
+                  style={
+                    {
+                      "height": 16,
+                      "marginLeft": 4,
+                      "width": 16,
+                    }
+                  }
+                  width={16}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "paddingVertical": 4,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Token decimal
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                18
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
   </View>
 </View>
 `;

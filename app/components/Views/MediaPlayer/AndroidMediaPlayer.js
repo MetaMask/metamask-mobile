@@ -16,7 +16,6 @@ import {
   Image,
   View,
   Text,
-  ViewPropTypes,
   TouchableNativeFeedback,
   TouchableHighlight,
 } from 'react-native';
@@ -24,6 +23,7 @@ import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
+import { ViewPropTypes } from 'deprecated-react-native-prop-types';
 
 const createStyles = (theme) =>
   StyleSheet.create({

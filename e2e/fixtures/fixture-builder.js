@@ -70,11 +70,6 @@ class FixtureBuilder {
         engine: {
           backgroundState: {
             AccountTrackerController: {
-              accounts: {
-                [DEFAULT_FIXTURE_ACCOUNT]: {
-                  balance: '0x0',
-                },
-              },
               accountsByChainId: {
                 64: {
                   [DEFAULT_FIXTURE_ACCOUNT]: {
@@ -87,9 +82,6 @@ class FixtureBuilder {
                   },
                 },
               },
-              _U: 0,
-              _V: 1,
-              _X: null,
             },
             AddressBookController: {
               addressBook: {},
@@ -100,35 +92,40 @@ class FixtureBuilder {
               ignoredNfts: [],
             },
             TokenListController: {
-              tokenList: {
-                '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f': {
-                  address: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
-                  symbol: 'SNX',
-                  decimals: 18,
-                  name: 'Synthetix Network Token',
-                  iconUrl:
-                    'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
-                  type: 'erc20',
-                  aggregators: [
-                    'Aave',
-                    'Bancor',
-                    'CMC',
-                    'Crypto.com',
-                    'CoinGecko',
-                    '1inch',
-                    'PMM',
-                    'Synthetix',
-                    'Zerion',
-                    'Lifi',
+              tokensChainsCache: {
+                '0x1': {
+                  data: [
+                    {
+                      '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f': {
+                        address: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
+                        symbol: 'SNX',
+                        decimals: 18,
+                        name: 'Synthetix Network Token',
+                        iconUrl:
+                          'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
+                        type: 'erc20',
+                        aggregators: [
+                          'Aave',
+                          'Bancor',
+                          'CMC',
+                          'Crypto.com',
+                          'CoinGecko',
+                          '1inch',
+                          'PMM',
+                          'Synthetix',
+                          'Zerion',
+                          'Lifi',
+                        ],
+                        occurrences: 10,
+                        fees: {
+                          '0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f': 0,
+                          '0xda4ef8520b1a57d7d63f1e249606d1a459698876': 0,
+                        },
+                      },
+                    },
                   ],
-                  occurrences: 10,
-                  fees: {
-                    '0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f': 0,
-                    '0xda4ef8520b1a57d7d63f1e249606d1a459698876': 0,
-                  },
                 },
               },
-              tokensChainsCache: {},
               preventPollingOnNetworkRestart: false,
             },
             CurrencyRateController: {
@@ -298,62 +295,14 @@ class FixtureBuilder {
               useSafeChainsListValidation: false,
               isMultiAccountBalancesEnabled: true,
               showTestNetworks: true,
-              _U: 0,
-              _V: 1,
-              _W: {
-                featureFlags: {},
-                frequentRpcList: [],
-                identities: {
-                  [DEFAULT_FIXTURE_ACCOUNT]: {
-                    address: DEFAULT_FIXTURE_ACCOUNT,
-                    name: 'Account 1',
-                    importTime: 1684232000456,
-                  },
-                },
-                ipfsGateway: 'https://dweb.link/ipfs/',
-                lostIdentities: {},
-                selectedAddress: DEFAULT_FIXTURE_ACCOUNT,
-                useTokenDetection: true,
-                useNftDetection: false,
-                displayNftMedia: true,
-                useSafeChainsListValidation: false,
-                isMultiAccountBalancesEnabled: true,
-                showTestNetworks: true,
-                showIncomingTransactions: {
-                  '0x1': true,
-                  '0x5': true,
-                  '0x38': true,
-                  '0x61': true,
-                  '0xa': true,
-                  '0xa869': true,
-                  '0x1a4': true,
-                  '0x89': true,
-                  '0x13881': true,
-                  '0xa86a': true,
-                  '0xfa': true,
-                  '0xfa2': true,
-                  '0xaa36a7': true,
-                  '0xe704': true,
-                  '0xe705': true,
-                  '0xe708': true,
-                  '0x504': true,
-                  '0x507': true,
-                  '0x505': true,
-                  '0x64': true,
-                },
-              },
-              _X: null,
             },
             TokenBalancesController: {
-              contractBalances: {},
+              tokenBalances: {},
             },
             TokenRatesController: {
               marketData: {},
             },
             TokensController: {
-              tokens: [],
-              ignoredTokens: [],
-              detectedTokens: [],
               allTokens: {},
               allIgnoredTokens: {},
               allDetectedTokens: {},
@@ -361,7 +310,6 @@ class FixtureBuilder {
             TransactionController: {
               methodData: {},
               transactions: [],
-              internalTransactions: [],
               swapsTransactions: {},
             },
             SwapsController: {
@@ -749,14 +697,6 @@ class FixtureBuilder {
     // Update selectedNetworkClientId to the new network client ID
     networkController.selectedNetworkClientId = newNetworkClientId;
 
-    // Merge the rest of the data
-    merge(networkController, data);
-
-    if (data.providerConfig.ticker !== 'ETH') {
-      this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
-        data.providerConfig.ticker;
-    }
-
     return this;
   }
 
@@ -938,9 +878,6 @@ class FixtureBuilder {
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
-    // Set isCustomNetwork to true (if this property still exists in the new state)
-    fixtures.NetworkController.isCustomNetwork = true;
-
     return this;
   }
 
@@ -989,7 +926,6 @@ class FixtureBuilder {
     // Assign networkConfigurationsByChainId object to NetworkController in fixtures
     fixtures.NetworkController = {
       ...fixtures.NetworkController,
-      isCustomNetwork: true,
       networkConfigurationsByChainId,
     };
 

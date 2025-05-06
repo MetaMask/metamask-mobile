@@ -72,17 +72,17 @@ const createStyle = (colors: any) =>
   });
 
 // Ledger Logo
-const ledgerLogoLightImgPath = 'images/ledger-light.png';
+const ledgerLogoLightImgPath = '../../../../images/ledger-light.png';
 const ledgerLogoLight = require(ledgerLogoLightImgPath);
 
-const ledgerLogoDarkImgPath = 'images/ledger-dark.png';
+const ledgerLogoDarkImgPath = '../../../../images/ledger-dark.png';
 const ledgerLogoDark = require(ledgerLogoDarkImgPath);
 
 // QR Hardware Logo
-const qrHardwareLogoLightImgPath = 'images/qrhardware-light.png';
+const qrHardwareLogoLightImgPath = '../../../../images/qrhardware-light.png';
 const qrHardwareLogoLight = require(qrHardwareLogoLightImgPath);
 
-const qrHardwareLogoDarkImgPath = 'images/qrhardware-dark.png';
+const qrHardwareLogoDarkImgPath = '../../../../images/qrhardware-dark.png';
 const qrHardwareLogoDark = require(qrHardwareLogoDarkImgPath);
 
 const SelectHardwareWallet = () => {

@@ -7,6 +7,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsCo
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { mockNetworkState } from '../../../../util/test/network';
+import type { NetworkState } from '@metamask/network-controller';
 
 const Stack = createStackNavigator();
 const mockEthQuery = {
@@ -30,6 +31,16 @@ const initialState = {
       },
     },
     '0x1': {
+      isLive: true,
+      featureFlags: {
+        smartTransactions: {
+          expectedDeadline: 45,
+          maxDeadline: 160,
+          mobileReturnTxHashAsap: false,
+        },
+      },
+    },
+    '0xe708': {
       isLive: true,
       featureFlags: {
         smartTransactions: {
@@ -75,6 +86,7 @@ const renderComponent = ({
   hash,
   txParams,
   status = 'confirmed',
+  networkId = '0x1',
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state?: any;
@@ -83,37 +95,37 @@ const renderComponent = ({
   txParams?: any;
   status?: string;
   shouldUseSmartTransaction?: boolean;
+  networkId?: string;
 }) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="Amount" options={{}}>
         {() => (
           <TransactionDetails
-            // @ts-expect-error - TransactionDetails needs to be converted to typescript
             transactionObject={{
               networkID: '1',
               status,
               transaction: {
                 nonce: '',
               },
-              chainId: '0x1',
+              chainId: networkId,
               ...(txParams ? { txParams } : {}),
             }}
-            //@ts-expect-error - TransactionDetails needs to be converted to typescript
             transactionDetails={{
               renderFrom: '0x0',
-              renderTo: '0x1',
+              renderTo: networkId,
               transactionHash: '0x2',
               renderValue: '2 TKN',
               renderGas: '21000',
               renderGasPrice: '2',
               renderTotalValue: '2 TKN / 0.001 ETH',
               renderTotalValueFiat: '',
-              txChainId: '0x1',
+              txChainId: networkId,
+              hash: '0x3',
               ...(hash ? { hash } : {}),
             }}
-            //@ts-expect-error - navigation is not typed
             navigation={navigationMock}
+            chainId={networkId}
           />
         )}
       </Stack.Screen>
@@ -197,40 +209,140 @@ describe('TransactionDetails', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should view transaction details on etherscan', () => {
+  const arrangeBlockExplorerTest = () => {
     jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
       timestamp: 1234,
       l1Fee: '0x1',
     });
 
-    const { getByText } = renderComponent({
-      state: {
-        ...initialState,
-        engine: {
-          ...initialState.engine,
-          backgroundState: {
-            ...initialState.engine.backgroundState,
-            NetworkController: {
-              ...mockNetworkState({
-                chainId: '0x1',
-                id: 'mainnet',
-                nickname: 'Mainnet',
-                ticker: 'ETH',
-                blockExplorerUrl: 'https://etherscan.io/',
-              }),
+    const mockState = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          NetworkController: {
+            '0x1': {
+              chainId: '0x1',
+              blockExplorerUrls: [],
+              rpcEndpoints: [
+                {
+                  rpcUrl: 'https://mainnet.infura.io/v3/123',
+                  chainId: '0x1',
+                  nickname: 'Mainnet',
+                  ticker: 'ETH',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+              name: 'Mainnet',
+              nativeCurrency: 'ETH',
             },
-          },
+          } as unknown as NetworkState,
         },
       },
-      hash: '0x3',
-      txParams: {
-        multiLayerL1FeeTotal: '0x1',
-      },
+    };
+
+    const mockProps = {
+      networkId: '0x1',
+    };
+
+    return {
+      mockState,
+      mockProps,
+    };
+  };
+
+  const arrangeActAssertBlockExplorerTest = (props: {
+    buttonText: string;
+    expectedUrl: string;
+    overrideMocks?: (
+      mocks: ReturnType<typeof arrangeBlockExplorerTest>,
+    ) => void;
+  }) => {
+    // Arrange
+    const mocks = arrangeBlockExplorerTest();
+    props.overrideMocks?.(mocks);
+
+    const { getByText } = renderComponent({
+      state: mocks.mockState,
+      networkId: mocks.mockProps.networkId,
     });
-    const etherscanButton = getByText('VIEW ON Etherscan');
-    expect(etherscanButton).toBeDefined();
-    fireEvent.press(etherscanButton);
-    expect(navigationMock.push).toHaveBeenCalled();
+
+    fireEvent.press(getByText(props.buttonText));
+
+    expect(navigationMock.push).toHaveBeenCalledWith('Webview', {
+      params: expect.objectContaining({ url: props.expectedUrl }),
+      screen: 'SimpleWebview',
+    });
+  };
+
+  it('should view transaction details on etherscan', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0x1';
+      },
+      buttonText: 'VIEW ON Etherscan',
+      expectedUrl: 'https://etherscan.io/tx/0x3',
+    });
+  });
+
+  it('should display explorer link for linea mainnet', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0xe708',
+            id: 'linea',
+            nickname: 'Linea Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0xe708';
+      },
+      buttonText: 'VIEW ON Lineascan',
+      expectedUrl: 'https://lineascan.build/tx/0x3',
+    });
+  });
+
+  it('should display explorer link for sepolia mainnet', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0xaa36a7',
+            id: 'sepolia',
+            nickname: 'Sepolia Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0xaa36a7';
+      },
+      buttonText: 'VIEW ON Sepolia',
+      expectedUrl: 'https://sepolia.etherscan.io/tx/0x3',
+    });
+  });
+
+  it('should display explorer link for custom network', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1337',
+            id: '123-123-123',
+            nickname: 'My Custom Network',
+            ticker: 'FOO',
+            blockExplorerUrl: 'https://custom-block-explorer.net',
+          });
+        mocks.mockProps.networkId = '0x1337';
+      },
+      buttonText: 'VIEW ON Custom-block-explorer',
+      expectedUrl: 'https://custom-block-explorer.net/tx/0x3',
+    });
   });
 
   it('should render speed up and cancel buttons', async () => {

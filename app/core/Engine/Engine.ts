@@ -12,6 +12,7 @@ import {
   TokenRatesController,
   TokensController,
   CodefiTokenPricesServiceV2,
+  TokenSearchDiscoveryDataController,
 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import { AddressBookController } from '@metamask/address-book-controller';
@@ -24,8 +25,8 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
-  getDefaultNetworkControllerState,
   NetworkController,
+  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
@@ -81,6 +82,7 @@ import {
   weiToFiatNumber,
   toHexadecimal,
   hexToBN,
+  renderFromWei,
 } from '../../util/number';
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
@@ -104,10 +106,6 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications.js';
 import { backupVault } from '../BackupVault';
-import {
-  SignatureController,
-  SignatureControllerOptions,
-} from '@metamask/signature-controller';
 import { Hex, Json } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
@@ -126,12 +124,7 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
-import {
-  ApprovalType,
-  ChainId,
-  handleFetch,
-  toChecksumHexAddress,
-} from '@metamask/controller-utils';
+import { ApprovalType, ChainId, handleFetch } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
@@ -167,8 +160,8 @@ import {
   SnapControllerGetSnapStateAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/snaps';
+import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
-import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import {
   BaseControllerMessenger,
@@ -179,6 +172,7 @@ import {
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
   STATELESS_NON_CONTROLLER_NAMES,
+  swapsSupportedChainIds,
 } from './constants';
 import {
   getGlobalChainId,
@@ -198,17 +192,14 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
-import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
-import {
-  onRpcEndpointDegraded,
-  onRpcEndpointUnavailable,
-} from './controllers/network-controller/messenger-action-handlers';
-import { INFURA_PROJECT_ID } from '../../constants/network';
-import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
+import { appMetadataControllerInit } from './controllers/app-metadata-controller';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { toFormattedAddress } from '../../util/address';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -311,100 +302,22 @@ export class Engine {
       },
     });
 
-    const networkControllerMessenger = this.controllerMessenger.getRestricted({
-      name: 'NetworkController',
-      allowedEvents: [],
-      allowedActions: [],
-    });
-
-    const additionalDefaultNetworks = [ChainId['megaeth-testnet']];
-
-    let initialNetworkControllerState = initialState.NetworkController;
-    if (!initialNetworkControllerState) {
-      initialNetworkControllerState = getDefaultNetworkControllerState(
-        additionalDefaultNetworks,
-      );
-
-      // Add failovers for default Infura RPC endpoints
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId.mainnet
-      ].rpcEndpoints[0].failoverUrls =
-        getFailoverUrlsForInfuraNetwork('ethereum-mainnet');
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId['linea-mainnet']
-      ].rpcEndpoints[0].failoverUrls =
-        getFailoverUrlsForInfuraNetwork('linea-mainnet');
-    }
-
-    const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
     const networkControllerOpts = {
-      infuraProjectId,
-      state: initialNetworkControllerState,
-      messenger: networkControllerMessenger,
-      getRpcServiceOptions: (rpcEndpointUrl: string) => {
-        const commonOptions = {
-          fetch: globalThis.fetch.bind(globalThis),
-          btoa: globalThis.btoa.bind(globalThis),
-        };
-
-        if (getIsQuicknodeEndpointUrl(rpcEndpointUrl)) {
-          return {
-            ...commonOptions,
-            policyOptions: {
-              // There is currently a bug in the block tracker (and probably
-              // also the middleware layers) that result in a flurry of retries
-              // when an RPC endpoint goes down, causing us to pretty
-              // immediately enter a 30-minute cooldown period during which all
-              // requests will be dropped. This isn't a problem for Infura, as
-              // we need a long cooldown anyway to prevent spamming it while it
-              // is down. But Quicknode is a different story. When we fail over
-              // to it, we expect it to be down at first while it is being
-              // automatically activated. So dropping requests for a lengthy
-              // period would defeat the point. Shortening the cooldown period
-              // mitigates this problem.
-              circuitBreakDuration: 5000,
-            },
-          };
-        }
-
-        return commonOptions;
-      },
-      additionalDefaultNetworks,
+      infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+      state: initialState.NetworkController,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'NetworkController',
+        allowedEvents: [],
+        allowedActions: [],
+      }) as unknown as NetworkControllerMessenger,
+      getRpcServiceOptions: () => ({
+        fetch,
+        btoa,
+      }),
+      additionalDefaultNetworks: [ChainId['megaeth-testnet']],
     };
     const networkController = new NetworkController(networkControllerOpts);
-    networkControllerMessenger.subscribe(
-      'NetworkController:rpcEndpointUnavailable',
-      async ({ chainId, endpointUrl, error }) => {
-        onRpcEndpointUnavailable({
-          chainId,
-          endpointUrl,
-          infuraProjectId,
-          error,
-          trackEvent: ({ event, properties }) => {
-            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-              .addProperties(properties)
-              .build();
-            MetaMetrics.getInstance().trackEvent(metricsEvent);
-          },
-        });
-      },
-    );
-    networkControllerMessenger.subscribe(
-      'NetworkController:rpcEndpointDegraded',
-      async ({ chainId, endpointUrl }) => {
-        onRpcEndpointDegraded({
-          chainId,
-          endpointUrl,
-          infuraProjectId,
-          trackEvent: ({ event, properties }) => {
-            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-              .addProperties(properties)
-              .build();
-            MetaMetrics.getInstance().trackEvent(metricsEvent);
-          },
-        });
-      },
-    );
+
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
@@ -450,7 +363,6 @@ export class Engine {
       }),
     });
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
-      state: initialState.RemoteFeatureFlagController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
         allowedActions: [],
@@ -531,15 +443,13 @@ export class Engine {
       allowedEvents: [],
     });
 
-    // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
-    const persistAndUpdateAccounts = async () => {
-      await this.keyringController.persistAllKeyrings();
-      await this.accountsController.updateAccounts();
-    };
-
     additionalKeyrings.push(
       snapKeyringBuilder(snapKeyringBuildMessenger, {
-        persistKeyringHelper: () => persistAndUpdateAccounts(),
+        persistKeyringHelper: async () => {
+          // Necessary to only persist the keyrings, the `AccountsController` will
+          // automatically react to `KeyringController:stateChange`.
+          await this.keyringController.persistAllKeyrings();
+        },
         removeAccountHelper: (address) => this.removeAccount(address),
       }),
     );
@@ -805,7 +715,9 @@ export class Engine {
           'AccountsController:selectedAccountChange',
         ],
       }),
-      state: initialState.AccountTrackerController ?? { accounts: {} },
+      state: initialState.AccountTrackerController ?? {
+        accountsByChainId: {},
+      },
       getStakedBalanceForChain:
         assetsContractController.getStakedBalanceForChain.bind(
           assetsContractController,
@@ -861,7 +773,9 @@ export class Engine {
             const internalAccountCount = internalAccounts.length;
 
             const accountTrackerCount = Object.keys(
-              accountTrackerController.state.accounts || {},
+              accountTrackerController.state.accountsByChainId[
+                currentChainId
+              ] || {},
             ).length;
 
             captureException(
@@ -932,9 +846,6 @@ export class Engine {
       messenger: userStorageControllerMessenger,
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
-      env: {
-        isAccountSyncingEnabled: true,
-      },
       config: {
         accountSyncing: {
           onAccountAdded: (profileId) => {
@@ -1031,15 +942,33 @@ export class Engine {
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
+    const tokenSearchDiscoveryDataController =
+      new TokenSearchDiscoveryDataController({
+        tokenPricesService: codefiTokenApiV2,
+        swapsSupportedChainIds,
+        fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+        fetchTokens: swapsUtils.fetchTokens,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokenSearchDiscoveryDataController',
+          allowedActions: ['CurrencyRateController:getState'],
+          allowedEvents: [],
+        }),
+      });
+
     /* bridge controller Initialization */
     const bridgeController = new BridgeController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'BridgeController',
         allowedActions: [
-          'AccountsController:getSelectedAccount',
-          'NetworkController:findNetworkClientIdByChainId',
+          'AccountsController:getSelectedMultichainAccount',
+          'SnapController:handleRequest',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',
+          'NetworkController:findNetworkClientIdByChainId',
+          'TokenRatesController:getState',
+          'MultichainAssetsRatesController:getState',
+          'CurrencyRateController:getState',
+          'RemoteFeatureFlagController:getState',
         ],
         allowedEvents: [],
       }),
@@ -1061,22 +990,53 @@ export class Engine {
       config: {
         customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
       },
+      trackMetaMetricsFn: (event, properties) => {
+        const metricsEvent = MetricsEventBuilder.createEventBuilder({
+          // category property here maps to event name
+          category: event,
+        })
+          .addProperties({
+            ...(properties ?? {}),
+          })
+          .build();
+        MetaMetrics.getInstance().trackEvent(metricsEvent);
+      },
     });
 
     const bridgeStatusController = new BridgeStatusController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'BridgeStatusController',
         allowedActions: [
-          'AccountsController:getSelectedAccount',
+          'AccountsController:getSelectedMultichainAccount',
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
+          'BridgeController:getBridgeERC20Allowance',
+          'BridgeController:trackUnifiedSwapBridgeEvent',
+          'GasFeeController:getState',
+          'AccountsController:getAccountByAddress',
+          'SnapController:handleRequest',
           'TransactionController:getState',
         ],
         allowedEvents: [],
       }),
+      state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
-      fetchFn: fetch,
+      fetchFn: handleFetch,
+      addTransactionFn: (
+        ...args: Parameters<typeof this.transactionController.addTransaction>
+      ) => this.transactionController.addTransaction(...args),
+      estimateGasFeeFn: (
+        ...args: Parameters<typeof this.transactionController.estimateGasFee>
+      ) => this.transactionController.estimateGasFee(...args),
+      addUserOperationFromTransactionFn: (...args: unknown[]) =>
+        // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
+        this.userOperationController?.addUserOperationFromTransaction?.(
+          ...args,
+        ),
+      config: {
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+      },
     });
 
     const existingControllersByName = {
@@ -1095,8 +1055,10 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        AppMetadataController: appMetadataControllerInit,
         GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
+        SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -1123,8 +1085,9 @@ export class Engine {
     });
 
     const accountsController = controllersByName.AccountsController;
-    const transactionController = controllersByName.TransactionController;
     const gasFeeController = controllersByName.GasFeeController;
+    const signatureController = controllersByName.SignatureController;
+    const transactionController = controllersByName.TransactionController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -1259,6 +1222,7 @@ export class Engine {
         }),
         state: initialState.AddressBookController,
       }),
+      AppMetadataController: controllersByName.AppMetadataController,
       AssetsContractController: assetsContractController,
       NftController: nftController,
       TokensController: tokensController,
@@ -1381,18 +1345,7 @@ export class Engine {
           AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
         fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
         fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-        supportedChainIds: [
-          swapsUtils.ETH_CHAIN_ID,
-          swapsUtils.BSC_CHAIN_ID,
-          swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-          swapsUtils.POLYGON_CHAIN_ID,
-          swapsUtils.AVALANCHE_CHAIN_ID,
-          swapsUtils.ARBITRUM_CHAIN_ID,
-          swapsUtils.OPTIMISM_CHAIN_ID,
-          swapsUtils.ZKSYNC_ERA_CHAIN_ID,
-          swapsUtils.LINEA_CHAIN_ID,
-          swapsUtils.BASE_CHAIN_ID,
-        ],
+        supportedChainIds: swapsSupportedChainIds,
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
@@ -1415,26 +1368,7 @@ export class Engine {
       PermissionController: permissionController,
       RemoteFeatureFlagController: remoteFeatureFlagController,
       SelectedNetworkController: selectedNetworkController,
-      SignatureController: new SignatureController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'SignatureController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-            `${this.keyringController.name}:signPersonalMessage`,
-            `${this.keyringController.name}:signMessage`,
-            `${this.keyringController.name}:signTypedMessage`,
-            `${loggingController.name}:add`,
-            `${networkController.name}:getNetworkClientById`,
-          ],
-          allowedEvents: [],
-        }),
-        // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
-        trace: trace as unknown as SignatureControllerOptions['trace'],
-        decodingApiUrl: AppConstants.DECODING_API_URL,
-        // TODO: check preferences useExternalServices
-        isDecodeSignatureRequestEnabled: () =>
-          preferencesController.state.useTransactionSimulations,
-      }),
+      SignatureController: signatureController,
       TokenSearchDiscoveryController: tokenSearchDiscoveryController,
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -1490,6 +1424,7 @@ export class Engine {
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
@@ -1567,6 +1502,27 @@ export class Engine {
       },
     );
 
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    this.controllerMessenger.subscribe(
+      `${snapController.name}:snapTerminated`,
+      (truncatedSnap) => {
+        const approvals = Object.values(
+          approvalController.state.pendingApprovals,
+        ).filter(
+          (approval) =>
+            approval.origin === truncatedSnap.id &&
+            approval.type.startsWith(RestrictedMethods.snap_dialog),
+        );
+        for (const approval of approvals) {
+          approvalController.reject(
+            approval.id,
+            new Error('Snap was terminated.'),
+          );
+        }
+      },
+    );
+    ///: END:ONLY_INCLUDE_IF
+
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
@@ -1617,14 +1573,26 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    AccountTrackerController.refresh();
+    AccountTrackerController.refresh([
+      NetworkController.state.networkConfigurationsByChainId[
+        getGlobalChainId(NetworkController)
+      ]?.rpcEndpoints?.[
+        NetworkController.state.networkConfigurationsByChainId[
+          getGlobalChainId(NetworkController)
+        ]?.defaultRpcEndpointIndex
+      ]?.networkClientId,
+    ]);
   }
 
-  getTotalFiatAccountBalance = (): {
+  getTotalEvmFiatAccountBalance = (
+    account?: InternalAccount,
+  ): {
     ethFiat: number;
     tokenFiat: number;
     tokenFiat1dAgo: number;
     ethFiat1dAgo: number;
+    totalNativeTokenBalance: string;
+    ticker: string;
   } => {
     const {
       CurrencyRateController,
@@ -1636,13 +1604,16 @@ export class Engine {
       NetworkController,
     } = this.context;
 
-    const selectedInternalAccount = AccountsController.getAccount(
-      AccountsController.state.internalAccounts.selectedAccount,
-    );
+    const selectedInternalAccount =
+      account ??
+      AccountsController.getAccount(
+        AccountsController.state.internalAccounts.selectedAccount,
+      );
 
     if (selectedInternalAccount) {
-      const selectSelectedInternalAccountFormattedAddress =
-        toChecksumHexAddress(selectedInternalAccount.address);
+      const selectedInternalAccountFormattedAddress = toFormattedAddress(
+        selectedInternalAccount.address,
+      );
       const { currentCurrency } = CurrencyRateController.state;
       const { chainId, ticker } = NetworkController.getNetworkClientById(
         getGlobalNetworkClientId(NetworkController),
@@ -1650,7 +1621,14 @@ export class Engine {
       const { settings: { showFiatOnTestnets } = {} } = store.getState();
 
       if (isTestNet(chainId) && !showFiatOnTestnets) {
-        return { ethFiat: 0, tokenFiat: 0, ethFiat1dAgo: 0, tokenFiat1dAgo: 0 };
+        return {
+          ethFiat: 0,
+          tokenFiat: 0,
+          ethFiat1dAgo: 0,
+          tokenFiat1dAgo: 0,
+          totalNativeTokenBalance: '0',
+          ticker: '',
+        };
       }
 
       const conversionRate =
@@ -1658,7 +1636,11 @@ export class Engine {
         0;
 
       const { accountsByChainId } = AccountTrackerController.state;
-      const { tokens } = TokensController.state;
+      const chainIdHex = toHexadecimal(chainId);
+      const tokens =
+        TokensController.state.allTokens?.[chainIdHex]?.[
+          selectedInternalAccount.address
+        ] || [];
       const { marketData } = TokenRatesController.state;
       const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
 
@@ -1666,22 +1648,25 @@ export class Engine {
       let ethFiat1dAgo = 0;
       let tokenFiat = 0;
       let tokenFiat1dAgo = 0;
+      let totalNativeTokenBalance = '0';
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectSelectedInternalAccountFormattedAddress
+          selectedInternalAccountFormattedAddress
         ]
       ) {
-        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
-        const balanceBN = hexToBN(
+        const balanceHex =
           accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountFormattedAddress
-          ].balance,
-        );
+            selectedInternalAccountFormattedAddress
+          ].balance;
+
+        const balanceBN = hexToBN(balanceHex);
+        totalNativeTokenBalance = renderFromWei(balanceHex);
+
         // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
         const stakedBalanceBN = hexToBN(
           accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountFormattedAddress
+            selectedInternalAccountFormattedAddress
           ].stakedBalance || '0x00',
         );
         const totalAccountBalance = balanceBN
@@ -1751,6 +1736,8 @@ export class Engine {
         ethFiat1dAgo: ethFiat1dAgo ?? 0,
         tokenFiat: tokenFiat ?? 0,
         tokenFiat1dAgo: tokenFiat1dAgo ?? 0,
+        totalNativeTokenBalance: totalNativeTokenBalance ?? '0',
+        ticker,
       };
     }
     // if selectedInternalAccount is undefined, return default 0 value.
@@ -1759,6 +1746,8 @@ export class Engine {
       tokenFiat: 0,
       ethFiat1dAgo: 0,
       tokenFiat1dAgo: 0,
+      totalNativeTokenBalance: '0',
+      ticker: '',
     };
   };
 
@@ -1842,7 +1831,7 @@ export class Engine {
         }
       }
 
-      const fiatBalance = this.getTotalFiatAccountBalance() || 0;
+      const fiatBalance = this.getTotalEvmFiatAccountBalance() || 0;
       const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
 
       return totalFiatBalance > 0 || tokenFound || nfts.length > 0;
@@ -2022,6 +2011,7 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
+      AppMetadataController,
       SnapInterfaceController,
       NftController,
       TokenListController,
@@ -2061,6 +2051,7 @@ export default {
       MultichainAssetsRatesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController,
       MultichainNetworkController,
       BridgeController,
       BridgeStatusController,
@@ -2070,6 +2061,7 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
+      AppMetadataController,
       SnapInterfaceController,
       NftController,
       TokenListController,
@@ -2109,6 +2101,7 @@ export default {
       MultichainAssetsRatesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController,
       MultichainNetworkController,
       BridgeController,
       BridgeStatusController,
@@ -2121,9 +2114,9 @@ export default {
     return instance.datamodel;
   },
 
-  getTotalFiatAccountBalance() {
+  getTotalEvmFiatAccountBalance(account?: InternalAccount) {
     assertEngineExists(instance);
-    return instance.getTotalFiatAccountBalance();
+    return instance.getTotalEvmFiatAccountBalance(account);
   },
 
   hasFunds() {

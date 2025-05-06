@@ -2,7 +2,11 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useTopTokens } from '.';
 import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
-import { BridgeClientId, BRIDGE_PROD_API_BASE_URL, fetchBridgeTokens } from '@metamask/bridge-controller';
+import {
+  BridgeClientId,
+  BRIDGE_PROD_API_BASE_URL,
+  fetchBridgeTokens,
+} from '@metamask/bridge-controller';
 import { handleFetch } from '@metamask/controller-utils';
 import { initialState } from '../../_mocks_/initialState';
 import { BridgeToken } from '../../types';
@@ -74,7 +78,7 @@ describe('useTopTokens', () => {
 
     const { result } = renderHookWithProvider(
       () => useTopTokens({ chainId: mockChainId }),
-      { state: initialState }
+      { state: initialState },
     );
 
     // Initial state should be pending
@@ -110,17 +114,19 @@ describe('useTopTokens', () => {
       mockChainId,
       BridgeClientId.MOBILE,
       handleFetch,
-      BRIDGE_PROD_API_BASE_URL
+      BRIDGE_PROD_API_BASE_URL,
     );
   });
 
   it('should handle Bridge API errors gracefully', async () => {
     // Mock Bridge API error
-    (fetchBridgeTokens as jest.Mock).mockRejectedValue(new Error('Bridge API Error'));
+    (fetchBridgeTokens as jest.Mock).mockRejectedValue(
+      new Error('Bridge API Error'),
+    );
 
     const { result } = renderHookWithProvider(
       () => useTopTokens({ chainId: mockChainId }),
-      { state: initialState }
+      { state: initialState },
     );
 
     await waitFor(() => {
@@ -134,7 +140,7 @@ describe('useTopTokens', () => {
 
     const { result } = renderHookWithProvider(
       () => useTopTokens({ chainId: mockChainId }),
-      { state: initialState }
+      { state: initialState },
     );
 
     await waitFor(() => {

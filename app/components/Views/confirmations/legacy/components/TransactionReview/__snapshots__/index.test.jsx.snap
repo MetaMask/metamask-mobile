@@ -655,7 +655,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                         }
                                       }
                                     >
-                                      0xB374...2389
+                                      0xB374C...62389
                                     </Text>
                                     <View
                                       style={
@@ -666,6 +666,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -691,35 +692,6 @@ exports[`TransactionReview should match snapshot 1`] = `
                             </View>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                     </View>
                     <View>
@@ -891,6 +863,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                 >
                                   <Text
                                     allowFontScaling={false}
+                                    selectable={false}
                                     style={
                                       [
                                         {
@@ -909,7 +882,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                       ]
                                     }
                                   >
-                                    
+                                    󰋼
                                   </Text>
                                 </TouchableOpacity>
                               </Text>
@@ -1055,93 +1028,6 @@ exports[`TransactionReview should match snapshot 1`] = `
                             </View>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                       <View
                         style={
@@ -1359,6 +1245,7 @@ exports[`TransactionReview should match snapshot 1`] = `
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {
@@ -1375,7 +1262,7 @@ exports[`TransactionReview should match snapshot 1`] = `
               ]
             }
           >
-            
+            
           </Text>
         </TouchableOpacity>
         <Text
@@ -1393,6 +1280,7 @@ exports[`TransactionReview should match snapshot 1`] = `
         </Text>
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -1409,7 +1297,7 @@ exports[`TransactionReview should match snapshot 1`] = `
             ]
           }
         >
-          
+          
         </Text>
       </View>
       <Text
@@ -1498,33 +1386,6 @@ exports[`TransactionReview should match snapshot 1`] = `
           </RCTScrollView>
         </View>
       </View>
-      <Modal
-        animationType="none"
-        deviceHeight={null}
-        deviceWidth={null}
-        hardwareAccelerated={false}
-        hideModalContentWhileAnimating={false}
-        onBackdropPress={[Function]}
-        onModalHide={[Function]}
-        onModalWillHide={[Function]}
-        onModalWillShow={[Function]}
-        onRequestClose={[Function]}
-        panResponderThreshold={4}
-        scrollHorizontal={false}
-        scrollOffset={0}
-        scrollOffsetMax={0}
-        scrollTo={null}
-        statusBarTranslucent={false}
-        supportedOrientations={
-          [
-            "portrait",
-            "landscape",
-          ]
-        }
-        swipeThreshold={100}
-        transparent={true}
-        visible={false}
-      />
     </View>
   </View>,
 ]

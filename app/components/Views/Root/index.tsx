@@ -18,6 +18,7 @@ import { AnalyticsProvider, createClient } from '../../../core/Analytics/typewri
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
+import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 
 /**
  * Top level of the component hierarchy
@@ -78,6 +79,7 @@ const Root = ({ foxCode }: RootProps) => {
               <ControllersGate>
                 <ToastContextWrapper>
                   <ErrorBoundary view="Root">
+                    <ReducedMotionConfig mode={ReduceMotion.Never} />
                     <AnalyticsProvider client={segmentClient}>
                       <App />
                     </AnalyticsProvider>
