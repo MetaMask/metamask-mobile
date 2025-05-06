@@ -72,7 +72,6 @@ const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
     >
       <Badge
         variant={BadgeVariant.Network}
-        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         imageSource={getNetworkImageSource({ chainId })}
         isScaled={false}
         size={AvatarSize.Sm}
