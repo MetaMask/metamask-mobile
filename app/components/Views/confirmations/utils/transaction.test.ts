@@ -15,17 +15,15 @@ import { upgradeAccountConfirmation } from '../../../../util/test/confirm-data-h
 import Engine from '../../../../core/Engine';
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 
-jest.mock('../../../../core/Engine', () => {
-  return {
-    context: {
-      TransactionController: {
-        addTransaction: jest
-          .fn()
-          .mockResolvedValue({ transactionMeta: { id: '123' } }),
-      },
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    TransactionController: {
+      addTransaction: jest
+        .fn()
+        .mockResolvedValue({ transactionMeta: { id: '123' } }),
     },
-  };
-});
+  },
+}));
 
 describe('parseStandardTokenTransactionData', () => {
   const erc20Interface = new Interface(abiERC20);
