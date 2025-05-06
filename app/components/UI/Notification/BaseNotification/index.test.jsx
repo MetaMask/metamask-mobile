@@ -11,7 +11,6 @@ const defaultProps = [
   { status: 'success_withdrawal', data: { description: 'Testing description', title: 'Testing Title' } },
   { status: 'received', data: { description: 'Testing description', title: 'Testing Title' } },
   { status: 'received_payment', data: { description: 'Testing description', title: 'Testing Title' } },
-  { status: 'eth_received', data: { description: 'Testing description', title: 'Testing Title' } },
   { status: 'cancelled', data: { description: 'Testing description', title: 'Testing Title' } },
   { status: 'error', data: { description: 'Testing description', title: 'Testing Title' } },
  ];
