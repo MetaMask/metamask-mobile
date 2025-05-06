@@ -19,10 +19,10 @@ const useLimits = () => {
   );
 
   const isAmountBelowMinimum = (amount: number) =>
-    amount !== 0 && limits && amount < limits.minAmount;
+    amount !== 0 && limits?.minAmount && amount < limits.minAmount;
 
   const isAmountAboveMaximum = (amount: number) =>
-    amount !== 0 && limits && amount > limits.maxAmount;
+    amount !== 0 && limits?.maxAmount && amount > limits.maxAmount;
 
   const isAmountValid = (amount: number) =>
     !isAmountBelowMinimum(amount) && !isAmountAboveMaximum(amount);
