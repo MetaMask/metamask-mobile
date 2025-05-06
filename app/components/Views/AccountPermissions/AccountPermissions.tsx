@@ -144,6 +144,13 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { chainId } = useNetworkInfo(hostname);
 
   useEffect(() => {
+    if (!Engine.context.PermissionController.hasPermissions(hostname)) {
+      // Avoid PermissionController.getCaveat() throwing error by first
+      // checking if there's any permissions for the hostname
+      Logger.log(`${hostname} has no permissions`);
+      return;
+    };
+
     let currentlyPermittedChains: string[] = [];
     try {
       const caveat = getCaip25Caveat(hostname);
@@ -784,7 +791,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
             ? getPermittedEthChainIds(caveat.value)
             : [];
         } catch (e) {
-          Logger.error(e as Error, 'Error getting permitted chains caveat');
+          // TODO: error could be shown to the user
+          // Create an UI interface for that.
+          Logger.log(e as Error, 'Error getting permitted chains caveat');
         }
 
         if (currentlyPermittedChains.includes(chainId)) {
