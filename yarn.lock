@@ -5255,13 +5255,13 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/multichain-network-controller@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.3.0.tgz#789029f1784e952f99d9c551f61683cc70d2b678"
-  integrity sha512-APD8wMDxLoDKXW5AeAxN5G8pw5Aua2/glidvcnW5fQakm7+o+qK807aWllk/wkaIkykziwiYd8YfUEqCS3J0EQ==
+"@metamask/multichain-network-controller@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.4.0.tgz#10005bc04771d9cf4287009875c0cf865aec4893"
+  integrity sha512-g+aHu4Ctoe/Ocl0C3XTngI/Lj4OcpZPo35Lf5199k428T3av6GbSxw38srch9usCx/VtsQk7pD6xNXXo3OLZ1A==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/keyring-api" "^17.2.0"
+    "@metamask/keyring-api" "^17.4.0"
     "@metamask/utils" "^11.2.0"
     "@solana/addresses" "^2.0.0"
 
