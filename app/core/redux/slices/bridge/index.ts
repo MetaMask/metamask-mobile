@@ -1,4 +1,4 @@
-import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
@@ -19,6 +19,7 @@ import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeCon
 import { MetaMetrics } from '../../../Analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
+import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -48,6 +49,16 @@ export const initialState: BridgeState = {
 };
 
 const name = 'bridge';
+
+export const setSourceTokenExchangeRate = createAsyncThunk(
+  'bridge/setSourceTokenExchangeRate',
+  getTokenExchangeRate,
+);
+
+export const setDestTokenExchangeRate = createAsyncThunk(
+  'bridge/setDestTokenExchangeRate',
+  getTokenExchangeRate,
+);
 
 const slice = createSlice({
   name,
@@ -87,6 +98,38 @@ const slice = createSlice({
     setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
       state.isSubmittingTx = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(setSourceTokenExchangeRate.pending, (state) => {
+      if (state.sourceToken) {
+        state.sourceToken.currencyExchangeRate = undefined;
+      }
+    });
+    builder.addCase(setDestTokenExchangeRate.pending, (state) => {
+      if (state.destToken) {
+        state.destToken.currencyExchangeRate = undefined;
+      }
+    });
+    builder.addCase(setSourceTokenExchangeRate.fulfilled, (state, action) => {
+      if (
+        state.sourceToken &&
+        // Make sure the fetched exchange rate is for the correct token
+        action.meta.arg.chainId === state.sourceToken.chainId &&
+        action.meta.arg.tokenAddress === state.sourceToken.address
+      ) {
+        state.sourceToken.currencyExchangeRate = action.payload ?? undefined;
+      }
+    });
+    builder.addCase(setDestTokenExchangeRate.fulfilled, (state, action) => {
+      if (
+        state.destToken &&
+        // Make sure the fetched exchange rate is for the correct token
+        action.meta.arg.chainId === state.destToken.chainId &&
+        action.meta.arg.tokenAddress === state.destToken.address
+      ) {
+        state.destToken.currencyExchangeRate = action.payload ?? undefined;
+      }
+    });
   },
 });
 
@@ -132,7 +175,7 @@ export const selectBridgeFeatureFlags = createSelector(
     selectBridgeFeatureFlagsBase({
       remoteFeatureFlags: {
         bridgeConfig: remoteFeatureFlags.bridgeConfig,
-      }
+      },
     }),
 );
 

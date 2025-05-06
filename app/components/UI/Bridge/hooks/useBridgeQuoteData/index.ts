@@ -74,7 +74,7 @@ export const useBridgeQuoteData = () => {
         )
       : undefined;
   const formattedDestTokenAmount = destTokenAmount
-    ? Number(destTokenAmount).toFixed(2)
+    ? Number(destTokenAmount).toString()
     : undefined;
 
   const quoteRate =

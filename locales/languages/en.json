@@ -447,6 +447,10 @@
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
     },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
+    },
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
@@ -869,8 +873,6 @@
     "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
     "reset_notifications": "Reset notifications",
     "reset_notifications_success": "Notifications storage key deleted/recreated, and notifications history reset.",
-    "enabling_profile_sync": "Enabling profile syncing...",
-    "disabling_profile_sync": "Disabling profile syncing...",
     "notifications_dismiss_modal": "Dismiss",
     "select_rpc_url": "Select RPC URL",
     "title": "Settings",
@@ -3301,15 +3303,6 @@
   "remember_me": {
     "enable_remember_me": "Turn on Remember me",
     "enable_remember_me_description": "When Remember me is on, anyone with access to your phone can access your MetaMask account."
-  },
-  "profile_sync": {
-    "title": "Profile Sync",
-    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
-    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
-    "enable_description2": " to learn more.",
-    "enable_privacy_link": "Learn how we protect your privacy",
-    "bottomSheetTurnOn": "Turning on Profile Sync",
-    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Enter your password to turn off Remember me",
