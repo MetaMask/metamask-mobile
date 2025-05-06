@@ -84,13 +84,14 @@ const Routes = {
     NOTIFICATIONS: 'NotificationsSettings',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
+    BACKUP_AND_SYNC: 'BackupAndSyncSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
     ADD_ACCOUNT: 'AddAccount',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
-    PROFILE_SYNCING: 'ProfileSyncing',
+    CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
     RESET_NOTIFICATIONS: 'ResetNotifications',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
@@ -154,12 +155,14 @@ const Routes = {
       DEST_NETWORK_SELECTOR: 'BridgeDestNetworkSelector',
       QUOTE_INFO_MODAL: 'QuoteInfoModal',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
+      QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
   LOCK_SCREEN: 'LockScreen',
-  CONFIRM_FLAT_PAGE: 'Confirmation Flat Page',
-  CONFIRM_MODAL: 'Confirmation Modal',
+  CONFIRMATION_REQUEST_FLAT: 'ConfirmationRequestFlat',
+  CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
+  CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
@@ -184,6 +187,10 @@ const Routes = {
     STAKE_DEPOSIT: 'RedesignedStakeDeposit',
     STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
     STAKE_CLAIM: 'RedesignedStakeClaim',
+    TRANSFER: 'RedesignedTransfer',
+  },
+  IDENTITY: {
+    TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   MULTI_SRP: {
@@ -197,6 +204,7 @@ const Routes = {
   },
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
+  EDIT_ACCOUNT_NAME: 'EditAccountName',
 };
 
 export default Routes;
