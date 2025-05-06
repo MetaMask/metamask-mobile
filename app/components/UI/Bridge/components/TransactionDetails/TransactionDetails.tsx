@@ -16,7 +16,6 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import TransactionAsset from './TransactionAsset';
-import { StatusTypes } from '@metamask/bridge-status-controller';
 import { calcTokenAmount } from '../../../../../util/transactions';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
@@ -32,6 +31,7 @@ import {
   formatChainIdToHex,
   getNativeAssetForChainId,
   isSolanaChainId,
+  StatusTypes,
 } from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
@@ -287,7 +287,8 @@ export const BridgeTransactionDetails = (
           {/* TODO get solana gas fee from multiChainTx */}
           {evmTotalGasFee && (
             <Text>
-              {evmTotalGasFee} {getNativeAssetForChainId(quote.srcChainId).symbol}
+              {evmTotalGasFee}{' '}
+              {getNativeAssetForChainId(quote.srcChainId).symbol}
             </Text>
           )}
           {multiChainTotalGasFee && (

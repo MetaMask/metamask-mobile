@@ -1,39 +1,43 @@
-import { zeroAddress } from 'ethereumjs-util';
-import { Hex } from '@metamask/utils';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  CaipAssetId,
+  ///: END:ONLY_INCLUDE_IF
+  Hex,
+} from '@metamask/utils';
 import { RootState } from '../../../../reducers';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import i18n from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './TokenDetails.styles';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { selectTokenList } from '../../../../selectors/tokenListController';
-import {
-  selectTokenMarketDataByChainId,
-  selectContractExchangeRates,
-} from '../../../../selectors/tokenRatesController';
 import {
   selectConversionRateBySymbol,
   selectCurrentCurrency,
-  selectConversionRate,
 } from '../../../../selectors/currencyRateController';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
-import {
-  convertDecimalToPercentage,
-  localizeLargeNumber,
-} from '../../../../util/number';
-import { formatCurrency } from '../../../../util/confirm-tx';
 import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
 import StakingEarnings from '../../Stake/components/StakingEarnings';
-import { isPortfolioViewEnabled } from '../../../../util/networks';
+import {
+  isAssetFromSearch,
+  selectTokenDisplayData,
+} from '../../../../selectors/tokenSearchDiscoveryDataController';
 import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
 import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
 import { parseFloatSafe } from '../../Earn/utils';
-import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
+///: END:ONLY_INCLUDE_IF
+import { MarketDataDetails } from '@metamask/assets-controllers';
+import { formatMarketDetails } from '../utils/marketDetails';
+import { getTokenDetails } from '../utils/getTokenDetails';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -55,98 +59,129 @@ interface TokenDetailsProps {
   asset: TokenI;
 }
 
+interface EvmMarketData {
+  metadata?: Record<string, string | number | string[]>;
+  marketData?: MarketDataDetails;
+}
+
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
-  const tokenExchangeRatesByChainId = useSelector((state: RootState) =>
-    selectTokenMarketDataByChainId(state, asset.chainId as Hex),
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
   );
+
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
-  const tokenExchangeRatesLegacy = useSelector(selectContractExchangeRates);
-  const conversionRateLegacy = useSelector(selectConversionRate);
   const conversionRateBySymbol = useSelector((state: RootState) =>
     selectConversionRateBySymbol(state, nativeCurrency),
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const tokenContractAddress = safeToChecksumAddress(asset.address);
-  const tokenList = useSelector(selectTokenList);
 
-  const conversionRate = isPortfolioViewEnabled()
-    ? conversionRateBySymbol
-    : conversionRateLegacy;
-  const tokenExchangeRates = isPortfolioViewEnabled()
-    ? tokenExchangeRatesByChainId
-    : tokenExchangeRatesLegacy;
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
 
-  let tokenMetadata;
-  let marketData;
+  const tokenContractAddress = isEvmNetworkSelected
+    ? safeToChecksumAddress(asset.address)
+    : asset.address;
 
-  if (asset.isETH) {
-    marketData = tokenExchangeRates?.[zeroAddress() as Hex];
-  } else if (tokenContractAddress) {
-    tokenMetadata = tokenList?.[tokenContractAddress.toLowerCase()];
-    marketData = tokenExchangeRates?.[tokenContractAddress as Hex];
-  } else {
-    Logger.log('cannot find contract address');
-    return null;
-  }
+  const tokenSearchResult = useSelector((state: RootState) =>
+    selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
+  );
 
-  if (!conversionRate || conversionRate < 0) {
-    Logger.log('invalid conversion rate');
-    return null;
-  }
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
-  const tokenDetails: TokenDetails = asset.isETH
-    ? {
-        contractAddress: zeroAddress(),
-        tokenDecimal: 18,
-        tokenList: '',
-      }
-    : {
-        contractAddress: tokenContractAddress || null,
-        tokenDecimal: tokenMetadata?.decimals || null,
-        tokenList: tokenMetadata?.aggregators.join(', ') || null,
-      };
+  const multichainAssetRates =
+    allMultichainAssetsRates[asset.address as CaipAssetId];
 
-  const marketDetails: MarketDetails = {
-    marketCap:
-      marketData?.marketCap > 0
-        ? localizeLargeNumber(i18n, conversionRate * marketData.marketCap)
-        : null,
-    totalVolume:
-      marketData?.totalVolume > 0
-        ? localizeLargeNumber(i18n, conversionRate * marketData.totalVolume)
-        : null,
-    volumeToMarketCap:
-      marketData?.marketCap > 0
-        ? convertDecimalToPercentage(
-            marketData.totalVolume / marketData.marketCap,
-          )
-        : null,
-    circulatingSupply:
-      marketData?.circulatingSupply > 0
-        ? localizeLargeNumber(i18n, marketData.circulatingSupply)
-        : null,
-    allTimeHigh:
-      marketData?.allTimeHigh > 0
-        ? formatCurrency(
-            conversionRate * marketData.allTimeHigh,
-            currentCurrency,
-          )
-        : null,
-    allTimeLow:
-      marketData?.allTimeLow > 0
-        ? formatCurrency(
-            conversionRate * marketData.allTimeLow,
-            currentCurrency,
-          )
-        : null,
-    fullyDiluted:
-      marketData?.dilutedMarketCap > 0
-        ? localizeLargeNumber(i18n, marketData.dilutedMarketCap)
-        : null,
+  const nonEvmMarketData = multichainAssetRates?.marketData;
+  const nonEvmMetadata = {
+    rate: Number(multichainAssetRates?.rate),
+    conversionTime: Number(multichainAssetRates?.conversionTime),
   };
+  ///: END:ONLY_INCLUDE_IF
+
+  const evmMarketData = useSelector((state: RootState) =>
+    isEvmNetworkSelected
+      ? selectEvmTokenMarketData(state, {
+          chainId: asset.chainId as Hex,
+          tokenAddress: asset.address,
+        })
+      : null,
+  ) as EvmMarketData | null;
+
+  const evmConversionRate = isAssetFromSearch(asset)
+    ? 1
+    : conversionRateBySymbol;
+
+  const conversionRate = isEvmNetworkSelected
+    ? evmConversionRate
+    : nonEvmMetadata.rate;
+
+  let marketData;
+  let tokenMetadata;
+
+  if (
+    isAssetFromSearch(asset) &&
+    tokenSearchResult?.found &&
+    tokenSearchResult.price
+  ) {
+    marketData = tokenSearchResult.price;
+    tokenMetadata = tokenSearchResult.token;
+  } else {
+    tokenMetadata = isEvmNetworkSelected ? evmMarketData?.metadata : null;
+    marketData = isEvmNetworkSelected
+      ? evmMarketData?.marketData
+      : nonEvmMarketData;
+  }
+  const tokenDetails = useMemo(
+    () =>
+      getTokenDetails(
+        asset,
+        isEvmNetworkSelected,
+        tokenContractAddress,
+        tokenMetadata as Record<string, string | number | string[]>,
+      ),
+    [asset, isEvmNetworkSelected, tokenContractAddress, tokenMetadata],
+  );
+
+  const marketDetails = useMemo(() => {
+    if (!marketData) return;
+
+    if (!conversionRate || conversionRate < 0) {
+      Logger.log('invalid conversion rate');
+      return;
+    }
+
+    return formatMarketDetails(
+      {
+        marketCap: marketData.marketCap
+          ? Number(marketData.marketCap)
+          : undefined,
+        totalVolume: marketData.totalVolume
+          ? Number(marketData.totalVolume)
+          : undefined,
+        circulatingSupply: marketData.circulatingSupply
+          ? Number(marketData.circulatingSupply)
+          : undefined,
+        allTimeHigh: marketData.allTimeHigh
+          ? Number(marketData.allTimeHigh)
+          : undefined,
+        allTimeLow: marketData.allTimeLow
+          ? Number(marketData.allTimeLow)
+          : undefined,
+        dilutedMarketCap: (marketData as MarketDataDetails)?.dilutedMarketCap
+          ? Number((marketData as MarketDataDetails).dilutedMarketCap)
+          : undefined,
+      },
+      {
+        locale: i18n.locale,
+        currentCurrency,
+        isEvmNetworkSelected,
+        conversionRate,
+      },
+    );
+  }, [marketData, currentCurrency, isEvmNetworkSelected, conversionRate]);
 
   const hasAssetBalance =
     asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
@@ -154,13 +189,15 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   return (
     <View style={styles.tokenDetailsContainer}>
       {asset.isETH && <StakingEarnings asset={asset} />}
-      {isStablecoinLendingFeatureEnabled() &&
+      {isStablecoinLendingEnabled &&
         isSupportedLendingTokenByChainId(asset.symbol, asset.chainId ?? '') &&
         hasAssetBalance && <EarnEmptyStateCta token={asset} />}
-      {(asset.isETH || tokenMetadata) && (
+      {(asset.isETH || tokenMetadata || !isEvmNetworkSelected) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}
-      {marketData && <MarketDetailsList marketDetails={marketDetails} />}
+      {marketData && marketDetails && (
+        <MarketDetailsList marketDetails={marketDetails} />
+      )}
     </View>
   );
 };

@@ -280,6 +280,7 @@ exports[`Tabs should render correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -303,7 +304,7 @@ exports[`Tabs should render correctly 1`] = `
             ]
           }
         >
-          
+          󰐕
         </Text>
       </TouchableOpacity>
     </View>

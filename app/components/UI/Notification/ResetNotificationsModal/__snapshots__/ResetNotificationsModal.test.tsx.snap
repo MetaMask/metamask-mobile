@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ProfileSyncingModal should render correctly 1`] = `
+exports[`ResetNotificationsModal should render correctly 1`] = `
 <View
   onLayout={[Function]}
   style={

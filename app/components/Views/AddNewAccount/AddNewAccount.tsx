@@ -39,7 +39,7 @@ import Logger from '../../../util/Logger';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { getHdKeyringOfSelectedAccountOrPrimaryKeyring } from '../../../selectors/multisrp';
 import {
-  MultichainWalletSnapClient,
+  MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
@@ -91,9 +91,8 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     setIsLoading(true);
     try {
       if (clientType && scope) {
-        const multichainWalletSnapClient = new MultichainWalletSnapClient(
-          clientType,
-        );
+        const multichainWalletSnapClient =
+          MultichainWalletSnapFactory.createClient(clientType);
         await multichainWalletSnapClient.createAccount({
           scope,
           accountNameSuggestion: accountName,
@@ -175,6 +174,21 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     return keyring ? keyring.accounts.length : 0;
   }, [hdKeyrings, keyringId]);
 
+  const addAccountTitle = useMemo(() => {
+    switch (clientType) {
+      case WalletClientType.Bitcoin:
+        return strings('account_actions.add_multichain_account', {
+          networkName: strings('account_actions.headers.bitcoin'),
+        });
+      case WalletClientType.Solana:
+        return strings('account_actions.add_multichain_account', {
+          networkName: strings('account_actions.headers.solana'),
+        });
+      default:
+        return strings('account_actions.add_account');
+    }
+  }, [clientType]);
+
   const onKeyringSelection = (id: string) => {
     setShowSRPList(false);
     setKeyringId(id);
@@ -188,7 +202,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
             title={
               showSRPList
                 ? strings('accounts.select_secret_recovery_phrase')
-                : strings('account_actions.add_account')
+                : addAccountTitle
             }
             onBack={() => {
               if (showSRPList) {
@@ -258,7 +272,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                   <Button
                     testID={AddNewAccountIds.CANCEL}
                     loading={isLoading}
-                    style={styles.footerContainer.button}
+                    style={styles.button}
                     variant={ButtonVariants.Secondary}
                     onPress={onBack}
                     labelTextVariant={TextVariant.BodyMD}
@@ -268,7 +282,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                     testID={AddNewAccountIds.CONFIRM}
                     loading={isLoading}
                     isDisabled={isLoading || isDuplicateName}
-                    style={styles.footerContainer.button}
+                    style={styles.button}
                     variant={ButtonVariants.Primary}
                     onPress={onSubmit}
                     labelTextVariant={TextVariant.BodyMD}

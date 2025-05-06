@@ -150,7 +150,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -818,7 +825,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               onScrollEndDrag={[Function]}
                               removeClippedSubviews={false}
                               renderItem={[Function]}
-                              scrollEventThrottle={50}
+                              scrollEventThrottle={0.0001}
                               stickyHeaderIndices={[]}
                               viewabilityConfigCallbackPairs={[]}
                             >
@@ -829,10 +836,12 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1047,7 +1056,38 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               },
                                             ]
                                           }
-                                        />
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            $200000
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            2 HELLO
+                                          </Text>
+                                        </View>
                                       </View>
                                     </TouchableOpacity>
                                     <TouchableOpacity
@@ -1092,10 +1132,12 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1310,7 +1352,38 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               },
                                             ]
                                           }
-                                        />
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            $20000
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            1 TOKEN1
+                                          </Text>
+                                        </View>
                                       </View>
                                     </TouchableOpacity>
                                     <TouchableOpacity
@@ -1355,10 +1428,12 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   style={null}
                                 >
                                   <View
+                                    alignItems="center"
                                     flexDirection="row"
                                     style={
                                       [
                                         {
+                                          "alignItems": "center",
                                           "flexDirection": "row",
                                         },
                                         {
@@ -1605,7 +1680,38 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               },
                                             ]
                                           }
-                                        />
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            $6000
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            3 ETH
+                                          </Text>
+                                        </View>
                                       </View>
                                     </TouchableOpacity>
                                     <TouchableOpacity

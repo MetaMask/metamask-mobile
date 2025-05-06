@@ -12,6 +12,7 @@ import Text, {
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
@@ -36,6 +37,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   onSend,
   onReceive,
 }) => {
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
 
@@ -61,7 +63,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         <View style={styles.buttonWrapper}>
           <WalletAction
             iconName={IconName.SwapHorizontal}
-            onPress={goToSwaps}
+            onPress={() => goToSwaps()}
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}
@@ -89,20 +91,22 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           </Text>
         </View>
       ) : null}
-      <View style={styles.buttonWrapper}>
-        <WalletAction
-          iconName={IconName.Arrow2UpRight}
-          onPress={onSend}
-          iconStyle={styles.icon}
-          containerStyle={styles.containerStyle}
-          iconSize={AvatarSize.Lg}
-          disabled={!canSignTransactions}
-          actionID={TokenOverviewSelectorsIDs.SEND_BUTTON}
-        />
-        <Text variant={TextVariant.BodyMD}>
-          {strings('asset_overview.send_button')}
-        </Text>
-      </View>
+      {isEvmNetworkSelected && (
+        <View style={styles.buttonWrapper}>
+          <WalletAction
+            iconName={IconName.Arrow2UpRight}
+            onPress={onSend}
+            iconStyle={styles.icon}
+            containerStyle={styles.containerStyle}
+            iconSize={AvatarSize.Lg}
+            disabled={!canSignTransactions}
+            actionID={TokenOverviewSelectorsIDs.SEND_BUTTON}
+          />
+          <Text variant={TextVariant.BodyMD}>
+            {strings('asset_overview.send_button')}
+          </Text>
+        </View>
+      )}
       <View style={styles.buttonWrapper}>
         <WalletAction
           iconName={IconName.QrCode}

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`StakeInputView render matches snapshot 1`] = `
+exports[`EarnInputView render matches snapshot 1`] = `
 <View
   style={
     {
@@ -150,7 +150,13 @@ exports[`StakeInputView render matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1509,6 +1516,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -1535,7 +1543,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -1601,7 +1609,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
 </View>
 `;
 
-exports[`StakeInputView when values are entered in the keypad updates ETH and fiat values 1`] = `
+exports[`EarnInputView when values are entered in the keypad updates ETH and fiat values 1`] = `
 <View
   style={
     {
@@ -1751,7 +1759,13 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1759,6 +1773,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -3110,6 +3125,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -3136,7 +3152,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                             </TouchableOpacity>
                           </View>
