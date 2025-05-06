@@ -20,12 +20,8 @@ export const useEIP7702Networks = (address: string) => {
     () =>
       Object.entries(networks).reduce(
         ([nonTestnetsList, testnetsList], [chainId, network]) => {
-          try {
-            const isTest = (TESTNET_CHAIN_IDS as string[]).includes(chainId);
-            (isTest ? testnetsList : nonTestnetsList)[chainId] = network;
-          } catch (err: unknown) {
-            // console.log(err);
-          }
+          const isTest = (TESTNET_CHAIN_IDS as string[]).includes(chainId);
+          (isTest ? testnetsList : nonTestnetsList)[chainId] = network;
           return [nonTestnetsList, testnetsList];
         },
         [

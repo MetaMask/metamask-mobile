@@ -20,7 +20,7 @@ import Text, {
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { EIP7702NetworkConfiguration } from '../../../../hooks/useEIP7702Networks';
-import { useEIP7702Account } from '../../../../hooks/useEIP7702Accounts';
+import { useEIP7702Accounts } from '../../../../hooks/useEIP7702Accounts';
 import styleSheet from './account-network-row.styles';
 
 const AccountNetworkRow = ({
@@ -31,7 +31,7 @@ const AccountNetworkRow = ({
   network: EIP7702NetworkConfiguration;
 }) => {
   const navigation = useNavigation();
-  const { downgradeAccount, upgradeAccount } = useEIP7702Account(
+  const { downgradeAccount, upgradeAccount } = useEIP7702Accounts(
     network as unknown as NetworkConfiguration,
   );
   const { styles } = useStyles(styleSheet, {});

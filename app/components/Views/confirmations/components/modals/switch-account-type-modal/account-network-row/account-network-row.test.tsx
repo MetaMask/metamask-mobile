@@ -29,7 +29,7 @@ const MOCK_ADDRESS = '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477';
 const mockDowngradeAccount = jest.fn();
 const mockUpgradeAccount = jest.fn();
 jest.mock('../../../../hooks/useEIP7702Accounts', () => ({
-  useEIP7702Account: () => ({
+  useEIP7702Accounts: () => ({
     downgradeAccount: mockDowngradeAccount,
     upgradeAccount: mockUpgradeAccount,
   }),

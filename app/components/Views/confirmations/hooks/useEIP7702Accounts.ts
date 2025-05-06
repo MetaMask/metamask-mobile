@@ -11,7 +11,7 @@ import { addTransaction } from '../utils/transaction';
 export const EIP_7702_REVOKE_ADDRESS =
   '0x0000000000000000000000000000000000000000';
 
-export function useEIP7702Account(networkConfiguration: NetworkConfiguration) {
+export function useEIP7702Accounts(networkConfiguration: NetworkConfiguration) {
   const defaultRpcEndpoint =
     networkConfiguration.rpcEndpoints[
       networkConfiguration.defaultRpcEndpointIndex
