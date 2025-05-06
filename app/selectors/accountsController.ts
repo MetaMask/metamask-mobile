@@ -20,6 +20,11 @@ import {
   isBtcTestnetAddress,
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
+import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
+
+export type InternalAccountWithCaipAccountId = InternalAccount & {
+  caipAccountId: CaipAccountId;
+}
 
 /**
  *
@@ -51,6 +56,19 @@ export const selectInternalAccounts = createDeepEqualSelector(
     );
     return sortedAccounts;
   },
+);
+
+// COMMENT THIS
+export const selectInternalAccountsWithCaipAccountId = createDeepEqualSelector(
+  selectInternalAccounts,
+  (accounts): InternalAccountWithCaipAccountId[] =>
+    accounts.map((account) => {
+      const { namespace, reference } = parseCaipChainId(account.scopes[0]);
+      return {
+        ...account,
+        caipAccountId: `${namespace}:${reference}:${account.address}`,
+      };
+    }),
 );
 
 /**
