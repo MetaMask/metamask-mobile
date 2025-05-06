@@ -22,7 +22,11 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
-import { CaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import {
+  CaipAssetId,
+  CaipAssetType,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -31,6 +35,8 @@ import {
   MultichainBalancesControllerState,
 } from '@metamask/assets-controllers';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { TokenI } from '../../components/UI/Tokens/types';
+import { createSelector } from 'reselect';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -439,5 +445,74 @@ export const selectSolanaAccountTransactions = createDeepEqualSelector(
     );
   },
 );
+
+export const makeSelectNonEvmAssetById = () =>
+  createSelector(
+    [
+      selectIsEvmNetworkSelected,
+      selectMultichainBalances,
+      selectMultichainAssetsMetadata,
+      selectMultichainAssetsRates,
+      (_: RootState, params: { accountId?: string; assetId: string }) =>
+        params.accountId,
+      (_: RootState, params: { accountId?: string; assetId: string }) =>
+        params.assetId as CaipAssetId,
+    ],
+    (
+      isEvmNetworkSelected,
+      multichainBalances,
+      assetsMetadata,
+      assetsRates,
+      accountId,
+      assetId,
+    ): TokenI | undefined => {
+      if (isEvmNetworkSelected) {
+        return undefined;
+      }
+      if (!accountId) {
+        throw new Error('Account ID is required to fetch asset.');
+      }
+
+      const balance = multichainBalances?.[accountId]?.[assetId] || {
+        amount: undefined,
+        unit: '',
+      };
+
+      const { chainId, assetNamespace } = parseCaipAssetType(assetId);
+      const isNative = assetNamespace === 'slip44';
+      const rate = assetsRates?.[assetId]?.rate || '0';
+
+      const balanceInFiat = balance.amount
+        ? new BigNumber(balance.amount).times(rate)
+        : undefined;
+
+      const assetMetadataFallback = {
+        name: balance.unit || '',
+        symbol: balance.unit || '',
+        fungible: true,
+        units: [{ name: assetId, symbol: balance.unit || '', decimals: 0 }],
+      };
+
+      const metadata = assetsMetadata?.[assetId] || assetMetadataFallback;
+      const decimals = metadata.units[0]?.decimals || 0;
+
+      return {
+        name: metadata.name ?? '',
+        address: assetId,
+        symbol: metadata.symbol ?? '',
+        image: metadata.iconUrl,
+        logo: metadata.iconUrl,
+        decimals,
+        chainId,
+        isNative,
+        balance: balance.amount,
+        balanceFiat: balanceInFiat ? balanceInFiat.toString() : undefined,
+        isStaked: false,
+        aggregators: [],
+        isETH: false,
+        ticker: metadata.symbol,
+      };
+    },
+  );
 
 ///: END:ONLY_INCLUDE_IF

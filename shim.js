@@ -1,5 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
-/* global Platform */
+import { Platform } from 'react-native';
 import { decode, encode } from 'base-64';
 import {
   FIXTURE_SERVER_PORT,
@@ -59,6 +59,10 @@ if (typeof localStorage !== 'undefined') {
 // If using the crypto shim, uncomment the following line to ensure
 // crypto is loaded first, so it can populate global.crypto
 // require('crypto')
+
+import Crypto from 'react-native-quick-crypto';
+
+global.crypto = Crypto;
 
 if (enableApiCallLogs || isTest) {
   (async () => {

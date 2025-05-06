@@ -19,7 +19,9 @@ export default async function migrate(state: unknown) {
       await DefaultPreference.clear(key);
     } catch (error) {
       captureException(
-        `Migration 50: Failed to migrate key "${key}" from DefaultPreference to MMKV! Error: ${error}`,
+        new Error(
+          `Migration 50: Failed to migrate key "${key}" from DefaultPreference to MMKV! Error: ${error}`,
+        ),
       );
     }
   }

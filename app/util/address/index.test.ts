@@ -22,9 +22,10 @@ import {
 import {
   mockHDKeyringAddress,
   mockQrKeyringAddress,
+  mockSecondHDKeyringAddress,
   mockSimpleKeyringAddress,
   mockSnapAddress1,
-  mockSnapAddress2,
+  mockSolanaAddress,
 } from '../test/keyringControllerTestUtils';
 import {
   internalAccount1,
@@ -59,7 +60,8 @@ jest.mock('../../core/Engine', () => {
       KeyringController: {
         ...MOCK_KEYRING_CONTROLLER_STATE,
         state: {
-          keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings],
+          keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.keyrings],
+          keyringsMetadata: [...MOCK_KEYRING_CONTROLLER_STATE.keyringsMetadata],
         },
       },
       AccountsController: {
@@ -352,7 +354,6 @@ describe('shouldShowBlockExplorer', () => {
             networkClientId: 'networkId1',
             type: RpcEndpointType.Custom,
             url: 'https://mainnet.infura.io/v3/123',
-            failoverUrls: [],
           },
         ],
       },
@@ -474,12 +475,6 @@ describe('getLabelTextByAddress,', () => {
     expect(getLabelTextByAddress(mockSnapAddress1)).toBe('Snaps (Beta)');
   });
 
-  it('returns the snap name if account is a Snap keyring and there is a snap name', () => {
-    expect(getLabelTextByAddress(mockSnapAddress2)).toBe(
-      'MetaMask Simple Snap Keyring',
-    );
-  });
-
   it('should return null if address is empty', () => {
     expect(getLabelTextByAddress('')).toBe(null);
   });
@@ -488,6 +483,14 @@ describe('getLabelTextByAddress,', () => {
     expect(
       getLabelTextByAddress('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBe(null);
+  });
+
+  it('returns srp label for hd accounts when there are multiple hd keyrings', () => {
+    expect(getLabelTextByAddress(mockSecondHDKeyringAddress)).toBe('SRP #2');
+  });
+
+  it('returns srp label for snap accounts that uses hd keyring for its entropy source', () => {
+    expect(getLabelTextByAddress(mockSolanaAddress)).toBe('SRP #1');
   });
 });
 describe('getAddressAccountType', () => {

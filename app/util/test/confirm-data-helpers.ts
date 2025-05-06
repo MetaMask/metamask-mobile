@@ -949,7 +949,18 @@ export const transferConfirmationState = merge(
       backgroundState: {
         TransactionController: {
           transactions: [
-            { type: TransactionType.simpleSend },
+            { 
+              type: TransactionType.simpleSend,
+              txParams: {
+                from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
+                gas: '0x1a5bd',
+                maxFeePerGas: '0x84594b20',
+                maxPriorityFeePerGas: '0x4dcd6500',
+                to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+                value: '0x5af3107a4000',
+                type: TransactionEnvelopeType.feeMarket,
+              },
+            },
           ],
         } as Pick<TransactionControllerState, 'transactions'>,
       },

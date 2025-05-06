@@ -351,7 +351,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           showCancelButton={false}
           confirmButtonMode={'confirm'}
           buttonContainerStyle={styles.buttonContainer}
-          rootStyle={styles.actionView}
+          contentContainerStyle={styles.actionView}
         >
           <View
             style={styles.wrapper}

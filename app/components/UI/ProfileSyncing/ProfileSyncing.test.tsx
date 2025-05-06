@@ -40,14 +40,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockEnableProfileSyncing = jest.fn();
-const mockDisableProfileSyncing = jest.fn();
-jest.mock('../../../util/identity/hooks/useProfileSyncing', () => ({
-  useEnableProfileSyncing: () => ({
-    enableProfileSyncing: mockEnableProfileSyncing,
-  }),
-  useDisableProfileSyncing: () => ({
-    disableProfileSyncing: mockDisableProfileSyncing,
+const mockSetIsBackupAndSyncFeatureEnabled = jest.fn();
+jest.mock('../../../util/identity/hooks/useBackupAndSync', () => ({
+  useBackupAndSync: () => ({
+    setIsBackupAndSyncFeatureEnabled: mockSetIsBackupAndSyncFeatureEnabled,
+    error: null,
   }),
 }));
 
@@ -84,7 +81,7 @@ describe('ProfileSyncing', () => {
     });
 
     await waitFor(() => {
-      expect(mockDisableProfileSyncing).toHaveBeenCalled();
+      expect(mockSetIsBackupAndSyncFeatureEnabled).toHaveBeenCalled();
     });
   });
 
@@ -114,7 +111,7 @@ describe('ProfileSyncing', () => {
     });
 
     await waitFor(() => {
-      expect(mockEnableProfileSyncing).toHaveBeenCalled();
+      expect(mockSetIsBackupAndSyncFeatureEnabled).toHaveBeenCalled();
     });
   });
 

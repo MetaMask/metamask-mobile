@@ -66,7 +66,7 @@ const AccountConnectMultiSelector = ({
   );
 
   const onSelectAccount = useCallback(
-    (accAddress) => {
+    (accAddress: string) => {
       const selectedAddressIndex = selectedAddresses.indexOf(accAddress);
       // Reconstruct selected addresses.
       const newAccountAddresses = accounts.reduce((acc, { address }) => {

@@ -9,7 +9,7 @@ import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFun
 import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
 import { useStyles } from '../../../../component-library/hooks';
 import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
+import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import styleSheet from '../DefaultSettings/index.styles';
@@ -22,7 +22,7 @@ const GeneralSettings = () => {
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const handleSwitchToggle = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -35,7 +35,7 @@ const GeneralSettings = () => {
           settings_type: 'basic_functionality',
           old_value: isBasicFunctionalityEnabled,
           new_value: !isBasicFunctionalityEnabled,
-          was_profile_syncing_on: isProfileSyncingEnabled,
+          was_profile_syncing_on: isBackupAndSyncEnabled,
         })
         .build(),
     );
@@ -47,8 +47,8 @@ const GeneralSettings = () => {
         .addProperties({
           settings_group: 'onboarding_advanced_configuration',
           settings_type: 'profile_syncing',
-          old_value: isProfileSyncingEnabled,
-          new_value: !isProfileSyncingEnabled,
+          old_value: isBackupAndSyncEnabled,
+          new_value: !isBackupAndSyncEnabled,
         })
         .build(),
     );

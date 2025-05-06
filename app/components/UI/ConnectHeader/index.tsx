@@ -42,7 +42,7 @@ const ConnectHeader: React.FC<ConnectHeaderProps> = ({ title, action }) => {
     <View style={styles.header}>
       <TouchableOpacity style={styles.back} onPress={action}>
         <IonicIcon
-          name={'ios-arrow-back'}
+          name={'arrow-back'}
           size={24}
           color={colors.text.default}
         />

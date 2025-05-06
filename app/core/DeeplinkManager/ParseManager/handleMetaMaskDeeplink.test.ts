@@ -33,7 +33,6 @@ describe('handleMetaMaskProtocol', () => {
   const mockGetApprovedHosts = jest.fn();
   const mockBindAndroidSDK = jest.fn();
   const mockNavigate = jest.fn();
-
   const mockHandleDeeplink = handleDeeplink as jest.Mock;
   const mockSDKConnectGetInstance = SDKConnect.getInstance as jest.Mock;
   const mockWC2ManagerGetInstance = WC2Manager.getInstance as jest.Mock;

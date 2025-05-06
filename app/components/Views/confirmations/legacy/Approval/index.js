@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { TransactionEnvelopeType } from '@metamask/transaction-controller';
 import { StyleSheet, AppState, Alert, InteractionManager } from 'react-native';
 import Engine from '../../../../../core/Engine';
 import PropTypes from 'prop-types';
@@ -379,8 +380,8 @@ class Approval extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     };
 
     try {
@@ -497,7 +498,6 @@ class Approval extends PureComponent {
     const { KeyringController, ApprovalController } = Engine.context;
     const {
       transactions,
-      chainId,
       shouldUseSmartTransaction,
       simulationData: { isUpdatedAfterSecurityCheck } = {},
       navigation,
@@ -565,20 +565,23 @@ class Approval extends PureComponent {
           },
           (transactionMeta) => transactionMeta.id === transaction.id,
         );
+      await KeyringController.resetQRKeyringState();
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
+
+      if (fullTx.txParams.type !== TransactionEnvelopeType.legacy) {
+        // For EIP-1559 transactions, we need to remove gasPrice as it's not compatible
+        delete transaction.gasPrice;
+      }
 
       const updatedTx = {
         ...fullTx,
         txParams: {
-          ...fullTx.txParams,
           ...transaction,
-          chainId,
         },
       };
 
       await updateTransaction(updatedTx);
-      await KeyringController.resetQRKeyringState();
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
@@ -760,7 +763,7 @@ const mapStateToProps = (state) => {
     showCustomNonce: selectShowCustomNonce(state),
     chainId,
     activeTabUrl: getActiveTabUrl(state),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
     confirmationMetricsById: selectConfirmationMetrics(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   };

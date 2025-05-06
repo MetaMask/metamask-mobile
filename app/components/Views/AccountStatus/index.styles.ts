@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   descriptionWrapper: {
-    width: '90%',
+    width: '100%',
     flexDirection: 'column',
     rowGap: 20,
   },

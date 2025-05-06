@@ -24,6 +24,11 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
 }));
 
 const mockCaptureSignatureMetrics = jest.fn();

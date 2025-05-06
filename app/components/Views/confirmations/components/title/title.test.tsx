@@ -5,10 +5,18 @@ import {
   siweSignatureConfirmationState,
   typedSignV4ConfirmationState,
   typedSignV4NFTConfirmationState,
+  transferConfirmationState,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Title from './title';
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
 
 describe('Confirm Title', () => {
   it('renders the title and subtitle for a permit signature', () => {
@@ -62,4 +70,12 @@ describe('Confirm Title', () => {
       getByText('Review request details before you confirm.'),
     ).toBeTruthy();
   });
+
+  it('renders correct title for transfer', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: transferConfirmationState,
+    });
+    expect(getByText('Transfer request')).toBeTruthy();
+  });
+
 });

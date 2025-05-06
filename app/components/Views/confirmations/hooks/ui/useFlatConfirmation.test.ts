@@ -9,6 +9,14 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { MMM_ORIGIN } from '../../constants/confirmations';
 import { useFlatConfirmation } from './useFlatConfirmation';
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
+
 describe('useFlatConfirmation', () => {
   it('returns true for staking confirmation', async () => {
     const { result } = renderHookWithProvider(useFlatConfirmation, {

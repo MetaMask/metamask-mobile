@@ -44,7 +44,7 @@ describe('useEIP1559TxFees', () => {
           NetworkController: {
             selectedNetworkClientId: '0x123456',
             networksMetadata: {
-              '0x123456': {
+              'mainnet': {
                 EIPS: { 1559: false },
               },
             },

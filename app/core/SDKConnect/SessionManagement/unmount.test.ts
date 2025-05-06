@@ -21,7 +21,7 @@ describe('unmount', () => {
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   beforeEach(() => {

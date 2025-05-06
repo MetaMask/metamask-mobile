@@ -64,7 +64,6 @@ const Icon = ({
     default:
       iconColor = color;
   }
-
   return (
     <SVG
       color={iconColor}

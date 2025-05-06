@@ -5,10 +5,10 @@ import { initialState } from '../../_mocks_/initialState';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
-import { isBridgeUiEnabled } from '../../utils';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
+import { selectIsBridgeEnabledSource } from '../../../../../core/redux/slices/bridge';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -17,9 +17,9 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
 }));
 
-jest.mock('../../utils', () => ({
-  ...jest.requireActual('../../utils'),
-  isBridgeUiEnabled: jest.fn(() => true),
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectIsBridgeEnabledSource: jest.fn(() => true),
 }));
 
 const mockGoToPortfolioBridge = jest.fn();
@@ -156,8 +156,10 @@ describe('useSwapBridgeNavigation', () => {
     });
   });
 
-  it('calls goToPortfolioBridge when goToBridge is called and bridge UI is disabled', () => {
-    (isBridgeUiEnabled as jest.Mock).mockReturnValueOnce(false);
+  it('calls goToPortfolioBridge when goToBridge is called and isBridgeEnabledSource is false', () => {
+    (selectIsBridgeEnabledSource as unknown as jest.Mock).mockReturnValueOnce(
+      false,
+    );
 
     const { result } = renderHookWithProvider(
       () =>

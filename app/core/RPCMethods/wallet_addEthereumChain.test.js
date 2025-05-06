@@ -483,7 +483,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
             name: 'Test Chain',
             type: 'custom',
             url: 'https://different-rpc-url.com',
-            failoverUrls: [],
           },
         ]),
         defaultRpcEndpointIndex: 1,

@@ -32,12 +32,21 @@ import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
 
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import Logger from '../../util/Logger';
+import { resetVaultBackup } from '../BackupVault/backupVault';
+import OAuthService from '../OAuthService/OAuthService';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+
 /**
  * Holds auth data used to determine auth configuration
  */
 export interface AuthData {
   currentAuthType: AUTHENTICATION_TYPE; //Enum used to show type for authentication
   availableBiometryType?: BIOMETRY_TYPE;
+  oauth2Login?: boolean;
 }
 
 class AuthenticationService {
@@ -54,6 +63,12 @@ class AuthenticationService {
   private dispatchLogout(): void {
     ReduxService.store.dispatch(logOut());
   }
+
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  private dispatchOauthReset(): void {
+    OAuthService.resetOauthState();
+  }
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
   /**
    * This method recreates the vault upon login if user is new and is not using the latest encryption lib
@@ -304,10 +319,21 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      await this.createWalletVaultAndKeychain(password);
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+      // check for oauth2 login
+      if (authData.oauth2Login) {
+        await this.createAndBackupSeedPhrase(password);
+      } else {
+        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+        await this.createWalletVaultAndKeychain(password);
+        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+      }
+      ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+
       await this.storePassword(password, authData?.currentAuthType);
       await StorageWrapper.setItem(EXISTING_USER, TRUE);
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
+
       this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type
@@ -457,6 +483,87 @@ class AuthenticationService {
 
   getType = async (): Promise<AuthData> =>
     await this.checkAuthenticationMethod();
+
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  createAndBackupSeedPhrase = async (password: string): Promise<void> => {
+    const { SeedlessOnboardingController, KeyringController } = Engine.context;
+    // rollback on fail ( reset wallet )
+    await this.createWalletVaultAndKeychain(password);
+    try {
+      const keyringMetadata = KeyringController.state.keyringsMetadata.at(0);
+      if (!keyringMetadata) {
+        throw new Error('No keyring metadata found');
+      }
+      const seedPhrase = await KeyringController.exportSeedPhrase(
+        password,
+        keyringMetadata.id,
+      );
+
+      Logger.log(
+        'SeedlessOnboardingController state',
+        SeedlessOnboardingController.state,
+      );
+
+      await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
+        password,
+        seedPhrase,
+        keyringMetadata.id,
+      );
+
+      this.dispatchOauthReset();
+    } catch (error) {
+      await this.newWalletAndKeychain(`${Date.now()}`, {
+        currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+      });
+      await resetVaultBackup();
+      throw error;
+    }
+
+    Logger.log(
+      'SeedlessOnboardingController state',
+      SeedlessOnboardingController.state,
+    );
+  };
+
+  rehydrateSeedPhrase = async (
+    password: string,
+    authData: AuthData,
+  ): Promise<void> => {
+    try {
+      const { SeedlessOnboardingController } = Engine.context;
+
+      const result = await SeedlessOnboardingController.fetchAllSeedPhrases(
+        password,
+      );
+
+      if (result !== null && result.length > 0) {
+        const seedPhrase = uint8ArrayToMnemonic(
+          result.at(-1) ?? new Uint8Array(),
+          wordlist,
+        );
+        await this.newWalletAndRestore(password, authData, seedPhrase, false);
+        // add in more srps
+        if (result.length > 1) {
+          // for (const item of result.slice(0, -1)) {
+          // vault add new seedphrase
+          // const { KeyringController } = Engine.context;
+          // await KeyringController.addSRP(item, password);
+          // }
+        }
+        this.dispatchLogin();
+        this.dispatchPasswordSet();
+        this.dispatchOauthReset();
+      } else {
+        throw new Error('No account data found');
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: 'rehydrateSeedPhrase',
+      });
+      throw error;
+    }
+  };
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 }
 
 export const Authentication = new AuthenticationService();

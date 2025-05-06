@@ -414,7 +414,7 @@ enum EVENT_NAME {
   PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
   LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
 
-  // Profile Syncing
+  // Backup and sync
   ACCOUNTS_SYNC_ADDED = 'Accounts Sync Added',
   ACCOUNTS_SYNC_NAME_UPDATED = 'Accounts Sync Name Updated',
   ACCOUNTS_SYNC_ERRONEOUS_SITUATION = 'Accounts Sync Erroneous Situation',
@@ -427,10 +427,6 @@ enum EVENT_NAME {
 
   // Tooltip
   TOOLTIP_OPENED = 'Tooltip Opened',
-
-  // RPC Failover
-  RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
-  RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
 }
 
 enum ACTIONS {
@@ -924,7 +920,7 @@ const events = {
   ),
   PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
   LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
-  // Profile Syncing
+  // Backup and sync
   ACCOUNTS_SYNC_ADDED: generateOpt(EVENT_NAME.ACCOUNTS_SYNC_ADDED),
   ACCOUNTS_SYNC_NAME_UPDATED: generateOpt(
     EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
@@ -1026,10 +1022,6 @@ const events = {
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
 
-  // RPC Failover
-  RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
-  RPC_SERVICE_DEGRADED: generateOpt(EVENT_NAME.RPC_SERVICE_DEGRADED),
-
   // Bridge
   BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
@@ -1056,7 +1048,6 @@ enum DESCRIPTION {
   DAPP_BROWSER_OPTIONS = 'More Browser Options',
   DAPP_HOME = 'Home',
   DAPP_ADD_TO_FAVORITE = 'Add to Favorites',
-  DAPP_GO_TO_FAVORITES = 'Go to Favorites',
   DAPP_OPEN_IN_BROWSER = 'Open in Browser',
   // Wallet
   WALLET_TOKENS = 'Tokens',
@@ -1177,11 +1168,6 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.DAPP_VIEW,
     ACTIONS.DAPP_VIEW,
     DESCRIPTION.DAPP_OPEN_IN_BROWSER,
-  ),
-  DAPP_GO_TO_FAVORITES: generateOpt(
-    EVENT_NAME.DAPP_VIEW,
-    ACTIONS.DAPP_VIEW,
-    DESCRIPTION.DAPP_GO_TO_FAVORITES,
   ),
   // Wallet
   WALLET_TOKENS: generateOpt(
