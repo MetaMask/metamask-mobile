@@ -112,9 +112,10 @@ jest.mock('../Engine', () => ({
 }));
 
 jest.mock('../Permissions', () => ({
+  ...jest.requireActual('../Permissions'),
   getPermittedAccounts: jest
     .fn()
-    .mockResolvedValue(['0x1234567890abcdef1234567890abcdef12345678']),
+    .mockReturnValue(['0x1234567890abcdef1234567890abcdef12345678']),
   getPermittedChains: jest.fn().mockResolvedValue(['eip155:1']),
 }));
 

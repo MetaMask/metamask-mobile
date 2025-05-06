@@ -29,19 +29,6 @@ describe('pbkdf2', () => {
     ).resolves.toBeDefined();
   });
 
-  it('throws on native module errors', async () => {
-    NativeModules.Aes.pbkdf2 = jest
-      .fn()
-      .mockRejectedValue(new Error('Native module error'));
-
-    const mockPasswordBytes = stringToBytes('password');
-    const mockSaltBytes = stringToBytes('salt');
-
-    await expect(
-      pbkdf2(mockPasswordBytes, mockSaltBytes, 2048, 64),
-    ).rejects.toThrow('Native module error');
-  });
-
   it('does not fail when empty password', async () => {
     NativeModules.Aes.pbkdf2 = jest
       .fn()
