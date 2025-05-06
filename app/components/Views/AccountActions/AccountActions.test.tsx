@@ -627,4 +627,32 @@ describe('AccountActions', () => {
       expect(revealButton).toBeNull();
     });
   });
+
+  describe('switch account type', () => {
+    it('displayed option to switch account type', () => {
+      const { getByText } = renderWithProvider(<AccountActions />, {
+        state: initialState,
+      });
+
+      expect(getByText('Switch to Smart account')).toBeTruthy();
+    });
+
+    it('calls navigate function when option to switch account type is clicked', () => {
+      const { getByText } = renderWithProvider(<AccountActions />, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByText('Switch to Smart account'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ConfirmationSwitchAccountType',
+        {
+          params: {
+            address: '0x123',
+          },
+          screen: 'ConfirmationSwitchAccountType',
+        },
+      );
+    });
+  });
 });

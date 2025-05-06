@@ -3515,6 +3515,7 @@
     "add_bitcoin_account_testnet": "Bitcoin testnet account",
     "add_bitcoin_account_mainnet": "Bitcoin account",
     "add_solana_account": "Solana account",
+    "switch_to_smart_account": "Switch to Smart account",
     "headers": {
       "bitcoin": "Bitcoin",
       "solana": "Solana"
@@ -3866,6 +3867,11 @@
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
+    },
+    "7702_functionality": {
+      "smartAccountLabel": "Smart Account",
+      "standardAccountLabel": "Standard Account",
+      "switch": "Switch"
     },
     "unlimited": "Unlimited",
     "none": "None",
