@@ -341,21 +341,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       }
 
       setIsLoading(true);
-      // let newActiveAddress;
-      // let connectedAccountLength = 0;
-      // let removedAccountCount = 0;
 
       let accountsToRemove: CaipAccountId[] = [];
       let accountsToAdd: CaipAccountId[] = [];
 
       // Identify accounts to be added
-      accountsToAdd = selectedAccounts.reduce((result: CaipAccountId[], account) => {
-        if (!isCaipAccountIdInPermittedAccountIds(account, permittedAccounts)) {
-          result.push(account)
-        }
-
-        return result;
-      }, []);
+      accountsToAdd = selectedAccounts.filter(account =>
+        !isCaipAccountIdInPermittedAccountIds(account, permittedAccounts)
+      )
 
       if (accountsToAdd.length > 0) {
         addPermittedAccounts(hostname, accountsToAdd);
@@ -368,71 +361,34 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         removePermittedAccounts(hostname, accountsToRemove);
       }
 
-      Logger.log({accountsToAdd, accountsToRemove})
+      // Calculate the number of connected accounts after changes
+      const connectedAccountLength =
+        permittedAccounts.length +
+        accountsToAdd.length -
+        accountsToRemove.length;
 
-      // Fix this logic
-      // Add newly selected accounts
-      // if (accountsToAdd.length > 0) {
-      //   newActiveAddress = addPermittedAccounts(hostname, accountsToAdd);
-      // } else {
-      //   // If no new accounts were added, set the first selected address as active
-      //   newActiveAddress = normalizedSelectedAddresses[0];
-      // }
+      const labelOptions = [ { label: `${strings('toast.accounts_permissions_updated')}` }, ];
 
-      // // Identify accounts to be removed
-      // accountsToRemove = normalizedPermittedAccounts
-      //   .filter((account) => !normalizedSelectedAddresses.includes(account))
-      //   .map(toHex);
-      // removedAccountCount = accountsToRemove.length;
+      const { address } = parseCaipAccountId(accountsToAdd[0])
 
-      // // Remove accounts that are no longer selected
-      // if (accountsToRemove.length > 0) {
-      //   removePermittedAccounts(hostname, accountsToRemove);
-      // }
-
-      // // Calculate the number of connected accounts after changes
-      // connectedAccountLength =
-      //   normalizedPermittedAccounts.length +
-      //   accountsToAdd.length -
-      //   accountsToRemove.length;
-
-      // const activeAccountName = getAccountNameWithENS({
-      //   accountAddress: newActiveAddress,
-      //   accounts,
-      //   ensByAccountAddress,
-      // });
-
-      // let labelOptions: ToastOptions['labelOptions'] = [];
-      // // Start of Selection
-      // if (connectedAccountLength >= 1) {
-      //   labelOptions = [
-      //     { label: `${strings('toast.accounts_permissions_updated')}` },
-      //   ];
-      // }
-
-      // if (connectedAccountLength === 1 && removedAccountCount === 0) {
-      //   labelOptions = [
-      //     { label: `${activeAccountName} `, isBold: true },
-      //     { label: strings('toast.connected_and_active') },
-      //   ];
-      // }
-      // toastRef?.current?.showToast({
-      //   variant: ToastVariants.Account,
-      //   labelOptions,
-      //   accountAddress: newActiveAddress,
-      //   accountAvatarType,
-      //   hasNoTimeout: false,
-      // });
-      // const totalAccounts = accountsLength;
-      // trackEvent(
-      //   createEventBuilder(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS)
-      //     .addProperties({
-      //       number_of_accounts: totalAccounts,
-      //       number_of_accounts_connected: connectedAccountLength,
-      //       number_of_networks: nonTestnetNetworks,
-      //     })
-      //     .build(),
-      // );
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Account,
+        labelOptions,
+        accountAddress: address,
+        accountAvatarType,
+        hasNoTimeout: false,
+      });
+      const totalAccounts = accountsLength;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS)
+          .addProperties({
+            number_of_accounts: totalAccounts,
+            number_of_accounts_connected: connectedAccountLength,
+            // TODO: This might need to be updated
+            number_of_networks: nonTestnetNetworks,
+          })
+          .build(),
+      );
       setUserIntent(newUserIntent);
     } catch (e) {
       Logger.error(e as Error, 'Error while trying to connect to a dApp.');
