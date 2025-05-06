@@ -8,7 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import { isEqual } from 'lodash';
+import { isEqual, uniq } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -41,7 +41,7 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 
 // Internal dependencies.
 import {
@@ -64,8 +64,8 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 import NetworkPermissionsConnected from './NetworkPermissionsConnected';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
-import { CaipAccountId, CaipChainId, Hex } from '@metamask/utils';
+import { getPermittedEthChainIds, isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
+import { CaipAccountId, CaipChainId, Hex, KnownCaipNamespace, parseCaipAccountId } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
@@ -111,17 +111,31 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
   const permittedAccountsList = useSelector(selectPermissionControllerState);
-  const permittedAccounts = getPermittedAccountsByHostname(
+  const nonRemappedPermittedAccounts = getPermittedAccountsByHostname(
     permittedAccountsList,
     hostname,
   );
+  const permittedAccounts = uniq(
+    nonRemappedPermittedAccounts.map((caipAccountId) => {
+      const {
+        address,
+        chain: { namespace },
+      } = parseCaipAccountId(caipAccountId);
+      if (namespace === KnownCaipNamespace.Eip155) {
+        // this is very hacky, but it works for now
+        return `eip155:0:${address}` as CaipAccountId;
+      }
+      return caipAccountId;
+    }),
+  );
+
   const permittedChainIds = getPermittedChainIdsByHostname(
     permittedAccountsList,
     hostname,
   );
 
   const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
+    selectNetworkConfigurationsByCaipChainId,
   );
 
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -131,7 +145,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         ? AccountPermissionsScreens.PermissionsSummary
         : initialScreen,
     );
-  const { evmAccounts: accounts, ensByAccountAddress } = useAccounts({
+  const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
   const previousPermittedAccounts = useRef<CaipAccountId[]>();
@@ -142,22 +156,18 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const networks = Object.entries(networkConfigurations)
-    .filter(([_, network]) => !isNonEvmChainId(network.chainId))
-    .map(([key, network]: [string, NetworkConfiguration]) => ({
-      id: key,
+    .map(([key, network]) => ({
       name: network.name,
-      rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
-      isSelected: false,
-      chainId: network?.chainId,
+      caipChainId: network.caipChainId,
       //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       imageSource: getNetworkImageSource({
-        chainId: network?.chainId,
+        chainId: network.caipChainId,
       }),
     }));
 
   const networkAvatars: ({ name: string; imageSource: string } | null)[] =
     permittedChainIds.map((selectedId) => {
-      const network = networks.find(({ id }) => id === selectedId);
+      const network = networks.find(({ caipChainId }) => caipChainId === selectedId);
       if (network) {
         return {
           name: network.name,
@@ -219,10 +229,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       unpermitted: [],
     };
 
-    // TODO: fix this
     accounts.forEach((account) => {
-      const lowercasedAccount = account.address.toLowerCase();
-      if (permittedAccounts.includes(lowercasedAccount)) {
+      if (isCaipAccountIdInPermittedAccountIds(account.caipAccountId, permittedAccounts)){
         accountsByPermittedStatus.permitted.push(account);
       } else {
         accountsByPermittedStatus.unpermitted.push(account);
@@ -582,10 +590,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const renderPermissionsSummaryScreen = useCallback(() => {
-    const checksummedPermittedAddresses = permittedAccounts.map(
-      toChecksumHexAddress<string>,
-    );
-
     const permissionsSummaryProps: PermissionsSummaryProps = {
       currentPageInformation: {
         currentEnsName: '',
@@ -604,7 +608,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
           : navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
-      accountAddresses: checksummedPermittedAddresses,
+      accountAddresses: permittedAccounts,
       accounts,
       networkAvatars,
     };
@@ -799,7 +803,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
           : navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
-      accountAddresses: permittedAccounts.map(toChecksumHexAddress) as string[],
+      accountAddresses: permittedAccounts,
       accounts,
       networkAvatars,
       isNetworkSwitch: true,
