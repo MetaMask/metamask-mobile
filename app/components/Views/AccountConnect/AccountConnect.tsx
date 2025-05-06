@@ -246,7 +246,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       (network) => ({
         size: AvatarSize.Xs,
         name: network.name || '',
-        // @ts-expect-error getNetworkImageSource not yet typed
         imageSource: getNetworkImageSource({ chainId: network.chainId }),
       }),
     );
@@ -529,7 +528,6 @@ const AccountConnect = (props: AccountConnectProps) => {
           size: AvatarSize.Xs,
           // @ts-expect-error - networkConfigurations is not typed
           name: networkConfigurations[newSelectedChainId]?.name || '',
-          // @ts-expect-error - getNetworkImageSource is not typed
           imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
         }),
       );
