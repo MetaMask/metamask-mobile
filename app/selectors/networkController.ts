@@ -205,12 +205,13 @@ export const selectNetworkConfigurations = createSelector(
   },
 );
 
+// Uncomment relevant lines when ready for non-evm support
 export const selectNetworkConfigurationsByCaipChainId = createSelector(
   selectEvmNetworkConfigurationsByChainId,
-  selectNonEvmNetworkConfigurationsByChainId,
+  // selectNonEvmNetworkConfigurationsByChainId,
   (
     evmNetworkConfigurationsByChainId,
-    nonEvmNetworkConfigurationsByChainId,
+    // nonEvmNetworkConfigurationsByChainId,
   ): Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> => {
     const networkConfigurationsByChainId: Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> = {
     };
@@ -223,13 +224,13 @@ export const selectNetworkConfigurationsByCaipChainId = createSelector(
       }
     })
 
-    Object.entries(nonEvmNetworkConfigurationsByChainId).forEach(([_caipChainId, networkConfiguration]) => {
-      const caipChainId = _caipChainId as CaipChainId;
-      networkConfigurationsByChainId[caipChainId] = {
-        ...networkConfiguration,
-        caipChainId
-      }
-    })
+    // Object.entries(nonEvmNetworkConfigurationsByChainId).forEach(([_caipChainId, networkConfiguration]) => {
+    //   const caipChainId = _caipChainId as CaipChainId;
+    //   networkConfigurationsByChainId[caipChainId] = {
+    //     ...networkConfiguration,
+    //     caipChainId
+    //   }
+    // })
 
     return networkConfigurationsByChainId;
   },
