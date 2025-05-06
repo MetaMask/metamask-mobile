@@ -38,6 +38,7 @@ exports[`Erc20TokenHero renders USDC token correctly 1`] = `
               "width": 48,
             }
           }
+          testID="earn-token-selector-USDC-0x1"
         >
           <Image
             onError={[Function]}

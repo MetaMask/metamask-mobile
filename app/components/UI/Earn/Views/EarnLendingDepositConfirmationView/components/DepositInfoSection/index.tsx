@@ -17,9 +17,7 @@ import { TokenI } from '../../../../../Tokens/types';
 import { useEarnTokenDetails } from '../../../../hooks/useEarnTokenDetails';
 import { strings } from '../../../../../../../../locales/i18n';
 
-export const STABLECOIN_DEPOSIT_TEST_IDS = {
-  DEPOSIT_DETAILS_SECTION: 'depositDetailsSection',
-};
+export const DEPOSIT_DETAILS_SECTION_TEST_ID = 'depositDetailsSection';
 
 export interface DepositInfoSectionProps {
   token: TokenI;
@@ -52,7 +50,7 @@ const DepositInfoSection = ({
   const earnToken = getTokenWithBalanceAndApr(token);
 
   return (
-    <InfoSection testID={STABLECOIN_DEPOSIT_TEST_IDS.DEPOSIT_DETAILS_SECTION}>
+    <InfoSection testID={DEPOSIT_DETAILS_SECTION_TEST_ID}>
       <View style={styles.infoSectionContent}>
         <KeyValueRow
           field={{

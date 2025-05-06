@@ -1,14 +1,18 @@
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import styleSheet from './EarnLendingDepositConfirmationView.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import Erc20TokenHero from './components/Erc20TokenHero';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { TokenI } from '../../../Tokens/types';
-import BN from 'bnjs4';
 import { isEmpty } from 'lodash';
 import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
-import useNavbar from '../../../../Views/confirmations/hooks/ui/useNavbar';
 import { strings } from '../../../../../../locales/i18n';
 import DepositInfoSection from './components/DepositInfoSection';
 import DepositReceiveSection from './components/DepositReceiveSection';
@@ -32,14 +36,14 @@ import Toast, {
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { getStakingNavbar } from '../../../Navbar';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
   amountTokenMinimalUnit?: string;
   amountFiat?: string;
   annualRewardsToken?: string;
-  annualRewardsFiat?: BN;
-  annualRewardRate?: string;
+  annualRewardsFiat?: string;
   action?: Extract<EARN_INPUT_VIEW_ACTIONS, 'ALLOWANCE_INCREASE' | 'LEND'>;
   lendingContractAddress?: string;
   lendingProtocol?: string;
@@ -77,9 +81,18 @@ const EarnLendingDepositConfirmationView = () => {
     action,
   } = params;
 
-  useNavbar(strings('earn.deposit'));
-
   const navigation = useNavigation();
+
+  getStakingNavbar(strings('earn.deposit'), navigation, theme.colors);
+
+  useEffect(() => {
+    navigation.setOptions(
+      getStakingNavbar(strings('earn.deposit'), navigation, theme.colors, {
+        hasCancelButton: false,
+        backgroundColor: theme.colors.background.alternative,
+      }),
+    );
+  }, [navigation, theme.colors]);
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
   const [activeStep, setActiveStep] = useState(

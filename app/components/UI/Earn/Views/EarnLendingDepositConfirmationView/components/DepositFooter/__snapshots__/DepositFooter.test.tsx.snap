@@ -8,6 +8,7 @@ exports[`Deposit Footer renders correctly 1`] = `
       "paddingTop": 32,
     }
   }
+  testID="depositFooter"
 >
   <View>
     <View>
