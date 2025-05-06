@@ -107,6 +107,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { accounts: allAccounts, evmAccounts: accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
+  const defaultAccountsSetRef = useRef(false);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -205,9 +206,15 @@ const AccountConnect = (props: AccountConnectProps) => {
     ({ caipAccountId }) => caipAccountId,
   );
 
-  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(
-    defaultCaipAccountAddresses
-  );
+  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>([]);
+
+  // Updates the default selected accounts whenever the accounts in wallet changes
+  useEffect(() => {
+    if (!defaultAccountsSetRef.current && defaultCaipAccountAddresses.length > 0) {
+      defaultAccountsSetRef.current = true
+      setSelectedAddresses(defaultCaipAccountAddresses)
+    }
+  }, [defaultCaipAccountAddresses])
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
