@@ -439,7 +439,7 @@ class Confirm extends PureComponent {
     if (weiBalance?.isZero()) {
       await TokensController.ignoreTokens(
         [selectedAsset.address],
-        this.props.globalNetworkClientId,
+        this.props.networkClientId,
       );
     }
   };
