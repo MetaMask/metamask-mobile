@@ -52,6 +52,7 @@ export const SlippageModal = () => {
     setSelectedValue(option);
   };
 
+  // We are setting undefined to auto slippage so that Lifi can use their default slippage for solana swaps.
   const handleApply = () => {
     dispatch(setSlippage(selectedValue === 'auto' ? undefined : selectedValue));
     navigation.goBack();
