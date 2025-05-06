@@ -745,7 +745,7 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
           }
           testID="network-education-modal-network-name"
         >
-          Solana Mainnet
+          Solana
         </Text>
       </View>
     </View>
