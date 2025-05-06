@@ -7,6 +7,7 @@ import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, get
 import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
 import { toHex } from '@metamask/controller-utils';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -269,11 +270,43 @@ export const updatePermittedChains = (
   chainIds: Hex[],
   shouldRemoveExistingChainPermissions = false,
 ) => {
+  DevLogger.log(`[PERM DEBUG] updatePermittedChains origin=${origin}`, {
+    chainIds,
+    shouldRemoveExistingChainPermissions,
+  });
+
+  // Check existing permissions in PermissionController
+  const { PermissionController } = Engine.context;
+  const permState = PermissionController.state;
+  const hasSubject = !!permState.subjects[origin];
+
+  DevLogger.log(`[PERM DEBUG] Permission state check for ${origin}`, {
+    hasSubject,
+    subjectsCount: Object.keys(permState.subjects).length,
+    matchingCaveatTypes: hasSubject
+      ? permState.subjects[origin]?.permissions?.[Caip25EndowmentPermissionName]?.caveats
+        ?.map((c: CaveatConstraint) => c.type)
+      : []
+  });
+
   const caip25Caveat = getCaip25Caveat(origin);
+
+  // Log the pre-update state
+  DevLogger.log(`[PERM DEBUG] updatePermittedChains pre-update state`, {
+    origin,
+    hasCaveat: !!caip25Caveat,
+    caveatValue: caip25Caveat?.value,
+  });
+
   if (!caip25Caveat) {
-    throw new Error(
+    const permError = new Error(
       `Cannot add chain permissions for origin "${origin}": no permission currently exists for this origin.`,
     );
+    DevLogger.log(`[PERM DEBUG] updatePermittedChains error - permission not found`, {
+      error: permError,
+      permissionControllerState: Engine.context.PermissionController.state
+    });
+    throw permError;
   }
 
   const additionalChainIds = shouldRemoveExistingChainPermissions
@@ -302,6 +335,21 @@ export const updatePermittedChains = (
     Caip25CaveatType,
     caveatValueWithAccountsSynced,
   );
+
+  // Log post-update state to confirm chain permissions were properly updated
+  try {
+    const updatedCaveat = getCaip25Caveat(origin);
+    const updatedChainIds = getPermittedEthChainIds(updatedCaveat.value);
+    DevLogger.log(`[PERM DEBUG] updatePermittedChains post-update state`, {
+      origin,
+      requestedChainIds: chainIds,
+      finalChainIds: updatedChainIds,
+      success: chainIds.every(chainId => updatedChainIds.includes(chainId)),
+      fullCaveatValue: updatedCaveat.value
+    });
+  } catch (postUpdateErr) {
+    DevLogger.log(`[PERM DEBUG] Error checking post-update state`, postUpdateErr);
+  }
 };
 
 /**
@@ -311,10 +359,10 @@ export const updatePermittedChains = (
  * @param chainId - ChainId to remove.
  */
 export const removePermittedChain = (hostname: string, chainId: string) => {
-  const caip25Caveat = getCaip25Caveat(origin);
+  const caip25Caveat = getCaip25Caveat(hostname);
   if (!caip25Caveat) {
     throw new Error(
-      `Cannot remove chain permissions for origin "${origin}": no permission currently exists for this origin.`,
+      `Cannot remove chain permissions for origin "${hostname}": no permission currently exists for this origin.`,
     );
   }
   const { PermissionController } = Engine.context;
@@ -393,6 +441,7 @@ export const getPermittedChains = async (
   const caveat = PermissionController.getCaveat(
     hostname,
     Caip25EndowmentPermissionName,
+    Caip25CaveatType
   );
 
   if (caveat) {
