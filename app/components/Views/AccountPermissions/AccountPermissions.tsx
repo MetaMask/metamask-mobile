@@ -64,8 +64,10 @@ import { AvatarVariant } from '../../../component-library/components/Avatars/Ava
 import NetworkPermissionsConnected from './NetworkPermissionsConnected';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { getAllScopesFromCaip25CaveatValue, getPermittedEthChainIds, isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
-import { CaipAccountId, CaipChainId, Hex, KnownCaipNamespace, parseCaipAccountId } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, hasProperty, Hex, KnownCaipNamespace, parseCaipAccountId } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
+import { parseChainId } from '@walletconnect/utils';
+import { RpcEndpoint } from '@metamask/network-controller/dist/NetworkController.cjs';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -86,7 +88,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const accountsLength = useSelector(selectAccountsLength);
   // TODO: Fix this
-  const currentChainId = useSelector(selectEvmChainId);
+  const currentEvmChainId = useSelector(selectEvmChainId);
 
   const nonTestnetNetworks = useSelector(
     (state: RootState) =>
@@ -293,39 +295,49 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       return;
     }
 
-      // TODO: Fix this. currentChainId is EVM hex
-      // // Check if current network was originally permitted and is now being removed
-      // const wasCurrentNetworkOriginallyPermitted =
-      //   permittedChainIds.includes(currentChainId);
-      // const isCurrentNetworkStillPermitted =
-      //   chainIds.includes(currentChainId);
+    const currentEvmCaipChainId: CaipChainId = `eip155:${parseInt(currentEvmChainId, 16)}`
 
-      // if (
-      //   wasCurrentNetworkOriginallyPermitted &&
-      //   !isCurrentNetworkStillPermitted
-      // ) {
-      //   // Find the network configuration for the first permitted chain
-      //   const networkToSwitch = Object.entries(networkConfigurations).find(
-      //     ([, { chainId }]) => chainId === chainIds[0],
-      //   );
+    const newSelectedEvmChainId = chainIds.find((chainId) => {
+      const { namespace } = parseChainId(chainId)
+      namespace === KnownCaipNamespace.Eip155
+    })
 
-      //   if (networkToSwitch) {
-      //     const [, config] = networkToSwitch;
-      //     const { rpcEndpoints, defaultRpcEndpointIndex } = config;
-      //     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+      // Check if current network was originally permitted and is now being removed
+      const wasCurrentNetworkOriginallyPermitted =
+        permittedChainIds.includes(currentEvmCaipChainId);
+      const isCurrentNetworkStillPermitted =
+        chainIds.includes(currentEvmCaipChainId);
 
-      //     // Switch to the network using networkClientId
-      //     await Engine.context.MultichainNetworkController.setActiveNetwork(
-      //       networkClientId,
-      //     );
-      //   }
-      // }
+      if (
+        wasCurrentNetworkOriginallyPermitted &&
+        !isCurrentNetworkStillPermitted &&
+        newSelectedEvmChainId
+      ) {
+        // Find the network configuration for the first permitted chain
+        const networkToSwitch = Object.entries(networkConfigurations).find(
+          ([, { caipChainId }]) => caipChainId === newSelectedEvmChainId,
+        );
+
+        if (networkToSwitch) {
+          const [, config] = networkToSwitch;
+          if (!hasProperty(config, 'rpcEndpoints') || !hasProperty(config, 'defaultRpcEndpointIndex')) {
+            return;
+          }
+          const { rpcEndpoints, defaultRpcEndpointIndex } = config;
+          const { networkClientId } = (rpcEndpoints as RpcEndpoint[])[defaultRpcEndpointIndex as number];
+
+          // Switch to the network using networkClientId
+          await Engine.context.MultichainNetworkController.setActiveNetwork(
+            networkClientId,
+          );
+        }
+      }
 
       const removeExistingChainPermissions = true;
       updatePermittedChains(hostname, chainIds, removeExistingChainPermissions);
       setNetworkSelectorUserIntent(USER_INTENT.Confirm);
   }, [
-    currentChainId,
+    currentEvmChainId,
     hostname,
     networkConfigurations,
     permittedChainIds,
@@ -696,12 +708,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
       onUserAction: setUserIntent,
       onAddNetwork: () => {
-        if (!currentChainId) {
+        if (!currentEvmChainId) {
           throw new Error('No chainId provided');
         }
 
-        // This assumes currentChainId is EVM
-        const currentCaipChainId: CaipChainId = `eip155:${parseInt(currentChainId, 16)}`
+        const currentEvmCaipChainId: CaipChainId = `eip155:${parseInt(currentEvmChainId, 16)}`
 
         let currentlyPermittedChains: CaipChainId[] = [];
         try {
@@ -713,11 +724,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           Logger.error(e as Error, 'Error getting permitted chains caveat');
         }
 
-        if (currentlyPermittedChains.includes(currentCaipChainId)) {
+        if (currentlyPermittedChains.includes(currentEvmCaipChainId)) {
           return;
         }
 
-        updatePermittedChains(hostname, [currentCaipChainId]);
+        updatePermittedChains(hostname, [currentEvmCaipChainId]);
 
         const networkToastProps: ToastOptions = {
           variant: ToastVariants.Network,
@@ -761,7 +772,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     permittedAccounts,
     networkAvatars,
     accounts,
-    currentChainId,
+    currentEvmChainId,
     hideSheet,
     hostname,
     toastRef,
