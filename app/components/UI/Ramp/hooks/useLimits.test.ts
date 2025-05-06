@@ -17,10 +17,12 @@ describe('useLimits', () => {
   it('should return limits and validation functions', () => {
     const mockLimits = { minAmount: 10, maxAmount: 1000 };
     mockUseRampSDK.mockReturnValue({
-      selectedRegion: { id: 'region1' },
-      selectedPaymentMethodId: 'payment1',
-      selectedAsset: { id: 'asset1' },
-      selectedFiatCurrencyId: 'fiat1',
+      selectedRegion: { id: '/region/us-ca' },
+      selectedPaymentMethodId: '/payments/debit-credit',
+      selectedAsset: {
+        id: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
+      },
+      selectedFiatCurrencyId: '/currencies/fiat/usd',
       isBuy: true,
     });
     mockUseSDKMethod.mockReturnValue([{ data: mockLimits }]);
@@ -38,10 +40,12 @@ describe('useLimits', () => {
 
   it('should handle missing limits gracefully', () => {
     mockUseRampSDK.mockReturnValue({
-      selectedRegion: { id: 'region1' },
-      selectedPaymentMethodId: 'payment1',
-      selectedAsset: { id: 'asset1' },
-      selectedFiatCurrencyId: 'fiat1',
+      selectedRegion: { id: '/region/us-ca' },
+      selectedPaymentMethodId: '/payments/debit-credit',
+      selectedAsset: {
+        id: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
+      },
+      selectedFiatCurrencyId: '/currencies/fiat/usd',
       isBuy: true,
     });
     mockUseSDKMethod.mockReturnValue([{ data: null }]);
@@ -56,10 +60,12 @@ describe('useLimits', () => {
 
   it('should handle missing min and max limits gracefully', () => {
     mockUseRampSDK.mockReturnValue({
-      selectedRegion: { id: 'region1' },
-      selectedPaymentMethodId: 'payment1',
-      selectedAsset: { id: 'asset1' },
-      selectedFiatCurrencyId: 'fiat1',
+      selectedRegion: { id: '/region/us-ca' },
+      selectedPaymentMethodId: '/payments/debit-credit',
+      selectedAsset: {
+        id: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
+      },
+      selectedFiatCurrencyId: '/currencies/fiat/usd',
       isBuy: true,
     });
     mockUseSDKMethod.mockReturnValue([
@@ -81,10 +87,12 @@ describe('useLimits', () => {
 
   it('should call useSDKMethod with correct parameters for buy', () => {
     mockUseRampSDK.mockReturnValue({
-      selectedRegion: { id: 'region1' },
-      selectedPaymentMethodId: 'payment1',
-      selectedAsset: { id: 'asset1' },
-      selectedFiatCurrencyId: 'fiat1',
+      selectedRegion: { id: '/region/us-ca' },
+      selectedPaymentMethodId: '/payments/debit-credit',
+      selectedAsset: {
+        id: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
+      },
+      selectedFiatCurrencyId: '/currencies/fiat/usd',
       isBuy: true,
     });
     mockUseSDKMethod.mockReturnValue([{ data: null }]);
@@ -93,19 +101,21 @@ describe('useLimits', () => {
 
     expect(mockUseSDKMethod).toHaveBeenCalledWith(
       'getLimits',
-      'region1',
-      ['payment1'],
-      'asset1',
-      'fiat1',
+      '/region/us-ca',
+      ['/payments/debit-credit'],
+      '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
+      '/currencies/fiat/usd',
     );
   });
 
   it('should call useSDKMethod with correct parameters for sell', () => {
     mockUseRampSDK.mockReturnValue({
-      selectedRegion: { id: 'region1' },
-      selectedPaymentMethodId: 'payment1',
-      selectedAsset: { id: 'asset1' },
-      selectedFiatCurrencyId: 'fiat1',
+      selectedRegion: { id: '/region/us-ca' },
+      selectedPaymentMethodId: '/payments/debit-credit',
+      selectedAsset: {
+        id: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
+      },
+      selectedFiatCurrencyId: '/currencies/fiat/usd',
       isBuy: false,
     });
     mockUseSDKMethod.mockReturnValue([{ data: null }]);
@@ -114,10 +124,10 @@ describe('useLimits', () => {
 
     expect(mockUseSDKMethod).toHaveBeenCalledWith(
       'getSellLimits',
-      'region1',
-      ['payment1'],
-      'asset1',
-      'fiat1',
+      '/region/us-ca',
+      ['/payments/debit-credit'],
+      '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
+      '/currencies/fiat/usd',
     );
   });
 });
