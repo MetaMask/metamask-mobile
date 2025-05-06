@@ -72,12 +72,9 @@ describe('Switch Account Type Modal', () => {
       networkSupporting7702Present: true,
     });
 
-    const { getByTestId, getByText } = renderWithProvider(
-      <SwitchAccountTypeModal />,
-      {
-        state: MOCK_STATE,
-      },
-    );
+    const { getByText } = renderWithProvider(<SwitchAccountTypeModal />, {
+      state: MOCK_STATE,
+    });
     expect(getByText('Account 1')).toBeTruthy();
     expect(getByText('Sepolia')).toBeTruthy();
     expect(getByText('Smart Account')).toBeTruthy();
