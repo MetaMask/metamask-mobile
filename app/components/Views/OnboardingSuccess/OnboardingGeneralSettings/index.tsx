@@ -8,7 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
 import { useStyles } from '../../../../component-library/hooks';
-import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
+import BackupAndSyncToggle from '../../../UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
@@ -41,7 +41,7 @@ const GeneralSettings = () => {
     );
   };
 
-  const toggleProfileSyncing = async () => {
+  const trackBackupAndSyncToggleEvent = async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
         .addProperties({
@@ -57,7 +57,9 @@ const GeneralSettings = () => {
   return (
     <ScrollView style={styles.root}>
       <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
-      <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
+      <BackupAndSyncToggle
+        trackBackupAndSyncToggleEventOverride={trackBackupAndSyncToggleEvent}
+      />
       <ManageNetworksComponent />
     </ScrollView>
   );
