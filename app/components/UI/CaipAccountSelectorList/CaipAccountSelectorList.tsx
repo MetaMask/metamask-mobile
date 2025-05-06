@@ -170,6 +170,7 @@ const CaipAccountSelectorList = ({
                 });
                 // Revocation of accounts from PermissionController is needed whenever accounts are removed.
                 // If there is an instance where this is not the case, this logic will need to be updated.
+                // Fix this
                 removeAccountsFromPermissions([toHex(address)]);
                 await Engine.context.KeyringController.removeAccount(address);
               });
