@@ -328,16 +328,15 @@ describe('Encryptor', () => {
 
     beforeEach(() => {
       encryptSpy = jest
-        .spyOn(Aes, 'encrypt')
-        .mockResolvedValue(() => Promise.resolve('mockedCipher'));
+        .spyOn(QuickCryptoLib, 'encrypt')
+        .mockResolvedValue(JSON.stringify({ test: 'data' }));
       decryptSpy = jest
-        .spyOn(Aes, 'decrypt')
-        .mockResolvedValue('{"mockData": "mockedPlainText"}');
+        .spyOn(QuickCryptoLib, 'decrypt')
+        .mockResolvedValue(JSON.stringify({ test: 'data' }));
     });
 
     afterEach(() => {
-      encryptSpy.mockRestore();
-      decryptSpy.mockRestore();
+      jest.clearAllMocks();
     });
 
     it('updates a vault correctly if keyMetadata is not present', async () => {
