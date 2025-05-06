@@ -2307,7 +2307,7 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-16.2.x
-    machine_type_id: g2.mac.large
+    machine_type_id: g2.mac.4large
 trigger_map:
   - push_branch: release/*
     pipeline: pr_regression_e2e_pipeline
