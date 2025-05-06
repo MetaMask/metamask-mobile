@@ -83,11 +83,13 @@ export const Browser = (props) => {
     // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
     if (tabs.length >= MAX_BROWSER_TABS) {
       navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
-    } else {
+    } else if (AppConstants.TOKEN_DISCOVERY_BROWSER_ENABLED) {
       // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
       createNewTab(url, linkType);
+    } else {
+      createNewTab(url || homePageUrl(), linkType);
     }
-  }, [tabs, navigation, createNewTab]);
+  }, [tabs, navigation, createNewTab, homePageUrl]);
 
   const updateTabInfo = useCallback((tabID, info) => {
     updateTab(tabID, info);

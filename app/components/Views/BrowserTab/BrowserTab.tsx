@@ -12,6 +12,7 @@ import {
   ImageSourcePropType,
   KeyboardAvoidingView,
   Platform,
+  Text,
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -499,7 +500,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
    */
   useEffect(() => {
-    if (!isTabActive || !firstUrl || isWebViewReadyToLoad.current) return;
+    if (
+      !isTabActive ||
+      (AppConstants.TOKEN_DISCOVERY_BROWSER_ENABLED && !firstUrl) ||
+      isWebViewReadyToLoad.current
+    ) {
+      return;
+    }
 
     isWebViewReadyToLoad.current = true;
 
@@ -1120,7 +1127,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           return;
         }
         return onSubmitEditingRef.current(handledEnsUrl);
-      } else if (!firstUrl) {
+      } else if (AppConstants.TOKEN_DISCOVERY_BROWSER_ENABLED && !firstUrl) {
         setFirstUrl(processedUrl);
         return;
       }
@@ -1434,7 +1441,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                   )}
                 </>
               )}
-              {!firstUrl && <TokenDiscovery />}
+              {AppConstants.TOKEN_DISCOVERY_BROWSER_ENABLED && !firstUrl && (
+                <TokenDiscovery />
+              )}
             </View>
             <UrlAutocomplete
               ref={autocompleteRef}

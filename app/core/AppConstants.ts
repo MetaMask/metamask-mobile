@@ -227,4 +227,5 @@ export default {
     VERSION: 'v1',
     DEFAULT_FETCH_INTERVAL: 15 * 60 * 1000, // 15 minutes
   },
+  TOKEN_DISCOVERY_BROWSER_ENABLED: process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
 } as const;
