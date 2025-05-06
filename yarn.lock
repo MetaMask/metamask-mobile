@@ -4815,14 +4815,14 @@
     "@metamask/utils" "^11.2.0"
     lodash "^4.17.21"
 
-"@metamask/chain-agnostic-permission@^0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@metamask/chain-agnostic-permission/-/chain-agnostic-permission-0.5.0.tgz#6cfa268a0417459e36f61bd9a8984959b2b24f99"
-  integrity sha512-+LKEJ6Px9UbPBNkj0tmdgsNIWm165tx64exOvG1iYvZ9dgPsFXvgf02lgzYONyrLplRNGnGgYYMgq6Urvlr5Rw==
+"@metamask/chain-agnostic-permission@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/chain-agnostic-permission/-/chain-agnostic-permission-0.6.0.tgz#3de97ffd5f60ae5e384e8f7663f53f38c819c855"
+  integrity sha512-2Nn/R2b4LiW+Nhq0Pxz7V1IGxcP5NxfVSvqOJNGH9r7qb9vPB+LM14XTQBnu4XJnVR9rc6mZPCLuJa7I0FhcCg==
   dependencies:
     "@metamask/api-specs" "^0.10.12"
     "@metamask/controller-utils" "^11.7.0"
-    "@metamask/network-controller" "^23.2.0"
+    "@metamask/network-controller" "^23.3.0"
     "@metamask/permission-controller" "^11.0.6"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/utils" "^11.2.0"
@@ -5360,6 +5360,30 @@
   integrity sha512-DnsMUtBxDQm4tk+2+bMbEgbUEgWS2xGmN6JqA47AXGBjzpnUUKQolcyJuPX0jJA+qUSnMG9jQjuMJBf1RHSR5Q==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.7.0"
+    "@metamask/eth-block-tracker" "^11.0.3"
+    "@metamask/eth-json-rpc-infura" "^10.1.1"
+    "@metamask/eth-json-rpc-middleware" "^16.0.1"
+    "@metamask/eth-json-rpc-provider" "^4.1.8"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/json-rpc-engine" "^10.0.3"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/swappable-obj-proxy" "^2.3.0"
+    "@metamask/utils" "^11.2.0"
+    async-mutex "^0.5.0"
+    fast-deep-equal "^3.1.3"
+    immer "^9.0.6"
+    loglevel "^1.8.1"
+    reselect "^5.1.1"
+    uri-js "^4.4.1"
+    uuid "^8.3.2"
+
+"@metamask/network-controller@^23.3.0":
+  version "23.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-23.3.0.tgz#12b71fb2c02e0bcff47c1ba3d49a3541c9d193ed"
+  integrity sha512-REiPcpSyNPsxVzV1AvB3XmhXcEvccZ9qBL8fdFkJQrjGSnBDdlhMaZSro+B9CdfIVUlidhztf/rJ/2NV2BKj4g==
+  dependencies:
+    "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.7.0"
     "@metamask/eth-block-tracker" "^11.0.3"
     "@metamask/eth-json-rpc-infura" "^10.1.1"
