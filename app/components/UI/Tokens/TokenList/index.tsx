@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
 import { View, RefreshControl, Dimensions } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import { BlankAreaEvent, FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import {
@@ -10,6 +10,7 @@ import {
 import createStyles from '../styles';
 import Text, {
   TextColor,
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
@@ -126,7 +127,22 @@ export const TokenList = ({
           onRefresh={onRefresh}
         />
       }
+      renderPlaceholder={() => (
+        <View
+          style={{
+            height: itemHeight,
+            backgroundColor: colors.background.alternative,
+            justifyContent: 'center',
+            paddingHorizontal: 16,
+          }}
+        >
+          <Text variant={TextVariant.BodyMDMedium}>loading...</Text>
+        </View>
+      )}
       extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
+      onBlankArea={(e: BlankAreaEvent) => {
+        console.log('onBlankArea', e.blankArea);
+      }}
     />
   ) : (
     <View style={styles.emptyView}>

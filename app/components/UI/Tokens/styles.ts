@@ -122,7 +122,7 @@ const createStyles = (colors: Colors) =>
     },
     dot: {
       marginLeft: 2,
-      marginTop: -1,
+      // marginTop: -1,
     },
     earn: {
       marginLeft: 2,
