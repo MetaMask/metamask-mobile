@@ -5609,10 +5609,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-4.1.0.tgz#6f2702de7ba64dad3ab6586ea3ac4e5647804b0a"
   integrity sha512-RQ2MJO0X3QLnJo0rFlb83h2tNAkqqx/VNOPLc3/S2CvY3/cXy3UAEw/xRM/475BeAAkWI93yiIn/FoGUy3E0Ig==
 
-"@metamask/smart-transactions-controller@^16.2.0":
-  version "16.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-16.2.0.tgz#683370d7c5ef3a36fd5efc3eecbae9e75a8740ba"
-  integrity sha512-OSV2pn+zVyv28ZGdyx5Br50odAbrWRqF2mrLzN5dl4k6vMhvWY9SBOhp2taftk9VSN8eP13LiyvKfEtMLlcazg==
+"@metamask/smart-transactions-controller@^16.3.1":
+  version "16.3.1"
+  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-16.3.1.tgz#1618bcc4394b5a1969493d6cf828c1a133788f82"
+  integrity sha512-L2rrev+lXadK94xtSWxHU0DAdXYaj8nLxPSFPXvyUyYBQeXZY9BEKd9UxnZo4v1WKjv8vRJ2kgsDvYikStq/Sg==
   dependencies:
     "@babel/runtime" "^7.24.1"
     "@ethereumjs/tx" "^5.2.1"
@@ -24763,10 +24763,10 @@ react-native-quick-base64@^2.0.5, react-native-quick-base64@^2.0.8:
   dependencies:
     base64-js "^1.5.1"
 
-react-native-quick-crypto@^0.7.0:
-  version "0.7.12"
-  resolved "https://registry.yarnpkg.com/react-native-quick-crypto/-/react-native-quick-crypto-0.7.12.tgz#2c2db1e63c18ee1fcd13b85de5b9327c734dc624"
-  integrity sha512-3x4SmFz44DN4RjnSWu85f9iGSBqVy8RKj++7eWcGRTir1gMosNH6IxbxQHO4GD/d3tIP21QIijcD+/Z5h7v6DA==
+react-native-quick-crypto@^0.7.13:
+  version "0.7.13"
+  resolved "https://registry.yarnpkg.com/react-native-quick-crypto/-/react-native-quick-crypto-0.7.13.tgz#e6ceacf84042cedcd0094f7cb72dbffb063c9b96"
+  integrity sha512-9EmXvvBW64gt/hUgeDUGl6KHjDVmtEdC/CbmlyLOTNXxvkOhNI/LhLK9ss6jDqRX3tYTM/DL0uk/+kXSTZQeKA==
   dependencies:
     "@craftzdog/react-native-buffer" "^6.0.5"
     events "^3.3.0"

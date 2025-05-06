@@ -1,31 +1,56 @@
 import { NativeModules } from 'react-native';
 import {
   KDF_ALGORITHM,
-  ShaAlgorithm,
-  CipherAlgorithm,
-  ENCRYPTION_LIBRARY,
   SHA256_DIGEST_LENGTH,
   LEGACY_DERIVATION_OPTIONS,
-} from './constants';
-import { EncryptionLibrary, KeyDerivationOptions } from './types';
+} from './../constants';
+import { EncryptionLibrary, KeyDerivationOptions } from './../types';
+
+/**
+ * Supported SHA algorithms in react-native-aes v3.0.3
+ */
+enum HashAlgorithmAesCrypto {
+  Sha256 = 'sha256',
+  Sha512 = 'sha512',
+}
+
+/**
+ * Supported cipher algorithms in react-native-aes v3.0.3
+ *
+ * Important Note: Make sure to validate the compatibility of the algorithm with the underlying library.
+ * The react-native-aes-crypto does a string validation for the algorithm, so it's important to make sure
+ * we're using the correct string.
+ *
+ * References:
+ * - encrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When-,encrypting,-and%20decypting%20the
+ * - decrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When%20encrypting%20and-,decypting,-the%20library%20uses
+ */
+enum CipherAlgorithmAesCrypto {
+  Cbc = 'aes-cbc-pkcs7padding',
+  Ctr = 'aes-ctr-pkcs5padding',
+}
 
 // Actual native libraries
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
 
-function checkForKDFAlgorithm(algorithm: string) {
+export function assertIsKdfAlgorithm(algorithm: string): asserts algorithm is typeof KDF_ALGORITHM {
   if (algorithm !== KDF_ALGORITHM) {
     throw new Error('Unsupported KDF algorithm');
   }
 }
 
+/**
+ * @deprecated This class is deprecated and will be removed in future versions.
+ * Please use `QuickCryptoEncryptionLibrary` instead.
+ */
 class AesEncryptionLibrary implements EncryptionLibrary {
   deriveKey = async (
     password: string,
     salt: string,
     opts: KeyDerivationOptions,
   ): Promise<string> => {
-    checkForKDFAlgorithm(opts.algorithm);
+    assertIsKdfAlgorithm(opts.algorithm);
 
     return await Aes.pbkdf2(
       password,
@@ -38,29 +63,33 @@ class AesEncryptionLibrary implements EncryptionLibrary {
       // - https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
       // - https://eprint.iacr.org/2010/548.pdf
       SHA256_DIGEST_LENGTH,
-      ShaAlgorithm.Sha512,
+      HashAlgorithmAesCrypto.Sha512,
     );
   };
 
-  generateIV = async (size: number): Promise<string> =>
+  generateIv = async (size: number): Promise<string> =>
     // Naming isn't perfect here, but this is how the library generates random IV (and encodes it the right way)
     // See: https://www.npmjs.com/package/react-native-aes-crypto#example
     await Aes.randomKey(size);
 
   encrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
-    await Aes.encrypt(data, key, iv, CipherAlgorithm.cbc);
+    await Aes.encrypt(data, key, iv, CipherAlgorithmAesCrypto.Cbc);
 
   decrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
-    await Aes.decrypt(data, key, iv, CipherAlgorithm.cbc);
+    await Aes.decrypt(data, key, iv, CipherAlgorithmAesCrypto.Cbc);
 }
 
+/**
+ * @deprecated This class is deprecated and will be removed in future versions.
+ * Please use `QuickCryptoEncryptionLibrary` instead.
+ */
 class AesForkedEncryptionLibrary implements EncryptionLibrary {
   deriveKey = async (
     password: string,
     salt: string,
     opts: KeyDerivationOptions,
   ): Promise<string> => {
-    checkForKDFAlgorithm(opts.algorithm);
+    assertIsKdfAlgorithm(opts.algorithm);
 
     // This library was mainly used in a legacy context, meaning the number of iterations/rounds during the
     // key derivation was hard-coded in the native library itself. We do check for those here to make sure
@@ -75,7 +104,7 @@ class AesForkedEncryptionLibrary implements EncryptionLibrary {
     return await AesForked.pbkdf2(password, salt);
   };
 
-  generateIV = async (size: number): Promise<string> =>
+  generateIv = async (size: number): Promise<string> =>
     // NOTE: For some reason, we are not using the AesForked one here, so keep the previous behavior!
     // Naming isn't perfect here, but this is how the library generates random IV (and encodes it the right way)
     // See: https://www.npmjs.com/package/react-native-aes-crypto#example
@@ -90,11 +119,12 @@ class AesForkedEncryptionLibrary implements EncryptionLibrary {
 }
 
 // Those wrappers are stateless, we can build them only once!
-export const AesLib = new AesEncryptionLibrary();
-export const AesForkedLib = new AesForkedEncryptionLibrary();
 
-export function getEncryptionLibrary(
-  lib: string | undefined,
-): EncryptionLibrary {
-  return lib === ENCRYPTION_LIBRARY.original ? AesLib : AesForkedLib;
-}
+/**
+ * @deprecated - This class is deprecated and will be removed in future versions.
+ */
+export const AesLib = new AesEncryptionLibrary();
+/**
+ * @deprecated - This class is deprecated and will be removed in future versions.
+ */
+export const AesForkedLib = new AesForkedEncryptionLibrary();
