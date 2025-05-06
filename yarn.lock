@@ -1433,10 +1433,10 @@
   dependencies:
     expo-build-properties "^0.13.1"
 
-"@consensys/on-ramp-sdk@2.1.6":
-  version "2.1.6"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-2.1.6.tgz#653dfae5569bd39c34010c04402792b9eae3f58e"
-  integrity sha512-UQUfkprykk5wshQLtCopf+BLyOnKTShrpQJ5UVFtqcT7B8WjESjpBXEZwAPr+UAbOGEDUaYzjUNHojnwMWwYCQ==
+"@consensys/on-ramp-sdk@2.1.7":
+  version "2.1.7"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-2.1.7.tgz#1ae2603cdbe3caefa23e12beba55b0cba650dca6"
+  integrity sha512-fAPuQLNEpoKDUKDYLDwareJU2a142f+cIosODYqD+OvNnyVtkW1nOHlhRtOXF4lqAGDkswrMS0I7W+Mgtum4dA==
   dependencies:
     async "^3.2.3"
     axios "^1.8.3"
