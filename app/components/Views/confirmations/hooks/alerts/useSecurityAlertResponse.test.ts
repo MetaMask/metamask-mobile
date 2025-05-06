@@ -1,31 +1,58 @@
-import { SecurityAlertResponse } from '@metamask/transaction-controller';
-
+import { merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { securityAlertResponse as mockSecurityAlertResponse } from '../../../../../util/test/confirm-data-helpers';
+import {
+  securityAlertResponse as mockSecurityAlertResponse,
+  transferConfirmationState,
+} from '../../../../../util/test/confirm-data-helpers';
 import { useSecurityAlertResponse } from './useSecurityAlertResponse';
 
-function renderHook(securityAlertResponse?: SecurityAlertResponse) {
-  const { result } = renderHookWithProvider(useSecurityAlertResponse, {
-    state: {
-      signatureRequest: { securityAlertResponse },
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
     },
-  });
-
-  return result.current;
-}
+  },
+}));
 
 describe('useSecurityAlertResponse', () => {
   it('returns security alert response for signature request is present', () => {
-    const result = renderHook(
-      mockSecurityAlertResponse as SecurityAlertResponse,
-    );
-    expect(result).toStrictEqual({
+    const { result } = renderHookWithProvider(useSecurityAlertResponse, {
+      state: merge({}, transferConfirmationState, {
+        signatureRequest: {
+          securityAlertResponse: mockSecurityAlertResponse,
+        },
+      }),
+    });
+    expect(result.current).toStrictEqual({
+      securityAlertResponse: mockSecurityAlertResponse,
+    });
+  });
+
+  it('returns security alert response for transaction request is present', () => {
+    const { result } = renderHookWithProvider(useSecurityAlertResponse, {
+      state: merge({}, transferConfirmationState, {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                { securityAlertResponse: mockSecurityAlertResponse },
+              ],
+            },
+          },
+        },
+      }),
+    });
+    expect(result.current).toStrictEqual({
       securityAlertResponse: mockSecurityAlertResponse,
     });
   });
 
   it('returns undefined is security alert response is not present for signature request', () => {
-    const result = renderHook();
-    expect(result.securityAlertResponse).toBeUndefined();
+    const { result } = renderHookWithProvider(useSecurityAlertResponse, {
+      state: transferConfirmationState,
+    });
+    expect(result.current).toStrictEqual({
+      securityAlertResponse: undefined,
+    });
   });
 });

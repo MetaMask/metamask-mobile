@@ -114,9 +114,20 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "nonRPCGasFeeApisDisabled": false,
       },
       "KeyringController": {
+        "isUnlocked": true,
         "keyrings": [
           "keyring1",
           "keyring2",
+        ],
+        "keyringsMetadata": [
+          {
+            "id": "123",
+            "name": "",
+          },
+          {
+            "id": "456",
+            "name": "",
+          },
         ],
       },
       "LoggingController": {
@@ -139,14 +150,38 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "bip122:000000000019d6689c085ae165831e93": {
             "chainId": "bip122:000000000019d6689c085ae165831e93",
             "isEvm": false,
-            "name": "Bitcoin Mainnet",
+            "name": "Bitcoin",
             "nativeCurrency": "bip122:000000000019d6689c085ae165831e93/slip44:0",
+          },
+          "bip122:000000000933ea01ad0ee984209779ba": {
+            "chainId": "bip122:000000000933ea01ad0ee984209779ba",
+            "isEvm": false,
+            "name": "Bitcoin Testnet",
+            "nativeCurrency": "bip122:000000000933ea01ad0ee984209779ba/slip44:0",
+          },
+          "bip122:00000008819873e925422c1ff0f99f7c": {
+            "chainId": "bip122:00000008819873e925422c1ff0f99f7c",
+            "isEvm": false,
+            "name": "Bitcoin Signet",
+            "nativeCurrency": "bip122:00000008819873e925422c1ff0f99f7c/slip44:0",
+          },
+          "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": {
+            "chainId": "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z",
+            "isEvm": false,
+            "name": "Solana Testnet",
+            "nativeCurrency": "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z/slip44:501",
           },
           "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": {
             "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
             "isEvm": false,
-            "name": "Solana Mainnet",
-            "nativeCurrency": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "name": "Solana",
+            "nativeCurrency": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
+          },
+          "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": {
+            "chainId": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+            "isEvm": false,
+            "name": "Solana Devnet",
+            "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501",
           },
         },
         "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",

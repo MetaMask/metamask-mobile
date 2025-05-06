@@ -183,7 +183,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         {
           "alignItems": "flex-end",
           "alignSelf": "flex-end",
-          "flex": 1,
+          "flexShrink": 0,
         }
       }
     >
@@ -214,7 +214,6 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingHorizontal": 0,
-            "textTransform": "uppercase",
           }
         }
         testID="secondary-balance-test-id"
@@ -409,7 +408,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         {
           "alignItems": "flex-end",
           "alignSelf": "flex-end",
-          "flex": 1,
+          "flexShrink": 0,
         }
       }
     >
