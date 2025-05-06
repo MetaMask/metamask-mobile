@@ -1048,7 +1048,6 @@ enum DESCRIPTION {
   DAPP_BROWSER_OPTIONS = 'More Browser Options',
   DAPP_HOME = 'Home',
   DAPP_ADD_TO_FAVORITE = 'Add to Favorites',
-  DAPP_GO_TO_FAVORITES = 'Go to Favorites',
   DAPP_OPEN_IN_BROWSER = 'Open in Browser',
   // Wallet
   WALLET_TOKENS = 'Tokens',
@@ -1071,6 +1070,7 @@ enum DESCRIPTION {
   SETTINGS_GENERAL = 'General',
   SETTINGS_ADVANCED = 'Advanced',
   SETTINGS_NOTIFICATIONS = 'Notifications',
+  SETTINGS_BACKUP_AND_SYNC = 'Backup & Sync',
   SETTINGS_SECURITY_AND_PRIVACY = 'Security & Privacy',
   SETTINGS_ABOUT = 'About MetaMask',
   SETTINGS_EXPERIMENTAL = 'Experimental',
@@ -1169,11 +1169,6 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.DAPP_VIEW,
     ACTIONS.DAPP_VIEW,
     DESCRIPTION.DAPP_OPEN_IN_BROWSER,
-  ),
-  DAPP_GO_TO_FAVORITES: generateOpt(
-    EVENT_NAME.DAPP_VIEW,
-    ACTIONS.DAPP_VIEW,
-    DESCRIPTION.DAPP_GO_TO_FAVORITES,
   ),
   // Wallet
   WALLET_TOKENS: generateOpt(
@@ -1274,6 +1269,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.SETTINGS,
     ACTIONS.SETTINGS,
     DESCRIPTION.SETTINGS_NOTIFICATIONS,
+  ),
+  SETTINGS_BACKUP_AND_SYNC: generateOpt(
+    EVENT_NAME.SETTINGS,
+    ACTIONS.SETTINGS,
+    DESCRIPTION.SETTINGS_BACKUP_AND_SYNC,
   ),
   // Receive Options
   RECEIVE_OPTIONS_SHARE_ADDRESS: generateOpt(
