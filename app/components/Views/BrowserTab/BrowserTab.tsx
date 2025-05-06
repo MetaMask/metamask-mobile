@@ -51,7 +51,7 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import { getCaveat, getPermittedAccountsByHostname } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
   selectIpfsGateway,
@@ -389,13 +389,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             return null;
           }
         } else if (type === 'swarm-ns') {
-          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
+            }${query || ''}`;
         } else if (type === 'ipns-ns') {
-          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
+            }${query || ''}`;
         }
         return {
           url: gatewayUrl,
@@ -570,8 +568,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       const disctinctId = await getMetaMetricsId();
       const homepageScripts = `
               window.__mmFavorites = ${JSON.stringify(
-                injectedBookmarks || bookmarks,
-              )};
+        injectedBookmarks || bookmarks,
+      )};
               window.__mmSearchEngine = "${searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";
@@ -649,7 +647,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     if (isConnected) {
       let permittedChains = [];
       try {
-        const caveat = Engine.context.PermissionController.getCaveat(
+        const caveat = getCaveat(
           hostname,
           PermissionKeys.permittedChains,
           CaveatTypes.restrictNetworkSwitching,

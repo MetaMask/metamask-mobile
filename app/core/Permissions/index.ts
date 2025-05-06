@@ -1,6 +1,7 @@
 import { errorCodes as rpcErrorCodes } from '@metamask/rpc-errors';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { RestrictedMethods, CaveatTypes } from './constants';
-import ImportedEngine from '../Engine';
+import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
@@ -11,7 +12,7 @@ const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Engine = ImportedEngine as any;
+const UntypedEngine = Engine as any;
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,7 +72,7 @@ export const getPermittedAccountsByHostname = (
 };
 
 export const switchActiveAccounts = (hostname: string, accAddress: string) => {
-  const { PermissionController } = Engine.context;
+  const { PermissionController } = UntypedEngine.context;
   const existingPermittedAccountAddresses: string[] =
     PermissionController.getCaveat(
       hostname,
@@ -101,11 +102,40 @@ export const switchActiveAccounts = (hostname: string, accAddress: string) => {
   );
 };
 
+/**
+  * Gets the caveat of the specified type, if any, for the permission of
+  * the subject corresponding to the given origin.
+  *
+  * @param origin - The origin of the subject.
+  * @param target - The target name of the permission.
+  * @param caveatType - The type of the caveat to get.
+  * @returns The caveat, or `undefined` if no such caveat exists.
+  */
+
+export const getCaveat = (
+  origin: string,
+  target: string,
+  caveatType: string
+) => {
+  const { PermissionController } = Engine.context;
+  try {
+    return PermissionController.getCaveat(origin, target, caveatType);
+  } catch (error) {
+    if (error instanceof PermissionDoesNotExistError) {
+      // suppress expected error in case that the origin
+      // does not have the target permission yet
+    } else {
+      throw error;
+    }
+  }
+  return undefined;
+};
+
 export const addPermittedAccounts = (
   hostname: string,
   addresses: string[],
 ): string => {
-  const { PermissionController } = Engine.context;
+  const { PermissionController } = UntypedEngine.context;
   const existing = PermissionController.getCaveat(
     hostname,
     RestrictedMethods.eth_accounts,
@@ -143,7 +173,7 @@ export const removePermittedAccounts = (
   hostname: string,
   accounts: string[],
 ) => {
-  const { PermissionController } = Engine.context;
+  const { PermissionController } = UntypedEngine.context;
   const existing = PermissionController.getCaveat(
     hostname,
     RestrictedMethods.eth_accounts,
@@ -169,7 +199,7 @@ export const removePermittedAccounts = (
 };
 
 export const removeAccountsFromPermissions = async (addresses: string[]) => {
-  const { PermissionController } = Engine.context;
+  const { PermissionController } = UntypedEngine.context;
   for (const subject in PermissionController.state.subjects) {
     try {
       removePermittedAccounts(subject, addresses);
@@ -192,7 +222,7 @@ export const removeAccountsFromPermissions = async (addresses: string[]) => {
 export const getPermittedAccounts = async (
   hostname: string,
 ): Promise<string[]> => {
-  const { AccountsController } = Engine.context;
+  const { AccountsController, PermissionController } = UntypedEngine.context;
 
   try {
     if (INTERNAL_ORIGINS.includes(hostname)) {
@@ -203,7 +233,7 @@ export const getPermittedAccounts = async (
     }
 
     const accounts =
-      await Engine.context.PermissionController.executeRestrictedMethod(
+      await PermissionController.executeRestrictedMethod(
         hostname,
         RestrictedMethods.eth_accounts,
       );
@@ -227,7 +257,7 @@ export const getPermittedAccounts = async (
  * @param chainId - ChainId to add.
  */
 export const addPermittedChain = async (hostname: string, chainId: string) => {
-  const { PermissionController } = Engine.context;
+  const { PermissionController } = UntypedEngine.context;
 
   const caveat = PermissionController.getCaveat(
     hostname,
@@ -264,7 +294,7 @@ export const addPermittedChain = async (hostname: string, chainId: string) => {
  * @param chainId - ChainId to remove.
  */
 export const removePermittedChain = async (hostname: string, chainId: string) => {
-  const { PermissionController } = Engine.context;
+  const { PermissionController } = UntypedEngine.context;
   const caveat = PermissionController.getCaveat(
     hostname,
     PermissionKeys.permittedChains,
@@ -300,7 +330,7 @@ export const removePermittedChain = async (hostname: string, chainId: string) =>
  * @returns An array containing permitted chains for the specified host.
  */
 export const getPermittedChains = async (hostname: string): Promise<string[]> => {
-  const { PermissionController } = Engine.context;
+  const { PermissionController } = UntypedEngine.context;
   const caveat = PermissionController.getCaveat(
     hostname,
     PermissionKeys.permittedChains,

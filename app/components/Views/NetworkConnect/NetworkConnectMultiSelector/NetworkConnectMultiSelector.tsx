@@ -31,6 +31,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
 } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
+import { getCaveat } from '../../../../core/Permissions';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -71,7 +72,7 @@ const NetworkConnectMultiSelector = ({
 
     let currentlyPermittedChains: string[] = [];
     try {
-      const caveat = Engine.context.PermissionController.getCaveat(
+      const caveat = getCaveat(
         hostname,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,

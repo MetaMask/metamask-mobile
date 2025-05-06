@@ -18,6 +18,7 @@ import BottomSheet, {
 import Engine from '../../../core/Engine';
 import {
   addPermittedAccounts,
+  getCaveat,
   getPermittedAccountsByHostname,
   removePermittedAccounts,
 } from '../../../core/Permissions';
@@ -142,15 +143,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { chainId } = useNetworkInfo(hostname);
 
   useEffect(() => {
-    if (!Engine.context.PermissionController.hasPermissions(hostname)) {
-      // Avoid PermissionController.getCaveat() throwing error by first
-      // checking if there's any permissions for the hostname
-      Logger.log(`${hostname} has no permissions`);
-      return;
-    }
     let currentlyPermittedChains: string[] = [];
     try {
-      const caveat = Engine.context.PermissionController.getCaveat(
+      const caveat = getCaveat(
         hostname,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
@@ -781,15 +776,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
       onUserAction: setUserIntent,
       onAddNetwork: () => {
-        if (!Engine.context.PermissionController.hasPermissions(hostname)) {
-          // Avoid PermissionController.getCaveat() throwing error by first
-          // checking if there's any permissions for the hostname
-          Logger.log(`${hostname} has no permissions`);
-          return;
-        }
         let currentlyPermittedChains: string[] = [];
         try {
-          const caveat = Engine.context.PermissionController.getCaveat(
+          const caveat = getCaveat(
             hostname,
             PermissionKeys.permittedChains,
             CaveatTypes.restrictNetworkSwitching,

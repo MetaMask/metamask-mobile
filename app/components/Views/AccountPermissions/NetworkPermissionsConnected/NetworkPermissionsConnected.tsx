@@ -27,7 +27,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import NetworkSelectorList from '../../../../components/UI/NetworkSelectorList/NetworkSelectorList';
-import Engine from '../../../../core/Engine';
+import { getCaveat } from '../../../../core/Permissions';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
 import Logger from '../../../../util/Logger';
@@ -70,7 +70,7 @@ const NetworkPermissionsConnected = ({
   // Get permitted chain IDs
   const getPermittedChainIds = () => {
     try {
-      const caveat = Engine.context.PermissionController.getCaveat(
+      const caveat = getCaveat(
         hostname,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,

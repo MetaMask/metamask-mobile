@@ -10,11 +10,11 @@ import {
 import {
   CaveatFactories,
   PermissionKeys,
-} from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
-import { PermissionDoesNotExistError } from '@metamask/permission-controller';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+} from '../../Permissions/specifications';
+import { getCaveat } from '../../Permissions';
+import { CaveatTypes } from '../../Permissions/constants';
+import { MetaMetrics, MetaMetricsEvents } from '../../Analytics';
+import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -213,20 +213,6 @@ export async function switchToNetwork({
     PermissionController,
     SelectedNetworkController,
   } = controllers;
-  const getCaveat = ({ target, caveatType }) => {
-    try {
-      return PermissionController.getCaveat(origin, target, caveatType);
-    } catch (e) {
-      if (e instanceof PermissionDoesNotExistError) {
-        // suppress expected error in case that the origin
-        // does not have the target permission yet
-      } else {
-        throw e;
-      }
-    }
-
-    return undefined;
-  };
   const [networkConfigurationId, networkConfiguration] = network;
   const requestData = {
     rpcUrl:
@@ -253,10 +239,11 @@ export async function switchToNetwork({
       : isChainPermissionsFeatureEnabled;
 
   const { value: permissionedChainIds } =
-    getCaveat({
-      target: PermissionKeys.permittedChains,
-      caveatType: CaveatTypes.restrictNetworkSwitching,
-    }) ?? {};
+    getCaveat(
+      origin,
+      PermissionKeys.permittedChains,
+      CaveatTypes.restrictNetworkSwitching,
+    ) ?? {};
 
   const shouldGrantPermissions =
     chainPermissionsFeatureEnabled &&
