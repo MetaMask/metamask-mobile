@@ -15,7 +15,7 @@ import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
-import { getDefaultCaip25CaveatValue, getPermittedAccounts } from '../Permissions';
+import { getDefaultCaip25CaveatValue, getPermittedAccounts, updatePermittedChains } from '../Permissions';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
@@ -144,29 +144,15 @@ export class WC2Manager {
             `WC2::init accountPermission`,
             JSON.stringify(accountPermission, null, 2),
           );
+
+          const hostname = getHostname(session.peer.metadata.url);
           let approvedAccounts =
-            getPermittedAccounts(session.peer.metadata.url) ?? [];
-          const fromOrigin = getPermittedAccounts(
-            (session.peer.metadata.url),
-          );
+            getPermittedAccounts(hostname) ?? [];
 
           DevLogger.log(
             `WC2::init approvedAccounts id ${accountPermission?.id}`,
             approvedAccounts,
           );
-          DevLogger.log(
-            `WC2::init fromOrigin ${session.peer.metadata.url}`,
-            fromOrigin,
-          );
-
-          // fallback to origin from metadata url
-          if (approvedAccounts.length === 0) {
-            DevLogger.log(
-              `WC2::init fallback to metadata url ${session.peer.metadata.url}`,
-            );
-            approvedAccounts =
-              (getPermittedAccounts(getHostname(session.peer.metadata.url))) ?? [];
-          }
 
           if (approvedAccounts?.length === 0) {
             DevLogger.log(
@@ -469,7 +455,24 @@ export class WC2Manager {
           },
         },
       );
+
+      // Add a small delay to ensure permission is fully recorded
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Explicitly add the current chain to permissions
+      try {
+        const hexChainId = `0x${walletChainIdDecimal.toString(16)}` as `0x${string}`;
+        DevLogger.log(`WC2::session_proposal ensuring chain ${hexChainId} is permitted for ${hostname}`);
+
+        updatePermittedChains(hostname, [hexChainId]);
+        DevLogger.log(`WC2::session_proposal chain permission added successfully`);
+      } catch (err) {
+        DevLogger.log(`WC2::session_proposal error adding chain permission`, err);
+      }
     } catch (err) {
+      DevLogger.log(`WC2::session_proposal requestPermissions error`, {
+        err,
+      });
       await this.web3Wallet.rejectSession({
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
@@ -521,7 +524,7 @@ export class WC2Manager {
       });
 
       // Check if the chain is in the approved chains list before emitting event
-      const caipChainId: CaipChainId = `eip155:${walletChainIdDecimal}`;
+      const caipChainId = `eip155:${walletChainIdDecimal}` as CaipChainId;
       const approvedChains = namespaces?.eip155?.chains || [];
 
       DevLogger.log(`WC2::session_proposal emitSessionEvent`, {
