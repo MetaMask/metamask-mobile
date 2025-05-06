@@ -504,7 +504,7 @@ const AccountActions = () => {
         {process.env.MM_SMART_ACCOUNT_UI_ENABLED && (
           <AccountAction
             actionTitle={strings('account_actions.switch_to_smart_account')}
-            iconName={IconName.ArrowOpposite}
+            iconName={IconName.SwapHorizontal}
             onPress={goToSwitchAccountType}
           />
         )}

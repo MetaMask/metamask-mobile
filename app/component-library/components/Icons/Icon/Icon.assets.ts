@@ -17,7 +17,6 @@ import arrowdoublerightSVG from './assets/arrow-double-right.svg';
 import arrowdownSVG from './assets/arrow-down.svg';
 import arrowleftSVG from './assets/arrow-left.svg';
 import arrowrightSVG from './assets/arrow-right.svg';
-import arrowOppositeSVG from './assets/arrow-opposite.svg';
 import arrowupSVG from './assets/arrow-up.svg';
 import banSVG from './assets/ban.svg';
 import banktokenSVG from './assets/bank-token.svg';
@@ -186,7 +185,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.ArrowDown]: arrowdownSVG,
   [IconName.ArrowLeft]: arrowleftSVG,
   [IconName.ArrowRight]: arrowrightSVG,
-  [IconName.ArrowOpposite]: arrowOppositeSVG,
   [IconName.ArrowUp]: arrowupSVG,
   [IconName.Ban]: banSVG,
   [IconName.BankToken]: banktokenSVG,
