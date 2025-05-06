@@ -1,7 +1,6 @@
 name: Automated RCA
 
 on:
-  workflow_dispatch:
   issues:
     types: [closed]
 
@@ -13,7 +12,7 @@ jobs:
   automated-rca:
     uses: MetaMask/github-tools/.github/workflows/post-gh-rca.yml@INFRA-2510-prefix-labels
     with:
-      google-form-base-url: 'https://docs.google.com/forms/d/e/1FAIpQLSdnPbJISzFlR_aQD2uRpnMKSoGAopuTd_yeZK7J4Q5GzgbsOA/viewform?usp=pp_url&entry.340898780='
+      google-form-base-url: 'https://docs.google.com/forms/d/e/1FAIpQLSdnPbJISzFlR_aQD2uRpnMKSoGAopuTd_yeZK7J4Q5GzgbsOA/viewform'
       repo-owner: ${{ github.repository_owner }}
       repo-name: ${{ github.event.repository.name }}
       issue-number: ${{ github.event.issue.number }}
