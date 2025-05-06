@@ -34,6 +34,7 @@ const isFixtureServerStarted = async () => {
 
 
 /**
+ * 
  * Normalizes the localNodeOptions into a consistent format to handle different data structures.
  * Case 1: A string: localNodeOptions = 'anvil'
  * Case 2: Array of strings: localNodeOptions = ['anvil', 'bitcoin']
@@ -50,12 +51,12 @@ const isFixtureServerStarted = async () => {
 function normalizeLocalNodeOptions(localNodeOptions) {
   if (typeof localNodeOptions === 'string') {
     // Case 1: Passing a string
-    return [{ type: localNodeOptions, options: {} }];
+    return [{ type: localNodeOptions, options: localNodeOptions === 'ganache' ? defaultGanacheOptions : {} }];
   } else if (Array.isArray(localNodeOptions)) {
     return localNodeOptions.map((node) => {
       if (typeof node === 'string') {
         // Case 2: Array of strings
-        return { type: node, options: {} };
+        return { type: node, options: node === 'ganache' ? defaultGanacheOptions : {} };
       }
       if (typeof node === 'object' && node !== null) {
         // Case 3: Array of objects
@@ -71,8 +72,8 @@ function normalizeLocalNodeOptions(localNodeOptions) {
     // Case 4: Passing an options object without type
     return [
       {
-        type: 'anvil',
-        options: localNodeOptions,
+        type: 'ganache',
+        options: { ...defaultGanacheOptions, ...localNodeOptions },
       },
     ];
   }
@@ -165,16 +166,6 @@ export async function withFixtures(options, testSuite) {
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
   }
 
-  let anvilServer;
-  // let ganacheServer;
-
-  // if (!disableGanache) {
-  //   anvilServer = new AnvilManager();
-  //   // ganacheServer = new Ganache();
-
-  // }
-
-
   let localNode;
   const localNodes = [];
 
@@ -231,7 +222,7 @@ export async function withFixtures(options, testSuite) {
     // }
 
     if (smartContract) {
-      const ganacheSeeder = new GanacheSeeder(anvilServer.getProvider());
+      const ganacheSeeder = new GanacheSeeder(localNodes[0].getProvider());
       await ganacheSeeder.deploySmartContract(smartContract);
       contractRegistry = ganacheSeeder.getContractRegistry();
     }
@@ -285,16 +276,18 @@ export async function withFixtures(options, testSuite) {
       });
     }
 
-    await testSuite({ contractRegistry, mockServer, anvilServer }); // temporarily passing Anvil server
+    await testSuite({ contractRegistry, mockServer, localNodes }); // Pass localNodes instead of anvilServer
   } catch (error) {
     console.error(error);
     throw error;
   } finally {
-    // if (ganacheOptions && !disableGanache) {
-      await anvilServer.quit();
-      // await ganacheServer.quit();
+    // Clean up all local nodes
+    for (const server of localNodes) {
+      if (server) {
+        await server.quit();
+      }
+    }
 
-    // }
     if (dapp) {
       for (let i = 0; i < numberOfDapps; i++) {
         if (dappServer[i] && dappServer[i].listening) {
