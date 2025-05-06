@@ -3,6 +3,13 @@ name: Automated RCA
 on:
   issues:
     types: [closed]
+  workflow_dispatch:
+    inputs:
+      issue-number:
+        description: 'Issue number to run RCA against'
+        required: true
+        # (optional) a default so the UI isn’t totally blank:
+        default: '1'
 
 permissions:
   issues: write
@@ -13,7 +20,9 @@ jobs:
     uses: MetaMask/github-tools/.github/workflows/post-gh-rca.yml@INFRA-2510-prefix-labels
     with:
       google-form-base-url: 'https://docs.google.com/forms/d/e/1FAIpQLSdnPbJISzFlR_aQD2uRpnMKSoGAopuTd_yeZK7J4Q5GzgbsOA/viewform'
-      repo-owner: ${{ github.repository_owner }}
-      repo-name: ${{ github.event.repository.name }}
-      issue-number: ${{ github.event.issue.number }}
-      issue-labels: '["Sev0-urgent", "Sev1-high", "Sev0-test"]'
+      repo-owner:    ${{ github.repository_owner }}
+      repo-name:     ${{ github.event.repository.name }}
+      # on an "issues.closed" event this is populated;
+      # on workflow_dispatch we'll fall back to the input:
+      issue-number: ${{ github.event.issue.number || github.event.inputs['issue-number'] }}
+      issue-labels:  '["Sev0-urgent","Sev1-high","Sev0-test"]'
