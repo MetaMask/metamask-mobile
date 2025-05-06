@@ -34,7 +34,6 @@ import {
 import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccounts, Account } from '../../hooks/useAccounts';
-import getAccountNameWithENS from '../../../util/accounts';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
@@ -58,13 +57,10 @@ import { RootState } from '../../../reducers';
 import { getNetworkImageSource } from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
-import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
-import { NetworkConfiguration } from '@metamask/network-controller';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 import NetworkPermissionsConnected from './NetworkPermissionsConnected';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { getAllScopesFromCaip25CaveatValue, getPermittedEthChainIds, isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
-import { CaipAccountId, CaipChainId, hasProperty, Hex, KnownCaipNamespace, parseCaipAccountId } from '@metamask/utils';
+import { getAllScopesFromCaip25CaveatValue, isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
+import { CaipAccountId, CaipChainId, hasProperty, KnownCaipNamespace, parseCaipAccountId } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { parseChainId } from '@walletconnect/utils';
 import { RpcEndpoint } from '@metamask/network-controller/dist/NetworkController.cjs';
@@ -87,7 +83,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const accountsLength = useSelector(selectAccountsLength);
-  // TODO: Fix this
   const currentEvmChainId = useSelector(selectEvmChainId);
 
   const nonTestnetNetworks = useSelector(
@@ -355,6 +350,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       let accountsToRemove: CaipAccountId[] = [];
       let accountsToAdd: CaipAccountId[] = [];
+      let newPermittedAccounts:  CaipAccountId[] = [...permittedAccounts];
 
       // Identify accounts to be added
       accountsToAdd = selectedAccounts.filter(account =>
@@ -363,6 +359,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       if (accountsToAdd.length > 0) {
         addPermittedAccounts(hostname, accountsToAdd);
+        newPermittedAccounts = [...newPermittedAccounts, ...accountsToAdd];
       }
 
       accountsToRemove = permittedAccounts
@@ -370,6 +367,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       if (accountsToRemove.length > 0) {
         removePermittedAccounts(hostname, accountsToRemove);
+        newPermittedAccounts = newPermittedAccounts.filter(account => {
+          !accountsToRemove.includes(account)
+        })
       }
 
       // Calculate the number of connected accounts after changes
@@ -380,7 +380,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       const labelOptions = [ { label: `${strings('toast.accounts_permissions_updated')}` }, ];
 
-      const { address } = parseCaipAccountId(accountsToAdd[0])
+      const toastAccount = accountsToAdd.length ? accountsToAdd[0] : newPermittedAccounts[0]
+
+      const { address } = parseCaipAccountId(toastAccount)
 
       toastRef?.current?.showToast({
         variant: ToastVariants.Account,
