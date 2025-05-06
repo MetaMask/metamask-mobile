@@ -1,12 +1,23 @@
-/* eslint-disable import/prefer-default-export */
-import { useCallback, useRef } from 'react';
-import { LayoutChangeEvent } from 'react-native';
+import { useCallback, useState } from 'react';
+import type { LayoutChangeEvent } from 'react-native';
 
-export const useComponentSize = () => {
-  const sizeRef = useRef<null | { width: number; height: number }>(null);
+export function useComponentSize() {
+  const [size, setSize] = useState<null | { width: number; height: number }>(
+    null,
+  );
+
   const onLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
-    sizeRef.current = { width, height };
+
+    setSize((prev) => {
+      // if we already have the same size, do nothing
+      if (prev?.width === width && prev?.height === height) {
+        return prev;
+      }
+      // otherwise trigger a re-render with the new size
+      return { width, height };
+    });
   }, []);
-  return { size: sizeRef.current, onLayout };
-};
+
+  return { size, onLayout };
+}
