@@ -100,7 +100,6 @@ const IncomingTransactionsSettings = () => {
         testId = INCOMING_LINEA_MAINNET_TOGGLE;
       }
 
-      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
       return (

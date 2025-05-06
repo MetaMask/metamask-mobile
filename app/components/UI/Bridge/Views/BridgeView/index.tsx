@@ -363,7 +363,7 @@ const BridgeView = () => {
               tokenBalance={latestSourceBalance?.displayBalance}
               networkImageSource={
                 sourceToken?.chainId
-                  ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+                  ?
                     getNetworkImageSource({
                       chainId: sourceToken?.chainId,
                     })
@@ -391,7 +391,7 @@ const BridgeView = () => {
               token={destToken}
               networkImageSource={
                 destToken
-                  ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+                  ?
                     getNetworkImageSource({ chainId: destToken?.chainId })
                   : undefined
               }
