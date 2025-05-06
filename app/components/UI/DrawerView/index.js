@@ -564,6 +564,7 @@ class DrawerView extends PureComponent {
       this.setState({ showProtectWalletModal: false });
     }
     const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
+
     const { KeyringController } = Engine.context;
     if (
       pendingDeeplink &&
@@ -571,6 +572,7 @@ class DrawerView extends PureComponent {
       route !== Routes.LOCK_SCREEN
     ) {
       DeeplinkManager.expireDeeplink();
+
       DeeplinkManager.parse(pendingDeeplink, {
         origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
       });
@@ -1252,7 +1254,7 @@ class DrawerView extends PureComponent {
           <NetworkInfo onClose={this.onInfoNetworksModalClose} />
         </Modal>
 
-        {this.renderProtectModal()}
+        {/* this.renderProtectModal() */}
       </View>
     );
   }
