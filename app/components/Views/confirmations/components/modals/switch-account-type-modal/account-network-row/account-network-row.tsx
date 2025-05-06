@@ -55,6 +55,7 @@ const AccountNetworkRow = ({
     address,
     downgradeAccount,
     isSupported,
+    navigation,
     upgradeAccount,
     upgradeContractAddress,
   ]);
