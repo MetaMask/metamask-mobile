@@ -21,6 +21,7 @@ import {
   AllowedEvents,
   SubmitSmartTransactionRequest,
   submitSmartTransactionHook,
+  submitBatchSmartTransactionHook
 } from './smart-publish-hook';
 import { ChainId } from '@metamask/controller-utils';
 import { ApprovalController } from '@metamask/approval-controller';
@@ -29,6 +30,7 @@ import {
   NetworkControllerGetNetworkClientByIdAction,
   NetworkControllerStateChangeEvent,
 } from '@metamask/network-controller';
+import { Hex } from '@metamask/utils';
 
 interface PendingApprovalsData {
   id: string;
@@ -62,7 +64,7 @@ type SubmitSmartTransactionRequestMocked = SubmitSmartTransactionRequest & {
   transactionController: jest.Mocked<TransactionController>;
 };
 
-const createSignedTransaction = () =>
+const createSignedTransaction = (): Hex =>
   '0xf86c098504a817c800825208943535353535353535353535353535353535353535880de0b6b3a76400008025a02b79f322a625d623a2bb2911e0c6b3e7eaf741a7c7c5d2e8c67ef3ff4acf146ca01ae168fea63dc3391b75b586c8a7c0cb55cdf3b8e2e4d8e097957a3a56c6f2c5';
 
 const createTransactionControllerMock = () =>
@@ -186,6 +188,7 @@ function withRequest<ReturnValue>(
       ...defaultTransactionMeta,
     },
     smartTransactionsController,
+    transactions: [], // Ensure transactions is always an array, not undefined
     controllerMessenger: messenger,
     transactionController: createTransactionControllerMock(),
     shouldUseSmartTransaction: true,
@@ -266,7 +269,7 @@ describe('submitSmartTransactionHook', () => {
         );
       });
       await expect(submitSmartTransactionHook(request)).rejects.toThrow(
-        'Transaction does not have a transaction hash, there was a problem',
+        'Smart Transaction does not have a transaction hash, there was a problem',
       );
     });
   });
@@ -324,12 +327,14 @@ describe('submitSmartTransactionHook', () => {
           ],
           { hasNonce: true },
         );
-        expect(submitSignedTransactionsSpy).toHaveBeenCalledWith({
-          signedTransactions: [createSignedTransaction()],
-          signedCanceledTransactions: [],
-          txParams,
-          transactionMeta: request.transactionMeta,
-        });
+        expect(submitSignedTransactionsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            signedTransactions: [createSignedTransaction()],
+            signedCanceledTransactions: [],
+            txParams,
+            transactionMeta: request.transactionMeta,
+          })
+        );
 
         expect(
           request.approvalController.addAndShowApprovalRequest,
@@ -418,12 +423,14 @@ describe('submitSmartTransactionHook', () => {
           ],
           { hasNonce: true },
         );
-        expect(submitSignedTransactionsSpy).toHaveBeenCalledWith({
-          signedTransactions: [createSignedTransaction()],
-          signedCanceledTransactions: [],
-          txParams,
-          transactionMeta: request.transactionMeta,
-        });
+        expect(submitSignedTransactionsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            signedTransactions: [createSignedTransaction()],
+            signedCanceledTransactions: [],
+            txParams,
+            transactionMeta: request.transactionMeta,
+          })
+        );
 
         expect(
           request.approvalController.addAndShowApprovalRequest,
@@ -513,12 +520,14 @@ describe('submitSmartTransactionHook', () => {
             ],
             { hasNonce: true },
           );
-          expect(submitSignedTransactionsSpy).toHaveBeenCalledWith({
-            signedTransactions: [createSignedTransaction()],
-            signedCanceledTransactions: [],
-            txParams,
-            transactionMeta: request.transactionMeta,
-          });
+          expect(submitSignedTransactionsSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+              signedTransactions: [createSignedTransaction()],
+              signedCanceledTransactions: [],
+              txParams,
+              transactionMeta: request.transactionMeta,
+            })
+          );
 
           expect(
             request.approvalController.addAndShowApprovalRequest,
@@ -569,7 +578,7 @@ describe('submitSmartTransactionHook', () => {
               networkID: undefined,
               origin: 'EXAMPLE_FOX_CODE',
               rawTransaction:
-                '0x02f903560182021a840339802785063b5f780783038e2494881d40237659c251811cec9c364ef91dc08d300c80b902e65f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000a7d8c000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a7d8c0000000000000000000000000000000000000000000000000000c8e72d12c36ac000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000001cf42ad63350000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000a7d8c0000000000000000000000000000000000000000000000000000caad2bdb673320000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b6d0340b4e16d0168e52d35cacd2c6185b44281ec28c9dc7dcbea7c000000000000000000000000000000000000000000000000001bc001a0c05c821f53b6750d9482d166d4860926fb215f63b5111e91abdb00c1ed8ad25da0455d063383fa7781e20457da191b2f0dd31b28eca0fe3604304ce4331fd737c7',
+                '0x02f903560182021a840339802785063b5f780783038e2494881d40237659c251811cec9c364ef91dc08d300c80b902e65f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000a7d8c000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a7d8c0000000000000000000000000000000000000000000000000000c8e72d12c36ac000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000001cf42ad63350000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000a7d8c0000000000000000000000000000000000000000000000000000caad2bdb673320000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b6d0340b4e16d0168e52d35cacd2c6185b44281ec28c9dc7dcbea7c000000000000000000000000000000000000000000000000001b',
               securityAlertResponse: undefined,
               status: TransactionStatus.signed,
               time: 1713381824707,
@@ -617,7 +626,6 @@ describe('submitSmartTransactionHook', () => {
             );
           });
           const result = await submitSmartTransactionHook(request);
-
           expect(result).toEqual({ transactionHash });
           const { txParams, chainId } = request.transactionMeta;
           expect(
@@ -634,12 +642,14 @@ describe('submitSmartTransactionHook', () => {
             ],
             { hasNonce: true },
           );
-          expect(submitSignedTransactionsSpy).toHaveBeenCalledWith({
-            signedTransactions: [createSignedTransaction()],
-            signedCanceledTransactions: [],
-            txParams,
-            transactionMeta: request.transactionMeta,
-          });
+          expect(submitSignedTransactionsSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+              signedTransactions: [createSignedTransaction()],
+              signedCanceledTransactions: [],
+              txParams,
+              transactionMeta: request.transactionMeta,
+            })
+          );
 
           expect(
             request.approvalController.addAndShowApprovalRequest,
@@ -695,5 +705,326 @@ describe('submitSmartTransactionHook', () => {
 
       expect(setStatusRefreshIntervalSpy).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('submitBatchSmartTransactionHook', () => {
+  it('throws an error when smart transaction is not enabled', async () => {
+    withRequest(
+      {
+        transactions: [
+          { signedTx: createSignedTransaction(), id: '1', params: {} },
+        ],
+      },
+      async ({ request }) => {
+        request.shouldUseSmartTransaction = false;
+        
+        // The function should throw an error because smart transactions are disabled
+        await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
+          'STX publishHook: Smart Transaction is required for batch submissions'
+        );
+      }
+    );
+  });
+
+  it('throws an error when transactions is undefined', async () => {
+    withRequest(
+      {
+        transactions: undefined,
+      },
+      async ({ request }) => {        
+        // The function should throw an error because transactions is required
+        await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
+          'STX publishHook: A list of transactions are required for batch submissions'
+        );
+      }
+    );
+  });
+
+  it('throws an error when transactions is an empty array', async () => {
+    withRequest(
+      {
+        transactions: [],
+      },
+      async ({ request }) => {
+        
+        // The function should throw an error because transactions cannot be empty
+        await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
+          'STX publishHook: A list of transactions are required for batch submissions'
+        );
+      }
+    );
+  });
+
+  it('throws an error if there is no uuid', async () => {
+    withRequest(
+      {
+        transactions: [
+          { signedTx: createSignedTransaction(), id: '1', params: {} },
+        ],
+      },
+      async ({ request, submitSignedTransactionsSpy }) => {
+        submitSignedTransactionsSpy.mockResolvedValue({
+          uuid: undefined,
+        });
+        await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
+          'No smart transaction UUID',
+        );
+      }
+    );
+  });
+
+  it('throws an error if there is no transaction hash', async () => {
+    withRequest(
+      {
+        transactions: [
+          { signedTx: createSignedTransaction(), id: '1', params: {} },
+        ],
+      },
+      async ({ request, controllerMessenger }) => {
+        setImmediate(() => {
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'cancelled',
+              statusMetadata: {
+                minedHash: '',
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+        });
+        await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
+          'Smart Transaction does not have a transaction hash, there was a problem',
+        );
+      }
+    );
+  });
+
+  it('submits a batch of smart transactions', async () => {
+    const mockSignedTx = createSignedTransaction();
+    withRequest(
+      {
+        transactions: [
+          { signedTx: mockSignedTx, id: '1', params: {} },
+          { signedTx: mockSignedTx, id: '2', params: {} },
+        ],
+      },
+      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
+        submitSignedTransactionsSpy.mockResolvedValue({
+          uuid: stxUuid,
+          txHash: transactionHash,
+          txHashes: [transactionHash, transactionHash],
+        });
+        
+        setImmediate(() => {
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'pending',
+              statusMetadata: {
+                minedHash: '',
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'success',
+              statusMetadata: {
+                minedHash: transactionHash,
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+        });
+        
+        const result = await submitBatchSmartTransactionHook(request);
+
+        expect(result).toEqual({
+          results: [
+            { transactionHash },
+            { transactionHash },
+          ],
+        });
+        
+        expect(submitSignedTransactionsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            signedTransactions: [mockSignedTx, mockSignedTx],
+            signedCanceledTransactions: [],
+            transactionMeta: request.transactionMeta,
+          })
+        );
+
+        expect(
+          request.approvalController.addAndShowApprovalRequest,
+        ).toHaveBeenCalledWith({
+          id: 'approvalId',
+          origin: 'http://localhost',
+          type: 'smart_transaction_status',
+          requestState: {
+            smartTransaction: {
+              status: 'pending',
+              uuid: stxUuid,
+              creationTime: expect.any(Number),
+            },
+            isDapp: true,
+            isInSwapFlow: false,
+            isSwapApproveTx: false,
+            isSwapTransaction: false,
+          },
+        });
+        
+        expect(
+          request.approvalController.updateRequestState,
+        ).toHaveBeenCalledWith({
+          id: 'approvalId',
+          requestState: {
+            smartTransaction: {
+              status: 'success',
+              statusMetadata: {
+                minedHash: transactionHash,
+              },
+              uuid: 'uuid',
+            },
+            isDapp: true,
+            isInSwapFlow: false,
+            isSwapApproveTx: false,
+            isSwapTransaction: false,
+          },
+        });
+      },
+    );
+  });
+
+  it('submits a batch without the smart transaction status page when mobileReturnTxHashAsap is true', async () => {
+    const mockSignedTx = createSignedTransaction();
+    withRequest(
+      {
+        transactions: [
+          { signedTx: mockSignedTx, id: '1', params: {} },
+          { signedTx: mockSignedTx, id: '2', params: {} },
+        ],
+      },
+      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
+        request.featureFlags.smartTransactions.mobileReturnTxHashAsap = true;
+        submitSignedTransactionsSpy.mockResolvedValue({
+          uuid: stxUuid,
+          txHash: transactionHash,
+          txHashes: [transactionHash, transactionHash],
+        });
+        
+        setImmediate(() => {
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'pending',
+              statusMetadata: {
+                minedHash: '',
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'success',
+              statusMetadata: {
+                minedHash: transactionHash,
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+        });
+        
+        const result = await submitBatchSmartTransactionHook(request);
+
+        expect(result).toEqual({
+          results: [
+            { transactionHash },
+            { transactionHash },
+          ],
+        });
+        
+        expect(submitSignedTransactionsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            signedTransactions: [mockSignedTx, mockSignedTx],
+            signedCanceledTransactions: [],
+            transactionMeta: request.transactionMeta,
+          })
+        );
+
+        expect(
+          request.approvalController.addAndShowApprovalRequest,
+        ).not.toHaveBeenCalled();
+        expect(
+          request.approvalController.updateRequestState,
+        ).not.toHaveBeenCalled();
+      },
+    );
+  });
+
+  it('sets the status refresh interval if provided in feature flags', async () => {
+    const mockSignedTx = createSignedTransaction();
+    withRequest(
+      {
+        transactions: [
+          { signedTx: mockSignedTx, id: '1', params: {} },
+          { signedTx: mockSignedTx, id: '2', params: {} },
+        ],
+      },
+      async ({ request, smartTransactionsController }) => {
+        const setStatusRefreshIntervalSpy = jest.spyOn(
+          smartTransactionsController,
+          'setStatusRefreshInterval',
+        );
+
+        request.featureFlags.smartTransactions.batchStatusPollingInterval = 2000;
+
+        await submitBatchSmartTransactionHook(request);
+
+        expect(setStatusRefreshIntervalSpy).toHaveBeenCalledWith(2000);
+      },
+    );
+  });
+
+  it('handles empty batch results when no txHashes are returned', async () => {
+    const mockSignedTx = createSignedTransaction();
+    withRequest(
+      {
+        transactions: [
+          { signedTx: mockSignedTx, id: '1', params: {} },
+        ],
+      },
+      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
+        submitSignedTransactionsSpy.mockResolvedValue({
+          uuid: stxUuid,
+          txHash: transactionHash,
+          // No txHashes property
+        });
+        
+        setImmediate(() => {
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'success',
+              statusMetadata: {
+                minedHash: transactionHash,
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+        });
+        
+        const result = await submitBatchSmartTransactionHook(request);
+
+        expect(result).toEqual({
+          results: [],
+        });
+      },
+    );
   });
 });

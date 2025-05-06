@@ -4,6 +4,7 @@ import {
   TransactionControllerOptions,
   TransactionMeta,
   TransactionType,
+  type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { NetworkController } from '@metamask/network-controller';
@@ -24,6 +25,7 @@ import {
   handleTransactionRejectedEventForMetrics,
   handleTransactionSubmittedEventForMetrics,
 } from './event-handlers/metrics';
+import { Hex } from '@metamask/utils';
 
 jest.mock('@metamask/transaction-controller');
 jest.mock('../../../../reducers/swaps');
@@ -31,6 +33,18 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
 jest.mock('./event-handlers/metrics');
+jest.mock('../../../../util/transactions', () => ({
+  getTransactionById: jest.fn((_id) => ({
+    id: _id,
+    chainId: '0x1',
+    status: 'approved',
+    time: 123,
+    txParams: {
+      from: '0x123',
+    },
+    networkClientId: 'selectedNetworkClientId',
+  })),
+}));
 
 /**
  * Build a mock NetworkController.
@@ -260,11 +274,60 @@ describe('Transaction Controller Init', () => {
 
     expect(submitSmartTransactionHookMock).toHaveBeenCalledTimes(1);
     expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledTimes(1);
-    expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledWith(undefined, MOCK_TRANSACTION_META.chainId);
+    expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledWith(
+      undefined,
+      MOCK_TRANSACTION_META.chainId,
+    );
     expect(selectSwapsChainFeatureFlagsMock).toHaveBeenCalledTimes(1);
     expect(submitSmartTransactionHookMock).toHaveBeenCalledWith(
       expect.objectContaining({
         transactionMeta: MOCK_TRANSACTION_META,
+        shouldUseSmartTransaction: true,
+      }),
+    );
+  });
+
+  it('publishBatch hook calls submitBatchSmartTransactionHook', () => {
+    const mockTransactionMeta = {
+      id: '123',
+      chainId: '0x1',
+      status: 'approved',
+      time: 123,
+      txParams: {
+        from: '0x123',
+      },
+      networkClientId: 'selectedNetworkClientId',
+    };
+
+    const getTransactionByIdMock = jest.requireMock('../../../../util/transactions').getTransactionById;
+    getTransactionByIdMock.mockReturnValue(mockTransactionMeta);
+
+    selectShouldUseSmartTransactionMock.mockReturnValue(true);
+
+    const submitBatchSmartTransactionHookMock = jest.requireMock('../../../../util/smart-transactions/smart-publish-hook').submitBatchSmartTransactionHook;
+    submitBatchSmartTransactionHookMock.mockResolvedValue({ results: [{ transactionHash: '0xhash' }] });
+
+    const hooks = testConstructorOption('hooks');
+
+    const mockTransactions = [
+      {
+        id: '123',
+        signedTx: '0x1234' as Hex,
+      },
+    ];
+
+    hooks?.publishBatch?.({
+      transactions:
+        mockTransactions as unknown as PublishBatchHookTransaction[],
+      from: '0x123',
+      networkClientId: 'selectedNetworkClientId',
+    });
+
+    expect(submitBatchSmartTransactionHookMock).toHaveBeenCalled();
+
+    expect(submitBatchSmartTransactionHookMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        transactions: mockTransactions,
         shouldUseSmartTransaction: true,
       }),
     );
