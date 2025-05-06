@@ -36,20 +36,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "BridgeController": {
         "assetExchangeRates": {},
-        "bridgeFeatureFlags": {
-          "extensionConfig": {
-            "chains": {},
-            "maxRefreshCount": 5,
-            "refreshRate": 30000,
-            "support": false,
-          },
-          "mobileConfig": {
-            "chains": {},
-            "maxRefreshCount": 5,
-            "refreshRate": 30000,
-            "support": false,
-          },
-        },
         "quoteFetchError": null,
         "quoteRequest": {
           "srcTokenAddress": "0x0000000000000000000000000000000000000000",
@@ -128,9 +114,20 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "nonRPCGasFeeApisDisabled": false,
       },
       "KeyringController": {
+        "isUnlocked": true,
         "keyrings": [
           "keyring1",
           "keyring2",
+        ],
+        "keyringsMetadata": [
+          {
+            "id": "123",
+            "name": "",
+          },
+          {
+            "id": "456",
+            "name": "",
+          },
         ],
       },
       "LoggingController": {
@@ -142,6 +139,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "MultichainAssetsRatesController": {
         "conversionRates": {},
+        "historicalPrices": {},
       },
       "MultichainBalancesController": {
         "balances": {},
@@ -467,6 +465,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "TokenSearchDiscoveryController": {
         "lastSearchTimestamp": null,
         "recentSearches": [],
+      },
+      "TokenSearchDiscoveryDataController": {
+        "swapsTokenAddressesByChainId": {},
+        "tokenDisplayData": [],
       },
       "TransactionController": {
         "lastFetchedBlockNumbers": {},

@@ -146,7 +146,7 @@ class AddressQRCode extends PureComponent {
             onPress={this.closeQrModal}
           >
             <IonicIcon
-              name={'ios-close'}
+              name={'close'}
               size={38}
               color={colors.primary.inverse}
             />

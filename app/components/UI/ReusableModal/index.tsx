@@ -203,6 +203,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
     return (
       <View style={styles.absoluteFill} {...props}>
         <Animated.View style={combinedOverlayStyle}></Animated.View>
+        {/* @ts-expect-error - PanGestureHandler is not correctly typed and react-natige-gesture-handler is outdated */}
         <PanGestureHandler
           enabled={isInteractable}
           onGestureEvent={gestureHandler}

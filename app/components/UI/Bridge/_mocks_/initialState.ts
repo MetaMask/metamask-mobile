@@ -2,6 +2,7 @@ import { defaultBridgeControllerState } from './bridgeControllerState';
 import { CaipAssetId, Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { ethers } from 'ethers';
+import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
 
 export const ethChainId = '0x1' as Hex;
 export const optimismChainId = '0xa' as Hex;
@@ -33,6 +34,25 @@ export const solanaToken2Address =
 export const initialState = {
   engine: {
     backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          bridgeConfig: {
+            maxRefreshCount: 5,
+            refreshRate: 30000,
+            support: true,
+            chains: {
+              [formatChainIdToCaip(ethChainId)]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+              },
+              [formatChainIdToCaip(optimismChainId)]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+              },
+            },
+          },
+        },
+      },
       BridgeController: defaultBridgeControllerState,
       TokenBalancesController: {
         tokenBalances: {
@@ -150,7 +170,19 @@ export const initialState = {
       MultichainNetworkController: {
         isEvmSelected: true,
         selectedMultichainNetworkChainId: SolScope.Mainnet as const,
-        multichainNetworkConfigurationsByChainId: {},
+        multichainNetworkConfigurationsByChainId: {
+          [SolScope.Mainnet]: {
+            chainId: SolScope.Mainnet,
+            name: 'Solana',
+            nativeCurrency: 'SOL',
+            rpcEndpoints: [
+              {
+                networkClientId: 'solana',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
       },
       MultichainBalancesController: {
         balances: {
@@ -242,6 +274,9 @@ export const initialState = {
         smartTransactionsState: {
           liveness: true,
         },
+      },
+      TransactionController: {
+        transactions: [],
       },
       GasFeeController: {
         gasFeeEstimatesByChainId: {
@@ -369,6 +404,42 @@ export const initialState = {
         keyringsMetadata: [],
         encryptionKey: '',
         encryptionSalt: '',
+      },
+      BridgeStatusController: {
+        txHistory: {
+          'test-tx-id': {
+            txMetaId: 'test-tx-id',
+            account: evmAccountAddress,
+            quote: {
+              requestId: 'test-request-id',
+              srcChainId: 1,
+              srcAsset: {
+                chainId: 1,
+                address: '0x123',
+                decimals: 18,
+              },
+              destChainId: 10,
+              destAsset: {
+                chainId: 10,
+                address: '0x456',
+                decimals: 18,
+              },
+              srcTokenAmount: '1000000000000000000',
+              destTokenAmount: '2000000000000000000',
+            },
+            status: {
+              srcChain: {
+                txHash: '0x123',
+              },
+              destChain: {
+                txHash: '0x456',
+              },
+              status: StatusTypes.COMPLETE,
+            },
+            startTime: Date.now(),
+            estimatedProcessingTimeInSeconds: 300,
+          },
+        },
       },
     },
   },
