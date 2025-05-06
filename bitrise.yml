@@ -1849,7 +1849,7 @@ workflows:
                 if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     if [ "$IS_SIM_BUILD" = "true" ]; then
                       if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:flask:e2e
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e:flask
                       else
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
                       fi
