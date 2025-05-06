@@ -200,14 +200,18 @@ export const getApprovedSessionMethods = (_: { origin: string }): string[] => {
 };
 
 export const getScopedPermissions = async ({ origin }: { origin: string }) => {
-  // origin is already normalized by this point - no need to normalize again
-  const approvedAccounts = getPermittedAccounts(origin);
   const hostname = getHostname(origin);
+  const approvedAccounts = getPermittedAccounts(hostname);
   const chains = await getPermittedChains(hostname);
 
   DevLogger.log(
     `WC::getScopedPermissions for ${origin}, found accounts:`,
     approvedAccounts,
+  );
+
+  DevLogger.log(
+    `WC::getScopedPermissions for ${origin}, found chains:`,
+    chains,
   );
 
   // Create properly formatted account strings for each chain and account

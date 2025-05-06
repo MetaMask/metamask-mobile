@@ -114,7 +114,7 @@ class WalletConnect2Session {
         getProviderState: any;
       }) =>
         getRpcMethodMiddleware({
-          hostname: url,
+          hostname: getHostname(url),
           getProviderState,
           channelId,
           analytics: {},
