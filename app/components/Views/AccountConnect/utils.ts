@@ -10,6 +10,7 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import Logger from '../../../util/Logger';
 import { Account } from '../../hooks/useAccounts';
+import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
 
 /**
  * Takes in an incoming value and attempts to return the {@link Caip25CaveatValue}.
@@ -119,6 +120,18 @@ export function getCaip25PermissionsResponse(
   };
 }
 
+// COMMENT THIS
+export function sortSelectedInternalAccounts(internalAccounts: InternalAccountWithCaipAccountId[]) {
+  // This logic comes from the `AccountsController`:
+  // TODO: Expose a free function from this controller and use it here
+  return internalAccounts.sort((accountA, accountB) => {
+    // Sort by `.lastSelected` in descending order
+    return (
+      (accountB.metadata.lastSelected ?? 0) -
+      (accountA.metadata.lastSelected ?? 0)
+    );
+  });
+}
 
 /**
  * Gets the default accounts for the requested namespaces.
@@ -132,10 +145,10 @@ export function getCaip25PermissionsResponse(
  */
 export function getDefaultAccounts(
   requestedNamespaces: CaipNamespace[],
-  supportedRequestedAccounts: Account[],
-  allAccounts: Account[],
-): Account[] {
-  const defaultAccounts: Account[] = [];
+  supportedRequestedAccounts: InternalAccountWithCaipAccountId[],
+  allAccounts: InternalAccountWithCaipAccountId[],
+): InternalAccountWithCaipAccountId[] {
+  const defaultAccounts: InternalAccountWithCaipAccountId[] = [];
   const satisfiedNamespaces = new Set<CaipNamespace>();
 
   supportedRequestedAccounts.forEach((account) => {
@@ -153,10 +166,8 @@ export function getDefaultAccounts(
   );
 
   if (unsatisfiedNamespaces.length > 0) {
-    // fix this
-    // const allAccountsSortedByLastSelected =
-    //   sortSelectedInternalAccounts(allAccounts);
-    const allAccountsSortedByLastSelected = allAccounts
+    const allAccountsSortedByLastSelected =
+      sortSelectedInternalAccounts(allAccounts);
 
     for (const namespace of unsatisfiedNamespaces) {
       const defaultAccountForNamespace = allAccountsSortedByLastSelected.find(

@@ -27,7 +27,9 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
+  InternalAccountWithCaipAccountId,
   selectInternalAccounts,
+  selectInternalAccountsWithCaipAccountId,
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
@@ -88,7 +90,7 @@ import {
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
 import { CaipAccountId, CaipChainId, KnownCaipNamespace, parseCaipAccountId, parseCaipChainId } from '@metamask/utils';
-import { getAllNamespacesFromCaip25CaveatValue, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue } from '@metamask/chain-agnostic-permission';
+import { getAllNamespacesFromCaip25CaveatValue, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue, isCaipAccountIdInPermittedAccountIds, isInternalAccountInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 
 const createStyles = () =>
@@ -103,10 +105,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   const styles = createStyles();
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
-  // Fix this naming
-  const { accounts: allAccounts, evmAccounts: accounts, ensByAccountAddress } = useAccounts({
+  const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
+  const previousIdentitiesListSize = useRef<number>();
+  const internalAccounts = useSelector(selectInternalAccountsWithCaipAccountId);
   const defaultAccountsSetRef = useRef(false);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -166,7 +169,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [networkConfigurations, setSelectedNetworkAvatars])
 
   // all accounts that match the requested namespaces
-  const supportedAccountsForRequestedNamespaces = allAccounts.filter(
+  const supportedAccountsForRequestedNamespaces = internalAccounts.filter(
     (account) => {
       const {
         chain: { namespace },
@@ -193,7 +196,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       }
       return acc;
     },
-    [] as Account[],
+    [] as InternalAccountWithCaipAccountId[],
   );
 
   const defaultAccounts = getDefaultAccounts(
@@ -206,22 +209,20 @@ const AccountConnect = (props: AccountConnectProps) => {
     ({ caipAccountId }) => caipAccountId,
   );
 
-  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>([]);
+  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(defaultCaipAccountAddresses);
 
   // Updates the default selected accounts whenever the accounts in wallet changes
-  useEffect(() => {
-    if (!defaultAccountsSetRef.current && defaultCaipAccountAddresses.length > 0) {
-      defaultAccountsSetRef.current = true
-      setSelectedAddresses(defaultCaipAccountAddresses)
-    }
-  }, [defaultCaipAccountAddresses])
+  // useEffect(() => {
+  //   if (!defaultAccountsSetRef.current && defaultCaipAccountAddresses.length > 0) {
+  //     defaultAccountsSetRef.current = true
+  //     setSelectedAddresses(defaultCaipAccountAddresses)
+  //   }
+  // }, [defaultCaipAccountAddresses])
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
   );
-  const previousIdentitiesListSize = useRef<number>();
-  const internalAccounts = useSelector(selectInternalAccounts);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
   const isMountedRef = useRef(true);
@@ -365,14 +366,15 @@ const AccountConnect = (props: AccountConnectProps) => {
   useEffect(() => {
     // Extract the address list from the internalAccounts array
     const accountsAddressList = internalAccounts.map((account) =>
-      account.address.toLowerCase(),
+      account.caipAccountId
     );
 
     if (previousIdentitiesListSize.current !== accountsAddressList.length) {
       // Clean up selected addresses that are no longer part of accounts.
       const updatedSelectedAddresses = selectedAddresses.filter((address) =>
-        accountsAddressList.includes(address.toLowerCase()),
+        isCaipAccountIdInPermittedAccountIds(address, accountsAddressList)
       );
+
       setSelectedAddresses(updatedSelectedAddresses);
       previousIdentitiesListSize.current = accountsAddressList.length;
     }
