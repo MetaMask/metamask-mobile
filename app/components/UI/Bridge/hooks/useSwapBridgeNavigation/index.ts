@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
-import { BridgeRouteParams } from '../useInitialSourceToken';
+import { BridgeRouteParams } from '../../Views/BridgeView';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
