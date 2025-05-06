@@ -1949,7 +1949,7 @@ workflows:
   build_ios_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
-      - METAMASK_BUILD_TYPE: "main"
+      - METAMASK_BUILD_TYPE: 'main'
       - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
@@ -1960,7 +1960,7 @@ workflows:
   build_ios_rc_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
-      - METAMASK_BUILD_TYPE: "main"
+      - METAMASK_BUILD_TYPE: 'main'
       - METAMASK_ENVIRONMENT: 'pre-release'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
