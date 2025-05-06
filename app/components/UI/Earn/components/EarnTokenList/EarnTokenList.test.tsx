@@ -22,6 +22,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
+import * as ReactNative from 'react-native';
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
@@ -118,6 +119,12 @@ describe('EarnTokenList', () => {
         typeof selectPooledStakingEnabledFlag
       >
     ).mockReturnValue(true);
+
+    jest
+      .spyOn(ReactNative.Image, 'getSize')
+      .mockImplementation((_uri, success) => {
+        success(100, 100);
+      });
   });
 
   it('render matches snapshot', () => {
@@ -238,7 +245,7 @@ describe('EarnTokenList', () => {
 
     const baseUsdc = getByText('USDC');
 
-    await act(() => {
+    await act(async () => {
       fireEvent.press(baseUsdc);
     });
 
@@ -325,7 +332,7 @@ describe('EarnTokenList', () => {
 
     const ethButton = getByText('Ethereum');
 
-    await act(() => {
+    await act(async () => {
       fireEvent.press(ethButton);
     });
 
@@ -371,7 +378,7 @@ describe('EarnTokenList', () => {
 
     const usdcButton = getByText('USDC');
 
-    await act(() => {
+    await act(async () => {
       fireEvent.press(usdcButton);
     });
 

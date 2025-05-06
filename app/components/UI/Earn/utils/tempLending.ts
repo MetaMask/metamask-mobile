@@ -136,7 +136,7 @@ const getLendingSupplyEncodedTransactionData = (
     tokenAddress, // address
     minimalTokenAmount, // amount
     activeAccountAddress, // onBehalfOf
-    referralCode,
+    referralCode, // uint16
   ]);
 };
 

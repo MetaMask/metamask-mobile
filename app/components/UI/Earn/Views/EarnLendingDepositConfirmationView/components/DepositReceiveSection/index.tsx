@@ -19,6 +19,8 @@ import { AvatarSize } from '../../../../../../../component-library/components/Av
 import { TokenI } from '../../../../../Tokens/types';
 import { strings } from '../../../../../../../../locales/i18n';
 
+export const DEPOSIT_RECEIVE_SECTION_TEST_ID = 'depositReceiveSection';
+
 export interface DepositReceiveSectionProps {
   token: TokenI;
   receiptTokenName: string;
@@ -37,7 +39,7 @@ const DepositReceiveSection = ({
   const { openTooltipModal } = useTooltipModal();
 
   return (
-    <InfoSection>
+    <InfoSection testID={DEPOSIT_RECEIVE_SECTION_TEST_ID}>
       <View style={styles.infoSectionContent}>
         <View style={styles.receiveRow}>
           <Text variant={TextVariant.BodyMDMedium}>

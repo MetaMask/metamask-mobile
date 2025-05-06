@@ -23,6 +23,8 @@ import BigNumber from 'bignumber.js';
 const TokenAvatar = ({ token }: { token: TokenI }) => {
   const { styles } = useStyles(styleSheet, {});
 
+  const testId = `earn-token-selector-${token.symbol}-${token.chainId}`;
+
   if (token.isNative) {
     return (
       <NetworkAssetLogo
@@ -30,7 +32,7 @@ const TokenAvatar = ({ token }: { token: TokenI }) => {
         ticker={token.ticker ?? ''}
         big={false}
         biggest={false}
-        testID={`earn-token-selector-${token.symbol}-${token.chainId}`}
+        testID={testId}
         style={styles.networkAvatar}
       />
     );
@@ -41,6 +43,7 @@ const TokenAvatar = ({ token }: { token: TokenI }) => {
       name={token.symbol}
       imageSource={{ uri: token.image }}
       size={AvatarSize.Xl}
+      testID={testId}
     />
   );
 };

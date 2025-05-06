@@ -30,6 +30,8 @@ export interface DepositFooterProps {
   steps: ProgressStep[];
 }
 
+export const DEPOSIT_FOOTER_TEST_ID = 'depositFooter';
+
 export const LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS = {
   CANCEL_BUTTON: 'earn-lending-deposit-confirmation-footer-cancel-button',
   CONFIRM_BUTTON: 'earn-lending-deposit-confirmation-footer-confirm-button',
@@ -65,7 +67,7 @@ const DepositFooter = ({
   ];
 
   return (
-    <View style={styles.footerContainer}>
+    <View style={styles.footerContainer} testID={DEPOSIT_FOOTER_TEST_ID}>
       <View>
         <ProgressStepper
           stroke={theme.colors.primary.default}

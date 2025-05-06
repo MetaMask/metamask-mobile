@@ -12,7 +12,7 @@ exports[`DepositReceiveSection renders correctly 1`] = `
       "paddingTop": 12,
     }
   }
-  testID="info-section"
+  testID="depositReceiveSection"
 >
   <View
     style={

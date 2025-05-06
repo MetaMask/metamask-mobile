@@ -152,7 +152,6 @@ export const useEarnTokenDetails = () => {
         // formatted with currency symbol for current currency
         // i.e. $2.12 or £0.00
         estimatedAnnualRewardsFormatted,
-        // TODO: Update tests
         experience: getTokenEarnExperience(),
       };
     },
