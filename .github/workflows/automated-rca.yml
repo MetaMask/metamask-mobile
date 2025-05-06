@@ -17,4 +17,4 @@ jobs:
       repo-owner: ${{ github.repository_owner }}
       repo-name: ${{ github.event.repository.name }}
       issue-number: ${{ github.event.issue.number }}
-      issue-labels: '["Sev0-urgent", "Sev1-high"]'
+      issue-labels: '["Sev0-urgent", "Sev1-high", "Sev0-test"]'
