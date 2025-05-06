@@ -49,6 +49,7 @@ describe('SnapControllerInit', () => {
 
     const controllerMock = jest.mocked(SnapController);
     expect(controllerMock).toHaveBeenCalledWith({
+      dynamicPermissions: expect.any(Array),
       messenger: expect.any(Object),
       state: undefined,
       clientCryptography: {

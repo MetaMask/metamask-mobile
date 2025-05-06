@@ -46,6 +46,11 @@ jest.mock('@metamask/assets-controllers', () => {
   };
 });
 
+jest.mock('./utils', () => ({
+  ...jest.requireActual('./utils'),
+  rejectOriginApprovals: jest.fn(),
+}));
+
 describe('Engine', () => {
   // Create a shared mock account for tests
   const validAddress = MOCK_ADDRESS_1;

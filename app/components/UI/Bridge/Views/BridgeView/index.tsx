@@ -57,18 +57,21 @@ import DestinationAccountSelector from '../../components/DestinationAccountSelec
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
-import {
-  useInitialSourceToken,
-  type BridgeRouteParams,
-} from '../../hooks/useInitialSourceToken';
+import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import type { BridgeSourceTokenSelectorRouteParams } from '../../components/BridgeSourceTokenSelector';
 import type { BridgeDestTokenSelectorRouteParams } from '../../components/BridgeDestTokenSelector';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeViewMode } from '../../types';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
+
+export interface BridgeRouteParams {
+  token?: BridgeToken;
+  sourcePage: string;
+  bridgeViewMode: BridgeViewMode;
+}
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -123,8 +126,9 @@ const BridgeView = () => {
 
   const updateQuoteParams = useBridgeQuoteRequest();
 
-  useInitialSourceToken();
-  useInitialDestToken();
+  const initialSourceToken = route.params?.token;
+  useInitialSourceToken(initialSourceToken);
+  useInitialDestToken(initialSourceToken);
 
   // Set slippage to undefined for Solana swaps
   useEffect(() => {
@@ -363,7 +367,7 @@ const BridgeView = () => {
               tokenBalance={latestSourceBalance?.displayBalance}
               networkImageSource={
                 sourceToken?.chainId
-                  ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+                  ?
                     getNetworkImageSource({
                       chainId: sourceToken?.chainId,
                     })
@@ -391,7 +395,7 @@ const BridgeView = () => {
               token={destToken}
               networkImageSource={
                 destToken
-                  ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+                  ?
                     getNetworkImageSource({ chainId: destToken?.chainId })
                   : undefined
               }

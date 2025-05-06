@@ -39,7 +39,7 @@ const createStyles = (colors: Colors) =>
       alignItems: 'flex-start',
     },
     arrow: {
-      flex: 1,
+      flexShrink: 0,
       alignSelf: 'flex-end',
       alignItems: 'flex-end',
     },
@@ -53,7 +53,6 @@ const createStyles = (colors: Colors) =>
       color: colors.text.alternative,
       paddingHorizontal: 0,
       ...fontStyles.normal,
-      textTransform: 'uppercase',
     },
   });
 
