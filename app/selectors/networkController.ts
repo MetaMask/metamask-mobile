@@ -215,16 +215,16 @@ export const selectNetworkConfigurationsByCaipChainId = createSelector(
     const networkConfigurationsByChainId: Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> = {
     };
 
-    Object.entries(nonEvmNetworkConfigurationsByChainId).forEach(([_caipChainId, networkConfiguration]) => {
-      const caipChainId = _caipChainId as CaipChainId;
+    Object.entries(evmNetworkConfigurationsByChainId).forEach(([chainId, networkConfiguration]) => {
+      const caipChainId: CaipChainId = `eip155:${parseInt(chainId, 16)}`
       networkConfigurationsByChainId[caipChainId] = {
         ...networkConfiguration,
         caipChainId
       }
     })
 
-    Object.entries(evmNetworkConfigurationsByChainId).forEach(([chainId, networkConfiguration]) => {
-      const caipChainId: CaipChainId = `eip155:${parseInt(chainId, 16)}`
+    Object.entries(nonEvmNetworkConfigurationsByChainId).forEach(([_caipChainId, networkConfiguration]) => {
+      const caipChainId = _caipChainId as CaipChainId;
       networkConfigurationsByChainId[caipChainId] = {
         ...networkConfiguration,
         caipChainId
