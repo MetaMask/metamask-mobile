@@ -50,6 +50,8 @@ import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
+import Logger from '../../../util/Logger';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -217,10 +219,14 @@ const PermissionsSummary = ({
   }, [navigate, isRenderedAsBottomSheet, onRevokeAllHandler, hostname]);
 
   const getAccountLabel = useCallback(() => {
+    Logger.log({accountAddresses, accounts})
     if (isAlreadyConnected) {
       if (accountAddresses.length === 1) {
         const matchedConnectedAccount = accounts.find(
-          (account) => account.address === accountAddresses[0],
+          (account) => isCaipAccountIdInPermittedAccountIds(
+            account.caipAccountId,
+            [accountAddresses[0]]
+          )
         );
         return matchedConnectedAccount?.name;
       }
@@ -230,9 +236,12 @@ const PermissionsSummary = ({
       )}`;
     }
 
-    if (accountAddresses.length === 1 && accounts?.length >= 1) {
+    if (accountAddresses.length === 1 && accounts.length >= 1) {
       const matchedAccount = accounts.find(
-        (account) => account.caipAccountId === accountAddresses[0],
+        (account) => isCaipAccountIdInPermittedAccountIds(
+          account.caipAccountId,
+          [accountAddresses[0]]
+        )
       );
 
       return `${strings('permissions.requesting_for')}${
