@@ -472,5 +472,8 @@
         }
       ]
     }
+  },
+  "SeedlessOnboardingController": {
+    "socialBackupsMetadata": []
   }
 }
