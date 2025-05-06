@@ -1,7 +1,7 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
 import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
 import FixtureBuilder from './fixture-builder';
-import { AnvilManager, defaultOptions } from '../seeder/anvil-manager';
+import { AnvilManager } from '../seeder/anvil-manager';
 import Ganache from '../../app/util/test/ganache';
 
 import GanacheSeeder from '../../app/util/test/ganache-seeder';
@@ -10,7 +10,6 @@ import path from 'path';
 import createStaticServer from '../create-static-server';
 import { DEFAULT_MOCKSERVER_PORT, getFixturesServerPort, getLocalTestDappPort, getMockServerPort } from './utils';
 import Utilities from '../utils/Utilities';
-import { device } from 'detox';
 import TestHelpers from '../helpers';
 import { startMockServer, stopMockServer } from '../api-mocking/mock-server';
 
@@ -32,6 +31,53 @@ const isFixtureServerStarted = async () => {
     return false;
   }
 };
+
+
+/**
+ * Normalizes the localNodeOptions into a consistent format to handle different data structures.
+ * Case 1: A string: localNodeOptions = 'anvil'
+ * Case 2: Array of strings: localNodeOptions = ['anvil', 'bitcoin']
+ * Case 3: Array of objects: localNodeOptions =
+ * [
+ *  { type: 'anvil', options: {anvilOpts}},
+ *  { type: 'bitcoin',options: {bitcoinOpts}},
+ * ]
+ * Case 4: Options object without type: localNodeOptions = {options}
+ *
+ * @param {string | object | Array} localNodeOptions - The input local node options.
+ * @returns {Array} The normalized local node options.
+ */
+function normalizeLocalNodeOptions(localNodeOptions) {
+  if (typeof localNodeOptions === 'string') {
+    // Case 1: Passing a string
+    return [{ type: localNodeOptions, options: {} }];
+  } else if (Array.isArray(localNodeOptions)) {
+    return localNodeOptions.map((node) => {
+      if (typeof node === 'string') {
+        // Case 2: Array of strings
+        return { type: node, options: {} };
+      }
+      if (typeof node === 'object' && node !== null) {
+        // Case 3: Array of objects
+        return {
+          type: node.type || 'anvil',
+          options: node.options || {},
+        };
+      }
+      throw new Error(`Invalid localNodeOptions entry: ${node}`);
+    });
+  }
+  if (typeof localNodeOptions === 'object' && localNodeOptions !== null) {
+    // Case 4: Passing an options object without type
+    return [
+      {
+        type: 'anvil',
+        options: localNodeOptions,
+      },
+    ];
+  }
+  throw new Error(`Invalid localNodeOptions type: ${typeof localNodeOptions}`);
+}
 
 /**
  * Loads a fixture into the fixture server.
@@ -101,6 +147,7 @@ export async function withFixtures(options, testSuite) {
     smartContract,
     disableGanache,
     dapp,
+    localNodeOptions='ganache',
     dappOptions,
     dappPath = undefined,
     dappPaths,
@@ -111,6 +158,7 @@ export async function withFixtures(options, testSuite) {
   const fixtureServer = new FixtureServer();
   let mockServer;
   let mockServerPort = DEFAULT_MOCKSERVER_PORT;
+  const localNodeOptsNormalized = normalizeLocalNodeOptions(localNodeOptions);
 
   if (testSpecificMock) {
     mockServerPort = getMockServerPort();
@@ -120,27 +168,67 @@ export async function withFixtures(options, testSuite) {
   let anvilServer;
   // let ganacheServer;
 
-  if (!disableGanache) {
-    anvilServer = new AnvilManager();
-    // ganacheServer = new Ganache();
+  // if (!disableGanache) {
+  //   anvilServer = new AnvilManager();
+  //   // ganacheServer = new Ganache();
 
+  // }
+
+
+  let localNode;
+  const localNodes = [];
+
+  try {
+    // Start servers based on the localNodes array
+    for (let i = 0; i < localNodeOptsNormalized.length; i++) {
+      const nodeType = localNodeOptsNormalized[i].type;
+      const nodeOptions = localNodeOptsNormalized[i].options || {};
+
+      switch (nodeType) {
+        case 'anvil':
+          localNode =  new AnvilManager();
+          await localNode.start(nodeOptions);
+          localNodes.push(localNode);
+          await localNode.setAccountBalance('1200');
+
+          break;
+
+        case 'ganache':
+          localNode = new Ganache();
+          await localNode.start(nodeOptions);
+          localNodes.push(localNode);
+          break;
+
+        case 'none':
+          break;
+
+        default:
+          throw new Error(
+            `Unsupported localNode: '${nodeType}'. Cannot start the server.`,
+          );
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
+    
   const dappBasePort = getLocalTestDappPort();
   let numberOfDapps = dapp ? 1 : 0;
   const dappServer = [];
 
   try {
     let contractRegistry;
-    if (!disableGanache) {
-            // await ganacheServer.start(ganacheOptions);
+    // if (!disableGanache) {
+    //         // await ganacheServer.start(ganacheOptions);
 
-      anvilServer = new AnvilManager();
-      await anvilServer.start({
-        ...defaultOptions,
-        ...(ganacheOptions || {})
-      });
-      await anvilServer.setAccountBalance('1200');
-    }
+    //   anvilServer = new AnvilManager();
+    //   await anvilServer.start({
+    //     ...defaultOptions,
+    //     ...(ganacheOptions || {})
+    //   });
+    //   await anvilServer.setAccountBalance('1200');
+    // }
 
     if (smartContract) {
       const ganacheSeeder = new GanacheSeeder(anvilServer.getProvider());
@@ -231,4 +319,8 @@ export async function withFixtures(options, testSuite) {
 }
 
 // SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
-export const defaultGanacheOptions = defaultOptions;
+export const defaultGanacheOptions = {
+  hardfork: 'london',
+  mnemonic:
+    'drive manage close raven tape average sausage pledge riot furnace august tip',
+};
