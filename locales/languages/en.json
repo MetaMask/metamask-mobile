@@ -546,7 +546,7 @@
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance",
-    "unable_to_find_conversion_rate": "unable to find conversion rate",
+    "unable_to_find_conversion_rate": "no conversion rate",
     "display_nft_media_desc": "To import an NFT, turn on Display NFT media in Settings > Security and privacy.",
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
@@ -3925,7 +3925,7 @@
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "description": "Rates update every {{refreshRate}} seconds, so tap Get new quote when you're ready.",
     "get_new_quote": "Get new quote"
   },
   "bridge_transaction_details": {
