@@ -10,6 +10,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
 } from '../../../../selectors/networkController';
+import { updatePermittedChains } from '../../../../core/Permissions';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -33,6 +34,13 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
+
+jest.mock('../../../../core/Permissions', () => ({
+  ...jest.requireActual('../../../../core/Permissions'),
+  updatePermittedChains: jest.fn(),
+}));
+
+const mockAddPermittedChains = updatePermittedChains as jest.Mock;
 
 // Add mock for react-redux
 jest.mock('react-redux', () => ({
@@ -132,9 +140,17 @@ describe('NetworkConnectMultiSelector', () => {
   });
 
   it('handles update permissions when networks are selected', async () => {
-    (
-      Engine.context.PermissionController.hasCaveat as jest.Mock
-    ).mockReturnValue(true);
+    /**
+     * This is a requirement for now because mocking the entire module globally at the top of the file makes 'renders correctly' test break,
+     * But we need to mock this function specifically for this unit test because the mocked data sends 'network-1' key as the chainId, instead of '0x1'.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    jest.spyOn(require('@metamask/controller-utils'), 'toHex').mockImplementation((arg) => arg);
+
+    mockAddPermittedChains.mockReturnValue(['0x1']);
+    const mockNetworkConfigurationId = Object.keys(
+      mockNetworkConfigurations,
+    )[0];
 
     const { getByText, getByTestId } = renderWithProvider(
       <NetworkConnectMultiSelector {...defaultProps} />,
@@ -150,7 +166,9 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(Engine.context.PermissionController.updateCaveat).toHaveBeenCalled();
+    expect(updatePermittedChains).toHaveBeenCalledWith(defaultProps.hostname, [
+      mockNetworkConfigurationId,
+    ], true);
     expect(defaultProps.onUserAction).toHaveBeenCalled();
   });
 

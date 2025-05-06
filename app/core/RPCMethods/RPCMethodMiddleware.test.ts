@@ -1,5 +1,7 @@
 import { JsonRpcEngine, JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 import type {
+  CaipAccountId,
+  Hex,
   Json,
   JsonRpcFailure,
   JsonRpcParams,
@@ -15,11 +17,24 @@ import {
 import type { TransactionParams } from '@metamask/transaction-controller';
 import Engine from '../Engine';
 import { store } from '../../store';
-import { getPermittedAccounts } from '../Permissions';
-import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+} from '../Permissions';
+import {
+  getRpcMethodMiddleware,
+  getRpcMethodMiddlewareHooks,
+} from './RPCMethodMiddleware';
+import {
+  Caveat,
+  CaveatSpecificationConstraint,
+  ExtractPermission,
   PermissionConstraint,
   PermissionController,
+  PermissionDoesNotExistError,
+  PermissionSpecificationConstraint,
+  SubjectPermissions,
+  ValidPermission,
 } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { backgroundState } from '../../util/test/initial-root-state';
@@ -28,6 +43,7 @@ import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
 import { Messenger } from '@metamask/base-controller';
 import {
+  PermissionKeys,
   getCaveatSpecifications,
   getPermissionSpecifications,
   unrestrictedMethods,
@@ -42,11 +58,34 @@ import {
   OriginThrottlingState,
 } from '../redux/slices/originThrottling';
 import { ProviderConfig } from '../../selectors/networkController';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
+import { CaveatTypes } from '../Permissions/constants';
+import { getCaip25PermissionFromLegacyPermissions, rejectOriginPendingApprovals, requestPermittedChainsPermissionIncremental } from '../../util/permissions';
+import { toHex } from '@metamask/controller-utils';
+
+jest.mock('../../util/permissions', () => ({
+  __esModule: true,
+  getCaip25PermissionFromLegacyPermissions: jest.fn(),
+  requestPermittedChainsPermissionIncremental: jest.fn(),
+  rejectOriginPendingApprovals: jest.fn(),
+}));
 
 jest.mock('./spam');
 
 jest.mock('../Engine', () => ({
+  controllerMessenger: {
+    call: { bind: jest.fn() },
+  },
   context: {
+    ApprovalController: {
+      has: jest.fn(),
+    },
+    SelectedNetworkController: {
+      getNetworkClientIdForDomain: jest.fn(),
+    },
     PreferencesController: {
       state: {},
     },
@@ -55,11 +94,16 @@ jest.mock('../Engine', () => ({
       newUnsignedTypedMessage: jest.fn(),
     },
     PermissionController: {
+      getCaveat: jest.fn(),
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
       revokePermissions: jest.fn(),
     },
     NetworkController: {
+      getNetworkConfigurationByChainId: jest.fn(),
+      getNetworkConfigurationByNetworkClientId: jest
+        .fn()
+        .mockImplementation(() => ({ chainId: '0x1' })),
       getNetworkClientById: () => ({
         configuration: {
           chainId: '0x1',
@@ -88,6 +132,7 @@ const mockStore = store as unknown as {
 };
 
 jest.mock('../Permissions', () => ({
+  ...jest.requireActual('../Permissions'),
   getPermittedAccounts: jest.fn(),
 }));
 const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;
@@ -262,8 +307,8 @@ function setupGlobalState({
     .mockImplementation(() => ({
       browser: activeTab
         ? {
-            activeTab,
-          }
+          activeTab,
+        }
         : {},
       engine: {
         backgroundState: {
@@ -301,7 +346,7 @@ function setupGlobalState({
   }
 }
 
-const addressMock = '0x0000000000000000000000000000000000000001';
+const addressMock: Hex = '0x0000000000000000000000000000000000000001';
 const dataMock =
   '0x0000000000000000000000000000000000000000000000000000000000000000';
 const dataJsonMock = JSON.stringify({
@@ -345,6 +390,7 @@ function setupSignature() {
 }
 
 describe('getRpcMethodMiddleware', () => {
+  beforeEach(() => jest.clearAllMocks());
   it('allows unrecognized methods to pass through without PermissionController middleware', async () => {
     const engine = new JsonRpcEngine();
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
@@ -381,7 +427,7 @@ describe('getRpcMethodMiddleware', () => {
         EthMethod.SignTypedDataV4,
       ],
     };
-    const mockGetInternalAccounts = jest.fn().mockImplementationOnce(() => [
+    const mockListAccounts = jest.fn().mockImplementationOnce(() => [
       {
         address: '0x1',
         id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
@@ -402,18 +448,11 @@ describe('getRpcMethodMiddleware', () => {
         allowedEvents: [],
       }),
       caveatSpecifications: getCaveatSpecifications({
-        getInternalAccounts: mockGetInternalAccounts,
+        listAccounts: mockListAccounts,
         findNetworkClientIdByChainId: jest.fn(),
       }),
-      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
-        ...getPermissionSpecifications({
-          getAllAccounts: jest.fn().mockImplementation(async () => ['0x1']),
-          getInternalAccounts: mockGetInternalAccounts,
-          captureKeyringTypesWithMissingIdentities: jest
-            .fn()
-            .mockImplementation(() => []),
-        }),
+        ...getPermissionSpecifications(),
       },
       unrestrictedMethods,
     });
@@ -580,7 +619,7 @@ describe('getRpcMethodMiddleware', () => {
   }
 
   describe('wallet_revokePermissions', () => {
-    it('revokes eth_accounts and endowment:permitted-chains permissions if eth_accounts permission key is passed', async () => {
+    it(`revokes ${Caip25EndowmentPermissionName} permissions if ${PermissionKeys.eth_accounts} permission key is passed`, async () => {
       const hostname = 'example.metamask.io';
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -590,17 +629,17 @@ describe('getRpcMethodMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'wallet_revokePermissions',
-        params: [{ eth_accounts: {} }],
+        params: [{ [PermissionKeys.eth_accounts]: {} }],
       };
       await callMiddleware({ middleware, request });
       expect(
         MockEngine.context.PermissionController.revokePermissions,
       ).toHaveBeenCalledWith({
-        [hostname]: ['eth_accounts', 'endowment:permitted-chains'],
+        [hostname]: [Caip25EndowmentPermissionName],
       });
     });
 
-    it('revokes eth_accounts and endowment:permitted-chains permissions if endowment:permitted-chains permission key is passed', async () => {
+    it(`revokes ${Caip25EndowmentPermissionName} permission if ${PermissionKeys.permittedChains} permission key is passed`, async () => {
       const hostname = 'example.metamask.io';
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -610,17 +649,17 @@ describe('getRpcMethodMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'wallet_revokePermissions',
-        params: [{ 'endowment:permitted-chains': {} }],
+        params: [{ [PermissionKeys.permittedChains]: {} }],
       };
       await callMiddleware({ middleware, request });
       expect(
         MockEngine.context.PermissionController.revokePermissions,
       ).toHaveBeenCalledWith({
-        [hostname]: ['eth_accounts', 'endowment:permitted-chains'],
+        [hostname]: [Caip25EndowmentPermissionName],
       });
     });
 
-    it('revokes eth_accounts and endowment:permitted-chains permissions if both permission keys are passed', async () => {
+    it(`revokes ${Caip25EndowmentPermissionName} permission if both ${PermissionKeys.eth_accounts} and ${PermissionKeys.permittedChains} permission keys are passed`, async () => {
       const hostname = 'example.metamask.io';
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -630,17 +669,22 @@ describe('getRpcMethodMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'wallet_revokePermissions',
-        params: [{ eth_accounts: {}, 'endowment:permitted-chains': {} }],
+        params: [
+          {
+            [PermissionKeys.eth_accounts]: {},
+            [PermissionKeys.permittedChains]: {},
+          },
+        ],
       };
       await callMiddleware({ middleware, request });
       expect(
         MockEngine.context.PermissionController.revokePermissions,
       ).toHaveBeenCalledWith({
-        [hostname]: ['eth_accounts', 'endowment:permitted-chains'],
+        [hostname]: [Caip25EndowmentPermissionName],
       });
     });
 
-    it('revokes eth_accounts, endowment:permitted-chains, and other permissions, either is passed alongside other permissions', async () => {
+    it(`revokes ${Caip25EndowmentPermissionName} and other permissions, if ${PermissionKeys.eth_accounts} and ${PermissionKeys.permittedChains} passed alongside other permissions`, async () => {
       const hostname = 'example.metamask.io';
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -650,17 +694,24 @@ describe('getRpcMethodMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'wallet_revokePermissions',
-        params: [{ 'endowment:permitted-chains': {}, a: {}, b: {} }],
+        params: [
+          {
+            [PermissionKeys.eth_accounts]: {},
+            [PermissionKeys.permittedChains]: {},
+            a: {},
+            b: {},
+          },
+        ],
       };
       await callMiddleware({ middleware, request });
       expect(
         MockEngine.context.PermissionController.revokePermissions,
       ).toHaveBeenCalledWith({
-        [hostname]: ['eth_accounts', 'endowment:permitted-chains', 'a', 'b'],
+        [hostname]: ['a', 'b', Caip25EndowmentPermissionName],
       });
     });
 
-    it('will revoke other permissions if neither eth_accounts or endowment:permitted-chains keys are passed', async () => {
+    it(`will revoke other permissions if ${Caip25EndowmentPermissionName} is not passed`, async () => {
       const hostname = 'example.metamask.io';
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -708,34 +759,70 @@ describe('getRpcMethodMiddleware', () => {
 
   describe('wallet_requestPermissions', () => {
     it('can requestPermissions for eth_accounts', async () => {
+      const accounts: CaipAccountId[] = [`wallet:eip155:${addressMock}`];
       const mockOrigin = 'example.metamask.io';
-      const mockPermission: Awaited<
-        ReturnType<
-          typeof MockEngine.context.PermissionController.requestPermissions
-        >
-      >[0] = {
-        eth_accounts: {
+      const mockPermission = {
+        [Caip25EndowmentPermissionName]: {
+          parentCapability: PermissionKeys.eth_accounts,
           id: 'id',
           date: 1,
           invoker: mockOrigin,
-          parentCapability: 'eth_accounts',
           caveats: [
             {
-              type: 'restrictReturnedAccounts',
-              value: [addressMock],
+              type: Caip25CaveatType,
+              value: {
+                requiredScopes: {},
+                optionalScopes: {
+                  'wallet:eip155': {
+                    accounts,
+                  },
+                },
+                sessionProperties: {},
+                isMultichainOrigin: false,
+              },
             },
           ],
         },
       };
+
+      mockGetPermittedAccounts.mockImplementation(() => [addressMock]);
       MockEngine.context.PermissionController.requestPermissions.mockImplementation(
         async () => [
-          mockPermission,
+          /**
+           * `PermissionController.requestPermissions` response can return a valid `{@link Caip25EndowmentPermissionName}` permission object,
+           * which does not match the explicit return type for the method implementation itself, so we typecast to prevent compile error.
+           */
+          mockPermission as unknown as Partial<
+            SubjectPermissions<
+              ExtractPermission<
+                PermissionSpecificationConstraint,
+                CaveatSpecificationConstraint
+              >
+            >
+          >,
           {
             id: 'id',
             origin: mockOrigin,
           },
         ],
       );
+      (getCaip25PermissionFromLegacyPermissions as jest.Mock).mockReturnValue(
+        mockPermission,
+      );
+
+      const expectedEthAccountsPermission = {
+        caveats: [
+          {
+            type: CaveatTypes.restrictReturnedAccounts,
+            value: [addressMock],
+          },
+        ],
+        id: 'id',
+        date: 1,
+        invoker: mockOrigin,
+        parentCapability: PermissionKeys.eth_accounts,
+      };
+
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
@@ -746,41 +833,65 @@ describe('getRpcMethodMiddleware', () => {
         method: 'wallet_requestPermissions',
         params: [
           {
-            eth_accounts: {},
+            [PermissionKeys.eth_accounts]: {},
           },
         ],
       };
       const response = await callMiddleware({ middleware, request });
       expect(
         (response as JsonRpcSuccess<PermissionConstraint[]>).result,
-      ).toEqual([mockPermission.eth_accounts]);
+      ).toEqual([expectedEthAccountsPermission]);
     });
   });
 
   describe('wallet_getPermissions', () => {
     it('can getPermissions', async () => {
+      const accounts: CaipAccountId[] = [`wallet:eip155:${addressMock}`];
       const mockOrigin = 'example.metamask.io';
-      const mockPermission: Awaited<
-        ReturnType<
-          typeof MockEngine.context.PermissionController.getPermissions
-        >
+      const mockPermission: SubjectPermissions<
+        ValidPermission<string, Caveat<typeof Caip25CaveatType, Json>>
       > = {
-        eth_accounts: {
+        [Caip25EndowmentPermissionName]: {
+          parentCapability: PermissionKeys.eth_accounts,
           id: 'id',
           date: 1,
           invoker: mockOrigin,
-          parentCapability: 'eth_accounts',
           caveats: [
             {
-              type: 'restrictReturnedAccounts',
-              value: [addressMock],
+              type: Caip25CaveatType,
+              value: {
+                requiredScopes: {},
+                optionalScopes: {
+                  'wallet:eip155': {
+                    accounts,
+                  },
+                },
+                sessionProperties: {},
+                isMultichainOrigin: false,
+              },
             },
           ],
         },
       };
+
+      mockGetPermittedAccounts.mockImplementation(() => [addressMock]);
       MockEngine.context.PermissionController.getPermissions.mockImplementation(
         () => mockPermission,
       );
+
+      const expectedEthAccountsPermission = {
+        id: 'id',
+        date: 1,
+        invoker: mockOrigin,
+        parentCapability: PermissionKeys.eth_accounts,
+        caveats: [
+          {
+            type: CaveatTypes.restrictReturnedAccounts,
+            value: [addressMock],
+          },
+        ],
+      };
+
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
@@ -794,7 +905,77 @@ describe('getRpcMethodMiddleware', () => {
       const response = await callMiddleware({ middleware, request });
       expect(
         (response as JsonRpcSuccess<PermissionConstraint[]>).result,
-      ).toEqual([mockPermission.eth_accounts]);
+      ).toEqual([expectedEthAccountsPermission]);
+    });
+  });
+
+  describe('eth_requestAccounts', () => {
+    it('can get permitted accounts if permission exists', async () => {
+      const requestPermissionsSpy = jest.spyOn(
+        Engine.context.PermissionController,
+        'requestPermissions',
+      );
+      mockGetPermittedAccounts.mockReturnValue([addressMock]);
+
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'eth_requestAccounts',
+        params: [],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+
+      expect(requestPermissionsSpy).not.toHaveBeenCalled();
+      expect(
+        (response as JsonRpcSuccess<PermissionConstraint[]>).result,
+      ).toEqual([addressMock]);
+    });
+
+    it('can get permitted accounts after requesting permissions if permission does not exists', async () => {
+      const requestPermissionsSpy = jest.spyOn(
+        Engine.context.PermissionController,
+        'requestPermissions',
+      );
+      mockGetPermittedAccounts
+        .mockReturnValueOnce([])
+        .mockReturnValue([addressMock]);
+
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'eth_requestAccounts',
+        params: [],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+
+      expect(
+        (response as JsonRpcSuccess<PermissionConstraint[]>).result,
+      ).toEqual([addressMock]);
+      expect(requestPermissionsSpy).toHaveBeenCalledWith(
+        { origin: 'example.metamask.io' },
+        {
+          [Caip25EndowmentPermissionName]: {
+            caveats: [
+              {
+                type: Caip25CaveatType,
+                value: getDefaultCaip25CaveatValue(),
+              },
+            ],
+          },
+        },
+      );
     });
   });
 
@@ -1599,6 +1780,154 @@ describe('getRpcMethodMiddleware', () => {
         expect.objectContaining({
           error: providerErrors.userRejectedRequest(),
         }),
+      );
+    });
+  });
+});
+
+describe('getRpcMethodMiddlewareHooks', () => {
+  const testOrigin = 'https://test.com';
+  const hooks = getRpcMethodMiddlewareHooks(testOrigin);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Your mocks will go here
+  });
+
+  describe('getCaveat', () => {
+    it('should return caveat when permission exists', () => {
+      const mockCaveat = {
+        value: { optionalScopes: { 'eip155:1': { accounts: [] } } },
+      };
+
+      MockEngine.context.PermissionController.getCaveat.mockReturnValue(
+        mockCaveat as unknown as ReturnType<
+          typeof MockEngine.context.PermissionController.getCaveat
+        >,
+      );
+
+      const params = {
+        target: Caip25EndowmentPermissionName,
+        caveatType: Caip25CaveatType,
+      };
+
+      const result = hooks.getCaveat(params);
+
+      expect(
+        MockEngine.context.PermissionController.getCaveat,
+      ).toHaveBeenCalledWith(testOrigin, params.target, params.caveatType);
+      expect(result).toEqual(mockCaveat);
+    });
+
+    it('should return undefined when permission does not exist', () => {
+      const params = {
+        target: Caip25EndowmentPermissionName,
+        caveatType: Caip25CaveatType,
+      };
+
+      MockEngine.context.PermissionController.getCaveat.mockImplementation(
+        () => {
+          throw new PermissionDoesNotExistError(testOrigin, params.target);
+        },
+      );
+
+      const result = hooks.getCaveat(params);
+      expect(result).toBeUndefined();
+    });
+
+    it('should propagate unexpected errors', () => {
+      const params = {
+        target: Caip25EndowmentPermissionName,
+        caveatType: Caip25CaveatType,
+      };
+
+      MockEngine.context.PermissionController.getCaveat.mockImplementation(
+        () => {
+          throw new Error('Unexpected error');
+        },
+      );
+
+      expect(() => hooks.getCaveat(params)).toThrow('Unexpected error');
+    });
+  });
+
+  describe('requestPermittedChainsPermissionIncrementalForOrigin', () => {
+    it('should call requestPermittedChainsPermissionIncremental with correct params', () => {
+      const options = {
+        origin: 'https://other-origin.com', // This should be overridden
+        chainId: toHex('0x1'),
+        autoApprove: true,
+      };
+
+      const mockRequestPermittedChainsPermissionIncremental = requestPermittedChainsPermissionIncremental as jest.Mock;
+      hooks.requestPermittedChainsPermissionIncrementalForOrigin(options);
+
+      expect(
+        mockRequestPermittedChainsPermissionIncremental,
+      ).toHaveBeenCalledWith({
+        ...options,
+        origin: testOrigin,
+      });
+    });
+  });
+
+  describe('hasApprovalRequestsForOrigin', () => {
+    it('should call ApprovalController.has with correct origin', () => {
+      hooks.hasApprovalRequestsForOrigin();
+
+      expect(MockEngine.context.ApprovalController.has).toHaveBeenCalledWith({
+        origin: testOrigin,
+      });
+    });
+  });
+
+  describe('getCurrentChainIdForDomain', () => {
+    it('should return chainId for the given domain', () => {
+      const domain = 'test.domain';
+      const networkClientId = 'mainnet';
+      const networkConfig = { chainId: '0x1' };
+
+      MockEngine.context.SelectedNetworkController.getNetworkClientIdForDomain.mockReturnValue(
+        networkClientId,
+      );
+      MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
+        networkConfig as ReturnType<
+          typeof MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId
+        >,
+      );
+
+      const result = hooks.getCurrentChainIdForDomain(domain);
+
+      expect(
+        MockEngine.context.SelectedNetworkController
+          .getNetworkClientIdForDomain,
+      ).toHaveBeenCalledWith(domain);
+      expect(
+        MockEngine.context.NetworkController
+          .getNetworkConfigurationByNetworkClientId,
+      ).toHaveBeenCalledWith(networkClientId);
+      expect(result).toBe('0x1');
+    });
+  });
+
+  describe('getNetworkConfigurationByChainId', () => {
+    it('should call the bound method with correct chainId', () => {
+      const chainId = '0x1';
+
+      hooks.getNetworkConfigurationByChainId(chainId);
+
+      expect(
+        MockEngine.context.NetworkController.getNetworkConfigurationByChainId,
+      ).toHaveBeenCalledWith(chainId);
+    });
+  });
+
+  describe('rejectApprovalRequestsForOrigin', () => {
+    it('should call "rejectOriginPendingApprovals" with correct origin', () => {
+      hooks.rejectApprovalRequestsForOrigin();
+
+      expect(rejectOriginPendingApprovals).toHaveBeenCalledWith(
+        testOrigin,
       );
     });
   });

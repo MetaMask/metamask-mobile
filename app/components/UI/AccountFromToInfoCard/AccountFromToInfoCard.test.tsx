@@ -53,8 +53,8 @@ const mockInitialState: DeepPartial<RootState> = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       KeyringController: {
         vault: 'mock-vault',
-        isUnlocked: true,
         ...MOCK_KEYRING_CONTROLLER_STATE,
+        isUnlocked: true,
       },
     },
   },
