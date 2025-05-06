@@ -46,9 +46,12 @@ const AccountNetworkRow = ({
         screen: Routes.WALLET_VIEW,
       },
     });
+    console.log('-1-');
     if (isSupported) {
+      console.log('-2-');
       await downgradeAccount(address);
     } else if (upgradeContractAddress) {
+      console.log('-3-');
       await upgradeAccount(address, upgradeContractAddress);
     }
   }, [
