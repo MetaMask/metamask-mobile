@@ -113,18 +113,14 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       <Text variant={TextVariant.BodyMDMedium} style={styles.dot}>
         {' • '}
       </Text>
-      <Text
-        color={TextColor.Primary}
-        variant={TextVariant.BodyMDMedium}
-        style={styles.earn}
-      >
+      <Text color={TextColor.Primary} variant={TextVariant.BodyMDMedium}>
         {`${strings('stake.earn')}`}
       </Text>
       <Icon
         name={IconName.Plant}
         size={IconSize.Sm}
         color={IconColor.Primary}
-        style={styles.icon}
+        style={styles.sprout}
       />
     </Pressable>
   );

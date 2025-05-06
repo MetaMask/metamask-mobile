@@ -122,12 +122,9 @@ const createStyles = (colors: Colors) =>
     },
     dot: {
       marginLeft: 2,
-      // marginTop: -1,
+      marginRight: 2,
     },
-    earn: {
-      marginLeft: 2,
-    },
-    icon: {
+    sprout: {
       marginTop: 3,
       marginLeft: 2,
     },
