@@ -142,12 +142,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { chainId } = useNetworkInfo(hostname);
 
   useEffect(() => {
-    // Permission controller will throw an error trying to get caveat for an hostname that has no permissions
-    // For that reason we want to verify first if there's any permissions on the controller for the hostname
     if (!Engine.context.PermissionController.hasPermissions(hostname)) {
+      // Avoid PermissionController.getCaveat() throwing error by first
+      // checking if there's any permissions for the hostname
+      Logger.log(`${hostname} has no permissions`);
       return;
-    };
-
+    }
     let currentlyPermittedChains: string[] = [];
     try {
       const caveat = Engine.context.PermissionController.getCaveat(
@@ -781,6 +781,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
       onUserAction: setUserIntent,
       onAddNetwork: () => {
+        if (!Engine.context.PermissionController.hasPermissions(hostname)) {
+          // Avoid PermissionController.getCaveat() throwing error by first
+          // checking if there's any permissions for the hostname
+          Logger.log(`${hostname} has no permissions`);
+          return;
+        }
         let currentlyPermittedChains: string[] = [];
         try {
           const caveat = Engine.context.PermissionController.getCaveat(
@@ -794,9 +800,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
             );
           }
         } catch (e) {
-          // TODO: error could be shown to the user
-          // Create an UI interface for that.
-          Logger.log(e as Error, 'Error getting permitted chains caveat');
+          Logger.error(e as Error, 'Error getting permitted chains caveat');
         }
 
         // Add current chainId if no chains are permitted yet
