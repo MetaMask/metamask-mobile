@@ -1366,6 +1366,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     isLastSelectedTokenRef.current = true;
   }, []);
 
+  // Don't render webview unless ready to load. This should save on performance for initial app start.
+  if (!AppConstants.TOKEN_DISCOVERY_BROWSER_ENABLED && !isWebViewReadyToLoad.current) {
+    return null;
+  }
+
   /**
    * Main render
    */

@@ -116,7 +116,7 @@ describe('UrlAutocomplete', () => {
 
   it('should show sites from dapp list', async () => {
     const ref = React.createRef<UrlAutocompleteRef>();
-    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {state: defaultState});
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} onSwap={noop} />, {state: defaultState});
 
     act(() => {
       ref.current?.search('uni');
@@ -128,7 +128,7 @@ describe('UrlAutocomplete', () => {
 
   it('should show sites from bookmarks', async () => {
     const ref = React.createRef<UrlAutocompleteRef>();
-    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {state: defaultState});
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} onSwap={noop} />, {state: defaultState});
 
     act(() => {
       ref.current?.search('MyBook');
@@ -140,7 +140,7 @@ describe('UrlAutocomplete', () => {
 
   it('should show sites from recents/history', async () => {
     const ref = React.createRef<UrlAutocompleteRef>();
-    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {state: defaultState});
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} onSwap={noop} />, {state: defaultState});
 
     act(() => {
       ref.current?.search('Goog');
@@ -152,7 +152,7 @@ describe('UrlAutocomplete', () => {
 
   it('should show history and bookmarks when searching for an empty string', async () => {
     const ref = React.createRef<UrlAutocompleteRef>();
-    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {state: defaultState});
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} onSwap={noop} />, {state: defaultState});
 
     act(() => {
       ref.current?.search('');
@@ -165,7 +165,7 @@ describe('UrlAutocomplete', () => {
 
   it('should not show Recents and Favorites when nothing is found', async () => {
     const ref = React.createRef<UrlAutocompleteRef>();
-    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {state: defaultState});
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} onSwap={noop} />, {state: defaultState});
 
     act(() => {
       ref.current?.search('nothing');
@@ -177,7 +177,7 @@ describe('UrlAutocomplete', () => {
 
   it('should delete a bookmark when pressing the trash icon', async () => {
     const ref = React.createRef<UrlAutocompleteRef>();
-    const { store } = render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {state: defaultState});
+    const { store } = render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} onSwap={noop} />, {state: defaultState});
     store.dispatch = jest.fn();
 
     act(() => {
@@ -198,7 +198,7 @@ describe('UrlAutocomplete', () => {
       searchTokens: jest.fn(),
     });
     const ref = React.createRef<UrlAutocompleteRef>();
-    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {state: defaultState});
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} onSwap={noop} />, {state: defaultState});
 
     act(() => {
       ref.current?.search('doge');
@@ -237,7 +237,7 @@ describe('UrlAutocomplete', () => {
       searchTokens: jest.fn(),
     });
     const ref = React.createRef<UrlAutocompleteRef>();
-    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {state: defaultState});
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} onSwap={noop} />, {state: defaultState});
 
     act(() => {
       ref.current?.search('dog');
@@ -266,7 +266,7 @@ describe('UrlAutocomplete', () => {
       searchTokens: jest.fn(),
     });
     const ref = React.createRef<UrlAutocompleteRef>();
-    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {state: defaultState});
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} onSwap={noop} />, {state: defaultState});
 
     act(() => {
       ref.current?.search('dog');
