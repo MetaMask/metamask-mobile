@@ -6,6 +6,7 @@ export function useComponentSize() {
     null,
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const onLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
 
