@@ -212,7 +212,9 @@ export const getScopedPermissions = async ({ origin }: { origin: string }) => {
 
   // Create properly formatted account strings for each chain and account
   const accountsPerChains = chains.flatMap((chain) =>
-    approvedAccounts.map((account) => `${chain}:${account}`),
+    Array.isArray(approvedAccounts)
+      ? approvedAccounts.map((account) => `${chain}:${account}`)
+      : []
   );
 
   const scopedPermissions = {
