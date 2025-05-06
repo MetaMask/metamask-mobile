@@ -4035,12 +4035,13 @@
     "recipient": "Recipient"
   },
   "account_status": {
-    "account_already_exists": "Account already exists ",
+    "account_already_exists": "Account already exists",
     "account_already_exists_description": "An account with {{accountName}} already exists. Do you want to try logging in instead?",
     "log_in": "Log in",
     "account_not_found": "Account not found",
-    "account_not_found_description": "No existing wallet found for {{accountName}}. Want to create one now with this social login?",
-    "create_new_wallet": "Yes, create a new wallet"
+    "account_not_found_description": "No existing wallet found for {{accountName}}. Want to create one now with this login?",
+    "create_new_wallet": "Create a new wallet",
+    "use_different_login_method": "Use a different login method"
   },
   "error_sheet": {
     "still_there_title": "Still there?",

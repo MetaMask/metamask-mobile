@@ -142,6 +142,16 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
             : strings('account_status.create_new_wallet')
         }
       />
+      <Button
+        variant={ButtonVariants.Secondary}
+        size={ButtonSize.Lg}
+        width={ButtonWidthTypes.Full}
+        onPress={() => {
+          navigation.goBack();
+        }}
+        label={strings('account_status.use_different_login_method')}
+        style={styles.secondaryButton}
+      />
     </View>
   );
 };
