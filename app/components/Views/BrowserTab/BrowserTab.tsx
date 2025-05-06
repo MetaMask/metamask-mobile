@@ -1356,6 +1356,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     [onLoadEnd],
   );
 
+  const onSwap = useCallback(() => {
+    isLastSelectedTokenRef.current = true;
+  }, []);
+
   /**
    * Main render
    */
@@ -1437,6 +1441,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
               ref={autocompleteRef}
               onSelect={onSelect}
               onDismiss={onDismissAutocomplete}
+              onSwap={onSwap}
             />
           </View>
           {isTabActive && (

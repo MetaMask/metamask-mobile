@@ -56,7 +56,7 @@ interface ResultsWithCategory {
 const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
->(({ onSelect, onDismiss }, ref) => {
+>(({ onSelect, onDismiss, onSwap }, ref) => {
   const browserHistory = useSelector(selectBrowserHistoryWithType);
   const bookmarks = useSelector(selectBrowserBookmarksWithType);
   const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>([
@@ -216,11 +216,12 @@ const UrlAutocomplete = forwardRef<
 
   const goToSwaps = useCallback(async (result: TokenSearchResult) => {
     try {
+      onSwap();
       await goToSwapsHook(result);
     } catch (error) {
       return;
     }
-  }, [goToSwapsHook]);
+  }, [goToSwapsHook, onSwap]);
 
   const renderSectionHeader = useCallback(({section: { category }}: {section: ResultsWithCategory}) => (
     <View style={styles.categoryWrapper}>
