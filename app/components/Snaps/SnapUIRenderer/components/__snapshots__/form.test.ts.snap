@@ -727,9 +727,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     {
                       "flex": 1,
                       "justifyContent": "flex-end",
-                      "left": 0,
                       "margin": 0,
-                      "top": 0,
                       "transform": [
                         {
                           "translateY": 1334,
