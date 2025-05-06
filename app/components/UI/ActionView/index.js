@@ -85,7 +85,6 @@ export default function ActionView({
   style = undefined,
   confirmButtonState = ConfirmButtonState.Normal,
   scrollViewTestID,
-  rootStyle,
   buttonContainerStyle,
   contentContainerStyle,
 }) {
@@ -97,7 +96,6 @@ export default function ActionView({
   return (
     <View style={[baseStyles.flexGrow, styles.actionView]}>
       <KeyboardAwareScrollView
-        contentContainerStyle={rootStyle}
         style={[baseStyles.flexGrow, style, styles.actionView]}
         resetScrollToCoords={{ x: 0, y: 0 }}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
@@ -252,12 +250,11 @@ ActionView.propTypes = {
    */
   scrollViewTestID: PropTypes.string,
   /**
-   * Optional View styles. Applies to scroll view
-   */
-  rootStyle: PropTypes.object,
-  /**
    * Optional View styles. Applies to action container
    */
   buttonContainerStyle: PropTypes.object,
+  /**
+   * Optional View styles. Applies to scroll view
+   */
   contentContainerStyle: PropTypes.object,
 };
