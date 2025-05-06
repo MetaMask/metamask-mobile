@@ -1,13 +1,14 @@
 const { initializeProvider, shimWeb3 } = require('@metamask/providers');
-const ObjectMultiplex = require('@metamask/object-multiplex');
-const pump = require('pump');
+import ObjectMultiplex from '@metamask/object-multiplex';
+import { pipeline } from 'readable-stream';
 const { v4: uuid } = require('uuid');
 const MobilePortStream = require('./MobilePortStream');
 const ReactNativePostMessageStream = require('./ReactNativePostMessageStream');
 
 const INPAGE = 'metamask-inpage';
 const CONTENT_SCRIPT = 'metamask-contentscript';
-const PROVIDER = 'metamask-provider';
+// EIP-1193 provider channel name
+const METAMASK_EIP_1193_PROVIDER = 'metamask-provider';
 
 // Setup stream for content script communication
 const metamaskStream = new ReactNativePostMessageStream({
@@ -16,9 +17,20 @@ const metamaskStream = new ReactNativePostMessageStream({
 });
 
 const init = () => {
-  // Initialize provider object (window.ethereum)
+  console.log(`[METAMASK-DEBUG] Provider init starting`);
+  // Multiplex the raw stream and initialize provider on the EIP-1193 channel
+  const mux = new ObjectMultiplex();
+  pipeline(metamaskStream, mux, metamaskStream, (err) =>
+    logStreamDisconnectWarning('MetaMask Inpage Multiplex', err),
+  );
+  
+  // Create the provider engine
+  const providerStream = mux.createStream(METAMASK_EIP_1193_PROVIDER);
+  console.log(`[METAMASK-DEBUG] Provider created EIP-1193 provider stream`);
+  
+  // Initialize the provider
   initializeProvider({
-    connectionStream: metamaskStream,
+    connectionStream: providerStream,
     shouldSendMetadata: false,
     providerInfo: {
       uuid: uuid(),
@@ -27,6 +39,8 @@ const init = () => {
       rdns: process.env.METAMASK_BUILD_APP_ID,
     },
   });
+  
+  console.log(`[METAMASK-DEBUG] Provider initialized`);
 
   // Set content script post-setup function
   Object.defineProperty(window, '_metamaskSetupProvider', {
@@ -38,7 +52,6 @@ const init = () => {
     enumerable: false,
     writable: false,
   });
-
 }
 
 // Functions
@@ -47,6 +60,7 @@ const init = () => {
  * Setup function called from content script after the DOM is ready.
  */
 function setupProviderStreams() {
+  console.log(`[METAMASK-DEBUG] Setting up provider streams`);
   // the transport-specific streams for communication between inpage and background
   const pageStream = new ReactNativePostMessageStream({
     name: CONTENT_SCRIPT,
@@ -64,19 +78,21 @@ function setupProviderStreams() {
   const appMux = new ObjectMultiplex();
   appMux.setMaxListeners(25);
 
-  pump(pageMux, pageStream, pageMux, (err) =>
+  pipeline(pageMux, pageStream, pageMux, (err) =>
     logStreamDisconnectWarning('MetaMask Inpage Multiplex', err),
   );
-  pump(appMux, appStream, appMux, (err) => {
+  pipeline(appMux, appStream, appMux, (err) => {
     logStreamDisconnectWarning('MetaMask Background Multiplex', err);
     notifyProviderOfStreamFailure();
   });
 
-  // forward communication across inpage-background for these channels only
-  forwardTrafficBetweenMuxes(PROVIDER, pageMux, appMux);
+  // forward communication across inpage-background for the EIP-1193 provider channel
+  console.log(`[METAMASK-DEBUG] Forwarding traffic for EIP-1193 provider channel`);
+  forwardTrafficBetweenMuxes(METAMASK_EIP_1193_PROVIDER, pageMux, appMux);
 
   // add web3 shim
   shimWeb3(window.ethereum);
+  console.log(`[METAMASK-DEBUG] Web3 shimmed`);
 }
 
 /**
@@ -89,7 +105,7 @@ function setupProviderStreams() {
 function forwardTrafficBetweenMuxes(channelName, muxA, muxB) {
   const channelA = muxA.createStream(channelName);
   const channelB = muxB.createStream(channelName);
-  pump(channelA, channelB, channelA, (err) =>
+  pipeline(channelA, channelB, channelA, (err) =>
     logStreamDisconnectWarning(
       `MetaMask muxed traffic for channel "${channelName}" failed.`,
       err,
@@ -123,7 +139,7 @@ function notifyProviderOfStreamFailure() {
       target: INPAGE, // the post-message-stream "target"
       data: {
         // this object gets passed to object-multiplex
-        name: PROVIDER, // the object-multiplex channel name
+        name: METAMASK_EIP_1193_PROVIDER, // the object-multiplex channel name
         data: {
           jsonrpc: '2.0',
           method: 'METAMASK_STREAM_FAILURE',

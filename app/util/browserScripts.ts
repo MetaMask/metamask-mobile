@@ -81,9 +81,28 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (
   origin: string
 ) => `(function () {
   try {
-    window.postMessage(${JSON.stringify(message)}, '${origin}');
+    // Add special debug logging for eth_requestAccounts responses
+    const msg = ${JSON.stringify(message)};
+    if (msg && msg.data && (msg.data.method === 'eth_requestAccounts' || 
+        (msg.data.id !== undefined && (msg.data.result !== undefined || msg.data.error !== undefined)))) {
+      console.log('[METAMASK-DEBUG] 🔴🔴🔴 Injecting message to window:', JSON.stringify(msg));
+    }
+    
+    // Try both formats for critical messages
+    if (msg && !msg.name && !msg.target && msg.id !== undefined && 
+        (msg.result !== undefined || msg.error !== undefined)) {
+      // This appears to be a raw JSON-RPC response, wrap it properly
+      console.log('[METAMASK-DEBUG] 🔴🔴🔴 Wrapping raw response before posting');
+      window.postMessage({
+        name: 'metamask-provider',
+        data: msg
+      }, '${origin}');
+    } else {
+      // Standard message posting
+      window.postMessage(msg, '${origin}');
+    }
   } catch (e) {
-    //Nothing to do
+    console.error('[METAMASK-DEBUG] 🔴🔴🔴 Error in postMessage:', e);
   }
 })()`;
 
