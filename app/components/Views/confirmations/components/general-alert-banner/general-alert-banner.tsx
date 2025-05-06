@@ -1,5 +1,4 @@
 import React from 'react';
-import { View } from 'react-native';
 import { useAlerts } from '../../context/alert-system-context';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import styleSheet from './general-alert-banner.styles';
@@ -16,7 +15,7 @@ const GeneralAlertBanner = () => {
 
   // Temporary loop throw all general alerts until design team establishes a design for multiple general alerts
   return (
-    <View>
+    <>
       {generalAlerts.map((selectedAlert, index) => (
         <BannerAlert
           key={`banner-alert-${index}`}
@@ -27,7 +26,7 @@ const GeneralAlertBanner = () => {
           testID={`security-alert-banner-${index}`}
         />
       ))}
-    </View>
+    </>
   );
 };
 
