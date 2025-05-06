@@ -78,10 +78,6 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
 **/notification/** @MetaMask/notifications
 
 # Identity Team
-app/actions/identity @MetaMask/identity
-app/util/identity @MetaMask/identity
-app/components/UI/ProfileSyncing @MetaMask/identity
-e2e/specs/identity @MetaMask/identity
 **/Identity/** @MetaMask/identity
 **/identity/** @MetaMask/identity
 
