@@ -755,6 +755,8 @@ export class Engine {
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
           ),
+        isNonEvmScopeSupported: () => false,
+        getNonEvmAccountAddresses: () => [],
       }),
       permissionSpecifications: {
         ...getPermissionSpecifications(),
