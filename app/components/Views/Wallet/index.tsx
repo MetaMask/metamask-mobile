@@ -63,7 +63,9 @@ import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
   selectTokens,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectTransformedTokens,
+  ///: END:ONLY_INCLUDE_IF
 } from '../../../selectors/tokensController';
 import {
   NavigationProp,
@@ -84,7 +86,10 @@ import Text, {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
@@ -96,7 +101,7 @@ import {
   getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectIsProfileSyncingEnabled } from '../../../selectors/identity';
+import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
 
@@ -110,18 +115,16 @@ import {
 } from '../../../selectors/preferencesController';
 import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
-import { Token } from '@metamask/assets-controllers';
+import { Nft, Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
 ///: END:ONLY_INCLUDE_IF
-import {
-  selectNativeEvmAsset,
-  selectStakedEvmAsset,
-} from '../../../selectors/multichain';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
+import { cloneDeep } from 'lodash';
+import { prepareNftDetectionEvents } from '../../../util/assets';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -157,7 +160,6 @@ const createStyles = ({ colors, typography }: Theme) =>
       alignItems: 'center',
     },
     banner: {
-      widht: '80%',
       marginTop: 20,
       paddingHorizontal: 16,
     },
@@ -192,7 +194,7 @@ const Wallet = ({
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -225,7 +227,9 @@ const Wallet = ({
   /**
    * An array that represents the user tokens by chainId and address
    */
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
+  ///: END:ONLY_INCLUDE_IF
   /**
    * Current provider ticker
    */
@@ -243,6 +247,9 @@ const Wallet = ({
   const chainId = useSelector(selectChainId);
 
   const prevChainId = usePrevious(chainId);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
 
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
@@ -332,7 +339,7 @@ const Wallet = ({
     selectIsMetamaskNotificationsEnabled,
   );
 
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
@@ -351,8 +358,6 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const nativeEvmAsset = useSelector(selectNativeEvmAsset);
-  const stakedEvmAsset = useSelector(selectStakedEvmAsset);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -453,9 +458,9 @@ const Wallet = ({
 
         Object.values(evmNetworkConfigurations).forEach(
           ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
-            AccountTrackerController.refresh(
+            AccountTrackerController.refresh([
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-            );
+            ]);
           },
         );
       });
@@ -480,7 +485,7 @@ const Wallet = ({
         navigation,
         colors,
         isNotificationEnabled,
-        isProfileSyncingEnabled,
+        isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
       ),
@@ -495,7 +500,7 @@ const Wallet = ({
     networkImageSource,
     onTitlePress,
     isNotificationEnabled,
-    isProfileSyncingEnabled,
+    isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
   ]);
@@ -601,7 +606,7 @@ const Wallet = ({
   ]);
 
   const renderTabBar = useCallback(
-    (props) => (
+    (props: Record<string, unknown>) => (
       <View style={styles.base}>
         <DefaultTabBar
           underlineStyle={styles.tabUnderlineStyle}
@@ -619,30 +624,71 @@ const Wallet = ({
     [styles, colors],
   );
 
+  const getNftDetectionAnalyticsParams = useCallback((nft: Nft) => {
+    try {
+      return {
+        chain_id: getDecimalChainId(nft.chainId),
+        source: 'detected' as const,
+      };
+    } catch (error) {
+      Logger.error(error as Error, 'Wallet.getNftDetectionAnalyticsParams');
+      return undefined;
+    }
+  }, []);
+
   const onChangeTab = useCallback(
-    async (obj) => {
+    async (obj: { ref: { props: { tabLabel: string } } }) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {
+        // Return early if no address selected
+        if (!selectedAddress) return;
+
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
         );
         // Call detect nfts
-        const { NftDetectionController } = Engine.context;
+        const { NftDetectionController, NftController } = Engine.context;
+        const previousNfts = cloneDeep(
+          NftController.state.allNfts[selectedAddress.toLowerCase()],
+        );
+
         try {
           showNftFetchingLoadingIndicator();
           await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
         } finally {
           hideNftFetchingLoadingIndicator();
         }
+
+        const newNfts = cloneDeep(
+          NftController.state.allNfts[selectedAddress.toLowerCase()],
+        );
+
+        const eventParams = prepareNftDetectionEvents(
+          previousNfts,
+          newNfts,
+          getNftDetectionAnalyticsParams,
+        );
+        eventParams.forEach((params) => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+              .addProperties({
+                chain_id: params.chain_id,
+                source: params.source,
+              })
+              .build(),
+          );
+        });
       }
     },
     [
       trackEvent,
-      hideNftFetchingLoadingIndicator,
-      showNftFetchingLoadingIndicator,
       createEventBuilder,
+      selectedAddress,
+      showNftFetchingLoadingIndicator,
       chainIdsToDetectNftsFor,
+      hideNftFetchingLoadingIndicator,
+      getNftDetectionAnalyticsParams,
     ],
   );
 
@@ -681,18 +727,8 @@ const Wallet = ({
     );
   }
 
-  const renderContent = useCallback(() => {
-    const assets = tokensByChainIdAndAddress
-      ? [...tokensByChainIdAndAddress]
-      : [];
-    if (nativeEvmAsset) {
-      assets.push(nativeEvmAsset);
-    }
-    if (stakedEvmAsset) {
-      assets.push(stakedEvmAsset);
-    }
-
-    return (
+  const renderContent = useCallback(
+    () => (
       <View
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
@@ -721,26 +757,27 @@ const Wallet = ({
           }
         </>
       </View>
-    );
+    ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    tokens,
-    accountBalanceByChainId,
-    styles,
-    colors,
-    basicFunctionalityEnabled,
-    turnOnBasicFunctionality,
-    onChangeTab,
-    navigation,
-    ticker,
-    conversionRate,
-    currentCurrency,
-    contractBalances,
-    isEvmSelected,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    tokensByChainIdAndAddress,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+    [
+      tokens,
+      accountBalanceByChainId,
+      styles,
+      colors,
+      basicFunctionalityEnabled,
+      turnOnBasicFunctionality,
+      onChangeTab,
+      navigation,
+      ticker,
+      conversionRate,
+      currentCurrency,
+      contractBalances,
+      isEvmSelected,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      tokensByChainIdAndAddress,
+      ///: END:ONLY_INCLUDE_IF
+    ],
+  );
   const renderLoader = useCallback(
     () => (
       <View style={styles.loader}>

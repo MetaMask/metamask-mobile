@@ -5,6 +5,7 @@ import { CaipChainId } from '@metamask/utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import imageIcons from '../../images/image-icons';
 import { ImageSourcePropType } from 'react-native';
+import { createDeepEqualSelector } from '../util';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
@@ -15,7 +16,7 @@ export const selectIsEvmNetworkSelected = createSelector(
     multichainNetworkControllerState.isEvmSelected,
 );
 
-export const selectSelectedNonEvmNetworkChainId = createSelector(
+export const selectSelectedNonEvmNetworkChainId = createDeepEqualSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
     multichainNetworkControllerState.selectedMultichainNetworkChainId,

@@ -3,6 +3,9 @@ import { useTokenSearch } from '.';
 import { BridgeToken } from '../../types';
 import { Hex } from '@metamask/utils';
 
+// Mock timers
+jest.useFakeTimers();
+
 describe('useTokenSearch', () => {
   // Mock token data
   const mockTokens: BridgeToken[] = [
@@ -13,7 +16,7 @@ describe('useTokenSearch', () => {
       name: 'Ethereum',
       balance: '1.23',
       balanceFiat: '$2000.00',
-      tokenFiatAmount: 2000.00,
+      tokenFiatAmount: 2000.0,
       image: 'https://example.com/eth.png',
       chainId: '0x1',
     },
@@ -35,7 +38,7 @@ describe('useTokenSearch', () => {
       name: 'Dai Stablecoin',
       balance: '0',
       balanceFiat: '$0.00',
-      tokenFiatAmount: 0.00,
+      tokenFiatAmount: 0.0,
       image: 'https://example.com/dai.png',
       chainId: '0x1',
     },
@@ -51,6 +54,10 @@ describe('useTokenSearch', () => {
       chainId: '0x1',
     },
   ];
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
 
   it('should initialize with empty search string and empty token list', () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
@@ -76,6 +83,9 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('ETH');
     });
 
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
+
     expect(result.current.searchResults[0].symbol).toBe('ETH');
   });
 
@@ -85,6 +95,9 @@ describe('useTokenSearch', () => {
     act(() => {
       result.current.setSearchString('Coin');
     });
+
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults[0].symbol).toBe('USDC');
   });
@@ -96,6 +109,9 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('0x1');
     });
 
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
+
     expect(result.current.searchResults[0].symbol).toBe('ETH');
   });
 
@@ -106,6 +122,9 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('NONEXISTENT');
     });
 
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
+
     expect(result.current.searchResults).toHaveLength(0);
   });
 
@@ -115,6 +134,9 @@ describe('useTokenSearch', () => {
     act(() => {
       result.current.setSearchString('USD'); // Should match both USDC and USDT
     });
+
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults).toHaveLength(2);
     expect(result.current.searchResults[0].symbol).toBe('USDC'); // Higher fiat value should be first
@@ -128,15 +150,23 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('ETH');
     });
 
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
+
     expect(result.current.searchResults).toHaveLength(0);
   });
 
   it('should handle undefined token list', () => {
-    const { result } = renderHook(() => useTokenSearch({ tokens: undefined as unknown as BridgeToken[] }));
+    const { result } = renderHook(() =>
+      useTokenSearch({ tokens: undefined as unknown as BridgeToken[] }),
+    );
 
     act(() => {
       result.current.setSearchString('ETH');
     });
+
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults).toHaveLength(0);
   });
@@ -155,11 +185,16 @@ describe('useTokenSearch', () => {
       chainId: '0x1' as Hex,
     }));
 
-    const { result } = renderHook(() => useTokenSearch({ tokens: largeTokenList }));
+    const { result } = renderHook(() =>
+      useTokenSearch({ tokens: largeTokenList }),
+    );
 
     act(() => {
       result.current.setSearchString('TKN'); // Should match all tokens
     });
+
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults.length).toBeLessThanOrEqual(20); // MAX_TOKENS_RESULTS is 20
   });

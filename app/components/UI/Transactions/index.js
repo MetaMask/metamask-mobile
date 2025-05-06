@@ -116,6 +116,8 @@ const createStyles = (colors, typography) =>
       fontSize: 20,
       color: colors.text.muted,
       textAlign: 'center',
+      marginLeft: 6,
+      marginRight: 6,
       ...fontStyles.normal,
     },
     viewMoreWrapper: {
@@ -365,11 +367,9 @@ class Transactions extends PureComponent {
   };
 
   onRefresh = async () => {
-    const { chainId } = this.props;
-
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions([chainId]);
+    await updateIncomingTransactions();
 
     this.setState({ refreshing: false });
   };

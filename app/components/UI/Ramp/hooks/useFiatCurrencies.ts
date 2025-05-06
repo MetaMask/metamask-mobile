@@ -21,7 +21,7 @@ export default function useFiatCurrencies() {
   ] = useSDKMethod(
     isBuy ? 'getDefaultFiatCurrency' : 'getDefaultSellFiatCurrency',
     selectedRegion?.id,
-    selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
+    [],
   );
 
   const [

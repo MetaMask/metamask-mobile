@@ -172,6 +172,81 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
         >
           This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.
         </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "alignSelf": "flex-start",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "paddingBottom": 10,
+              "paddingTop": 16,
+            }
+          }
+        >
+          Turning this off also disables all features within
+           
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 16,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingBottom": 10,
+                "paddingTop": 16,
+              }
+            }
+          >
+            security and privacy, backup and sync
+             
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingBottom": 10,
+                "paddingTop": 16,
+              }
+            }
+          >
+            and
+             
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 16,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingBottom": 10,
+                "paddingTop": 16,
+              }
+            }
+          >
+            notifications.
+          </Text>
+        </Text>
         <View
           style={
             {

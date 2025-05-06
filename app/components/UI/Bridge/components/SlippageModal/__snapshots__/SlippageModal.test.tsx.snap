@@ -260,7 +260,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 12,
+                  "gap": 8,
                   "justifyContent": "center",
                 }
               }

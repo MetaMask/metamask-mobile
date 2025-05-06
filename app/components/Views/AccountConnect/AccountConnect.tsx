@@ -83,8 +83,11 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { getPhishingTestResult } from '../../../util/phishingDetection';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import {
+  getPhishingTestResultAsync,
+  isProductSafetyDappScanningEnabled,
+} from '../../../util/phishingDetection';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -137,6 +140,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const internalAccounts = useSelector(selectInternalAccounts);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
+  const isMountedRef = useRef(true);
 
   const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
     {
@@ -239,7 +243,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       (network) => ({
         size: AvatarSize.Xs,
         name: network.name || '',
-        // @ts-expect-error getNetworkImageSource not yet typed
         imageSource: getNetworkImageSource({ chainId: network.chainId }),
       }),
     );
@@ -292,20 +295,24 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [selectedChainIds, chainId, hostname]);
 
-  const isAllowedOrigin = useCallback((origin: string) => {
-    const phishingResult = getPhishingTestResult(origin);
-    return !phishingResult?.result;
-  }, []);
-
   useEffect(() => {
-    const url = dappUrl || channelIdOrHostname || '';
-    const isAllowed = isAllowedOrigin(url);
+    let url = dappUrl || channelIdOrHostname || '';
 
-    if (!isAllowed) {
-      setBlockedUrl(dappUrl);
-      setShowPhishingModal(true);
-    }
-  }, [isAllowedOrigin, dappUrl, channelIdOrHostname]);
+    const checkOrigin = async () => {
+      if (isProductSafetyDappScanningEnabled()) {
+        url = prefixUrlWithProtocol(url);
+      }
+      const scanResult = await getPhishingTestResultAsync(url);
+      if (scanResult.result && isMountedRef.current) {
+        setBlockedUrl(dappUrl);
+        setShowPhishingModal(true);
+      }
+    };
+    checkOrigin();
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
@@ -358,7 +365,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [internalAccounts, selectedAddresses]);
 
   const cancelPermissionRequest = useCallback(
-    (requestId) => {
+    (requestId: string) => {
       DevLogger.log(
         `AccountConnect::cancelPermissionRequest requestId=${requestId} channelIdOrHostname=${channelIdOrHostname} accountsLength=${accountsLength}`,
       );
@@ -537,7 +544,6 @@ const AccountConnect = (props: AccountConnectProps) => {
           size: AvatarSize.Xs,
           // @ts-expect-error - networkConfigurations is not typed
           name: networkConfigurations[newSelectedChainId]?.name || '',
-          // @ts-expect-error - getNetworkImageSource is not typed
           imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
         }),
       );

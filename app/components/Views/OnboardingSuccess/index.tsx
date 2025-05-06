@@ -33,6 +33,7 @@ import AppConstants from '../../../core/AppConstants';
 import Emoji from 'react-native-emoji';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import styles from './index.styles';
+import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
 
 interface OnboardingSuccessProps {
@@ -68,6 +69,7 @@ const OnboardingSuccess = ({
 
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
+      await importAdditionalAccounts();
       await dispatch(setCompletedOnboarding(true));
     };
     onOnboardingSuccess();

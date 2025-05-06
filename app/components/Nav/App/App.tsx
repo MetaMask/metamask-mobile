@@ -5,11 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  CommonActions,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
@@ -106,7 +102,6 @@ import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingG
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
-import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
@@ -133,12 +128,14 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user/selectors';
-import { Confirm } from '../../Views/confirmations/Confirm';
+import { Confirm } from '../../Views/confirmations/components/confirm';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
-import SelectSRP from '../../Views/SelectSRP';
+import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
+import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
+import AddNewAccount from '../../Views/AddNewAccount';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -340,6 +337,7 @@ const RootModalFlow = (
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
+    <Stack.Screen name={Routes.SHEET.ADD_ACCOUNT} component={AddNewAccount} />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
       name={Routes.SHEET.SDK_FEEDBACK}
@@ -399,8 +397,8 @@ const RootModalFlow = (
       component={BasicFunctionalityModal}
     />
     <Stack.Screen
-      name={Routes.SHEET.PROFILE_SYNCING}
-      component={ProfileSyncingModal}
+      name={Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC}
+      component={ConfirmTurnOnBackupAndSyncModal}
     />
     <Stack.Screen
       name={Routes.SHEET.RESET_NOTIFICATIONS}
@@ -432,7 +430,10 @@ const RootModalFlow = (
     />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-      <Stack.Screen name={Routes.MODAL.SELECT_SRP} component={SelectSRP} />
+      <Stack.Screen
+        name={Routes.SHEET.SELECT_SRP}
+        component={SelectSRPBottomSheet}
+      />
       ///: END:ONLY_INCLUDE_IF
     }
     <Stack.Screen
@@ -547,13 +548,13 @@ const ConnectHardwareWalletFlow = () => (
   </Stack.Navigator>
 );
 
-const ConfirmRequest = () => (
-  <Stack.Navigator mode={'modal'}>
-    <Stack.Screen name={Routes.CONFIRM_FLAT_PAGE} component={Confirm} />
+const FlatConfirmationRequest = () => (
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.CONFIRMATION_REQUEST_FLAT} component={Confirm} />
   </Stack.Navigator>
 );
 
-const ConfirmDappRequest = () => (
+const ModalConfirmationRequest = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
@@ -561,7 +562,10 @@ const ConfirmDappRequest = () => (
     }}
     mode={'modal'}
   >
-    <Stack.Screen name={Routes.CONFIRM_MODAL} component={Confirm} />
+    <Stack.Screen
+      name={Routes.CONFIRMATION_REQUEST_MODAL}
+      component={Confirm}
+    />
   </Stack.Navigator>
 );
 
@@ -670,7 +674,7 @@ const AppFlow = () => {
       />
       <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
       <Stack.Screen
-        name="EditAccountName"
+        name={Routes.EDIT_ACCOUNT_NAME}
         component={EditAccountName}
         options={{ animationEnabled: true }}
       />
@@ -692,12 +696,12 @@ const AppFlow = () => {
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen
-        name={Routes.CONFIRM_FLAT_PAGE}
-        component={ConfirmRequest}
+        name={Routes.CONFIRMATION_REQUEST_FLAT}
+        component={FlatConfirmationRequest}
       />
       <Stack.Screen
-        name={Routes.CONFIRM_MODAL}
-        component={ConfirmDappRequest}
+        name={Routes.CONFIRMATION_REQUEST_MODAL}
+        component={ModalConfirmationRequest}
       />
     </Stack.Navigator>
   );
@@ -753,15 +757,10 @@ const App: React.FC = () => {
       } catch (error) {
         const errorMessage = (error as Error).message;
         // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
-        if (errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS) {
-          navigation.dispatch(
-            CommonActions.setParams({
-              locked: true,
-            }),
-          );
-        }
+        const locked =
+          errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
 
-        await Authentication.lockApp({ reset: false });
+        await Authentication.lockApp({ reset: false, locked });
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
           errorMessage,
@@ -774,22 +773,33 @@ const App: React.FC = () => {
     });
   }, [navigation, queueOfHandleDeeplinkFunctions]);
 
-  const handleDeeplink = useCallback(({ error, params, uri }) => {
-    if (error) {
-      trackErrorAsAnalytics(error, 'Branch:');
-    }
-    const deeplink = params?.['+non_branch_link'] || uri || null;
-    try {
-      if (deeplink) {
-        AppStateEventProcessor.setCurrentDeeplink(deeplink);
-        SharedDeeplinkManager.parse(deeplink, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-        });
+  const handleDeeplink = useCallback(
+    ({
+      error,
+      params,
+      uri,
+    }: {
+      error?: string | null;
+      params?: Record<string, unknown>;
+      uri?: string;
+    }) => {
+      if (error) {
+        trackErrorAsAnalytics(error, 'Branch:');
       }
-    } catch (e) {
-      Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
-    }
-  }, []);
+      const deeplink = params?.['+non_branch_link'] || uri || null;
+      try {
+        if (deeplink && typeof deeplink === 'string') {
+          AppStateEventProcessor.setCurrentDeeplink(deeplink);
+          SharedDeeplinkManager.parse(deeplink, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          });
+        }
+      } catch (e) {
+        Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
+      }
+    },
+    [],
+  );
 
   // on Android devices, this creates a listener
   // to deeplinks used to open the app

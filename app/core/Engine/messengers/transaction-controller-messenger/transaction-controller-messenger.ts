@@ -1,5 +1,9 @@
-import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
+import {
+  AccountsControllerGetSelectedAccountAction,
+  AccountsControllerGetStateAction,
+} from '@metamask/accounts-controller';
 import { ApprovalControllerActions } from '@metamask/approval-controller';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import { Messenger } from '@metamask/base-controller';
 import {
   NetworkControllerFindNetworkClientIdByChainIdAction,
@@ -23,11 +27,13 @@ import {
 } from '@metamask/smart-transactions-controller';
 
 type MessengerActions =
-  | ApprovalControllerActions
+  | AccountsControllerGetStateAction
   | AccountsControllerGetSelectedAccountAction
+  | ApprovalControllerActions
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetEIP1559CompatibilityAction
-  | NetworkControllerGetNetworkClientByIdAction;
+  | NetworkControllerGetNetworkClientByIdAction
+  | RemoteFeatureFlagControllerGetStateAction;
 
 type MessengerEvents =
   | TransactionControllerTransactionApprovedEvent
@@ -53,9 +59,11 @@ export function getTransactionControllerMessenger(
     name: 'TransactionController',
     allowedActions: [
       'AccountsController:getSelectedAccount',
+      'AccountsController:getState',
       `ApprovalController:addRequest`,
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
+      'RemoteFeatureFlagController:getState',
     ],
     allowedEvents: [`NetworkController:stateChange`],
   });

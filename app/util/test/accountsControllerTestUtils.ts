@@ -20,9 +20,11 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import {
   mockQrKeyringAddress,
+  mockSecondHDKeyringAddress,
   mockSimpleKeyringAddress,
   mockSnapAddress1,
   mockSnapAddress2,
+  mockSolanaAddress,
 } from './keyringControllerTestUtils';
 
 export function createMockUuidFromAddress(address: string): AccountId {
@@ -180,6 +182,7 @@ export const MOCK_SOLANA_ACCOUNT: InternalAccount = {
   options: {
     imported: false,
     scope: SolScope.Mainnet,
+    entropySource: 'mock-keyring-id',
   },
   metadata: {
     name: 'Solana Account',
@@ -221,6 +224,16 @@ export const internalAccount1 = createMockInternalAccount(
 export const internalAccount2 = createMockInternalAccount(
   MOCK_ADDRESS_2.toLowerCase(),
   'Account 2',
+);
+
+export const expectedSecondHDKeyringUuid = createMockUuidFromAddress(
+  mockSecondHDKeyringAddress,
+);
+
+export const mockSecondHDKeyringInternalAccount = createMockInternalAccount(
+  mockSecondHDKeyringAddress,
+  'Second HD Keyring Account',
+  KeyringTypes.hd,
 );
 
 // used as a default mock for other tests
@@ -268,6 +281,18 @@ const mockSnapAccount2InternalAccount: InternalAccount =
     KeyringTypes.snap,
   );
 
+const mockSolanaInternalAccount: InternalAccount = {
+  ...createMockInternalAccount(
+    mockSolanaAddress,
+    'Solana Account',
+    KeyringTypes.snap,
+  ),
+  options: {
+    imported: true,
+    entropySource: '01JNG7170V9X27V5NFDTY04PJ4',
+  },
+};
+
 export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES: AccountsControllerState =
   {
     ...MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -289,6 +314,8 @@ export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES: AccountsControll
             },
           },
         },
+        [expectedSecondHDKeyringUuid]: mockSecondHDKeyringInternalAccount,
+        [mockSolanaInternalAccount.id]: mockSolanaInternalAccount,
       },
     },
   };
