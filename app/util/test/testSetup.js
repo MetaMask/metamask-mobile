@@ -9,7 +9,50 @@ import '@shopify/flash-list/jestSetup';
 
 Enzyme.configure({ adapter: new Adapter() });
 
-jest.mock('react-native-quick-crypto', () => ({}));
+jest.mock('react-native-quick-crypto', () => ({
+  getRandomValues: jest.fn((array) => {
+    for (let i = 0; i < array.length; i++) {
+      array[i] = Math.floor(Math.random() * 256);
+    }
+    return array;
+  }),
+  subtle: {
+    importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) => {
+      return Promise.resolve({
+        format,
+        keyData,
+        algorithm,
+        extractable,
+        keyUsages,
+      });
+    }),
+    deriveBits: jest.fn((algorithm, baseKey, length) => {
+      const derivedBits = new Uint8Array(length);
+      for (let i = 0; i < length; i++) {
+        derivedBits[i] = Math.floor(Math.random() * 256);
+      }
+      return Promise.resolve(derivedBits);
+    }),
+    exportKey: jest.fn((format, key) => {
+      return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
+    }),
+    encrypt: jest.fn((algorithm, key, data) => {
+      return Promise.resolve(new Uint8Array([
+        123,  34, 116, 101, 115,
+        116,  34,  58,  34, 100,
+         97, 116,  97,  34, 125
+      ]));
+    }),
+    decrypt: jest.fn((algorithm, key, data) => {
+      return Promise.resolve(new Uint8Array([
+        123,  34, 116, 101, 115,
+        116,  34,  58,  34, 100,
+         97, 116,  97,  34, 125
+      ]));
+    }),
+  },
+}));
+
 jest.mock('react-native-blob-jsi-helper', () => ({}));
 
 jest.mock('react-native', () => {
