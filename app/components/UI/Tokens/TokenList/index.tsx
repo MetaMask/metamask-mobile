@@ -18,7 +18,6 @@ import { TokenListItem } from './TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import Logger from '../../../../util/Logger';
 
 export interface FlashListAssetKey {
   address: string;
@@ -60,7 +59,7 @@ export const TokenList = ({
 
   const { width: deviceWidth } = Dimensions.get('window');
 
-  const itemHeight = 80; // Adjust this to match TokenListItem height
+  const itemHeight = 70; // Adjust this to match TokenListItem height
   const numberOfItemsOnScreen = 6; // Adjust this to match number of items on screen
 
   const estimatedListHeight = itemHeight * numberOfItemsOnScreen;
@@ -106,13 +105,10 @@ export const TokenList = ({
         itemVisiblePercentThreshold: 50,
         minimumViewTime: 1000,
       }}
-      decelerationRate={0.9}
+      decelerationRate={0}
+      disableAutoLayout
       renderItem={renderTokenListItem}
-      keyExtractor={(item, index) => {
-        if (!item?.address || !item?.chainId) {
-          Logger.log('Missing token-list-item key fields:', item);
-          return `fallback-${index}`;
-        }
+      keyExtractor={(item) => {
         const staked = item.isStaked ? 'staked' : 'unstaked';
         return `${item.address}-${item.chainId}-${staked}`;
       }}

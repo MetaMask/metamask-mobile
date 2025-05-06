@@ -20,7 +20,7 @@ exports[`AssetElement should render correctly 1`] = `
       {
         "alignItems": "flex-end",
         "alignSelf": "flex-end",
-        "flex": 1,
+        "flexShrink": 0,
       }
     }
   />

@@ -197,7 +197,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         {
           "alignItems": "flex-end",
           "alignSelf": "flex-end",
-          "flex": 1,
+          "flexShrink": 0,
         }
       }
     />
@@ -666,7 +666,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         {
           "alignItems": "flex-end",
           "alignSelf": "flex-end",
-          "flex": 1,
+          "flexShrink": 0,
         }
       }
     />
