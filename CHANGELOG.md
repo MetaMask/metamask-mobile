@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - fix(bridge): show "Auto" slippage for Solana swaps
 
+
 ### Added
 
 - feat: migrate eth_accounts and permittedChains to CAIP-25 endowment ([#13970](https://github.com/MetaMask/metamask-mobile/pull/13970))
@@ -46,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix(bridge): implement dynamic refresh rate in QuoteExpiredModal ([#15157](https://github.com/MetaMask/metamask-mobile/pull/15157))
 - fix(bridge): keyboard not appearing when error banner is displayed ([#14862](https://github.com/MetaMask/metamask-mobile/pull/14862))
 - fix(bridge): fix not switching networks when selecting source token ([#14712](https://github.com/MetaMask/metamask-mobile/pull/14712))
 - fix: update confirmation font sizes ([#14715](https://github.com/MetaMask/metamask-mobile/pull/14715))
@@ -54,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(swaps): set default slippage when source or destination token is not stablecoin ([#14730](https://github.com/MetaMask/metamask-mobile/pull/14730))
 - fix(bridge): fix transaction history for EVM and Solana bridge transactions ([#14759](https://github.com/MetaMask/metamask-mobile/pull/14759))
 - fix(bridge): change networks properly when user switches between source and destination tokens ([#14812](https://github.com/MetaMask/metamask-mobile/pull/14812))
+- fix(bridge): fix(bridge): update quote details card toggle to handle same chain swaps and improve slippage button layout ([#15153](https://github.com/MetaMask/metamask-mobile/pull/15153))
 
 ## [7.44.0]
 

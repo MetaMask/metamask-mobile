@@ -71,8 +71,6 @@ import {
   makeMethodMiddlewareMaker,
   UNSUPPORTED_RPC_METHODS,
 } from '../RPCMethods/utils';
-import { ERC1155, ERC20, ERC721 } from '@metamask/controller-utils';
-import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
 import {
   diffMap,
   getChangedAuthorizations,

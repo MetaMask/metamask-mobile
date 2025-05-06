@@ -151,7 +151,7 @@
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
-    "@consensys/on-ramp-sdk": "2.1.6",
+    "@consensys/on-ramp-sdk": "2.1.7",
     "@ethersproject/abi": "^5.7.0",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
@@ -267,8 +267,8 @@
     "@solana/addresses": "2.0.0",
     "@tradle/react-native-http": "2.0.1",
     "@types/he": "^1.2.3",
-    "@viem/anvil": "^0.0.10",
     "@types/react-test-renderer": "^18.0.0",
+    "@viem/anvil": "^0.0.10",
     "@walletconnect/client": "^1.8.0",
     "@walletconnect/core": "^2.19.2",
     "@walletconnect/react-native-compat": "2.19.2",
