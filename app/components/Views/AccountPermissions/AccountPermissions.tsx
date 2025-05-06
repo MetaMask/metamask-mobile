@@ -142,9 +142,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { chainId } = useNetworkInfo(hostname);
 
   useEffect(() => {
-    // Permission controller will throw an error trying to get caveat for an hostname that has no permissions
-    // For that reason we want to verify first if there's any permissions on the controller for the hostname
     if (!Engine.context.PermissionController.hasPermissions(hostname)) {
+      // Avoid PermissionController.getCaveat() throwing error by first
+      // checking if there's any permissions for the hostname
+      Logger.log(`${hostname} has no permissions`);
       return;
     };
 
