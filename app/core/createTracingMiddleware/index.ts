@@ -20,6 +20,9 @@ export const MESSAGE_TYPE = {
   WALLET_INVOKE_METHOD: 'wallet_invokeMethod',
   WALLET_GET_SESSION: 'wallet_getSession',
   WALLET_REVOKE_SESSION: 'wallet_revokeSession',
+  GET_PROVIDER_STATE: 'metamask_getProviderState',
+  LOG_WEB3_SHIM_USAGE: 'metamask_logWeb3ShimUsage',
+  SEND_METADATA: 'metamask_sendDomainMetadata',
 };
 
 const METHOD_TYPE_TO_TRACE_NAME: Record<string, TraceName> = {

@@ -85,6 +85,7 @@ import {
 import { previousValueComparator } from '../../util/validators';
 import { hexToBigInt, toCaipChainId } from '@metamask/utils';
 import { TransactionController } from '@metamask/transaction-controller';
+import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
 
 // Types of APIs
 const API_TYPE = {
@@ -982,92 +983,93 @@ export class BackgroundBridge extends EventEmitter {
       ),
     );
 
-    // engine.push(
-    //   createMultichainMethodMiddleware({
-    //     // Miscellaneous
-    //     addSubjectMetadata: SubjectMetadataController.addSubjectMetadata.bind(
-    //       SubjectMetadataController,
-    //     ),
-    //     getProviderState: this.getProviderState.bind(this),
-    //     handleWatchAssetRequest: ({ asset, type, origin, networkClientId }) => {
-    //       switch (type) {
-    //         case ERC20:
-    //           return TokensController.watchAsset({
-    //             asset,
-    //             type,
-    //             networkClientId,
-    //           });
-    //         case ERC721:
-    //         case ERC1155:
-    //           return NftController.watchNft(asset, type, origin);
-    //         default:
-    //           throw new Error(`Asset type ${type} not supported`);
-    //       }
-    //     },
-    //     requestUserApproval:
-    //       ApprovalController.addAndShowApprovalRequest.bind(ApprovalController),
-    //     getCaveat: ({ target, caveatType }) => {
-    //       try {
-    //         return PermissionController.getCaveat(origin, target, caveatType);
-    //       } catch (e) {
-    //         if (e instanceof PermissionDoesNotExistError) {
-    //           // suppress expected error in case that the origin
-    //           // does not have the target permission yet
-    //         } else {
-    //           throw e;
-    //         }
-    //       }
-    //     },
-    //     addNetwork: NetworkController.addNetwork.bind(NetworkController),
-    //     updateNetwork: NetworkController.updateNetwork.bind(NetworkController),
-    //     setActiveNetwork: async (networkClientId) => {
-    //       await NetworkController.setActiveNetwork(networkClientId);
-    //       // if the origin has the CAIP-25 permission
-    //       // we set per dapp network selection state
-    //       if (
-    //         PermissionController.hasPermission(
-    //           origin,
-    //           Caip25EndowmentPermissionName,
-    //         )
-    //       ) {
-    //         SelectedNetworkController.setNetworkClientIdForDomain(
-    //           origin,
-    //           networkClientId,
-    //         );
-    //       }
-    //     },
-    //     getNetworkConfigurationByChainId:
-    //       NetworkController.getNetworkConfigurationByChainId.bind(
-    //         NetworkController,
-    //       ),
-    //     getCurrentChainIdForDomain: (domain) => {
-    //       const networkClientId =
-    //         SelectedNetworkController.getNetworkClientIdForDomain(domain);
-    //       const { chainId } =
-    //         NetworkController.getNetworkConfigurationByNetworkClientId(
-    //           networkClientId,
-    //         );
-    //       return chainId;
-    //     },
-    //     // TODO: [ffmcgee] investigate, this controller not in context
-    //     // // Web3 shim-related
-    //     // getWeb3ShimUsageState: this.alertController.getWeb3ShimUsageState.bind(
-    //     //   this.alertController,
-    //     // ),
-    //     // setWeb3ShimUsageRecorded:
-    //     //   this.alertController.setWeb3ShimUsageRecorded.bind(
-    //     //     this.alertController,
-    //     //   ),
+    engine.push(
+      createMultichainMethodMiddleware({
+        // subjectType: SubjectType.Website,
+        // // Miscellaneous
+        // addSubjectMetadata: SubjectMetadataController.addSubjectMetadata.bind(
+        //   SubjectMetadataController,
+        // ),
+        getProviderState: this.getProviderState.bind(this),
+        // handleWatchAssetRequest: ({ asset, type, origin, networkClientId }) => {
+        //   switch (type) {
+        //     case ERC20:
+        //       return TokensController.watchAsset({
+        //         asset,
+        //         type,
+        //         networkClientId,
+        //       });
+        //     case ERC721:
+        //     case ERC1155:
+        //       return NftController.watchNft(asset, type, origin);
+        //     default:
+        //       throw new Error(`Asset type ${type} not supported`);
+        //   }
+        // },
+        // requestUserApproval:
+        //   ApprovalController.addAndShowApprovalRequest.bind(ApprovalController),
+        // getCaveat: ({ target, caveatType }) => {
+        //   try {
+        //     return PermissionController.getCaveat(origin, target, caveatType);
+        //   } catch (e) {
+        //     if (e instanceof PermissionDoesNotExistError) {
+        //       // suppress expected error in case that the origin
+        //       // does not have the target permission yet
+        //     } else {
+        //       throw e;
+        //     }
+        //   }
+        // },
+        // addNetwork: NetworkController.addNetwork.bind(NetworkController),
+        // updateNetwork: NetworkController.updateNetwork.bind(NetworkController),
+        // setActiveNetwork: async (networkClientId) => {
+        //   await NetworkController.setActiveNetwork(networkClientId);
+        //   // if the origin has the CAIP-25 permission
+        //   // we set per dapp network selection state
+        //   if (
+        //     PermissionController.hasPermission(
+        //       origin,
+        //       Caip25EndowmentPermissionName,
+        //     )
+        //   ) {
+        //     SelectedNetworkController.setNetworkClientIdForDomain(
+        //       origin,
+        //       networkClientId,
+        //     );
+        //   }
+        // },
+        // getNetworkConfigurationByChainId:
+        //   NetworkController.getNetworkConfigurationByChainId.bind(
+        //     NetworkController,
+        //   ),
+        // getCurrentChainIdForDomain: (domain) => {
+        //   const networkClientId =
+        //     SelectedNetworkController.getNetworkClientIdForDomain(domain);
+        //   const { chainId } =
+        //     NetworkController.getNetworkConfigurationByNetworkClientId(
+        //       networkClientId,
+        //     );
+        //   return chainId;
+        // },
+        // TODO: [ffmcgee] investigate, this controller not in context
+        // // Web3 shim-related
+        // getWeb3ShimUsageState: this.alertController.getWeb3ShimUsageState.bind(
+        //   this.alertController,
+        // ),
+        // setWeb3ShimUsageRecorded:
+        //   this.alertController.setWeb3ShimUsageRecorded.bind(
+        //     this.alertController,
+        //   ),
 
-    //     requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
-    //       Engine.requestPermittedChainsPermissionIncremental({
-    //         ...options,
-    //         origin,
-    //       }),
-    //     rejectApprovalRequestsForOrigin: () =>
-    //       Engine.rejectOriginPendingApprovals(origin),
-    //   }),
-    // );
+      //   requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
+      //     Engine.requestPermittedChainsPermissionIncremental({
+      //       ...options,
+      //       origin,
+      //     }),
+      //   rejectApprovalRequestsForOrigin: () =>
+      //     Engine.rejectOriginPendingApprovals(origin),
+      }),
+    );
 
     // TODO: [ffmcgee] implement
     // engine.push(this.metamaskMiddleware);
@@ -1115,19 +1117,19 @@ export class BackgroundBridge extends EventEmitter {
       },
     );
 
-    // engine.push(
-    //   this.multichainMiddlewareManager.generateMultichainMiddlewareForOriginAndTabId(
-    //     origin,
-    //   ),
-    // );
+    engine.push(
+      this.multichainMiddlewareManager.generateMultichainMiddlewareForOriginAndTabId(
+        origin,
+      ),
+    );
 
-    // engine.push(async (req, res, _next, end) => {
-    //   const { provider } = NetworkController.getNetworkClientById(
-    //     req.networkClientId,
-    //   );
-    //   res.result = await provider.request(req);
-    //   return end();
-    // });
+    engine.push(async (req, res, _next, end) => {
+      const { provider } = NetworkController.getNetworkClientById(
+        req.networkClientId,
+      );
+      res.result = await provider.request(req);
+      return end();
+    });
 
     return engine;
   }
