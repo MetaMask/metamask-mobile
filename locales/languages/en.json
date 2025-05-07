@@ -447,6 +447,10 @@
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
     },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
+    },
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
@@ -542,7 +546,7 @@
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance",
-    "unable_to_find_conversion_rate": "unable to find conversion rate",
+    "unable_to_find_conversion_rate": "no conversion rate",
     "display_nft_media_desc": "To import an NFT, turn on Display NFT media in Settings > Security and privacy.",
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
@@ -869,8 +873,6 @@
     "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
     "reset_notifications": "Reset notifications",
     "reset_notifications_success": "Notifications storage key deleted/recreated, and notifications history reset.",
-    "enabling_profile_sync": "Enabling profile syncing...",
-    "disabling_profile_sync": "Disabling profile syncing...",
     "notifications_dismiss_modal": "Dismiss",
     "select_rpc_url": "Select RPC URL",
     "title": "Settings",
@@ -1695,7 +1697,6 @@
     "share": "Share",
     "bookmark": "Bookmark",
     "add_to_favorites": "Add to Favorites",
-    "go_to_favorites": "Go to Favorites",
     "error": "Error",
     "cancel": "Cancel",
     "go_back": "Go back",
@@ -3303,15 +3304,6 @@
     "enable_remember_me": "Turn on Remember me",
     "enable_remember_me_description": "When Remember me is on, anyone with access to your phone can access your MetaMask account."
   },
-  "profile_sync": {
-    "title": "Profile Sync",
-    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
-    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
-    "enable_description2": " to learn more.",
-    "enable_privacy_link": "Learn how we protect your privacy",
-    "bottomSheetTurnOn": "Turning on Profile Sync",
-    "bottomSheetTurnOff": "Turning off Profile Sync"
-  },
   "turn_off_remember_me": {
     "title": "Enter your password to turn off Remember me",
     "placeholder": "Password",
@@ -3523,6 +3515,7 @@
     "add_bitcoin_account_testnet": "Bitcoin testnet account",
     "add_bitcoin_account_mainnet": "Bitcoin account",
     "add_solana_account": "Solana account",
+    "switch_to_smart_account": "Switch to Smart account",
     "headers": {
       "bitcoin": "Bitcoin",
       "solana": "Solana"
@@ -3875,6 +3868,11 @@
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Smart Account",
+      "standardAccountLabel": "Standard Account",
+      "switch": "Switch"
+    },
     "unlimited": "Unlimited",
     "none": "None",
     "advanced_details": "Advanced details",
@@ -3933,7 +3931,7 @@
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "description": "Rates update every {{refreshRate}} seconds, so tap Get new quote when you're ready.",
     "get_new_quote": "Get new quote"
   },
   "bridge_transaction_details": {
@@ -3970,6 +3968,11 @@
     "manageWhatYouSync": {
       "title": "Manage what you sync",
       "description": "Turn on what’s synced between your devices."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Select an asset"
     }
   }
 }

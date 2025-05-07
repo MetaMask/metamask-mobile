@@ -142,6 +142,7 @@ jest.mock('../../../../../../core/Engine', () => {
     context: {
       TokensController: {
         addToken: jest.fn(),
+        ignoreTokens: jest.fn(),
       },
       KeyringController: {
         state: {
@@ -307,5 +308,36 @@ describe('Confirm', () => {
         expect.any(Array),
       );
     });
+  });
+
+  it('should call addToken', async () => {
+    const testState = merge({}, mockInitialState, {
+      transaction: {
+        securityAlertResponses: {
+          1: {
+            result_type: 'Malicious',
+            reason: 'blur_farming',
+            providerRequestsCount: {},
+            chainId: '0x1',
+          },
+        },
+        selectedAsset: {
+          address: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
+          symbol: 'USDC',
+          decimals: 6,
+          image: 'https://example.com/usdc.png',
+          name: 'USD Coin',
+        },
+        chainId: '0x1',
+        transaction: {
+          from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
+          to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+          value: '0x2',
+        },
+      },
+    });
+    render(Confirm, testState);
+
+    expect(Engine.context.TokensController.addToken).toHaveBeenCalled();
   });
 });

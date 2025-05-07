@@ -448,15 +448,13 @@ export class Engine {
       allowedEvents: [],
     });
 
-    // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
-    const persistAndUpdateAccounts = async () => {
-      await this.keyringController.persistAllKeyrings();
-      await this.accountsController.updateAccounts();
-    };
-
     additionalKeyrings.push(
       snapKeyringBuilder(snapKeyringBuildMessenger, {
-        persistKeyringHelper: () => persistAndUpdateAccounts(),
+        persistKeyringHelper: async () => {
+          // Necessary to only persist the keyrings, the `AccountsController` will
+          // automatically react to `KeyringController:stateChange`.
+          await this.keyringController.persistAllKeyrings();
+        },
         removeAccountHelper: (address) => this.removeAccount(address),
       }),
     );

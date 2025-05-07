@@ -59,7 +59,6 @@ export default function NetworkListBottomSheet({
               avatarProps={{
                 variant: AvatarVariant.Network,
                 name: network.name,
-                // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
                 imageSource: getNetworkImageSource({
                   chainId: network.chainId,
                 }),

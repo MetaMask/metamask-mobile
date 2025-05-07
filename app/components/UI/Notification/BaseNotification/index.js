@@ -148,8 +148,6 @@ const getTitle = (status, { nonce, amount, assetType }) => {
       return strings('notifications.cancelled_title');
     case 'error':
       return strings('notifications.error_title');
-    case 'eth_received':
-      return strings('notifications.eth_received_title');
   }
 };
 
