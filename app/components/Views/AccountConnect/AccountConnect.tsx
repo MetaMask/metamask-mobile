@@ -689,6 +689,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     cancelPermissionRequest(permissionRequestId);
   };
 
+  // TODO Fix this
   const renderSingleConnectScreen = useCallback(() => {
     const selectedAddress = selectedAddresses[0];
     const selectedAccount = accounts.find(
