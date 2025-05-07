@@ -269,7 +269,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -278,13 +277,13 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   accessibilityRole="button"
                   accessible={true}
                   activeOpacity={1}
-                  buttonWidth="full"
+                  buttonWidth="auto"
                   disabled={false}
                   onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
-                      "alignSelf": "stretch",
+                      "alignSelf": "flex-start",
                       "backgroundColor": "#4459ff1a",
                       "borderColor": "#4459ff",
                       "borderRadius": 16,
@@ -318,7 +317,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -327,13 +325,13 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   accessibilityRole="button"
                   accessible={true}
                   activeOpacity={1}
-                  buttonWidth="full"
+                  buttonWidth="auto"
                   disabled={false}
                   onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
-                      "alignSelf": "stretch",
+                      "alignSelf": "flex-start",
                       "backgroundColor": "transparent",
                       "borderColor": "#b7bbc8",
                       "borderRadius": 16,
@@ -367,7 +365,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -376,13 +373,13 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   accessibilityRole="button"
                   accessible={true}
                   activeOpacity={1}
-                  buttonWidth="full"
+                  buttonWidth="auto"
                   disabled={false}
                   onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
-                      "alignSelf": "stretch",
+                      "alignSelf": "flex-start",
                       "backgroundColor": "transparent",
                       "borderColor": "#b7bbc8",
                       "borderRadius": 16,
@@ -416,7 +413,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -425,13 +421,13 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   accessibilityRole="button"
                   accessible={true}
                   activeOpacity={1}
-                  buttonWidth="full"
+                  buttonWidth="auto"
                   disabled={false}
                   onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
-                      "alignSelf": "stretch",
+                      "alignSelf": "flex-start",
                       "backgroundColor": "transparent",
                       "borderColor": "#b7bbc8",
                       "borderRadius": 16,

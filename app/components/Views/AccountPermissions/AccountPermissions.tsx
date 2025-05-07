@@ -18,6 +18,8 @@ import BottomSheet, {
 import Engine from '../../../core/Engine';
 import {
   addPermittedAccounts,
+  updatePermittedChains,
+  getCaip25Caveat,
   getPermittedAccountsByHostname,
   removePermittedAccounts,
 } from '../../../core/Permissions';
@@ -57,14 +59,14 @@ import { RootState } from '../../../reducers';
 import { getNetworkImageSource } from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
+import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import NetworkPermissionsConnected from './NetworkPermissionsConnected';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import { Hex } from '@metamask/utils';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -144,16 +146,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   useEffect(() => {
     let currentlyPermittedChains: string[] = [];
     try {
-      const caveat = Engine.context.PermissionController.getCaveat(
-        hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-      );
-      if (Array.isArray(caveat?.value)) {
-        currentlyPermittedChains = caveat.value.filter(
-          (item): item is string => typeof item === 'string',
-        );
-      }
+      const caveat = getCaip25Caveat(hostname);
+      currentlyPermittedChains = caveat
+        ? getPermittedEthChainIds(caveat.value)
+        : [];
     } catch (e) {
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
@@ -166,7 +162,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
         isSelected: false,
         chainId: network?.chainId,
-        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         imageSource: getNetworkImageSource({
           chainId: network?.chainId,
         }),
@@ -323,13 +318,16 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       const normalizedPermittedAccounts = normalizeAddresses(permittedAccounts);
       const normalizedSelectedAddresses = normalizeAddresses(selectedAddresses);
 
-      let accountsToRemove: string[] = [];
-      let accountsToAdd: string[] = [];
+      let accountsToRemove: Hex[] = [];
+      let accountsToAdd: Hex[] = [];
 
       // Identify accounts to be added
-      accountsToAdd = normalizedSelectedAddresses.filter(
-        (account) => !normalizedPermittedAccounts.includes(account),
-      );
+      accountsToAdd = normalizedSelectedAddresses.reduce((result: Hex[], account) => {
+        if (!normalizedPermittedAccounts.includes(account)) {
+          result.push(toHex(account));
+        }
+        return result;
+      }, []);
 
       // Add newly selected accounts
       if (accountsToAdd.length > 0) {
@@ -340,9 +338,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       }
 
       // Identify accounts to be removed
-      accountsToRemove = normalizedPermittedAccounts.filter(
-        (account) => !normalizedSelectedAddresses.includes(account),
-      );
+      accountsToRemove = normalizedPermittedAccounts
+        .filter((account) => !normalizedSelectedAddresses.includes(account))
+        .map(toHex);
       removedAccountCount = accountsToRemove.length;
 
       // Remove accounts that are no longer selected
@@ -775,35 +773,25 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
       onUserAction: setUserIntent,
       onAddNetwork: () => {
+        if (!chainId) {
+          throw new Error('No chainId provided');
+        }
+
         let currentlyPermittedChains: string[] = [];
         try {
-          const caveat = Engine.context.PermissionController.getCaveat(
-            hostname,
-            PermissionKeys.permittedChains,
-            CaveatTypes.restrictNetworkSwitching,
-          );
-          if (Array.isArray(caveat?.value)) {
-            currentlyPermittedChains = caveat.value.filter(
-              (item): item is string => typeof item === 'string',
-            );
-          }
+          const caveat = getCaip25Caveat(hostname);
+          currentlyPermittedChains = caveat
+            ? getPermittedEthChainIds(caveat.value)
+            : [];
         } catch (e) {
           Logger.error(e as Error, 'Error getting permitted chains caveat');
         }
 
-        // Add current chainId if no chains are permitted yet
-        if (chainId) {
-          currentlyPermittedChains = [chainId, ...currentlyPermittedChains];
-        } else {
-          throw new Error('No chainId provided');
+        if (currentlyPermittedChains.includes(chainId)) {
+          return;
         }
 
-        Engine.context.PermissionController.updateCaveat(
-          hostname,
-          PermissionKeys.permittedChains,
-          CaveatTypes.restrictNetworkSwitching,
-          currentlyPermittedChains,
-        );
+        updatePermittedChains(hostname, [chainId]);
 
         const networkToastProps: ToastOptions = {
           variant: ToastVariants.Network,

@@ -26,6 +26,11 @@ const createStyles = ({ colors }: Theme) =>
       flexWrap: 'wrap',
       maxWidth: '80%',
     },
+    slippageButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
   });
 
 export default createStyles;

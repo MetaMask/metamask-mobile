@@ -86,8 +86,8 @@ const BackupAndSyncToggle = ({
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
           .addProperties({
-            settings_group: 'security_privacy',
-            settings_type: 'profile_syncing',
+            settings_group: 'backup_and_sync',
+            settings_type: 'main',
             old_value: !newValue,
             new_value: newValue,
             was_notifications_on: isMetamaskNotificationsEnabled,
@@ -160,6 +160,7 @@ const BackupAndSyncToggle = ({
           }}
           thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
+          testID="toggle-backupAndSync"
         />
       </View>
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
