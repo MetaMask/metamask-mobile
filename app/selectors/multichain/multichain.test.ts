@@ -13,6 +13,7 @@ import {
   selectSelectedAccountMultichainNetworkAggregatedBalance,
   selectSolanaAccountTransactions,
   selectMultichainHistoricalPrices,
+  makeSelectNonEvmAssetById,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -186,7 +187,7 @@ function getNonEvmState(
           multichainNetworkConfigurationsByChainId: {
             [SolScope.Mainnet]: {
               chainId: SolScope.Mainnet,
-              name: 'Solana Mainnet',
+              name: 'Solana',
               nativeCurrency: 'SOL',
               isEvm: false,
               blockExplorers: {
@@ -198,7 +199,7 @@ function getNonEvmState(
             },
             [BtcScope.Mainnet]: {
               chainId: BtcScope.Mainnet,
-              name: 'Bitcoin Mainnet',
+              name: 'Bitcoin',
               nativeCurrency: 'BTC',
               isEvm: false,
               blockExplorers: {
@@ -780,6 +781,117 @@ describe('MultichainNonEvm Selectors', () => {
       expect(selectMultichainHistoricalPrices(state)).toStrictEqual({
         [testAsset]: mockHistoricalPricesForAsset,
       });
+    });
+  });
+
+  describe('makeSelectNonEvmAssetById', () => {
+    const selectNonEvmAssetById = makeSelectNonEvmAssetById();
+    const mockAccountId = MOCK_ACCOUNT_BIP122_P2WPKH.id;
+    const mockAssetId = MultichainNativeAssets.Bitcoin;
+    const mockRate = '25000.00';
+
+    const mockState = getNonEvmState(MOCK_ACCOUNT_BIP122_P2WPKH, mockRate);
+
+    it('should return undefined when EVM network is selected', () => {
+      const evmState = getEvmState();
+      const result = selectNonEvmAssetById(evmState, {
+        accountId: mockAccountId,
+        assetId: mockAssetId,
+      });
+      expect(result).toBeUndefined();
+    });
+
+    it('should throw error when accountId is not provided', () => {
+      expect(() => {
+        selectNonEvmAssetById(mockState, {
+          accountId: undefined,
+          assetId: mockAssetId,
+        });
+      }).toThrow('Account ID is required to fetch asset.');
+    });
+
+    it('should return asset with correct structure for native asset', () => {
+      const result = selectNonEvmAssetById(mockState, {
+        accountId: mockAccountId,
+        assetId: mockAssetId,
+      });
+
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('symbol', 'BTC');
+      expect(result).toHaveProperty('address', mockAssetId);
+      expect(result).toHaveProperty('chainId', BtcScope.Mainnet);
+    });
+
+    it('should handle missing balance gracefully', () => {
+      const stateWithoutBalance = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            MultichainBalancesController: {
+              balances: {},
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectNonEvmAssetById(stateWithoutBalance, {
+        accountId: mockAccountId,
+        assetId: mockAssetId,
+      });
+
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('balance', undefined);
+      expect(result).toHaveProperty('balanceFiat', undefined);
+    });
+
+    it('should handle missing metadata gracefully', () => {
+      const stateWithoutMetadata = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            MultichainAssetsController: {
+              assetsMetadata: {},
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectNonEvmAssetById(stateWithoutMetadata, {
+        accountId: mockAccountId,
+        assetId: mockAssetId,
+      });
+
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('name', 'BTC');
+      expect(result).toHaveProperty('symbol', 'BTC');
+      expect(result).toHaveProperty('decimals', 0);
+    });
+
+    it('should handle missing rates gracefully', () => {
+      const stateWithoutRates = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            MultichainAssetsRatesController: {
+              assetsRates: {},
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectNonEvmAssetById(stateWithoutRates, {
+        accountId: mockAccountId,
+        assetId: mockAssetId,
+      });
+
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('balanceFiat', '0');
     });
   });
 });

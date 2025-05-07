@@ -61,7 +61,7 @@ jest.mock('@reown/walletkit', () => {
           topic: 'test-topic',
           expiry: 10000000,
           relay: {
-            protocol: 'irn'
+            protocol: 'irn',
           },
           active: true,
           peerMetadata: {
@@ -71,9 +71,9 @@ jest.mock('@reown/walletkit', () => {
             icons: ['https://example.com/icon.png'],
           },
           methods: ['eth_sendTransaction'],
-        })
-      }
-    }
+        }),
+      },
+    },
   };
 
   return {
@@ -112,9 +112,10 @@ jest.mock('../Engine', () => ({
 }));
 
 jest.mock('../Permissions', () => ({
+  ...jest.requireActual('../Permissions'),
   getPermittedAccounts: jest
     .fn()
-    .mockResolvedValue(['0x1234567890abcdef1234567890abcdef12345678']),
+    .mockReturnValue(['0x1234567890abcdef1234567890abcdef12345678']),
   getPermittedChains: jest.fn().mockResolvedValue(['eip155:1']),
 }));
 
@@ -160,7 +161,7 @@ jest.mock('@walletconnect/core', () => ({
   Core: jest.fn().mockImplementation((opts) => ({
     projectId: opts?.projectId,
     logger: opts?.logger,
-  }))
+  })),
 }));
 
 describe('WC2Manager', () => {
@@ -175,14 +176,18 @@ describe('WC2Manager', () => {
       navigate: jest.fn(),
     } as unknown as NavigationContainerRef;
 
-    const initResult = await WC2Manager.init({ navigation: mockNavigation, sessions: _sessions });
+    const initResult = await WC2Manager.init({
+      navigation: mockNavigation,
+      sessions: _sessions,
+    });
     if (!initResult) {
       throw new Error('Failed to initialize WC2Manager');
     }
     manager = initResult;
 
     // Access private property for testing using unknown cast
-    const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
+    const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+      .web3Wallet;
     mockApproveSession = jest.spyOn(web3Wallet, 'approveSession');
   });
 
@@ -216,9 +221,9 @@ describe('WC2Manager', () => {
         verified: {
           verifyUrl: 'https://example.com',
           validation: 'VALID' as const,
-          origin: 'https://example.com'
-        }
-      }
+          origin: 'https://example.com',
+        },
+      },
     };
 
     await manager.onSessionProposal(mockSessionProposal);
@@ -230,9 +235,9 @@ describe('WC2Manager', () => {
           chains: ['eip155:1'],
           methods: expect.any(Array),
           events: ['chainChanged', 'accountsChanged'],
-          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678']
-        }
-      }
+          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
+        },
+      },
     });
   });
 
@@ -297,7 +302,8 @@ describe('WC2Manager', () => {
     });
 
     it('includes and stores deepink session', async () => {
-      const mockWcUri = 'wc:7f6e504bfad60b485450578e05678441fa7a8ea2b3d7d678ef6c72a2efe0f6ad@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303';
+      const mockWcUri =
+        'wc:7f6e504bfad60b485450578e05678441fa7a8ea2b3d7d678ef6c72a2efe0f6ad@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303';
 
       const storageSpy = jest.spyOn(StorageWrapper, 'setItem');
 
@@ -343,7 +349,7 @@ describe('WC2Manager', () => {
         mockWcUri,
         'https://example.com',
         false,
-        'qrcode'
+        'qrcode',
       );
     });
 
@@ -366,14 +372,15 @@ describe('WC2Manager', () => {
     let mockWeb3Wallet: IWalletKit;
 
     beforeEach(() => {
-      mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
+      mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
     });
 
     it('should handle session requests through event emission', async () => {
       // Get the callback that was registered for 'session_request'
-      const sessionRequestCallback = (mockWeb3Wallet.on as jest.Mock).mock.calls.find(
-        ([event]) => event === 'session_request'
-      )?.[1];
+      const sessionRequestCallback = (
+        mockWeb3Wallet.on as jest.Mock
+      ).mock.calls.find(([event]) => event === 'session_request')?.[1];
 
       expect(sessionRequestCallback).toBeDefined();
 
@@ -390,9 +397,9 @@ describe('WC2Manager', () => {
           verified: {
             verifyUrl: 'https://example.com',
             validation: 'VALID' as const,
-            origin: 'https://example.com'
-          }
-        }
+            origin: 'https://example.com',
+          },
+        },
       };
 
       // Call the callback directly
@@ -403,9 +410,9 @@ describe('WC2Manager', () => {
     });
 
     it('rejects invalid session requests through event emission', async () => {
-      const sessionRequestCallback = (mockWeb3Wallet.on as jest.Mock).mock.calls.find(
-        ([event]) => event === 'session_request'
-      )?.[1];
+      const sessionRequestCallback = (
+        mockWeb3Wallet.on as jest.Mock
+      ).mock.calls.find(([event]) => event === 'session_request')?.[1];
 
       expect(sessionRequestCallback).toBeDefined();
 
@@ -422,9 +429,9 @@ describe('WC2Manager', () => {
           verified: {
             verifyUrl: 'https://example.com',
             validation: 'VALID' as const,
-            origin: 'https://example.com'
-          }
-        }
+            origin: 'https://example.com',
+          },
+        },
       };
 
       const respondSpy = jest.spyOn(mockWeb3Wallet, 'respondSessionRequest');
@@ -443,9 +450,9 @@ describe('WC2Manager', () => {
     });
 
     it('logs an error to console on session request error', async () => {
-      const sessionRequestCallback = (mockWeb3Wallet.on as jest.Mock).mock.calls.find(
-        ([event]) => event === 'session_request'
-      )?.[1];
+      const sessionRequestCallback = (
+        mockWeb3Wallet.on as jest.Mock
+      ).mock.calls.find(([event]) => event === 'session_request')?.[1];
 
       const mockRequest = {
         topic: 'test-topic',
@@ -460,16 +467,18 @@ describe('WC2Manager', () => {
           verified: {
             verifyUrl: 'https://example.com',
             validation: 'VALID' as const,
-            origin: 'https://example.com'
-          }
-        }
+            origin: 'https://example.com',
+          },
+        },
       };
 
       // Mock an error in session handling
       const session = manager.getSession('test-topic');
       if (session) {
         const mockSession = _sessions[session.topic];
-        mockSession.handleRequest = jest.fn().mockRejectedValue(new Error('Test error'));
+        mockSession.handleRequest = jest
+          .fn()
+          .mockRejectedValue(new Error('Test error'));
       }
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
@@ -478,7 +487,7 @@ describe('WC2Manager', () => {
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'WC2::onSessionRequest() Error while handling request',
-        expect.any(Error)
+        expect.any(Error),
       );
 
       consoleSpy.mockRestore();
@@ -539,7 +548,9 @@ describe('WC2Manager', () => {
   describe('WC2Manager session proposal handling', () => {
     it('returns rejectSession event to wallet on proposal rejection', async () => {
       const mockPermissionController = Engine.context.PermissionController;
-      (mockPermissionController.requestPermissions as jest.Mock).mockRejectedValueOnce(new Error('User rejected'));
+      (
+        mockPermissionController.requestPermissions as jest.Mock
+      ).mockRejectedValueOnce(new Error('User rejected'));
 
       const mockSessionProposal = {
         id: 1,
@@ -570,20 +581,23 @@ describe('WC2Manager', () => {
             },
           },
           expiryTimestamp: 10000000,
-          relays: [{
-            protocol: 'irn',
-          }]
+          relays: [
+            {
+              protocol: 'irn',
+            },
+          ],
         },
         verifyContext: {
           verified: {
             verifyUrl: 'https://example.com',
             validation: 'VALID' as const,
-            origin: 'https://example.com'
-          }
-        }
+            origin: 'https://example.com',
+          },
+        },
       };
 
-      const mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
+      const mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
       const rejectSessionSpy = jest.spyOn(mockWeb3Wallet, 'rejectSession');
 
       await manager.onSessionProposal(mockSessionProposal);
@@ -624,17 +638,19 @@ describe('WC2Manager', () => {
             },
           },
           expiryTimestamp: 10000000,
-          relays: [{
-            protocol: 'irn',
-          }]
+          relays: [
+            {
+              protocol: 'irn',
+            },
+          ],
         },
         verifyContext: {
           verified: {
             verifyUrl: 'https://example.com',
             validation: 'VALID' as const,
-            origin: 'https://example.com'
-          }
-        }
+            origin: 'https://example.com',
+          },
+        },
       };
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
@@ -643,7 +659,7 @@ describe('WC2Manager', () => {
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'invalid wallet status',
-        expect.any(Error)
+        expect.any(Error),
       );
       consoleSpy.mockRestore();
     });
@@ -654,9 +670,11 @@ describe('WC2Manager', () => {
     let consoleSpy: jest.SpyInstance;
     const mockPendingProposalData = {
       expiryTimestamp: 10000000,
-      relays: [{
-        protocol: 'irn'
-      }],
+      relays: [
+        {
+          protocol: 'irn',
+        },
+      ],
       proposer: {
         publicKey: 'test-public-key',
         metadata: {
@@ -664,27 +682,28 @@ describe('WC2Manager', () => {
           description: 'Test App',
           url: 'https://example.com',
           icons: ['https://example.com/icon.png'],
-        }
+        },
       },
       requiredNamespaces: {
         eip155: {
           methods: ['eth_sendTransaction'],
           events: ['chainChanged'],
-          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678']
-        }
+          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
+        },
       },
       optionalNamespaces: {
         eip155: {
           methods: ['eth_sendTransaction'],
           events: ['chainChanged'],
-          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678']
-        }
+          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
+        },
       },
-      pairingTopic: 'test-pairing'
-     };
+      pairingTopic: 'test-pairing',
+    };
 
     beforeEach(() => {
-      mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
+      mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
       consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
     });
 
@@ -696,19 +715,21 @@ describe('WC2Manager', () => {
       const mockPendingProposals = {
         '1': {
           id: 1,
-          ...mockPendingProposalData
+          ...mockPendingProposalData,
         },
         '2': {
           id: 2,
-          ...mockPendingProposalData
-        }
+          ...mockPendingProposalData,
+        },
       };
 
       // Mock getPendingSessionProposals to return our test data
-      jest.spyOn(mockWeb3Wallet, 'getPendingSessionProposals')
+      jest
+        .spyOn(mockWeb3Wallet, 'getPendingSessionProposals')
         .mockReturnValue(mockPendingProposals);
 
-      const rejectSessionSpy = jest.spyOn(mockWeb3Wallet, 'rejectSession')
+      const rejectSessionSpy = jest
+        .spyOn(mockWeb3Wallet, 'rejectSession')
         .mockResolvedValue(undefined);
 
       rejectSessionSpy.mockClear();
@@ -718,43 +739,75 @@ describe('WC2Manager', () => {
       expect(rejectSessionSpy).toHaveBeenCalledTimes(2);
       expect(rejectSessionSpy).toHaveBeenCalledWith({
         id: 1,
-        reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE }
+        reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE },
       });
       expect(rejectSessionSpy).toHaveBeenCalledWith({
         id: 2,
-        reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE }
+        reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE },
       });
     });
 
     it('logs errors to console when removing pending session proposals fails', async () => {
       const mockPendingProposals = {
-        '1': { id: 1, ...mockPendingProposalData }
+        '1': { id: 1, ...mockPendingProposalData },
       };
 
-      jest.spyOn(mockWeb3Wallet, 'getPendingSessionProposals')
+      jest
+        .spyOn(mockWeb3Wallet, 'getPendingSessionProposals')
         .mockReturnValue(mockPendingProposals);
 
-      jest.spyOn(mockWeb3Wallet, 'rejectSession')
+      jest
+        .spyOn(mockWeb3Wallet, 'rejectSession')
         .mockRejectedValue(new Error('Test error'));
 
       await manager.removePendings();
 
       expect(consoleSpy).toHaveBeenCalledWith(
         "Can't remove pending session 1",
-        expect.any(Error)
+        expect.any(Error),
       );
     });
 
     it('removes all pending session requests', async () => {
       const mockPendingRequests = [
-        { id: 1, topic: 'topic1', params: { request: { method: 'eth_sendTransaction', params: [] }, chainId: '0x1' }, verifyContext: { verified: { verifyUrl: 'https://example.com', validation: 'VALID' as const, origin: 'https://example.com' } } },
-        { id: 2, topic: 'topic2', params: { request: { method: 'eth_sendTransaction', params: [] }, chainId: '0x1' }, verifyContext: { verified: { verifyUrl: 'https://example.com', validation: 'VALID' as const, origin: 'https://example.com' } } }
+        {
+          id: 1,
+          topic: 'topic1',
+          params: {
+            request: { method: 'eth_sendTransaction', params: [] },
+            chainId: '0x1',
+          },
+          verifyContext: {
+            verified: {
+              verifyUrl: 'https://example.com',
+              validation: 'VALID' as const,
+              origin: 'https://example.com',
+            },
+          },
+        },
+        {
+          id: 2,
+          topic: 'topic2',
+          params: {
+            request: { method: 'eth_sendTransaction', params: [] },
+            chainId: '0x1',
+          },
+          verifyContext: {
+            verified: {
+              verifyUrl: 'https://example.com',
+              validation: 'VALID' as const,
+              origin: 'https://example.com',
+            },
+          },
+        },
       ];
 
-      jest.spyOn(mockWeb3Wallet, 'getPendingSessionRequests')
+      jest
+        .spyOn(mockWeb3Wallet, 'getPendingSessionRequests')
         .mockReturnValue(mockPendingRequests);
 
-      const respondSessionRequestSpy = jest.spyOn(mockWeb3Wallet, 'respondSessionRequest')
+      const respondSessionRequestSpy = jest
+        .spyOn(mockWeb3Wallet, 'respondSessionRequest')
         .mockResolvedValue(undefined);
 
       respondSessionRequestSpy.mockClear();
@@ -767,46 +820,67 @@ describe('WC2Manager', () => {
         response: {
           id: 1,
           jsonrpc: '2.0',
-          error: { code: 1, message: ERROR_MESSAGES.INVALID_ID }
-        }
+          error: { code: 1, message: ERROR_MESSAGES.INVALID_ID },
+        },
       });
       expect(respondSessionRequestSpy).toHaveBeenCalledWith({
         topic: 'topic2',
         response: {
           id: 2,
           jsonrpc: '2.0',
-          error: { code: 1, message: ERROR_MESSAGES.INVALID_ID }
-        }
+          error: { code: 1, message: ERROR_MESSAGES.INVALID_ID },
+        },
       });
     });
 
     it('logs error to console when removing pending session requests fails', async () => {
       const mockPendingRequests = [
-        { id: 1, topic: 'topic1', params: { request: { method: 'eth_sendTransaction', params: [] }, chainId: '0x1' }, verifyContext: { verified: { verifyUrl: 'https://example.com', validation: 'VALID' as const, origin: 'https://example.com' } } }
+        {
+          id: 1,
+          topic: 'topic1',
+          params: {
+            request: { method: 'eth_sendTransaction', params: [] },
+            chainId: '0x1',
+          },
+          verifyContext: {
+            verified: {
+              verifyUrl: 'https://example.com',
+              validation: 'VALID' as const,
+              origin: 'https://example.com',
+            },
+          },
+        },
       ];
 
-      jest.spyOn(mockWeb3Wallet, 'getPendingSessionRequests')
+      jest
+        .spyOn(mockWeb3Wallet, 'getPendingSessionRequests')
         .mockReturnValue(mockPendingRequests);
 
-      jest.spyOn(mockWeb3Wallet, 'respondSessionRequest')
+      jest
+        .spyOn(mockWeb3Wallet, 'respondSessionRequest')
         .mockRejectedValue(new Error('Test error'));
 
       await manager.removePendings();
 
       expect(consoleSpy).toHaveBeenCalledWith(
         "Can't remove request 1",
-        expect.any(Error)
+        expect.any(Error),
       );
     });
 
     it('does not process empty pending proposals and requests', async () => {
-      jest.spyOn(mockWeb3Wallet, 'getPendingSessionProposals')
+      jest
+        .spyOn(mockWeb3Wallet, 'getPendingSessionProposals')
         .mockReturnValue({});
-      jest.spyOn(mockWeb3Wallet, 'getPendingSessionRequests')
+      jest
+        .spyOn(mockWeb3Wallet, 'getPendingSessionRequests')
         .mockReturnValue([]);
 
       const rejectSessionSpy = jest.spyOn(mockWeb3Wallet, 'rejectSession');
-      const respondSessionRequestSpy = jest.spyOn(mockWeb3Wallet, 'respondSessionRequest');
+      const respondSessionRequestSpy = jest.spyOn(
+        mockWeb3Wallet,
+        'respondSessionRequest',
+      );
 
       rejectSessionSpy.mockClear();
       respondSessionRequestSpy.mockClear();
@@ -824,12 +898,13 @@ describe('WC2Manager', () => {
     let sessionDeleteCallback: jest.Mock;
 
     beforeEach(() => {
-      mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
+      mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
       storageSetItemSpy = jest.spyOn(StorageWrapper, 'setItem');
       if (!sessionDeleteCallback) {
-        sessionDeleteCallback = (mockWeb3Wallet.on as jest.Mock).mock.calls.find(
-          ([event]) => event === 'session_delete'
-        )?.[1];
+        sessionDeleteCallback = (
+          mockWeb3Wallet.on as jest.Mock
+        ).mock.calls.find(([event]) => event === 'session_delete')?.[1];
         expect(sessionDeleteCallback).toBeDefined();
       }
     });
@@ -844,20 +919,26 @@ describe('WC2Manager', () => {
           topic: 'test-topic',
           pairingTopic: 'test-topic',
           peer: {
-            metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+            metadata: {
+              url: 'https://example.com',
+              name: 'Test App',
+              icons: [],
+            },
           },
-        }
+        },
       });
 
       // Trigger the session delete event
       await sessionDeleteCallback({ topic: 'test-topic' });
 
       // Verify that deeplinkSessions was updated and stored
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((manager as unknown as { deeplinkSessions: Record<string, any> }).deeplinkSessions['test-pairing']).toBeUndefined();
+      expect(
+        (manager as unknown as { deeplinkSessions: Record<string, unknown> })
+          .deeplinkSessions['test-pairing'],
+      ).toBeUndefined();
       expect(storageSetItemSpy).toHaveBeenCalledWith(
         AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
-        JSON.stringify({})
+        JSON.stringify({}),
       );
     });
 
@@ -868,9 +949,13 @@ describe('WC2Manager', () => {
           topic: 'test-topic',
           pairingTopic: 'test-pairing',
           peer: {
-            metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+            metadata: {
+              url: 'https://example.com',
+              name: 'Test App',
+              icons: [],
+            },
           },
-        }
+        },
       });
 
       // Trigger the session delete event
@@ -881,15 +966,18 @@ describe('WC2Manager', () => {
     });
 
     it('processes delete event for non-existent session', async () => {
-
       (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
         'test-topic': {
           topic: 'test-topic',
           pairingTopic: 'test-pairing',
           peer: {
-            metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+            metadata: {
+              url: 'https://example.com',
+              name: 'Test App',
+              icons: [],
+            },
           },
-        }
+        },
       });
       // Trigger the session delete event with a non-existent topic
       await sessionDeleteCallback({ topic: 'non-existent-topic' });
@@ -904,9 +992,13 @@ describe('WC2Manager', () => {
           topic: 'test-topic',
           pairingTopic: 'test-pairing',
           peer: {
-            metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+            metadata: {
+              url: 'https://example.com',
+              name: 'Test App',
+              icons: [],
+            },
           },
-        }
+        },
       });
 
       // Mock storage error
@@ -932,16 +1024,16 @@ describe('WC2Manager', () => {
 
     it('throws error when projectId is undefined', async () => {
       // eslint-disable-next-line dot-notation
-      await expect(WC2Manager['initCore'](undefined))
-        .rejects
-        .toThrow('WC2::init Init Missing projectId');
+      await expect(WC2Manager['initCore'](undefined)).rejects.toThrow(
+        'WC2::init Init Missing projectId',
+      );
     });
 
     it('throws error when projectId is empty string', async () => {
       // eslint-disable-next-line dot-notation
-      await expect(WC2Manager['initCore'](''))
-        .rejects
-        .toThrow('WC2::init Init Missing projectId');
+      await expect(WC2Manager['initCore']('')).rejects.toThrow(
+        'WC2::init Init Missing projectId',
+      );
     });
 
     it('throws error when Core initialization fails', async () => {
@@ -951,15 +1043,14 @@ describe('WC2Manager', () => {
       });
 
       // eslint-disable-next-line dot-notation
-      await expect(WC2Manager['initCore']('valid-project-id'))
-        .rejects
-        .toThrow('Core initialization failed');
+      await expect(WC2Manager['initCore']('valid-project-id')).rejects.toThrow(
+        'Core initialization failed',
+      );
 
       // Verify that the error was logged
-      expect(console.warn)
-        .toHaveBeenCalledWith(
-          'WC2::init Init failed due to Error: Core initialization failed'
-        );
+      expect(console.warn).toHaveBeenCalledWith(
+        'WC2::init Init failed due to Error: Core initialization failed',
+      );
     });
 
     it('successfully initializes Core with valid projectId', async () => {
@@ -968,7 +1059,7 @@ describe('WC2Manager', () => {
 
       expect(Core).toHaveBeenCalledWith({
         projectId: 'valid-project-id',
-        logger: 'fatal'
+        logger: 'fatal',
       });
       expect(result).toBeDefined();
     });
