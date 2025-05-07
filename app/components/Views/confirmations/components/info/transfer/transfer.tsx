@@ -9,6 +9,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import useNavbar from '../../../hooks/ui/useNavbar';
 import FromTo from '../../rows/transactions/from-to';
 import GasFeesDetails from '../../rows/transactions/gas-fee-details';
+import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
 import TokenHero from '../../rows/transactions/token-hero';
 import styleSheet from './transfer.styles';
 
@@ -33,6 +34,7 @@ const Transfer = () => {
         />
       </View>
       <GasFeesDetails />
+      <AdvancedDetailsRow />
     </View>
   );
 };
