@@ -27,7 +27,7 @@ export const defaultOptions = {
   chainId: 1337,
   gasLimit: 30000000,
   gasPrice: 2000000000,
-  hardfork: 'Muirglacier' as Hardfork,
+  hardfork: 'prague' as Hardfork,
   host: '127.0.0.1',
   mnemonic:
     'drive manage close raven tape average sausage pledge riot furnace august tip',
