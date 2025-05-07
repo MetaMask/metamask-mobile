@@ -1,4 +1,4 @@
-import { waitFor } from 'detox';
+import { waitFor, element } from 'detox';
 import Matchers from './Matchers';
 
 // Global timeout variable
@@ -224,6 +224,24 @@ class Assertions {
       throw new Error('Value is not present (null, undefined, or empty string)');
     }
     return true;
+  }
+
+  /**
+   * Check if element is enabled
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - The ID of the element to check
+   * @return {Promise<boolean>} - Resolves to true if the element is enabled, false otherwise
+   */
+  static async checkIfElementEnabled(elementID) {
+    return await element(by.id(await elementID)).getAttributes().enabled;
+  }
+
+  /**
+   * Check if element is disabled
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - The ID of the element to check
+   * @return {Promise<boolean>} - Resolves to true if the element is disabled, false otherwise
+   */
+  static async checkIfElementDisabled(elementID) {
+    return await element(by.id(await elementID)).getAttributes().enabled;
   }
 }
 
