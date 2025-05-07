@@ -75,15 +75,16 @@ const SnapUIAssetSelectorOption: FunctionComponent<
     <Box
       flexDirection={FlexDirection.Column}
       // eslint-disable-next-line react-native/no-inline-styles
-      style={{ overflow: 'hidden' }}
+      style={{ overflow: 'hidden', flex: 1 }}
     >
-      <Text variant={TextVariant.BodyMDMedium} ellipsizeMode="tail">
+      <Text variant={TextVariant.BodyMDMedium} numberOfLines={1} ellipsizeMode="tail">
         {name}
       </Text>
       <Text
         color={TextColor.Alternative}
         variant={TextVariant.BodySM}
         ellipsizeMode="tail"
+        numberOfLines={1}
       >
         {networkName}
       </Text>
