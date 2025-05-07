@@ -4885,7 +4885,7 @@
 
 "@metamask/controller-utils@^11.8.0":
   version "11.8.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/controller-utils/-/controller-utils-11.8.0.tgz#7d573db8a2ab0ce594f92753b0bda02d18330142"
+  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.8.0.tgz#7d573db8a2ab0ce594f92753b0bda02d18330142"
   integrity sha512-FqApJXW0mnHWwnKC4HOQwf2P9fPxfiQmlLJdGWwK6hAYKQ+t7ADDw9Wf8RwVquFPzJGQbXnOcbXVBY2zAyoU5w==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
@@ -5423,7 +5423,7 @@
 
 "@metamask/network-controller@^23.4.0":
   version "23.4.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/network-controller/-/network-controller-23.4.0.tgz#17236ad4c06b5d1e1bc982aef4a03db6fddfd559"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-23.4.0.tgz#17236ad4c06b5d1e1bc982aef4a03db6fddfd559"
   integrity sha512-RQCbpNqWAJKLH4TLGRbS0Oj/R01cNsa+B8UF47hTVuRJXJMH/4ArU6kzUBbVyHM/gULcKU8eIrf1iEVqdkrWuw==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
