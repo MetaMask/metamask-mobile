@@ -60,7 +60,6 @@ export const mockedEngine = {
     },
     KeyringController: {
       ...MOCK_KEYRING_CONTROLLER_STATE,
-      isUnlocked: () => true,
       setLocked: jest.fn(),
       createNewVaultAndRestore: jest.fn(),
       createNewVaultAndKeychain: jest.fn(),
