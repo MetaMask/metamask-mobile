@@ -965,13 +965,12 @@ export const getAppStateForConfirmation = (confirmation: TransactionMeta) => ({
         pendingApprovals: {
           [confirmation.id]: {
             id: confirmation.id,
-            origin: 'metamask.github.io',
+            origin: confirmation.origin,
             type: 'transaction',
-            time: 1731850822653,
             requestData: {
               txId: confirmation.id,
-              from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
-              origin: 'metamask.github.io',
+              from: confirmation.txParams.from,
+              origin: confirmation.origin,
             },
             requestState: null,
             expectsResult: true,
@@ -1036,7 +1035,6 @@ export const upgradeAccountConfirmation = {
     source: 'api',
     securityAlertId: '31cda7d5-9657-4567-b364-d6918f0933a0',
   },
-  time: 1744181747035,
   txParams: {
     from: '0x8a0bbcd42cf79e7cee834e7808eb2fef1cebdb87',
     authorizationList: [
@@ -1051,7 +1049,6 @@ export const upgradeAccountConfirmation = {
     type: '0x4',
   },
   type: 'batch',
-  gasLimitNoBuffer: '0x116b1',
   originalGasEstimate: '0x1a209',
   defaultGasEstimates: {
     gas: '0x1a209',
@@ -1059,9 +1056,7 @@ export const upgradeAccountConfirmation = {
     maxPriorityFeePerGas: '0x59682f00',
     estimateType: 'medium',
   },
-  gasFeeEstimatesLoaded: true,
   gasFeeTokens: [],
-
   simulationData: {
     nativeBalanceChange: {
       previousBalance: '0x109f1f975d02012',
@@ -1075,10 +1070,8 @@ export const upgradeAccountConfirmation = {
 
 export const downgradeAccountConfirmation = {
   ...switchAccountConfirmation,
-  actionId: 1743757606797.6257,
   delegationAddress: '0xcd8d6c5554e209fbb0dec797c6293cf7eae13454',
   id: '22c82900-1134-11f0-a4de-3b789e5a89ad',
-  time: 1743757606800,
   txParams: {
     from: '0x8a0bbcd42cf79e7cee834e7808eb2fef1cebdb87',
     authorizationList: [
@@ -1092,15 +1085,12 @@ export const downgradeAccountConfirmation = {
     type: '0x4',
   },
   type: TransactionType.revokeDelegation,
-  gasLimitNoBuffer: '0xb565',
-  originalGasEstimate: '0x11017',
   defaultGasEstimates: {
     gas: '0x11017',
     maxFeePerGas: '0xd0017b51',
     maxPriorityFeePerGas: '0x59682f00',
     estimateType: 'medium',
   },
-  simulationData: { tokenBalanceChanges: [] },
 } as unknown as TransactionMeta;
 
 export const MOCK_NETWORK_CONTROLLER_STATE = {
@@ -1181,48 +1171,6 @@ export const MOCK_ACCOUNT_CONTROLLER_STATE = {
           importTime: 1746181774143,
           keyring: { type: 'HD Key Tree' },
           lastSelected: 1746191007939,
-        },
-      },
-      '023043ce-6c62-4cab-bf91-8939553a68f2': {
-        id: '023043ce-6c62-4cab-bf91-8939553a68f2',
-        address: '0x089595380921f555d52ab6f5a49defdaab23b444',
-        options: {},
-        methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
-        ],
-        scopes: ['eip155:0'],
-        type: 'eip155:eoa',
-        metadata: {
-          name: 'Account 2',
-          importTime: 1746181776738,
-          keyring: { type: 'HD Key Tree' },
-          lastSelected: 0,
-        },
-      },
-      '3fb381cd-76e5-4edb-81f4-b5133b115a8e': {
-        id: '3fb381cd-76e5-4edb-81f4-b5133b115a8e',
-        address: '0xa4a80ce0afdfb8e6bd1221d3b18a1653eee6d19d',
-        options: {},
-        methods: [
-          'personal_sign',
-          'eth_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
-        ],
-        scopes: ['eip155:0'],
-        type: 'eip155:eoa',
-        metadata: {
-          name: 'Account 3',
-          importTime: 1746181779759,
-          keyring: { type: 'HD Key Tree' },
-          lastSelected: 0,
         },
       },
     },
