@@ -227,7 +227,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                   <Button
                     testID={AddNewAccountIds.CANCEL}
                     loading={isLoading}
-                    style={styles.footerContainer.button}
+                    style={styles.button}
                     variant={ButtonVariants.Secondary}
                     onPress={onBack}
                     labelTextVariant={TextVariant.BodyMD}
@@ -237,7 +237,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                     testID={AddNewAccountIds.CONFIRM}
                     loading={isLoading}
                     isDisabled={isLoading || isDuplicateName}
-                    style={styles.footerContainer.button}
+                    style={styles.button}
                     variant={ButtonVariants.Primary}
                     onPress={onSubmit}
                     labelTextVariant={TextVariant.BodyMD}

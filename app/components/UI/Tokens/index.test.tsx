@@ -304,8 +304,8 @@ describe('Tokens', () => {
   });
 
   it('navigates to Asset screen when token is pressed', () => {
-    const { queryByTestId } = renderComponent(initialState);
-    fireEvent.press(queryByTestId('asset-ETH'));
+    const { getByTestId } = renderComponent(initialState);
+    fireEvent.press(getByTestId('asset-ETH'));
     expect(mockNavigate).toHaveBeenCalledWith(
       'Asset',
       expect.objectContaining({

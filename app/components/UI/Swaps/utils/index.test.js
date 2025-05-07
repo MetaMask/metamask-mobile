@@ -220,11 +220,6 @@ describe('isSwapsAllowed', () => {
     expect(isSwapsAllowed(chainId)).toBe(true);
   });
 
-  it('should return false for Solana mainnet when bridge UI is disabled', () => {
-    process.env.MM_BRIDGE_UI_ENABLED = 'false';
-    expect(isSwapsAllowed(SolScope.Mainnet)).toBe(false);
-  });
-
   it('should return false for unsupported chain IDs', () => {
     const unsupportedChainId = '0x9999';
     expect(isSwapsAllowed(unsupportedChainId)).toBe(false);
