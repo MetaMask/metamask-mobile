@@ -4,6 +4,7 @@ import { Hex } from '@metamask/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import usePrevious from '../../hooks/usePrevious';
+import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 
 // USDC and USDT for now
 const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
