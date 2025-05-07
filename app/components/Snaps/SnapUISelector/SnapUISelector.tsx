@@ -52,17 +52,9 @@ const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
     onSelect(value);
   };
 
-  // We pass the context prop to the children so that the component
-  // can decide to apply some additional UI based on the context.
-  const buttonChildren = React.isValidElement(children) ? (
-    React.cloneElement(children as React.ReactElement, { context: 'modal' })
-  ) : (
-    children
-  );
-
   const buttonContent = (
     <>
-      {buttonChildren}
+      {children}
       {selected && <Box style={styles.selectedPill} />}
     </>
   );
@@ -132,10 +124,9 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   const selectedOptionComponent = optionComponents[selectedOptionIndex];
 
   // We clone the selected option component so that we can pass the render context to it.
-  const inlineButtonLabel = React.isValidElement(selectedOptionComponent) ? (
-    React.cloneElement(selectedOptionComponent as React.ReactElement, { context: 'inline' })
-  ) : (
-    selectedOptionComponent
+  const inlineButtonLabel = React.cloneElement(
+    selectedOptionComponent as React.ReactElement,
+    { context: 'inline' },
   );
 
   return (

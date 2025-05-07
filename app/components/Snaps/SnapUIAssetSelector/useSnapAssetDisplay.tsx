@@ -79,7 +79,7 @@ export const useSnapAssetSelectorData = ({
 
   const assets = useSelector((state: RootState) =>
     selectMultichainTokenListForAccountId(state, account?.id)
-  ) as unknown as TokenWithFiatAmount[];
+  ) as TokenWithFiatAmount[];
 
   /**
    * Formats a fiat balance.

@@ -175,7 +175,7 @@ export const field: UIComponentFactory<FieldElement> = ({
           label: e.props.label,
           form,
           error: e.props.error,
-          isParentFlexRow: params.isParentFlexRow,
+          compact: params.isParentFlexRow,
           style,
         },
       };

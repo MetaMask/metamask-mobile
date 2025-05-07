@@ -23,14 +23,14 @@ import { ImageSourcePropType, ViewStyle } from 'react-native';
  * @param props.fiat - The asset balance in fiat.
  * @param props.networkName - The network name.
  * @param props.networkIcon - The network icon.
- * @param props.isParentFlexRow - Whether the parent has flex-direction: row.
+ * @param props.compact - Whether the selector is compact.
  * @param props.context - The rendering context ('inline' or 'modal').
  * @returns The Asset Selector option.
  */
 const SnapUIAssetSelectorOption: FunctionComponent<
   SnapUIAsset & {
     style?: ViewStyle;
-    isParentFlexRow?: boolean;
+    compact?: boolean;
     context?: 'inline' | 'modal';
   }
 > = ({
@@ -41,8 +41,8 @@ const SnapUIAssetSelectorOption: FunctionComponent<
   fiat,
   networkName,
   networkIcon,
-  isParentFlexRow = false,
-  context = 'inline',
+  compact = false,
+  context = 'modal',
 }) => {
   const theme = useTheme();
 
@@ -102,7 +102,7 @@ const SnapUIAssetSelectorOption: FunctionComponent<
         style={{
           marginLeft: 'auto',
           marginRight: 8,
-          ...(context === 'inline' && isParentFlexRow ? { display: 'none' } : {}),
+          ...(context === 'inline' && compact ? { display: 'none' } : {}),
         }}
         alignItems={AlignItems.flexEnd}
       >
@@ -129,7 +129,7 @@ interface SnapUIAssetSelectorProps {
   label?: string;
   error?: string;
   style?: Record<string, ViewStyle>;
-  isParentFlexRow?: boolean;
+  compact?: boolean;
 }
 
 
@@ -140,11 +140,12 @@ interface SnapUIAssetSelectorProps {
  * @param props.addresses - The addresses to get the assets for.
  * @param props.chainIds - The chainIds to filter the assets by.
  * @param props.disabled - Whether the selector is disabled.
+ * @param props.compact - Whether the selector is compact.
  * @returns The AssetSelector component.
  */
 export const SnapUIAssetSelector: FunctionComponent<
   SnapUIAssetSelectorProps
-> = ({ addresses, chainIds, disabled, style, isParentFlexRow, ...props }) => {
+> = ({ addresses, chainIds, disabled, style, compact, ...props }) => {
   const assets = useSnapAssetSelectorData({ addresses, chainIds });
 
   const options = assets.map(({ address, name, symbol }) => ({
@@ -154,7 +155,7 @@ export const SnapUIAssetSelector: FunctionComponent<
   }));
 
   const optionComponents = assets.map((asset, index) => (
-    <SnapUIAssetSelectorOption {...asset} key={index} isParentFlexRow={isParentFlexRow} />
+    <SnapUIAssetSelectorOption {...asset} key={index} compact={compact} />
   ));
 
   return (
@@ -164,7 +165,7 @@ export const SnapUIAssetSelector: FunctionComponent<
       optionComponents={optionComponents}
       disabled={disabled || assets.length === 0}
       style={style}
-      compact={isParentFlexRow}
+      compact={compact}
       {...props}
     />
   );
