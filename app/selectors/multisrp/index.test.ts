@@ -1,6 +1,7 @@
 import {
   selectHdKeyringIndexByIdOrDefault,
   getHdKeyringOfSelectedAccountOrPrimaryKeyring,
+  getSnapAccountsByKeyringId,
 } from './index';
 import { RootState } from '../../reducers';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
@@ -11,6 +12,7 @@ import {
 } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { ExtendedKeyring } from '../keyringController';
+import { SOLANA_WALLET_SNAP_ID } from '../../core/SnapKeyring/SolanaWalletSnap';
 
 const MOCK_ADDRESS_1 = '0x67B2fAf7959fB61eb9746571041476Bbd0672569';
 const MOCK_ADDRESS_2 = '0xeE94464eFCa6F3fb77AC3A77Ca995234c0c1f7fC';
@@ -79,6 +81,32 @@ const mockSimpleKeyring2Metadata = {
   name: '',
 };
 
+const mockSnapKeyringMetadata = {
+  id: '01JREC70MCJJNQT13ENMNVYBKK',
+  name: '',
+};
+
+const mockSnapAccount = {
+  ...createMockInternalAccount(
+    MOCK_ADDRESS_1,
+    'Solana Account',
+    KeyringTypes.snap,
+  ),
+  snap: {
+    id: SOLANA_WALLET_SNAP_ID,
+    name: 'Solana',
+    enabled: true,
+  },
+  options: {
+    entropySource: mockHDKeyringMetadata.id,
+  },
+};
+
+const mockSnapKeyring = {
+  accounts: [mockSnapAccount.address],
+  type: KeyringTypes.snap,
+};
+
 const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
   ({
     engine: {
@@ -89,12 +117,14 @@ const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
             mockHDKeyring2,
             mockSimpleKeyring,
             mockSimpleKeyring2,
+            mockSnapKeyring,
           ],
           keyringsMetadata: [
             mockHDKeyringMetadata,
             mockHDKeyring2Metadata,
             mockSimpleKeyringMetadata,
             mockSimpleKeyring2Metadata,
+            mockSnapKeyringMetadata,
           ],
         },
         AccountsController: {
@@ -104,6 +134,7 @@ const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
               [mockAccount2.id]: mockAccount2,
               [mockAccount3.id]: mockAccount3,
               [mockAccount4.id]: mockAccount4,
+              [mockSnapAccount.id]: mockSnapAccount,
             },
             selectedAccount: selectedAccount.id,
           },
@@ -201,6 +232,27 @@ describe('multisrp selectors', () => {
       expect(result).toStrictEqual(
         expectedKeyringWithMetadata(mockHDKeyring, mockHDKeyringMetadata),
       );
+    });
+  });
+
+  describe('getSnapAccountsByKeyringId', () => {
+    it('returns snap accounts along with hd accounts', () => {
+      const result = getSnapAccountsByKeyringId(
+        mockState(),
+        mockHDKeyringMetadata.id,
+      );
+      expect(result).toEqual([mockSnapAccount]);
+    });
+
+    it('returns empty array when no keyringId is provided', () => {
+      // @ts-expect-error - This is a test for the null case
+      const result = getSnapAccountsByKeyringId(mockState(), null);
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when keyringId is not found', () => {
+      const result = getSnapAccountsByKeyringId(mockState(), 'non-existent');
+      expect(result).toEqual([]);
     });
   });
 });
