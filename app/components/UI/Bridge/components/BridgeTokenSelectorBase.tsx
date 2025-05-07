@@ -223,6 +223,7 @@ export const BridgeTokenSelectorBase: React.FC<
     <ReusableModal
       ref={modalRef}
       style={[styles.screen, { marginTop: safeAreaInsets.top }]}
+      isInteractable={false}
     >
       <Box
         style={[
