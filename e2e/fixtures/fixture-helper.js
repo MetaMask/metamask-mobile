@@ -182,6 +182,7 @@ export async function withFixtures(options, testSuite) {
 
   try {
     // Start servers based on the localNodes array
+    if (!disableGanache) {   
     for (let i = 0; i < localNodeOptsNormalized.length; i++) {
       const nodeType = localNodeOptsNormalized[i].type;
       const nodeOptions = localNodeOptsNormalized[i].options || {};
@@ -210,6 +211,7 @@ export async function withFixtures(options, testSuite) {
           );
       }
     }
+    }
   } catch (error) {
     console.error(error);
     throw error;
@@ -232,7 +234,7 @@ export async function withFixtures(options, testSuite) {
     //   await anvilServer.setAccountBalance('1200');
     // }
 
-    if (smartContract) {
+    if (!disableGanache && smartContract) {
       const ganacheSeeder = new GanacheSeeder(localNodes[0].getProvider());
       await ganacheSeeder.deploySmartContract(smartContract);
       contractRegistry = ganacheSeeder.getContractRegistry();
@@ -321,7 +323,6 @@ export async function withFixtures(options, testSuite) {
     await stopFixtureServer(fixtureServer);
   }
 }
-
 // SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
 export const defaultGanacheOptions = {
   hardfork: 'london',

@@ -2,15 +2,13 @@ import TestHelpers from '../../helpers';
 import { SmokeNetworkAbstractions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletView from '../../pages/wallet/WalletView';
 import Assertions from '../../utils/Assertions';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import ActivitiesView from '../../pages/transactions/ActivitiesView';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 
 const sourceTokenSymbol = 'ETH';
 const destTokenSymbol = 'DAI';

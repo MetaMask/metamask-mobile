@@ -104,6 +104,7 @@ class NetworkListModal {
   }
 
   async tapAddNetworkButton() {
+    await TestHelpers.delay(3000);
     await Gestures.waitAndTap(this.addPopularNetworkButton);
   }
   async deleteNetwork() {
