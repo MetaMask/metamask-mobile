@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, TouchableWithoutFeedback, View } from 'react-native';
+import { TouchableWithoutFeedback, View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './SRPListItem.styles';
 import { SRPListItemProps } from './SRPListItem.type';
@@ -18,7 +19,12 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { SRPListItemSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPListItem.selectors';
 
-const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
+const SRPListItem = ({
+  name,
+  keyring,
+  onActionComplete,
+  testID,
+}: SRPListItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const [showAccounts, setShowAccounts] = useState(false);
   const accountsToBeShown = useMemo(
@@ -32,7 +38,10 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
   return (
     <TouchableWithoutFeedback
       onPress={() => onActionComplete(keyring.metadata.id)}
-      testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${keyring.metadata.id}`}
+      testID={
+        testID ??
+        `${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${keyring.metadata.id}`
+      }
     >
       <View style={styles.srpItem}>
         <View style={styles.srpItemContent}>
