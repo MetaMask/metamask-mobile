@@ -736,14 +736,13 @@ const Wallet = ({
     return (
       <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
         <Tokens {...tokensTabProps} />
-        {/* TODO: Restore the flags before merging */}
-        {(true ||
-          (isEvmSelected &&
-            !isTestNet(chainId) &&
-            basicFunctionalityEnabled &&
-            assetsDefiPositionsEnabled)) && (
-          <DeFiPositionsTab {...defiPositionsTabProps} />
-        )}
+        {isEvmSelected &&
+          !isTestNet(chainId) &&
+          basicFunctionalityEnabled &&
+          /* TODO: Restore the flags before merging */
+          (assetsDefiPositionsEnabled || true) && (
+            <DeFiPositionsTab {...defiPositionsTabProps} />
+          )}
         {isEvmSelected && (
           <CollectibleContracts {...collectibleContractsTabProps} />
         )}

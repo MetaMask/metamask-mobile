@@ -33,7 +33,7 @@ export const defiPositionsControllerInit: ControllerInitFunction<
       );
 
       // TODO: Restore the flags before merging
-      return true || (isBasicFunctionalityToggleEnabled && featureFlagForDeFi);
+      return isBasicFunctionalityToggleEnabled && (true || featureFlagForDeFi);
     },
   });
 
