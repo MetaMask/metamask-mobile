@@ -4,21 +4,19 @@ import { TouchableOpacity, View } from 'react-native';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import Icon, {
+import {
   IconColor,
   IconName,
-  IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import BottomModal from '../bottom-modal';
-import styleSheet from './expandable-section.styles';
+import styleSheet from './expandable.styles';
 
-interface ExpandableSectionProps {
+interface ExpandableProps {
   collapsedContent: ReactNode;
   expandedContent: ReactNode;
   expandedContentTitle: string;
-  iconVerticalPosition?: IconVerticalPosition;
   collapseButtonTestID?: string;
   testID?: string;
   isCompact?: boolean;
@@ -28,20 +26,16 @@ export enum IconVerticalPosition {
   Top = 'top',
 }
 
-const ExpandableSection = ({
+const Expandable = ({
   collapsedContent,
   expandedContent,
   expandedContentTitle,
-  iconVerticalPosition,
   collapseButtonTestID,
   testID,
   isCompact,
-}: ExpandableSectionProps) => {
+}: ExpandableProps) => {
   const { styles } = useStyles(styleSheet, { isCompact });
   const [expanded, setExpanded] = useState(false);
-
-  const iconStyle =
-    iconVerticalPosition === IconVerticalPosition.Top ? { top: 20 } : {};
 
   return (
     <>
@@ -53,18 +47,7 @@ const ExpandableSection = ({
         activeOpacity={1}
         testID={testID ?? 'expandableSection'}
       >
-        <View style={styles.container}>
-          {collapsedContent}
-          <Icon
-            color={IconColor.Muted}
-            size={IconSize.Sm}
-            name={IconName.ArrowRight}
-            style={{
-              ...styles.expandIcon,
-              ...iconStyle,
-            }}
-          />
-        </View>
+        {collapsedContent}
       </TouchableOpacity>
       {expanded && (
         <BottomModal onClose={() => setExpanded(false)}>
@@ -89,4 +72,4 @@ const ExpandableSection = ({
   );
 };
 
-export default ExpandableSection;
+export default Expandable;
