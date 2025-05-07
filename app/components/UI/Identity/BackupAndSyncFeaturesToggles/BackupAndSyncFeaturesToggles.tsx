@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Switch, InteractionManager } from 'react-native';
 
 import Text, {
@@ -19,10 +19,11 @@ import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
 export const backupAndSyncFeaturesTogglesSections = [
   {
-    id: 'accountSyncing',
+    id: 'accounts',
     titleI18NKey: strings('backupAndSync.features.accounts'),
     iconName: IconName.UserCircle,
     backupAndSyncfeatureKey: BACKUPANDSYNC_FEATURES.accountSyncing,
@@ -41,12 +42,30 @@ const FeatureToggle = ({
   isBackupAndSyncEnabled: boolean;
 }) => {
   const theme = useTheme();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { setIsBackupAndSyncFeatureEnabled } = useBackupAndSync();
 
   const { colors } = theme;
   const isFeatureEnabled = useSelector(section.featureReduxSelector);
 
+  const trackBackupAndSyncToggleEvent = useCallback(
+    (newValue: boolean) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
+          .addProperties({
+            settings_group: 'backup_and_sync',
+            settings_type: section.id,
+            old_value: !newValue,
+            new_value: newValue,
+          })
+          .build(),
+      );
+    },
+    [trackEvent, createEventBuilder, section.id],
+  );
+
   const handleToggleFeature = async () => {
+    trackBackupAndSyncToggleEvent(!isFeatureEnabled);
     InteractionManager.runAfterInteractions(async () => {
       await setIsBackupAndSyncFeatureEnabled(
         section.backupAndSyncfeatureKey,
