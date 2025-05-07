@@ -1,6 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { transferConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { getNavbar } from '../../UI/navbar/navbar';
@@ -19,6 +20,12 @@ jest.mock('../../../../../../core/Engine', () => ({
     TokenListController: {
       fetchTokenList: jest.fn(),
     },
+    TransactionController: {
+      updateTransaction: jest.fn(),
+      getNonceLock: jest
+        .fn()
+        .mockResolvedValue({ nextNonce: 2, releaseLock: jest.fn() }),
+    },
   },
 }));
 
@@ -32,6 +39,11 @@ jest.mock('../../UI/navbar/navbar', () => ({
 
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
+}));
+
+jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 const noop = () => undefined;
@@ -48,6 +60,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('Transfer', () => {
+  const mockUseClearConfirmationOnBackSwipe = jest.mocked(useClearConfirmationOnBackSwipe);
   const mockTrackPageViewedEvent = jest.fn();
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
@@ -77,6 +90,7 @@ describe('Transfer', () => {
       state: transferConfirmationState,
     });
 
+    expect(mockUseClearConfirmationOnBackSwipe).toHaveBeenCalled();
     expect(getByText('0xDc477...0c164')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
     expect(getNavbar).toHaveBeenCalled();
