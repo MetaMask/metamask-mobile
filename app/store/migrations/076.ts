@@ -13,13 +13,13 @@ import {
 import { ensureValidState } from './util';
 
 /**
- * Migration 75: Add 'Monad Testnet'
+ * Migration 76: Add 'Monad Testnet'
  *
  * This migration add Monad Testnet to the network controller
  * as a default Testnet.
  */
 const migration = (state: unknown): unknown => {
-  const migrationVersion = 75;
+  const migrationVersion = 76;
 
   // Ensure the state is valid for migration
   if (!ensureValidState(state, migrationVersion)) {
