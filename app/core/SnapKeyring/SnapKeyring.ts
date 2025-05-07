@@ -165,12 +165,6 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           tags: getTraceTags(store.getState()),
         });
 
-        store.dispatch(
-          startPerformanceTrace({
-            eventName: PerformanceEventNames.AddSnapAccount,
-          }),
-        );
-
         // First, wait for the account to be fully saved.
         // NOTE: This might throw, so keep this in the `try` clause.
         const accountId = await onceSaved;
