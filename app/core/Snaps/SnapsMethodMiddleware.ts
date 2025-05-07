@@ -26,6 +26,9 @@ import {
   SnapInterfaceControllerUpdateInterfaceStateAction,
 } from '../Engine/controllers/snaps';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { MetaMetrics } from '../../../app/core/Analytics';
+import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { Json } from '@metamask/utils';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
@@ -121,6 +124,17 @@ const snapMethodMiddlewareBuilder = (
       controllerMessenger,
       SnapControllerGetSnapAction,
     ),
+    trackEvent: (eventPayload: {
+      event: string;
+      properties: Record<string, Json>;
+    }) => {
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder({
+          category: eventPayload.event,
+          properties: eventPayload.properties,
+        }).build(),
+      );
+    },
     updateInterfaceState: controllerMessenger.call.bind(
       controllerMessenger,
       SnapInterfaceControllerUpdateInterfaceStateAction,
