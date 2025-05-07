@@ -77,7 +77,11 @@ const SnapUIAssetSelectorOption: FunctionComponent<
       // eslint-disable-next-line react-native/no-inline-styles
       style={{ overflow: 'hidden', flex: 1 }}
     >
-      <Text variant={TextVariant.BodyMDMedium} numberOfLines={1} ellipsizeMode="tail">
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
         {name}
       </Text>
       <Text
