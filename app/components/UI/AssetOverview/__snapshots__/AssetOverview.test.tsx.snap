@@ -1094,7 +1094,7 @@ exports[`AssetOverview should render correctly 1`] = `
             {
               "alignItems": "flex-end",
               "alignSelf": "flex-end",
-              "flex": 1,
+              "flexShrink": 0,
             }
           }
         >
@@ -1125,7 +1125,6 @@ exports[`AssetOverview should render correctly 1`] = `
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "paddingHorizontal": 0,
-                "textTransform": "uppercase",
               }
             }
             testID="secondary-balance-test-id"
@@ -2287,7 +2286,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             {
               "alignItems": "flex-end",
               "alignSelf": "flex-end",
-              "flex": 1,
+              "flexShrink": 0,
             }
           }
         >
@@ -2318,7 +2317,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "paddingHorizontal": 0,
-                "textTransform": "uppercase",
               }
             }
             testID="secondary-balance-test-id"
@@ -3050,112 +3048,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
               false,
             ]
           }
-          testID="token-send-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              height={24}
-              name="Arrow2Upright"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 18,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Send
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
           testID="token-receive-button"
         >
           <View
@@ -3447,7 +3339,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
             {
               "alignItems": "flex-end",
               "alignSelf": "flex-end",
-              "flex": 1,
+              "flexShrink": 0,
             }
           }
         >
@@ -3478,7 +3370,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "paddingHorizontal": 0,
-                "textTransform": "uppercase",
               }
             }
             testID="secondary-balance-test-id"

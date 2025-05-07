@@ -21,6 +21,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
 import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
+import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
   caipAccountId: CaipAccountId;
@@ -111,6 +112,13 @@ export const selectOrderedInternalAccountsByLastSelected = createSelector(
       return bLastSelected - aLastSelected;
     });
   },
+);
+
+export const getMemoizedInternalAccountByAddress = createDeepEqualSelector(
+  [selectInternalAccounts, (_state, address) => address],
+  (internalAccounts, address) => internalAccounts.find((account) =>
+      isEqualCaseInsensitive(account.address, address),
+    ),
 );
 
 /**

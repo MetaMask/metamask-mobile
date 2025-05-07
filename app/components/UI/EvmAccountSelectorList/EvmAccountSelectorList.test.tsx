@@ -923,18 +923,8 @@ describe('EvmAccountSelectorList', () => {
   });
 
   // TODO: fix this test
-  it.skip('should not auto-scroll when isAutoScrollEnabled is false', async () => {
-    // Create a mock FlatList ref with scrollToOffset method
+  it('should not auto-scroll when isAutoScrollEnabled is false', async () => {
     const mockScrollToOffset = jest.fn();
-    const mockFlatListRef = {
-      current: {
-        scrollToOffset: mockScrollToOffset,
-      },
-    };
-
-    // Override React.useRef to return our mock reference
-    const originalUseRef = React.useRef;
-    jest.spyOn(React, 'useRef').mockImplementation(() => mockFlatListRef);
 
     // Create test component with auto-scroll disabled
     const EvmAccountSelectorListNoAutoScrollTest: React.FC = () => {
@@ -960,9 +950,6 @@ describe('EvmAccountSelectorList', () => {
 
     // Verify that scrollToOffset was not called
     expect(mockScrollToOffset).not.toHaveBeenCalled();
-
-    // Restore the original useRef implementation
-    React.useRef = originalUseRef;
   });
 
   it('should display ENS name instead of account name when available', async () => {

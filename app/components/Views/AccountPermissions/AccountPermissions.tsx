@@ -155,7 +155,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     .map(([key, network]) => ({
       name: network.name,
       caipChainId: network.caipChainId,
-      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       imageSource: getNetworkImageSource({
         chainId: network.caipChainId,
       }),

@@ -190,7 +190,7 @@ export const selectEvmNetworkConfigurationsByChainId = createSelector(
     networkControllerState?.networkConfigurationsByChainId,
 );
 
-export const selectNetworkConfigurations = createSelector(
+export const selectNetworkConfigurations = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   selectNonEvmNetworkConfigurationsByChainId,
   (
