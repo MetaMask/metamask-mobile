@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   TouchableOpacity,
   LayoutAnimation,
@@ -93,7 +93,21 @@ const QuoteDetailsCard = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
 
+  const isSameChainId = sourceToken?.chainId === destToken?.chainId;
+
+  // Initialize expanded state based on whether destination is Solana or it's a Solana swap
+  useEffect(() => {
+    if (isSameChainId) {
+      setIsExpanded(true);
+    }
+  }, [isSameChainId]);
+
   const toggleAccordion = useCallback(() => {
+    // Don't allow toggling if destination is Solana or it's a Solana swap
+    if (isSameChainId) {
+      return;
+    }
+
     LayoutAnimation.configureNext(
       LayoutAnimation.create(
         ANIMATION_DURATION_MS,
@@ -107,7 +121,7 @@ const QuoteDetailsCard = () => {
     rotationValue.value = withTiming(newExpandedState ? 1 : 0, {
       duration: ANIMATION_DURATION_MS,
     });
-  }, [isExpanded, rotationValue]);
+  }, [isExpanded, rotationValue, isSameChainId]);
 
   const arrowStyle = useAnimatedStyle(() => {
     const rotation = interpolate(rotationValue.value, [0, 1], [0, 180]);
@@ -141,8 +155,6 @@ const QuoteDetailsCard = () => {
   const { networkFee, estimatedTime, rate, priceImpact, slippage } =
     formattedQuoteData;
 
-  const isSameChainId = sourceToken.chainId === destToken.chainId;
-
   return (
     <Box style={styles.container}>
       <Box
@@ -150,40 +162,36 @@ const QuoteDetailsCard = () => {
         alignItems={AlignItems.center}
         justifyContent={JustifyContent.spaceBetween}
       >
-        {!isSameChainId ? (
-          <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            style={styles.networkContainer}
-          >
-            <NetworkBadge chainId={String(sourceToken.chainId)} />
-            <Icon name={IconName.Arrow2Right} size={IconSize.Sm} />
-            <NetworkBadge chainId={String(destToken.chainId)} />
-          </Box>
-        ) : (
-          <Box>
-            <></>
-          </Box>
-        )}
-        <Box>
-          <Animated.View style={arrowStyle}>
-            <TouchableOpacity
-              onPress={toggleAccordion}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={
-                isExpanded ? 'Collapse quote details' : 'Expand quote details'
-              }
-              testID="expand-quote-details"
+        {!isSameChainId && (
+          <>
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              style={styles.networkContainer}
             >
-              <Icon
-                name={IconName.ArrowDown}
-                size={IconSize.Sm}
-                color={theme.colors.icon.muted}
-              />
-            </TouchableOpacity>
-          </Animated.View>
-        </Box>
+              <NetworkBadge chainId={String(sourceToken.chainId)} />
+              <Icon name={IconName.Arrow2Right} size={IconSize.Sm} />
+              <NetworkBadge chainId={String(destToken.chainId)} />
+            </Box>
+            <Animated.View style={arrowStyle}>
+              <TouchableOpacity
+                onPress={toggleAccordion}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isExpanded ? 'Collapse quote details' : 'Expand quote details'
+                }
+                testID="expand-quote-details"
+              >
+                <Icon
+                  name={IconName.ArrowDown}
+                  size={IconSize.Sm}
+                  color={theme.colors.icon.muted}
+                />
+              </TouchableOpacity>
+            </Animated.View>
+          </>
+        )}
       </Box>
 
       {/* Always visible content */}
@@ -294,17 +302,18 @@ const QuoteDetailsCard = () => {
                   alignItems={AlignItems.center}
                   gap={4}
                 >
-                  <Text variant={TextVariant.BodyMDMedium}>
-                    {strings('bridge.slippage') || 'Slippage'}
-                  </Text>
                   <TouchableOpacity
                     onPress={handleSlippagePress}
                     activeOpacity={0.6}
                     testID="edit-slippage-button"
+                    style={styles.slippageButton}
                   >
+                    <Text variant={TextVariant.BodyMDMedium}>
+                      {strings('bridge.slippage') || 'Slippage'}
+                    </Text>
                     <Icon
                       name={IconName.Edit}
-                      size={IconSize.Xs}
+                      size={IconSize.Sm}
                       color={IconColor.Muted}
                     />
                   </TouchableOpacity>

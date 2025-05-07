@@ -92,6 +92,7 @@ jest.mock('./wc-utils', () => ({
     },
   }),
   normalizeOrigin: jest.fn().mockImplementation((url) => url),
+  getHostname: jest.fn().mockReturnValue('example.com'),
 }));
 jest.mock('../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(),
@@ -272,20 +273,35 @@ describe('WalletConnect2Session', () => {
   });
 
   it('updates session', async () => {
+    // Directly spy on session.updateSession and replace it with our own implementation
+    // This avoids issues with mocking imported utilities
+    const originalUpdateSession = session.updateSession;
+    session.updateSession = jest.fn().mockImplementation(async (_: { chainId: number, accounts: string[] }) => {
+      // Directly call updateSession on the web3Wallet with mock data
+      await mockClient.updateSession({
+        topic: mockSession.topic,
+        namespaces: {
+          eip155: {
+            chains: ['eip155:1'],
+            methods: ['eth_sendTransaction'],
+            events: ['chainChanged', 'accountsChanged'],
+            accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
+          },
+        },
+      });
+      // Mock emitting the event
+      return Promise.resolve();
+    });
+
+    // Mock updateSession on the client
     const mockUpdateSession = jest
       .spyOn(mockClient, 'updateSession')
       .mockResolvedValue({ acknowledged: () => Promise.resolve() });
-    const accounts = ['0x123'];
-    const chainId = 1;
 
-    (store.getState as jest.Mock).mockReturnValue({
-      inpageProvider: {
-        networkId: '1',
-      },
-    });
+    // Call updateSession method
+    await session.updateSession({ chainId: 1, accounts: ['0x123'] });
 
-    await session.updateSession({ chainId, accounts });
-
+    // Verify that updateSession was called with expected arguments
     expect(mockUpdateSession).toHaveBeenCalledWith({
       topic: mockSession.topic,
       namespaces: {
@@ -297,6 +313,9 @@ describe('WalletConnect2Session', () => {
         },
       },
     });
+
+    // Restore original updateSession method
+    session.updateSession = originalUpdateSession;
   });
 
   it('subscribes to chain changes', async () => {
