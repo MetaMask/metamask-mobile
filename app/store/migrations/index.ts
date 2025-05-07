@@ -76,6 +76,8 @@ import migration72 from './072';
 // NOTE: 073 was added and then removed in a later commit
 import migration74 from './074';
 import migration75 from './075';
+import migration76 from './076';
+import migration77 from './077';
 
 // Add migrations above this line
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
@@ -168,6 +170,8 @@ export const migrationList: MigrationsList = {
   // NOTE: 073 was added and then removed in a later commit
   74: migration74,
   75: migration75,
+  76: migration76,
+  77: migration77,
 };
 
 // Enable both synchronous and asynchronous migrations

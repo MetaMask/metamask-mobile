@@ -112,8 +112,6 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
 import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
-import { captureException } from '@sentry/react-native';
-import { lowerCase } from 'lodash';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
@@ -124,7 +122,14 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
-import { ApprovalType, ChainId, handleFetch } from '@metamask/controller-utils';
+import {
+  ApprovalType,
+  ChainId,
+  handleFetch,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  toHex,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
@@ -160,6 +165,7 @@ import {
   SnapControllerGetSnapStateAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/snaps';
+import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import {
@@ -566,15 +572,13 @@ export class Engine {
       allowedEvents: [],
     });
 
-    // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
-    const persistAndUpdateAccounts = async () => {
-      await this.keyringController.persistAllKeyrings();
-      await this.accountsController.updateAccounts();
-    };
-
     additionalKeyrings.push(
       snapKeyringBuilder(snapKeyringBuildMessenger, {
-        persistKeyringHelper: () => persistAndUpdateAccounts(),
+        persistKeyringHelper: async () => {
+          // Necessary to only persist the keyrings, the `AccountsController` will
+          // automatically react to `KeyringController:stateChange`.
+          await this.keyringController.persistAllKeyrings();
+        },
         removeAccountHelper: (address) => this.removeAccount(address),
       }),
     );
@@ -867,49 +871,15 @@ export class Engine {
       }),
       state: initialState.PermissionController,
       caveatSpecifications: getCaveatSpecifications({
-        getInternalAccounts: (...args) =>
+        listAccounts: (...args) =>
           this.accountsController.listAccounts(...args),
         findNetworkClientIdByChainId:
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
           ),
       }),
-      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
-        ...getPermissionSpecifications({
-          getAllAccounts: () => this.keyringController.getAccounts(),
-          getInternalAccounts: (...args) =>
-            this.accountsController.listAccounts(...args),
-          captureKeyringTypesWithMissingIdentities: (
-            internalAccounts = [],
-            accounts = [],
-          ) => {
-            const accountsMissingIdentities = accounts.filter((address) => {
-              const lowerCaseAddress = lowerCase(address);
-              return !internalAccounts.some(
-                (account) => account.address.toLowerCase() === lowerCaseAddress,
-              );
-            });
-            const keyringTypesWithMissingIdentities =
-              accountsMissingIdentities.map((address) =>
-                this.keyringController.getAccountKeyringType(address),
-              );
-
-            const internalAccountCount = internalAccounts.length;
-
-            const accountTrackerCount = Object.keys(
-              accountTrackerController.state.accountsByChainId[
-                currentChainId
-              ] || {},
-            ).length;
-
-            captureException(
-              new Error(
-                `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
-              ),
-            );
-          },
-        }),
+        ...getPermissionSpecifications(),
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ...getSnapPermissionSpecifications(),
         ///: END:ONLY_INCLUDE_IF
@@ -1591,7 +1561,7 @@ export class Engine {
       (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
-            NetworkStatus.Available &&
+          NetworkStatus.Available &&
           getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
@@ -1626,6 +1596,27 @@ export class Engine {
         store.dispatch(networkIdWillUpdate());
       },
     );
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    this.controllerMessenger.subscribe(
+      `${snapController.name}:snapTerminated`,
+      (truncatedSnap) => {
+        const approvals = Object.values(
+          approvalController.state.pendingApprovals,
+        ).filter(
+          (approval) =>
+            approval.origin === truncatedSnap.id &&
+            approval.type.startsWith(RestrictedMethods.snap_dialog),
+        );
+        for (const approval of approvals) {
+          approvalController.reject(
+            approval.id,
+            new Error('Snap was terminated.'),
+          );
+        }
+      },
+    );
+    ///: END:ONLY_INCLUDE_IF
 
     this.configureControllersOnNetworkChange();
     this.startPolling();
@@ -1743,7 +1734,7 @@ export class Engine {
       const chainIdHex = toHexadecimal(chainId);
       const tokens =
         TokensController.state.allTokens?.[chainIdHex]?.[
-          selectedInternalAccount.address
+        selectedInternalAccount.address
         ] || [];
       const { marketData } = TokenRatesController.state;
       const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
@@ -1756,7 +1747,7 @@ export class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectedInternalAccountFormattedAddress
+        selectedInternalAccountFormattedAddress
         ]
       ) {
         const balanceHex =
@@ -1797,7 +1788,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-            chainId
+          chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1808,9 +1799,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address as Hex],
-                    item.decimals,
-                  )
+                  tokenBalances[item.address as Hex],
+                  item.decimals,
+                )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
@@ -1902,10 +1893,11 @@ export class Engine {
    * @param {string} address - A hex address
    */
   removeAccount = async (address: string) => {
+    const addressHex = toHex(address);
     // Remove all associated permissions
-    await removeAccountsFromPermissions([address]);
+    await removeAccountsFromPermissions([addressHex]);
     // Remove account from the keyring
-    await this.keyringController.removeAccount(address as Hex);
+    await this.keyringController.removeAccount(addressHex);
   };
   ///: END:ONLY_INCLUDE_IF
 

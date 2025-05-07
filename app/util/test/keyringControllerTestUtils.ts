@@ -73,6 +73,20 @@ const MOCK_DEFAULT_KEYRINGS_METADATA: KeyringMetadata[] = [
 ];
 
 export const MOCK_KEYRING_CONTROLLER_STATE = {
+  isUnlocked: jest.fn(),
+  getAccountKeyringType: jest.fn(),
+  keyring: {
+    keyrings: [
+      {
+        mnemonic:
+          'one two three four five six seven eight nine ten eleven twelve',
+      },
+    ],
+  },
+  state: {
+    keyrings: MOCK_DEFAULT_KEYRINGS,
+    keyringsMetadata: MOCK_DEFAULT_KEYRINGS_METADATA,
+  },
   keyrings: MOCK_DEFAULT_KEYRINGS,
   keyringsMetadata: MOCK_DEFAULT_KEYRINGS_METADATA,
 };

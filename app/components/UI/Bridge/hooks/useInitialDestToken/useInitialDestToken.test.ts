@@ -2,7 +2,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useInitialDestToken } from '.';
 import { waitFor } from '@testing-library/react-native';
 import { initialState } from '../../_mocks_/initialState';
-import { BridgeViewMode } from '../../types';
+import { BridgeViewMode, BridgeToken } from '../../types';
 import { DefaultSwapDestTokens } from '../../constants/default-swap-dest-tokens';
 import { SolScope } from '@metamask/keyring-api';
 import { selectChainId } from '../../../../../selectors/networkController';
@@ -32,6 +32,14 @@ jest.mock('../../../../../selectors/networkController', () => {
 });
 
 describe('useInitialDestToken', () => {
+  const mockSourceToken: BridgeToken = {
+    address: '0x123',
+    symbol: 'MOCK',
+    decimals: 18,
+    name: 'Mock Token',
+    chainId: SolScope.Mainnet,
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -43,11 +51,10 @@ describe('useInitialDestToken', () => {
       },
     });
 
-    renderHookWithProvider(() => useInitialDestToken(), {
+    renderHookWithProvider(() => useInitialDestToken(mockSourceToken), {
       state: initialState,
     });
 
-    // Verify setDestToken was not called
     expect(setDestToken).not.toHaveBeenCalled();
   });
 
@@ -59,7 +66,7 @@ describe('useInitialDestToken', () => {
     });
     (selectChainId as unknown as jest.Mock).mockReturnValue(SolScope.Mainnet);
 
-    renderHookWithProvider(() => useInitialDestToken(), {
+    renderHookWithProvider(() => useInitialDestToken(mockSourceToken), {
       state: initialState,
     });
 
@@ -76,11 +83,30 @@ describe('useInitialDestToken', () => {
     });
     (selectChainId as unknown as jest.Mock).mockReturnValue('0x1234567890');
 
-    renderHookWithProvider(() => useInitialDestToken(), {
+    renderHookWithProvider(() => useInitialDestToken(mockSourceToken), {
       state: initialState,
     });
 
-    // Verify setDestToken was not called
+    expect(setDestToken).not.toHaveBeenCalled();
+  });
+
+  it('should not set dest token when source token address matches default token address', () => {
+    const matchingSourceToken: BridgeToken = {
+      ...mockSourceToken,
+      address: DefaultSwapDestTokens[SolScope.Mainnet].address,
+    };
+
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        bridgeViewMode: BridgeViewMode.Swap,
+      },
+    });
+    (selectChainId as unknown as jest.Mock).mockReturnValue(SolScope.Mainnet);
+
+    renderHookWithProvider(() => useInitialDestToken(matchingSourceToken), {
+      state: initialState,
+    });
+
     expect(setDestToken).not.toHaveBeenCalled();
   });
 });

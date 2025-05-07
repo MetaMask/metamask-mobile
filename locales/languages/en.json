@@ -447,9 +447,17 @@
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
     },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
+    },
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
+    },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
     }
   },
   "wallet": {
@@ -538,7 +546,7 @@
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance",
-    "unable_to_find_conversion_rate": "unable to find conversion rate",
+    "unable_to_find_conversion_rate": "no conversion rate",
     "display_nft_media_desc": "To import an NFT, turn on Display NFT media in Settings > Security and privacy.",
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
@@ -865,8 +873,6 @@
     "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
     "reset_notifications": "Reset notifications",
     "reset_notifications_success": "Notifications storage key deleted/recreated, and notifications history reset.",
-    "enabling_profile_sync": "Enabling profile syncing...",
-    "disabling_profile_sync": "Disabling profile syncing...",
     "notifications_dismiss_modal": "Dismiss",
     "select_rpc_url": "Select RPC URL",
     "title": "Settings",
@@ -1693,7 +1699,6 @@
     "share": "Share",
     "bookmark": "Bookmark",
     "add_to_favorites": "Add to Favorites",
-    "go_to_favorites": "Go to Favorites",
     "error": "Error",
     "cancel": "Cancel",
     "go_back": "Go back",
@@ -3301,15 +3306,6 @@
     "enable_remember_me": "Turn on Remember me",
     "enable_remember_me_description": "When Remember me is on, anyone with access to your phone can access your MetaMask account."
   },
-  "profile_sync": {
-    "title": "Profile Sync",
-    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
-    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
-    "enable_description2": " to learn more.",
-    "enable_privacy_link": "Learn how we protect your privacy",
-    "bottomSheetTurnOn": "Turning on Profile Sync",
-    "bottomSheetTurnOff": "Turning off Profile Sync"
-  },
   "turn_off_remember_me": {
     "title": "Enter your password to turn off Remember me",
     "placeholder": "Password",
@@ -3521,6 +3517,7 @@
     "add_bitcoin_account_testnet": "Bitcoin testnet account",
     "add_bitcoin_account_mainnet": "Bitcoin account",
     "add_solana_account": "Solana account",
+    "switch_to_smart_account": "Switch to Smart account",
     "headers": {
       "bitcoin": "Bitcoin",
       "solana": "Solana"
@@ -3731,6 +3728,10 @@
     "sheet": {
       "title_off": "Turn off basic functionality",
       "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
+      "description_off2": "Turning this off also disables all features within",
+      "description_off2_related_features1": "security and privacy, backup and sync",
+      "description_off2_related_features1_and": "and",
+      "description_off2_related_features2": "notifications.",
       "title_on": "Turn on basic functionality",
       "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "I understand and want to continue",
@@ -3869,6 +3870,11 @@
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Smart Account",
+      "standardAccountLabel": "Standard Account",
+      "switch": "Switch"
+    },
     "unlimited": "Unlimited",
     "none": "None",
     "advanced_details": "Advanced details",
@@ -3927,7 +3933,7 @@
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "description": "Rates update every {{refreshRate}} seconds, so tap Get new quote when you're ready.",
     "get_new_quote": "Get new quote"
   },
   "bridge_transaction_details": {
@@ -3944,5 +3950,26 @@
     "transaction_details": "Transaction Details",
     "bridge_to_chain": "Bridge to {{chainName}}",
     "recipient": "Recipient"
+  },
+  "backupAndSync": {
+    "title": "Backup and sync",
+    "description": "Back up your accounts and sync settings.",
+    "enabling": "Enabling backup and sync",
+    "disabling": "Disabling backup and sync",
+    "enable": {
+      "title": "Turn on backup and sync",
+      "confirmation": "When you turn on backup and sync, you’re also turning on basic functionality. Do you want to continue?",
+      "description": "Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask.",
+      "updatePreferences": "You can update your preferences at any time in",
+      "settingsPath": "Settings > Backup and sync."
+    },
+    "privacyLink": "Learn how we protect your privacy",
+    "features": {
+      "accounts": "Accounts"
+    },
+    "manageWhatYouSync": {
+      "title": "Manage what you sync",
+      "description": "Turn on what’s synced between your devices."
+    }
   }
 }

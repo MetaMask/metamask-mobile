@@ -1,4 +1,5 @@
 import { ViewStyle } from 'react-native';
+
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { CaipChainId } from '@metamask/utils';
 export type SlideId =
@@ -7,6 +8,7 @@ export type SlideId =
   | 'cashout'
   | 'aggregated'
   | 'multisrp'
+  | 'backupAndSync'
   | 'solana';
 
 interface NavigationParams {

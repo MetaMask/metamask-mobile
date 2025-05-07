@@ -26,6 +26,7 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
   selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
+  ...jest.requireActual('../../selectors/settings'),
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
 jest.mock('../../util/phishingDetection', () => ({
@@ -44,6 +45,11 @@ jest.mock('@metamask/assets-controllers', () => {
     RatesController: MockRatesController,
   };
 });
+
+jest.mock('./utils', () => ({
+  ...jest.requireActual('./utils'),
+  rejectOriginApprovals: jest.fn(),
+}));
 
 describe('Engine', () => {
   // Create a shared mock account for tests
