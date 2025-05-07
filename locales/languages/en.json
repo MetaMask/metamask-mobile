@@ -1145,7 +1145,7 @@
       "snap_ui": {
         "link": {
           "accessibilityHint": "Opens in a new tab"
-        },
+        }
       },
       "snap_settings": {
         "remove_snap_section_title": "Remove Snap",
