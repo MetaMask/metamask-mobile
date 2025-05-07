@@ -649,7 +649,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                       }
                                     }
                                   >
-                                    Solana Mainnet
+                                    Solana
                                   </Text>
                                 </View>
                               </View>

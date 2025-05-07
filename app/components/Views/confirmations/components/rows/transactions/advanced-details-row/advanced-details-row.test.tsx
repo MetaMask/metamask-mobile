@@ -14,7 +14,7 @@ jest.mock('../../../../../../UI/Name', () => ({
 }));
 
 jest.mock('../../../../legacy/SendFlow/components/CustomNonceModal', () => 'CustomNonceModal');
-jest.mock('../../../UI/expandable-section', () => 'ExpandableSection');
+jest.mock('../../../UI/expandable', () => 'Expandable');
 jest.mock('../../../../../../../component-library/components/Texts/Text', () => ({
   TextColor: { Primary: 'primary' },
   TextVariant: { BodyMD: 'bodyMD' },

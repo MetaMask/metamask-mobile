@@ -437,7 +437,10 @@ class Confirm extends PureComponent {
 
     const weiBalance = hexToBN(contractBalances[selectedAsset.address]);
     if (weiBalance?.isZero()) {
-      await TokensController.ignoreTokens([selectedAsset.address]);
+      await TokensController.ignoreTokens(
+        [selectedAsset.address],
+        this.props.networkClientId,
+      );
     }
   };
 
@@ -782,6 +785,7 @@ class Confirm extends PureComponent {
           decimals,
           image,
           name,
+          networkClientId: this.props.networkClientId,
         });
       }
 
