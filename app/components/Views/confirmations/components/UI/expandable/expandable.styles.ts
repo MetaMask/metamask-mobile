@@ -38,10 +38,6 @@ const styleSheet = (params: { theme: Theme, vars: { isCompact: boolean | undefin
       width: '90%',
       textAlign: 'center',
     },
-    expandIcon: {
-      position: 'absolute',
-      right: 16,
-    },
   });
 };
 

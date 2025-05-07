@@ -4,6 +4,7 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
+import { CaipChainId } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import { selectEvmChainId } from '../../selectors/networkController';
@@ -21,10 +22,9 @@ import { ERROR_MESSAGES } from './WalletConnectV2';
 import METHODS_TO_REDIRECT from './wc-config';
 import {
   checkWCPermissions,
+  getHostname,
   getScopedPermissions,
   hideWCLoadingState,
-  // normalizeOrigin,
-  getHostname
 } from './wc-utils';
 
 const ERROR_CODES = {
@@ -114,7 +114,7 @@ class WalletConnect2Session {
         getProviderState: any;
       }) =>
         getRpcMethodMiddleware({
-          hostname: url,
+          hostname: getHostname(url),
           getProviderState,
           channelId,
           analytics: {},
@@ -150,7 +150,10 @@ class WalletConnect2Session {
         this.lastChainId = newChainId;
         const decimalChainId = parseInt(newChainId, 16);
         this.handleChainChange(decimalChainId).catch((error) => {
-          console.warn('WC2::store.subscribe Error handling chain change:', error);
+          console.warn(
+            'WC2::store.subscribe Error handling chain change:',
+            error,
+          );
         });
       }
     });
@@ -188,8 +191,7 @@ class WalletConnect2Session {
 
   redirect = (context?: string) => {
     DevLogger.log(
-      `WC2::redirect context=${context} isDeeplink=${
-        this.deeplink
+      `WC2::redirect context=${context} isDeeplink=${this.deeplink
       } navigation=${this.navigation !== undefined}`,
     );
     if (!this.deeplink) return;
@@ -208,7 +210,9 @@ class WalletConnect2Session {
         const peerLink = redirect?.native || redirect?.universal;
         if (peerLink) {
           Linking.openURL(peerLink).catch((error) => {
-            DevLogger.log(`WC2::redirect error while opening ${peerLink} with error ${error}`);
+            DevLogger.log(
+              `WC2::redirect error while opening ${peerLink} with error ${error}`,
+            );
             showReturnModal();
           });
         } else {
@@ -239,7 +243,6 @@ class WalletConnect2Session {
 
   /** Handle chain change by updating session namespaces and emitting event */
   private async handleChainChange(chainIdDecimal: number) {
-
     if (this.isHandlingChainChange) return;
     this.isHandlingChainChange = true;
 
@@ -388,12 +391,14 @@ class WalletConnect2Session {
 
       // const origin = normalizeOrigin(this.session.peer.metadata.url);
       const origin = this.session.peer.metadata.url;
+      const hostname = getHostname(origin);
+
       DevLogger.log(
-        `WC2::updateSession origin=${origin} - chainId=${chainId} - accounts=${accounts}`,
+        `WC2::updateSession origin=${origin} hostname=${hostname} - chainId=${chainId} - accounts=${accounts}`,
       );
 
       if (accounts.length === 0) {
-        const approvedAccounts = await getPermittedAccounts(getHostname(origin));
+        const approvedAccounts = getPermittedAccounts(hostname);
         if (approvedAccounts.length > 0) {
           DevLogger.log(
             `WC2::updateSession found approved accounts`,
@@ -419,7 +424,10 @@ class WalletConnect2Session {
       }
 
       const namespaces = await getScopedPermissions({ origin });
-      DevLogger.log(`🔴🔴 WC2::updateSession updating with namespaces`, namespaces);
+      DevLogger.log(
+        `🔴🔴 WC2::updateSession updating with namespaces`,
+        namespaces,
+      );
 
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
@@ -458,7 +466,7 @@ class WalletConnect2Session {
     const origin = verified?.origin ?? this.session.peer.metadata.url;
     const method = requestEvent.params.request.method;
     const isSwitchingChain = method === 'wallet_switchEthereumChain';
-    const caip2ChainId = isSwitchingChain ? `eip155:${parseInt(requestEvent.params.request.params[0].chainId, 16)}` : requestEvent.params.chainId;
+    const caip2ChainId = (isSwitchingChain ? `eip155:${parseInt(requestEvent.params.request.params[0].chainId, 16)}` : requestEvent.params.chainId) as CaipChainId;
     const methodParams = requestEvent.params.request.params;
 
     DevLogger.log(
@@ -517,7 +525,7 @@ class WalletConnect2Session {
     }
 
     if (method === 'eth_signTypedData') {
-      await this.backgroundBridge.onMessage({
+      this.backgroundBridge.onMessage({
         name: 'walletconnect-provider',
         data: {
           id: requestEvent.id,
