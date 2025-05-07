@@ -52,10 +52,6 @@ export interface BadgeWrapperProps extends ViewProps {
    * Any element that will be placed in the position of the badge.
    */
   badgeElement: React.ReactNode;
-  /**
-   * Optional prop to indicate the parent element's size.
-   */
-  parentSize?: number;
 }
 
 /**

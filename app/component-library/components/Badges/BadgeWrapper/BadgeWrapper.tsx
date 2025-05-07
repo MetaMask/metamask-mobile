@@ -21,19 +21,9 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   children,
   badgeElement,
   style,
-  parentSize,
 }) => {
-  const { size, onLayout: onLayoutContainerSize } =
+  const { size: containerSize, onLayout: onLayoutContainerSize } =
     useComponentSize();
-
-  /**
-   * The parentSize indicates the height of the badge wrapper's parent element.
-   * In some cases, the computed badge position offset is not correct because the style
-   * gets computed before the hook's size has had a chance to update.
-   * This is a workaround to ensure the offset is correct on first render when the
-   * parentSize is known.
-   */
-  const containerSize = parentSize ? { height: parentSize, width: parentSize } : size;
 
   const { styles } = useStyles(styleSheet, {
     style,
