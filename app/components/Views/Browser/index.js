@@ -97,7 +97,8 @@ export const Browser = (props) => {
       networkImageSource: require('../../../images/solana-logo.png'),
       labelOptions: [
         {
-          label: 'Solana dapp connection coming soon ',
+          label: 'Solana dapp connection coming soon \n',
+          isBold: true,
         },
         {
           label:
@@ -105,7 +106,7 @@ export const Browser = (props) => {
         },
       ],
     });
-  }, []);
+  }, [toastRef]);
 
   const newTab = useCallback(
     (url, linkType) => {
