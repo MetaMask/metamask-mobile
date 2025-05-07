@@ -15,7 +15,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { act } from '@testing-library/react';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
-import AppConstants from '../../../core/AppConstants';
 
 const mockTabs = [
   { id: 1, url: 'about:blank', image: '', isArchived: false },
