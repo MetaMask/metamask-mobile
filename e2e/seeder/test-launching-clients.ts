@@ -18,4 +18,4 @@ async function main(): Promise<void> {
     await server.quit();
 }
 
-main()
+main();
