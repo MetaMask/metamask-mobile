@@ -248,6 +248,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                         "flexDirection": "column",
                       },
                       {
+                        "flex": 1,
                         "overflow": "hidden",
                       },
                     ]
@@ -256,6 +257,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                   <Text
                     accessibilityRole="text"
                     ellipsizeMode="tail"
+                    numberOfLines={1}
                     style={
                       {
                         "color": "#121314",
@@ -272,6 +274,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                   <Text
                     accessibilityRole="text"
                     ellipsizeMode="tail"
+                    numberOfLines={1}
                     style={
                       {
                         "color": "#686e7d",
