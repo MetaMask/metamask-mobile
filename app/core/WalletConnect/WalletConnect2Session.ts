@@ -26,7 +26,6 @@ import {
   getScopedPermissions,
   hideWCLoadingState,
 } from './wc-utils';
-import { CaipChainId } from '@metamask/utils';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
