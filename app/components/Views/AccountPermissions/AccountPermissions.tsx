@@ -370,9 +370,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           return address
         })
         removePermittedAccounts(hostname, accountsToRemoveHex);
-        newPermittedAccounts = newPermittedAccounts.filter(account => {
+        newPermittedAccounts = newPermittedAccounts.filter(account =>
           !accountsToRemove.includes(account)
-        })
+        )
       }
 
       // Calculate the number of connected accounts after changes
@@ -383,9 +383,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       const labelOptions = [ { label: `${strings('toast.accounts_permissions_updated')}` }, ];
 
-      const toastAccount = accountsToAdd.length ? accountsToAdd[0] : newPermittedAccounts[0]
-
-      Logger.log(toastAccount)
+      const toastAccount = accountsToAdd[0] ?? newPermittedAccounts[0];
 
       const { address } = parseCaipAccountId(toastAccount)
 
