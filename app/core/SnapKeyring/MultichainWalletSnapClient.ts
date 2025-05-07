@@ -1,6 +1,7 @@
 import { CaipChainId, Json, SnapId } from '@metamask/snaps-sdk';
 import { KeyringClient, Sender } from '@metamask/keyring-snap-client';
 import { BtcScope, EntropySourceId, SolScope } from '@metamask/keyring-api';
+import { captureException } from '@sentry/react-native';
 import {
   BITCOIN_WALLET_SNAP_ID,
   BITCOIN_WALLET_NAME,
@@ -177,16 +178,20 @@ export abstract class MultichainWalletSnapClient {
       if (discoveredAccounts.length === 0) {
         // For the first index, create a default account
         if (index === 0) {
-          await this.createAccount(
-            {
-              scope: this.getScope(),
-            },
-            {
-              displayConfirmation: false,
-              displayAccountNameSuggestion: false,
-              setSelectedAccount: false,
-            },
-          );
+          try {
+            await this.createAccount(
+              {
+                scope: this.getScope(),
+              },
+              {
+                displayConfirmation: false,
+                displayAccountNameSuggestion: false,
+                setSelectedAccount: false,
+              },
+            );
+          } catch (error) {
+            captureException(`Failed to create account ${error}`);
+          }
         }
         // Stop discovering accounts when none are found
         break;
@@ -194,7 +199,7 @@ export abstract class MultichainWalletSnapClient {
 
       // Add all discovered accounts to the keyring
       await this.withSnapKeyring(async (keyring) => {
-        await Promise.allSettled(
+        const results = await Promise.allSettled(
           discoveredAccounts.map(async (account) => {
             keyring.createAccount(
               this.snapId,
@@ -210,6 +215,11 @@ export abstract class MultichainWalletSnapClient {
             );
           }),
         );
+        for (const result of results) {
+          if (result.status === 'rejected') {
+            captureException(`Failed to create account ${result.reason}`);
+          }
+        }
       });
     }
   }
