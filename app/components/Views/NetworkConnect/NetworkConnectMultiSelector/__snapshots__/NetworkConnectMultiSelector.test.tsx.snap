@@ -284,6 +284,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                     >
                       <SvgMock
                         color="#ffffff"
+                        fill="currentColor"
                         height={20}
                         name="CheckBold"
                         onPressIn={[Function]}
