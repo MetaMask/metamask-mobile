@@ -44,7 +44,7 @@ describe('useEIP7702Accounts', () => {
 
   it('invokes addTransaction when upgradeAccount is called', () => {
     const mockAddTransaction = jest
-      .spyOn(TransactionUtil, 'addTransaction')
+      .spyOn(TransactionUtil, 'addMMOriginatedTransaction')
       .mockImplementation(() =>
         Promise.resolve({ id: '123' } as unknown as TransactionMeta),
       );
@@ -55,7 +55,7 @@ describe('useEIP7702Accounts', () => {
 
   it('invokes addTransaction when downgradeAccount is called', () => {
     const mockAddTransaction = jest
-      .spyOn(TransactionUtil, 'addTransaction')
+      .spyOn(TransactionUtil, 'addMMOriginatedTransaction')
       .mockImplementation(() =>
         Promise.resolve({ id: '123' } as unknown as TransactionMeta),
       );
