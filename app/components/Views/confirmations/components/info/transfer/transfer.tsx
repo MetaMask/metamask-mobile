@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { SimulationDetails } from '../../../../../UI/SimulationDetails/SimulationDetails';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import useNavbar from '../../../hooks/ui/useNavbar';
@@ -18,6 +19,7 @@ const Transfer = () => {
   const { styles } = useStyles(styleSheet, {});
   const { trackPageViewedEvent } = useConfirmationMetricEvents();
 
+  useClearConfirmationOnBackSwipe();
   useNavbar(strings('confirm.review'));
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
