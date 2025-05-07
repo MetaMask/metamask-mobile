@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
   MOCK_ACCOUNT_CONTROLLER_STATE,
   MOCK_KEYRING_CONTROLLER_STATE,
+  mockTransaction,
 } from '../../../../../../util/test/confirm-data-helpers';
 import { RootState } from '../../../../../../reducers';
 // eslint-disable-next-line import/no-namespace
@@ -60,6 +61,7 @@ const MOCK_STATE = {
     backgroundState: {
       AccountsController: MOCK_ACCOUNT_CONTROLLER_STATE,
       KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
+      TransactionController: { transactions: [mockTransaction] },
     },
   },
 } as unknown as RootState;
