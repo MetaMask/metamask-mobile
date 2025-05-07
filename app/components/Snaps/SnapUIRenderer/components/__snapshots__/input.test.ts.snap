@@ -68,7 +68,9 @@ exports[`SnapUIInput handles disabled input 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 0.5,
                   "paddingHorizontal": 16,
                 }
@@ -191,7 +193,9 @@ exports[`SnapUIInput renders with initial value 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }

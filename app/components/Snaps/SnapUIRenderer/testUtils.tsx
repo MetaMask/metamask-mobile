@@ -51,7 +51,6 @@ export function renderInterface(
     settings: stateSettings,
     engine: {
       backgroundState: {
-        ...backgroundState,
         SubjectMetadataController: {
           subjectMetadata: {
             'npm:@metamask/test-snap-bip44': {
@@ -135,7 +134,8 @@ export function renderInterface(
               }
             }
           }
-        }
+        },
+        ...backgroundState,
       },
     },
   };
