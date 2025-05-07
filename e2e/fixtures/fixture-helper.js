@@ -8,7 +8,12 @@ import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import path from 'path';
 import createStaticServer from '../create-static-server';
-import { DEFAULT_MOCKSERVER_PORT, getFixturesServerPort, getLocalTestDappPort, getMockServerPort } from './utils';
+import {
+  DEFAULT_MOCKSERVER_PORT,
+  getFixturesServerPort,
+  getLocalTestDappPort,
+  getMockServerPort,
+} from './utils';
 import Utilities from '../utils/Utilities';
 import TestHelpers from '../helpers';
 import { startMockServer, stopMockServer } from '../api-mocking/mock-server';
@@ -31,6 +36,8 @@ const isFixtureServerStarted = async () => {
     return false;
   }
 };
+
+// SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
 export const defaultGanacheOptions = {
   hardfork: 'london',
   mnemonic:
@@ -38,7 +45,7 @@ export const defaultGanacheOptions = {
 };
 
 /**
- * 
+ *
  * Normalizes the localNodeOptions into a consistent format to handle different data structures.
  * Case 1: A string: localNodeOptions = 'anvil'
  * Case 2: Array of strings: localNodeOptions = ['anvil', 'bitcoin']
@@ -55,19 +62,29 @@ export const defaultGanacheOptions = {
 function normalizeLocalNodeOptions(localNodeOptions) {
   if (typeof localNodeOptions === 'string') {
     // Case 1: Passing a string
-    return [{ 
-      type: localNodeOptions, 
-      options: localNodeOptions === 'ganache' ? defaultGanacheOptions : 
-              localNodeOptions === 'anvil' ? defaultOptions : {} 
-    }];
+    return [
+      {
+        type: localNodeOptions,
+        options:
+          localNodeOptions === 'ganache'
+            ? defaultGanacheOptions
+            : localNodeOptions === 'anvil'
+            ? defaultOptions
+            : {},
+      },
+    ];
   } else if (Array.isArray(localNodeOptions)) {
     return localNodeOptions.map((node) => {
       if (typeof node === 'string') {
         // Case 2: Array of strings
-        return { 
-          type: node, 
-          options: node === 'ganache' ? defaultGanacheOptions : 
-                  node === 'anvil' ? defaultOptions : {} 
+        return {
+          type: node,
+          options:
+            node === 'ganache'
+              ? defaultGanacheOptions
+              : node === 'anvil'
+              ? defaultOptions
+              : {},
         };
       }
       if (typeof node === 'object' && node !== null) {
@@ -75,9 +92,12 @@ function normalizeLocalNodeOptions(localNodeOptions) {
         const type = node.type || 'ganache';
         return {
           type,
-          options: type === 'ganache' ? { ...defaultGanacheOptions, ...(node.options || {}) } :
-                  type === 'anvil' ? { ...defaultOptions, ...(node.options || {}) } :
-                  (node.options || {}),
+          options:
+            type === 'ganache'
+              ? { ...defaultGanacheOptions, ...(node.options || {}) }
+              : type === 'anvil'
+              ? { ...defaultOptions, ...(node.options || {}) }
+              : node.options || {},
         };
       }
       throw new Error(`Invalid localNodeOptions entry: ${node}`);
@@ -163,12 +183,12 @@ export async function withFixtures(options, testSuite) {
     smartContract,
     disableGanache,
     dapp,
-    localNodeOptions='ganache',
+    localNodeOptions = 'ganache',
     dappOptions,
     dappPath = undefined,
     dappPaths,
     testSpecificMock,
-    launchArgs
+    launchArgs,
   } = options;
 
   const fixtureServer = new FixtureServer();
@@ -186,64 +206,52 @@ export async function withFixtures(options, testSuite) {
 
   try {
     // Start servers based on the localNodes array
-    if (!disableGanache) {   
-    for (let i = 0; i < localNodeOptsNormalized.length; i++) {
-      const nodeType = localNodeOptsNormalized[i].type;
-      const nodeOptions = localNodeOptsNormalized[i].options || {};
+    if (!disableGanache) {
+      for (let i = 0; i < localNodeOptsNormalized.length; i++) {
+        const nodeType = localNodeOptsNormalized[i].type;
+        const nodeOptions = localNodeOptsNormalized[i].options || {};
 
-      switch (nodeType) {
-        case 'anvil':
-          localNode =  new AnvilManager();
-          await localNode.start(nodeOptions);
-          localNodes.push(localNode);
-          await localNode.setAccountBalance('1200');
+        switch (nodeType) {
+          case 'anvil':
+            localNode = new AnvilManager();
+            await localNode.start(nodeOptions);
+            localNodes.push(localNode);
+            await localNode.setAccountBalance('1200');
 
-          break;
+            break;
 
-        case 'ganache':
-          localNode = new Ganache();
-          await localNode.start(nodeOptions);
-          localNodes.push(localNode);
-          break;
+          case 'ganache':
+            localNode = new Ganache();
+            await localNode.start(nodeOptions);
+            localNodes.push(localNode);
+            break;
 
-        case 'none':
-          break;
+          case 'none':
+            break;
 
-        default:
-          throw new Error(
-            `Unsupported localNode: '${nodeType}'. Cannot start the server.`,
-          );
+          default:
+            throw new Error(
+              `Unsupported localNode: '${nodeType}'. Cannot start the server.`,
+            );
+        }
       }
-    }
     }
   } catch (error) {
     console.error(error);
     throw error;
   }
-    
+
   const dappBasePort = getLocalTestDappPort();
   let numberOfDapps = dapp ? 1 : 0;
   const dappServer = [];
 
   try {
     let contractRegistry;
-    // if (!disableGanache) {
-    //         // await ganacheServer.start(ganacheOptions);
-
-    //   anvilServer = new AnvilManager();
-    //   await anvilServer.start({
-    //     ...defaultOptions,
-    //     ...(ganacheOptions || {})
-    //   });
-    //   await anvilServer.setAccountBalance('1200');
-    // }
-
     if (!disableGanache && smartContract) {
       const ganacheSeeder = new GanacheSeeder(localNodes[0].getProvider());
       await ganacheSeeder.deploySmartContract(smartContract);
       contractRegistry = ganacheSeeder.getContractRegistry();
     }
-    
 
     if (dapp) {
       if (dappOptions?.numberOfDapps) {
@@ -327,5 +335,3 @@ export async function withFixtures(options, testSuite) {
     await stopFixtureServer(fixtureServer);
   }
 }
-// SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
-
