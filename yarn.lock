@@ -4688,10 +4688,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^59.0.0":
-  version "59.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-59.0.0.tgz#66de7cd676c7cb884802e62313741c6352e3000c"
-  integrity sha512-p86vdFYzKBFOs3L9arOVENyVLnYj2tGvVw/wi0Pao2Kp/qMnkzmbjV91p/I5Ib91HcF3MdAv5Be/2Rr+geAfag==
+"@metamask/assets-controllers@^60.0.0":
+  version "60.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-60.0.0.tgz#74c4b7581afca0c25fd22d6161288f9584796b16"
+  integrity sha512-CCSnHOzTgq6V/1h30/lsOrAqYHAxhYPMEkaYFs0ymVYvXZL5de1Q0rRBZJAq6AcHW9mzwGxmKKO5784KiUIsHA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -5288,13 +5288,13 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/multichain-network-controller@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.3.0.tgz#789029f1784e952f99d9c551f61683cc70d2b678"
-  integrity sha512-APD8wMDxLoDKXW5AeAxN5G8pw5Aua2/glidvcnW5fQakm7+o+qK807aWllk/wkaIkykziwiYd8YfUEqCS3J0EQ==
+"@metamask/multichain-network-controller@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.4.0.tgz#10005bc04771d9cf4287009875c0cf865aec4893"
+  integrity sha512-g+aHu4Ctoe/Ocl0C3XTngI/Lj4OcpZPo35Lf5199k428T3av6GbSxw38srch9usCx/VtsQk7pD6xNXXo3OLZ1A==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/keyring-api" "^17.2.0"
+    "@metamask/keyring-api" "^17.4.0"
     "@metamask/utils" "^11.2.0"
     "@solana/addresses" "^2.0.0"
 

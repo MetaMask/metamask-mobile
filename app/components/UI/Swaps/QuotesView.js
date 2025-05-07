@@ -19,11 +19,7 @@ import {
   TransactionStatus,
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
-import {
-  ORIGIN_METAMASK,
-  query,
-  toChecksumHexAddress,
-} from '@metamask/controller-utils';
+import { ORIGIN_METAMASK, query } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
 import {
@@ -358,16 +354,26 @@ const gasLimitWithMultiplier = (gasLimit, multiplier) => {
   return new BigNumber(gasLimit).times(multiplier).integerValue();
 };
 
-async function addTokenToAssetsController(newToken) {
+async function addTokenToAssetsController(newToken, chainId, networkClientId) {
   const { TokensController } = Engine.context;
+
+  const allTokens = TokensController.state.allTokens?.[chainId]
+    ? Object.values(TokensController.state.allTokens[chainId]).flat()
+    : [];
   if (
     !isSwapsNativeAsset(newToken) &&
-    !TokensController.state.tokens.includes((token) =>
+    !allTokens.includes((token) =>
       toLowerCaseEquals(token.address, newToken.address),
     )
   ) {
     const { address, symbol, decimals, name } = newToken;
-    await TokensController.addToken({ address, symbol, decimals, name });
+    await TokensController.addToken({
+      address,
+      symbol,
+      decimals,
+      name,
+      networkClientId,
+    });
   }
 }
 
@@ -1009,8 +1015,13 @@ function SwapsQuotesView({
         updateSwapsTransactions(transactionMeta.id, approvalTransactionMetaId);
 
         setRecipient(selectedAddress);
-        await addTokenToAssetsController(destinationToken);
-        await addTokenToAssetsController(sourceToken);
+
+        await addTokenToAssetsController(
+          destinationToken,
+          chainId,
+          networkClientId,
+        );
+        await addTokenToAssetsController(sourceToken, chainId, networkClientId);
       } catch (e) {
         Logger.log(LOG_PREFIX, 'Failed to submit trade transaction', e);
       }
