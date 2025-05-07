@@ -26,7 +26,9 @@ interface DeFiProtocolPositionTypeGroupDetailsProps {
   privacyMode: boolean;
 }
 
-const DeFiProtocolPositionTypeGroupDetails = ({
+const DeFiProtocolPositionTypeGroupDetails: React.FC<
+  DeFiProtocolPositionTypeGroupDetailsProps
+> = ({
   positionType,
   tokens,
   networkIconAvatar,

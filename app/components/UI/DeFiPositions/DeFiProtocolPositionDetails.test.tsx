@@ -1,84 +1,112 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import DeFiProtocolPositionTypeGroupDetails from './DeFiProtocolPositionTypeGroupDetails';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import DeFiProtocolPositionDetails, {
+  DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID,
+} from './DeFiProtocolPositionDetails';
+
+const mockSetOptions = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    setOptions: mockSetOptions,
+  }),
+}));
+
+jest.mock('../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../util/navigation/navUtils'),
+  useParams: jest.fn(() => ({
+    networkIconAvatar: 10,
+    protocolAggregate: {
+      protocolDetails: {
+        name: 'Protocol 1',
+        iconUrl: 'https://example.com/protocol1.png',
+      },
+      aggregatedMarketValue: 100,
+      positionTypes: {
+        supply: {
+          aggregatedMarketValue: 100,
+          positions: [
+            [
+              {
+                protocolTokenAddress: '0x1234567890abcdef',
+                marketValue: 100,
+                tokens: [
+                  {
+                    name: 'Token 1',
+                    symbol: 'TKN1',
+                    iconUrl: 'https://example.com/tkn1.png',
+                    balance: 500,
+                    marketValue: 100,
+                    type: 'underlying',
+                  },
+                ],
+              },
+            ],
+          ],
+        },
+      },
+    },
+  })),
+}));
 
 const mockInitialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      PreferencesController: {
+        ...backgroundState.PreferencesController,
+        privacyMode: false,
+      },
+    },
   },
 };
 
-const mockTokens = [
-  {
-    name: 'Token 1',
-    symbol: 'TKN1',
-    iconUrl: 'https://example.com/tkn1.png',
-    balance: 500,
-    marketValue: 50,
-  },
-  {
-    name: 'Token 2',
-    symbol: 'TKN2',
-    iconUrl: 'https://example.com/tkn2.png',
-    balance: 20,
-    marketValue: 2,
-  },
-];
-
-describe('DeFiProtocolPositionTypeGroupDetails', () => {
-  it('does not render if there are no tokens', () => {
-    const { toJSON } = renderWithProvider(
-      <DeFiProtocolPositionTypeGroupDetails
-        positionType="supply"
-        tokens={[]}
-        networkIconAvatar={10}
-        privacyMode={false}
-      />,
-    );
-
-    expect(toJSON()).toBeNull();
+describe('DeFiProtocolPositionDetails', () => {
+  beforeEach(() => {
+    mockSetOptions.mockClear();
   });
 
-  it('renders the group header, tokens, and balances', async () => {
-    const { findByText } = renderWithProvider(
-      <DeFiProtocolPositionTypeGroupDetails
-        positionType="supply"
-        tokens={mockTokens}
-        networkIconAvatar={10}
-        privacyMode={false}
-      />,
+  it('renders the protocol name header and aggregated balance', async () => {
+    const { findByText, findByTestId } = renderWithProvider(
+      <DeFiProtocolPositionDetails />,
       {
         state: mockInitialState,
       },
     );
 
-    expect(await findByText('Supplied')).toBeDefined();
-    expect(await findByText('TKN1')).toBeDefined();
-    expect(await findByText('$50.00')).toBeDefined();
-    expect(await findByText('500 TKN1')).toBeDefined();
-    expect(await findByText('TKN2')).toBeDefined();
-    expect(await findByText('$2.00')).toBeDefined();
-    expect(await findByText('20 TKN2')).toBeDefined();
+    expect(mockSetOptions).toHaveBeenCalledTimes(1);
+    expect(await findByText('Protocol 1')).toBeDefined();
+    expect(
+      (await findByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID)).props
+        .children,
+    ).toStrictEqual('$100.00');
   });
 
-  it('renders the component without balances in privacy mode', async () => {
-    const { findByText, findAllByText } = renderWithProvider(
-      <DeFiProtocolPositionTypeGroupDetails
-        positionType="supply"
-        tokens={mockTokens}
-        networkIconAvatar={10}
-        privacyMode
-      />,
+  it('renders the component without aggregated balance in privacy mode', async () => {
+    const { findByText, findByTestId } = renderWithProvider(
+      <DeFiProtocolPositionDetails />,
       {
-        state: mockInitialState,
+        state: {
+          engine: {
+            backgroundState: {
+              ...backgroundState,
+              PreferencesController: {
+                ...backgroundState.PreferencesController,
+                privacyMode: true,
+              },
+            },
+          },
+        },
       },
     );
 
-    expect(await findByText('Supplied')).toBeDefined();
-    expect(await findByText('TKN1')).toBeDefined();
-    expect(await findByText('TKN2')).toBeDefined();
-    expect(await findAllByText('•••••••••')).toHaveLength(2);
-    expect(await findAllByText('••••••')).toHaveLength(2);
+    expect(mockSetOptions).toHaveBeenCalledTimes(1);
+    expect(await findByText('Protocol 1')).toBeDefined();
+    expect(
+      (await findByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID)).props
+        .children,
+    ).toStrictEqual('•••••••••');
   });
 });

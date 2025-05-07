@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { PositionTypes } from './position-types';
 import styleSheet from './DeFiProtocolPositionGroups.styles';
@@ -12,51 +12,61 @@ interface DeFiProtocolPositionGroupsParams {
   privacyMode: boolean;
 }
 
-const DeFiProtocolPositionGroups = ({
+const DeFiProtocolPositionGroups: React.FC<
+  DeFiProtocolPositionGroupsParams
+> = ({
   protocolAggregate,
   networkIconAvatar,
   privacyMode,
 }: DeFiProtocolPositionGroupsParams) => {
   const styles = styleSheet();
 
-  const positionGroups = PositionTypes.map((positionType) => {
-    const protocolPositionsByType =
-      protocolAggregate.positionTypes[positionType];
+  const positionGroups = useMemo(
+    () =>
+      PositionTypes.map((positionType) => {
+        const protocolPositionsByType =
+          protocolAggregate.positionTypes[positionType];
 
-    if (!protocolPositionsByType) {
-      return undefined;
-    }
+        if (!protocolPositionsByType) {
+          return undefined;
+        }
 
-    return {
-      positionType,
-      positions: protocolPositionsByType.positions.flatMap((tokenGroup) =>
-        tokenGroup.map((protocolToken) => ({
-          protocolTokenAddress: `${protocolToken.address}`,
-          underlyings: protocolToken.tokens
-            .filter((underlyingToken) => underlyingToken.type === 'underlying')
-            .map((underlyingToken) => ({
-              name: underlyingToken.name,
-              symbol: underlyingToken.symbol,
-              iconUrl: underlyingToken.iconUrl,
-              balance: underlyingToken.balance,
-              marketValue: underlyingToken.marketValue,
+        return {
+          positionType,
+          positions: protocolPositionsByType.positions.flatMap((tokenGroup) =>
+            tokenGroup.map((protocolToken) => ({
+              protocolTokenAddress: `${protocolToken.address}`,
+              underlyings: protocolToken.tokens
+                .filter(
+                  (underlyingToken) => underlyingToken.type === 'underlying',
+                )
+                .map((underlyingToken) => ({
+                  name: underlyingToken.name,
+                  symbol: underlyingToken.symbol,
+                  iconUrl: underlyingToken.iconUrl,
+                  balance: underlyingToken.balance,
+                  marketValue: underlyingToken.marketValue,
+                })),
+              underlyingRewards: protocolToken.tokens
+                .filter(
+                  (underlyingToken) =>
+                    underlyingToken.type === 'underlying-claimable',
+                )
+                .map((underlyingToken) => ({
+                  name: underlyingToken.name,
+                  symbol: underlyingToken.symbol,
+                  iconUrl: underlyingToken.iconUrl,
+                  balance: underlyingToken.balance,
+                  marketValue: underlyingToken.marketValue,
+                })),
             })),
-          underlyingRewards: protocolToken.tokens
-            .filter(
-              (underlyingToken) =>
-                underlyingToken.type === 'underlying-claimable',
-            )
-            .map((underlyingToken) => ({
-              name: underlyingToken.name,
-              symbol: underlyingToken.symbol,
-              iconUrl: underlyingToken.iconUrl,
-              balance: underlyingToken.balance,
-              marketValue: underlyingToken.marketValue,
-            })),
-        })),
+          ),
+        };
+      }).filter(
+        (group): group is NonNullable<typeof group> => group !== undefined,
       ),
-    };
-  }).filter((group): group is NonNullable<typeof group> => group !== undefined);
+    [protocolAggregate],
+  );
 
   return (
     <View style={styles.protocolDetailsPositionsWrapper}>

@@ -20,12 +20,15 @@ import SensitiveText, {
 } from '../../../component-library/components/Texts/SensitiveText';
 import DeFiProtocolPositionGroups from './DeFiProtocolPositionGroups';
 
+export const DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID =
+  'defi_protocol_position_details_balance';
+
 interface DeFiProtocolPositionDetailsParams {
   protocolAggregate: GroupedDeFiPositions['protocols'][number];
   networkIconAvatar: ImageSourcePropType | undefined;
 }
 
-const DeFiProtocolPositionDetails = () => {
+const DeFiProtocolPositionDetails: React.FC = () => {
   const theme = useTheme();
   const styles = styleSheet({ theme });
   const navigation = useNavigation();
@@ -52,6 +55,7 @@ const DeFiProtocolPositionDetails = () => {
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}
             style={styles.alternativeText}
+            testID={DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID}
           >
             {formatWithThreshold(
               protocolAggregate.aggregatedMarketValue,
