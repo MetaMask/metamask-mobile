@@ -102,7 +102,6 @@ import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingG
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
-import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
@@ -135,7 +134,9 @@ import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPh
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
+import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccount from '../../Views/AddNewAccount';
+import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -397,8 +398,8 @@ const RootModalFlow = (
       component={BasicFunctionalityModal}
     />
     <Stack.Screen
-      name={Routes.SHEET.PROFILE_SYNCING}
-      component={ProfileSyncingModal}
+      name={Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC}
+      component={ConfirmTurnOnBackupAndSyncModal}
     />
     <Stack.Screen
       name={Routes.SHEET.RESET_NOTIFICATIONS}
@@ -569,6 +570,21 @@ const ModalConfirmationRequest = () => (
   </Stack.Navigator>
 );
 
+const ModalSwitchAccountType = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+    mode={'modal'}
+  >
+    <Stack.Screen
+      name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
+      component={SwitchAccountTypeModal}
+    />
+  </Stack.Navigator>
+);
+
 const AppFlow = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
 
@@ -674,7 +690,7 @@ const AppFlow = () => {
       />
       <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
       <Stack.Screen
-        name="EditAccountName"
+        name={Routes.EDIT_ACCOUNT_NAME}
         component={EditAccountName}
         options={{ animationEnabled: true }}
       />
@@ -702,6 +718,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         component={ModalConfirmationRequest}
+      />
+      <Stack.Screen
+        name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
+        component={ModalSwitchAccountType}
       />
     </Stack.Navigator>
   );
@@ -773,22 +793,33 @@ const App: React.FC = () => {
     });
   }, [navigation, queueOfHandleDeeplinkFunctions]);
 
-  const handleDeeplink = useCallback(({ error, params, uri }) => {
-    if (error) {
-      trackErrorAsAnalytics(error, 'Branch:');
-    }
-    const deeplink = params?.['+non_branch_link'] || uri || null;
-    try {
-      if (deeplink) {
-        AppStateEventProcessor.setCurrentDeeplink(deeplink);
-        SharedDeeplinkManager.parse(deeplink, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-        });
+  const handleDeeplink = useCallback(
+    ({
+      error,
+      params,
+      uri,
+    }: {
+      error?: string | null;
+      params?: Record<string, unknown>;
+      uri?: string;
+    }) => {
+      if (error) {
+        trackErrorAsAnalytics(error, 'Branch:');
       }
-    } catch (e) {
-      Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
-    }
-  }, []);
+      const deeplink = params?.['+non_branch_link'] || uri || null;
+      try {
+        if (deeplink && typeof deeplink === 'string') {
+          AppStateEventProcessor.setCurrentDeeplink(deeplink);
+          SharedDeeplinkManager.parse(deeplink, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          });
+        }
+      } catch (e) {
+        Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
+      }
+    },
+    [],
+  );
 
   // on Android devices, this creates a listener
   // to deeplinks used to open the app
@@ -921,7 +952,6 @@ const App: React.FC = () => {
               rpcEndpoints: [
                 {
                   url: network.rpcUrl,
-                  failoverUrls: network.failoverRpcUrls,
                   name: network.nickname,
                   type: RpcEndpointType.Custom,
                 },

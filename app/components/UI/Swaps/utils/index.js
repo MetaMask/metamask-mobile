@@ -7,7 +7,6 @@ import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-import { isBridgeUiEnabled } from '../../Bridge/utils';
 
 const {
   ETH_CHAIN_ID,
@@ -53,7 +52,7 @@ export function isSwapsAllowed(chainId) {
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (chainId === SolScope.Mainnet && isBridgeUiEnabled()) {
+  if (chainId === SolScope.Mainnet) {
     return true;
   }
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
