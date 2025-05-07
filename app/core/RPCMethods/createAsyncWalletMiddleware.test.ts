@@ -34,7 +34,11 @@ jest.mock('../Engine', () => ({
     },
     TransactionController: {
       addTransactionBatch: jest.fn().mockResolvedValue({ batchId: 123 }),
+      isAtomicBatchSupported: jest.fn().mockResolvedValue([true]),
     },
+  },
+  controllerMessenger: {
+    call: jest.fn().mockReturnValue({ configuration: { chainId: '0xaa36a7' } }),
   },
 }));
 
@@ -86,11 +90,84 @@ describe('processSendCalls', () => {
     networkClientId: 'sepolia',
   } as JsonRpcRequest;
 
-  it('return selected account address', async () => {
+  it('creates transaction instance for batch request', async () => {
     const result = await processSendCalls(MOCK_PARAMS, MOCK_REQUEST);
     expect(
       Engine.context.TransactionController.addTransactionBatch,
     ).toHaveBeenCalledTimes(1);
     expect(result.id).toStrictEqual(123);
+  });
+
+  it('throw error if wrong version of request is used', async () => {
+    expect(async () => {
+      await processSendCalls(
+        { ...MOCK_PARAMS, version: '3.0.0' },
+        MOCK_REQUEST,
+      );
+    }).rejects.toThrow('Version not supported: Got 3.0.0, expected 2.0.0');
+  });
+
+  it('throw error if TransactionController.isAtomicBatchSupported returns false', async () => {
+    Engine.context.TransactionController.isAtomicBatchSupported = jest
+      .fn()
+      .mockResolvedValue([]);
+    expect(async () => {
+      await processSendCalls(MOCK_PARAMS, MOCK_REQUEST);
+    }).rejects.toThrow('EIP-7702 not supported on chain: 0xaa36a7');
+    Engine.context.TransactionController.isAtomicBatchSupported = jest
+      .fn()
+      .mockResolvedValue([{}]);
+  });
+
+  it('throws if top-level capability is required', async () => {
+    await expect(
+      processSendCalls(
+        {
+          ...MOCK_PARAMS,
+          capabilities: {
+            test: {},
+            test2: { optional: true },
+            test3: { optional: false },
+          },
+        },
+        MOCK_REQUEST,
+      ),
+    ).rejects.toThrow('Unsupported non-optional capabilities: test, test3');
+  });
+
+  it('throws if call capability is required', async () => {
+    await expect(
+      processSendCalls(
+        {
+          ...MOCK_PARAMS,
+          calls: [
+            ...MOCK_PARAMS.calls,
+            {
+              ...MOCK_PARAMS.calls[0],
+              capabilities: {
+                test: {},
+                test2: { optional: true },
+                test3: { optional: false },
+              },
+            },
+          ],
+        },
+        MOCK_REQUEST,
+      ),
+    ).rejects.toThrow('Unsupported non-optional capabilities: test, test3');
+  });
+
+  it('throw error if dappChainId is different from request chainId', async () => {
+    Engine.controllerMessenger.call = jest
+      .fn()
+      .mockReturnValue({ configuration: { chainId: '0x1' } });
+    expect(async () => {
+      await processSendCalls(MOCK_PARAMS, {
+        ...MOCK_REQUEST,
+        networkClientId: 'linea',
+      } as JsonRpcRequest);
+    }).rejects.toThrow(
+      'Chain ID must match the dApp selected network: Got 0xaa36a7, expected 0x1',
+    );
   });
 });

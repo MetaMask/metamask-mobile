@@ -31,8 +31,6 @@ import {
   selectEvmNetworkConfigurationsByChainId,
 } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
-import { PermissionKeys } from '../../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../../core/Permissions/constants';
 import {
   getNetworkImageSource,
   isPerDappSelectedNetworkEnabled,
@@ -41,6 +39,12 @@ import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Brow
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import Logger from '../../../../util/Logger';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
+import {
+  updatePermittedChains,
+  getCaip25Caveat,
+} from '../../../../core/Permissions';
+import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import { toHex } from '@metamask/controller-utils';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -80,16 +84,10 @@ const NetworkConnectMultiSelector = ({
 
     let currentlyPermittedChains: string[] = [];
     try {
-      const caveat = Engine.context.PermissionController.getCaveat(
-        hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-      );
-      if (Array.isArray(caveat?.value)) {
-        currentlyPermittedChains = caveat.value.filter(
-          (item): item is string => typeof item === 'string',
-        );
-      }
+      const caveat = getCaip25Caveat(hostname);
+      currentlyPermittedChains = caveat
+        ? getPermittedEthChainIds(caveat.value)
+        : [];
     } catch (e) {
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
@@ -141,42 +139,9 @@ const NetworkConnectMultiSelector = ({
         }
       }
 
-      // Update permissions in PermissionController
-      let hasPermittedChains = false;
-      try {
-        hasPermittedChains = Engine.context.PermissionController.hasCaveat(
-          hostname,
-          PermissionKeys.permittedChains,
-          CaveatTypes.restrictNetworkSwitching,
-        );
-      } catch (e) {
-        Logger.error(e as Error, 'Error checking for permitted chains caveat');
-      }
-
-      if (hasPermittedChains) {
-        Engine.context.PermissionController.updateCaveat(
-          hostname,
-          PermissionKeys.permittedChains,
-          CaveatTypes.restrictNetworkSwitching,
-          selectedChainIds,
-        );
-      } else {
-        Engine.context.PermissionController.grantPermissionsIncremental({
-          subject: {
-            origin: hostname,
-          },
-          approvedPermissions: {
-            [PermissionKeys.permittedChains]: {
-              caveats: [
-                {
-                  type: CaveatTypes.restrictNetworkSwitching,
-                  value: selectedChainIds,
-                },
-              ],
-            },
-          },
-        });
-      }
+      const hexSelectedChainIds = selectedChainIds.map(toHex);
+      const removeExistingChainPermissions = true;
+      updatePermittedChains(hostname, hexSelectedChainIds, removeExistingChainPermissions);
       onUserAction(USER_INTENT.Confirm);
     }
   }, [
@@ -195,7 +160,6 @@ const NetworkConnectMultiSelector = ({
       name: network.name,
       rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
       isSelected: false,
-      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       imageSource: getNetworkImageSource({
         chainId: network?.chainId,
       }),
