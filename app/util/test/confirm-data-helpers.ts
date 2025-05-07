@@ -889,7 +889,7 @@ const mockApprovalRequest = {
   expectsResult: true,
 } as unknown as ApprovalRequest<TransactionMeta>;
 
-const mockTransaction = {
+export const mockTransaction = {
   id: mockTxId,
   type: TransactionType.contractInteraction,
   txParams: {
