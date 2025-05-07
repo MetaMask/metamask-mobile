@@ -640,7 +640,8 @@
       "@storybook/addon-ondevice-controls>core-js": false,
       "viem>ws>bufferutil": false,
       "viem>ws>utf-8-validate": false,
-      "detox>@wix-pilot/core>canvas": true
+      "detox>@wix-pilot/core>canvas": true,
+      "ts-node>@swc/core": false
     }
   },
   "packageManager": "yarn@1.22.22"
