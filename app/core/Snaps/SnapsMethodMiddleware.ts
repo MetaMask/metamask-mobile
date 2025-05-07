@@ -127,11 +127,13 @@ const snapMethodMiddlewareBuilder = (
     trackEvent: (eventPayload: {
       event: string;
       properties: Record<string, Json>;
+      sensitiveProperties: Record<string, Json>;
     }) => {
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder({
           category: eventPayload.event,
           properties: eventPayload.properties,
+          sensitiveProperties: eventPayload.sensitiveProperties,
         }).build(),
       );
     },
