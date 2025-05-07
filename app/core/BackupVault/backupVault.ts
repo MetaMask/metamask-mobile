@@ -72,8 +72,6 @@ export async function getVaultFromBackup(): Promise<KeyringBackupResponse> {
   if (credentials) {
     return { success: true, vault: credentials.password };
   }
-  const vaultFetchError = new Error(VAULT_BACKUP_KEY);
-  Logger.error(vaultFetchError, VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP);
   return { success: false, error: VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP };
 }
 
