@@ -4,6 +4,7 @@ import { RequestedPermissions } from '@metamask/permission-controller';
  * Enum to track states of the connect screen.
  */
 export enum AccountConnectScreens {
+  AccountConnectSummary = 'AccountConnectSummary',
   SingleConnect = 'SingleConnect',
   SingleConnectSelector = 'SingleConnectSelector',
   MultiConnectSelector = 'MultiConnectSelector',

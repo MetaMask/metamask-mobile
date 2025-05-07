@@ -89,9 +89,24 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
-import { CaipAccountId, CaipChainId, KnownCaipNamespace, parseCaipAccountId, parseCaipChainId } from '@metamask/utils';
-import { getAllNamespacesFromCaip25CaveatValue, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue, isCaipAccountIdInPermittedAccountIds, isInternalAccountInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
+import {
+  CaipAccountId,
+  CaipChainId,
+  KnownCaipNamespace,
+  parseCaipAccountId,
+  parseCaipChainId,
+} from '@metamask/utils';
+import {
+  getAllNamespacesFromCaip25CaveatValue,
+  getAllScopesFromCaip25CaveatValue,
+  getCaipAccountIdsFromCaip25CaveatValue,
+  isCaipAccountIdInPermittedAccountIds,
+  isInternalAccountInPermittedAccountIds,
+} from '@metamask/chain-agnostic-permission';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
+import AccountConnectSummary, {
+  type AccountConnectSummaryProps,
+} from './AccountConnectSummary';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -152,20 +167,25 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? supportedRequestedCaipChainIds
       : allNetworksList;
 
-  const [selectedChainIds, _setSelectedChainIds] = useState<CaipChainId[]>(defaultSelectedChainIds as CaipChainId[]);
-  const setSelectedChainIds = useCallback((newSelectedChainIds: CaipChainId[]) => {
-    _setSelectedChainIds(newSelectedChainIds);
+  const [selectedChainIds, _setSelectedChainIds] = useState<CaipChainId[]>(
+    defaultSelectedChainIds as CaipChainId[],
+  );
+  const setSelectedChainIds = useCallback(
+    (newSelectedChainIds: CaipChainId[]) => {
+      _setSelectedChainIds(newSelectedChainIds);
 
-    const newNetworkAvatars = newSelectedChainIds.map(
-      (newSelectedChainId) => ({
-        size: AvatarSize.Xs,
-        name: networkConfigurations[newSelectedChainId]?.name || '',
-        // @ts-expect-error - getNetworkImageSource is not typed
-        imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
-      }),
-    );
-    setSelectedNetworkAvatars(newNetworkAvatars);
-  }, [networkConfigurations, setSelectedNetworkAvatars])
+      const newNetworkAvatars = newSelectedChainIds.map(
+        (newSelectedChainId) => ({
+          size: AvatarSize.Xs,
+          name: networkConfigurations[newSelectedChainId]?.name || '',
+          // @ts-expect-error - getNetworkImageSource is not typed
+          imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
+        }),
+      );
+      setSelectedNetworkAvatars(newNetworkAvatars);
+    },
+    [networkConfigurations, setSelectedNetworkAvatars],
+  );
 
   // all accounts that match the requested namespaces
   const supportedAccountsForRequestedNamespaces = internalAccounts.filter(
@@ -208,7 +228,9 @@ const AccountConnect = (props: AccountConnectProps) => {
     ({ caipAccountId }) => caipAccountId,
   );
 
-  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(defaultCaipAccountAddresses);
+  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(
+    defaultCaipAccountAddresses,
+  );
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
@@ -356,14 +378,14 @@ const AccountConnect = (props: AccountConnectProps) => {
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
     // Extract the address list from the internalAccounts array
-    const accountsAddressList = internalAccounts.map((account) =>
-      account.caipAccountId
+    const accountsAddressList = internalAccounts.map(
+      (account) => account.caipAccountId,
     );
 
     if (previousIdentitiesListSize.current !== accountsAddressList.length) {
       // Clean up selected addresses that are no longer part of accounts.
       const updatedSelectedAddresses = selectedAddresses.filter((address) =>
-        isCaipAccountIdInPermittedAccountIds(address, accountsAddressList)
+        isCaipAccountIdInPermittedAccountIds(address, accountsAddressList),
       );
 
       setSelectedAddresses(updatedSelectedAddresses);
@@ -535,7 +557,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         const checksummedAddress = safeToChecksumAddress(
           addedAccountAddress,
         ) as string;
-        !isMultiSelect && setSelectedAddresses([`eip155:0:${checksummedAddress}`]);
+        !isMultiSelect &&
+          setSelectedAddresses([`eip155:0:${checksummedAddress}`]);
         trackEvent(
           createEventBuilder(
             MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
@@ -595,7 +618,13 @@ const AccountConnect = (props: AccountConnectProps) => {
       setSelectedAddresses(newSelectedAccountAddresses);
       setScreen(AccountConnectScreens.SingleConnect);
     },
-    [setSelectedAddresses, setScreen, selectedChainIds, allNetworksList, setSelectedChainIds],
+    [
+      setSelectedAddresses,
+      setScreen,
+      selectedChainIds,
+      allNetworksList,
+      setSelectedChainIds,
+    ],
   );
 
   const handleNetworksSelected = useCallback(
@@ -690,6 +719,17 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     cancelPermissionRequest(permissionRequestId);
   };
+
+  const renderAccountConnectSummaryScreen = useCallback(() => {
+    const accountConnectSummaryProps: AccountConnectSummaryProps = {
+      currentPageInformation: {
+        currentEnsName: '',
+        icon: faviconSource as string,
+        url: urlWithProtocol,
+      },
+    };
+    return <AccountConnectSummary {...accountConnectSummaryProps} />;
+  }, [faviconSource, urlWithProtocol]);
 
   const renderSingleConnectScreen = useCallback(() => {
     const selectedAddress = selectedAddresses[0];
@@ -810,7 +850,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       isLoading,
       sdkConnection,
       hostname,
-      handleAccountsSelected
+      handleAccountsSelected,
     ],
   );
 
@@ -824,12 +864,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         defaultSelectedChainIds={selectedChainIds}
       />
     ),
-    [
-      isLoading,
-      urlWithProtocol,
-      handleNetworksSelected,
-      selectedChainIds,
-    ],
+    [isLoading, urlWithProtocol, handleNetworksSelected, selectedChainIds],
   );
 
   const renderPhishingModal = useCallback(
@@ -870,6 +905,8 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const renderConnectScreens = useCallback(() => {
     switch (screen) {
+      case AccountConnectScreens.AccountConnectSummary:
+        return renderAccountConnectSummaryScreen();
       case AccountConnectScreens.SingleConnect:
         return isSdkUrlUnknown
           ? renderSingleConnectScreen()
