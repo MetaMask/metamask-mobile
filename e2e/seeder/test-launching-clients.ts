@@ -1,4 +1,4 @@
-import {createAnvilClients} from './anvil-clients'
+import {createAnvilClients} from './anvil-clients';
 import { createAnvil } from '@viem/anvil';
 
 async function main(){
