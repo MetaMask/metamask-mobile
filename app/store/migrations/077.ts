@@ -168,7 +168,9 @@ function updateState(state: unknown) {
           !isObject(rpcEndpoint) ||
           !hasProperty(rpcEndpoint, 'url') ||
           typeof rpcEndpoint.url !== 'string' ||
-          hasProperty(rpcEndpoint, 'failoverUrls')
+          (hasProperty(rpcEndpoint, 'failoverUrls') &&
+            Array.isArray(rpcEndpoint.failoverUrls) &&
+            rpcEndpoint.failoverUrls.length > 0)
         ) {
           return rpcEndpoint;
         }
