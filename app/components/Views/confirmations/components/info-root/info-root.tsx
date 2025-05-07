@@ -4,6 +4,7 @@ import React from 'react';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
+import { useSmartAccountSwitchType } from '../../hooks/useSmartAccountSwitchType';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from '../info/contract-interaction';
 import PersonalSign from '../info/personal-sign';
@@ -15,7 +16,6 @@ import SwitchAccountType from '../info/switch-account-type';
 import Transfer from '../info/transfer';
 import TypedSignV1 from '../info/typed-sign-v1';
 import TypedSignV3V4 from '../info/typed-sign-v3v4';
-import { useSmartAccountSwitchType } from '../../hooks/useSmartAccountSwitchType';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;

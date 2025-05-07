@@ -1068,6 +1068,15 @@ export const upgradeAccountConfirmation = {
   },
 } as unknown as TransactionMeta;
 
+export const upgradeOnlyAccountConfirmation = {
+  ...upgradeAccountConfirmation,
+  nestedTransactions: [],
+  txParams: {
+    ...upgradeAccountConfirmation.txParams,
+    data: '0x',
+  },
+} as unknown as TransactionMeta;
+
 export const downgradeAccountConfirmation = {
   ...switchAccountConfirmation,
   delegationAddress: '0xcd8d6c5554e209fbb0dec797c6293cf7eae13454',
