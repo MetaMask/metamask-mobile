@@ -142,6 +142,7 @@ export default class Collectibles extends PureComponent {
     refreshMetadata(
       this.longPressedCollectible.current,
       this.props.networkConfigurations,
+      this.props.selectedAddress,
     );
   };
 

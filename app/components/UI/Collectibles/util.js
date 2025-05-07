@@ -3,7 +3,11 @@ import { toHex } from '@metamask/controller-utils';
 import { strings } from '../../../../locales/i18n';
 import { Alert } from 'react-native';
 
-export const refreshMetadata = (collectible, networkConfigurations) => {
+export const refreshMetadata = (
+  collectible,
+  networkConfigurations,
+  userAddress,
+) => {
   const { NftController } = Engine.context;
 
   const chainIdHex = toHex(collectible.chainId);
@@ -13,11 +17,10 @@ export const refreshMetadata = (collectible, networkConfigurations) => {
     // @ts-ignore
     config?.rpcEndpoints?.[config.defaultRpcEndpointIndex]?.networkClientId;
 
-  NftController.addNft(
-    collectible.address,
-    collectible.tokenId,
-    nftNetworkClientId,
-  );
+  NftController.addNft(collectible.address, collectible.tokenId, {
+    networkClientId: nftNetworkClientId,
+    userAddress,
+  });
 };
 
 export const removeNft = (
@@ -36,7 +39,7 @@ export const removeNft = (
 
   NftController.removeAndIgnoreNft(collectible.address, collectible.tokenId, {
     networkClientId: nftNetworkClientId,
-    userAddress: selectedAddress,
+    userAddress: selectedAddress.toLowercase(),
   });
   Alert.alert(
     strings('wallet.collectible_removed_title'),

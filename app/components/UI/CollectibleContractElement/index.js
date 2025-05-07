@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
 import { connect, useSelector } from 'react-redux';
+import { toHex } from '@metamask/controller-utils';
 import { fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Device from '../../../util/device';
@@ -149,11 +150,21 @@ function CollectibleContractElement({
   };
 
   const refreshMetadata = () => {
+    const chainIdHex = toHex(longPressedCollectible.current.chainId);
+    const config = networkConfigurations[chainIdHex];
+    const nftNetworkClientId =
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      config?.rpcEndpoints?.[config.defaultRpcEndpointIndex]?.networkClientId;
     const { NftController } = Engine.context;
 
     NftController.addNft(
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
+      {
+        networkClientId: nftNetworkClientId,
+        userAddress: selectedAddress.toLowerCase(),
+      },
     );
   };
 

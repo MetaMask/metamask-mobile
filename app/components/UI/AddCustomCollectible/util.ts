@@ -66,6 +66,7 @@ export const validateCollectibleOwnership = async (
   selectedAddress: string,
   contractAddress: string,
   tokenId: string,
+  networkClientId?: string,
 ): Promise<OwnershipValidationResult> => {
   try {
     const { NftController } = Engine.context;
@@ -73,6 +74,9 @@ export const validateCollectibleOwnership = async (
       selectedAddress,
       contractAddress,
       tokenId,
+      {
+        networkClientId,
+      },
     );
 
     if (!isOwner) {

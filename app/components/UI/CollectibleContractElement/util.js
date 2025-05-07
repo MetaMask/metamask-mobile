@@ -26,7 +26,7 @@ export const removeNft = ({
     longPressedCollectible.current.tokenId,
     {
       networkClientId: nftNetworkClientId,
-      userAddress: selectedAddress,
+      userAddress: selectedAddress.toLowerCase(),
     },
   );
 };

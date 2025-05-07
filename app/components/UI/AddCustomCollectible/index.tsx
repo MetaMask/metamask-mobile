@@ -21,6 +21,7 @@ import Logger from '../../../util/Logger';
 import { NetworkSelectorDropdown } from '../AddCustomToken/NetworkSelectorDropdown';
 import { Hex } from '@metamask/utils';
 import { TraceName, endTrace, trace } from '../../../util/trace';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,7 +68,7 @@ interface AddCustomCollectibleProps {
     address: string;
   };
   setOpenNetworkSelector: (val: boolean) => void;
-  selectedNetwork: string | null;
+  selectedNetwork: NetworkConfiguration | null;
   chainId: string | null;
 }
 
@@ -97,6 +98,8 @@ const AddCustomCollectible = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+
+  const defaultRpcIndex = selectedNetwork?.defaultRpcEndpointIndex || 0;
 
   useEffect(() => {
     setMounted(true);
@@ -147,6 +150,7 @@ const AddCustomCollectible = ({
       selectedAddress ?? '',
       address,
       tokenId,
+      selectedNetwork?.rpcEndpoints[defaultRpcIndex].networkClientId,
     );
     if (!result.isOwner && result.error) {
       Alert.alert(result.error.title, result.error.message);
@@ -168,11 +172,14 @@ const AddCustomCollectible = ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NftController } = Engine.context as any;
-    NftController.addNft(address, tokenId, chainId);
 
     trace({ name: TraceName.ImportNfts });
 
-    await NftController.addNft(address, tokenId);
+    NftController.addNft(address, tokenId, {
+      networkClientId:
+        selectedNetwork?.rpcEndpoints[defaultRpcIndex].networkClientId,
+      userAddress: selectedAddress,
+    });
 
     endTrace({ name: TraceName.ImportNfts });
 
@@ -219,7 +226,7 @@ const AddCustomCollectible = ({
           <View style={styles.rowWrapper}>
             <NetworkSelectorDropdown
               setOpenNetworkSelector={setOpenNetworkSelector}
-              selectedNetwork={selectedNetwork ?? ''}
+              selectedNetwork={selectedNetwork?.name ?? ''}
               chainId={chainId as Hex}
             />
           </View>
