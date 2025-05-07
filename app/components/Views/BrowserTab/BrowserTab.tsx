@@ -30,6 +30,7 @@ import {
   getAlertMessage,
   allowLinkOpen,
   getUrlObj,
+  isTokenDiscoveryBrowserEnabled,
 } from '../../../util/browser';
 import {
   SPA_urlChangeListener,
@@ -501,7 +502,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   useEffect(() => {
     if (
       !isTabActive ||
-      (AppConstants.TOKEN_DISCOVERY_BROWSER_ENABLED && !firstUrl) ||
+      (isTokenDiscoveryBrowserEnabled() && !firstUrl) ||
       isWebViewReadyToLoad.current
     ) {
       return;
@@ -1126,7 +1127,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           return;
         }
         return onSubmitEditingRef.current(handledEnsUrl);
-      } else if (AppConstants.TOKEN_DISCOVERY_BROWSER_ENABLED && !firstUrl) {
+      } else if (isTokenDiscoveryBrowserEnabled() && !firstUrl) {
         setFirstUrl(processedUrl);
         return;
       }
@@ -1366,7 +1367,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   }, []);
 
   // Don't render webview unless ready to load. This should save on performance for initial app start.
-  if (!AppConstants.TOKEN_DISCOVERY_BROWSER_ENABLED && !isWebViewReadyToLoad.current) {
+  if (!isTokenDiscoveryBrowserEnabled() && !isWebViewReadyToLoad.current) {
     return null;
   }
 
@@ -1445,7 +1446,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                   )}
                 </>
               )}
-              {AppConstants.TOKEN_DISCOVERY_BROWSER_ENABLED && !firstUrl && (
+              {isTokenDiscoveryBrowserEnabled() && !firstUrl && (
                 <TokenDiscovery />
               )}
             </View>

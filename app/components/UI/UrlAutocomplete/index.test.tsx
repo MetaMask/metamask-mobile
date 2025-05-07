@@ -277,4 +277,46 @@ describe('UrlAutocomplete', () => {
     fireEvent.press(swapButton);
     expect(mockNavigate).toHaveBeenCalled();
   });
+
+  it('should call onSelect when a bookmark is selected', async () => {
+    const onSelect = jest.fn();
+    const ref = React.createRef<UrlAutocompleteRef>();
+    render(<UrlAutocomplete ref={ref} onSelect={onSelect} onDismiss={noop} onSwap={noop} />, {state: defaultState});
+
+    const result = await screen.findByText('MyBookmark', {includeHiddenElements: true});
+    fireEvent.press(result);
+    expect(onSelect).toHaveBeenCalled();
+  });
+
+  it('should call onSelect when a token is selected', async () => {
+    mockUseTSDReturnValue({
+      results: [
+        {
+          tokenAddress: '0x123',
+          chainId: '0x1',
+          name: 'Dogecoin',
+          symbol: 'DOGE',
+          usdPrice: 1,
+          usdPricePercentChange: {
+            oneDay: 1,
+          },
+        },
+      ],
+      isLoading: false,
+      reset: jest.fn(),
+      searchTokens: jest.fn(),
+    });
+    const onSelect = jest.fn();
+    const ref = React.createRef<UrlAutocompleteRef>();
+    render(<UrlAutocomplete ref={ref} onSelect={onSelect} onDismiss={noop} onSwap={noop} />, {state: defaultState});
+
+    act(() => {
+      ref.current?.search('dog');
+      jest.runAllTimers();
+    });
+
+    const result = await screen.findByText('Dogecoin', {includeHiddenElements: true});
+    fireEvent.press(result);
+    expect(onSelect).toHaveBeenCalled();
+  });
 });
