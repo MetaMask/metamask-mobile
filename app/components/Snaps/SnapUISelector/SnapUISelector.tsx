@@ -74,6 +74,7 @@ const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
       onPress={handlePress}
       style={styles.modalButton}
       isDisabled={disabled}
+      testID="snap-ui-renderer__selector-item"
     />
   );
 };
@@ -148,6 +149,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
           endIconName={IconName.ArrowDown}
           onPress={handleModalOpen}
           style={styles.button}
+          testID="snap-ui-renderer__selector"
         />
         {error && (
           <HelpText severity={HelpTextSeverity.Error} style={styles.helpText}>
@@ -172,7 +174,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
             >
               {optionComponents.map((component, index) => (
                 <SelectorItem
-                  key={`snap-ui-selector-${options[index].value}`}
+                  key={`snap-ui-selector-${options[index].value.toString()}`}
                   value={options[index].value}
                   disabled={options[index]?.disabled}
                   onSelect={handleSelect}
