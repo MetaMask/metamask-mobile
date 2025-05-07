@@ -3969,5 +3969,10 @@
       "title": "Manage what you sync",
       "description": "Turn on what’s synced between your devices."
     }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Select an asset"
+    }
   }
 }

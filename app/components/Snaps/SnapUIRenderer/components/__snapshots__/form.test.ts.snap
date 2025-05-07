@@ -81,7 +81,9 @@ exports[`SnapUIForm will render 1`] = `
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
+                    "flexGrow": 1,
                     "height": 48,
+                    "maxHeight": 58,
                     "opacity": 1,
                     "paddingHorizontal": 16,
                   }
@@ -260,7 +262,9 @@ exports[`SnapUIForm will render with fields 1`] = `
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
+                    "flexGrow": 1,
                     "height": 48,
+                    "maxHeight": 58,
                     "opacity": 1,
                     "paddingHorizontal": 16,
                   }
@@ -458,6 +462,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     "paddingTop": 8,
                   }
                 }
+                testID="snap-ui-renderer__selector"
               >
                 <View
                   alignItems="center"
@@ -893,6 +898,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                                 "paddingTop": 8,
                               }
                             }
+                            testID="snap-ui-renderer__selector-item"
                           >
                             <View
                               alignItems="center"
@@ -1029,7 +1035,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "transparent",
+                                "backgroundColor": "#4459ff1a",
                                 "borderRadius": 8,
                                 "flexDirection": "row",
                                 "height": "auto",
@@ -1043,6 +1049,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                                 "paddingTop": 8,
                               }
                             }
+                            testID="snap-ui-renderer__selector-item"
                           >
                             <View
                               alignItems="center"
@@ -1169,6 +1176,24 @@ exports[`SnapUIForm will render with fields 1`] = `
                                 </Text>
                               </View>
                             </View>
+                            <View
+                              style={
+                                [
+                                  {},
+                                  {
+                                    "backgroundColor": "#4459ff",
+                                    "borderRadius": 9999,
+                                    "bottom": 4,
+                                    "height": "auto",
+                                    "left": 4,
+                                    "marginRight": 12,
+                                    "position": "absolute",
+                                    "top": 4,
+                                    "width": 4,
+                                  },
+                                ]
+                              }
+                            />
                           </TouchableOpacity>
                         </View>
                       </View>
