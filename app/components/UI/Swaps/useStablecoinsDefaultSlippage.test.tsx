@@ -1,7 +1,8 @@
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
-import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
+import { useStablecoinsDefaultSlippage, handleStablecoinSlippage } from './useStablecoinsDefaultSlippage';
 import { Hex } from '@metamask/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
+import AppConstants from '../../../core/AppConstants';
 
 describe('useStablecoinsDefaultSlippage', () => {
   const mockSetSlippage = jest.fn();
@@ -79,7 +80,7 @@ describe('useStablecoinsDefaultSlippage', () => {
     renderHookWithProvider(
       () =>
         useStablecoinsDefaultSlippage({
-          sourceTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI (not in the list)
+          sourceTokenAddress: '0x123', // Non-stablecoin
           destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
           chainId: swapsUtils.ETH_CHAIN_ID as Hex,
           setSlippage: mockSetSlippage,
@@ -95,7 +96,7 @@ describe('useStablecoinsDefaultSlippage', () => {
       () =>
         useStablecoinsDefaultSlippage({
           sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
-          destTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI (not in the list)
+          destTokenAddress: '0x123', // Non-stablecoin
           chainId: swapsUtils.ETH_CHAIN_ID as Hex,
           setSlippage: mockSetSlippage,
         }),
@@ -147,44 +148,141 @@ describe('useStablecoinsDefaultSlippage', () => {
 
     expect(mockSetSlippage).not.toHaveBeenCalled();
   });
+});
 
-  it('calls setSlippage only once when dependencies change', () => {
-    // First render with stablecoins
-    const { rerender } = renderHookWithProvider(
-      () =>
-        useStablecoinsDefaultSlippage({
-          sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
-          destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
-          chainId: swapsUtils.ETH_CHAIN_ID as Hex,
-          setSlippage: mockSetSlippage,
-        }),
-      { state: initialState },
-    );
+describe('handleStablecoinSlippage', () => {
+  const mockSetSlippage = jest.fn();
 
-    // First render should call setSlippage
-    expect(mockSetSlippage).toHaveBeenCalledTimes(1);
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    // Clear the mock to track subsequent calls
-    mockSetSlippage.mockClear();
+  it('sets stablecoin slippage when both tokens are stablecoins', () => {
+    handleStablecoinSlippage({
+      sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+      destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
+      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      setSlippage: mockSetSlippage,
+    });
 
-    // Rerender with the same props should not call setSlippage again
-    rerender({});
+    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
+  });
+
+  it('does not set slippage when source token is not on the list of stablecoins', () => {
+    handleStablecoinSlippage({
+      sourceTokenAddress: '0x123', // Non-stablecoin
+      destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
+      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      setSlippage: mockSetSlippage,
+    });
 
     expect(mockSetSlippage).not.toHaveBeenCalled();
+  });
 
-    // Create a new hook instance with different props
-    renderHookWithProvider(
-      () =>
-        useStablecoinsDefaultSlippage({
-          sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
-          destTokenAddress: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC.e on Polygon
-          chainId: swapsUtils.ETH_CHAIN_ID as Hex,
-          setSlippage: mockSetSlippage,
-        }),
-      { state: initialState },
-    );
+  it('does not set slippage when destination token is not on the list of stablecoins', () => {
+    handleStablecoinSlippage({
+      sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+      destTokenAddress: '0x123', // Non-stablecoin
+      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      setSlippage: mockSetSlippage,
+    });
 
-    // Should not call setSlippage because tokens are on different chains
+    expect(mockSetSlippage).not.toHaveBeenCalled();
+  });
+
+  it('does not set slippage when chain ID is not supported', () => {
+    handleStablecoinSlippage({
+      sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+      destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
+      chainId: '0x9999' as Hex, // Unsupported chain ID
+      setSlippage: mockSetSlippage,
+    });
+
+    expect(mockSetSlippage).not.toHaveBeenCalled();
+  });
+
+  it('does not set slippage when source token address is missing', () => {
+    handleStablecoinSlippage({
+      destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
+      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      setSlippage: mockSetSlippage,
+    });
+
+    expect(mockSetSlippage).not.toHaveBeenCalled();
+  });
+
+  it('does not set slippage when destination token address is missing', () => {
+    handleStablecoinSlippage({
+      sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      setSlippage: mockSetSlippage,
+    });
+
+    expect(mockSetSlippage).not.toHaveBeenCalled();
+  });
+
+  it('resets slippage to default when transitioning from stablecoin pair to non-stablecoin pair', () => {
+    handleStablecoinSlippage({
+      sourceTokenAddress: '0x123', // Non-stablecoin
+      destTokenAddress: '0x456', // Non-stablecoin
+      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      setSlippage: mockSetSlippage,
+      prevSourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+      prevDestTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
+    });
+
+    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+  });
+
+  it('does not reset slippage when transitioning from non-stablecoin pair to another non-stablecoin pair', () => {
+    handleStablecoinSlippage({
+      sourceTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI
+      destTokenAddress: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599', // WBTC
+      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      setSlippage: mockSetSlippage,
+      prevSourceTokenAddress: '0x123', // Non-stablecoin
+      prevDestTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
+    });
+
+    expect(mockSetSlippage).not.toHaveBeenCalled();
+  });
+
+  it('sets default slippage when transitioning from non-stablecoin pair to stablecoin pair', () => {
+    handleStablecoinSlippage({
+      sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+      destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
+      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      setSlippage: mockSetSlippage,
+      prevSourceTokenAddress: '0x123', // Non-stablecoin
+      prevDestTokenAddress: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599', // WBTC
+    });
+
+    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
+  });
+
+  it('handles transition from stablecoin pair to missing token addresses', () => {
+    handleStablecoinSlippage({
+      sourceTokenAddress: undefined,
+      destTokenAddress: undefined,
+      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      setSlippage: mockSetSlippage,
+      prevSourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+      prevDestTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
+    });
+
+    expect(mockSetSlippage).not.toHaveBeenCalled();
+  });
+
+  it('does not reset slippage when previous token addresses are missing', () => {
+    handleStablecoinSlippage({
+      sourceTokenAddress: '0x123', // Non-stablecoin
+      destTokenAddress: '0x456', // Non-stablecoin
+      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      setSlippage: mockSetSlippage,
+      prevSourceTokenAddress: undefined,
+      prevDestTokenAddress: undefined,
+    });
+
     expect(mockSetSlippage).not.toHaveBeenCalled();
   });
 });

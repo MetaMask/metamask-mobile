@@ -1,4 +1,4 @@
-import { SmokeAccounts } from '../../../tags';
+import { SmokeNetworkExpansion } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
 
@@ -18,7 +18,7 @@ import FixtureServer from '../../../fixtures/fixture-server';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeAccounts('AES Crypto - Salt generation'), () => {
+describe(SmokeNetworkExpansion('AES Crypto - Salt generation'), () => {
   const SALT_BYTES_COUNT = 32;
 
   beforeAll(async () => {

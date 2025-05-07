@@ -195,7 +195,7 @@ exports[`AddressList should render correctly 1`] = `
                 }
               }
             >
-              0xC495...D272
+              0xC4955...4D272
             </Text>
           </View>
         </TouchableOpacity>

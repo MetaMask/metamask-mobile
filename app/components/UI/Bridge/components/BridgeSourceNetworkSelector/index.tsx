@@ -62,7 +62,7 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
   const [candidateSourceChainIds, setCandidateSourceChainIds] = useState<string[]>(selectedSourceChainIds);
 
   const {
-    chainId: selectedChainId,
+    chainId: selectedEvmChainId,
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo();
@@ -73,7 +73,7 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
     ///: END:ONLY_INCLUDE_IF
   } = useSwitchNetworks({
     domainIsConnectedDapp,
-    selectedChainId,
+    selectedChainId: selectedEvmChainId,
     selectedNetworkName,
   });
 

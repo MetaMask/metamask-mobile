@@ -1,4 +1,3 @@
-import { ImageSourcePropType } from 'react-native';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -10,49 +9,11 @@ import { BtcScope, SolScope } from '@metamask/keyring-api';
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
-export interface Network {
-  chainId: Hex;
-  nickname: string;
-  rpcPrefs: {
-    blockExplorerUrl: string;
-    imageSource?: ImageSourcePropType;
-    imageUrl?: string;
-  };
-  rpcUrl: string;
-  failoverRpcUrls: string[];
-  ticker: string;
-  /**
-   * Not supported by Infura
-   */
-  warning?: boolean;
-}
-
-export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
-  'ethereum-mainnet': () => process.env.QUICKNODE_MAINNET_URL,
-  'linea-mainnet': () => process.env.QUICKNODE_LINEA_MAINNET_URL,
-  'arbitrum-mainnet': () => process.env.QUICKNODE_ARBITRUM_URL,
-  'avalanche-mainnet': () => process.env.QUICKNODE_AVALANCHE_URL,
-  'optimism-mainnet': () => process.env.QUICKNODE_OPTIMISM_URL,
-  'polygon-mainnet': () => process.env.QUICKNODE_POLYGON_URL,
-  'base-mainnet': () => process.env.QUICKNODE_BASE_URL,
-};
-
-export function getFailoverUrlsForInfuraNetwork(
-  infuraNetwork: keyof typeof QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME,
-) {
-  const url = QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME[infuraNetwork]();
-  if (url) {
-    return [url];
-  }
-  return [];
-}
-
 export const PopularList = [
   {
     chainId: toHex('43114'),
     nickname: 'Avalanche C-Chain',
     rpcUrl: `https://avalanche-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('avalanche-mainnet'),
     ticker: 'AVAX',
     rpcPrefs: {
       blockExplorerUrl: 'https://snowtrace.io',
@@ -64,7 +25,6 @@ export const PopularList = [
     chainId: toHex('42161'),
     nickname: 'Arbitrum One',
     rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('arbitrum-mainnet'),
     ticker: 'ETH',
     rpcPrefs: {
       blockExplorerUrl: 'https://arbiscan.io',
@@ -76,7 +36,6 @@ export const PopularList = [
     chainId: toHex('56'),
     nickname: 'BNB Smart Chain Mainnet',
     rpcUrl: 'https://bsc-dataseed1.binance.org',
-    failoverRpcUrls: [],
     ticker: 'BNB',
     warning: true,
     rpcPrefs: {
@@ -89,7 +48,6 @@ export const PopularList = [
     chainId: toHex('8453'),
     nickname: 'Base',
     rpcUrl: `https://base-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('base-mainnet'),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -102,7 +60,6 @@ export const PopularList = [
     chainId: toHex('10'),
     nickname: 'OP Mainnet',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('optimism-mainnet'),
     ticker: 'ETH',
     rpcPrefs: {
       blockExplorerUrl: 'https://optimistic.etherscan.io',
@@ -114,8 +71,6 @@ export const PopularList = [
     chainId: toHex('11297108109'),
     nickname: 'Palm',
     rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
-    // Quicknode does not support Palm at this time
-    failoverRpcUrls: [],
     ticker: 'PALM',
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.palm.io',
@@ -127,7 +82,6 @@ export const PopularList = [
     chainId: toHex('137'),
     nickname: 'Polygon Mainnet',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('polygon-mainnet'),
     ticker: 'POL',
     rpcPrefs: {
       blockExplorerUrl: 'https://polygonscan.com',
@@ -139,7 +93,6 @@ export const PopularList = [
     chainId: toHex('324'),
     nickname: 'zkSync Mainnet',
     rpcUrl: `https://mainnet.era.zksync.io`,
-    failoverRpcUrls: [],
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -151,17 +104,17 @@ export const PopularList = [
   {
     chainId: toHex('1329'),
     nickname: 'Sei Network',
-    rpcUrl: `https://evm-rpc.sei-apis.com`,
+    rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: [],
     ticker: 'SEI',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://seiscan.app/pacific-1/',
+      blockExplorerUrl: 'https://seitrace.com/',
       imageUrl: 'SEI',
       imageSource: require('../../images/sei.png'),
     },
   },
-] satisfies Network[];
+];
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
   if (chainId === SolScope.Mainnet) {
@@ -258,7 +211,6 @@ export const UnpopularNetworkList = [
     chainId: toHex('250'),
     nickname: 'Fantom Opera',
     rpcUrl: 'https://rpc.ftm.tools/',
-    failoverRpcUrls: [],
     ticker: 'FTM',
     warning: true,
     rpcPrefs: {
@@ -271,7 +223,6 @@ export const UnpopularNetworkList = [
     chainId: toHex('1666600000'),
     nickname: 'Harmony Mainnet Shard 0',
     rpcUrl: 'https://api.harmony.one/',
-    failoverRpcUrls: [],
     ticker: 'ONE',
     warning: true,
     rpcPrefs: {
@@ -293,6 +244,8 @@ export const NETWORK_CHAIN_ID: {
   readonly SONEIUM_MAINNET: '0x74c';
   readonly SONEIUM_MINATO_TESTNET: '0x79a';
   readonly XRPLEVM_TESTNET: '0x161c28';
+  // TODO: Remove this when Sei is added to the transaction controller
+  readonly SEI: '0x531';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',

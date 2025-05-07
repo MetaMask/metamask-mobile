@@ -1,6 +1,6 @@
 import { RpcEndpointType } from '@metamask/network-controller';
 import Engine from '../Engine';
-import wallet_watchAsset from './wallet_watchAsset';
+import { wallet_watchAsset } from './wallet_watchAsset';
 // eslint-disable-next-line import/no-namespace
 import * as transactionsUtils from '../../util/transactions';
 import {
@@ -32,8 +32,10 @@ jest.mock('../Engine', () => {
       },
       TokenListController: {
         state: {
-          tokenList: {
-            '0x1': [],
+          tokensChainsCache: {
+            '0x1': {
+              data: [],
+            },
           },
         },
       },
