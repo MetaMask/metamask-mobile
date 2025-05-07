@@ -1,0 +1,93 @@
+import React, { Fragment } from 'react';
+import { ImageSourcePropType, View } from 'react-native';
+import { PositionTypes } from './position-types';
+import styleSheet from './DeFiProtocolPositionGroups.styles';
+import { GroupedDeFiPositions } from '@metamask/assets-controllers';
+import DeFiProtocolPositionTypeGroupDetails from './DeFiProtocolPositionTypeGroupDetails';
+import Summary from '../../Base/Summary';
+
+interface DeFiProtocolPositionGroupsParams {
+  protocolAggregate: GroupedDeFiPositions['protocols'][number];
+  networkIconAvatar: ImageSourcePropType | undefined;
+  privacyMode: boolean;
+}
+
+const DeFiProtocolPositionGroups = ({
+  protocolAggregate,
+  networkIconAvatar,
+  privacyMode,
+}: DeFiProtocolPositionGroupsParams) => {
+  const styles = styleSheet();
+
+  const positionGroups = PositionTypes.map((positionType) => {
+    const protocolPositionsByType =
+      protocolAggregate.positionTypes[positionType];
+
+    if (!protocolPositionsByType) {
+      return undefined;
+    }
+
+    return {
+      positionType,
+      positions: protocolPositionsByType.positions.flatMap((tokenGroup) =>
+        tokenGroup.map((protocolToken) => ({
+          protocolTokenAddress: `${protocolToken.address}`,
+          underlyings: protocolToken.tokens
+            .filter((underlyingToken) => underlyingToken.type === 'underlying')
+            .map((underlyingToken) => ({
+              name: underlyingToken.name,
+              symbol: underlyingToken.symbol,
+              iconUrl: underlyingToken.iconUrl,
+              balance: underlyingToken.balance,
+              marketValue: underlyingToken.marketValue,
+            })),
+          underlyingRewards: protocolToken.tokens
+            .filter(
+              (underlyingToken) =>
+                underlyingToken.type === 'underlying-claimable',
+            )
+            .map((underlyingToken) => ({
+              name: underlyingToken.name,
+              symbol: underlyingToken.symbol,
+              iconUrl: underlyingToken.iconUrl,
+              balance: underlyingToken.balance,
+              marketValue: underlyingToken.marketValue,
+            })),
+        })),
+      ),
+    };
+  }).filter((group): group is NonNullable<typeof group> => group !== undefined);
+
+  return (
+    <View style={styles.protocolDetailsPositionsWrapper}>
+      {positionGroups.map((positionGroup) => (
+        <Fragment key={positionGroup.positionType}>
+          {positionGroup.positions.map((position, i, positions) => {
+            const isLast = i === positions.length - 1;
+            return (
+              <Fragment
+                key={`${positionGroup.positionType}-${position.protocolTokenAddress}`}
+              >
+                <DeFiProtocolPositionTypeGroupDetails
+                  positionType={positionGroup.positionType}
+                  tokens={position.underlyings}
+                  networkIconAvatar={networkIconAvatar}
+                  privacyMode={privacyMode}
+                />
+                <DeFiProtocolPositionTypeGroupDetails
+                  positionType={'reward'}
+                  tokens={position.underlyingRewards}
+                  networkIconAvatar={networkIconAvatar}
+                  privacyMode={privacyMode}
+                />
+                {!isLast && <Summary.Separator />}
+              </Fragment>
+            );
+          })}
+        </Fragment>
+      ))}
+    </View>
+  );
+};
+
+export default DeFiProtocolPositionGroups;

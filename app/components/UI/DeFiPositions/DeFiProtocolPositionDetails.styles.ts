@@ -25,11 +25,6 @@ const styleSheet = (params: { theme: Theme }) => {
     separatorWrapper: {
       paddingHorizontal: 16,
     },
-    protocolDetailsPositionsWrapper: {
-      display: 'flex',
-      flexDirection: 'column',
-      paddingHorizontal: 16,
-    },
   });
 };
 

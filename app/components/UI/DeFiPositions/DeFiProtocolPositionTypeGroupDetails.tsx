@@ -11,15 +11,9 @@ import SensitiveText, {
 } from '../../../component-library/components/Texts/SensitiveText';
 import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import styleSheet from './DeFiProtocolPositionTypeGroupDetails.styles';
+import { PositionType } from './position-types';
 
-const PositionTypes = ['supply', 'stake', 'borrow', 'reward'] as const;
-type PositionType = (typeof PositionTypes)[number];
-
-const DeFiProtocolPositionTypeGroupDetails = ({
-  positionType,
-  tokens,
-  networkIconAvatar,
-}: {
+interface DeFiProtocolPositionTypeGroupDetailsProps {
   positionType: PositionType;
   tokens: {
     name: string;
@@ -29,7 +23,15 @@ const DeFiProtocolPositionTypeGroupDetails = ({
     marketValue: number | undefined;
   }[];
   networkIconAvatar: ImageSourcePropType | undefined;
-}) => {
+  privacyMode: boolean;
+}
+
+const DeFiProtocolPositionTypeGroupDetails = ({
+  positionType,
+  tokens,
+  networkIconAvatar,
+  privacyMode,
+}: DeFiProtocolPositionTypeGroupDetailsProps) => {
   const theme = useTheme();
   const styles = styleSheet({ theme });
 
@@ -62,7 +64,7 @@ const DeFiProtocolPositionTypeGroupDetails = ({
           <View style={styles.balance}>
             <SensitiveText
               variant={TextVariant.BodyMDMedium}
-              isHidden={false}
+              isHidden={privacyMode}
               length={SensitiveTextLength.Medium}
             >
               {token.marketValue
@@ -74,7 +76,7 @@ const DeFiProtocolPositionTypeGroupDetails = ({
             </SensitiveText>
             <SensitiveText
               variant={TextVariant.BodySMMedium}
-              isHidden={false}
+              isHidden={privacyMode}
               length={SensitiveTextLength.Short}
               style={styles.alternativeText}
             >

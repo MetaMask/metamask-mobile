@@ -13,8 +13,12 @@ import { formatWithThreshold } from '../../../util/assets';
 import I18n from '../../../../locales/i18n';
 import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import Summary from '../../Base/Summary';
-import { PositionTypes } from './position-types';
-import DeFiProtocolPositionTypeGroup from './DeFiProtocolPositionTypeGroup';
+import { useSelector } from 'react-redux';
+import { selectPrivacyMode } from '../../../selectors/preferencesController';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../component-library/components/Texts/SensitiveText';
+import DeFiProtocolPositionGroups from './DeFiProtocolPositionGroups';
 
 interface DeFiProtocolPositionDetailsParams {
   protocolAggregate: GroupedDeFiPositions['protocols'][number];
@@ -28,6 +32,7 @@ const DeFiProtocolPositionDetails = () => {
 
   const { protocolAggregate, networkIconAvatar } =
     useParams<DeFiProtocolPositionDetailsParams>();
+  const privacyMode = useSelector(selectPrivacyMode);
 
   useEffect(() => {
     navigation.setOptions(
@@ -42,8 +47,10 @@ const DeFiProtocolPositionDetails = () => {
           <Text variant={TextVariant.DisplayMD}>
             {protocolAggregate.protocolDetails.name}
           </Text>
-          <Text
+          <SensitiveText
             variant={TextVariant.BodyMDMedium}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
             style={styles.alternativeText}
           >
             {formatWithThreshold(
@@ -52,7 +59,7 @@ const DeFiProtocolPositionDetails = () => {
               I18n.locale,
               { style: 'currency', currency: 'USD' },
             )}
-          </Text>
+          </SensitiveText>
         </View>
 
         <View>
@@ -66,24 +73,11 @@ const DeFiProtocolPositionDetails = () => {
       <View style={styles.separatorWrapper}>
         <Summary.Separator />
       </View>
-      <View style={styles.protocolDetailsPositionsWrapper}>
-        {PositionTypes.map((positionType) => {
-          const positionGroups = protocolAggregate.positionTypes[positionType];
-
-          if (!positionGroups) {
-            return null;
-          }
-
-          return (
-            <DeFiProtocolPositionTypeGroup
-              key={positionType}
-              positionType={positionType}
-              positionGroups={positionGroups}
-              networkIconAvatar={networkIconAvatar}
-            />
-          );
-        })}
-      </View>
+      <DeFiProtocolPositionGroups
+        protocolAggregate={protocolAggregate}
+        networkIconAvatar={networkIconAvatar}
+        privacyMode={privacyMode}
+      />
     </View>
   );
 };
