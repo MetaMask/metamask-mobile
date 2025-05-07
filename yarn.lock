@@ -5412,13 +5412,13 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-6.0.0.tgz#1ceb4562c039c50d4d2d9a639f0aa9093b196b50"
-  integrity sha512-fU/BGcIe6qw/bQNUUoHdp9nVQuMlYMUClbrZiKJ8vbnfbLAA5+brlRo8gmKqUUTjkriPNEzX6mplB2ON8sMbpA==
+"@metamask/notification-services-controller@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-7.0.0.tgz#0c9521dc6d83dddcffd9213ae6eb07716305dddb"
+  integrity sha512-Z4q/Fh+APNVe9aB3MiaylxF06qB3BGV1RRM+x+/HtFe79j5Sd7xMGfCXLIBhbtSrZY4DOUbHs+O/iyyNQ0WQ8w==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
-    "@metamask/base-controller" "^8.0.0"
+    "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.7.0"
     "@metamask/utils" "^11.2.0"
     bignumber.js "^9.1.2"
