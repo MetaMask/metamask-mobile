@@ -5,7 +5,7 @@ import { NetworkConfiguration, RpcEndpointType } from '@metamask/network-control
 import { Hex } from '@metamask/utils';
 
 import { ensureValidState } from './util';
-import migrate from './076';
+import migrate from './077';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -124,7 +124,7 @@ const createMonadTestnetConfiguration = (): NetworkConfiguration => ({
     nativeCurrency: 'MON',
 });
 
-describe('Migration 76: Add `Monad Testnet`', () => {
+describe('Migration 77: Add `Monad Testnet`', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -242,7 +242,7 @@ describe('Migration 76: Add `Monad Testnet`', () => {
     // State should be unchanged
     expect(migratedState).toStrictEqual(orgState);
     expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error('Migration 76: NetworkController or networkConfigurationsByChainId not found in state'),
+      new Error('Migration 77: NetworkController or networkConfigurationsByChainId not found in state'),
     );
   });
 });
