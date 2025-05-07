@@ -1,4 +1,7 @@
+// Event name for the performance tracing:
 export const PerformanceEventNames = {
-  // Event name for the performance trace for adding a snap account into the accounts controller state
+  // When adding a Snap account.
   AddSnapAccount: 'ADD_SNAP_ACCOUNT',
+  // When adding a HD account.
+  AddHdAccount: 'ADD_HD_ACCOUNT',
 };
