@@ -21,7 +21,7 @@ const mockReanimated = () => {
     value: 1,
   }));
   Reanimated.useAnimatedStyle = jest.fn((callback) => callback());
-}
+};
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 (selectIpfsGateway as unknown as jest.Mock).mockReturnValue(
@@ -125,7 +125,7 @@ describe('CustomAction Component', () => {
   });
 
   it('sets expandedHeight on layout', () => {
-    mockReanimated()
+    mockReanimated();
 
     const { getByTestId } = renderWithProvider(
       <CustomAction customAction={mockCustomAction} showInfo={jest.fn()} />,
@@ -144,7 +144,7 @@ describe('CustomAction Component', () => {
   });
 
   it('applies animated styles when highlighted', () => {
-    mockReanimated()
+    mockReanimated();
 
     const { getByTestId } = renderWithProvider(
       <CustomAction
@@ -160,7 +160,7 @@ describe('CustomAction Component', () => {
   });
 
   it('resets animated styles when not highlighted', () => {
-    mockReanimated()
+    mockReanimated();
 
     const { getByTestId } = renderWithProvider(
       <CustomAction
@@ -176,7 +176,7 @@ describe('CustomAction Component', () => {
   });
 
   it('applies animated opacity based on expandedHeight', () => {
-    mockReanimated()
+    mockReanimated();
 
     const { getByTestId } = renderWithProvider(
       <CustomAction customAction={mockCustomAction} showInfo={jest.fn()} />,
