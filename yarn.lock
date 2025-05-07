@@ -4666,19 +4666,19 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/accounts-controller@^27.0.0":
-  version "27.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-27.0.0.tgz#555b58337e1f9e323fa2c6635136b585f0810fb3"
-  integrity sha512-RwtBQtXTRs0lpHaxgQgYpJCam0PaRzX+H1ZaS9jlvADZMaY74xP4iKZPPpbLaVHY4gJH2/YW02CNXyFuSEkrFQ==
+"@metamask/accounts-controller@^28.0.0":
+  version "28.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-28.0.0.tgz#408895c2e42a323bbaa6d2338059684dec9d4984"
+  integrity sha512-MSv2oPR2SlHnL31T/sLgb3RKmkORIH38/9c7xg/irw5/TvmdPXMnHvhTTuC0V84o+kH8NIji6qEggG3wCBz1mA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/eth-snap-keyring" "^12.0.0"
-    "@metamask/keyring-api" "^17.2.0"
-    "@metamask/keyring-internal-api" "^6.0.0"
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/eth-snap-keyring" "^12.1.1"
+    "@metamask/keyring-api" "^17.4.0"
+    "@metamask/keyring-internal-api" "^6.0.1"
     "@metamask/keyring-utils" "^3.0.0"
-    "@metamask/snaps-sdk" "^6.17.1"
-    "@metamask/snaps-utils" "^8.10.0"
+    "@metamask/snaps-sdk" "^6.22.0"
+    "@metamask/snaps-utils" "^9.2.0"
     "@metamask/utils" "^11.2.0"
     deepmerge "^4.2.2"
     ethereum-cryptography "^2.1.2"
@@ -5073,7 +5073,7 @@
     ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
 
-"@metamask/eth-snap-keyring@^12.0.0", "@metamask/eth-snap-keyring@^12.1.1":
+"@metamask/eth-snap-keyring@^12.1.1":
   version "12.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-12.1.1.tgz#11fb3571878fc4511f44bdb7acb7465ade815c4f"
   integrity sha512-DbnPYMe2xomPkpX623nqnM3tEKgJKvTG8ePgclmnYXHF2JRHkul+R65KLjF+kenBwPBh2uM/rh6kOw9oQH5Pnw==
@@ -5541,25 +5541,25 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
 
-"@metamask/profile-sync-controller@^12.0.0":
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-12.0.0.tgz#b41a8ebc31e40803f395e8cdc5ef46a7a91ac49c"
-  integrity sha512-8OTGHij23fFatlrf4G71WhCfb1uzDLfwkoiPfuwDl5k176SrraAApsj/iCrxWT7GFlFbn3s+fGScjnz2b5bs8w==
+"@metamask/profile-sync-controller@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-13.0.0.tgz#8d9c8678d5a2b21e1a41886c8d505f3e138176c3"
+  integrity sha512-GvhoVvTk2eqo1EEv8HTaUaRj07Sob0sn5s6PVJwmgGSfL0a4wueapzj53iz5YnfUpotP2r4zX4a1uIC/agPtdg==
   dependencies:
-    "@metamask/base-controller" "^8.0.0"
+    "@metamask/base-controller" "^8.0.1"
     "@metamask/keyring-api" "^17.4.0"
-    "@metamask/snaps-sdk" "^6.17.1"
-    "@metamask/snaps-utils" "^8.10.0"
+    "@metamask/snaps-sdk" "^6.22.0"
+    "@metamask/snaps-utils" "^9.2.0"
     "@noble/ciphers" "^0.5.2"
     "@noble/hashes" "^1.4.0"
     immer "^9.0.6"
     loglevel "^1.8.1"
     siwe "^2.3.2"
 
-"@metamask/providers@^18.3.1":
-  version "18.3.1"
-  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-18.3.1.tgz#b49351134cbe77034db67774cc4ff473e259158c"
-  integrity sha512-4wHCA24KDwq/eVnAu+/+N7BEuMNN63kdN295u8Wkdc76puyig3lJdcGGne+TEjiILG34twr9rjZPOWTCwOUcDg==
+"@metamask/providers@^21.0.0":
+  version "21.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-21.0.0.tgz#4c23601e163a501b5cfb3853e227243685d1348a"
+  integrity sha512-qSKfQQYX4AsKxWcalJjmIce557wa9KWlRqSzMbmpcC2ULo3JlYCfJIi42u3mooaPxK2l+9AdtzLSVbLRsBYnPA==
   dependencies:
     "@metamask/json-rpc-engine" "^10.0.2"
     "@metamask/json-rpc-middleware-stream" "^8.0.6"
