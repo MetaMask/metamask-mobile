@@ -23,7 +23,7 @@ const mockNetworkBatchSupport = [
   },
 ] as IsAtomicBatchSupportedResult;
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionController: {
       isAtomicBatchSupported: () => Promise.resolve(mockNetworkBatchSupport),

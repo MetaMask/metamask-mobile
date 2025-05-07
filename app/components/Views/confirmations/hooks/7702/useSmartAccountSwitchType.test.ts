@@ -10,7 +10,7 @@ import {
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useSmartAccountSwitchType } from './useSmartAccountSwitchType';
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     TokenListController: {
