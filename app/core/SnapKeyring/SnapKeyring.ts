@@ -17,7 +17,6 @@ import { store } from '../../store';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSnapAccountEvent';
 import {
-  startPerformanceTrace,
   endPerformanceTrace,
 } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../redux/slices/performance/constants';
