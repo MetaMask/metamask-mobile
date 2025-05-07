@@ -14,7 +14,6 @@ import { selectEvmChainId } from '../../../../../../selectors/networkController'
 import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
 import Engine from '../../../../../../core/Engine';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { TokenI } from '../../../../Tokens/types';
 import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
 
@@ -75,7 +74,6 @@ const StakingButtons = ({
       screen: Routes.STAKING.STAKE,
       params: {
         token: asset,
-        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
       },
     });
     trackEvent(
