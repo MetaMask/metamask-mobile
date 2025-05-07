@@ -97,12 +97,15 @@ export const Browser = (props) => {
       networkImageSource: require('../../../images/solana-logo.png'),
       labelOptions: [
         {
-          label: 'Solana dapp connection coming soon \n',
+          label: `${strings(
+            'browser.toast.solana_dapp_connection_coming_soon.title',
+          )} \n`,
           isBold: true,
         },
         {
-          label:
-            'You can connect to Solana dapps in the extension or trade Solana tokens in-app.',
+          label: `${strings(
+            'browser.toast.solana_dapp_connection_coming_soon.message',
+          )}`,
         },
       ],
     });
