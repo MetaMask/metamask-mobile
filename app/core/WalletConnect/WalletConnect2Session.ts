@@ -4,6 +4,7 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
+import { CaipChainId } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import { selectEvmChainId } from '../../selectors/networkController';
@@ -21,10 +22,9 @@ import { ERROR_MESSAGES } from './WalletConnectV2';
 import METHODS_TO_REDIRECT from './wc-config';
 import {
   checkWCPermissions,
+  getHostname,
   getScopedPermissions,
   hideWCLoadingState,
-  // normalizeOrigin,
-  getHostname,
 } from './wc-utils';
 import { CaipChainId } from '@metamask/utils';
 
@@ -115,7 +115,7 @@ class WalletConnect2Session {
         getProviderState: any;
       }) =>
         getRpcMethodMiddleware({
-          hostname: url,
+          hostname: getHostname(url),
           getProviderState,
           channelId,
           analytics: {},
@@ -192,8 +192,7 @@ class WalletConnect2Session {
 
   redirect = (context?: string) => {
     DevLogger.log(
-      `WC2::redirect context=${context} isDeeplink=${
-        this.deeplink
+      `WC2::redirect context=${context} isDeeplink=${this.deeplink
       } navigation=${this.navigation !== undefined}`,
     );
     if (!this.deeplink) return;
@@ -393,12 +392,14 @@ class WalletConnect2Session {
 
       // const origin = normalizeOrigin(this.session.peer.metadata.url);
       const origin = this.session.peer.metadata.url;
+      const hostname = getHostname(origin);
+
       DevLogger.log(
-        `WC2::updateSession origin=${origin} - chainId=${chainId} - accounts=${accounts}`,
+        `WC2::updateSession origin=${origin} hostname=${hostname} - chainId=${chainId} - accounts=${accounts}`,
       );
 
       if (accounts.length === 0) {
-        const approvedAccounts = getPermittedAccounts(getHostname(origin));
+        const approvedAccounts = getPermittedAccounts(hostname);
         if (approvedAccounts.length > 0) {
           DevLogger.log(
             `WC2::updateSession found approved accounts`,
@@ -525,7 +526,7 @@ class WalletConnect2Session {
     }
 
     if (method === 'eth_signTypedData') {
-      await this.backgroundBridge.onMessage({
+      this.backgroundBridge.onMessage({
         name: 'walletconnect-provider',
         data: {
           id: requestEvent.id,

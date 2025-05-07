@@ -311,10 +311,10 @@ export const updatePermittedChains = (
  * @param chainId - ChainId to remove.
  */
 export const removePermittedChain = (hostname: string, chainId: string) => {
-  const caip25Caveat = getCaip25Caveat(origin);
+  const caip25Caveat = getCaip25Caveat(hostname);
   if (!caip25Caveat) {
     throw new Error(
-      `Cannot remove chain permissions for origin "${origin}": no permission currently exists for this origin.`,
+      `Cannot remove chain permissions for origin "${hostname}": no permission currently exists for this origin.`,
     );
   }
   const { PermissionController } = Engine.context;
@@ -393,6 +393,7 @@ export const getPermittedChains = async (
   const caveat = PermissionController.getCaveat(
     hostname,
     Caip25EndowmentPermissionName,
+    Caip25CaveatType
   );
 
   if (caveat) {
