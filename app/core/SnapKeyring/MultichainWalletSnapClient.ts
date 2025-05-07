@@ -15,6 +15,9 @@ import {
 import Engine from '../Engine';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
+import { store } from '../../store';
+import { startPerformanceTrace } from '../redux/slices/performance';
+import { PerformanceEventNames } from '../redux/slices/performance/constants';
 
 export enum WalletClientType {
   Bitcoin = 'bitcoin',
@@ -110,6 +113,13 @@ export abstract class MultichainWalletSnapClient {
     options: MultichainWalletSnapOptions,
     snapKeyringOptions?: SnapKeyringOptions,
   ) {
+    // This flow is async and start here, to end in the `SnapKeyring.addAccountFinalize` method.
+    store.dispatch(
+      startPerformanceTrace({
+        eventName: PerformanceEventNames.AddSnapAccount,
+      }),
+    );
+
     const accountName = getMultichainAccountName(
       options.scope,
       this.getClientType(),

@@ -25,6 +25,7 @@ exports[`EarnMaintenanceBanner renders banner and maintenance message 1`] = `
   >
     <SvgMock
       color="#9a6300"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={

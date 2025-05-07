@@ -9,6 +9,12 @@ import {
   WalletClientType,
 } from '../../core/SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
+import {
+  endPerformanceTrace,
+  startPerformanceTrace,
+} from '../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
+import { store } from '../../store';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
@@ -98,6 +104,12 @@ export async function addNewHdAccount(
         type: ExtendedKeyringTypes.hd,
       };
 
+  store.dispatch(
+    startPerformanceTrace({
+      eventName: PerformanceEventNames.AddHdAccount,
+    }),
+  );
+
   const [addedAccountAddress] = await KeyringController.withKeyring(
     keyringSelector,
     async ({ keyring }) => await keyring.addAccounts(1),
@@ -107,4 +119,11 @@ export async function addNewHdAccount(
   if (name) {
     Engine.setAccountLabel(addedAccountAddress, name);
   }
+
+  // We consider the account to be created once it got selected and renamed.
+  store.dispatch(
+    endPerformanceTrace({
+      eventName: PerformanceEventNames.AddHdAccount,
+    }),
+  );
 }
