@@ -403,14 +403,14 @@ export function resemblesAddress(address: string) {
  * It is used to ensure that the address is in a valid format before
  * performing any operations on it.
  *
- * @returns {string | undefined} - Returns the checksummed address or undefined if input is invalid
+ * @returns {string} - Returns the checksummed address or undefined if input is invalid
  */
 export function safeToChecksumAddress(address: string) {
-  if (!address) return undefined;
+  if (!address) return '';
   if (isHexString(address)) {
     return toChecksumHexAddress(address);
   }
-  return address;
+  return address as string;
 }
 
 /**

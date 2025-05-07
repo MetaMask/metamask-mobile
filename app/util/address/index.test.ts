@@ -533,11 +533,9 @@ describe('isHDOrFirstPartySnapAccount', () => {
 });
 
 describe('safeToChecksumAddress', () => {
-  it('returns undefined when address is empty or undefined', () => {
-    expect(safeToChecksumAddress('')).toBeUndefined();
-    expect(
-      safeToChecksumAddress(undefined as unknown as string),
-    ).toBeUndefined();
+  it('returns empty when address is empty or undefined', () => {
+    expect(safeToChecksumAddress('')).toBe('');
+    expect(safeToChecksumAddress(undefined as unknown as string)).toBe('');
   });
 
   it('returns checksummed address when valid hex string is provided', () => {
