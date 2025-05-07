@@ -51,7 +51,10 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import {
+  getCaip25Caveat,
+  getPermittedAccountsByHostname,
+} from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
   selectIpfsGateway,
@@ -75,8 +78,6 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
@@ -112,11 +113,13 @@ import UrlAutocomplete, {
   UrlAutocompleteRef,
 } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import {
   getPhishingTestResult,
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
+import { toHex } from '@metamask/controller-utils';
 
 /**
  * Tab component for the in-app browser
@@ -218,7 +221,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Checks if a given url or the current url is the homepage
    */
-  const isHomepage = useCallback((checkUrl = null) => {
+  const isHomepage = useCallback((checkUrl?: string | null) => {
     const currentPage = checkUrl || resolvedUrlRef.current;
     const prefixedUrl = prefixUrlWithProtocol(currentPage);
     const { host: currentHost } = getUrlObj(prefixedUrl);
@@ -227,7 +230,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     );
   }, []);
 
-  const notifyAllConnections = useCallback((payload) => {
+  const notifyAllConnections = useCallback((payload: unknown) => {
     backgroundBridgeRef.current?.sendNotification(payload);
   }, []);
 
@@ -364,8 +367,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const handleIpfsContent = useCallback(
     async (
-      fullUrl,
-      { hostname, pathname, query },
+      fullUrl: string,
+      {
+        hostname,
+        pathname,
+        query,
+      }: { hostname: string; pathname: string; query: string },
     ): Promise<IpfsContentResult | undefined | null> => {
       const { provider } =
         Engine.context.NetworkController.getProviderAndBlockTracker();
@@ -645,14 +652,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     if (isConnected) {
       let permittedChains = [];
       try {
-        const caveat = Engine.context.PermissionController.getCaveat(
-          hostname,
-          PermissionKeys.permittedChains,
-          CaveatTypes.restrictNetworkSwitching,
-        );
-        permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
+        const caveat = getCaip25Caveat(hostname);
+        permittedChains = caveat ? getPermittedEthChainIds(caveat.value) : [];
 
-        const currentChainId = activeChainId;
+        const currentChainId = toHex(activeChainId);
         const isCurrentChainIdAlreadyPermitted =
           permittedChains.includes(currentChainId);
 
@@ -1160,7 +1163,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   };
 
   const handleOnFileDownload = useCallback(
-    async ({ nativeEvent: { downloadUrl } }) => {
+    async ({
+      nativeEvent: { downloadUrl },
+    }: {
+      nativeEvent: { downloadUrl: string };
+    }) => {
       const downloadResponse = await downloadFile(downloadUrl);
       if (downloadResponse) {
         reload();
@@ -1444,7 +1451,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
               activeUrl={resolvedUrlRef.current}
               isHomepage={isHomepage}
               getMaskedUrl={getMaskedUrl}
-              onSubmitEditing={onSubmitEditing}
               title={titleRef}
               reload={reload}
               sessionENSNames={sessionENSNamesRef.current}

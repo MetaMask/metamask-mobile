@@ -49,7 +49,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   renderScrollComponent={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
@@ -896,7 +896,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   renderScrollComponent={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
@@ -911,7 +911,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "#4459ff1a",
             "flexDirection": "row",
           }
         }
@@ -1193,6 +1193,34 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                 </View>
               </View>
             </View>
+          </View>
+          <View
+            accessibilityRole="checkbox"
+            accessible={true}
+            style={
+              {
+                "backgroundColor": "#4459ff1a",
+                "bottom": 0,
+                "flexDirection": "row",
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "width": 4,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": "#4459ff",
+                  "borderRadius": 2,
+                  "marginLeft": 4,
+                  "marginVertical": 4,
+                  "width": 4,
+                }
+              }
+            />
           </View>
         </TouchableOpacity>
         <View
@@ -1627,7 +1655,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   renderScrollComponent={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
