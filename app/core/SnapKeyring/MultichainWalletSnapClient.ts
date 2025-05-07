@@ -190,7 +190,7 @@ export abstract class MultichainWalletSnapClient {
               },
             );
           } catch (error) {
-            captureException(`Failed to create account ${error}`);
+            captureException(new Error(`Failed to create account ${error}`));
           }
         }
         // Stop discovering accounts when none are found
@@ -217,7 +217,9 @@ export abstract class MultichainWalletSnapClient {
         );
         for (const result of results) {
           if (result.status === 'rejected') {
-            captureException(`Failed to create account ${result.reason}`);
+            captureException(
+              new Error(`Failed to create account ${result.reason}`),
+            );
           }
         }
       });
