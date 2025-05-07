@@ -366,7 +366,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       .filter((account) => !isCaipAccountIdInPermittedAccountIds(account, selectedAccounts))
 
       if (accountsToRemove.length > 0) {
-        removePermittedAccounts(hostname, accountsToRemove);
+        const accountsToRemoveHex = accountsToRemove.map(account => {
+          const {address} = parseCaipAccountId(account)
+          return address
+        })
+        removePermittedAccounts(hostname, accountsToRemoveHex);
         newPermittedAccounts = newPermittedAccounts.filter(account => {
           !accountsToRemove.includes(account)
         })
@@ -381,6 +385,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       const labelOptions = [ { label: `${strings('toast.accounts_permissions_updated')}` }, ];
 
       const toastAccount = accountsToAdd.length ? accountsToAdd[0] : newPermittedAccounts[0]
+
+      Logger.log(toastAccount)
 
       const { address } = parseCaipAccountId(toastAccount)
 

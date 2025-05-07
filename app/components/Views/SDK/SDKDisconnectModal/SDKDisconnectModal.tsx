@@ -82,7 +82,7 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
 
   const onConfirm = async () => {
     if (account && channelId) {
-      removePermittedAccounts(channelId, [`eip155:0:${toHex(account)}`]);
+      removePermittedAccounts(channelId, [toHex(account)]);
     } else if (!account && channelId) {
       SDKConnect.getInstance().removeChannel({
         channelId,
