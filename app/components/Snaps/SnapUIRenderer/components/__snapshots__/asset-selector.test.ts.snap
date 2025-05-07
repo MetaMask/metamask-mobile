@@ -165,56 +165,77 @@ exports[`SnapUIAssetSelector should render 1`] = `
                         {
                           "alignItems": "center",
                           "aspectRatio": 1,
-                          "bottom": 2.24,
-                          "height": 16,
+                          "bottom": 0,
+                          "height": 0,
                           "justifyContent": "center",
                           "position": "absolute",
-                          "right": 2.24,
+                          "right": 0,
                           "transform": [
                             {
-                              "translateX": 8,
+                              "translateX": 0,
                             },
                             {
-                              "translateY": 8,
+                              "translateY": 0,
                             },
                           ],
                         }
                       }
                     >
                       <View
+                        onLayout={[Function]}
                         style={
                           {
                             "alignItems": "center",
-                            "backgroundColor": "#ffffff",
-                            "borderColor": "#ffffff",
-                            "borderRadius": 4,
-                            "borderWidth": 1,
-                            "height": 16,
+                            "aspectRatio": 1,
+                            "height": "50%",
                             "justifyContent": "center",
-                            "overflow": "hidden",
-                            "shadowColor": "#0000001a",
-                            "shadowOffset": {
-                              "height": 2,
-                              "width": 0,
-                            },
-                            "shadowOpacity": 1,
-                            "shadowRadius": 4,
-                            "width": 16,
+                            "maxHeight": 24,
+                            "minHeight": 8,
+                            "opacity": 0,
                           }
                         }
+                        testID="badgenetwork"
                       >
-                        <Image
-                          onError={[Function]}
-                          resizeMode="contain"
-                          source={1}
+                        <View
                           style={
                             {
-                              "height": 16,
-                              "width": 16,
+                              "alignItems": "center",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#ffffff",
+                              "borderRadius": 8,
+                              "borderWidth": 2,
+                              "height": 32,
+                              "justifyContent": "center",
+                              "overflow": "hidden",
+                              "shadowColor": "#0000001a",
+                              "shadowOffset": {
+                                "height": 2,
+                                "width": 0,
+                              },
+                              "shadowOpacity": 1,
+                              "shadowRadius": 4,
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                              "width": 32,
                             }
                           }
-                          testID="network-avatar-image"
-                        />
+                        >
+                          <Image
+                            onError={[Function]}
+                            resizeMode="contain"
+                            source={1}
+                            style={
+                              {
+                                "height": 32,
+                                "width": 32,
+                              }
+                            }
+                            testID="network-avatar-image"
+                          />
+                        </View>
                       </View>
                     </View>
                   </View>
