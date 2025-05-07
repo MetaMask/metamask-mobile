@@ -174,7 +174,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
             >
               {optionComponents.map((component, index) => (
                 <SelectorItem
-                  key={`snap-ui-selector-${options[index].value.toString()}`}
+                  key={index}
                   value={options[index].value}
                   disabled={options[index]?.disabled}
                   onSelect={handleSelect}
