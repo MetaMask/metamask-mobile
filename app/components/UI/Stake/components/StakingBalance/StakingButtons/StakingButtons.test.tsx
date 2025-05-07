@@ -16,7 +16,6 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
 
 type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
@@ -157,7 +156,6 @@ describe('StakingButtons', () => {
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {
-        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         token: MOCK_ETH_MAINNET_ASSET,
       },
     });
