@@ -517,6 +517,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="Close"
                                         style={
@@ -701,6 +702,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               </View>
                               <SvgMock
                                 color="#4459ff"
+                                fill="currentColor"
                                 height={16}
                                 name="ArrowDown"
                                 style={
@@ -739,6 +741,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               >
                                 <SvgMock
                                   color="#121314"
+                                  fill="currentColor"
                                   height={16}
                                   name="Search"
                                   style={
