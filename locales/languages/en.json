@@ -1146,9 +1146,6 @@
         "link": {
           "accessibilityHint": "Opens in a new tab"
         },
-        "asset_selector": {
-          "title": "Select an asset"
-        }
       },
       "snap_settings": {
         "remove_snap_section_title": "Remove Snap",
@@ -3971,6 +3968,11 @@
     "manageWhatYouSync": {
       "title": "Manage what you sync",
       "description": "Turn on what’s synced between your devices."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Select an asset"
     }
   }
 }

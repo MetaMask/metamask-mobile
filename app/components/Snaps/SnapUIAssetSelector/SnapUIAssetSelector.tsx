@@ -160,7 +160,7 @@ export const SnapUIAssetSelector: FunctionComponent<
 
   return (
     <SnapUISelector
-      title={strings('app_settings.snaps.snap_ui.asset_selector.title')}
+      title={strings('snap_ui.asset_selector.title')}
       options={options}
       optionComponents={optionComponents}
       disabled={disabled || assets.length === 0}
