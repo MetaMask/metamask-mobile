@@ -32,6 +32,9 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     rowGap: 20,
   },
+  secondaryButton: {
+    marginTop: 16,
+  },
 });
 
 export default styles;
