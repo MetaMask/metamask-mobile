@@ -42,10 +42,7 @@ import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 // eslint-disable-next-line import/no-namespace
 import * as useStakingGasFee from '../../../Stake/hooks/useStakingGasFee';
-import {
-  EARN_INPUT_VIEW_ACTIONS,
-  EarnInputViewProps,
-} from './EarnInputView.types';
+import { EarnInputViewProps } from './EarnInputView.types';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
 import {
   createMockToken,
@@ -263,7 +260,6 @@ describe('EarnInputView', () => {
   const baseProps: EarnInputViewProps = {
     route: {
       params: {
-        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         token: MOCK_ETH_MAINNET_ASSET,
       },
       key: Routes.STAKING.STAKE,
@@ -328,7 +324,6 @@ describe('EarnInputView', () => {
       const { getByText, getAllByText } = render(EarnInputView, {
         params: {
           ...baseProps.route.params,
-          action: EARN_INPUT_VIEW_ACTIONS.LEND,
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
@@ -573,7 +568,6 @@ describe('EarnInputView', () => {
 
       const routeParamsWithUSDC: EarnInputViewProps['route'] = {
         params: {
-          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
