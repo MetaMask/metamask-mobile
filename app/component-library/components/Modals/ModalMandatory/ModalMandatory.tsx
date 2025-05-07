@@ -32,7 +32,7 @@ import {
   MandatoryModalProps,
 } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
-import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
+import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/SeedlessOnboarding/TermsOfUseModal.selectors';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
@@ -136,7 +136,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         {headerTitle}
       </Text>
       <ButtonIcon
-        testID={TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON}
+        testID={TermsOfUseModalSelectorsIDs.CLOSE_BUTTON}
         onPress={onClose}
         iconName={IconName.Close}
         hitSlop={12}

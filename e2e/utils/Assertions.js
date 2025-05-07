@@ -232,7 +232,7 @@ class Assertions {
    * @return {Promise<boolean>} - Resolves to true if the element is enabled, false otherwise
    */
   static async checkIfElementEnabled(element) {
-    return (await element).getAttributes().enabled;
+    return (await (await element).getAttributes()).enabled;
   }
 
   /**
@@ -241,7 +241,7 @@ class Assertions {
    * @return {Promise<boolean>} - Resolves to true if the element is disabled, false otherwise
    */
   static async checkIfElementDisabled(element) {
-    return (await element).getAttributes().enabled;
+    return (await (await element).getAttributes()).enabled;
   }
 }
 

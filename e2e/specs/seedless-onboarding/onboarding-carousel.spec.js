@@ -3,7 +3,7 @@ import OnboardingCarouselView from '../../pages/SeedlessOnboarding/OnboardingCar
 import Assertions from '../../utils/Assertions';
 import { Regression } from '../../tags';
 
-describe(Regression('Seedless Onboarding'), () => {
+describe(Regression('Seedless Onboarding - Carousel'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();

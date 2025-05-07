@@ -1,8 +1,8 @@
-import { TermsOfUseModalSelectorsIDs } from '../../selectors/Onboarding/TermsOfUseModal.selectors';
+import { TermsOfUseModalSelectorsIDs } from '../../selectors/SeedlessOnboarding/TermsOfUseModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
-class TermOfUseView {
+class TermsOfUseModal {
   get container() {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CONTAINER);
   }
@@ -21,6 +21,10 @@ class TermOfUseView {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
   }
 
+  get closeButton() {
+    return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CLOSE_BUTTON);
+  }
+
   async tapAgreeCheckBox() {
     await Gestures.waitAndTap(this.checkbox);
   }
@@ -32,6 +36,10 @@ class TermOfUseView {
   async tapAcceptButton() {
     await Gestures.waitAndTap(this.acceptButton);
   }
+
+  async tapCloseButton() {
+    await Gestures.waitAndTap(this.closeButton);
+  }
 }
 
-export default new TermOfUseView();
+export default new TermsOfUseModal();
