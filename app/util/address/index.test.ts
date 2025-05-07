@@ -542,7 +542,7 @@ describe('safeToChecksumAddress', () => {
 
   it('returns checksummed address when valid hex string is provided', () => {
     const lowerCaseAddress = '0x87187657b35f461d0ceec338d9b8e944a193afe2';
-    const checksummedAddress = '0x87187657B35F461D0CEEC338D9B8E944A193AFE2';
+    const checksummedAddress = '0x87187657b35F461D0Ceec338d9b8E944a193aFE2';
     expect(safeToChecksumAddress(lowerCaseAddress)).toBe(checksummedAddress);
   });
 
