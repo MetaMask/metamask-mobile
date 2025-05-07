@@ -12,13 +12,7 @@ import {
   selectProviderConfig,
 } from '../../selectors/networkController';
 import Engine from '../Engine';
-<<<<<<< HEAD
-import { updatePermittedChains, getPermittedAccounts, getPermittedChains, removePermittedChain } from '../Permissions';
-||||||| e61d8811c2
-import { addPermittedChain, getPermittedAccounts, getPermittedChains, removePermittedChain } from '../Permissions';
-=======
 import { getPermittedAccounts, getPermittedChains, removePermittedChain, updatePermittedChains } from '../Permissions';
->>>>>>> main
 import {
   findExistingNetwork,
   switchToNetwork,
@@ -26,14 +20,6 @@ import {
 import { getRpcMethodMiddlewareHooks } from '../RPCMethods/RPCMethodMiddleware';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
-<<<<<<< HEAD
-import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
-import { getRpcMethodMiddlewareHooks } from '../RPCMethods/RPCMethodMiddleware';
-import { toHex } from '@metamask/controller-utils';
-||||||| e61d8811c2
-import { KnownCaipNamespace } from '@metamask/utils';
-=======
->>>>>>> main
 
 export interface WCMultiVersionParams {
   protocol: string;
