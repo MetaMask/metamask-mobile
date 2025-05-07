@@ -816,94 +816,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
         </View>
       </View>
-      <View
-        style={
-          {
-            "marginVertical": 16,
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "paddingBottom": 8,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "CentraNo1-Bold",
-                "fontSize": 16,
-                "fontWeight": "700",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Profile Sync
-          </Text>
-          <RCTSwitch
-            accessibilityRole="switch"
-            disabled={false}
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#4459ff"
-            style={
-              [
-                {
-                  "height": 31,
-                  "width": 51,
-                },
-                {
-                  "backgroundColor": "#b7bbc866",
-                  "borderRadius": 16,
-                },
-              ]
-            }
-            thumbTintColor="#ffffff"
-            tintColor="#b7bbc866"
-            value={false}
-          />
-        </View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. 
-          <Text
-            accessibilityRole="text"
-            onPress={[Function]}
-            style={
-              {
-                "color": "#4459ff",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Learn how we protect your privacy
-          </Text>
-        </Text>
-      </View>
       <Text
         accessibilityRole="text"
         style={
@@ -1782,7 +1694,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             avatarProps={
               {
                 "imageSource": 1,
-                "name": "Solana Mainnet",
+                "name": "Solana",
                 "variant": "Network",
               }
             }
@@ -1796,7 +1708,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="celldisplay"
-            title="Solana Mainnet"
+            title="Solana"
           >
             <View
               style={
@@ -1856,7 +1768,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
-                  Solana Mainnet
+                  Solana
                 </Text>
               </View>
               <View

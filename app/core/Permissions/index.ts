@@ -3,7 +3,7 @@ import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
 import { CaipAccountId, CaipChainId, Hex, KnownCaipNamespace, parseCaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromCaip25CaveatValue, getAllScopesFromPermission, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, isCaipAccountIdInPermittedAccountIds, setChainIdsInCaip25CaveatValue, setEthAccounts, setNonSCACaipAccountIdsInCaip25CaveatValue, setPermittedEthChainIds} from '@metamask/chain-agnostic-permission';
+import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromCaip25CaveatValue, getAllScopesFromPermission, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, isCaipAccountIdInPermittedAccountIds, isInternalAccountInPermittedAccountIds, setChainIdsInCaip25CaveatValue, setEthAccounts, setNonSCACaipAccountIdsInCaip25CaveatValue, setPermittedEthChainIds} from '@metamask/chain-agnostic-permission';
 import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
 import { toHex } from '@metamask/controller-utils';
@@ -285,27 +285,27 @@ export const addPermittedAccounts = (
   );
 };
 
-export const removePermittedAccounts = (origin: string, accounts: CaipAccountId[]) => {
-  const { PermissionController } = Engine.context;
+export const removePermittedAccounts = (origin: string, addresses: string[]) => {
+  const { PermissionController, AccountsController } = Engine.context;
 
   const caip25Caveat = getCaip25Caveat(origin);
   if (!caip25Caveat) {
     throw new Error(
-      `Cannot remove accounts "${accounts}": No permissions exist for origin "${origin}".`,
+      `Cannot remove accounts "${addresses}": No permissions exist for origin "${origin}".`,
     );
   }
+
+  const internalAccounts = addresses.map((address) => AccountsController.getAccountByAddress(address)) as InternalAccount[]
 
   const existingAccountIds = getCaipAccountIdsFromCaip25CaveatValue(
     caip25Caveat.value,
   );
 
   const remainingAccountIds = existingAccountIds.filter(
-    (existingAccountId) => {
-      // TODO: Fix this in core?
-      return !accounts.some(account =>
-        isCaipAccountIdInPermittedAccountIds(account, [existingAccountId])
-      );
-    },
+    (existingAccountId) =>
+      !internalAccounts.some(internalAccount => isInternalAccountInPermittedAccountIds(internalAccount, [
+        existingAccountId
+      ]))
   );
 
   if (remainingAccountIds.length === existingAccountIds.length) {
@@ -331,11 +331,11 @@ export const removePermittedAccounts = (origin: string, accounts: CaipAccountId[
   }
 };
 
+// The codebase needs to be refactored to use caipAccountIds so that this is easier to change
 export const removeAccountsFromPermissions = async (addresses: Hex[]) => {
   const { PermissionController } = Engine.context;
   for (const subject in PermissionController.state.subjects) {
     try {
-      // TODO: Fix this
       removePermittedAccounts(subject, addresses);
     } catch (e) {
       Logger.log(
@@ -397,10 +397,10 @@ export const updatePermittedChains = (
  * @param chainId - ChainId to remove.
  */
 export const removePermittedChain = (hostname: string, chainId: CaipChainId) => {
-  const caip25Caveat = getCaip25Caveat(origin);
+  const caip25Caveat = getCaip25Caveat(hostname);
   if (!caip25Caveat) {
     throw new Error(
-      `Cannot remove chain permissions for origin "${origin}": no permission currently exists for this origin.`,
+      `Cannot remove chain permissions for origin "${hostname}": no permission currently exists for this origin.`,
     );
   }
   const { PermissionController } = Engine.context;
@@ -479,6 +479,7 @@ export const getPermittedChains = async (
   const caveat = PermissionController.getCaveat(
     hostname,
     Caip25EndowmentPermissionName,
+    Caip25CaveatType
   );
 
   if (caveat) {
