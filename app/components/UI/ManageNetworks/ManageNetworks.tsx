@@ -43,9 +43,13 @@ export default function ManageNetworksComponent() {
     );
   }, [navigation, trackEvent, chainId, createEventBuilder]);
 
-  const handleLink = (link: string) => {
-    Linking.openURL(link);
-  };
+  const openPrivacyPolicyLink = useCallback(() => {
+    Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);
+  }, []);
+
+  const openAddSolanaAccountPrivacyPolicyLink = useCallback(() => {
+    Linking.openURL(AppConstants.URLS.ADD_SOLANA_ACCOUNT_PRIVACY_POLICY);
+  }, []);
 
   return (
     <View style={styles.setting}>
@@ -63,7 +67,7 @@ export default function ManageNetworksComponent() {
         <Text
           color={TextColor.Info}
           testID="privacy-policy-link"
-          onPress={() => handleLink(AppConstants.URLS.PRIVACY_POLICY_2024)}
+          onPress={openPrivacyPolicyLink}
         >
           {strings('default_settings.privacy_policy')}
         </Text>
@@ -71,9 +75,7 @@ export default function ManageNetworksComponent() {
         <Text
           color={TextColor.Info}
           testID="solana-privacy-policy-link"
-          onPress={() =>
-            handleLink(AppConstants.URLS.ADD_SOLANA_ACCOUNT_PRIVACY_POLICY)
-          }
+          onPress={openAddSolanaAccountPrivacyPolicyLink}
         >
           {strings('default_settings.manage_networks_body3')}
         </Text>
