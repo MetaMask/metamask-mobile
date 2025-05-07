@@ -26,7 +26,10 @@ import {
   isAssetFromSearch,
   selectTokenDisplayData,
 } from '../../../../selectors/tokenSearchDiscoveryDataController';
-import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
+import {
+  isSupportedLendingReceiptTokenByChainId,
+  isSupportedLendingTokenByChainId,
+} from '../../Earn/utils/token';
 import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
 import { parseFloatSafe } from '../../Earn/utils';
 import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -38,6 +41,7 @@ import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import { formatMarketDetails } from '../utils/marketDetails';
 import { getTokenDetails } from '../utils/getTokenDetails';
+import { USER_HAS_LENDING_POSITIONS } from '../../Earn/constants/tempLendingConstants';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -188,10 +192,16 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   return (
     <View style={styles.tokenDetailsContainer}>
+      {/* TODO: Abstract StakingEarnings and EarnEmptyStateCta (Earn Lending Experience) into single entrypoint */}
       {asset.isETH && <StakingEarnings asset={asset} />}
       {isStablecoinLendingEnabled &&
         isSupportedLendingTokenByChainId(asset.symbol, asset.chainId ?? '') &&
-        hasAssetBalance && <EarnEmptyStateCta token={asset} />}
+        !isSupportedLendingReceiptTokenByChainId(
+          asset.symbol,
+          asset.chainId ?? '',
+        ) &&
+        hasAssetBalance &&
+        !USER_HAS_LENDING_POSITIONS && <EarnEmptyStateCta token={asset} />}
       {(asset.isETH || tokenMetadata || !isEvmNetworkSelected) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}
