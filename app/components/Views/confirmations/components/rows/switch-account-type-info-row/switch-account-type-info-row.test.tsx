@@ -6,7 +6,7 @@ import {
   upgradeOnlyAccountConfirmation,
 } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import SwitchAccountType from './switch-account-type';
+import SwitchAccountTypeInfoRow from './switch-account-type-info-row';
 
 jest.mock('../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -48,9 +48,9 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-describe('SwitchAccountType - Info Component', () => {
+describe('SwitchAccountTypeInfoRow', () => {
   it('renders correctly for upgrade confirmation', () => {
-    const { getByText } = renderWithProvider(<SwitchAccountType />, {
+    const { getByText } = renderWithProvider(<SwitchAccountTypeInfoRow />, {
       state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
     });
     expect(getByText('Now')).toBeDefined();
@@ -60,7 +60,7 @@ describe('SwitchAccountType - Info Component', () => {
   });
 
   it('renders correctly for downgrade confirmation', () => {
-    const { getByText } = renderWithProvider(<SwitchAccountType />, {
+    const { getByText } = renderWithProvider(<SwitchAccountTypeInfoRow />, {
       state: getAppStateForConfirmation(downgradeAccountConfirmation),
     });
     expect(getByText('Now')).toBeDefined();

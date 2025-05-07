@@ -10,9 +10,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: theme.colors.background.alternative,
+      borderRadius: 32,
       paddingVertical: 4,
       paddingHorizontal: 12,
-      borderRadius: 32,
     },
     label: {
       marginLeft: 8,
