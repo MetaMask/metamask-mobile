@@ -31,9 +31,9 @@ const SwitchAccountTypeModal = () => {
 
   return (
     <BottomSheet>
-      <View style={styles.wrapper} testID="network-data-loader">
+      <View style={styles.wrapper}>
         {pending ? (
-          <View style={styles.spinner}>
+          <View style={styles.spinner} testID="network-data-loader">
             <Spinner />
           </View>
         ) : (
