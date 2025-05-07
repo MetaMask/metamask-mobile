@@ -54,7 +54,7 @@ const migration = (state: unknown): unknown => {
               failoverUrls: [],
               networkClientId,
               type: RpcEndpointType.Custom,
-              url: BUILT_IN_CUSTOM_NETWORKS_RPC.MONAD_TESTNET,
+              url: BUILT_IN_CUSTOM_NETWORKS_RPC['monad-testnet'],
             },
           ],
       };
