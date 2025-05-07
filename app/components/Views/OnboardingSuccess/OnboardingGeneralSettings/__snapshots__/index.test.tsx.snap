@@ -248,10 +248,28 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
               "lineHeight": 24,
             }
           }
+          testID="privacy-policy-link"
         >
           Privacy policy
         </Text>
-         to learn more about how Infura handles data.
+         to learn more about how Infura handles data for EVM accounts, for Solana accounts 
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+          testID="solana-privacy-policy-link"
+        >
+          click here.
+        </Text>
       </Text>
       <TouchableOpacity
         disabled={false}
