@@ -52,7 +52,13 @@ function useHandleSuccessfulOrder() {
           toLowerCaseEquals(stateToken.address, address),
         )
       ) {
-        await TokensController.addToken({ address, symbol, decimals, name });
+        await TokensController.addToken({
+          address,
+          symbol,
+          decimals,
+          name,
+          networkClientId: selectedChainId,
+        });
       }
     },
     [selectedChainId, selectedAddress],

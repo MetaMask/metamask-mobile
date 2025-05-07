@@ -1,19 +1,30 @@
-import { getEncryptionLibrary, AesLib, AesForkedLib } from './lib';
+import {
+  getEncryptionLibrary,
+  AesLib,
+  AesForkedLib,
+  QuickCryptoLib,
+} from './index';
 import {
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
   DERIVATION_OPTIONS_MINIMUM_OWASP2023,
-} from './constants';
+} from '../constants';
 
 const mockPassword = 'mockPassword';
 const mockSalt = '00112233445566778899001122334455';
 
 describe('lib', () => {
-  describe('getLib', () => {
+  describe('getEncryptionLibrary', () => {
     it('returns the original library', () => {
       const lib = AesLib;
 
       expect(getEncryptionLibrary(ENCRYPTION_LIBRARY.original)).toBe(lib);
+    });
+
+    it('returns the quick-crypto library', () => {
+      const lib = QuickCryptoLib;
+
+      expect(getEncryptionLibrary(ENCRYPTION_LIBRARY.quickCrypto)).toBe(lib);
     });
 
     it('returns the forked library in any other case', () => {
@@ -33,7 +44,7 @@ describe('lib', () => {
           lib.deriveKey(mockPassword, mockSalt, {
             ...LEGACY_DERIVATION_OPTIONS,
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
+            // @ts-expect-error - testing invalid algorithm
             algorithm: 'NotAValidKDFAlgorithm',
           }),
         ).rejects.toThrow('Unsupported KDF algorithm');

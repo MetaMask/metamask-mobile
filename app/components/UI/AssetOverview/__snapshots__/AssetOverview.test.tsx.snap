@@ -1094,7 +1094,7 @@ exports[`AssetOverview should render correctly 1`] = `
             {
               "alignItems": "flex-end",
               "alignSelf": "flex-end",
-              "flex": 1,
+              "flexShrink": 0,
             }
           }
         >
@@ -1125,7 +1125,6 @@ exports[`AssetOverview should render correctly 1`] = `
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "paddingHorizontal": 0,
-                "textTransform": "uppercase",
               }
             }
             testID="secondary-balance-test-id"
@@ -2287,7 +2286,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             {
               "alignItems": "flex-end",
               "alignSelf": "flex-end",
-              "flex": 1,
+              "flexShrink": 0,
             }
           }
         >
@@ -2318,7 +2317,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "paddingHorizontal": 0,
-                "textTransform": "uppercase",
               }
             }
             testID="secondary-balance-test-id"
@@ -3341,7 +3339,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
             {
               "alignItems": "flex-end",
               "alignSelf": "flex-end",
-              "flex": 1,
+              "flexShrink": 0,
             }
           }
         >
@@ -3372,7 +3370,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "paddingHorizontal": 0,
-                "textTransform": "uppercase",
               }
             }
             testID="secondary-balance-test-id"

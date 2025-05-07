@@ -4,12 +4,12 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import InfoSection from '../info-row/info-section';
 import InfoRow from '../info-row/info-row';
-import ExpandableSection from './expandable-section';
+import Expandable from './expandable';
 
-describe('ExpandableSection', () => {
-  it('should render correctly for simple ExpandableSection', async () => {
+describe('Expandable', () => {
+  it('should render correctly for simple Expandable', async () => {
     const { getByText } = render(
-      <ExpandableSection
+      <Expandable
         collapsedContent={
           <View>
             <Text>Open</Text>
@@ -28,7 +28,7 @@ describe('ExpandableSection', () => {
 
   it('should display default content', async () => {
     const { getByText } = render(
-      <ExpandableSection
+      <Expandable
         collapsedContent={
           <View>
             <Text>Open</Text>
@@ -47,7 +47,7 @@ describe('ExpandableSection', () => {
 
   it('should open modal when right icon is pressed', async () => {
     const { getByTestId, getByText } = render(
-      <ExpandableSection
+      <Expandable
         collapsedContent={
           <View>
             <Text>Open</Text>

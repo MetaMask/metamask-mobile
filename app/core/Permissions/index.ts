@@ -1,11 +1,12 @@
-import { errorCodes as rpcErrorCodes } from '@metamask/rpc-errors';
-import { RestrictedMethods, CaveatTypes } from './constants';
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
-import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
-import { PermissionKeys } from './specifications';
-import { KnownCaipNamespace } from '@metamask/utils';
+import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getEthAccounts, getPermittedEthChainIds, setEthAccounts, setPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
+import { captureException } from '@sentry/react-native';
+import { toHex } from '@metamask/controller-utils';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -13,38 +14,103 @@ const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsCaveatFromPermission(accountsPermission: any = {}) {
-  return (
-    Array.isArray(accountsPermission.caveats) &&
-    accountsPermission.caveats.find(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (caveat: any) => caveat.type === CaveatTypes.restrictReturnedAccounts,
-    )
+/**
+ * Checks that all accounts referenced have a matching InternalAccount. Sends
+ * an error to sentry for any accounts that were expected but are missing from the wallet.
+ *
+ * @param [internalAccounts] - The list of evm accounts the wallet knows about.
+ * @param [accounts] - The list of evm accounts addresses that should exist.
+ */
+const captureKeyringTypesWithMissingIdentities = (
+  internalAccounts: InternalAccount[] = [],
+  accounts: Hex[] = [],
+) => {
+  const accountsMissingIdentities = accounts.filter(
+    (address) =>
+      !internalAccounts.some(
+        (account) => account.address.toLowerCase() === address.toLowerCase(),
+      ),
   );
-}
+  const keyringTypesWithMissingIdentities = accountsMissingIdentities.map(
+    (address) =>
+      Engine.context.KeyringController.getAccountKeyringType(address),
+  );
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsPermissionFromSubject(subject: any = {}) {
-  return subject.permissions?.eth_accounts || {};
-}
+  const internalAccountCount = internalAccounts.length;
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsFromPermission(accountsPermission: any) {
-  const accountsCaveat = getAccountsCaveatFromPermission(accountsPermission);
-  return accountsCaveat && Array.isArray(accountsCaveat.value)
-    ? accountsCaveat.value.map((address: string) => address.toLowerCase())
-    : [];
-}
+  const accountTrackerCount = Object.keys(
+    Engine.context.AccountTrackerController.state.accounts || {},
+  ).length;
+
+  captureException(
+    new Error(
+      `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
+    ),
+  );
+};
+
+/**
+ * Sorts a list of evm account addresses by most recently selected by using
+ * the lastSelected value for the matching InternalAccount object stored in state.
+ *
+ * @param accounts - The list of evm accounts addresses to sort.
+ * @returns The sorted evm accounts addresses.
+ */
+export const sortAccountsByLastSelected = (accounts: Hex[]) => {
+  const internalAccounts: InternalAccount[] =
+    Engine.context.AccountsController.listAccounts();
+
+  return accounts.sort((firstAddress, secondAddress) => {
+    const firstAccount = internalAccounts.find(
+      (internalAccount) =>
+        internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
+    );
+
+    const secondAccount = internalAccounts.find(
+      (internalAccount) =>
+        internalAccount.address.toLowerCase() === secondAddress.toLowerCase(),
+    );
+
+    if (!firstAccount) {
+      captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
+      throw new Error(`Missing identity for address: "${firstAddress}".`);
+    } else if (!secondAccount) {
+      captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
+      throw new Error(`Missing identity for address: "${secondAddress}".`);
+    } else if (
+      firstAccount.metadata.lastSelected === secondAccount.metadata.lastSelected
+    ) {
+      return 0;
+    } else if (firstAccount.metadata.lastSelected === undefined) {
+      return 1;
+    } else if (secondAccount.metadata.lastSelected === undefined) {
+      return -1;
+    }
+
+    return (
+      secondAccount.metadata.lastSelected - firstAccount.metadata.lastSelected
+    );
+  });
+};
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAccountsFromSubject(subject: any) {
-  return getAccountsFromPermission(getAccountsPermissionFromSubject(subject));
+  const caveats =
+    subject.permissions?.[Caip25EndowmentPermissionName]?.caveats || [];
+
+  const caveat = caveats.find(
+    ({ type }: CaveatConstraint) => type === Caip25CaveatType,
+  );
+  if (caveat) {
+    const ethAccounts = getEthAccounts(caveat.value);
+    const lowercasedEthAccounts = ethAccounts.map((address: string) =>
+      toHex(address.toLowerCase()),
+    );
+    return sortAccountsByLastSelected(lowercasedEthAccounts);
+  }
+
+  return [];
 }
 
 export const getPermittedAccountsByHostname = (
@@ -70,105 +136,121 @@ export const getPermittedAccountsByHostname = (
   return accountsByHostname?.[hostname] || [];
 };
 
-export const switchActiveAccounts = (hostname: string, accAddress: string) => {
-  const { PermissionController } = Engine.context;
-  const existingPermittedAccountAddresses: string[] =
-    PermissionController.getCaveat(
-      hostname,
-      RestrictedMethods.eth_accounts,
-      CaveatTypes.restrictReturnedAccounts,
-    ).value;
-  const accountIndex = existingPermittedAccountAddresses.findIndex(
-    (address) => address === accAddress,
-  );
-  if (accountIndex === -1) {
-    throw new Error(
-      `eth_accounts permission for hostname "${hostname}" does not permit "${accAddress} account".`,
-    );
-  }
-  let newPermittedAccountAddresses = [...existingPermittedAccountAddresses];
-  newPermittedAccountAddresses.splice(accountIndex, 1);
-  newPermittedAccountAddresses = getUniqueList([
-    accAddress,
-    ...newPermittedAccountAddresses,
-  ]);
 
-  PermissionController.updateCaveat(
-    hostname,
-    RestrictedMethods.eth_accounts,
-    CaveatTypes.restrictReturnedAccounts,
-    newPermittedAccountAddresses,
-  );
+/**
+ * Returns a default CAIP-25 caveat value.
+ * @returns Default {@link Caip25CaveatValue}
+ */
+export const getDefaultCaip25CaveatValue = (): Caip25CaveatValue => ({
+  requiredScopes: {},
+  optionalScopes: {
+    'wallet:eip155': {
+      accounts: [],
+    },
+  },
+  sessionProperties: {},
+  isMultichainOrigin: false,
+});
+
+// Returns the CAIP-25 caveat or undefined if it does not exist
+export const getCaip25Caveat = (origin: string) => {
+  let caip25Caveat;
+  try {
+    caip25Caveat = Engine.context.PermissionController.getCaveat(
+      origin,
+      Caip25EndowmentPermissionName,
+      Caip25CaveatType,
+    );
+  } catch (err) {
+    if (err instanceof PermissionDoesNotExistError) {
+      // suppress expected error in case that the origin
+      // does not have the target permission yet
+    } else {
+      throw err;
+    }
+  }
+  return caip25Caveat;
 };
 
 export const addPermittedAccounts = (
-  hostname: string,
-  addresses: string[],
+  origin: string,
+  accounts: Hex[],
 ): string => {
-  const { PermissionController } = Engine.context;
-  const existing = PermissionController.getCaveat(
-    hostname,
-    RestrictedMethods.eth_accounts,
-    CaveatTypes.restrictReturnedAccounts,
-  );
-  const existingPermittedAccountAddresses: string[] = existing.value;
-
-  const newPermittedAccountsAddresses = getUniqueList(
-    addresses,
-    existingPermittedAccountAddresses,
-  );
-
-  // No change in permitted account addresses
-  if (
-    newPermittedAccountsAddresses.length ===
-    existingPermittedAccountAddresses.length
-  ) {
-    console.error(
-      `eth_accounts permission for hostname: (${hostname}) already exists for account addresses: (${existingPermittedAccountAddresses}).`,
+  const caip25Caveat = getCaip25Caveat(origin);
+  if (!caip25Caveat) {
+    throw new Error(
+      `Cannot add account permissions for origin "${origin}": no permission currently exists for this origin.`,
     );
-    return existingPermittedAccountAddresses[0];
   }
 
-  PermissionController.updateCaveat(
-    hostname,
-    RestrictedMethods.eth_accounts,
-    CaveatTypes.restrictReturnedAccounts,
-    newPermittedAccountsAddresses,
+  const ethAccounts = getEthAccounts(caip25Caveat.value);
+
+  const updatedEthAccounts = Array.from(new Set([...ethAccounts, ...accounts]));
+
+  // No change in permitted account addresses
+  if (ethAccounts.length === updatedEthAccounts.length) {
+    console.error(
+      `eth_accounts permission for hostname: (${origin}) already exists for account addresses: (${updatedEthAccounts}).`,
+    );
+
+    return ethAccounts[0];
+  }
+
+  const updatedCaveatValue = setEthAccounts(
+    caip25Caveat.value,
+    updatedEthAccounts,
   );
 
-  return newPermittedAccountsAddresses[0];
+  Engine.context.PermissionController.updateCaveat(
+    origin,
+    Caip25EndowmentPermissionName,
+    Caip25CaveatType,
+    updatedCaveatValue,
+  );
+
+  return updatedEthAccounts[0];
 };
 
-export const removePermittedAccounts = (
-  hostname: string,
-  accounts: string[],
-) => {
+export const removePermittedAccounts = (origin: string, accounts: Hex[]) => {
   const { PermissionController } = Engine.context;
-  const existing = PermissionController.getCaveat(
-    hostname,
-    RestrictedMethods.eth_accounts,
-    CaveatTypes.restrictReturnedAccounts,
+
+  const caip25Caveat = getCaip25Caveat(origin);
+  if (!caip25Caveat) {
+    throw new Error(
+      `Cannot remove accounts "${accounts}": No permissions exist for origin "${origin}".`,
+    );
+  }
+
+  const existingAccounts = getEthAccounts(caip25Caveat.value);
+
+  const remainingAccounts = existingAccounts.filter(
+    (existingAccount) => !accounts.includes(existingAccount),
   );
-  const remainingAccounts = existing.value.filter(
-    (address: string) => !accounts.includes(address),
-  );
+
+  if (remainingAccounts.length === existingAccounts.length) {
+    return;
+  }
 
   if (remainingAccounts.length === 0) {
     PermissionController.revokePermission(
-      hostname,
-      RestrictedMethods.eth_accounts,
+      origin,
+      Caip25EndowmentPermissionName,
     );
   } else {
-    PermissionController.updateCaveat(
-      hostname,
-      RestrictedMethods.eth_accounts,
-      CaveatTypes.restrictReturnedAccounts,
+    const updatedCaveatValue = setEthAccounts(
+      caip25Caveat.value,
       remainingAccounts,
+    );
+    PermissionController.updateCaveat(
+      origin,
+      Caip25EndowmentPermissionName,
+      Caip25CaveatType,
+      updatedCaveatValue,
     );
   }
 };
 
-export const removeAccountsFromPermissions = async (addresses: string[]) => {
+export const removeAccountsFromPermissions = async (addresses: Hex[]) => {
   const { PermissionController } = Engine.context;
   for (const subject in PermissionController.state.subjects) {
     try {
@@ -182,79 +264,45 @@ export const removeAccountsFromPermissions = async (addresses: string[]) => {
   }
 };
 
-/**
- * Get permitted accounts for the given the host.
- *
- * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
- * @returns An array containing permitted accounts for the specified host.
- * The active account is the first item in the returned array.
- */
-export const getPermittedAccounts = async (
-  hostname: string,
-): Promise<string[]> => {
-  const { AccountsController } = Engine.context;
+export const updatePermittedChains = (
+  origin: string,
+  chainIds: Hex[],
+  shouldRemoveExistingChainPermissions = false,
+) => {
+  const caip25Caveat = getCaip25Caveat(origin);
 
-  try {
-    if (INTERNAL_ORIGINS.includes(hostname)) {
-      const selectedAccountAddress =
-        AccountsController.getSelectedAccount().address;
-
-      return [selectedAccountAddress];
-    }
-
-    const accounts =
-      await Engine.context.PermissionController.executeRestrictedMethod(
-        hostname,
-        RestrictedMethods.eth_accounts,
-      );
-    Logger.log('getPermittedAccounts', accounts);
-    return accounts;
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    if (error.code === rpcErrorCodes.provider.unauthorized) {
-      Logger.log('getPermittedAccounts', 'Unauthorized');
-      return [];
-    }
-    throw error;
+  if (!caip25Caveat) {
+    throw new Error(
+      `Cannot add chain permissions for origin "${origin}": no permission currently exists for this origin.`,
+    );
   }
-};
 
-/**
- * Add a permitted chain for the given the host.
- *
- * @param hostname - Subject to add permitted chain. Ex: A Dapp is a subject
- * @param chainId - ChainId to add.
- */
-export const addPermittedChain = async (hostname: string, chainId: string) => {
-  const { PermissionController } = Engine.context;
+  const additionalChainIds = shouldRemoveExistingChainPermissions
+    ? []
+    : getPermittedEthChainIds(caip25Caveat.value);
 
-  const caveat = PermissionController.getCaveat(
-    hostname,
-    PermissionKeys.permittedChains,
-    CaveatTypes.restrictNetworkSwitching
+  const updatedEthChainIds = Array.from(
+    new Set([...additionalChainIds, ...chainIds]),
   );
 
-  const currentPermittedChains = caveat.value;
-  if (currentPermittedChains.includes(chainId)) {
-    return;
-  }
+  const caveatValueWithChains = setPermittedEthChainIds(
+    caip25Caveat.value,
+    updatedEthChainIds,
+  );
 
-  const newPermittedChains = [...currentPermittedChains, chainId];
+  // ensure that the list of permitted eth accounts is set for the newly added eth scopes
+  const ethAccounts = getEthAccounts(caveatValueWithChains);
+  const caveatValueWithAccountsSynced = setEthAccounts(
+    caveatValueWithChains,
+    ethAccounts,
+  );
 
-  await PermissionController.grantPermissions({
-    approvedPermissions: {
-      [PermissionKeys.permittedChains]: {
-        caveats: [
-          { type: CaveatTypes.restrictNetworkSwitching, value: newPermittedChains },
-        ],
-      },
-    },
-    subject: {
-      origin: hostname,
-    },
-    preserveExistingPermissions: true,
-  });
+  Engine.context.PermissionController.updateCaveat(
+    origin,
+    Caip25EndowmentPermissionName,
+    Caip25CaveatType,
+    caveatValueWithAccountsSynced,
+  );
 };
 
 /**
@@ -263,34 +311,74 @@ export const addPermittedChain = async (hostname: string, chainId: string) => {
  * @param hostname - Subject to remove permitted chain. Ex: A Dapp is a subject
  * @param chainId - ChainId to remove.
  */
-export const removePermittedChain = async (hostname: string, chainId: string) => {
+export const removePermittedChain = (hostname: string, chainId: string) => {
+  const caip25Caveat = getCaip25Caveat(hostname);
+  if (!caip25Caveat) {
+    throw new Error(
+      `Cannot remove chain permissions for origin "${hostname}": no permission currently exists for this origin.`,
+    );
+  }
   const { PermissionController } = Engine.context;
   const caveat = PermissionController.getCaveat(
     hostname,
-    PermissionKeys.permittedChains,
-    CaveatTypes.restrictNetworkSwitching
+    Caip25EndowmentPermissionName,
+    Caip25CaveatType,
   );
 
-  const currentPermittedChains = caveat.value;
-  if (!currentPermittedChains.includes(chainId)) {
-    return;
+  const permittedChainIds = getPermittedEthChainIds(caveat);
+  const newPermittedChains = permittedChainIds.filter((chain: string) => chain !== chainId);
+  updatePermittedChains(hostname, newPermittedChains, true);
+};
+
+/**
+ * Gets the sorted permitted accounts for the specified origin. Returns an empty
+ * array if no accounts are permitted or the wallet is locked. Returns any permitted
+ * accounts if the wallet is locked and `ignoreLock` is true. This lock bypass is needed
+ * for the `eth_requestAccounts` & `wallet_getPermission` handlers both of which
+ * return permissioned accounts to the dapp when the wallet is locked.
+ *
+ * @param {string} origin - The origin whose exposed accounts to retrieve.
+ * @param {object} [options] - The options object
+ * @param {boolean} [options.ignoreLock] - If accounts should be returned even if the wallet is locked.
+ * @returns {string[]} The origin's permitted accounts, or an empty
+ * array.
+ */
+export const getPermittedAccounts = (
+  origin: string,
+  { ignoreLock }: { ignoreLock?: boolean } = {},
+) => {
+  const { AccountsController, PermissionController, KeyringController } =
+    Engine.context;
+
+  let caveat;
+  try {
+    if (INTERNAL_ORIGINS.includes(origin)) {
+      const selectedAccountAddress =
+        AccountsController.getSelectedAccount().address;
+
+      return [selectedAccountAddress];
+    }
+
+    caveat = PermissionController.getCaveat(
+      origin,
+      Caip25EndowmentPermissionName,
+      Caip25CaveatType,
+    );
+  } catch (err) {
+    if (err instanceof PermissionDoesNotExistError) {
+      // suppress expected error in case that the origin
+      // does not have the target permission yet
+      return [];
+    }
+    throw err;
   }
 
-  const newPermittedChains = currentPermittedChains.filter((chain: string) => chain !== chainId);
+  if (!KeyringController.isUnlocked() && !ignoreLock) {
+    return [];
+  }
 
-  await PermissionController.grantPermissions({
-    approvedPermissions: {
-      [PermissionKeys.permittedChains]: {
-        caveats: [
-          { type: CaveatTypes.restrictNetworkSwitching, value: newPermittedChains },
-        ],
-      },
-    },
-    subject: {
-      origin: hostname,
-    },
-    preserveExistingPermissions: true,
-  });
+  const ethAccounts = getEthAccounts(caveat.value);
+  return sortAccountsByLastSelected(ethAccounts);
 };
 
 /**
@@ -299,18 +387,23 @@ export const removePermittedChain = async (hostname: string, chainId: string) =>
  * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
  * @returns An array containing permitted chains for the specified host.
  */
-export const getPermittedChains = async (hostname: string): Promise<string[]> => {
+export const getPermittedChains = async (
+  hostname: string,
+): Promise<CaipChainId[]> => {
   const { PermissionController } = Engine.context;
   const caveat = PermissionController.getCaveat(
     hostname,
-    PermissionKeys.permittedChains,
-    CaveatTypes.restrictNetworkSwitching
+    Caip25EndowmentPermissionName,
+    Caip25CaveatType
   );
 
-  if (Array.isArray(caveat?.value)) {
-    const chains = caveat.value
-      .filter((item: unknown): item is string => typeof item === 'string' && !isNaN(parseInt(item)))
-      .map((chainId: string) => `${KnownCaipNamespace.Eip155}:${parseInt(chainId)}`);
+  if (caveat) {
+    const chains = getPermittedEthChainIds(caveat.value).map(
+      (chainId: string) =>
+        `${KnownCaipNamespace.Eip155.toString()}:${parseInt(
+          chainId,
+        )}` as CaipChainId,
+    );
 
     return chains;
   }
