@@ -3,7 +3,6 @@ import EarnLendingDepositConfirmationView, {
   EarnLendingDepositConfirmationViewProps,
 } from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
 import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../utils/tempLending';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import { useRoute } from '@react-navigation/native';
@@ -96,7 +95,6 @@ describe('EarnLendingDepositConfirmationView', () => {
     key: 'EarnLendingDepositConfirmation-abc123',
     name: 'params',
     params: {
-      action: EARN_INPUT_VIEW_ACTIONS.LEND,
       amountFiat: '4.99',
       amountTokenMinimalUnit: '5000000',
       annualRewardsFiat: '0.26',
@@ -184,7 +182,6 @@ describe('EarnLendingDepositConfirmationView', () => {
       ...defaultRouteParams,
       params: {
         ...defaultRouteParams.params,
-        action: EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE,
       },
     };
 
