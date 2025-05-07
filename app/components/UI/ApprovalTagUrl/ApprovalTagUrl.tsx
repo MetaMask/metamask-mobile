@@ -1,4 +1,4 @@
-import { toChecksumAddress } from 'ethereumjs-util';
+
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -12,6 +12,7 @@ import { getHost, prefixUrlWithProtocol } from '../../../util/browser';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import stylesheet from './ApprovalTagUrl.styles';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 export const APPROVAL_TAG_URL_ORIGIN_PILL = 'APPROVAL_TAG_URL_ORIGIN_PILL';
@@ -40,7 +41,7 @@ const ApprovalTagUrl = ({
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const internalAccounts = useSelector(selectInternalAccounts);
-  const activeAddress = toChecksumAddress(from);
+  const activeAddress = safeToChecksumAddress(from);
 
   useEffect(() => {
     const isOriginDeepLinkVal =
