@@ -6,8 +6,8 @@ import {
   mockTransaction,
   upgradeAccountConfirmation,
   upgradeOnlyAccountConfirmation,
-} from '../../../../util/test/confirm-data-helpers';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+} from '../../../../../util/test/confirm-data-helpers';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useSmartAccountSwitchType } from './useSmartAccountSwitchType';
 
 jest.mock('../../../../core/Engine', () => ({

@@ -1,6 +1,5 @@
 import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
-import { colors } from '../../../../../styles/common';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;

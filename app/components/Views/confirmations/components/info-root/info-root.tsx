@@ -4,7 +4,7 @@ import React from 'react';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
-import { useSmartAccountSwitchType } from '../../hooks/useSmartAccountSwitchType';
+import { useSmartAccountSwitchType } from '../../hooks/7702/useSmartAccountSwitchType';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from '../info/contract-interaction';
 import PersonalSign from '../info/personal-sign';

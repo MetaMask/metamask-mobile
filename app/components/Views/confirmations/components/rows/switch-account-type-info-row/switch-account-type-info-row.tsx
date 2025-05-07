@@ -6,7 +6,7 @@ import { NameType } from '../../../../../UI/Name/Name.types';
 import AlertRow from '../../UI/info-row/alert-row';
 import InfoSection from '../../UI/info-row/info-section';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
-import { useSmartAccountSwitchType } from '../../../hooks/useSmartAccountSwitchType';
+import { useSmartAccountSwitchType } from '../../../hooks/7702/useSmartAccountSwitchType';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 const SwitchAccountTypeInfoRow = () => {

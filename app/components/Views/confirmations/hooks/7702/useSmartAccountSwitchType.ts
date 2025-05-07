@@ -1,7 +1,7 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 import { EIP_7702_REVOKE_ADDRESS } from './useEIP7702Accounts';
-import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 export function useSmartAccountSwitchType() {
   const transactionMetadata: TransactionMeta | undefined =

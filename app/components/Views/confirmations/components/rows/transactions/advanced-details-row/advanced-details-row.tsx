@@ -12,7 +12,7 @@ import Name from '../../../../../../UI/Name';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import CustomNonceModal from '../../../../legacy/SendFlow/components/CustomNonceModal';
-import { useSmartAccountSwitchType } from '../../../../hooks/useSmartAccountSwitchType';
+import { useSmartAccountSwitchType } from '../../../../hooks/7702/useSmartAccountSwitchType';
 import ExpandableSection from '../../../UI/expandable-section';
 import InfoRow from '../../../UI/info-row';
 import InfoSection from '../../../UI/info-row/info-section';

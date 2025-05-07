@@ -113,7 +113,7 @@ describe('AdvancedDetailsRow', () => {
   });
 
   it('display correct information for upgrade confirmation', () => {
-    const { getByTestId, getByText, queryByText } = renderWithProvider(
+    const { getByText, queryByText } = renderWithProvider(
       <AdvancedDetailsRow />,
       {
         state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),

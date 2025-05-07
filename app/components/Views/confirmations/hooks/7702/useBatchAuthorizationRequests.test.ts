@@ -4,8 +4,8 @@ import { TransactionStatus } from '@metamask/transaction-controller';
 import {
   getAppStateForConfirmation,
   upgradeOnlyAccountConfirmation,
-} from '../../../../util/test/confirm-data-helpers';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+} from '../../../../../util/test/confirm-data-helpers';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 
 import { useBatchAuthorizationRequests } from './useBatchAuthorizationRequests';
 

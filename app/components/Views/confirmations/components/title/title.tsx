@@ -23,7 +23,7 @@ import {
 } from '../../utils/signature';
 import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
 import styleSheet from './title.styles';
-import { useSmartAccountSwitchType } from '../../hooks/useSmartAccountSwitchType';
+import { useSmartAccountSwitchType } from '../../hooks/7702/useSmartAccountSwitchType';
 
 const getTitleAndSubTitle = (
   approvalRequest?: ApprovalRequest<{ data: string }>,

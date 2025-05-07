@@ -20,9 +20,9 @@ import Text, {
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import Spinner, { SpinnerSize } from '../../../../../../UI/AnimatedSpinner';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { EIP7702NetworkConfiguration } from '../../../../hooks/useEIP7702Networks';
-import { useBatchAuthorizationRequests } from '../../../../hooks/useBatchAuthorizationRequests';
-import { useEIP7702Accounts } from '../../../../hooks/useEIP7702Accounts';
+import { EIP7702NetworkConfiguration } from '../../../../hooks/7702/useEIP7702Networks';
+import { useBatchAuthorizationRequests } from '../../../../hooks/7702/useBatchAuthorizationRequests';
+import { useEIP7702Accounts } from '../../../../hooks/7702/useEIP7702Accounts';
 import styleSheet from './account-network-row.styles';
 
 const AccountNetworkRow = ({
