@@ -138,6 +138,7 @@ exports[`AddActivationKey renders correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={

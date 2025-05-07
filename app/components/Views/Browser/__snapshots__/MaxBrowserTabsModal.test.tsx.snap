@@ -128,6 +128,7 @@ exports[`MaxBrowserTabsModal should render correctly 1`] = `
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={24}
           name="Info"
           style={

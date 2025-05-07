@@ -497,6 +497,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               </Text>
                               <SvgMock
                                 color="#121314"
+                                fill="currentColor"
                                 height={16}
                                 name="SwapVertical"
                                 style={
@@ -536,6 +537,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={24}
                               name="Info"
                               style={
@@ -717,6 +719,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#121314"
+                              fill="currentColor"
                               height={16}
                               name="Sparkle"
                               style={

@@ -66,6 +66,7 @@ const Icon = ({
   }
   return (
     <SVG
+      fill="currentColor"
       color={iconColor}
       style={styles.icon}
       width={sizeAsNum}

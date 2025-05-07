@@ -126,6 +126,7 @@ exports[`ConfirmTurnOnBackupAndSyncModal renders correctly 1`] = `
       >
         <SvgMock
           color="#1c7e33"
+          fill="currentColor"
           height={32}
           name="Check"
           style={

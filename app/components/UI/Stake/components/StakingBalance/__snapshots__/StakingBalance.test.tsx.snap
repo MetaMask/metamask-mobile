@@ -234,6 +234,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={24}
           name="Info"
           style={
@@ -295,6 +296,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
       >
         <SvgMock
           color="#1c7e33"
+          fill="currentColor"
           height={24}
           name="Confirmation"
           style={
@@ -703,6 +705,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={24}
           name="Info"
           style={
@@ -764,6 +767,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
       >
         <SvgMock
           color="#1c7e33"
+          fill="currentColor"
           height={24}
           name="Confirmation"
           style={

@@ -260,6 +260,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             </Text>
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="Copy"
               style={
@@ -508,6 +509,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             </Text>
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="Copy"
               style={
@@ -548,6 +550,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
         >
           <SvgMock
             color="#1c7e33"
+            fill="currentColor"
             height={20}
             name="Check"
             style={
@@ -671,6 +674,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             </Text>
             <SvgMock
               color="#4459ff"
+              fill="currentColor"
               height={20}
               name="Copy"
               style={
@@ -1014,8 +1018,9 @@ exports[`NotificationsDetails renders correctly 1`] = `
         </Text>
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={16}
-          name="Arrow2Upright"
+          name="Arrow2UpRight"
           style={
             {
               "height": 16,
