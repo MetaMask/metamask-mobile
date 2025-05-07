@@ -620,4 +620,39 @@ describe('EarnInputView', () => {
       });
     });
   });
+
+  describe('title bar', () => {
+    it('displays "stake" title when asset is not support by lending', () => {
+      render(EarnInputView);
+
+      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
+        'Stake',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('displays "deposit" when asset is supported lending token', () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      render(EarnInputView, {
+        params: {
+          ...baseProps.route.params,
+          token: MOCK_USDC_MAINNET_ASSET,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
+        'Deposit',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+  });
 });

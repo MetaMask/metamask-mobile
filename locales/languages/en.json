@@ -3667,7 +3667,9 @@
       "reward_frequency": "Frequency at which your rewards are accounted for.",
       "withdrawal_time": "The time it takes to withdraw your token from the protocol and get it back in your wallet",
       "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets."
-    }
+    },
+    "withdraw": "Withdraw",
+    "deposit_more": "Deposit more"
   },
   "stake": {
     "stake": "Stake",

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`UnstakeInputView render matches snapshot 1`] = `
+exports[`EarnWithdrawalInputView render matches snapshot 1`] = `
 <View
   style={
     {
@@ -54,11 +54,14 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "rgb(255, 255, 255)",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": null,
+                "shadowOffset": {
+                  "height": 0.5,
+                  "width": 0,
+                },
                 "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
@@ -102,87 +105,27 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            />
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
             >
-              <View
+              <Text
+                accessibilityRole="header"
+                aria-level="1"
+                collapsable={false}
+                numberOfLines={1}
+                onLayout={[Function]}
                 style={
                   {
-                    "alignItems": "center",
+                    "color": "rgb(28, 28, 30)",
+                    "fontSize": 17,
+                    "fontWeight": "600",
                   }
                 }
               >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 18,
-                      "fontWeight": "700",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Unstake ETH
-                </Text>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <TouchableOpacity
-                onPress={[Function]}
-                style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    {
-                      "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                Unstake
+              </Text>
             </View>
           </View>
         </View>
