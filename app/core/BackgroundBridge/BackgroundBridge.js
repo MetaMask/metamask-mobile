@@ -88,6 +88,7 @@ import { previousValueComparator } from '../../util/validators';
 import { hexToBigInt, toCaipChainId } from '@metamask/utils';
 import { TransactionController } from '@metamask/transaction-controller';
 import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
+import { AlertController } from '../Engine/controllers/alert-controller';
 
 // Types of APIs
 const API_TYPE = {
@@ -136,14 +137,23 @@ export class BackgroundBridge extends EventEmitter {
     this.getApprovedHosts = getApprovedHosts;
     this.channelId = channelId;
     this.deprecatedNetworkVersions = {};
-
     this.createMiddleware = getRpcMethodMiddleware;
+    this.alertController = new AlertController({
+      state: {},
+      messenger: Engine.controllerMessenger.getRestricted({
+        name: 'AlertController',
+        allowedEvents: ['AccountsController:selectedAccountChange'],
+        allowedActions: ['AccountsController:getSelectedAccount'],
+      }),
+    });
+
+    console.log('LOGGING YOUR DUCKHOLE: ', {alertControlller: this.alertController})
 
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
-        ? new WalletConnectPort(wcRequestActions)
-        : new Port(this._webviewRef, isMainFrame);
+      ? new WalletConnectPort(wcRequestActions)
+      : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
     this.multichainEngine = null;
@@ -893,9 +903,6 @@ export class BackgroundBridge extends EventEmitter {
       SubjectMetadataController,
       AccountsController,
       PermissionController,
-      TokensController,
-      SelectedNetworkController,
-      NftController,
     } = Engine.context;
 
     const engine = new JsonRpcEngine();
@@ -940,7 +947,6 @@ export class BackgroundBridge extends EventEmitter {
             { origin },
             requestedPermissions,
           ),
-        // metamaskState: this.getState(),
         getCaveatForOrigin: PermissionController.getCaveat.bind(
           PermissionController,
           origin,
@@ -985,16 +991,17 @@ export class BackgroundBridge extends EventEmitter {
       ),
     );
 
-    // TODO: [ffmcgee] comment hooks per handler ?
     engine.push(
       createMultichainMethodMiddleware({
+        // wallet_watchAsset handler related
         hostname: origin,
         checkActiveTab: () => true, // TODO: [ffmcgee] check how to get tabId in here, same as RpcMethodMiddleware impl
-        // // Miscellaneous
-        // subjectType: SubjectType.Website,
-        // addSubjectMetadata: SubjectMetadataController.addSubjectMetadata.bind(
-        //   SubjectMetadataController,
-        // ),
+        // sendMetadata handler related
+        subjectType: SubjectType.Website,
+        addSubjectMetadata: SubjectMetadataController.addSubjectMetadata.bind(
+          SubjectMetadataController,
+        ),
+        // wallet_addEthereumChain handler related
         getProviderState: this.getProviderState.bind(this),
         requestUserApproval:
           ApprovalController.addAndShowApprovalRequest.bind(ApprovalController),
@@ -1019,16 +1026,6 @@ export class BackgroundBridge extends EventEmitter {
           NetworkController.getNetworkConfigurationByChainId.bind(
             NetworkController,
           ),
-        // TODO: [ffmcgee] investigate, this controller not in context
-        // // Web3 shim-related
-        // getWeb3ShimUsageState: this.alertController.getWeb3ShimUsageState.bind(
-        //   this.alertController,
-        // ),
-        // setWeb3ShimUsageRecorded:
-        //   this.alertController.setWeb3ShimUsageRecorded.bind(
-        //     this.alertController,
-        //   ),
-
         requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
           requestPermittedChainsPermissionIncremental({
             ...options,
@@ -1036,6 +1033,15 @@ export class BackgroundBridge extends EventEmitter {
           }),
         rejectApprovalRequestsForOrigin: () =>
           rejectOriginPendingApprovals(origin),
+        // TODO: [ffmcgee] investigate, this controller not in context
+        // Web3 shim-related
+        getWeb3ShimUsageState: this.alertController.getWeb3ShimUsageState.bind(
+          this.alertController,
+        ),
+        setWeb3ShimUsageRecorded:
+          this.alertController.setWeb3ShimUsageRecorded.bind(
+            this.alertController,
+          ),
       }),
     );
 
@@ -1252,10 +1258,10 @@ export class BackgroundBridge extends EventEmitter {
         params:
           newAccounts.length < 2
             ? // If the length is 1 or 0, the accounts are sorted by definition.
-            newAccounts
+              newAccounts
             : // If the length is 2 or greater, we have to execute
-            // `eth_accounts` vi this method.
-            this.getPermittedAccounts(origin),
+              // `eth_accounts` vi this method.
+              this.getPermittedAccounts(origin),
       },
       API_TYPE.EIP1193,
     );
@@ -1308,7 +1314,10 @@ export class BackgroundBridge extends EventEmitter {
   _restartSmartTransactionPoller() {
     const { PreferencesController, TransactionController } = Engine.context;
 
-    if (PreferencesController?.state?.useExternalServices === true && TransactionController) {
+    if (
+      PreferencesController?.state?.useExternalServices === true &&
+      TransactionController
+    ) {
       TransactionController.stopIncomingTransactionPolling();
       TransactionController.startIncomingTransactionPolling();
     }
@@ -1337,7 +1346,9 @@ export class BackgroundBridge extends EventEmitter {
 
     const { petnamesEnabled } = preferences ?? {};
 
-    return Boolean(useTokenDetection || petnamesEnabled || useTransactionSimulations);
+    return Boolean(
+      useTokenDetection || petnamesEnabled || useTransactionSimulations,
+    );
   }
 }
 
