@@ -7,9 +7,8 @@ import { version, migrations } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
-import { debounce } from 'lodash';
-import Engine, { EngineContext } from '../core/Engine';
-import { getPersistentState } from '@metamask/base-controller';
+import { debounce, throttle } from 'lodash';
+import Engine from '../core/Engine';
 
 const TIMEOUT = 40000;
 const STORAGE_DEBOUNCE_DELAY = 200;
@@ -67,57 +66,65 @@ const MigratedStorage = {
   },
 };
 
+const onStateChange = (state: RootState['engine']['backgroundState']) => {
+  MigratedStorage.setItem('engine.backgroundState', JSON.stringify(state));
+};
+Engine.controllerMessenger.subscribe(
+  'ComposableController:stateChange',
+  throttle(onStateChange, 200),
+);
+
 /**
  * Transform middleware that blacklists fields from redux persist that we deem too large for persisted storage
  */
-const persistTransform = createTransform(
-  (inboundState: RootState['engine']) => {
-    // Do not transform data in Fresh Installs
-    if (
-      !inboundState ||
-      Object.keys(inboundState.backgroundState).length === 0
-    ) {
-      return inboundState;
-    }
+// const persistTransform = createTransform(
+//   (inboundState: RootState['engine']) => {
+//     // Do not transform data in Fresh Installs
+//     if (
+//       !inboundState ||
+//       Object.keys(inboundState.backgroundState).length === 0
+//     ) {
+//       return inboundState;
+//     }
 
-    const controllers = inboundState.backgroundState || {};
+//     const controllers = inboundState.backgroundState || {};
 
-    try {
-      // Check if Engine is initialized by trying to access context
-      if (Engine.context) {
-        // This is just to trigger the error if engine does not exist
-      }
-    } catch (error) {
-      // Engine not initialized, skipping transform
-      return inboundState;
-    }
+//     try {
+//       // Check if Engine is initialized by trying to access context
+//       if (Engine.context) {
+//         // This is just to trigger the error if engine does not exist
+//       }
+//     } catch (error) {
+//       // Engine not initialized, skipping transform
+//       return inboundState;
+//     }
 
-    const persistableControllersState: Record<
-      string,
-      Record<string, unknown>
-    > = {};
-    for (const [key, value] of Object.entries(controllers)) {
-      if (!value || typeof value !== 'object') continue;
+//     const persistableControllersState: Record<
+//       string,
+//       Record<string, unknown>
+//     > = {};
+//     for (const [key, value] of Object.entries(controllers)) {
+//       if (!value || typeof value !== 'object') continue;
 
-      const persistedState = getPersistentState(
-        value,
-        // @ts-expect-error - EngineContext have stateless controllers, so metadata is not available
-        Engine.context[key as keyof EngineContext]?.metadata,
-      );
-      persistableControllersState[key] = persistedState;
-    }
-    // Reconstruct data to persist
-    const newState = {
-      backgroundState: {
-        ...persistableControllersState,
-      },
-    };
+//       const persistedState = getPersistentState(
+//         value,
+//         // @ts-expect-error - EngineContext have stateless controllers, so metadata is not available
+//         Engine.context[key as keyof EngineContext]?.metadata,
+//       );
+//       persistableControllersState[key] = persistedState;
+//     }
+//     // Reconstruct data to persist
+//     const newState = {
+//       backgroundState: {
+//         ...persistableControllersState,
+//       },
+//     };
 
-    return newState;
-  },
-  null,
-  { whitelist: ['engine'] },
-);
+//     return newState;
+//   },
+//   null,
+//   { whitelist: ['engine'] },
+// );
 
 const persistUserTransform = createTransform(
   (inboundState: UserState) => {
@@ -133,9 +140,15 @@ const persistUserTransform = createTransform(
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['onboarding', 'rpcEvents', 'accounts', 'confirmationMetrics'],
+  blacklist: [
+    'onboarding',
+    'rpcEvents',
+    'accounts',
+    'confirmationMetrics',
+    'engine',
+  ],
   storage: MigratedStorage,
-  transforms: [persistTransform, persistUserTransform],
+  transforms: [persistUserTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),
   timeout: TIMEOUT,

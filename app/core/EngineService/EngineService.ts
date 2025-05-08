@@ -46,14 +46,13 @@ export class EngineService {
    * - V8: SES_UNHANDLED_REJECTION
    */
   start = async () => {
-    const reduxState = ReduxService.store.getState();
     trace({
       name: TraceName.EngineInitialization,
       op: TraceOperation.EngineInitialization,
       parentContext: getUIStartupSpan(),
-      tags: getTraceTags(reduxState),
     });
-    const state = reduxState?.engine?.backgroundState ?? {};
+    const persistedState = MigratedStorage.getKey();
+    const state = migrate(persistedState);
     const Engine = UntypedEngine;
     try {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
@@ -111,6 +110,7 @@ export class EngineService {
         type: UPDATE_BG_STATE_KEY,
         payload: { key: controllerName },
       });
+      MigratedStorage.writeKey(`Engine:${controllerName}`, engine.context[controllerName].state)
     };
 
     BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {

@@ -33,8 +33,10 @@ const engineReducer = (
       const newState = { ...state };
 
       if (action.payload) {
+        const updatedBackgroundState = action.payload.key;
         const newControllerState =
-          Engine.state[action.payload.key as keyof typeof Engine.state];
+          //Engine.state[action.payload.key as keyof typeof Engine.state];
+          getUiState(updatedBackgroundState);
 
         newState.backgroundState[action.payload.key] = newControllerState;
       }
