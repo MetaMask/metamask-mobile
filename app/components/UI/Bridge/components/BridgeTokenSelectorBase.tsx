@@ -273,10 +273,10 @@ export const BridgeTokenSelectorBase: React.FC<
             ? renderEmptyList
             : LoadingSkeleton
         }
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator
         showsHorizontalScrollIndicator={false}
-        bounces={true}
-        scrollEnabled={true}
+        bounces
+        scrollEnabled
       />
     </BottomSheet>
   );
