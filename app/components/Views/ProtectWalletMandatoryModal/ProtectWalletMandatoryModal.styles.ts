@@ -1,5 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
+import Device from '../../../util/device';
+import { fontStyles } from '../../../styles/common';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -9,40 +11,42 @@ const createStyles = ({ colors }: Theme) =>
     },
     protectWalletContainer: {
       backgroundColor: colors.background.default,
+      paddingTop: 24,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
-      padding: 24,
-      alignItems: 'center',
+      paddingVertical: 16,
+      paddingBottom: Device.isIphoneX() ? 20 : 0,
+      paddingHorizontal: 40,
     },
     protectWalletIconContainer: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: colors.warning.default,
-      justifyContent: 'center',
+      alignSelf: 'center',
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colors.error.muted,
+      borderColor: colors.error.default,
+      borderWidth: 1,
+      flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 16,
+      justifyContent: 'center',
     },
-    protectWalletIcon: {
-      color: colors.background.default,
-    },
+    protectWalletIcon: { alignSelf: 'center', color: colors.error.default },
     protectWalletTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: colors.text.default,
-      marginBottom: 16,
       textAlign: 'center',
+      fontSize: 18,
+      marginVertical: 8,
+      ...fontStyles.bold,
+      color: colors.text.default,
     },
     protectWalletContent: {
-      fontSize: 16,
-      color: colors.text.alternative,
       textAlign: 'center',
-      marginBottom: 24,
-      lineHeight: 24,
+      fontSize: 14,
+      marginVertical: 8,
+      justifyContent: 'center',
+      ...fontStyles.normal,
+      color: colors.text.default,
     },
-    protectWalletButtonWrapper: {
-      width: '100%',
-    },
+    protectWalletButtonWrapper: { marginVertical: 8 },
   });
 
 export default createStyles;

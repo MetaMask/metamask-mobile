@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, InteractionManager } from 'react-native';
 import Modal from 'react-native-modal';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import { useTheme } from '../../../util/theme';
@@ -7,47 +7,92 @@ import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import createStyles from './ProtectWalletMandatoryModal.styles';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
-import { selectPasswordSet } from '../../../reducers/user';
+import {
+  selectPasswordSet,
+  selectSeedphraseBackedUp,
+} from '../../../reducers/user';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 
-interface ProtectWalletMandatoryModalProps {
-  onClose: () => void;
-  onSecureWallet: () => void;
-}
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
+import { findRouteNameFromNavigatorState } from '../../../util/general';
 
-const ProtectWalletMandatoryModal: React.FC<
-  ProtectWalletMandatoryModalProps
-> = ({ onClose, onSecureWallet }) => {
+const ProtectWalletMandatoryModal = () => {
   const [showProtectWalletModal, setShowProtectWalletModal] = useState(false);
-
   const theme = useTheme();
 
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const metrics = useMetrics();
 
+  const { navigate, dangerouslyGetState } = useNavigation();
+
   const passwordSet = useSelector(selectPasswordSet);
-
+  const seedphraseBackedUp = useSelector(selectSeedphraseBackedUp);
   useEffect(() => {
-    // valid if passwordSet is still needed to check here
-    if (Engine.hasFunds() || !passwordSet) {
-      // eslint-disable-next-line react/no-did-update-set-state
-      setShowProtectWalletModal(true);
+    const route = findRouteNameFromNavigatorState(dangerouslyGetState().routes);
+    if (!passwordSet || !seedphraseBackedUp) {
+      if (
+        [
+          'SetPasswordFlow',
+          'ChoosePassword',
+          'AccountBackupStep1',
+          'AccountBackupStep1B',
+          'ManualBackupStep1',
+          'ManualBackupStep2',
+          'ManualBackupStep3',
+          'Webview',
+          Routes.LOCK_SCREEN,
+        ].includes(route)
+      ) {
+        setShowProtectWalletModal(false);
+        return;
+      }
 
-      metrics.trackEvent(
-        metrics
-          .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED)
-          .addProperties({
-            wallet_protection_required: false,
-            source: 'Backup Alert',
-          })
-          .build(),
-      );
+      // valid if passwordSet is still needed to check here
+      if (Engine.hasFunds() || !passwordSet) {
+        // eslint-disable-next-line react/no-did-update-set-state
+        setShowProtectWalletModal(true);
+
+        metrics.trackEvent(
+          metrics
+            .createEventBuilder(
+              MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
+            )
+            .addProperties({
+              wallet_protection_required: false,
+              source: 'Backup Alert',
+            })
+            .build(),
+        );
+      } else {
+        setShowProtectWalletModal(false);
+      }
     } else {
       setShowProtectWalletModal(false);
     }
-  }, [metrics, passwordSet]);
+  }, [metrics, passwordSet, seedphraseBackedUp, dangerouslyGetState]);
+
+  const onSecureWallet = () => {
+    setShowProtectWalletModal(false);
+
+    navigate(
+      'SetPasswordFlow',
+      passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
+    );
+    InteractionManager.runAfterInteractions(() => {
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED)
+          .addProperties({
+            wallet_protection_required: true,
+            source: 'Modal',
+          })
+          .build(),
+      );
+    });
+  };
 
   return (
     <Modal
@@ -59,7 +104,6 @@ const ProtectWalletMandatoryModal: React.FC<
       backdropOpacity={1}
       animationInTiming={600}
       animationOutTiming={600}
-      onBackdropPress={onClose}
     >
       <View style={styles.protectWalletContainer}>
         <View style={styles.protectWalletIconContainer}>

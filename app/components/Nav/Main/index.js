@@ -92,6 +92,8 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
+import PendingDeeplinkHandler from '../../UI/PendingDeeplinkHandler';
+import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
 
 const Stack = createStackNavigator();
 
@@ -452,10 +454,8 @@ const Main = (props) => {
           toggleSkipCheckbox={toggleSkipCheckbox}
         />
         <ProtectYourWalletModal navigation={props.navigation} />
-        <ProtectWalletMandatoryModal
-          onClose={() => null}
-          onSecureWallet={() => null}
-        />
+        <ProtectWalletMandatoryModal />
+        <InfoNetworkModal />
         <RootRPCMethodsUI navigation={props.navigation} />
       </View>
     </React.Fragment>
@@ -561,6 +561,11 @@ const MainFlow = () => (
     <Stack.Screen
       name={'ReviewModal'}
       component={ReviewModal}
+      options={{ animationEnabled: false }}
+    />
+    <Stack.Screen
+      name={'PendingDeeplinkHandler'}
+      component={PendingDeeplinkHandler}
       options={{ animationEnabled: false }}
     />
   </Stack.Navigator>
