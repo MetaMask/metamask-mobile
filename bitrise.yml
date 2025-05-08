@@ -1830,6 +1830,7 @@ workflows:
                 envman add --key BITRISE_SCHEME --value "MetaMask"
                 envman add --key VERSION_NAME --value "$BRANCH_VERSION_NAME"
                 envman add --key VERSION_NUMBER --value "$BRANCH_VERSION_NUMBER"
+      - certificate-and-profile-installer@1: {}
       - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
@@ -2364,13 +2365,13 @@ app:
       VERSION_NAME: 7.45.99
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1820
+      VERSION_NUMBER: 1817
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.45.99
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1820
+      FLASK_VERSION_NUMBER: 1817
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

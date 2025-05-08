@@ -94,6 +94,65 @@ else
   echo "✅ No bitcode found in OpenSSL binary, no action needed"
 fi
 
+# Get bundle identifier from Info.plist
+BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_DIR/Info.plist")
+echo "📱 App Bundle Identifier: $BUNDLE_ID"
+
+# Determine which signing identity to use
+echo "🔐 Finding signing identity..."
+SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | sed -E 's/.*\) ([A-F0-9]+) "(.*)"/\1/')
+
+if [ -z "$SIGNING_IDENTITY" ]; then
+  echo "⚠️ No Apple Distribution identity found, trying to find Apple Development identity..."
+  SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Development" | head -1 | sed -E 's/.*\) ([A-F0-9]+) "(.*)"/\1/')
+fi
+
+if [ -z "$SIGNING_IDENTITY" ]; then
+  echo "❌ No valid signing identity found"
+  exit 1
+fi
+
+echo "🔑 Using signing identity: $SIGNING_IDENTITY"
+
+# Find the provisioning profile
+echo "🔍 Finding provisioning profile for $BUNDLE_ID..."
+PROVISIONING_PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+PROVISIONING_PROFILE=""
+
+for profile in "$PROVISIONING_PROFILES_DIR"/*.mobileprovision; do
+  PROFILE_BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" /dev/stdin <<< $(security cms -D -i "$profile" 2>/dev/null) 2>/dev/null | sed 's/^.*\.//')
+  if [ "$PROFILE_BUNDLE_ID" == "$BUNDLE_ID" ]; then
+    PROVISIONING_PROFILE="$profile"
+    echo "✅ Found matching provisioning profile: $PROVISIONING_PROFILE"
+    break
+  fi
+done
+
+# Re-sign the app and frameworks
+echo "🔏 Re-signing the app and frameworks..."
+CODESIGN_CMD="$DEVELOPER_DIR/usr/bin/codesign"
+
+# First, sign the OpenSSL framework
+echo "🔏 Signing OpenSSL framework..."
+$CODESIGN_CMD --force --sign "$SIGNING_IDENTITY" "$OPENSSL_FRAMEWORK"
+
+# Sign all other frameworks
+echo "🔏 Signing all other frameworks..."
+find "$APP_DIR/Frameworks" -type d -name "*.framework" | while read framework; do
+  echo "  ➡️ Signing $framework"
+  $CODESIGN_CMD --force --sign "$SIGNING_IDENTITY" "$framework"
+done
+
+# Sign the app
+echo "🔏 Signing the app..."
+if [ -n "$PROVISIONING_PROFILE" ]; then
+  echo "  ➡️ Using provisioning profile: $PROVISIONING_PROFILE"
+  $CODESIGN_CMD --force --sign "$SIGNING_IDENTITY" --entitlements "/dev/stdin" "$APP_DIR" <<< $(security cms -D -i "$PROVISIONING_PROFILE" 2>/dev/null | plutil -extract Entitlements xml1 - -o -)
+else
+  echo "  ➡️ No specific provisioning profile found, using identity only"
+  $CODESIGN_CMD --force --sign "$SIGNING_IDENTITY" "$APP_DIR"
+fi
+
 # Re-package the IPA
 echo "📦 Re-packaging IPA..."
 cd "$TEMP_DIR"
@@ -107,4 +166,4 @@ mv "$TEMP_DIR/fixed.ipa" "$IPA_PATH"
 echo "🧹 Cleaning up..."
 rm -rf "$TEMP_DIR"
 
-echo "✅ OpenSSL bitcode removal complete! Your IPA should now be ready for App Store submission." 
+echo "✅ OpenSSL bitcode removal and re-signing complete! Your IPA should now be ready for App Store submission." 
