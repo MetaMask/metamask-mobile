@@ -16,11 +16,6 @@ import { fetchErc20Decimals } from '../utils/token';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
-const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) => useAsyncResult(
-  async () => await fetchErc20Decimals(tokenAddress, networkClientId),
-  [tokenAddress, networkClientId],
-);
-
 const useFiatConversion = (amount: BigNumber, chainId: Hex, tokenAddress: Hex) => {
   const fiatFormatter = useFiatFormatter();
   const fiatCurrency = useSelector(selectCurrentCurrency);
@@ -33,6 +28,11 @@ const useFiatConversion = (amount: BigNumber, chainId: Hex, tokenAddress: Hex) =
   const testFiatValue = amount.times(erc20FiatRates.value?.[tokenAddress] ?? 1);
   return fiatFormatter(testFiatValue);
 };
+
+const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) => useAsyncResult(
+  async () => await fetchErc20Decimals(tokenAddress, networkClientId),
+  [tokenAddress, networkClientId],
+);
 
 interface TokenValuesProps {
   /**
