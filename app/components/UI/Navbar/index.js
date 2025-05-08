@@ -1910,37 +1910,17 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
   };
 };
 
-export const getSettingsNavigationOptions = (
-  title,
-  themeColors,
-  navigation,
-) => {
+export const getSettingsNavigationOptions = (title, themeColors) => {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
-    headerLeft: {
-      marginHorizontal: 16,
-    },
   });
-
-  function navigationPop() {
-    navigation.goBack();
-  }
-
   return {
+    headerLeft: null,
     headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
-    headerLeft: () => (
-      <ButtonIcon
-        size={ButtonIconSizes.Lg}
-        iconName={IconName.ArrowLeft}
-        onPress={navigationPop}
-        style={innerStyles.headerLeft}
-        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-      />
-    ),
     ...innerStyles,
   };
 };
