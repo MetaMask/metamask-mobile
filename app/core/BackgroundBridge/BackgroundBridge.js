@@ -76,6 +76,8 @@ import {
   getChangedAuthorizations,
   getRemovedAuthorizations,
   getCaip25PermissionFromLegacyPermissions,
+  requestPermittedChainsPermissionIncremental,
+  rejectOriginPendingApprovals,
 } from '../../util/permissions';
 import {
   getAuthorizedScopesByOrigin,
@@ -883,7 +885,7 @@ export class BackgroundBridge extends EventEmitter {
       return null;
     }
 
-    const origin = this.hostname;
+    const origin = this.isMMSDK ? this.channelId : this.hostname;
 
     const {
       ApprovalController,
@@ -983,74 +985,40 @@ export class BackgroundBridge extends EventEmitter {
       ),
     );
 
+    // TODO: [ffmcgee] comment hooks per handler ?
     engine.push(
       createMultichainMethodMiddleware({
-        // subjectType: SubjectType.Website,
+        hostname: origin,
+        checkActiveTab: () => true, // TODO: [ffmcgee] check how to get tabId in here, same as RpcMethodMiddleware impl
         // // Miscellaneous
+        // subjectType: SubjectType.Website,
         // addSubjectMetadata: SubjectMetadataController.addSubjectMetadata.bind(
         //   SubjectMetadataController,
         // ),
         getProviderState: this.getProviderState.bind(this),
-        // handleWatchAssetRequest: ({ asset, type, origin, networkClientId }) => {
-        //   switch (type) {
-        //     case ERC20:
-        //       return TokensController.watchAsset({
-        //         asset,
-        //         type,
-        //         networkClientId,
-        //       });
-        //     case ERC721:
-        //     case ERC1155:
-        //       return NftController.watchNft(asset, type, origin);
-        //     default:
-        //       throw new Error(`Asset type ${type} not supported`);
-        //   }
-        // },
-        // requestUserApproval:
-        //   ApprovalController.addAndShowApprovalRequest.bind(ApprovalController),
-        // getCaveat: ({ target, caveatType }) => {
-        //   try {
-        //     return PermissionController.getCaveat(origin, target, caveatType);
-        //   } catch (e) {
-        //     if (e instanceof PermissionDoesNotExistError) {
-        //       // suppress expected error in case that the origin
-        //       // does not have the target permission yet
-        //     } else {
-        //       throw e;
-        //     }
-        //   }
-        // },
-        // addNetwork: NetworkController.addNetwork.bind(NetworkController),
-        // updateNetwork: NetworkController.updateNetwork.bind(NetworkController),
-        // setActiveNetwork: async (networkClientId) => {
-        //   await NetworkController.setActiveNetwork(networkClientId);
-        //   // if the origin has the CAIP-25 permission
-        //   // we set per dapp network selection state
-        //   if (
-        //     PermissionController.hasPermission(
-        //       origin,
-        //       Caip25EndowmentPermissionName,
-        //     )
-        //   ) {
-        //     SelectedNetworkController.setNetworkClientIdForDomain(
-        //       origin,
-        //       networkClientId,
-        //     );
-        //   }
-        // },
-        // getNetworkConfigurationByChainId:
-        //   NetworkController.getNetworkConfigurationByChainId.bind(
-        //     NetworkController,
-        //   ),
-        // getCurrentChainIdForDomain: (domain) => {
-        //   const networkClientId =
-        //     SelectedNetworkController.getNetworkClientIdForDomain(domain);
-        //   const { chainId } =
-        //     NetworkController.getNetworkConfigurationByNetworkClientId(
-        //       networkClientId,
-        //     );
-        //   return chainId;
-        // },
+        requestUserApproval:
+          ApprovalController.addAndShowApprovalRequest.bind(ApprovalController),
+        getCaveat: ({ target, caveatType }) => {
+          try {
+            return PermissionController.getCaveat(origin, target, caveatType);
+          } catch (e) {
+            if (e instanceof PermissionDoesNotExistError) {
+              // suppress expected error in case that the origin
+              // does not have the target permission yet
+            } else {
+              throw e;
+            }
+          }
+        },
+        hasApprovalRequestsForOrigin: () => ApprovalController.has({ origin }),
+        toNetworkConfiguration: Engine.controllerMessenger.call.bind(
+          Engine.controllerMessenger,
+          'NetworkController:getNetworkConfigurationByChainId',
+        ),
+        getNetworkConfigurationByChainId:
+          NetworkController.getNetworkConfigurationByChainId.bind(
+            NetworkController,
+          ),
         // TODO: [ffmcgee] investigate, this controller not in context
         // // Web3 shim-related
         // getWeb3ShimUsageState: this.alertController.getWeb3ShimUsageState.bind(
@@ -1061,13 +1029,13 @@ export class BackgroundBridge extends EventEmitter {
         //     this.alertController,
         //   ),
 
-        //   requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
-        //     Engine.requestPermittedChainsPermissionIncremental({
-        //       ...options,
-        //       origin,
-        //     }),
-        //   rejectApprovalRequestsForOrigin: () =>
-        //     Engine.rejectOriginPendingApprovals(origin),
+        requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
+          requestPermittedChainsPermissionIncremental({
+            ...options,
+            origin,
+          }),
+        rejectApprovalRequestsForOrigin: () =>
+          rejectOriginPendingApprovals(origin),
       }),
     );
 
