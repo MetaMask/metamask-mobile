@@ -12,7 +12,6 @@ import {
   SolanaWalletSnapSender,
 } from './SolanaWalletSnap';
 import Engine from '../Engine';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { store } from '../../store';
@@ -109,13 +108,14 @@ export abstract class MultichainWalletSnapClient {
       }),
     );
 
-    return await this.withSnapKeyring(async (keyring) => {
-      return await keyring.createAccount(
-        this.snapId,
-        options as unknown as Record<string, Json>,
-        this.snapKeyringOptions,
-      );
-    });
+    return await this.withSnapKeyring(
+      async (keyring) =>
+        await keyring.createAccount(
+          this.snapId,
+          options as unknown as Record<string, Json>,
+          this.snapKeyringOptions,
+        ),
+    );
   }
 
   /**
