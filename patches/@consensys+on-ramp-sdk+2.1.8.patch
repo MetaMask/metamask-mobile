@@ -1,0 +1,710 @@
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.d.ts
+new file mode 100644
+index 0000000..ba773f4
+--- /dev/null
++++ b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.d.ts
+@@ -0,0 +1,205 @@
++export interface NativeTransakAccessToken {
++    id: string;
++    ttl: number;
++    created: Date;
++    userId: string;
++}
++export interface NativeTransakUserDetails {
++    id: string;
++    firstName: string;
++    lastName: string;
++    email: string;
++    mobileNumber: string;
++    status: string;
++    dob: string;
++    kyc: NativeTransakUserDetailsKyc;
++    address: NativeTransakUserDetailsAddress;
++    createdAt: string;
++    isKycApproved: () => boolean;
++}
++export interface NativeTransakUserDetailsAddress {
++    addressLine1: string;
++    addressLine2: string;
++    state: string;
++    city: string;
++    postCode: string;
++    country: string;
++    countryCode: string;
++}
++export interface NativeTransakUserDetailsKyc {
++    l1: NativeTransakUserDetailsKycDetails;
++}
++export interface NativeTransakUserDetailsKycDetails {
++    status: string;
++    type: string;
++    updatedAt: string;
++    kycSubmittedAt: string;
++}
++export interface BuyQuote {
++    quoteId: string;
++    conversionPrice: number;
++    marketConversionPrice: number;
++    slippage: number;
++    fiatCurrency: string;
++    cryptoCurrency: string;
++    paymentMethod: string;
++    fiatAmount: number;
++    cryptoAmount: number;
++    isBuyOrSell: string;
++    network: string;
++    feeDecimal: number;
++    totalFee: number;
++    feeBreakdown: any[];
++    nonce: number;
++    cryptoLiquidityProvider: string;
++    notes: any[];
++}
++export interface KycForms {
++    forms: KycForm[];
++    onboardingSessionId: string;
++    kycType: string;
++    kycFlowType: string;
++    isAllowedToDoKyc: boolean;
++    isAllowedToPlaceOrder: boolean;
++}
++export interface KycForm {
++    id: string;
++    active: boolean;
++    hideProgress: boolean;
++    onSubmit: string;
++}
++export interface KycFormDetails {
++    formId: string;
++    formName: string;
++    endpoint: KycFormDetailsEndpoint;
++    hideProgress: boolean;
++    supportAutoSubmit: boolean;
++    fields: KycFormDetailsField[];
++    id: string;
++    type: string;
++    data: any;
++}
++export interface KycFormDetailsEndpoint {
++    path: string;
++    method: string;
++    excludeDisabled: boolean;
++}
++export interface KycFormDetailsField {
++    name: string;
++    id: string;
++    type: string;
++    value: string;
++    regex: string;
++    regexErrorMessage: string;
++    disabled: boolean;
++    isRequired: boolean;
++    placeholder: string;
++    cols: KycFormDetailsFieldCols;
++}
++export interface KycFormDetailsFieldCols {
++    xs: number;
++    md: number;
++    lg: number;
++}
++export interface Reservation {
++    id: string;
++}
++export interface BuyOrder {
++    id: string;
++    userId: string;
++    status: string;
++    isBuyOrSell: string;
++    fiatCurrency: string;
++    cryptoCurrency: string;
++    paymentOptionId: string;
++    network: string;
++    walletAddress: string;
++    addressAdditionalData: boolean;
++    quoteId: string;
++    fiatAmount: number;
++    fiatAmountInUsd: number;
++    amountPaid: number;
++    cryptoAmount: number;
++    conversionPrice: number;
++    totalFeeInFiat: number;
++    paymentOptions: OrderPaymentMethod[];
++    transactionHash: string;
++    createdAt: string;
++    updatedAt: string;
++    completedAt: string;
++    statusHistories: any[];
++}
++export interface OrderPaymentMethod {
++    currency: string;
++    id: string;
++    name: string;
++    fields: OrderPaymentMethodField[];
++}
++export interface OrderPaymentMethodField {
++    name: string;
++    id: string;
++    value: string;
++}
++export interface UserLimits {
++    response: {
++        data: {
++            isAllowed: boolean;
++            isKycRequired: boolean;
++            minFiatAmount: number;
++            maxFiatAmount: number;
++            limits: {
++                daily: {
++                    total: number;
++                    spent: number;
++                    remaining: number;
++                    exceeded: boolean;
++                };
++                monthly: {
++                    total: number;
++                    spent: number;
++                    remaining: number;
++                    exceeded: boolean;
++                };
++                yearly: {
++                    total: number;
++                    spent: number;
++                    remaining: number;
++                    exceeded: boolean;
++                };
++            };
++        };
++    };
++}
++export interface OttResponse {
++    token: string;
++}
++export declare enum TransakEnvironment {
++    Production = 0,
++    Staging = 1
++}
++export declare class NativeRampService {
++    private readonly partnerApiKey;
++    private readonly frontendAuth;
++    private transakAxios;
++    private environment;
++    constructor(environment: TransakEnvironment, partnerApiKey: string, frontendAuth: string);
++    sendUserOtp(email: string): Promise<{
++        isTncAccepted: boolean;
++    }>;
++    verifyUserOtp(email: string, verificationCode: string): Promise<NativeTransakAccessToken>;
++    getUserDetails(accessToken: NativeTransakAccessToken): Promise<NativeTransakUserDetails>;
++    getBuyQuote(fiatCurrency: string, cryptoCurrency: string, network: string, paymentMethod: string, fiatAmount: string): Promise<BuyQuote>;
++    getKYCForms(accessToken: NativeTransakAccessToken, quote: BuyQuote): Promise<KycForms>;
++    getKycForm(accessToken: NativeTransakAccessToken, quote: BuyQuote, form: KycForm): Promise<KycFormDetails>;
++    patchUser(accessToken: NativeTransakAccessToken, data: any): Promise<any>;
++    submitPurposeOfUsageForm(accessToken: NativeTransakAccessToken, purpose: string[]): Promise<void>;
++    walletReserve(quote: BuyQuote, walletAddress: string): Promise<Reservation>;
++    cancelOrder(accessToken: NativeTransakAccessToken, orderId: string): Promise<void>;
++    createOrder(accessToken: NativeTransakAccessToken, reservation: Reservation): Promise<BuyOrder>;
++    confirmPayment(accessToken: NativeTransakAccessToken, order: BuyOrder, paymentMethod: OrderPaymentMethod): Promise<any>;
++    getOrder(accessToken: NativeTransakAccessToken, orderId: string): Promise<BuyOrder>;
++    getUserLimits(accessToken: NativeTransakAccessToken, fiatCurrency: string, paymentMethod?: string, kycType?: string): Promise<UserLimits>;
++    requestOtt(accessToken: NativeTransakAccessToken): Promise<OttResponse>;
++    generatePaymentWidgetUrl(ottToken: string, fiatCurrency: string, cryptoCurrency: string, network: string, fiatAmount: string, walletAddress: string, paymentMethod: string, redirectUrl: string): string;
++    getOrdersHistory(accessToken: NativeTransakAccessToken, limit?: number, skip?: number): Promise<BuyOrder[]>;
++}
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js
+new file mode 100644
+index 0000000..a17e5bf
+--- /dev/null
++++ b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js
+@@ -0,0 +1,317 @@
++"use strict";
++var __importDefault = (this && this.__importDefault) || function (mod) {
++    return (mod && mod.__esModule) ? mod : { "default": mod };
++};
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.NativeRampService = exports.TransakEnvironment = void 0;
++const axios_1 = __importDefault(require("axios"));
++var TransakEnvironment;
++(function (TransakEnvironment) {
++    TransakEnvironment[TransakEnvironment["Production"] = 0] = "Production";
++    TransakEnvironment[TransakEnvironment["Staging"] = 1] = "Staging";
++})(TransakEnvironment = exports.TransakEnvironment || (exports.TransakEnvironment = {}));
++class NativeRampService {
++    constructor(environment, partnerApiKey, frontendAuth) {
++        this.partnerApiKey = partnerApiKey;
++        this.frontendAuth = frontendAuth;
++        this.environment = environment;
++        const endpoint = environment === TransakEnvironment.Production
++            ? 'https://api.transak.com'
++            : 'https://api-stg.transak.com';
++        if (!endpoint) {
++            throw new Error('Invalid environment');
++        }
++        this.transakAxios = axios_1.default.create({
++            baseURL: endpoint,
++            headers: {},
++        });
++    }
++    async sendUserOtp(email) {
++        try {
++            return (await this.transakAxios.post('/api/v2/user/email/send', {
++                partnerApiKey: this.partnerApiKey,
++                email: email,
++            }, {
++                headers: {
++                    'frontend-auth': this.frontendAuth,
++                    'x-trace-id': '8e3dc027-e5e2-4765-99e6-6c3393d5d99f',
++                },
++            })).data.response;
++        }
++        catch (error) {
++            console.error('Error in sendUserOtp:', error);
++            throw error;
++        }
++    }
++    async verifyUserOtp(email, verificationCode) {
++        try {
++            return (await this.transakAxios.post('/api/v2/user/email/verify', {
++                partnerApiKey: this.partnerApiKey,
++                email: email,
++                emailVerificationCode: verificationCode,
++                isTncAccepted: true,
++            }, {
++                headers: {
++                    'frontend-auth': this.frontendAuth,
++                    'x-trace-id': '8e3dc027-e5e2-4765-99e6-6c3393d5d99f',
++                },
++            })).data.response;
++        }
++        catch (error) {
++            console.error('Error in verifyUserOtp:', error);
++            throw error;
++        }
++    }
++    async getUserDetails(accessToken) {
++        try {
++            const result = (await this.transakAxios.get('/api/v2/user', {
++                params: {
++                    apiKey: this.partnerApiKey,
++                },
++                headers: {
++                    authorization: accessToken.id,
++                    'x-trace-id': '8e3dc027-e5e2-4765-99e6-6c3393d5d99f',
++                },
++            })).data.response;
++            result.isKycApproved = () => result.kyc.l1.status === 'APPROVED';
++            return result;
++        }
++        catch (error) {
++            console.error('Error in getUserDetails:', error);
++            throw error;
++        }
++    }
++    async getBuyQuote(fiatCurrency, cryptoCurrency, network, paymentMethod, fiatAmount) {
++        try {
++            return (await this.transakAxios.get('/api/v1/pricing/public/quotes', {
++                params: {
++                    partnerApiKey: this.partnerApiKey,
++                    fiatCurrency: fiatCurrency,
++                    cryptoCurrency: cryptoCurrency,
++                    isBuyOrSell: 'BUY',
++                    network: network,
++                    paymentMethod: paymentMethod,
++                    fiatAmount: fiatAmount,
++                },
++                headers: {},
++            })).data.response;
++        }
++        catch (error) {
++            console.error('Error in getBuyQuote:', error);
++            throw error;
++        }
++    }
++    async getKYCForms(accessToken, quote) {
++        return (await this.transakAxios.get('/api/v2/user/kyc/get-forms', {
++            params: {
++                onlyFormIds: true,
++                'metadata[quoteId]': quote.quoteId,
++                'metadata[formType]': 'KYC',
++            },
++            headers: {
++                authorization: accessToken.id,
++            },
++        })).data.response;
++    }
++    async getKycForm(accessToken, quote, form) {
++        return (await this.transakAxios.get('/api/v2/user/kyc/get-forms', {
++            params: {
++                onlyFormIds: false,
++                'formIds[]': form.id,
++                'metadata[quoteId]': quote.quoteId,
++                'metadata[formType]': 'KYC',
++            },
++            headers: {
++                authorization: accessToken.id,
++            },
++        })).data.response;
++    }
++    async patchUser(accessToken, data) {
++        return (await this.transakAxios.patch('/api/v2/user', data, {
++            params: {
++                apiKey: this.partnerApiKey,
++            },
++            headers: {
++                authorization: accessToken.id,
++                'Content-Type': 'application/json',
++            },
++        })).data.response;
++    }
++    async submitPurposeOfUsageForm(accessToken, purpose) {
++        return (await this.transakAxios.post('/api/v2/user/purpose-of-usage', {
++            purposeList: purpose,
++        }, {
++            headers: {
++                authorization: accessToken.id,
++            },
++        })).data.response;
++    }
++    async walletReserve(quote, walletAddress) {
++        return (await this.transakAxios.post('/api/v2/orders/wallet-reserve', {
++            quoteId: quote.quoteId,
++            walletAddress: walletAddress,
++        }, {
++            headers: {},
++        })).data.response;
++    }
++    async cancelOrder(accessToken, orderId) {
++        var _a;
++        console.log(`[cancelOrder] Starting cancellation for order: ${orderId}`);
++        try {
++            await this.transakAxios.delete(`/api/v2/orders/${orderId}`, {
++                params: {
++                    cancelReason: 'Creating new order',
++                },
++                headers: {
++                    authorization: accessToken.id,
++                },
++            });
++            console.log(`[cancelOrder] Successfully cancelled order: ${orderId}`);
++        }
++        catch (error) {
++            console.error(`[cancelOrder] Error cancelling order:`, ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.data) || error);
++            throw error;
++        }
++    }
++    async createOrder(accessToken, reservation) {
++        var _a, _b, _c, _d, _e, _f, _g, _h;
++        console.log(`[createOrder] Attempting to create order with reservation ID: ${reservation.id}`);
++        try {
++            const response = await this.transakAxios.post('/api/v2/orders', {
++                reservationId: reservation.id,
++            }, {
++                headers: {
++                    authorization: accessToken.id,
++                },
++            });
++            console.log(`[createOrder] Successfully created order: ${response.data.response.id}`);
++            return response.data.response;
++        }
++        catch (error) {
++            console.log(`[createOrder] Error encountered: ${((_c = (_b = (_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.error) === null || _c === void 0 ? void 0 : _c.message) || error.message}`);
++            if (((_f = (_e = (_d = error === null || error === void 0 ? void 0 : error.response) === null || _d === void 0 ? void 0 : _d.data) === null || _e === void 0 ? void 0 : _e.error) === null || _f === void 0 ? void 0 : _f.message) === 'Order exists') {
++                const existingOrder = error.response.data.error.details.data;
++                console.log(`[createOrder] Found existing order with ID: ${existingOrder.id}`);
++                console.log(`[createOrder] Existing order status: ${existingOrder.status}`);
++                try {
++                    console.log(`[createOrder] Attempting to cancel existing order: ${existingOrder.id}`);
++                    await this.cancelOrder(accessToken, existingOrder.id);
++                    console.log(`[createOrder] Successfully cancelled existing order`);
++                    console.log(`[createOrder] Waiting 2 seconds before retrying order creation...`);
++                    await new Promise((resolve) => setTimeout(resolve, 2000));
++                    console.log(`[createOrder] Retrying order creation with reservation ID: ${reservation.id}`);
++                    const retryResponse = await this.transakAxios.post('/api/v2/orders', {
++                        reservationId: reservation.id,
++                    }, {
++                        headers: {
++                            authorization: accessToken.id,
++                        },
++                    });
++                    console.log(`[createOrder] Successfully created new order after cancellation: ${retryResponse.data.response.id}`);
++                    return retryResponse.data.response;
++                }
++                catch (retryError) {
++                    console.error(`[createOrder] Error during order cancellation/retry process:`, ((_g = retryError === null || retryError === void 0 ? void 0 : retryError.response) === null || _g === void 0 ? void 0 : _g.data) || retryError);
++                    throw retryError;
++                }
++            }
++            console.error(`[createOrder] Unhandled error:`, ((_h = error === null || error === void 0 ? void 0 : error.response) === null || _h === void 0 ? void 0 : _h.data) || error);
++            throw error;
++        }
++    }
++    async confirmPayment(accessToken, order, paymentMethod) {
++        return (await this.transakAxios.post('/api/v2/orders/payment-confirmation', {
++            orderId: order.id,
++            paymentOptionId: paymentMethod.id,
++        }, {
++            headers: {
++                authorization: accessToken.id,
++            },
++        })).data.response;
++    }
++    async getOrder(accessToken, orderId) {
++        return (await this.transakAxios.get('/api/v2/orders/' + orderId, {
++            headers: {
++                authorization: accessToken.id,
++            },
++        })).data.response;
++    }
++    async getUserLimits(accessToken, fiatCurrency, paymentMethod = 'credit_debit_card', kycType = 'SIMPLE') {
++        try {
++            const response = await this.transakAxios.get('/api/v2/orders/order-limit', {
++                params: {
++                    isBuyOrSell: 'BUY',
++                    paymentCategory: paymentMethod,
++                    kycType: kycType,
++                    fiatCurrency: fiatCurrency,
++                },
++                headers: {
++                    authorization: accessToken.id,
++                },
++            });
++            return response.data || { response: {} };
++        }
++        catch (error) {
++            console.error('Error in getUserLimits:', error);
++            throw error;
++        }
++    }
++    async requestOtt(accessToken) {
++        try {
++            const response = await this.transakAxios.post('/auth/public/v1/request-ott', {
++                partnerApiKey: this.partnerApiKey,
++            }, {
++                headers: {
++                    authorization: `Bearer ${accessToken.id}`,
++                    'Content-Type': 'application/json',
++                },
++            });
++            if (!response.data) {
++                throw new Error('Failed to get OTT token');
++            }
++            return response.data.response;
++        }
++        catch (error) {
++            console.error('Error in requestOtt:', error);
++            throw error;
++        }
++    }
++    generatePaymentWidgetUrl(ottToken, fiatCurrency, cryptoCurrency, network, fiatAmount, walletAddress, paymentMethod = 'credit_debit_card', redirectUrl) {
++        const widgetBaseUrl = this.environment === TransakEnvironment.Production
++            ? 'https://global.transak.com'
++            : 'https://global-stg.transak.com';
++        const params = new URLSearchParams({
++            ott: ottToken,
++            apiKey: this.partnerApiKey,
++            fiatCurrency: fiatCurrency,
++            cryptoCurrencyCode: cryptoCurrency,
++            productsAvailed: 'BUY',
++            fiatAmount: fiatAmount,
++            network: network,
++            paymentMethod: paymentMethod,
++            hideExchangeScreen: 'true',
++            walletAddress: walletAddress,
++            disableWalletAddressForm: 'true',
++            redirectURL: redirectUrl,
++        });
++        return `${widgetBaseUrl}?${params.toString()}`;
++    }
++    async getOrdersHistory(accessToken, limit = 10, skip = 0) {
++        try {
++            return (await this.transakAxios.get('/api/v2/orders', {
++                params: {
++                    skip: skip,
++                    limit: limit,
++                },
++                headers: {
++                    authorization: accessToken.id,
++                },
++            })).data.response;
++        }
++        catch (error) {
++            console.error('Error in getOrdersHistory:', error);
++            throw error;
++        }
++    }
++}
++exports.NativeRampService = NativeRampService;
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/OnRampSdk.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/OnRampSdk.d.ts
+index 388461f..0d436d9 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/OnRampSdk.d.ts
++++ b/node_modules/@consensys/on-ramp-sdk/dist/OnRampSdk.d.ts
+@@ -7,6 +7,7 @@ import EnvironmentDetails from './EnvironmentDetails';
+ import ReportsService from './reports/ReportsService';
+ import { SdkFunctionIntrospection, SdkParamIntrospection } from './SdkIntrospection';
+ import ServicesSignatures from './ServicesSignatures';
++import { NativeRampService } from './NativeRampService';
+ export declare class OnRampSdk {
+     private readonly context;
+     private locale;
+@@ -17,6 +18,7 @@ export declare class OnRampSdk {
+     private reportsService;
+     private sdkIntrospection;
+     sdkParameters: OnRampSdkParameters;
++    private nativeRampService;
+     private regionsAxios;
+     private ordersAxios;
+     private reportsAxios;
+@@ -38,4 +40,4 @@ export declare class OnRampSdk {
+     setLocale(locale: string): void;
+     getSignature(targetClass: Record<string, any>, method: (...args: any[]) => any): SdkFunctionIntrospection;
+ }
+-export { Payment, PaymentType, Country, CryptoCurrency, FiatCurrency, QuoteError, QuoteResponse, SellQuoteResponse, AllQuotesResponse, AllSellQuotesResponse, Environment, Context, RegionProvider, Provider, Order, OrdersService, RegionsService, ReportsService, Limits, OrderStatusEnum, State, ProviderBuyFeatureBrowserEnum, SdkFunctionIntrospection, SdkParamIntrospection, QuoteRequestType, ServicesSignatures, };
++export { Payment, PaymentType, Country, CryptoCurrency, FiatCurrency, QuoteError, QuoteResponse, SellQuoteResponse, AllQuotesResponse, AllSellQuotesResponse, Environment, Context, RegionProvider, Provider, Order, OrdersService, RegionsService, NativeRampService, ReportsService, Limits, OrderStatusEnum, State, ProviderBuyFeatureBrowserEnum, SdkFunctionIntrospection, SdkParamIntrospection, QuoteRequestType, ServicesSignatures, };
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/OnRampSdk.js b/node_modules/@consensys/on-ramp-sdk/dist/OnRampSdk.js
+index 11a7e15..2fdf53f 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/OnRampSdk.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/OnRampSdk.js
+@@ -15,7 +15,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.ServicesSignatures = exports.QuoteRequestType = exports.ProviderBuyFeatureBrowserEnum = exports.OrderStatusEnum = exports.ReportsService = exports.RegionsService = exports.OrdersService = exports.Context = exports.Environment = exports.PaymentType = exports.OnRampSdk = void 0;
++exports.ServicesSignatures = exports.QuoteRequestType = exports.ProviderBuyFeatureBrowserEnum = exports.OrderStatusEnum = exports.ReportsService = exports.NativeRampService = exports.RegionsService = exports.OrdersService = exports.Context = exports.Environment = exports.PaymentType = exports.OnRampSdk = void 0;
+ const IOnRampSdk_1 = require("./IOnRampSdk");
+ Object.defineProperty(exports, "Environment", { enumerable: true, get: function () { return IOnRampSdk_1.Environment; } });
+ Object.defineProperty(exports, "Context", { enumerable: true, get: function () { return IOnRampSdk_1.Context; } });
+@@ -38,6 +38,8 @@ const SdkIntrospection_1 = __importDefault(require("./SdkIntrospection"));
+ const SdkParam_1 = __importDefault(require("./SdkParam"));
+ const ServicesSignatures_1 = __importDefault(require("./ServicesSignatures"));
+ exports.ServicesSignatures = ServicesSignatures_1.default;
++const NativeRampService_1 = require("./NativeRampService");
++Object.defineProperty(exports, "NativeRampService", { enumerable: true, get: function () { return NativeRampService_1.NativeRampService; } });
+ const logger = new Logger_1.Logger();
+ class OnRampSdk {
+     static create(connectionUrl = 'http://localhost:3000', context, config = {}) {
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.d.ts
+index 1802a66..91f2dd4 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.d.ts
++++ b/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.d.ts
+@@ -333,6 +333,59 @@ declare const _default: {
+             }[];
+         };
+     };
++    NativeRampService: {
++        sendUserOtp: {
++            parameters: any[];
++        };
++        verifyUserOtp: {
++            parameters: any[];
++        };
++        getUserDetails: {
++            parameters: any[];
++        };
++        getBuyQuote: {
++            parameters: any[];
++        };
++        getKYCForms: {
++            parameters: any[];
++        };
++        getKycForm: {
++            parameters: any[];
++        };
++        patchUser: {
++            parameters: any[];
++        };
++        submitPurposeOfUsageForm: {
++            parameters: any[];
++        };
++        walletReserve: {
++            parameters: any[];
++        };
++        cancelOrder: {
++            parameters: any[];
++        };
++        createOrder: {
++            parameters: any[];
++        };
++        confirmPayment: {
++            parameters: any[];
++        };
++        getOrder: {
++            parameters: any[];
++        };
++        getUserLimits: {
++            parameters: any[];
++        };
++        requestOtt: {
++            parameters: any[];
++        };
++        generatePaymentWidgetUrl: {
++            parameters: any[];
++        };
++        getOrdersHistory: {
++            parameters: any[];
++        };
++    };
+     ReportsService: {};
+     Object: {};
+ };
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.js b/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.js
+index 31d1123..81ffb02 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.js
+@@ -759,6 +759,59 @@ exports.default = {
+             ]
+         }
+     },
++    "NativeRampService": {
++        "sendUserOtp": {
++            "parameters": []
++        },
++        "verifyUserOtp": {
++            "parameters": []
++        },
++        "getUserDetails": {
++            "parameters": []
++        },
++        "getBuyQuote": {
++            "parameters": []
++        },
++        "getKYCForms": {
++            "parameters": []
++        },
++        "getKycForm": {
++            "parameters": []
++        },
++        "patchUser": {
++            "parameters": []
++        },
++        "submitPurposeOfUsageForm": {
++            "parameters": []
++        },
++        "walletReserve": {
++            "parameters": []
++        },
++        "cancelOrder": {
++            "parameters": []
++        },
++        "createOrder": {
++            "parameters": []
++        },
++        "confirmPayment": {
++            "parameters": []
++        },
++        "getOrder": {
++            "parameters": []
++        },
++        "getUserLimits": {
++            "parameters": []
++        },
++        "requestOtt": {
++            "parameters": []
++        },
++        "generatePaymentWidgetUrl": {
++            "parameters": []
++        },
++        "getOrdersHistory": {
++            "parameters": []
++        }
++    },
+     "ReportsService": {},
+     "Object": {}
+ };
