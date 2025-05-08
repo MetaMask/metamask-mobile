@@ -68,6 +68,7 @@ describe('SnapControllerInit', () => {
       getMnemonicSeed: expect.any(Function),
       maxIdleTime: expect.any(Number),
       preinstalledSnaps: expect.any(Array),
+      trackEvent: expect.any(Function),
     });
   });
 
