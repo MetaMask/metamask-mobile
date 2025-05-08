@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
+// Using FlatList from react-native-gesture-handler to fix scroll issues with the bottom sheet
 import { FlatList } from 'react-native-gesture-handler';
 import { Box } from '../../Box/Box';
 import Text, {
@@ -21,7 +22,6 @@ import { BridgeToken } from '../types';
 import { Skeleton } from '../../../../component-library/components/Skeleton';
 import { useAssetMetadata } from '../hooks/useAssetMetadata';
 import { CaipChainId, Hex } from '@metamask/utils';
-import ReusableModal, { ReusableModalRef } from '../../ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomSheet, {
   BottomSheetRef,

@@ -34,9 +34,10 @@ import { AlignItems, FlexDirection } from '../../Box/box.types';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import { selectChainId } from '../../../../selectors/networkController';
+// Using ScrollView from react-native-gesture-handler to fix scroll issues with the bottom sheet
+import { ScrollView } from 'react-native-gesture-handler';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
-import { ScrollView } from 'react-native-gesture-handler';
 ///: END:ONLY_INCLUDE_IF
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
