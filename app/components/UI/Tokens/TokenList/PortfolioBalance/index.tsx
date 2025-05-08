@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -34,6 +34,9 @@ import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMulti
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import { isCardHolder } from './card.utils';
+import { getGlobalChainId } from '../../../../../util/networks/global-network';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 
 export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
@@ -49,7 +52,27 @@ export const PortfolioBalance = React.memo(() => {
 
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();
-    const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const [showCardButton, setShowCardButton] = useState(false);
+  const { NetworkController } = Engine.context;
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+
+  // Check if the user is a card holder
+  useEffect(() => {
+    const checkCardHolder = async () => {
+      if (selectedAddress) {
+        const networkId = getGlobalChainId(NetworkController);
+        const isHolder = await isCardHolder(
+          // selectedAddress,
+          "0xFe4F94B62C04627C2677bF46FB249321594d0d79",
+          networkId
+        );
+        setShowCardButton(isHolder);
+      }
+    };
+
+    checkCardHolder();
+  }, [selectedAddress, NetworkController]);
 
   const onOpenPortfolio = useCallback(() => {
     const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
@@ -102,6 +125,22 @@ export const PortfolioBalance = React.memo(() => {
     isMultichainBalancesCollectionForMarketingEnabled,
     browserTabs,
   ]);
+
+  const onOpenCard = useCallback(() => {
+    // Navigate to CardBalance component
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
+        .addProperties({
+          cardUrl: 'CardBalance',
+        })
+        .build(),
+    );
+    
+    // Navigate to the CardBalance component
+    navigation.navigate(Routes.WALLET.TAB_STACK_FLOW, {
+      screen: 'CardBalance',
+    });
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const renderAggregatedPercentage = () => {
     if (
@@ -183,6 +222,19 @@ export const PortfolioBalance = React.memo(() => {
           testID={WalletViewSelectorsIDs.PORTFOLIO_BUTTON}
           endIconName={IconName.Export}
         />
+        
+        {showCardButton && (
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Md}
+            width={ButtonWidthTypes.Full}
+            style={[styles.buyButton, { marginTop: 8 }]}
+            onPress={onOpenCard}
+            label={strings('asset_overview.card_button')}
+            testID="metamask-card-button"
+            endIconName={IconName.Card}
+          />
+        )}
       </View>
     </View>
   );

@@ -1358,10 +1358,12 @@
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
+    "token_balances": "Token Balances",
     "token_marketplace": "Token marketplace",
     "sell_button": "Sell",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
+    "card_button": "Card",
     "earn_button": "Earn",
     "add_collectible_button": "Add",
     "info": "Info",

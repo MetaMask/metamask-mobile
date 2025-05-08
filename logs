@@ -1,0 +1,17 @@
+yarn run v1.22.22
+$ ./scripts/build.sh watcher watch
+
+-------------------------------------------
+
+  🚀 BUILDING WATCHER IN WATCH MODE 
+
+-------------------------------------------
+
+METAMASK_BUILD_TYPE is set to: main
+METAMASK_ENVIRONMENT is set to: local
+Remapping local env variables for development
+Error: MM_SENTRY_DSN_DEV does not exist in the environment.
+Starting project at /Users/mattilagan/Desktop/code/metamask-mobile
+Starting Metro Bundler
+Waiting on http://localhost:8081
+Logs for your project will appear below.

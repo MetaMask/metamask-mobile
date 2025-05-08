@@ -93,6 +93,7 @@ import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
+import CardBalance from '../../UI/Tokens/TokenList/CardBalance';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -183,6 +184,11 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name="RevealPrivateCredentialView"
       component={RevealPrivateCredential}
+    />
+    <Stack.Screen
+      name="CardBalance"
+      component={CardBalance}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
