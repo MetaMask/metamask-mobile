@@ -22,8 +22,8 @@ jest.mock('../../core/Encryptor', () => ({
 
 /**
  * Tests for validator utility functions
- * 
- * These utilities provide validation and parsing for various 
+ *
+ * These utilities provide validation and parsing for various
  * wallet data formats and user inputs.
  */
 describe('Validator Utilities', () => {
@@ -54,7 +54,7 @@ describe('Validator Utilities', () => {
 
     it('uses the value as initial value when no initialValue is provided', () => {
       const comparator = jest.fn().mockReturnValue(true) as TestComparator;
-      // For this test we need to handle undefined
+      //@ts-expect-error for this test we need to handle undefined
       const compare = previousValueComparator<string | undefined>(comparator, undefined);
 
       compare('test');
