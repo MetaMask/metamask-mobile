@@ -26,13 +26,9 @@ import {
 } from '../../../../selectors/networkController';
 import {
   getNetworkImageSource,
-  isPerDappSelectedNetworkEnabled,
 } from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
-
-import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
-import { selectEvmChainId } from '../../../../selectors/networkController';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -47,12 +43,7 @@ const NetworkConnectMultiSelector = ({
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const globalChainId = useSelector(selectEvmChainId);
-  const networkInfo = useNetworkInfo(hostname);
 
-  const { chainId: currentChainId } = isPerDappSelectedNetworkEnabled()
-    ? networkInfo
-    : { chainId: globalChainId };
 
   useEffect(() => {
     setSelectedChainIds(defaultSelectedChainIds);
