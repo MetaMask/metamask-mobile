@@ -13,11 +13,14 @@ import {
 } from '../../../reducers/user';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
+import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
+import { selectAllTokens } from '../../../selectors/tokensController';
+import { selectAllNfts } from '../../../selectors/nftController';
+import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
 
 const ProtectWalletMandatoryModal = () => {
   const [showProtectWalletModal, setShowProtectWalletModal] = useState(false);
@@ -27,7 +30,10 @@ const ProtectWalletMandatoryModal = () => {
 
   const metrics = useMetrics();
 
-  const accounts = useSelector(selectAccounts);
+  const tokenBalances = useSelector(selectTokensBalances);
+  const allTokens = useSelector(selectAllTokens);
+  const nfts = useSelector(selectAllNfts);
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
 
   const { navigate, dangerouslyGetState } = useNavigation();
 
@@ -74,8 +80,18 @@ const ProtectWalletMandatoryModal = () => {
     } else {
       setShowProtectWalletModal(false);
     }
-    // Adding accounts to the dependencies to trigger the effect when the accounts change
-  }, [metrics, passwordSet, seedphraseBackedUp, dangerouslyGetState, accounts]);
+    // We need to add the dependencies to trigger the effect when the wallet have ballance
+    // Dependencies added: tokenBalances, allTokens, nfts, selectedAddress
+  }, [
+    metrics,
+    passwordSet,
+    seedphraseBackedUp,
+    dangerouslyGetState,
+    tokenBalances,
+    allTokens,
+    nfts,
+    selectedAddress,
+  ]);
 
   const onSecureWallet = () => {
     setShowProtectWalletModal(false);
