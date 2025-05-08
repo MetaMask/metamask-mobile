@@ -11,21 +11,21 @@ Current coverage metrics for `BackgroundBridge.js`:
 
 ## Implementation Results
 
-We added several targeted tests following the plan outlined below, but coverage metrics did not improve significantly despite adding 10+ new test suites. Key findings:
+I added several targeted tests following the plan outlined below, but coverage metrics did not improve significantly despite adding 10+ new test suites. Here's what I found:
 
 ### Why Coverage Didn't Improve
 
-1. **Excessive Mocking**: Most tests mock the actual implementation rather than testing real functionality, so even though test cases pass, they don't register as improving coverage.
+1. **Excessive Mocking**: I mostly mocked the actual implementation rather than testing real functionality, so even though my test cases pass, they don't register as improving coverage.
 
 2. **Deep Architectural Dependencies**: BackgroundBridge depends on the MetaMask controller system which requires extensive setup to test actual implementation.
 
 3. **Complex Object Integration**: The class integrates with JsonRpcEngine, middleware stacks, and numerous controller instances, making isolated testing difficult.
 
-4. **Mock vs Implementation Gap**: Jest only counts coverage for code that is actually executed, not code that is mocked or stubbed. Our tests mostly use stubbed implementations.
+4. **Mock vs Implementation Gap**: Jest only counts coverage for code that is actually executed, not code that is mocked or stubbed. My tests mostly use stubbed implementations.
 
 ## Recommendations for Actual Coverage Improvements
 
-For meaningful coverage improvements, the following approaches are needed:
+For meaningful coverage improvements, I believe we need the following approaches:
 
 1. **Decrease Mocking**: Create a more realistic testing environment that exercises actual code paths.
 
@@ -201,9 +201,31 @@ it('tracks network client changes for chains', () => {
 });
 ```
 
+## Revised Approach (Updated)
+
+After examining the original test file that achieved much higher coverage (~60%), I discovered a critical insight:
+
+1. **Minimal vs. Excessive Mocking**: The original tests create actual BackgroundBridge instances with minimal dependency mocking, while my approach used excessive mocking that replaced too much real functionality.
+
+2. **Jest Coverage Mechanics**: Jest only counts coverage for code that is actually executed, not code that is mocked or stubbed. My heavily mocked approach meant the actual implementation code wasn't being counted in coverage metrics.
+
+3. **Balance Required**: While some mocking is necessary due to BackgroundBridge's complex dependencies, I need to be careful to let the real implementation code run whenever possible.
+
+### My Revised Implementation Strategy
+
+1. **Use Real Instances**: I'll create actual BackgroundBridge instances for tests rather than mocking their methods.
+
+2. **Minimize Mocking**: I'll only mock the minimum external dependencies required to make tests run.
+
+3. **Split Into Multiple Files**: I'm considering splitting the test implementation across multiple files to manage complexity.
+
+4. **Incremental Coverage Check**: I'll monitor coverage changes as each test is added to ensure actual code is being executed.
+
+With this approach, I believe I can achieve significantly higher coverage metrics, potentially exceeding 80% coverage.
+
 ## Path Forward
 
-Two potential solutions:
+I see two potential solutions:
 
 1. **Major Testing Infrastructure Overhaul**: Invest in creating a proper test environment that mimics the actual MetaMask controller architecture, allowing for less mocking and more actual implementation testing.
 
