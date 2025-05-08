@@ -252,14 +252,6 @@ jest.mock('../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
 }));
 
-// Mock the AlertController to prevent constructor errors
-jest.mock('../Engine/controllers/alert-controller', () => ({
-  AlertController: jest.fn().mockImplementation(() => ({
-    getWeb3ShimUsageState: jest.fn(),
-    setWeb3ShimUsageRecorded: jest.fn(),
-  })),
-}));
-
 // Patch BackgroundBridge methods that cause issues in tests
 BackgroundBridge.prototype.setupControllerEventSubscriptions = jest.fn();
 BackgroundBridge.prototype.setupProviderConnectionEip1193 = jest.fn();
@@ -504,13 +496,13 @@ function setupBackgroundBridge(url) {
 
 /**
  * Tests for BackgroundBridge
- * 
+ *
  * Tests are organized into logical sections:
  * 1. Core middleware configuration
  * 2. Background service management
  *    - Transaction polling
  *    - Token list configuration
- * 3. Notification and event handling 
+ * 3. Notification and event handling
  * 4. State and network management
  * 5. Security and authentication
  */
@@ -3036,7 +3028,7 @@ describe('CAIP Subscription Configuration', () => {
       middleware: expect.any(Function)
     });
 
-    // Verify it didn't add middleware for scope without eth_subscription 
+    // Verify it didn't add middleware for scope without eth_subscription
     expect(bridge.multichainMiddlewareManager.addMiddleware).not.toHaveBeenCalledWith(
       expect.objectContaining({ scope: 'eip155:5' })
     );
@@ -3131,7 +3123,7 @@ describe('Multichain Provider Setup Implementation', () => {
         return next();
       });
 
-      // Add unsupported method middleware 
+      // Add unsupported method middleware
       engine.push(createUnsupportedMethodMiddleware());
 
       // Add middleware manager middleware

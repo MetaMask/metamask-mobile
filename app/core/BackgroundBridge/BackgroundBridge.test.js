@@ -58,14 +58,6 @@ jest.mock('@metamask/eth-json-rpc-filters/subscriptionManager', () => () => ({
   },
 }));
 
-// Mock the AlertController to prevent constructor errors
-jest.mock('../Engine/controllers/alert-controller', () => ({
-  AlertController: jest.fn().mockImplementation(() => ({
-    getWeb3ShimUsageState: jest.fn(),
-    setWeb3ShimUsageRecorded: jest.fn(),
-  })),
-}));
-
 // Add the missing getRestricted method to Engine.controllerMessenger
 Engine.controllerMessenger.getRestricted = jest.fn().mockReturnValue({
   call: jest.fn(),
