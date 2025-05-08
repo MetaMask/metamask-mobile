@@ -1,3 +1,4 @@
+// @ts-expect-error - humanize-duration is not typed
 import humanizeDuration from 'humanize-duration';
 
 const shortEnglishHumanizer = humanizeDuration.humanizer({
