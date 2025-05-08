@@ -1,33 +1,129 @@
 // Third party dependencies.
 import React, { useCallback, useMemo } from 'react';
-import { View, SafeAreaView } from 'react-native';
+import { View, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector, shallowEqual } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import { CaipAccountId } from '@metamask/utils';
 
 // External dependencies.
-import StyledButton from '../../../UI/StyledButton';
+import Engine from '../../../../core/Engine';
+import { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
 import { getHost } from '../../../../util/browser';
+import { formatAddress } from '../../../../util/address';
+import { useTheme } from '../../../../util/theme';
+import { isDefaultAccountName } from '../../../../util/ENSUtils';
+import StyledButton from '../../../UI/StyledButton';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
 import { useStyles } from '../../../../component-library/hooks';
-import { useTheme } from '../../../../util/theme';
-
-// Internal dependencies.
-import styleSheet from './AccountConnectSummary.styles';
-import { AccountConnectSummaryProps } from './AccountConnectSummary.types';
 import TextComponent, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import {
+  AvatarAccountType,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
+import Cell, {
+  CellVariant,
+} from '../../../../component-library/components/Cells/Cell';
 import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
+import { EnsByAccountAddress } from '../../../hooks/useAccounts';
+
+// Internal dependencies.
+import styleSheet from './AccountConnectSummary.styles';
+import { AccountConnectSummaryProps } from './AccountConnectSummary.types';
+
+const ITEM_HEIGHT = 75;
 
 // TODO: Mock components
-const AccountsConnected = () => (
-  <View>
-    <TextComponent>Accounts Connected</TextComponent>
-  </View>
-);
+const AccountsConnectedItemList = ({
+  selectedAddresses,
+  ensByAccountAddress,
+}: {
+  selectedAddresses: CaipAccountId[];
+  ensByAccountAddress: EnsByAccountAddress;
+}) => {
+  const MAX_HEIGHT =
+    selectedAddresses.length < 4 ? selectedAddresses.length * ITEM_HEIGHT : 3.5;
+  console.log('MAX_HEIGHT:', MAX_HEIGHT);
+  const { styles } = useStyles(styleSheet, { itemHeight: MAX_HEIGHT });
+  const accountAvatarType = useSelector(
+    (state: RootState) =>
+      state.settings.useBlockieIcon
+        ? AvatarAccountType.Blockies
+        : AvatarAccountType.JazzIcon,
+    shallowEqual,
+  );
+
+  const renderAccountItem = useCallback(
+    ({ item }: { item: CaipAccountId }) => {
+      // This list item needs to render the following:
+      // - Account balance
+      // - Potential network connections
+
+      // - Account address (short address) ✅
+      // TODO: Find out if we have a standardized util function to get the address from the caipAccountId
+      const address = item.split(':')[2];
+      const shortAddress = formatAddress(address, 'short');
+      const account = Engine.context.AccountsController.getAccount(address);
+      // - Account avatar ✅
+      const avatarProps = {
+        variant: AvatarVariant.Account as const,
+        type: accountAvatarType,
+        accountAddress: address,
+      };
+      // - Account name (ens name or name)
+      console.log('ensByAccountAddress', ensByAccountAddress);
+      // const ensName = ensByAccountAddress[address];
+      // const accountName =
+      //   isDefaultAccountName(account?.metadata.name) && ensName
+      //     ? ensName
+      //     : account?.metadata.name;
+
+      return (
+        <Cell
+          key={address}
+          style={styles.accountListItem}
+          // onLongPress={handleLongPress}
+          variant={CellVariant.Display}
+          avatarProps={avatarProps}
+          title={shortAddress}
+          secondaryText={shortAddress}
+          showSecondaryTextIcon={false}
+          // tertiaryText={balanceError}
+          // onPress={handlePress}
+          // tagLabel={tagLabel}
+          // disabled={isDisabled}
+          // style={cellStyle}
+          // buttonProps={buttonProps}
+        >
+          {/* {renderRightAccessory?.(address, accountName) ||
+        (assets && renderAccountBalances(assets, address))} */}
+          {/* <TextComponent>{shortAddress}</TextComponent> */}
+        </Cell>
+      );
+    },
+    [accountAvatarType, styles.accountListItem, ensByAccountAddress],
+  );
+
+  return (
+    <View style={styles.accountsConnectedContainer}>
+      <FlatList
+        keyExtractor={(item) => item}
+        data={selectedAddresses}
+        renderItem={renderAccountItem}
+        getItemLayout={(_, index) => ({
+          length: ITEM_HEIGHT,
+          offset: ITEM_HEIGHT * index,
+          index,
+        })}
+      />
+    </View>
+  );
+};
 
 // TODO: Mock components
 const Permissions = () => (
@@ -38,12 +134,15 @@ const Permissions = () => (
 
 const AccountConnectSummary = ({
   currentPageInformation,
+  selectedAddresses,
+  onEditAccountsPermissions,
+  ensByAccountAddress,
   isNonDappNetworkSwitch,
   showActionButtons = true,
   isNetworkSwitch = true,
   accountAddresses = [],
 }: AccountConnectSummaryProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { itemHeight: ITEM_HEIGHT });
   const theme = useTheme();
   const { colors } = theme;
   const navigation = useNavigation();
@@ -130,14 +229,17 @@ const AccountConnectSummary = ({
   );
 
   const onChangeTab = useCallback((tabInfo: { i: number; ref: unknown }) => {
+    // eslint-disable-next-line no-console
     console.log('tabInfo', tabInfo);
   }, []);
 
   const cancel = () => {
+    // eslint-disable-next-line no-console
     console.log('cancel');
   };
 
   const confirm = () => {
+    // eslint-disable-next-line no-console
     console.log('confirm');
   };
 
@@ -161,7 +263,10 @@ const AccountConnectSummary = ({
 
   const renderTabsContent = () => (
     <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
-      <AccountsConnected {...accountsConnectedTabProps} />
+      <AccountsConnectedItemList
+        selectedAddresses={selectedAddresses}
+        {...accountsConnectedTabProps}
+      />
       <Permissions {...permissionsTabProps} />
     </ScrollableTabView>
   );
@@ -171,14 +276,17 @@ const AccountConnectSummary = ({
       <View style={styles.mainContainer}>
         {renderHeader()}
         {renderTabsContent()}
-        <View style={styles.editAccountsContainer}>
+        <TouchableOpacity
+          style={styles.editAccountsContainer}
+          onPress={onEditAccountsPermissions}
+        >
           <TextComponent
             color={TextColor.Primary}
             variant={TextVariant.BodyMDMedium}
           >
             {strings('accounts.edit_accounts_title')}
           </TextComponent>
-        </View>
+        </TouchableOpacity>
         {showActionButtons && !isNonDappNetworkSwitch && (
           <View style={styles.actionButtonsContainer}>
             <StyledButton

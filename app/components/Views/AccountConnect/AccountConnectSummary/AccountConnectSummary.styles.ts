@@ -8,14 +8,24 @@ import {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 
+interface AccountConnectSummaryStyleSheetVars {
+  itemHeight: number;
+}
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 /**
  * Style sheet function for AccountConnectSingle screen.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: AccountConnectSummaryStyleSheetVars;
+}) => {
+  const { theme, vars } = params;
   const { colors, typography } = theme;
+  const { itemHeight } = vars;
+
   return StyleSheet.create({
     // Safe Area
     safeArea: {
@@ -24,7 +34,8 @@ const styleSheet = (params: { theme: Theme }) => {
     mainContainer: {
       backgroundColor: theme.colors.background.default,
       paddingTop: 16,
-      height: SCREEN_HEIGHT / 2,
+      overflow: 'hidden',
+      height: itemHeight * 5,
       justifyContent: 'flex-start',
       paddingHorizontal: 24,
     },
@@ -103,6 +114,21 @@ const styleSheet = (params: { theme: Theme }) => {
     // Edit Accounts
     editAccountsContainer: {
       marginTop: 8,
+      alignItems: 'center',
+    },
+    // Account List Item
+    accountListItem: {
+      borderRadius: 16,
+      borderWidth: 0,
+      backgroundColor: colors.background.alternative,
+      height: 75,
+    },
+    accountsConnectedContainer: {
+      marginTop: 8,
+      backgroundColor: colors.background.alternative,
+      borderRadius: 16,
+      overflow: 'hidden',
+      height: itemHeight,
     },
   });
 };

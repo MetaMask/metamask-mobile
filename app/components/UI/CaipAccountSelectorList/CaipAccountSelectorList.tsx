@@ -206,7 +206,15 @@ const CaipAccountSelectorList = ({
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
-      item: { name, address, assets, type, isSelected, balanceError, caipAccountId },
+      item: {
+        name,
+        address,
+        assets,
+        type,
+        isSelected,
+        balanceError,
+        caipAccountId,
+      },
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
@@ -222,7 +230,9 @@ const CaipAccountSelectorList = ({
       if (isSelectWithoutMenu) {
         cellVariant = CellVariant.Select;
       }
-      const isSelectedAccount = selectedAddressesLookup.has(caipAccountId.toLowerCase());
+      const isSelectedAccount = selectedAddressesLookup.has(
+        caipAccountId.toLowerCase(),
+      );
 
       const cellStyle: ViewStyle = {
         opacity: isLoading ? 0.5 : 1,
