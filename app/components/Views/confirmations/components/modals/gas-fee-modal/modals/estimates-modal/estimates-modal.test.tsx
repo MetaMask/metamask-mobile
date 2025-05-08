@@ -1,6 +1,5 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { noop } from 'lodash';
 
 import { EstimatesModal } from './estimates-modal';
 import { useGasOptions } from '../../hooks/useGasOptions';
@@ -8,7 +7,7 @@ import { useGasOptions } from '../../hooks/useGasOptions';
 jest.mock('../../hooks/useGasOptions', () => ({
   useGasOptions: jest.fn(() => {
     const { noop } = jest.requireActual('lodash');
-    ({
+    return {
       options: [
         {
           emoji: '🚀',
@@ -21,7 +20,7 @@ jest.mock('../../hooks/useGasOptions', () => ({
           valueInFiat: '0.05',
         },
       ],
-    });
+    };
   }),
 }));
 
