@@ -61,7 +61,12 @@ export const mockedEngine = {
     SelectedNetworkController: {
       getProviderAndBlockTracker: jest.fn(),
     },
-    KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
+    KeyringController: {
+      ...MOCK_KEYRING_CONTROLLER_STATE,
+      setLocked: jest.fn(),
+      createNewVaultAndRestore: jest.fn(),
+      createNewVaultAndKeychain: jest.fn(),
+    },
     NetworkController: {
       getNetworkConfigurationByChainId: jest.fn(),
       findNetworkClientIdByChainId: jest.fn(),
@@ -98,6 +103,7 @@ export const mockedEngine = {
     },
   },
   hasFunds: jest.fn(),
+  resetState: jest.fn(),
   getCaip25PermissionFromLegacyPermissions: jest.fn(),
 };
 
