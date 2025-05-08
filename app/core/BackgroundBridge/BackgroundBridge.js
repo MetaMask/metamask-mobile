@@ -152,8 +152,8 @@ export class BackgroundBridge extends EventEmitter {
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
-      ? new WalletConnectPort(wcRequestActions)
-      : new Port(this._webviewRef, isMainFrame);
+        ? new WalletConnectPort(wcRequestActions)
+        : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
     this.multichainSubscriptionManager = null;
@@ -390,17 +390,20 @@ export class BackgroundBridge extends EventEmitter {
       SnapController,
     } = Engine.context;
 
-    controllerMessenger.subscribe(
-      'PreferencesController:stateChange',
-      previousValueComparator(async (prevState, currState) => {
-        // const { currentLocale } = currState;
-        this.#restartSmartTransactionPoller();
+    // Only add the subscription if PreferencesController is defined and has state
+    if (PreferencesController && PreferencesController.state) {
+      controllerMessenger.subscribe(
+        'PreferencesController:stateChange',
+        previousValueComparator(async (prevState, currState) => {
+          // const { currentLocale } = currState;
+          this._restartSmartTransactionPoller();
 
-        // TODO: [ffmcgee] invoke function to update current locale here..Do we have one already ?
-        // await updateCurrentLocale(currentLocale);
-        this.#checkTokenListPolling(currState, prevState);
-      }, PreferencesController.state),
-    );
+          // TODO: [ffmcgee] invoke function to update current locale here..Do we have one already ?
+          // await updateCurrentLocale(currentLocale);
+          this._checkTokenListPolling(currState, prevState);
+        }, PreferencesController.state),
+      );
+    }
 
     this.controllerMessenger.subscribe(
       `${AccountsController.name}:selectedAccountChange`,
@@ -527,12 +530,12 @@ export class BackgroundBridge extends EventEmitter {
 
             const previousSolanaAccountChangedNotificationsEnabled = Boolean(
               previousCaveatValue?.sessionProperties?.[
-                KnownSessionProperties.SolanaAccountChangedNotifications
+              KnownSessionProperties.SolanaAccountChangedNotifications
               ],
             );
             const currentSolanaAccountChangedNotificationsEnabled = Boolean(
               currentCaveatValue?.sessionProperties?.[
-                KnownSessionProperties.SolanaAccountChangedNotifications
+              KnownSessionProperties.SolanaAccountChangedNotifications
               ],
             );
 
@@ -545,10 +548,10 @@ export class BackgroundBridge extends EventEmitter {
 
             const previousSolanaCaipAccountIds = previousCaveatValue
               ? getPermittedAccountsForScopes(previousCaveatValue, [
-                  MultichainNetworks.SOLANA,
-                  MultichainNetworks.SOLANA_DEVNET,
-                  MultichainNetworks.SOLANA_TESTNET,
-                ])
+                MultichainNetworks.SOLANA,
+                MultichainNetworks.SOLANA_DEVNET,
+                MultichainNetworks.SOLANA_TESTNET,
+              ])
               : [];
             const previousNonUniqueSolanaHexAccountAddresses =
               previousSolanaCaipAccountIds.map((caipAccountId) => {
@@ -565,10 +568,10 @@ export class BackgroundBridge extends EventEmitter {
 
             const currentSolanaCaipAccountIds = currentCaveatValue
               ? getPermittedAccountsForScopes(currentCaveatValue, [
-                  MultichainNetworks.SOLANA,
-                  MultichainNetworks.SOLANA_DEVNET,
-                  MultichainNetworks.SOLANA_TESTNET,
-                ])
+                MultichainNetworks.SOLANA,
+                MultichainNetworks.SOLANA_DEVNET,
+                MultichainNetworks.SOLANA_TESTNET,
+              ])
               : [];
             const currentNonUniqueSolanaHexAccountAddresses =
               currentSolanaCaipAccountIds.map((caipAccountId) => {
@@ -1423,10 +1426,10 @@ export class BackgroundBridge extends EventEmitter {
         params:
           newAccounts.length < 2
             ? // If the length is 1 or 0, the accounts are sorted by definition.
-              newAccounts
+            newAccounts
             : // If the length is 2 or greater, we have to execute
-              // `eth_accounts` vi this method.
-              this.getPermittedAccounts(origin),
+            // `eth_accounts` vi this method.
+            this.getPermittedAccounts(origin),
       },
       API_TYPE.EIP1193,
     );
@@ -1475,18 +1478,24 @@ export class BackgroundBridge extends EventEmitter {
     return this.sortEvmAccountsByLastSelected(ethAccounts);
   }
 
-  #restartSmartTransactionPoller() {
+  _restartSmartTransactionPoller() {
+    const preferencesController = Engine.context.PreferencesController;
+    const transactionController = Engine.context.TransactionController;
+
     if (
-      Engine.context.PreferencesController.state.useExternalServices === true
+      preferencesController?.state?.useExternalServices === true &&
+      transactionController
     ) {
-      Engine.context.TransactionController.stopIncomingTransactionPolling();
-      Engine.context.TransactionController.startIncomingTransactionPolling();
+      transactionController.stopIncomingTransactionPolling();
+      transactionController.startIncomingTransactionPolling();
     }
   }
 
-  #checkTokenListPolling(currentState, previousState) {
-    const previousEnabled = this.#isTokenListPollingRequired(previousState);
-    const newEnabled = this.#isTokenListPollingRequired(currentState);
+  _checkTokenListPolling(currentState, previousState) {
+    if (!Engine.context.TokenListController) return;
+
+    const previousEnabled = this._isTokenListPollingRequired(previousState);
+    const newEnabled = this._isTokenListPollingRequired(currentState);
 
     if (previousEnabled === newEnabled) {
       return;
@@ -1497,7 +1506,9 @@ export class BackgroundBridge extends EventEmitter {
     );
   }
 
-  #isTokenListPollingRequired(preferencesControllerState) {
+  _isTokenListPollingRequired(preferencesControllerState) {
+    if (!preferencesControllerState) return false;
+
     const { useTokenDetection, useTransactionSimulations, preferences } =
       preferencesControllerState ?? {};
 
