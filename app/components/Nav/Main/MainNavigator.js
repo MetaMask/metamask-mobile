@@ -508,6 +508,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.BROWSER_VIEW,
+      unmountOnBlur: true,
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
