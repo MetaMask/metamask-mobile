@@ -117,14 +117,14 @@ describe('TokenFilterBottomSheet', () => {
   it('renders correctly with the default option (All Networks) selected', () => {
     const { queryByText } = render(<TokenFilterBottomSheet />);
 
-    expect(queryByText('Popular networks')).toBeTruthy();
+    expect(queryByText('Popular Networks')).toBeTruthy();
     expect(queryByText('Current Network')).toBeTruthy();
   });
 
   it('sets filter to All Networks and closes bottom sheet when first option is pressed', async () => {
     const { getByText } = render(<TokenFilterBottomSheet />);
 
-    fireEvent.press(getByText('Popular networks'));
+    fireEvent.press(getByText('Popular Networks'));
 
     await waitFor(() => {
       expect(

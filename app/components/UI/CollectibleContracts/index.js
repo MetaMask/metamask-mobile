@@ -515,9 +515,7 @@ const CollectibleContracts = ({
             label={
               <Text style={styles.controlButtonText} numberOfLines={1}>
                 {isAllNetworks && isPopularNetwork && isEvmSelected
-                  ? `${strings('app_settings.popular')} ${strings(
-                      'app_settings.networks',
-                    )}`
+                  ? strings('wallet.popular_networks')
                   : networkName ?? strings('wallet.current_network')}
               </Text>
             }

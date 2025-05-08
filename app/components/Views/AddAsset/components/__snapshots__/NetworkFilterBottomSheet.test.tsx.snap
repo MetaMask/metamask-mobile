@@ -185,7 +185,7 @@ exports[`NetworkFilterBottomSheet should render correctly 1`] = `
                   }
                 }
               >
-                Popular networks
+                Popular Networks
               </Text>
               <View
                 accessible={false}

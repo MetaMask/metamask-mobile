@@ -161,7 +161,7 @@ describe('SearchTokenAutocomplete', () => {
       { state: mockInitialState },
     );
 
-    expect(getByText('Popular networks')).toBeOnTheScreen();
+    expect(getByText('Popular Networks')).toBeOnTheScreen();
   });
 
   it('should default to CurrentNetwork filter when allNetworks are not enabled', () => {
