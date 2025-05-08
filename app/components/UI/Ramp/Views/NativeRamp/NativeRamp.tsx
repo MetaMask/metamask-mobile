@@ -9,7 +9,6 @@ import styleSheet from './NativeRamp.styles';
 import Row from '../../components/Row';
 import StyledButton from '../../../StyledButton';
 import { getNativeRampNavigationOptions } from '../../../Navbar';
-import ProgressBar from '../../../../Views/SmartTransactionStatus/ProgressBar';
 import {
   TextInput,
   View,
@@ -55,6 +54,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { store } from '../../../../../store';
+import ProgressBar from '../../../../Views/transactions/SmartTransactionStatus/ProgressBar';
 
 function NativeRamp() {
   const navigation = useNavigation();
