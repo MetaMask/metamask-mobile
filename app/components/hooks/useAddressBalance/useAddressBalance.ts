@@ -11,14 +11,8 @@ import {
   renderFromWei,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import {
-  selectEvmTicker,
-  selectNetworkConfigurationByChainId,
-} from '../../../selectors/networkController';
-import {
-  selectAccounts,
-  selectAccountsByChainId,
-} from '../../../selectors/accountTrackerController';
+import { selectEvmTicker, selectNetworkConfigurationByChainId, selectSelectedNetworkClientId } from '../../../selectors/networkController';
+import { selectAccounts, selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
@@ -42,6 +36,7 @@ const useAddressBalance = (
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   if (chainId) {
     // If chainId is provided, use the accounts and ticker for that chain
     accounts = accountsByChainId[chainId];
@@ -72,6 +67,7 @@ const useAddressBalance = (
           decimals,
           image,
           name,
+          networkClientId: selectedNetworkClientId,
         });
       }
     }
