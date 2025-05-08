@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
+  CaipAssetId,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
   Hex,
   isCaipChainId,
@@ -26,7 +27,6 @@ import {
   selectCurrencyRates,
 } from '../../../../../selectors/currencyRateController';
 import { RootState } from '../../../../../reducers';
-import { safeToChecksumAddress } from '../../../../../util/address';
 import {
   getTestNetImageByChainId,
   isTestNet,
@@ -67,8 +67,8 @@ import { CustomNetworkNativeImgMapping } from './CustomNetworkNativeImgMapping';
 import { TraceName, trace } from '../../../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
+  makeSelectNonEvmAssetById,
   selectMultichainAssetsRates,
-  selectNonEvmAssetById,
 } from '../../../../../selectors/multichain/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
@@ -77,9 +77,9 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
-
+import { FlashListAssetKey } from '..';
 interface TokenListItemProps {
-  assetKey: { address: string; chainId: string | undefined };
+  assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
@@ -109,15 +109,18 @@ export const TokenListItem = React.memo(
       selectEvmAsset(state, {
         address: assetKey.address,
         chainId: assetKey.chainId ?? '',
+        isStaked: assetKey.isStaked,
       }),
     );
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const selectedAccount = useSelector(selectSelectedInternalAccount);
+    const selectNonEvmAsset = useMemo(makeSelectNonEvmAssetById, []);
+
     const nonEvmAsset = useSelector((state: RootState) =>
-      selectNonEvmAssetById(state, {
+      selectNonEvmAsset(state, {
         accountId: selectedAccount?.id,
-        assetId: assetKey.address,
+        assetId: assetKey.address as CaipAssetId,
       }),
     );
     ///: END:ONLY_INCLUDE_IF
@@ -407,8 +410,6 @@ export const TokenListItem = React.memo(
 
     return (
       <AssetElement
-        // assign staked asset a unique key
-        key={asset.isStaked ? '0x_staked' : itemAddress || '0x'}
         onPress={onItemPress}
         onLongPress={asset.isETH || asset.isNative ? null : showRemoveMenu}
         asset={asset}
@@ -434,7 +435,7 @@ export const TokenListItem = React.memo(
            * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
            */}
           <View style={styles.assetName}>
-            <Text variant={TextVariant.BodyLGMedium}>
+            <Text variant={TextVariant.BodyLGMedium} numberOfLines={1}>
               {asset.name || asset.symbol}
             </Text>
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
