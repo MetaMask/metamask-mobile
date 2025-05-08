@@ -13,6 +13,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
           "tokens": [],
         },
         "balanceError": undefined,
+        "caipChainId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
         "isSelected": true,
         "name": "Account 1",
         "type": "HD Key Tree",
@@ -26,6 +27,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
           "tokens": [],
         },
         "balanceError": undefined,
+        "caipChainId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
         "isSelected": false,
         "name": "Account 2",
         "type": "HD Key Tree",
@@ -449,6 +451,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="MoreVertical"
               style={
@@ -829,6 +832,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="MoreVertical"
               style={
@@ -860,6 +864,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
           "tokens": [],
         },
         "balanceError": undefined,
+        "caipChainId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
         "isSelected": true,
         "name": "Account 1",
         "type": "HD Key Tree",
@@ -873,6 +878,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
           "tokens": [],
         },
         "balanceError": undefined,
+        "caipChainId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
         "isSelected": false,
         "name": "Account 2",
         "type": "HD Key Tree",
@@ -1252,6 +1258,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="MoreVertical"
               style={
@@ -1588,6 +1595,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="MoreVertical"
               style={
@@ -1619,6 +1627,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
           "tokens": [],
         },
         "balanceError": undefined,
+        "caipChainId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
         "isSelected": true,
         "name": "Account 1",
         "type": "HD Key Tree",
@@ -1632,6 +1641,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
           "tokens": [],
         },
         "balanceError": undefined,
+        "caipChainId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
         "isSelected": false,
         "name": "Account 2",
         "type": "HD Key Tree",
@@ -2055,6 +2065,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="MoreVertical"
               style={
@@ -2435,6 +2446,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="MoreVertical"
               style={
