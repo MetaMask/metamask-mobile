@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { StyleSheet, TouchableOpacity, Keyboard, KeyboardEvent } from 'react-native';
 // Using FlatList from react-native-gesture-handler to fix scroll issues with the bottom sheet
 import { FlatList } from 'react-native-gesture-handler';
 import { Box } from '../../Box/Box';
@@ -26,6 +26,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
+import Device from '../../../../util/device';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -205,8 +206,27 @@ export const BridgeTokenSelectorBase: React.FC<
     return tokensToRender;
   }, [pending, tokensToRender]);
 
+  const [height, setHeight] = useState<number | undefined>(undefined);
+
+  // Make sure the token search input is visible when the keyboard is open
+  useEffect(() => {
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setHeight(undefined);
+    });
+
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (event: KeyboardEvent) => {
+      const keyboardHeight = event.endCoordinates.height;
+      setHeight(Device.getDeviceHeight() - keyboardHeight);
+    });
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
+
   return (
-    <BottomSheet ref={modalRef} isFullscreen>
+    <BottomSheet ref={modalRef} style={{ height }} isFullscreen>
       <Box gap={4}>
         <BottomSheetHeader>
           <Box
