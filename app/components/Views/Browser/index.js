@@ -362,7 +362,7 @@ export const Browser = (props) => {
     return null;
   };
 
-  const renderBrowserTabWindows = useCallback(() => tabs.filter((tab) => !tab.isArchived).map((tab) => (
+  const renderBrowserTabWindows = useCallback(() => tabs.filter((tab) => !tab.isArchived).map((tab) => activeTabId === tab.id ? (
     <BrowserTab
       id={tab.id}
       key={`tab_${tab.id}`}
@@ -374,7 +374,7 @@ export const Browser = (props) => {
       isInTabsView={route.params?.showTabs}
       homePageUrl={homePageUrl()}
     />
-  )), [tabs, route.params?.showTabs, newTab, homePageUrl, updateTabInfo, showTabs]);
+  ) : null), [tabs, route.params?.showTabs, newTab, homePageUrl, updateTabInfo, showTabs]);
 
   return (
     <View
