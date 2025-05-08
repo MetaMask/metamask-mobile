@@ -384,6 +384,7 @@ export const TokenListItem = React.memo(
           asset.chainId === token?.chainId &&
           !asset?.isStaked,
       );
+
       const shouldShowStablecoinLendingCta =
         isAssetSupportedStablecoin && isStablecoinLendingEnabled;
 

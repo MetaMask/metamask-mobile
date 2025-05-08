@@ -3628,7 +3628,8 @@
       "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets."
     },
     "withdraw": "Withdraw",
-    "deposit_more": "Deposit more"
+    "deposit_more": "Deposit more",
+    "earning": "Earning"
   },
   "stake": {
     "stake": "Stake",

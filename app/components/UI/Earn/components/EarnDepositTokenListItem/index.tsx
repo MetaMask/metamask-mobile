@@ -13,9 +13,9 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { useStyles } from '../../../../hooks/useStyles';
-import { EarnTokenListItemProps } from './EarnTokenListItem.types';
+import { EarnTokenListItemProps } from './EarnDepositTokenListItem.types';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import styleSheet from './EarnTokenListItem.styles';
+import styleSheet from './EarnDepositTokenListItem.styles';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
@@ -25,7 +25,8 @@ interface EarnNetworkAvatarProps {
   token: TokenI;
 }
 
-const EarnNetworkAvatar = ({ token }: EarnNetworkAvatarProps) => {
+// TODO: Breakout and reuse across EarnTokenListItem components.
+export const EarnNetworkAvatar = ({ token }: EarnNetworkAvatarProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   if (token.isNative) {
@@ -51,7 +52,7 @@ const EarnNetworkAvatar = ({ token }: EarnNetworkAvatarProps) => {
   );
 };
 
-const EarnTokenListItem = ({
+const EarnDepositTokenListItem = ({
   token,
   primaryText,
   secondaryText,
@@ -99,4 +100,4 @@ const EarnTokenListItem = ({
   );
 };
 
-export default EarnTokenListItem;
+export default EarnDepositTokenListItem;

@@ -12,7 +12,6 @@ import Erc20TokenHero from './components/Erc20TokenHero';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { TokenI } from '../../../Tokens/types';
 import { isEmpty } from 'lodash';
-import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
 import { strings } from '../../../../../../locales/i18n';
 import DepositInfoSection from './components/DepositInfoSection';
 import DepositReceiveSection from './components/DepositReceiveSection';
@@ -37,6 +36,7 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { getStakingNavbar } from '../../../Navbar';
+import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -44,7 +44,7 @@ export interface LendingDepositViewRouteParams {
   amountFiat?: string;
   annualRewardsToken?: string;
   annualRewardsFiat?: string;
-  action?: Extract<EARN_INPUT_VIEW_ACTIONS, 'ALLOWANCE_INCREASE' | 'LEND'>;
+  action?: Extract<EARN_LENDING_ACTIONS, 'ALLOWANCE_INCREASE' | 'DEPOSIT'>;
   lendingContractAddress?: string;
   lendingProtocol?: string;
 }
@@ -96,7 +96,7 @@ const EarnLendingDepositConfirmationView = () => {
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
   const [activeStep, setActiveStep] = useState(
-    action === EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE
+    action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE
       ? Steps.ALLOWANCE_INCREASE
       : Steps.DEPOSIT,
   );
@@ -244,8 +244,8 @@ const EarnLendingDepositConfirmationView = () => {
 
   const handleConfirm = async () => {
     const isSupportedLendingAction =
-      action === EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE ||
-      action === EARN_INPUT_VIEW_ACTIONS.LEND;
+      action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE ||
+      action === EARN_LENDING_ACTIONS.DEPOSIT;
 
     setIsConfirmButtonDisabled(true);
 

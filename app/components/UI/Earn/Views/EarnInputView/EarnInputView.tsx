@@ -51,6 +51,7 @@ import {
 } from '../../utils/tempLending';
 import BigNumber from 'bignumber.js';
 import { isSupportedLendingTokenByChainId } from '../../utils';
+import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -166,8 +167,8 @@ const EarnInputView = () => {
         lendingProtocol: 'AAVE v3',
         lendingContractAddress: lendingPoolContractAddress,
         action: needsAllowanceIncrease
-          ? EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE
-          : EARN_INPUT_VIEW_ACTIONS.LEND,
+          ? EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE
+          : EARN_LENDING_ACTIONS.DEPOSIT,
       },
     });
   }, [
@@ -455,7 +456,10 @@ const EarnInputView = () => {
       />
       <View style={styles.rewardsRateContainer}>
         {isStablecoinLendingEnabled ? (
-          <EarnTokenSelector token={token} />
+          <EarnTokenSelector
+            token={token}
+            action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
+          />
         ) : (
           <EstimatedAnnualRewardsCard
             estimatedAnnualRewards={estimatedAnnualRewards}
