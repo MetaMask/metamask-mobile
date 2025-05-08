@@ -1399,7 +1399,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           <View style={styles.wrapper}>
             {renderProgressBar()}
             <View style={styles.webview}>
-              {!!entryScriptWeb3 && firstUrlLoaded && (
+              {!!entryScriptWeb3 && firstUrl && firstUrlLoaded && (
                 <>
                   <WebView
                     originWhitelist={[

@@ -37,7 +37,7 @@ export type BrowserTabProps = {
   /**
    * InitialUrl
    */
-  initialUrl: string;
+  initialUrl?: string | undefined;
   /**
    * linkType - type of link to open
    */

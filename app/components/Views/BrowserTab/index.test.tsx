@@ -4,6 +4,11 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
 import AppConstants from '../../../core/AppConstants';
+import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
+import { screen } from '@testing-library/react-native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
+import { omit } from 'lodash';
 
 const mockNavigation = {
   goBack: jest.fn(),
@@ -12,6 +17,11 @@ const mockNavigation = {
   canGoForward: true,
   addListener: jest.fn(),
 };
+
+jest.mock('../../../util/browser', () => ({
+  ...jest.requireActual('../../../util/browser'),
+  isTokenDiscoveryBrowserEnabled: jest.fn().mockReturnValue(false),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -23,7 +33,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockInitialState = {
-  browser: { activeTab: '' },
+  browser: { activeTab: '', history: [] },
+  bookmarks: [],
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -40,6 +51,9 @@ jest.mock('../../../core/Engine', () => ({
     PhishingController: {
       maybeUpdateState: jest.fn(),
       test: () => ({ result: true, name: 'test' }),
+    },
+    CurrencyRateController: {
+      updateExchangeRate: jest.fn(() => Promise.resolve()),
     },
   },
 }));
@@ -67,6 +81,8 @@ const mockProps = {
   homePageUrl: AppConstants.HOMEPAGE_URL,
 };
 
+const Stack = createStackNavigator();
+
 describe('BrowserTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -77,5 +93,23 @@ describe('BrowserTab', () => {
       state: mockInitialState,
     });
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render correctly when token discovery browser is enabled', () => {
+    jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(true);
+    renderWithProvider(
+      <NavigationContainer independent>
+        <Stack.Navigator>
+          <Stack.Screen name="Browser">
+            {() => <BrowserTab {...omit(mockProps, 'initialUrl')} />}
+          </Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>,
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(screen.getByText('Token Discovery placeholder', {includeHiddenElements: true})).toBeOnTheScreen();
+    jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(false);
   });
 });

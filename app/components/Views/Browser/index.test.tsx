@@ -155,7 +155,7 @@ describe('Browser', () => {
   });
 
   it('should create a new token discovery tab when rendered with no tabs and token discovery browser is enabled', () => {
-    jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValueOnce(true);
+    jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(true);
     const mockCreateNewTab = jest.fn();
     renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
@@ -183,6 +183,7 @@ describe('Browser', () => {
     );
 
     expect(mockCreateNewTab).toHaveBeenCalledWith(undefined, undefined);
+    jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(false);
   });
 
   it('should call navigate when route param `newTabUrl` and `timestamp` are added', () => {
