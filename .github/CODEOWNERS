@@ -123,6 +123,7 @@ app/components/UI/CollectibleMedia @MetaMask/metamask-assets
 app/components/UI/CollectibleModal @MetaMask/metamask-assets
 app/components/UI/CollectibleOverview @MetaMask/metamask-assets
 app/components/UI/ConfirmAddAsset @MetaMask/metamask-assets
+app/components/UI/DeFiPositions @MetaMask/metamask-assets
 app/components/UI/Tokens @MetaMask/metamask-assets
 app/components/Views/AddAsset @MetaMask/metamask-assets
 app/components/Views/Asset @MetaMask/metamask-assets

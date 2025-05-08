@@ -3,7 +3,7 @@ import { ImageSourcePropType, View } from 'react-native';
 import { PositionTypes } from './position-types';
 import styleSheet from './DeFiProtocolPositionGroups.styles';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
-import DeFiProtocolPositionTypeGroupDetails from './DeFiProtocolPositionTypeGroupDetails';
+import DeFiProtocolPositionGroupTokens from './DeFiProtocolPositionGroupTokens';
 import Summary from '../../Base/Summary';
 
 interface DeFiProtocolPositionGroupsParams {
@@ -78,13 +78,13 @@ const DeFiProtocolPositionGroups: React.FC<
               <Fragment
                 key={`${positionGroup.positionType}-${position.protocolTokenAddress}`}
               >
-                <DeFiProtocolPositionTypeGroupDetails
+                <DeFiProtocolPositionGroupTokens
                   positionType={positionGroup.positionType}
                   tokens={position.underlyings}
                   networkIconAvatar={networkIconAvatar}
                   privacyMode={privacyMode}
                 />
-                <DeFiProtocolPositionTypeGroupDetails
+                <DeFiProtocolPositionGroupTokens
                   positionType={'reward'}
                   tokens={position.underlyingRewards}
                   networkIconAvatar={networkIconAvatar}

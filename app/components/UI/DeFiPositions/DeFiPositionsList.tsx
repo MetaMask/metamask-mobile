@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, FlatList } from 'react-native';
 import { useTheme } from '../../../util/theme';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import {
@@ -21,11 +20,13 @@ import { sortAssets } from '../Tokens/util';
 import DeFiPositionsListItem from './DeFiPositionsListItem';
 import DeFiPositionsControlBar from './DeFiPositionsControlBar';
 
-export interface DeFiPositionsTabProps {
+export const DEFI_POSITIONS_CONTAINER = 'defi_positions_container';
+
+export interface DeFiPositionsListProps {
   tabLabel: string;
 }
 
-const DeFiPositionsTab: React.FC<DeFiPositionsTabProps> = () => {
+const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
   const theme = useTheme();
   const styles = styleSheet({ theme });
 
@@ -82,8 +83,10 @@ const DeFiPositionsTab: React.FC<DeFiPositionsTabProps> = () => {
       <View style={styles.emptyView}>
         <Text style={styles.emptyViewText}>
           {strings(
-            !formattedDeFiPositions
+            formattedDeFiPositions === undefined
               ? 'defi_positions.loading_positions'
+              : formattedDeFiPositions === null
+              ? 'defi_positions.error_fetching_positions'
               : 'defi_positions.no_positions',
           )}
         </Text>
@@ -92,11 +95,10 @@ const DeFiPositionsTab: React.FC<DeFiPositionsTabProps> = () => {
   }
 
   return (
-    <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
+    <View testID={DEFI_POSITIONS_CONTAINER}>
       <DeFiPositionsControlBar />
       <View>
         <FlatList
-          testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
           data={formattedDeFiPositions}
           renderItem={({ item: { chainId, protocolAggregate } }) => (
             <DeFiPositionsListItem
@@ -105,11 +107,13 @@ const DeFiPositionsTab: React.FC<DeFiPositionsTabProps> = () => {
               privacyMode={privacyMode}
             />
           )}
-          keyExtractor={(_, index) => index.toString()}
+          keyExtractor={(protocolChainAggregate) =>
+            `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
+          }
         />
       </View>
     </View>
   );
 };
 
-export default DeFiPositionsTab;
+export default DeFiPositionsList;

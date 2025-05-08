@@ -85,7 +85,7 @@ describe('DeFiProtocolPositionDetails', () => {
   });
 
   it('renders the component without aggregated balance in privacy mode', async () => {
-    const { findByText, findByTestId } = renderWithProvider(
+    const { findByText, queryByText, findByTestId } = renderWithProvider(
       <DeFiProtocolPositionDetails />,
       {
         state: {
@@ -104,6 +104,7 @@ describe('DeFiProtocolPositionDetails', () => {
 
     expect(mockSetOptions).toHaveBeenCalledTimes(1);
     expect(await findByText('Protocol 1')).toBeDefined();
+    expect(queryByText('$100.00')).toBeNull();
     expect(
       (await findByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID)).props
         .children,

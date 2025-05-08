@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import Text, {
@@ -19,18 +18,13 @@ import { formatWithThreshold } from '../../../util/assets';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import { AvatarProps } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
-import { getDefaultNetworkByChainId } from '../../../util/networks';
-import {
-  CustomNetworkImgMapping,
-  PopularList,
-  UnpopularNetworkList,
-} from '../../../util/networks/customNetworks';
 import styleSheet from './DeFiPositionsListItem.styles';
+import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 
 interface DeFiPositionsListItemProps {
   chainId: Hex;
   protocolAggregate: GroupedDeFiPositions['protocols'][number];
-  privacyMode?: boolean;
+  privacyMode: boolean;
 }
 
 const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
@@ -42,35 +36,10 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
 
   const navigation = useNavigation();
 
-  const networkIconAvatar = useMemo(() => {
-    const defaultNetwork = getDefaultNetworkByChainId(chainId) as
-      | {
-          imageSource: string;
-        }
-      | undefined;
-
-    if (defaultNetwork) {
-      return defaultNetwork.imageSource;
-    }
-
-    const unpopularNetwork = UnpopularNetworkList.find(
-      (networkConfig) => networkConfig.chainId === chainId,
-    );
-
-    const popularNetwork = PopularList.find(
-      (networkConfig) => networkConfig.chainId === chainId,
-    );
-
-    const network = unpopularNetwork || popularNetwork;
-    if (network) {
-      return network.rpcPrefs.imageSource;
-    }
-
-    const customNetworkImg = CustomNetworkImgMapping[chainId];
-    if (customNetworkImg) {
-      return customNetworkImg;
-    }
-  }, [chainId]);
+  const networkIconAvatar = useMemo(
+    () => NetworkBadgeSource(chainId),
+    [chainId],
+  );
 
   const tokenAvatars: AvatarProps[] = useMemo(
     () =>

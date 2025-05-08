@@ -10,10 +10,10 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
-import styleSheet from './DeFiProtocolPositionTypeGroupDetails.styles';
+import styleSheet from './DeFiProtocolPositionGroupTokens.styles';
 import { PositionType } from './position-types';
 
-interface DeFiProtocolPositionTypeGroupDetailsProps {
+interface DeFiProtocolPositionGroupTokensProps {
   positionType: PositionType;
   tokens: {
     name: string;
@@ -26,14 +26,14 @@ interface DeFiProtocolPositionTypeGroupDetailsProps {
   privacyMode: boolean;
 }
 
-const DeFiProtocolPositionTypeGroupDetails: React.FC<
-  DeFiProtocolPositionTypeGroupDetailsProps
+const DeFiProtocolPositionGroupTokens: React.FC<
+  DeFiProtocolPositionGroupTokensProps
 > = ({
   positionType,
   tokens,
   networkIconAvatar,
   privacyMode,
-}: DeFiProtocolPositionTypeGroupDetailsProps) => {
+}: DeFiProtocolPositionGroupTokensProps) => {
   const theme = useTheme();
   const styles = styleSheet({ theme });
 
@@ -95,4 +95,4 @@ const DeFiProtocolPositionTypeGroupDetails: React.FC<
   );
 };
 
-export default DeFiProtocolPositionTypeGroupDetails;
+export default DeFiProtocolPositionGroupTokens;

@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
 import { Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
@@ -43,7 +42,6 @@ const DeFiPositionsControlBar: React.FC = () => {
   return (
     <View style={styles.actionBarWrapper}>
       <ButtonBase
-        testID={WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER}
         label={
           <Text numberOfLines={1}>
             {isAllNetworks && isPopularNetwork
@@ -64,7 +62,6 @@ const DeFiPositionsControlBar: React.FC = () => {
         disabled={isTestNet(currentChainId) || !isPopularNetwork}
       />
       <ButtonIcon
-        testID={WalletViewSelectorsIDs.DEFI_POSITIONS_SORT_BY}
         onPress={showSortControls}
         iconName={IconName.SwapVertical}
         style={styles.controlIconButton}

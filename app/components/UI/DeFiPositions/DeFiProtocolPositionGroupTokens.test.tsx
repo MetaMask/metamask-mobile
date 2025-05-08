@@ -1,6 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import DeFiProtocolPositionTypeGroupDetails from './DeFiProtocolPositionTypeGroupDetails';
+import DeFiProtocolPositionGroupTokens from './DeFiProtocolPositionGroupTokens';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockInitialState = {
@@ -26,10 +26,10 @@ const mockTokens = [
   },
 ];
 
-describe('DeFiProtocolPositionTypeGroupDetails', () => {
+describe('DeFiProtocolPositionGroupTokens', () => {
   it('does not render if there are no tokens', () => {
     const { toJSON } = renderWithProvider(
-      <DeFiProtocolPositionTypeGroupDetails
+      <DeFiProtocolPositionGroupTokens
         positionType="supply"
         tokens={[]}
         networkIconAvatar={10}
@@ -42,7 +42,7 @@ describe('DeFiProtocolPositionTypeGroupDetails', () => {
 
   it('renders the group header, tokens, and balances', async () => {
     const { findByText } = renderWithProvider(
-      <DeFiProtocolPositionTypeGroupDetails
+      <DeFiProtocolPositionGroupTokens
         positionType="supply"
         tokens={mockTokens}
         networkIconAvatar={10}
@@ -63,8 +63,8 @@ describe('DeFiProtocolPositionTypeGroupDetails', () => {
   });
 
   it('renders the component without balances in privacy mode', async () => {
-    const { findByText, findAllByText } = renderWithProvider(
-      <DeFiProtocolPositionTypeGroupDetails
+    const { findByText, queryByText, findAllByText } = renderWithProvider(
+      <DeFiProtocolPositionGroupTokens
         positionType="supply"
         tokens={mockTokens}
         networkIconAvatar={10}
@@ -77,7 +77,11 @@ describe('DeFiProtocolPositionTypeGroupDetails', () => {
 
     expect(await findByText('Supplied')).toBeDefined();
     expect(await findByText('TKN1')).toBeDefined();
+    expect(queryByText('$50.00')).toBeNull();
+    expect(queryByText('500 TKN1')).toBeNull();
     expect(await findByText('TKN2')).toBeDefined();
+    expect(queryByText('$2.00')).toBeNull();
+    expect(queryByText('20 TKN2')).toBeNull();
     expect(await findAllByText('•••••••••')).toHaveLength(2);
     expect(await findAllByText('••••••')).toHaveLength(2);
   });
