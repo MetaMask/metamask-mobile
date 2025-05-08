@@ -240,6 +240,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
               </Text>
               <SvgMock
                 color="#121314"
+                fill="currentColor"
                 height={10}
                 name="ArrowDown"
                 style={
@@ -317,6 +318,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={16}
         name="MoreVertical"
         style={
