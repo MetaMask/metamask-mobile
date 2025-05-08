@@ -374,7 +374,7 @@ export const Browser = (props) => {
       isInTabsView={route.params?.showTabs}
       homePageUrl={homePageUrl()}
     />
-  ) : null), [tabs, route.params?.showTabs, newTab, homePageUrl, updateTabInfo, showTabs]);
+  ) : null), [tabs, route.params?.showTabs, newTab, homePageUrl, updateTabInfo, showTabs, activeTabId]);
 
   return (
     <View
