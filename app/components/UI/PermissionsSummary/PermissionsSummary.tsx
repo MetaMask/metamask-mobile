@@ -473,7 +473,7 @@ const PermissionsSummary = ({
               <StyledButton
                 type={'confirm'}
                 onPress={confirm}
-                disabled={accountAddresses.length === 0}
+                disabled={!isNetworkSwitch && accountAddresses.length === 0}
                 containerStyle={[
                   styles.buttonPositioning,
                   styles.confirmButton,
