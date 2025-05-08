@@ -153,18 +153,24 @@ const ImportNewSecretRecoveryPhrase = () => {
         return state;
       };
 
-      const joinedDraftSrp = newDraftSrp.join(' ').trim();
-      const invalidWords = Array(newDraftSrp.length).fill(false);
-      let validationResult = validateSRP(newDraftSrp, invalidWords);
-      validationResult = validateCompleteness(validationResult, newDraftSrp);
-      validationResult = validateCase(validationResult, joinedDraftSrp);
-      validationResult = validateWords(validationResult);
-      validationResult = validateMnemonic(validationResult, joinedDraftSrp);
-      validationResult = hideErrorIfSrpIsEmpty(validationResult, newDraftSrp);
+      const numberOfFilledWords = newDraftSrp.filter(
+        (word) => word !== '',
+      ).length;
+
+      if (numberOfFilledWords === 12 || numberOfFilledWords === 24) {
+        const joinedDraftSrp = newDraftSrp.join(' ').trim();
+        const invalidWords = Array(newDraftSrp.length).fill(false);
+        let validationResult = validateSRP(newDraftSrp, invalidWords);
+        validationResult = validateCompleteness(validationResult, newDraftSrp);
+        validationResult = validateCase(validationResult, joinedDraftSrp);
+        validationResult = validateWords(validationResult);
+        validationResult = validateMnemonic(validationResult, joinedDraftSrp);
+        validationResult = hideErrorIfSrpIsEmpty(validationResult, newDraftSrp);
+        setSrpError(validationResult.error);
+        setInvalidSRPWords(validationResult.words);
+      }
 
       setSecretRecoveryPhrase(newDraftSrp);
-      setSrpError(validationResult.error);
-      setInvalidSRPWords(validationResult.words);
     },
     [setSrpError, setSecretRecoveryPhrase],
   );
@@ -199,7 +205,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   }, [copyToClipboard, numberOfWords, onSrpChange]);
 
   const onSrpWordChange = useCallback(
-    (index, newWord) => {
+    (index: number, newWord: string) => {
       const newSrp = secretRecoveryPhrase.slice();
       newSrp[index] = newWord.trim();
       onSrpChange(newSrp);
@@ -280,7 +286,7 @@ const ImportNewSecretRecoveryPhrase = () => {
                 label={strings(
                   'import_new_secret_recovery_phrase.srp_number_of_words_option_title',
                 )}
-                selectedValue={selectedDropdownValue}
+                selectedValue={String(selectedDropdownValue)}
                 onValueChange={handleSrpNumberChange}
                 options={srpOptions}
                 testID={ImportSRPIDs.SRP_SELECTION_DROPDOWN}
@@ -345,7 +351,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             containerStyle={styles.button}
             type={'confirm'}
             onPress={onSubmit}
-            disabled={Boolean(srpError) || !isValidSrp}
+            disabled={Boolean(srpError) || !isValidSrp || loading}
             testID={ImportSRPIDs.IMPORT_BUTTON}
           >
             {loading ? (

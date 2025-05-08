@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   TouchableOpacity,
   LayoutAnimation,
@@ -37,24 +37,23 @@ import { BadgeVariant } from '../../../../../component-library/components/Badges
 import Badge from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import mockQuotes from '../../_mocks_/mock-quotes-native-erc20.json';
-import { QuoteResponse } from '@metamask/bridge-controller';
+import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useSelector } from 'react-redux';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import {
+  selectSourceAmount,
   selectDestToken,
-  selectSlippage,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-
-// Enable Layout Animation on Android
-if (Platform.OS === 'android') {
-  if (UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
-}
 
 const ANIMATION_DURATION_MS = 300;
+
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface NetworkBadgeProps {
   chainId: string;
@@ -73,7 +72,6 @@ const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
     >
       <Badge
         variant={BadgeVariant.Network}
-        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         imageSource={getNetworkImageSource({ chainId })}
         isScaled={false}
         size={AvatarSize.Sm}
@@ -83,9 +81,6 @@ const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
   );
 };
 
-// Using first quote from mock data
-const quoteDetails = mockQuotes[0] as unknown as QuoteResponse; //TODO: Remove this once we have a real quote from the controller MMS-1886
-
 const QuoteDetailsCard = () => {
   const theme = useTheme();
   const navigation = useNavigation();
@@ -93,11 +88,26 @@ const QuoteDetailsCard = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const rotationValue = useSharedValue(0);
 
-  const slippage = useSelector(selectSlippage);
+  const { formattedQuoteData } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const sourceAmount = useSelector(selectSourceAmount);
+
+  const isSameChainId = sourceToken?.chainId === destToken?.chainId;
+
+  // Initialize expanded state based on whether destination is Solana or it's a Solana swap
+  useEffect(() => {
+    if (isSameChainId) {
+      setIsExpanded(true);
+    }
+  }, [isSameChainId]);
 
   const toggleAccordion = useCallback(() => {
+    // Don't allow toggling if destination is Solana or it's a Solana swap
+    if (isSameChainId) {
+      return;
+    }
+
     LayoutAnimation.configureNext(
       LayoutAnimation.create(
         ANIMATION_DURATION_MS,
@@ -111,7 +121,7 @@ const QuoteDetailsCard = () => {
     rotationValue.value = withTiming(newExpandedState ? 1 : 0, {
       duration: ANIMATION_DURATION_MS,
     });
-  }, [isExpanded, rotationValue]);
+  }, [isExpanded, rotationValue, isSameChainId]);
 
   const arrowStyle = useAnimatedStyle(() => {
     const rotation = interpolate(rotationValue.value, [0, 1], [0, 180]);
@@ -132,26 +142,18 @@ const QuoteDetailsCard = () => {
     });
   };
 
-  if (!quoteDetails || !sourceToken?.chainId || !destToken?.chainId) {
+  // Early return for invalid states
+  if (
+    !sourceToken?.chainId ||
+    !destToken?.chainId ||
+    !sourceAmount ||
+    !formattedQuoteData
+  ) {
     return null;
   }
 
-  const isSameChainId = sourceToken.chainId === destToken.chainId;
-
-  const { quote, estimatedProcessingTimeInSeconds } = quoteDetails;
-
-  // Format the data for display
-  const quoteData = {
-    networkFee: '$0.01', // TODO: Calculate from quote.feeData
-    estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
-    rate: `1 ${sourceToken.symbol} = ${(
-      Number(quote.destTokenAmount) / Number(quote.srcTokenAmount)
-    ).toFixed(1)} ${destToken.symbol}`,
-    priceImpact: '-0.06%', // TODO: Calculate from quote data
-    slippage: `${slippage}%`, // TODO: Get from bridge settings
-    srcChainId: sourceToken.chainId,
-    destChainId: destToken.chainId,
-  };
+  const { networkFee, estimatedTime, rate, priceImpact, slippage } =
+    formattedQuoteData;
 
   return (
     <Box style={styles.container}>
@@ -160,40 +162,36 @@ const QuoteDetailsCard = () => {
         alignItems={AlignItems.center}
         justifyContent={JustifyContent.spaceBetween}
       >
-        {!isSameChainId ? (
-          <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            style={styles.networkContainer}
-          >
-            <NetworkBadge chainId={quoteData.srcChainId} />
-            <Icon name={IconName.Arrow2Right} size={IconSize.Sm} />
-            <NetworkBadge chainId={quoteData.destChainId} />
-          </Box>
-        ) : (
-          <Box>
-            <></>
-          </Box>
-        )}
-        <Box>
-          <Animated.View style={arrowStyle}>
-            <TouchableOpacity
-              onPress={toggleAccordion}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={
-                isExpanded ? 'Collapse quote details' : 'Expand quote details'
-              }
-              testID="expand-quote-details"
+        {!isSameChainId && (
+          <>
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              style={styles.networkContainer}
             >
-              <Icon
-                name={IconName.ArrowDown}
-                size={IconSize.Sm}
-                color={theme.colors.icon.muted}
-              />
-            </TouchableOpacity>
-          </Animated.View>
-        </Box>
+              <NetworkBadge chainId={String(sourceToken.chainId)} />
+              <Icon name={IconName.Arrow2Right} size={IconSize.Sm} />
+              <NetworkBadge chainId={String(destToken.chainId)} />
+            </Box>
+            <Animated.View style={arrowStyle}>
+              <TouchableOpacity
+                onPress={toggleAccordion}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isExpanded ? 'Collapse quote details' : 'Expand quote details'
+                }
+                testID="expand-quote-details"
+              >
+                <Icon
+                  name={IconName.ArrowDown}
+                  size={IconSize.Sm}
+                  color={theme.colors.icon.muted}
+                />
+              </TouchableOpacity>
+            </Animated.View>
+          </>
+        )}
       </Box>
 
       {/* Always visible content */}
@@ -206,7 +204,7 @@ const QuoteDetailsCard = () => {
         }}
         value={{
           label: {
-            text: quoteData.networkFee,
+            text: networkFee,
             variant: TextVariant.BodyMD,
           },
         }}
@@ -221,7 +219,7 @@ const QuoteDetailsCard = () => {
         }}
         value={{
           label: {
-            text: quoteData.estimatedTime,
+            text: estimatedTime,
             variant: TextVariant.BodyMD,
           },
         }}
@@ -243,7 +241,10 @@ const QuoteDetailsCard = () => {
             },
           }}
           value={{
-            label: { text: quoteData.rate, variant: TextVariant.BodyMD },
+            label: {
+              text: rate,
+              variant: TextVariant.BodyMD,
+            },
           }}
         />
         {!isExpanded && (
@@ -287,7 +288,7 @@ const QuoteDetailsCard = () => {
             }}
             value={{
               label: {
-                text: quoteData.priceImpact,
+                text: priceImpact,
                 variant: TextVariant.BodyMD,
               },
             }}
@@ -301,17 +302,18 @@ const QuoteDetailsCard = () => {
                   alignItems={AlignItems.center}
                   gap={4}
                 >
-                  <Text variant={TextVariant.BodyMDMedium}>
-                    {strings('bridge.slippage') || 'Slippage'}
-                  </Text>
                   <TouchableOpacity
                     onPress={handleSlippagePress}
                     activeOpacity={0.6}
                     testID="edit-slippage-button"
+                    style={styles.slippageButton}
                   >
+                    <Text variant={TextVariant.BodyMDMedium}>
+                      {strings('bridge.slippage') || 'Slippage'}
+                    </Text>
                     <Icon
                       name={IconName.Edit}
-                      size={IconSize.Xs}
+                      size={IconSize.Sm}
                       color={IconColor.Muted}
                     />
                   </TouchableOpacity>
@@ -320,7 +322,7 @@ const QuoteDetailsCard = () => {
             }}
             value={{
               label: {
-                text: quoteData.slippage,
+                text: slippage,
                 variant: TextVariant.BodyMD,
               },
             }}

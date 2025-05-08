@@ -10,12 +10,14 @@ import {
   renderFromWei,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import { selectEvmTicker } from '../../../selectors/networkController';
+import {
+  selectEvmTicker,
+  selectSelectedNetworkClientId,
+} from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
-import { Hex } from '@metamask/utils';
 
 const useAddressBalance = (
   asset?: Asset,
@@ -30,6 +32,7 @@ const useAddressBalance = (
     selectSelectedInternalAccountFormattedAddress,
   );
   const ticker = useSelector(selectEvmTicker);
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   useEffect(() => {
     if (asset && !asset.isETH && !asset.tokenId) {
@@ -48,13 +51,14 @@ const useAddressBalance = (
         return;
       }
 
-      if (!contractBalances[contractAddress as Hex] && !dontWatchAsset) {
+      if (!contractBalances[contractAddress] && !dontWatchAsset) {
         TokensController.addToken({
           address: contractAddress,
           symbol,
           decimals,
           image,
           name,
+          networkClientId: selectedNetworkClientId,
         });
       }
     }
@@ -95,11 +99,10 @@ const useAddressBalance = (
       if (!contractAddress) {
         return;
       }
-      const hexContractAddress = contractAddress as Hex;
-      if (selectedAddress === address && contractBalances[hexContractAddress]) {
+      if (selectedAddress === address && contractBalances[contractAddress]) {
         fromAccBalance = `${renderFromTokenMinimalUnit(
-          contractBalances[hexContractAddress]
-            ? contractBalances[hexContractAddress]
+          contractBalances[contractAddress]
+            ? contractBalances[contractAddress]
             : '0',
           decimals,
         )} ${symbol}`;

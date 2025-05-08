@@ -22,10 +22,12 @@ import { sumHexWEIs } from '../../../util/conversions';
 import {
   decodeTransferData,
   isCollectibleAddress,
+  getTicker,
   getActionKey,
   TRANSACTION_TYPES,
   calculateEIP1559GasFeeHexes,
 } from '../../../util/transactions';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
@@ -301,7 +303,7 @@ export function decodeIncomingTransfer(args) {
     : undefined;
   const exchangeRate =
     token && contractExchangeRates
-      ? contractExchangeRates[safeToChecksumAddress(token.address)]?.price
+      ? contractExchangeRates[toChecksumAddress(token.address)]?.price
       : undefined;
 
   let renderTokenFiatAmount, renderTokenFiatNumber;
@@ -621,8 +623,11 @@ function decodeConfirmTx(args) {
 
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
+  const chainId = txChainId;
 
-  const tokenList = Engine.context.TokenListController.state.tokenList;
+  const tokenList =
+    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
+      ?.data || [];
   let symbol;
   if (renderTo in tokenList) {
     symbol = tokenList[renderTo].symbol;
@@ -636,6 +641,8 @@ function decodeConfirmTx(args) {
     transactionType = TRANSACTION_TYPES.SET_APPROVAL_FOR_ALL;
   else if (actionKey === strings('transactions.swaps_transaction'))
     transactionType = TRANSACTION_TYPES.SWAPS_TRANSACTION;
+  else if (actionKey === strings('transactions.bridge_transaction'))
+    transactionType = TRANSACTION_TYPES.BRIDGE_TRANSACTION;
   else if (
     actionKey === strings('transactions.smart_contract_interaction') ||
     (!actionKey.includes(strings('transactions.sent')) &&

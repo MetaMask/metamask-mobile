@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { toChecksumAddress } from 'ethereumjs-util';
 import useAccounts from './useAccounts';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -7,7 +8,6 @@ import { Account } from './useAccounts.types';
 import { Hex } from '@metamask/utils';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
-import { safeToChecksumAddress } from '../../../util/address';
 
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
@@ -30,7 +30,7 @@ const MOCK_ACCOUNT_ADDRESSES = Object.values(
 
 const MOCK_ACCOUNT_1: Account = {
   name: 'Account 1',
-  address: safeToChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]) as Hex,
+  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]) as Hex,
   type: KeyringTypes.hd,
   yOffset: 0,
   isSelected: false,
@@ -41,7 +41,7 @@ const MOCK_ACCOUNT_1: Account = {
 };
 const MOCK_ACCOUNT_2: Account = {
   name: 'Account 2',
-  address: safeToChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]) as Hex,
+  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]) as Hex,
   type: KeyringTypes.hd,
   yOffset: 78,
   isSelected: true,
@@ -58,13 +58,14 @@ const MOCK_STORE_STATE = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ACCOUNT_1.address]: {
-            balance: '0x0',
-            stakedBalance: '0x0',
-          },
-          [MOCK_ACCOUNT_2.address]: {
-            balance: '0x5',
+        accountsByChainId: {
+          '0x1': {
+            [MOCK_ACCOUNT_1.address]: {
+              balance: '0x0',
+            },
+            [MOCK_ACCOUNT_2.address]: {
+              balance: '0x5',
+            },
           },
         },
       },

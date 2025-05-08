@@ -2,9 +2,16 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
-import { KeyringClient } from '@metamask/keyring-snap-client';
 import SolanaNewFeatureContent from './SolanaNewFeatureContent';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { SolAccountType, SolScope } from '@metamask/keyring-api';
+import { Linking } from 'react-native';
+import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
+import Engine from '../../../core/Engine';
+import { MOCK_SOLANA_ACCOUNT } from '../../../util/test/accountsControllerTestUtils';
+import Routes from '../../../constants/navigation/Routes';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
@@ -34,11 +41,16 @@ jest.mock('../../../core/SnapKeyring/SolanaWalletSnap', () => ({
   SolanaWalletSnapSender: jest.fn(),
 }));
 
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
     goBack: jest.fn(),
   }),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  setSelectedAddress: jest.fn(),
 }));
 
 const initialMetrics: Metrics = {
@@ -101,21 +113,18 @@ describe('SolanaNewFeatureContent', () => {
     });
   });
 
-  it('shows the "got it" button for existing users', async () => {
+  it('shows the "view solana account" button for existing users', async () => {
     (useSelector as jest.Mock).mockReturnValue(true);
     const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
-      expect(getByText('solana_new_feature_content.got_it')).toBeTruthy();
+      expect(
+        getByText('solana_new_feature_content.view_solana_account'),
+      ).toBeTruthy();
     });
   });
 
-  it('creates an account when "create account" button is pressed', async () => {
-    const mockCreateAccount = jest.fn();
-    (KeyringClient as jest.Mock).mockImplementation(() => ({
-      createAccount: mockCreateAccount,
-    }));
-
+  it('opens the AddNewAccount modal when "create account" button is pressed', async () => {
     const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
@@ -125,12 +134,57 @@ describe('SolanaNewFeatureContent', () => {
       fireEvent.press(createButton);
     });
 
-    expect(mockCreateAccount).toHaveBeenCalledWith({
-      scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ADD_ACCOUNT,
+      params: {
+        clientType: WalletClientType.Solana,
+        scope: SolScope.Mainnet,
+      },
     });
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       '@MetaMask:solanaFeatureModalShown',
       'true',
+    );
+  });
+
+  it('shows "view solana account" button and navigates to solana account if user has a solana account', async () => {
+    (useSelector as jest.Mock).mockImplementation((selector) =>
+      selector({
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '1',
+                accounts: {
+                  '1': {
+                    address: '0xSomeAddress',
+                  },
+                  '2': {
+                    address: MOCK_SOLANA_ACCOUNT.address,
+                    type: SolAccountType.DataAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
+
+    await waitFor(() => {
+      expect(
+        getByText('solana_new_feature_content.view_solana_account'),
+      ).toBeTruthy();
+    });
+
+    fireEvent.press(
+      getByText('solana_new_feature_content.view_solana_account'),
+    );
+    expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
+      MOCK_SOLANA_ACCOUNT.address,
     );
   });
 
@@ -141,5 +195,43 @@ describe('SolanaNewFeatureContent', () => {
     await waitFor(() => {
       expect(queryByText('solana_new_feature_content.title')).toBeNull();
     });
+  });
+
+  it('navigates to learn more page when "learn more" button is pressed', async () => {
+    Linking.openURL = mockNavigate;
+
+    (useSelector as jest.Mock).mockImplementation((selector) =>
+      selector({
+        banners: {
+          dismissedBanners: [],
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '2',
+                accounts: {
+                  '2': {
+                    address: 'SomeSolanaAddress',
+                    type: SolAccountType.DataAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
+
+    await waitFor(() => {
+      expect(getByText('solana_new_feature_content.learn_more')).toBeTruthy();
+    });
+    fireEvent.press(getByText('solana_new_feature_content.learn_more'));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE,
+    );
   });
 });

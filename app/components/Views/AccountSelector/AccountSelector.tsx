@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { InteractionManager, View } from 'react-native';
 
 // External dependencies.
 import AccountSelectorList from '../../UI/AccountSelectorList';
@@ -39,7 +39,6 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TraceName, endTrace } from '../../../util/trace';
-import AddNewHdAccount from '../AddNewHdAccount';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
@@ -81,19 +80,21 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const _onSelectAccount = useCallback(
     (address: string) => {
-      Engine.setSelectedAddress(address);
-      sheetRef.current?.onCloseBottomSheet();
-      onSelectAccount?.(address);
+      InteractionManager.runAfterInteractions(() => {
+        Engine.setSelectedAddress(address);
+        sheetRef.current?.onCloseBottomSheet();
+        onSelectAccount?.(address);
 
-      // Track Event: "Switched Account"
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
-          .addProperties({
-            source: 'Wallet Tab',
-            number_of_accounts: accounts?.length,
-          })
-          .build(),
-      );
+        // Track Event: "Switched Account"
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+            .addProperties({
+              source: 'Wallet Tab',
+              number_of_accounts: accounts?.length,
+            })
+            .build(),
+        );
+      });
     },
     [accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );
@@ -106,11 +107,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   // Handler for returning from add accounts screen
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
-  }, []);
-
-  // Handler for returning from add hd account screen
-  const handleBackToAddHdAccountSelector = useCallback(() => {
-    setScreen(AccountSelectorScreens.AddHdAccountSelector);
   }, []);
 
   const onRemoveImportedAccount = useCallback(
@@ -159,17 +155,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   const renderAddAccountActions = useCallback(
-    () => (
-      <AddAccountActions
-        onBack={handleBackToSelector}
-        onAddHdAccount={handleBackToAddHdAccountSelector}
-      />
-    ),
-    [handleBackToSelector, handleBackToAddHdAccountSelector],
-  );
-
-  const renderAddHdAccountSelector = useCallback(
-    () => <AddNewHdAccount onBack={handleBackToSelector} />,
+    () => <AddAccountActions onBack={handleBackToSelector} />,
     [handleBackToSelector],
   );
 
@@ -179,17 +165,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         return renderAccountSelector();
       case AccountSelectorScreens.AddAccountActions:
         return renderAddAccountActions();
-      case AccountSelectorScreens.AddHdAccountSelector:
-        return renderAddHdAccountSelector();
       default:
         return renderAccountSelector();
     }
-  }, [
-    screen,
-    renderAccountSelector,
-    renderAddAccountActions,
-    renderAddHdAccountSelector,
-  ]);
+  }, [screen, renderAccountSelector, renderAddAccountActions]);
 
   return <BottomSheet ref={sheetRef}>{renderAccountScreens()}</BottomSheet>;
 };

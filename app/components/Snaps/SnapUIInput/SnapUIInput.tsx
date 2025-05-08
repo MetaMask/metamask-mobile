@@ -17,6 +17,7 @@ export interface SnapUIInputProps {
   label?: string;
   error?: string;
   style?: ViewStyle;
+  disabled?: boolean;
 }
 
 export const SnapUIInput = ({
@@ -25,6 +26,7 @@ export const SnapUIInput = ({
   label,
   error,
   style,
+  disabled,
   ...props
 }: SnapUIInputProps) => {
   const { handleInputChange, getValue, focusedInput, setCurrentFocusedInput } =
@@ -66,6 +68,7 @@ export const SnapUIInput = ({
       <TextField
         {...props}
         size={TextFieldSize.Lg}
+        isDisabled={disabled}
         ref={inputRef}
         onFocus={handleFocus}
         onBlur={handleBlur}
@@ -74,6 +77,9 @@ export const SnapUIInput = ({
         onChangeText={handleChange}
         autoCapitalize="none"
         autoCorrect={false}
+        // We set a max height of 58px and let the input grow to fill the rest of the height next to a taller sibling element.
+        // eslint-disable-next-line react-native/no-inline-styles
+        style={{ maxHeight: 58, flexGrow: 1 }}
       />
       {error && (
         // eslint-disable-next-line react-native/no-inline-styles

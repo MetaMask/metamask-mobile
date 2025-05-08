@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
+import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
@@ -15,7 +16,8 @@ import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { isValidHexAddress } from '../../../util/address';
+import Logger from '../../../util/Logger';
+import { TraceName, endTrace, trace } from '../../../util/trace';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -101,19 +103,21 @@ const AddCustomCollectible = ({
     };
   }, [mounted, collectibleContract, inputWidth]);
 
-  const getAnalyticsParams = () => {
+  const getAnalyticsParams = useCallback(() => {
     try {
       return {
         chain_id: getDecimalChainId(chainId),
+        source: 'manual',
       };
     } catch (error) {
-      return {};
+      Logger.error(error as Error, 'AddCustomCollectible.getAnalyticsParams');
+      return undefined;
     }
-  };
+  }, [chainId]);
 
   const validateCustomCollectibleAddress = async (): Promise<boolean> => {
     let validated = true;
-    const isValidEthAddress = isValidHexAddress(address);
+    const isValidEthAddress = isValidAddress(address);
     if (address.length === 0) {
       setWarningAddress(strings('collectible.address_cant_be_empty'));
       validated = false;
@@ -193,13 +197,22 @@ const AddCustomCollectible = ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NftController } = Engine.context as any;
-    NftController.addNft(address, tokenId);
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
-        .addProperties(getAnalyticsParams())
-        .build(),
-    );
+    trace({ name: TraceName.ImportNfts });
+
+    await NftController.addNft(address, tokenId);
+
+    endTrace({ name: TraceName.ImportNfts });
+
+    const params = getAnalyticsParams();
+    if (params) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+          .addProperties(params)
+          .build(),
+      );
+    }
+
     setLoading(false);
     navigation.goBack();
   };

@@ -29,7 +29,7 @@ const styleSheet = (params: {
         width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 16,
+        paddingVertical: 8,
       },
       style,
     ) as ViewStyle,
