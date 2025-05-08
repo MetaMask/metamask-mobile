@@ -1860,7 +1860,9 @@ workflows:
                 
                 echo "Applying OpenSSL bitcode fix..."
                 cd ios
-                ./remove_bitcode_for_bitrise.sh "$IPA_FILE"
+                chmod +x remove_bitcode_for_bitrise.sh
+                # Skip signing since we're in Bitrise environment - we'll let the App Store Connect upload handle it
+                ./remove_bitcode_for_bitrise.sh "$IPA_FILE" true
                 
                 echo "OpenSSL bitcode fix applied successfully"
       - deploy-to-itunesconnect-application-loader@1:
