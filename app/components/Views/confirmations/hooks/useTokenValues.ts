@@ -46,14 +46,17 @@ export const useTokenValues = ({ amountWei }: TokenValuesProps = {}) => {
   const value = amountWei ? toBigNumber.dec(amountWei) : transactionData?.args?._value || txParams?.value;
   const valueBN = value ? new BigNumber(value.toString()) : new BigNumber(0);
 
-  const { value: decimals } = useTokenDecimals(tokenAddress, networkClientId);
+  const { value: decimals, pending } = useTokenDecimals(tokenAddress, networkClientId);
   const tokenAmount = calcTokenAmount(valueBN, decimals ?? 1);
   const fiatDisplay = useFiatConversion(tokenAmount, chainId as Hex);
 
   // todo: we can return values as BN. We are converting to string to preserve existing behavior
-  return {
-    tokenAmountValue: tokenAmount.toString(),
-    tokenAmountDisplayValue: formatAmount(I18n.locale, tokenAmount),
-    fiatDisplayValue: fiatDisplay,
-  };
+  return pending ?
+    {}
+    :
+    {
+      tokenAmountValue: tokenAmount.toString(),
+      tokenAmountDisplayValue: formatAmount(I18n.locale, tokenAmount),
+      fiatDisplayValue: fiatDisplay,
+    };
 };
