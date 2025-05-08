@@ -769,7 +769,7 @@
     "select_accounts_description": "Select the account(s) to use on this site:",
     "connect_multiple_accounts": "Connect multiple accounts",
     "connect_more_accounts": "Connect more accounts",
-    "add":"Add",
+    "add": "Add",
     "cancel": "Cancel",
     "connect": "Connect",
     "connect_with_count": "Connect{{countLabel}}",
@@ -1848,6 +1848,25 @@
     "network": "Network",
     "request_from": "Request from",
     "network_fee": "Network Fee",
+    "gas_modal": {
+      "edit_network_fee": "Edit network fee",
+      "advanced_gas_fee": "Advanced gas fee",
+      "site_suggested": "Site suggested",
+      "advanced": "Advanced",
+      "low": "Low",
+      "medium": "Market",
+      "high": "Aggressive",
+      "gas_price_estimate": "Gas price estimate",
+      "gas_limit": "Gas limit",
+      "save": "Save",
+      "max_base_fee": "Max Base Fee (GWEI)",
+      "priority_fee": "Priority Fee (GWEI)",
+      "current_priority_fee": "Current: {{min}} - {{max}} GWEI",
+      "historical_priority_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "estimated_base_fee": "Current: {{value}} GWEI",
+      "historical_base_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "gas_price": "Gas price (GWEI)"
+    },
     "network_fee_tooltip": "Amount paid to process the transaction on network."
   },
   "smart_transactions": {
@@ -2089,7 +2108,7 @@
     "description_one": "You'll now be able to view your account in MetaMask."
   },
   "import_new_secret_recovery_phrase": {
-    "title":"Import Secret Recovery Phrase",
+    "title": "Import Secret Recovery Phrase",
     "description": "Enter your wallet's secret recovery phrase. You can import any Ethereum, Solana, or Bitcoin secret recovery phrase.",
     "subtitle": "Paste your secret recovery phrase",
     "cta_text": "Continue",
@@ -2100,9 +2119,9 @@
     "24_word_option": "I have a 24 word phrase",
     "error_title": "Something went wrong",
     "error_message": "We couldn't import that secret recovery phrase. Please make sure you entered it correctly.",
-    "error_empty_message":"You need to enter your secret recovery phrase.",
+    "error_empty_message": "You need to enter your secret recovery phrase.",
     "error_number_of_words_error_message": "Secret Recovery Phrases contain 12, or 24 words",
-    "error_srp_is_case_sensitive":"Invalid input! Secret Recovery Phrase is case sensitive.",
+    "error_srp_is_case_sensitive": "Invalid input! Secret Recovery Phrase is case sensitive.",
     "error_srp_word_error_1": "Word ",
     "error_srp_word_error_2": " is incorrect or misspelled.",
     "error_multiple_srp_word_error_1": "Word ",
@@ -2112,7 +2131,6 @@
     "error_duplicate_srp": "This Secret Recovery Phrase has already been imported.",
     "success_1": "Secret Recovery Phrase",
     "success_2": "imported"
-
   },
   "first_incoming_transaction": {
     "title": "{{asset}} was deposited in your account",
@@ -3518,7 +3536,7 @@
     "add_multichain_account": "Create a new {{networkName}} account",
     "create_an_account": "Create a new account",
     "add_new_account": "Ethereum account",
-    "import_srp":"Secret Recovery Phrase",
+    "import_srp": "Secret Recovery Phrase",
     "add_hardware_wallet": "Hardware wallet",
     "import_account": "Private key",
     "add_bitcoin_account_testnet": "Bitcoin testnet account",

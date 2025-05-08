@@ -8,11 +8,15 @@ import styleSheet from './bottom-modal.styles';
 
 const OPAQUE_GRAY = '#414141';
 interface BottomModalProps {
+  avoidKeyboard?: boolean;
   children: ReactChild;
   onClose?: () => void;
   hideBackground?: boolean;
   testID?: string;
   visible?: boolean;
+  onBackButtonPress?: () => void;
+  onBackdropPress?: () => void;
+  onSwipeComplete?: () => void;
 }
 
 /**
@@ -20,9 +24,13 @@ interface BottomModalProps {
  * {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}}
  */
 const BottomModal = ({
+  avoidKeyboard,
   children,
   hideBackground,
+  onBackButtonPress,
+  onBackdropPress,
   onClose,
+  onSwipeComplete,
   testID,
   visible = true,
 }: BottomModalProps) => {
@@ -39,12 +47,13 @@ const BottomModal = ({
       backdropOpacity={1}
       animationInTiming={600}
       animationOutTiming={600}
-      onBackButtonPress={onClose}
-      onBackdropPress={onClose}
-      onSwipeComplete={onClose}
+      onBackButtonPress={onBackButtonPress ?? onClose}
+      onBackdropPress={onBackdropPress ?? onClose}
+      onSwipeComplete={onSwipeComplete ?? onClose}
       swipeDirection={'down'}
       propagateSwipe
       testID={testID}
+      avoidKeyboard={avoidKeyboard}
     >
       <View style={styles.wrapper}>
         <View style={styles.topBar} />

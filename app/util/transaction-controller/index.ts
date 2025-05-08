@@ -119,6 +119,13 @@ export function updateEditableParams(
   return TransactionController.updateEditableParams(...args);
 }
 
+export function updateTransactionGasFees(
+  ...args: Parameters<BaseTransactionController['updateTransactionGasFees']>
+) {
+  const { TransactionController } = Engine.context;
+  return TransactionController.updateTransactionGasFees(...args);
+}
+
 export const getNetworkNonce = async (
   { from }: { from: string },
   networkClientId: NetworkClientId,
