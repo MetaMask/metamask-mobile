@@ -206,7 +206,7 @@ export const BridgeTokenSelectorBase: React.FC<
   }, [pending, tokensToRender]);
 
   return (
-    <BottomSheet ref={modalRef}>
+    <BottomSheet ref={modalRef} isFullscreen>
       <Box gap={4}>
         <BottomSheetHeader>
           <Box
