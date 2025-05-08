@@ -21,11 +21,11 @@ import {
 import createStyles from './SolanaNewFeatureContent.styles';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import Engine from '../../../core/Engine';
 import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 
 const SolanaNewFeatureContent = () => {
   const [isVisible, setIsVisible] = useState(false);

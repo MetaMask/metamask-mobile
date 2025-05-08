@@ -37,8 +37,15 @@ jest.mock('@metamask/keyring-snap-client', () => ({
   })),
 }));
 
-jest.mock('../../../core/SnapKeyring/SolanaWalletSnap', () => ({
-  SolanaWalletSnapSender: jest.fn(),
+const mockSnapClient = {
+  createAccount: jest.fn(),
+};
+
+jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
+  ...jest.requireActual('../../../core/SnapKeyring/MultichainWalletSnapClient'),
+  MultichainWalletSnapFactory: {
+    createClient: jest.fn().mockImplementation(() => mockSnapClient),
+  },
 }));
 
 const mockNavigate = jest.fn();
