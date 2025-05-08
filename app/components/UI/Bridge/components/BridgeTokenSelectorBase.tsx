@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
@@ -22,14 +23,13 @@ import { useAssetMetadata } from '../hooks/useAssetMetadata';
 import { CaipChainId, Hex } from '@metamask/utils';
 import ReusableModal, { ReusableModalRef } from '../../ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
-    content: {
-      flex: 1,
-      backgroundColor: theme.colors.background.default,
-    },
     headerTitle: {
       flex: 1,
       textAlign: 'center',
@@ -66,20 +66,6 @@ const createStyles = (params: { theme: Theme }) => {
     // Need the flex 1 to make sure this doesn't disappear when FlexDirection.Row is used
     skeletonItemRows: {
       flex: 1,
-    },
-    screen: { justifyContent: 'flex-end' },
-    sheet: {
-      backgroundColor: theme.colors.background.default,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-    },
-    notch: {
-      width: 48,
-      height: 5,
-      borderRadius: 4,
-      backgroundColor: theme.colors.border.default,
-      marginTop: 8,
-      alignSelf: 'center',
     },
   });
 };
@@ -199,9 +185,9 @@ export const BridgeTokenSelectorBase: React.FC<
     [debouncedSearchString, styles],
   );
 
-  const modalRef = useRef<ReusableModalRef>(null);
+  const modalRef = useRef<BottomSheetRef>(null);
   const dismissModal = (): void => {
-    modalRef.current?.dismissModal();
+    modalRef.current?.onCloseBottomSheet();
   };
 
   const shouldRenderOverallLoading = useMemo(
@@ -220,67 +206,58 @@ export const BridgeTokenSelectorBase: React.FC<
   }, [pending, tokensToRender]);
 
   return (
-    <ReusableModal
-      ref={modalRef}
-      style={[styles.screen, { marginTop: safeAreaInsets.top }]}
-      isInteractable={false}
-    >
-      <Box
-        style={[
-          styles.content,
-          styles.sheet,
-          { paddingBottom: safeAreaInsets.bottom },
-        ]}
-      >
-        <Box style={styles.notch} />
-        <Box gap={4}>
-          <BottomSheetHeader>
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              justifyContent={JustifyContent.center}
-            >
-              <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
-                {strings('bridge.select_token')}
-              </Text>
-              <Box style={[styles.closeButton, styles.closeIconBox]}>
-                <TouchableOpacity
-                  onPress={dismissModal}
-                  testID="bridge-token-selector-close-button"
-                >
-                  <Icon
-                    name={IconName.Close}
-                    size={IconSize.Sm}
-                    color={theme.colors.icon.default}
-                  />
-                </TouchableOpacity>
-              </Box>
+    <BottomSheet ref={modalRef}>
+      <Box gap={4}>
+        <BottomSheetHeader>
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            justifyContent={JustifyContent.center}
+          >
+            <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
+              {strings('bridge.select_token')}
+            </Text>
+            <Box style={[styles.closeButton, styles.closeIconBox]}>
+              <TouchableOpacity
+                onPress={dismissModal}
+                testID="bridge-token-selector-close-button"
+              >
+                <Icon
+                  name={IconName.Close}
+                  size={IconSize.Sm}
+                  color={theme.colors.icon.default}
+                />
+              </TouchableOpacity>
             </Box>
-          </BottomSheetHeader>
-        </Box>
+          </Box>
+        </BottomSheetHeader>
+      </Box>
 
-        <Box style={styles.buttonContainer} gap={16}>
-          {networksBar}
+      <Box style={styles.buttonContainer} gap={16}>
+        {networksBar}
 
-          <TextFieldSearch
-            value={searchString}
-            onChangeText={handleSearchTextChange}
-            placeholder={strings('swaps.search_token')}
-            testID="bridge-token-search-input"
-          />
-        </Box>
-
-        <FlatList
-          data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
-          renderItem={renderTokenItem}
-          keyExtractor={keyExtractor}
-          ListEmptyComponent={
-            debouncedSearchString && !shouldRenderOverallLoading
-              ? renderEmptyList
-              : LoadingSkeleton
-          }
+        <TextFieldSearch
+          value={searchString}
+          onChangeText={handleSearchTextChange}
+          placeholder={strings('swaps.search_token')}
+          testID="bridge-token-search-input"
         />
       </Box>
-    </ReusableModal>
+
+      <FlatList
+        data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
+        renderItem={renderTokenItem}
+        keyExtractor={keyExtractor}
+        ListEmptyComponent={
+          debouncedSearchString && !shouldRenderOverallLoading
+            ? renderEmptyList
+            : LoadingSkeleton
+        }
+        showsVerticalScrollIndicator={true}
+        showsHorizontalScrollIndicator={false}
+        bounces={true}
+        scrollEnabled={true}
+      />
+    </BottomSheet>
   );
 };
