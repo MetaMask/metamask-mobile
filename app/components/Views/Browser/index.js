@@ -44,9 +44,11 @@ import {
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { isSolanaAccount } from '../../../core/Multichain/utils';
 import { useFocusEffect } from '@react-navigation/native';
+///: END:ONLY_INCLUDE_IF
 
 const MAX_BROWSER_TABS = 5;
 
@@ -85,7 +87,9 @@ export const Browser = (props) => {
     (state) => state.security.dataCollectionForMarketing,
   );
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const currentSelectedAccount = useSelector(selectSelectedInternalAccount);
+  ///: END:ONLY_INCLUDE_IF
 
   const homePageUrl = useCallback(
     () =>
@@ -96,6 +100,7 @@ export const Browser = (props) => {
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // TODO remove after we release Solana dapp connectivity
   useFocusEffect(
     useCallback(() => {
@@ -120,6 +125,7 @@ export const Browser = (props) => {
       }
     }, [toastRef, currentSelectedAccount]),
   );
+  ///: END:ONLY_INCLUDE_IF
 
   const newTab = useCallback(
     (url, linkType) => {
