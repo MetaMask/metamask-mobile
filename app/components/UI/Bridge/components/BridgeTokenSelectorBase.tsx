@@ -22,7 +22,6 @@ import { BridgeToken } from '../types';
 import { Skeleton } from '../../../../component-library/components/Skeleton';
 import { useAssetMetadata } from '../hooks/useAssetMetadata';
 import { CaipChainId, Hex } from '@metamask/utils';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -129,7 +128,6 @@ export const BridgeTokenSelectorBase: React.FC<
   chainIdToFetchMetadata: chainId,
 }) => {
   const { styles, theme } = useStyles(createStyles, {});
-  const safeAreaInsets = useSafeAreaInsets();
   const {
     searchString,
     setSearchString,
