@@ -412,7 +412,7 @@ exports[`AccountConnect renders correctly 1`] = `
                                     "overflow": "hidden",
                                   },
                                   {
-                                    "backgroundColor": "#FC4800",
+                                    "backgroundColor": "#F70E01",
                                     "borderRadius": 8,
                                     "height": 16,
                                     "width": 16,
@@ -452,19 +452,19 @@ exports[`AccountConnect renders correctly 1`] = `
                                   <RNSVGRect
                                     fill={
                                       {
-                                        "payload": 4278291575,
+                                        "payload": 4278291572,
                                         "type": 0,
                                       }
                                     }
                                     height={16}
                                     matrix={
                                       [
-                                        -0.41310442982454204,
-                                        -0.910683660806177,
-                                        0.910683660806177,
-                                        -0.41310442982454204,
-                                        4.404802817153955,
-                                        20.16808402411075,
+                                        0.6306758074312863,
+                                        -0.776046407066546,
+                                        0.776046407066546,
+                                        0.6306758074312863,
+                                        -4.839776487929396,
+                                        7.511274951307336,
                                       ]
                                     }
                                     propList={
@@ -479,19 +479,19 @@ exports[`AccountConnect renders correctly 1`] = `
                                   <RNSVGRect
                                     fill={
                                       {
-                                        "payload": 4278410587,
+                                        "payload": 4294722304,
                                         "type": 0,
                                       }
                                     }
                                     height={16}
                                     matrix={
                                       [
-                                        0.903335292863301,
-                                        -0.42893513340314526,
-                                        0.42893513340314526,
-                                        0.903335292863301,
-                                        -9.297010789302583,
-                                        3.362634662066926,
+                                        -0.5891963573533419,
+                                        0.8079898838980306,
+                                        -0.8079898838980306,
+                                        -0.5891963573533419,
+                                        28.093909028901876,
+                                        6.725681253325282,
                                       ]
                                     }
                                     propList={
@@ -506,19 +506,19 @@ exports[`AccountConnect renders correctly 1`] = `
                                   <RNSVGRect
                                     fill={
                                       {
-                                        "payload": 4294382337,
+                                        "payload": 4279616754,
                                         "type": 0,
                                       }
                                     }
                                     height={16}
                                     matrix={
                                       [
-                                        -0.6921431738704069,
-                                        -0.7217602280983622,
-                                        0.7217602280983622,
-                                        -0.6921431738704069,
-                                        -6.169639630140347,
-                                        15.20799235933167,
+                                        -0.15298583628403845,
+                                        -0.9882283814465528,
+                                        0.9882283814465528,
+                                        -0.15298583628403845,
+                                        -9.553006978138171,
+                                        14.942356088161699,
                                       ]
                                     }
                                     propList={
@@ -712,10 +712,10 @@ exports[`AccountConnect renders correctly 1`] = `
                             style={
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#ffffff",
+                                "backgroundColor": "#f3f5f9",
                                 "borderColor": "#ffffff",
                                 "borderRadius": 8,
-                                "borderWidth": 1.5,
+                                "borderWidth": 1,
                                 "height": 16,
                                 "justifyContent": "center",
                                 "overflow": "hidden",
@@ -724,18 +724,21 @@ exports[`AccountConnect renders correctly 1`] = `
                             }
                             testID="avatargroup-avatar"
                           >
-                            <Image
-                              onError={[Function]}
-                              resizeMode="contain"
-                              source={1}
+                            <Text
+                              accessibilityRole="text"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 10,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": undefined,
                                 }
                               }
-                              testID="network-avatar-image"
-                            />
+                            >
+                              E
+                            </Text>
                           </View>
                         </View>
                       </View>
