@@ -4,8 +4,6 @@ import ethAccounts from '../eth_accounts';
 import getProviderState from '../getProviderState';
 import { wallet_addEthereumChain } from '../wallet_addEthereumChain';
 import { wallet_watchAsset } from '../wallet_watchAsset';
-import logWeb3ShimUsage from '../logWeb3ShimUsage';
-import sendMetadata from '../sendMetadata';
 
 // TODO: [ffmcgee] tsdocs why we want different handlers defined here for these two watchAsset and addEthereumCHain
 const watchAssetHandler = (req, res, _, __, hooks) =>
@@ -54,6 +52,4 @@ export const multichainLocalHandlers = [
   caipWatchAsset,
   caipAddEthereumChain,
   getProviderState,
-  logWeb3ShimUsage,
-  sendMetadata,
 ];

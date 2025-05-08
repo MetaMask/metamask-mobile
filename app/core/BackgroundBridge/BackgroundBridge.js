@@ -88,7 +88,6 @@ import { previousValueComparator } from '../../util/validators';
 import { hexToBigInt, toCaipChainId } from '@metamask/utils';
 import { TransactionController } from '@metamask/transaction-controller';
 import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
-import { AlertController } from '../Engine/controllers/alert-controller';
 
 // Types of APIs
 const API_TYPE = {
@@ -138,14 +137,6 @@ export class BackgroundBridge extends EventEmitter {
     this.channelId = channelId;
     this.deprecatedNetworkVersions = {};
     this.createMiddleware = getRpcMethodMiddleware;
-    this.alertController = new AlertController({
-      state: {},
-      messenger: Engine.controllerMessenger.getRestricted({
-        name: 'AlertController',
-        allowedEvents: ['AccountsController:selectedAccountChange'],
-        allowedActions: ['AccountsController:getSelectedAccount'],
-      }),
-    });
 
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
@@ -898,7 +889,6 @@ export class BackgroundBridge extends EventEmitter {
     const {
       ApprovalController,
       NetworkController,
-      SubjectMetadataController,
       AccountsController,
       PermissionController,
     } = Engine.context;
@@ -994,13 +984,9 @@ export class BackgroundBridge extends EventEmitter {
         // wallet_watchAsset handler related
         hostname: origin,
         checkActiveTab: () => true, // TODO: [ffmcgee] check how to get tabId in here, same as RpcMethodMiddleware impl
-        // sendMetadata handler related
-        subjectType: SubjectType.Website,
-        addSubjectMetadata: SubjectMetadataController.addSubjectMetadata.bind(
-          SubjectMetadataController,
-        ),
-        // wallet_addEthereumChain handler related
+        // getProviderState handler related
         getProviderState: this.getProviderState.bind(this),
+        // wallet_addEthereumChain handler related
         requestUserApproval:
           ApprovalController.addAndShowApprovalRequest.bind(ApprovalController),
         getCaveat: ({ target, caveatType }) => {
@@ -1031,14 +1017,6 @@ export class BackgroundBridge extends EventEmitter {
           }),
         rejectApprovalRequestsForOrigin: () =>
           rejectOriginPendingApprovals(origin),
-        // Web3 shim-related
-        getWeb3ShimUsageState: this.alertController.getWeb3ShimUsageState.bind(
-          this.alertController,
-        ),
-        setWeb3ShimUsageRecorded:
-          this.alertController.setWeb3ShimUsageRecorded.bind(
-            this.alertController,
-          ),
       }),
     );
 
