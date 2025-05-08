@@ -71,7 +71,7 @@ const CaipAccountSelectorList = ({
         : AvatarAccountType.JazzIcon,
     shallowEqual,
   );
-  const getKeyExtractor = ({ address }: Account) => address;
+  const getKeyExtractor = ({ caipAccountId }: Account) => caipAccountId;
 
   const selectedAddressesLookup = useMemo(() => {
     const lookupSet = new Set<string>();
@@ -222,7 +222,7 @@ const CaipAccountSelectorList = ({
       if (isSelectWithoutMenu) {
         cellVariant = CellVariant.Select;
       }
-      const isSelectedAccount = selectedAddressesLookup.has(caipAccountId.toLowerCase());
+      const isSelectedAccount = selectedAddressesLookup.has(caipAccountId);
 
       const cellStyle: ViewStyle = {
         opacity: isLoading ? 0.5 : 1,
