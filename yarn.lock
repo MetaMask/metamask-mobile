@@ -5520,14 +5520,6 @@
     "@metamask/utils" "^11.4.0"
     readable-stream "3.6.2"
 
-"@metamask/post-message-stream@^9.0.0":
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/post-message-stream/-/post-message-stream-9.0.0.tgz#1b1249eb7d378cc1eda8abe6b2f882f6dd923c46"
-  integrity sha512-JQVu+aENg8r4LiZPPEsmaa+N9j3ecBcumtAEWZ+N5tB6qX/WcLLwCsfNidCx7zQCR0ritgx3lLbZ/sVqkNZ2OQ==
-  dependencies:
-    "@metamask/utils" "^11.0.1"
-    readable-stream "3.6.2"
-
 "@metamask/ppom-validator@0.36.0":
   version "0.36.0"
   resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.36.0.tgz#cc8ace84ead3521c1b079650fa4169d1020bc070"

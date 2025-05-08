@@ -202,7 +202,7 @@
     "@metamask/notification-services-controller": "^7.0.0",
     "@metamask/permission-controller": "^11.0.6",
     "@metamask/phishing-controller": "^12.4.1",
-    "@metamask/post-message-stream": "^9.0.0",
+    "@metamask/post-message-stream": "^10.0.0",
     "@metamask/ppom-validator": "0.36.0",
     "@metamask/preferences-controller": "^17.0.0",
     "@metamask/profile-sync-controller": "^13.0.0",
