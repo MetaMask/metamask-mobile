@@ -2,7 +2,6 @@ import React, { Fragment, PureComponent } from 'react';
 import { View, ScrollView, Alert, Platform, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddressList from '../AddressList';
@@ -16,6 +15,7 @@ import { handleNetworkSwitch } from '../../../../../../util/networks/handleNetwo
 import {
   isENS,
   isValidHexAddress,
+  safeToChecksumAddress,
   validateAddressOrENS,
 } from '../../../../../../util/address';
 import { getEther, getTicker } from '../../../../../../util/transactions';
@@ -224,7 +224,7 @@ class SendFlow extends PureComponent {
     const { toAccount } = this.state;
     const { addressBook, globalChainId, internalAccounts } = this.props;
     const networkAddressBook = addressBook[globalChainId] || {};
-    const checksummedAddress = toChecksumAddress(toAccount);
+    const checksummedAddress = safeToChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] ||
       internalAccounts.find((account) =>
@@ -381,7 +381,7 @@ class SendFlow extends PureComponent {
 
     const networkAddressBook = addressBook[globalChainId] || {};
 
-    const checksummedAddress = toChecksumAddress(toAccount);
+    const checksummedAddress = safeToChecksumAddress(toAccount);
     const matchingAccount = internalAccounts.find((account) =>
       toLowerCaseEquals(account.address, checksummedAddress),
     );
@@ -499,7 +499,7 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const checksummedAddress = toAccount && toChecksumAddress(toAccount);
+    const checksummedAddress = toAccount && safeToChecksumAddress(toAccount);
     const existingAddressName = this.getAddressNameFromBookOrInternalAccounts(
       toEnsAddressResolved || toAccount,
     );

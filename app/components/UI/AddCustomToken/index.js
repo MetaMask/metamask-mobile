@@ -5,14 +5,12 @@ import {
   View,
   StyleSheet,
   InteractionManager,
-  Platform,
   ScrollView,
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
-import { isValidAddress } from 'ethereumjs-util';
 import { isSmartContractAddress } from '../../../util/transactions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
@@ -43,6 +41,7 @@ import Banner, {
 } from '../../../component-library/components/Banners/Banner';
 import CLText from '../../../component-library/components/Texts/Text/Text';
 import Logger from '../../../util/Logger';
+import { isValidHexAddress } from '../../../util/address';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -280,7 +279,7 @@ class AddCustomToken extends PureComponent {
 
   validateCustomTokenAddress = async (address) => {
     let validated = true;
-    const isValidTokenAddress = isValidAddress(address);
+    const isValidTokenAddress = isValidHexAddress(address);
 
     const { chainId } = this.props;
     const toSmartContract =

@@ -58,7 +58,7 @@ export function useFiatConversionRates({
     return fetchTokenContractExchangeRates({
       tokenPricesService: new CodefiTokenPricesServiceV2(),
       nativeCurrency: currentCurrency,
-      tokenAddresses: [checksumAddress],
+      tokenAddresses: [checksumAddress as Hex],
       chainId,
     });
   }, [
