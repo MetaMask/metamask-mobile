@@ -310,14 +310,21 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                     }
                   >
                     <View
+                      onLayout={[Function]}
                       style={
-                        {
-                          "bottom": 0,
-                          "left": 0,
-                          "position": "absolute",
-                          "right": 0,
-                          "top": 0,
-                        }
+                        [
+                          {
+                            "bottom": 0,
+                            "justifyContent": "flex-end",
+                            "left": 0,
+                            "position": "absolute",
+                            "right": 0,
+                            "top": 0,
+                          },
+                          {
+                            "paddingBottom": 0,
+                          },
+                        ]
                       }
                     >
                       <View
@@ -332,24 +339,60 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               "top": 0,
                             },
                             {
-                              "opacity": undefined,
+                              "opacity": 0,
                             },
                           ]
                         }
-                      />
+                      >
+                        <TouchableOpacity
+                          onPress={[Function]}
+                          style={
+                            {
+                              "flex": 1,
+                            }
+                          }
+                        />
+                      </View>
                       <View
-                        collapsable={false}
-                        onGestureHandlerEvent={[Function]}
-                        onGestureHandlerStateChange={[Function]}
+                        onLayout={[Function]}
                         style={
                           [
+                            {
+                              "bottom": 0,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": 0,
+                            },
+                            {
+                              "paddingBottom": 0,
+                            },
+                          ]
+                        }
+                      >
+                        <View
+                          collapsable={false}
+                          onGestureHandlerEvent={[Function]}
+                          onGestureHandlerStateChange={[Function]}
+                          onLayout={[Function]}
+                          style={
                             [
                               {
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#b7bbc866",
+                                "borderTopLeftRadius": 8,
+                                "borderTopRightRadius": 8,
+                                "borderWidth": 1,
+                                "height": undefined,
+                                "maxHeight": 1334,
+                                "overflow": "hidden",
+                                "paddingBottom": 0,
+                                "shadowColor": "#0000001a",
+                                "shadowOffset": {
+                                  "height": 2,
+                                  "width": 0,
+                                },
+                                "shadowOpacity": 1,
+                                "shadowRadius": 40,
                               },
                               {
                                 "transform": [
@@ -358,67 +401,29 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   },
                                 ],
                               },
-                            ],
-                            [
-                              {
-                                "justifyContent": "flex-end",
-                              },
-                              {
-                                "marginTop": 0,
-                              },
-                            ],
-                          ]
-                        }
-                      >
-                        <TouchableOpacity
-                          disabled={false}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            }
-                          }
-                        />
-                        <View
-                          style={
-                            [
-                              {},
-                              [
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "flex": 1,
-                                },
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "borderTopLeftRadius": 20,
-                                  "borderTopRightRadius": 20,
-                                },
-                                {
-                                  "paddingBottom": 0,
-                                },
-                              ],
                             ]
                           }
                         >
                           <View
                             style={
-                              [
-                                {},
-                                {
-                                  "alignSelf": "center",
-                                  "backgroundColor": "#b7bbc8",
-                                  "borderRadius": 4,
-                                  "height": 5,
-                                  "marginTop": 8,
-                                  "width": 48,
-                                },
-                              ]
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "padding": 4,
+                              }
                             }
-                          />
+                          >
+                            <View
+                              style={
+                                {
+                                  "backgroundColor": "#b7bbc866",
+                                  "borderRadius": 2,
+                                  "height": 4,
+                                  "width": 40,
+                                }
+                              }
+                            />
+                          </View>
                           <View
                             gap={4}
                             style={
@@ -559,6 +564,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             }
                           >
                             <RCTScrollView
+                              collapsable={false}
                               contentContainerStyle={
                                 {
                                   "alignItems": "center",
@@ -568,6 +574,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 }
                               }
                               horizontal={true}
+                              onGestureHandlerEvent={[Function]}
+                              onGestureHandlerStateChange={[Function]}
                               showsHorizontalScrollIndicator={false}
                               style={
                                 {
@@ -757,6 +765,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                           </View>
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
+                            bounces={true}
+                            collapsable={false}
                             data={
                               [
                                 {
@@ -798,6 +808,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             getItemCount={[Function]}
                             keyExtractor={[Function]}
                             onContentSizeChange={[Function]}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
                             onMomentumScrollEnd={[Function]}
@@ -806,7 +818,11 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             onScrollEndDrag={[Function]}
                             removeClippedSubviews={false}
                             renderItem={[Function]}
+                            renderScrollComponent={[Function]}
+                            scrollEnabled={true}
                             scrollEventThrottle={0.0001}
+                            showsHorizontalScrollIndicator={false}
+                            showsVerticalScrollIndicator={true}
                             stickyHeaderIndices={[]}
                             viewabilityConfigCallbackPairs={[]}
                           >
