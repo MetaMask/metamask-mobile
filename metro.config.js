@@ -15,6 +15,12 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
+// Maps out the file extension to use for the mock files based on the
+// RN_SRC_EXT environment variable passed in to the build and start commands
+const mockExts = process.env.RN_SRC_EXT !== undefined
+  ? process.env.RN_SRC_EXT.split(',').map(ext => ext.trim())
+  : [];
+
 module.exports = function (baseConfig) {
   const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
   const {
@@ -25,7 +31,7 @@ module.exports = function (baseConfig) {
     mergeConfig(defaultConfig, {
       resolver: {
         assetExts: assetExts.filter((ext) => ext !== 'svg'),
-        sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
+        sourceExts: [...mockExts, ...sourceExts, 'svg', 'cjs', 'mjs'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
         extraNodeModules: {
           ...defaultConfig.resolver.extraNodeModules,
