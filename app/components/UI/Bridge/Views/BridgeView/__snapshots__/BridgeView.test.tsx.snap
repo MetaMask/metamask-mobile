@@ -728,6 +728,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="Arrow2Down"
                                         style={
@@ -1674,6 +1675,7 @@ exports[`BridgeView renders 1`] = `
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="Arrow2Down"
                                         style={

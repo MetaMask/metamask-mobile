@@ -152,6 +152,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           >
             <SvgMock
               color="#ca3542"
+              fill="currentColor"
               height={24}
               name="Danger"
               style={

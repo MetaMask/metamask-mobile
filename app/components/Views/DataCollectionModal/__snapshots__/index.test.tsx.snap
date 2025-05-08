@@ -128,6 +128,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
       >
         <SvgMock
           color="#9a6300"
+          fill="currentColor"
           height={24}
           name="Warning"
           style={

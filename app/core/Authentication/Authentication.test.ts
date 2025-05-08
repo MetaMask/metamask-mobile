@@ -11,7 +11,6 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import * as Keychain from 'react-native-keychain';
 import SecureKeychain from '../SecureKeychain';
 import ReduxService, { ReduxStore } from '../redux';
-
 const storage: Record<string, unknown> = {};
 
 jest.mock('../../store/storage-wrapper', () => ({
@@ -28,6 +27,19 @@ jest.mock('../../store/storage-wrapper', () => ({
     Object.keys(storage).forEach((key) => delete storage[key]);
     return Promise.resolve();
   }),
+}));
+
+const mockSnapClient = {
+  addDiscoveredAccounts: jest.fn(),
+};
+
+jest.mock('../SnapKeyring/MultichainWalletSnapClient', () => ({
+  MultichainWalletSnapFactory: {
+    createClient: () => mockSnapClient,
+  },
+  WalletClientType: {
+    Solana: 'solana',
+  },
 }));
 
 describe('Authentication', () => {
@@ -169,5 +181,38 @@ describe('Authentication', () => {
       .mockReturnValue((methodCalled = true));
     await Authentication.storePassword('1234', AUTHENTICATION_TYPE.UNKNOWN);
     expect(methodCalled).toBeTruthy();
+  });
+
+  describe('Multichain - discoverAccounts', () => {
+    it('calls discoverAccounts after vault creation in newWalletAndKeychain', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+      await Authentication.newWalletAndKeychain('1234', {
+        currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+      });
+      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
+        expect.any(String), // mock entropySource
+      );
+    });
+
+    it('calls discoverAccounts in newWalletVaultAndRestore', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+      await Authentication.newWalletAndRestore(
+        '1234',
+        {
+          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+        },
+        '1234',
+        false,
+      );
+      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
+        expect.any(String), // mock entropySource
+      );
+    });
   });
 });
