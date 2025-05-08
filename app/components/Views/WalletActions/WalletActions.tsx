@@ -56,6 +56,7 @@ import { RampType } from '../../../reducers/fiatOrders/types';
 import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import { selectDepositEntrypointWalletActions } from '../../../selectors/featureFlagController/deposit';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -121,6 +122,14 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+        params: {
+          tokenFilter: {
+            includeStakingTokens: true,
+            includeLendingTokens: true,
+            includeReceiptTokens: false,
+          },
+          onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
+        },
       });
     });
 

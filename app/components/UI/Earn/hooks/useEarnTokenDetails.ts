@@ -18,14 +18,23 @@ import { TokenI } from '../../Tokens/types';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../constants/experiences';
-import { isSupportedLendingTokenByChainId } from '../utils';
+import {
+  isSupportedLendingReceiptTokenByChainId,
+  isSupportedLendingTokenByChainId,
+} from '../utils';
 
 // Mock APR values - will be replaced with real API data later
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
+  // Tokens
   Ethereum: '2.3',
   USDC: '4.5',
   USDT: '4.1',
   DAI: '5.0',
+  // Receipt tokens
+  AETHUSDC: '4.5',
+  AUSDT: '4.1',
+  ADAI: '5.0',
+  aBasUSDC: '4.5',
 };
 
 export interface EarnTokenDetails extends TokenI {
@@ -122,9 +131,14 @@ export const useEarnTokenDetails = () => {
 
         const isSupportedLendingToken =
           token?.chainId &&
-          isSupportedLendingTokenByChainId(token?.symbol, token.chainId);
+          isSupportedLendingTokenByChainId(token.symbol, token.chainId);
 
-        if (isSupportedLendingToken) return EARN_EXPERIENCES.STABLECOIN_LENDING;
+        const isSupportedLendingReceiptToken =
+          token?.chainId &&
+          isSupportedLendingReceiptTokenByChainId(token.symbol, token.chainId);
+
+        if (isSupportedLendingToken || isSupportedLendingReceiptToken)
+          return EARN_EXPERIENCES.STABLECOIN_LENDING;
 
         return '';
       };

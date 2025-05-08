@@ -1,6 +1,5 @@
 import React from 'react';
-import { EarnTokenListItemProps } from './EarnTokenListItem.types';
-import EarnTokenListItem from '.';
+import { EarnTokenListItemProps } from './EarnDepositTokenListItem.types';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useSelector } from 'react-redux';
@@ -9,13 +8,14 @@ import {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import EarnDepositTokenListItem from '.';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 
-describe('EarnTokenListItem', () => {
+describe('EarnDepositTokenListItem', () => {
   beforeEach(() => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectIsIpfsGatewayEnabled) return true;
@@ -61,7 +61,9 @@ describe('EarnTokenListItem', () => {
       secondaryText,
     };
 
-    const { toJSON } = renderWithProvider(<EarnTokenListItem {...props} />);
+    const { toJSON } = renderWithProvider(
+      <EarnDepositTokenListItem {...props} />,
+    );
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -72,7 +74,9 @@ describe('EarnTokenListItem', () => {
       secondaryText,
     };
 
-    const { getByText } = renderWithProvider(<EarnTokenListItem {...props} />);
+    const { getByText } = renderWithProvider(
+      <EarnDepositTokenListItem {...props} />,
+    );
 
     expect(getByText('Dai Stablecoin')).toBeDefined();
     expect(getByText('10,100.00 USDC')).toBeDefined();
@@ -80,7 +84,7 @@ describe('EarnTokenListItem', () => {
 
   it('renders only primary text', () => {
     const { getByText } = renderWithProvider(
-      <EarnTokenListItem {...baseProps} />,
+      <EarnDepositTokenListItem {...baseProps} />,
     );
 
     expect(getByText('Dai Stablecoin')).toBeDefined();
