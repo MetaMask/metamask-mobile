@@ -235,6 +235,7 @@ export const recreateVaultWithNewPassword = async (
 
   // recreate import srp accounts
   const importedSrpKeyringIds = [];
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   for (const [index, otherSeedPhrase] of otherSeedPhrases.entries()) {
     const importedSrpKeyring = await restoreImportedSrp(
       otherSeedPhrase,
@@ -242,9 +243,8 @@ export const recreateVaultWithNewPassword = async (
     );
     importedSrpKeyringIds.push(importedSrpKeyring);
   }
-
+  ///: END:ONLY_INCLUDE_IF(multi-srp)
   const newHdKeyringIds = [newPrimaryKeyringId, ...importedSrpKeyringIds];
-  Logger.log('newHdKeyringIds', newHdKeyringIds);
   // map old keyring id to new keyring id
   const keyringIdMap = new Map();
   for (const [index, keyring] of hdKeyringsWithMetadata.entries()) {
@@ -253,11 +253,6 @@ export const recreateVaultWithNewPassword = async (
 
   // recreate snap accounts
   for (const snapAccount of firstPartySnapAccounts) {
-    Logger.log(
-      'snapAccount',
-      snapAccount,
-      keyringIdMap.get(snapAccount.options.entropySource),
-    );
     await restoreSnapAccounts(
       snapAccount.type,
       keyringIdMap.get(snapAccount.options.entropySource),
