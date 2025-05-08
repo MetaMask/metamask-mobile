@@ -25,8 +25,8 @@ const useFiatConversion = (amount: BigNumber, chainId: Hex, tokenAddress: Hex) =
     [tokenAddress, chainId, fiatCurrency],
   );
 
-  const testFiatValue = amount.times(erc20FiatRates.value?.[tokenAddress] ?? 1);
-  return fiatFormatter(testFiatValue);
+  const fiatAmount = amount.times(erc20FiatRates.value?.[tokenAddress] ?? 1);
+  return fiatFormatter(fiatAmount);
 };
 
 const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) => useAsyncResult(
@@ -55,11 +55,11 @@ export const useTokenValues = ({ amountWei }: TokenValuesProps = {}) => {
   const tokenAmount = calcTokenAmount(valueBN, decimals ?? 1);
   const fiatDisplay = useFiatConversion(tokenAmount, chainId as Hex, tokenAddress);
 
-  // todo: we can return values as BN. We are converting to string to preserve existing behavior
   return pending ?
-    {}
-    :
-    {
+  {}
+  :
+  {
+      // todo: we can return values as BN. We are converting to string to preserve existing behavior
       tokenAmountValue: tokenAmount.toString(),
       tokenAmountDisplayValue: formatAmount(I18n.locale, tokenAmount),
       fiatDisplayValue: fiatDisplay,
