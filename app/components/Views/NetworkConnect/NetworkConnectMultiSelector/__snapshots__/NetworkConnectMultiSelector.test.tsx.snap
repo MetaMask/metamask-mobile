@@ -49,6 +49,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
         >
           <SvgMock
             color="#121314"
+            fill="currentColor"
             height={16}
             name="ArrowLeft"
             style={
@@ -128,6 +129,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
             <SvgMock
               accessibilityLabel="select_all"
               color="#ffffff"
+              fill="currentColor"
               height={20}
               name="MinusBold"
               onPress={[Function]}
@@ -172,20 +174,18 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
       data={
         [
           {
-            "chainId": "0x1",
-            "id": "0x1",
-            "imageSource": 1,
+            "caipChainId": "eip155:1",
+            "id": "eip155:1",
+            "imageSource": undefined,
             "isSelected": false,
             "name": "Ethereum Mainnet",
-            "rpcUrl": "https://mainnet.infura.io/v3",
           },
           {
-            "chainId": "0x89",
-            "id": "0x89",
-            "imageSource": 1,
+            "caipChainId": "eip155:137",
+            "id": "eip155:137",
+            "imageSource": undefined,
             "isSelected": false,
             "name": "Polygon",
-            "rpcUrl": "https://polygon-rpc.com",
           },
         ]
       }
@@ -282,6 +282,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                     >
                       <SvgMock
                         color="#ffffff"
+                        fill="currentColor"
                         height={20}
                         name="CheckBold"
                         onPressIn={[Function]}
@@ -317,8 +318,9 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "backgroundColor": "#ffffff",
-                          "borderRadius": 8,
+                          "backgroundColor": "#f3f5f9",
+                          "borderRadius": 12,
+                          "borderWidth": 1,
                           "height": 24,
                           "justifyContent": "center",
                           "marginRight": 16,
@@ -328,18 +330,21 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                       }
                       testID="cellbase-avatar"
                     >
-                      <Image
-                        onError={[Function]}
-                        resizeMode="contain"
-                        source={1}
+                      <Text
+                        accessibilityRole="text"
                         style={
                           {
-                            "height": 24,
-                            "width": 24,
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
                           }
                         }
-                        testID="network-avatar-image"
-                      />
+                      >
+                        E
+                      </Text>
                     </View>
                     <View
                       style={
@@ -475,8 +480,9 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "backgroundColor": "#ffffff",
-                          "borderRadius": 8,
+                          "backgroundColor": "#f3f5f9",
+                          "borderRadius": 12,
+                          "borderWidth": 1,
                           "height": 24,
                           "justifyContent": "center",
                           "marginRight": 16,
@@ -486,18 +492,21 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                       }
                       testID="cellbase-avatar"
                     >
-                      <Image
-                        onError={[Function]}
-                        resizeMode="contain"
-                        source={1}
+                      <Text
+                        accessibilityRole="text"
                         style={
                           {
-                            "height": 24,
-                            "width": 24,
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
                           }
                         }
-                        testID="network-avatar-image"
-                      />
+                      >
+                        P
+                      </Text>
                     </View>
                     <View
                       style={

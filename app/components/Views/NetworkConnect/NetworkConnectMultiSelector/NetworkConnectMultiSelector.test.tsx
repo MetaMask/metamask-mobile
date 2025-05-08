@@ -6,7 +6,7 @@ import NetworkConnectMultiSelector from './NetworkConnectMultiSelector';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import {
-  selectEvmNetworkConfigurationsByChainId,
+  selectNetworkConfigurationsByCaipChainId,
   selectEvmChainId,
 } from '../../../../selectors/networkController';
 import { CaipChainId } from '@metamask/utils';
@@ -26,7 +26,7 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockNetworkConfigurations = {
-  '0x1': {
+  'eip155:1': {
     chainId: '0x1',
     name: 'Ethereum Mainnet',
     rpcEndpoints: [
@@ -36,8 +36,9 @@ const mockNetworkConfigurations = {
       },
     ],
     defaultRpcEndpointIndex: 0,
+    caipChainId: 'eip155:1'
   },
-  '0x89': {
+  'eip155:137': {
     chainId: '0x89',
     name: 'Polygon',
     rpcEndpoints: [
@@ -47,6 +48,7 @@ const mockNetworkConfigurations = {
       },
     ],
     defaultRpcEndpointIndex: 0,
+    caipChainId: 'eip155:137'
   },
 };
 
@@ -65,7 +67,7 @@ describe('NetworkConnectMultiSelector', () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       // Use switch statement for better selector matching
       switch (selector) {
-        case selectEvmNetworkConfigurationsByChainId:
+        case selectNetworkConfigurationsByCaipChainId:
           return mockNetworkConfigurations;
         case selectEvmChainId:
           return '0x1';
