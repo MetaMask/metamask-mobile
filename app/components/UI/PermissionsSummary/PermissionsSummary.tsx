@@ -218,14 +218,13 @@ const PermissionsSummary = ({
   }, [navigate, isRenderedAsBottomSheet, onRevokeAllHandler, hostname]);
 
   const getAccountLabel = useCallback(() => {
-    Logger.log({accountAddresses, accounts})
+    Logger.log({ accountAddresses, accounts });
     if (isAlreadyConnected) {
       if (accountAddresses.length === 1) {
-        const matchedConnectedAccount = accounts.find(
-          (account) => isCaipAccountIdInPermittedAccountIds(
-            account.caipAccountId,
-            [accountAddresses[0]]
-          )
+        const matchedConnectedAccount = accounts.find((account) =>
+          isCaipAccountIdInPermittedAccountIds(account.caipAccountId, [
+            accountAddresses[0],
+          ]),
         );
         return matchedConnectedAccount?.name;
       }
@@ -236,11 +235,10 @@ const PermissionsSummary = ({
     }
 
     if (accountAddresses.length === 1 && accounts.length >= 1) {
-      const matchedAccount = accounts.find(
-        (account) => isCaipAccountIdInPermittedAccountIds(
-          account.caipAccountId,
-          [accountAddresses[0]]
-        )
+      const matchedAccount = accounts.find((account) =>
+        isCaipAccountIdInPermittedAccountIds(account.caipAccountId, [
+          accountAddresses[0],
+        ]),
       );
 
       return `${strings('permissions.requesting_for')}${
@@ -308,13 +306,13 @@ const PermissionsSummary = ({
                 </TextComponent>
               </View>
               <View style={styles.avatarGroup}>
-                  <AvatarGroup
-                    avatarPropsList={accountAddresses.map((address) => ({
-                      variant: AvatarVariant.Account,
-                      accountAddress: address,
-                      size: AvatarSize.Xs,
-                    }))}
-                  />
+                <AvatarGroup
+                  avatarPropsList={accountAddresses.map((address) => ({
+                    variant: AvatarVariant.Account,
+                    accountAddress: address,
+                    size: AvatarSize.Xs,
+                  }))}
+                />
               </View>
             </View>
           </View>
