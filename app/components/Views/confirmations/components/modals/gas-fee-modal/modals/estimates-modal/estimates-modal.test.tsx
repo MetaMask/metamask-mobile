@@ -4,21 +4,25 @@ import { noop } from 'lodash';
 
 import { EstimatesModal } from './estimates-modal';
 import { useGasOptions } from '../../hooks/useGasOptions';
+
 jest.mock('../../hooks/useGasOptions', () => ({
-  useGasOptions: jest.fn(() => ({
-    options: [
-      {
-        emoji: '🚀',
-        estimatedTime: '',
-        isSelected: false,
-        key: 'fast',
-        name: 'Test gas option',
-        onSelect: noop,
-        value: '< 0.0001',
-        valueInFiat: '0.05',
-      },
-    ],
-  })),
+  useGasOptions: jest.fn(() => {
+    const { noop } = jest.requireActual('lodash');
+    ({
+      options: [
+        {
+          emoji: '🚀',
+          estimatedTime: '',
+          isSelected: false,
+          key: 'fast',
+          name: 'Test gas option',
+          onSelect: noop,
+          value: '< 0.0001',
+          valueInFiat: '0.05',
+        },
+      ],
+    });
+  }),
 }));
 
 describe('EstimatesModal', () => {
