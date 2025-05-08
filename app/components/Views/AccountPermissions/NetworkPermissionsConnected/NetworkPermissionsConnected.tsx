@@ -16,7 +16,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectProviderConfig,
   ProviderConfig,
-  selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
   selectNetworkConfigurationsByCaipChainId,
 } from '../../../../selectors/networkController';
@@ -51,7 +50,9 @@ import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwit
 import { getCaip25Caveat } from '../../../../core/Permissions';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { toHex } from '@metamask/controller-utils';
+import { parseCaipChainId } from '@metamask/utils';
 
+// Needs to be updated to handle non-evm
 const NetworkPermissionsConnected = ({
   onSetPermissionsScreen,
   onDismissSheet,
@@ -62,7 +63,8 @@ const NetworkPermissionsConnected = ({
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectEvmChainId);
+  const evmChainId = useSelector(selectEvmChainId);
+  const evmCaipChainId = `eip155:${parseInt(evmChainId, 16)}`
 
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -80,7 +82,7 @@ const NetworkPermissionsConnected = ({
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
     // If no permitted chains found, default to current chain
-    return chainId ? [chainId] : [];
+    return evmChainId ? [evmChainId] : [];
   };
 
   const permittedChainIds = getPermittedChainIds();
@@ -132,20 +134,22 @@ const NetworkPermissionsConnected = ({
         <NetworkSelectorList
           networks={networks}
           onSelectNetwork={(onSelectChainId) => {
-            if (onSelectChainId === chainId) {
+            if (onSelectChainId === evmCaipChainId) {
               onDismissSheet();
               return;
             }
 
-            const theNetworkName = handleNetworkSwitch(
-              getDecimalChainId(onSelectChainId),
-            );
+            const { reference } =  parseCaipChainId(onSelectChainId);
+
+            // This helper needs to work with caipChainIds so that this component
+            // can be updated to work with non-evm networks
+            const theNetworkName = handleNetworkSwitch(reference);
 
             if (theNetworkName) {
               trackEvent(
                 createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
                   .addProperties({
-                    chain_id: getDecimalChainId(onSelectChainId),
+                    chain_id: reference,
                     from_network: providerConfig?.nickname || theNetworkName,
                     to_network: theNetworkName,
                   })
