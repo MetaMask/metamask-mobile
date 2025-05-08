@@ -1804,59 +1804,70 @@ workflows:
           is_expand: true
         MM_ANDROID_PACKAGE_NAME: io.metamask
   deploy_ios_to_store:
+    before_run:
+      - setup
+      - prep_environment
+    after_run:
+      - notify_failure
     steps:
-      - pull-intermediate-files@1:
-          inputs:
-            - artifact_sources: .*
       - script@1:
-          title: Process IPA for App Store
+          title: Set version env vars
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                set -ex
-                
-                # Check environment variables
-                echo "Current directory: $(pwd)"
-                echo "BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR"
-                echo "BITRISE_DEPLOY_DIR: $BITRISE_DEPLOY_DIR"
-                echo "BITRISE_APP_STORE_IPA_PATH: $BITRISE_APP_STORE_IPA_PATH"
-                
-                # Find the IPA file
-                if [ -n "$BITRISE_APP_STORE_IPA_PATH" ]; then
-                  IPA_PATH="$BITRISE_APP_STORE_IPA_PATH"
-                else
-                  echo "BITRISE_APP_STORE_IPA_PATH not set, searching for IPA..."
-                  IPA_PATH=$(find "${BITRISE_SOURCE_DIR}" -name "*.ipa" -type f | grep -i metamask | head -1)
-                  if [ -z "$IPA_PATH" ]; then
-                    echo "No IPA found in source directory, checking deploy directory..."
-                    IPA_PATH=$(find "${BITRISE_DEPLOY_DIR}" -name "*.ipa" -type f | head -1)
+                # Ignore if user changes branch to avoid errors in CircleCI
+                if [[ -z "$VERSION_NAME" || -z "$VERSION_NUMBER" ]]; then
+                  BRANCH="release/v$VERSION_NAME"
+                  BRANCH_VERSION_NAME="$VERSION_NAME"
+
+                  # Store build number (only if provided directly)
+                  if [[ -n "$VERSION_NUMBER" ]]; then
+                    BRANCH_VERSION_NUMBER="$VERSION_NUMBER"
                   fi
                 fi
+
+                # Setup default env vars
+                envman add --key BITRISE_SCHEME --value "MetaMask"
+                envman add --key VERSION_NAME --value "$BRANCH_VERSION_NAME"
+                envman add --key VERSION_NUMBER --value "$BRANCH_VERSION_NUMBER"
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull artifact IPA file from build workflow
+      - script@1:
+          title: Find IPA file and fix OpenSSL bitcode issues
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -e
+
+                echo "Searching for IPA file in artifact directory..."
+                IPA_FILE=$(find "$BITRISE_DEPLOY_DIR" -name "*.ipa" -type f | head -1)
                 
-                if [ -z "$IPA_PATH" ]; then
+                if [ -z "$IPA_FILE" ]; then
+                  echo "No IPA file found in deploy directory. Searching in temp directory..."
+                  IPA_FILE=$(find /var/folders -name "*.ipa" -type f 2>/dev/null | grep -i metamask | head -1)
+                fi
+                
+                if [ -z "$IPA_FILE" ]; then
                   echo "Error: No IPA file found"
                   exit 1
                 fi
                 
-                echo "Found IPA file: $IPA_PATH"
+                echo "Found IPA file: $IPA_FILE"
+                envman add --key IPA_PATH --value "$IPA_FILE"
                 
-                # Make a working copy of the IPA
-                WORKING_IPA="${BITRISE_DEPLOY_DIR}/processed.ipa"
-                cp "$IPA_PATH" "$WORKING_IPA"
-                
-                # Make our bitcode removal script executable
-                cd "${BITRISE_SOURCE_DIR}/ios"
-                chmod +x remove_bitcode_for_bitrise.sh
-                
-                # Run our OpenSSL bitcode fix
                 echo "Applying OpenSSL bitcode fix..."
-                ./remove_bitcode_for_bitrise.sh "$WORKING_IPA"
+                cd ios
+                ./remove_bitcode_for_bitrise.sh "$IPA_FILE"
                 
-                # Set this as the file to upload to App Store
-                envman add --key BITRISE_APP_STORE_IPA_PATH --value "$WORKING_IPA"
+                echo "OpenSSL bitcode fix applied successfully"
       - deploy-to-itunesconnect-application-loader@1:
           inputs:
-            - ipa_path: $BITRISE_APP_STORE_IPA_PATH
+            - ipa_path: $IPA_PATH
+            - api_key_path: $BITRISEIO_APPLE_API_KEY_URL
+            - api_issuer: $APPLE_API_ISSUER
+            - connection: 'api_key'
   # iOS Builds
   _ios_build_template:
     envs:
@@ -1965,26 +1976,6 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
-    steps:
-      - script@1:
-          title: Apply OpenSSL bitcode fix
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -ex
-                cd ios
-                
-                # Find the IPA file
-                IPA_FILE=$(find "../ios/build/output" -name "*.ipa" -type f | head -1)
-                if [ -n "$IPA_FILE" ]; then
-                  echo "Found IPA file: $IPA_FILE"
-                  chmod +x ./remove_bitcode_for_bitrise.sh
-                  ./remove_bitcode_for_bitrise.sh "$IPA_FILE"
-                  echo "OpenSSL bitcode fix applied successfully"
-                else
-                  echo "Error: No IPA file found"
-                  exit 1
-                fi
   build_ios_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
@@ -2298,6 +2289,13 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/flaskRelease/app-flask-release.aab:BITRISE_PLAY_STORE_ABB_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/flaskRelease/app-flask-release.aab
+          title: Bitrise Deploy AAB
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
             - pipeline_intermediate_files: /bitrise/src/sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
@@ -2366,13 +2364,13 @@ app:
       VERSION_NAME: 7.45.99
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1819
+      VERSION_NUMBER: 1817
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.45.99
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1819
+      FLASK_VERSION_NUMBER: 1817
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

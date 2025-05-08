@@ -129,16 +129,16 @@ post_install do |installer|
     if target.name == 'Flipper'
       file_path = 'Pods/Flipper/xplat/Flipper/FlipperTransportTypes.h'
       if File.exist?(file_path)
-        system("chmod +w " + file_path)
-        contents = File.read(file_path)
-        unless contents.include?('#include <functional>')
-          File.open(file_path, 'w') do |file|
-            file.puts('#include <functional>')
-            file.puts(contents)
-          end
+      system("chmod +w " + file_path)
+      contents = File.read(file_path)
+      unless contents.include?('#include <functional>')
+        File.open(file_path, 'w') do |file|
+          file.puts('#include <functional>')
+          file.puts(contents)
         end
       end
     end
+  end
     
     # Disable bitcode for all targets
     target.build_configurations.each do |config|
