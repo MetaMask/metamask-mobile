@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
-import { useTheme } from '../../../util/theme';
 import { ImageSourcePropType, View } from 'react-native';
 import styleSheet from './DeFiProtocolPositionDetails.styles';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../Navbar';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { formatWithThreshold } from '../../../util/assets';
@@ -29,8 +29,7 @@ interface DeFiProtocolPositionDetailsParams {
 }
 
 const DeFiProtocolPositionDetails: React.FC = () => {
-  const theme = useTheme();
-  const styles = styleSheet({ theme });
+  const styles = styleSheet();
   const navigation = useNavigation();
 
   const { protocolAggregate, networkIconAvatar } =
@@ -52,9 +51,9 @@ const DeFiProtocolPositionDetails: React.FC = () => {
           </Text>
           <SensitiveText
             variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}
-            style={styles.alternativeText}
             testID={DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID}
           >
             {formatWithThreshold(

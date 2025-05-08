@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, FlatList } from 'react-native';
+import { View, FlatList } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
@@ -19,6 +19,10 @@ import { toHex } from '@metamask/controller-utils';
 import { sortAssets } from '../Tokens/util';
 import DeFiPositionsListItem from './DeFiPositionsListItem';
 import DeFiPositionsControlBar from './DeFiPositionsControlBar';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 export const DEFI_POSITIONS_CONTAINER = 'defi_positions_container';
 
@@ -81,7 +85,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
   if (!formattedDeFiPositions || formattedDeFiPositions.length === 0) {
     return (
       <View style={styles.emptyView}>
-        <Text style={styles.emptyViewText}>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings(
             formattedDeFiPositions === undefined
               ? 'defi_positions.loading_positions'

@@ -243,7 +243,7 @@ describe('DeFiPositionsList', () => {
       },
     );
 
-    expect(await findByText('Loading your DeFi positions...')).toBeDefined();
+    expect(await findByText('Loading DeFi positions...')).toBeDefined();
   });
 
   it('renders the no positions message when the positions are null for that address', async () => {
@@ -268,7 +268,7 @@ describe('DeFiPositionsList', () => {
     );
 
     expect(
-      await findByText(`An error occurred fetching your DeFi positions.`),
+      await findByText(`An error occurred fetching your DeFi positions`),
     ).toBeDefined();
   });
 
@@ -292,8 +292,6 @@ describe('DeFiPositionsList', () => {
       },
     );
 
-    expect(
-      await findByText(`You don't have any open DeFi positions.`),
-    ).toBeDefined();
+    expect(await findByText(`No positions yet`)).toBeDefined();
   });
 });

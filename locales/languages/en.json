@@ -3978,9 +3978,9 @@
     }
   },
   "defi_positions": {
-    "loading_positions": "Loading your DeFi positions...",
-    "no_positions": "You don't have any open DeFi positions.",
-    "error_fetching_positions": "An error occurred fetching your DeFi positions.",
+    "loading_positions": "Loading DeFi positions...",
+    "no_positions": "No positions yet",
+    "error_fetching_positions": "An error occurred fetching DeFi positions",
     "supply": "Supplied",
     "stake": "Staked",
     "borrow": "Borrowed",

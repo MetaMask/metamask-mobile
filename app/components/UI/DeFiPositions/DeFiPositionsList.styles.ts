@@ -18,9 +18,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       marginTop: 180,
     },
-    emptyViewText: {
-      fontFamily: 'EuclidCircularB-Medium',
-    },
   });
 };
 

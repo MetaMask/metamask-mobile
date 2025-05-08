@@ -1,7 +1,7 @@
 import React from 'react';
 import { ImageSourcePropType, View } from 'react-native';
-import { useTheme } from '../../../util/theme';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { formatWithThreshold } from '../../../util/assets';
@@ -34,8 +34,7 @@ const DeFiProtocolPositionGroupTokens: React.FC<
   networkIconAvatar,
   privacyMode,
 }: DeFiProtocolPositionGroupTokensProps) => {
-  const theme = useTheme();
-  const styles = styleSheet({ theme });
+  const styles = styleSheet();
 
   if (tokens.length === 0) {
     return null;
@@ -43,7 +42,7 @@ const DeFiProtocolPositionGroupTokens: React.FC<
 
   return (
     <View>
-      <Text style={styles.positionTypeLabel} variant={TextVariant.BodyMDMedium}>
+      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
         {strings(`defi_positions.${positionType}`)}
       </Text>
       {tokens.map((token, i) => (
@@ -78,9 +77,9 @@ const DeFiProtocolPositionGroupTokens: React.FC<
             </SensitiveText>
             <SensitiveText
               variant={TextVariant.BodySMMedium}
+              color={TextColor.Alternative}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
-              style={styles.alternativeText}
             >
               {formatWithThreshold(token.balance, 0.00001, I18n.locale, {
                 minimumFractionDigits: 0,
