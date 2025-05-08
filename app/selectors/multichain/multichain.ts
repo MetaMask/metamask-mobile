@@ -36,6 +36,7 @@ import {
 } from '@metamask/assets-controllers';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TokenI } from '../../components/UI/Tokens/types';
+import { createSelector } from 'reselect';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD

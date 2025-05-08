@@ -285,30 +285,30 @@ describe('WalletConnect Utils', () => {
       expect(switchToNetwork).toHaveBeenCalled();
     });
 
-		it('adds permitted chain when allowSwitchingToNewChain is true', async () => {
-			// Mock that the chain is not permitted
-			const mockPermittedChains = jest.requireMock('../Permissions').getPermittedChains;
-			mockPermittedChains.mockResolvedValueOnce([]);
+    it('adds permitted chain when allowSwitchingToNewChain is true', async () => {
+      // Mock that the chain is not permitted
+      const mockPermittedChains = jest.requireMock('../Permissions').getPermittedChains;
+      mockPermittedChains.mockResolvedValueOnce([]);
 
       // Mock the updatePermittedChains function
       const mockUpdatePermittedChain = jest.requireMock('../Permissions').updatePermittedChains;
 
-			// Test with allowSwitchingToNewChain set to true
-			const result = await checkWCPermissions({
-				origin: 'test-dapp.com',
-				caip2ChainId: 'eip155:3',
-				allowSwitchingToNewChain: true,
-			});
+      // Test with allowSwitchingToNewChain set to true
+      const result = await checkWCPermissions({
+        origin: 'test-dapp.com',
+        caip2ChainId: 'eip155:3',
+        allowSwitchingToNewChain: true,
+      });
 
-			// Verify addPermittedChain was called with the right parameters
-			expect(mockAddPermittedChain).toHaveBeenCalledWith(
-				'test-dapp.com',
-				'0x3'
-			);
-			expect(switchToNetwork).toHaveBeenCalled();
-			expect(result).toBe(true);
-		});
-	});
+      // Verify addPermittedChain was called with the right parameters
+      expect(mockUpdatePermittedChain).toHaveBeenCalledWith(
+        'test-dapp.com',
+        ['0x3']
+      );
+      expect(switchToNetwork).toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+  });
 
   describe('onRequestUserApproval', () => {
     beforeEach(() => {

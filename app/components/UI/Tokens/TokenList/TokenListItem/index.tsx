@@ -152,9 +152,6 @@ export const TokenListItem = React.memo(
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-    const itemAddress = isEvmNetworkSelected
-      ? asset && safeToChecksumAddress(asset.address)
-      : asset?.address;
 
     // Choose values based on multichain or legacy
     const exchangeRates = multiChainMarketData?.[chainId as Hex];
