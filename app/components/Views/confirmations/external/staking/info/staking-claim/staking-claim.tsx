@@ -60,7 +60,7 @@ const StakingClaim = ({
       <InfoSection>
         <StakingContractInteractionDetails />
       </InfoSection>
-      <GasFeesDetails />
+      <GasFeesDetails isCompact />
     </>
   );
 };

@@ -1905,7 +1905,26 @@
     "network_fee_tooltip": "Amount paid to process the transaction on network.",
     "smart_account_upgrade": "Upgrade to smart account",
     "smart_account_downgrade": "Switch to standard account",
-    "batched_transactions": "Batched transactions"
+    "batched_transactions": "Batched transactions",
+    "gas_modal": {
+      "edit_network_fee": "Edit network fee",
+      "advanced_gas_fee": "Advanced gas fee",
+      "site_suggested": "Site suggested",
+      "advanced": "Advanced",
+      "low": "Low",
+      "medium": "Market",
+      "high": "Aggressive",
+      "gas_price_estimate": "Gas price estimate",
+      "gas_limit": "Gas limit",
+      "save": "Save",
+      "max_base_fee": "Max Base Fee (GWEI)",
+      "priority_fee": "Priority Fee (GWEI)",
+      "current_priority_fee": "Current: {{min}} - {{max}} GWEI",
+      "historical_priority_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "estimated_base_fee": "Current: {{value}} GWEI",
+      "historical_base_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "gas_price": "Gas price (GWEI)"
+    }
   },
   "smart_transactions": {
     "status_submitting_header": "Submitting your transaction",
