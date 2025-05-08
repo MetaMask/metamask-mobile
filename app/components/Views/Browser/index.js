@@ -46,6 +46,7 @@ import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { isSolanaAccount } from '../../../core/Multichain/utils';
+import { useFocusEffect } from '@react-navigation/native';
 
 const MAX_BROWSER_TABS = 5;
 
@@ -95,31 +96,30 @@ export const Browser = (props) => {
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
-  useEffect(() => {
-    console.log(
-      'currentSelectedAccount',
-      isSolanaAccount(currentSelectedAccount),
-    );
-    if (isSolanaAccount(currentSelectedAccount)) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Network,
-        networkImageSource: require('../../../images/solana-logo.png'),
-        labelOptions: [
-          {
-            label: `${strings(
-              'browser.toast.solana_dapp_connection_coming_soon.title',
-            )} \n`,
-            isBold: true,
-          },
-          {
-            label: `${strings(
-              'browser.toast.solana_dapp_connection_coming_soon.message',
-            )}`,
-          },
-        ],
-      });
-    }
-  }, [toastRef, currentSelectedAccount]);
+  // TODO remove after we release Solana dapp connectivity
+  useFocusEffect(
+    useCallback(() => {
+      if (isSolanaAccount(currentSelectedAccount)) {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Network,
+          networkImageSource: require('../../../images/solana-logo.png'),
+          labelOptions: [
+            {
+              label: `${strings(
+                'browser.toast.solana_dapp_connection_coming_soon.title',
+              )} \n`,
+              isBold: true,
+            },
+            {
+              label: `${strings(
+                'browser.toast.solana_dapp_connection_coming_soon.message',
+              )}`,
+            },
+          ],
+        });
+      }
+    }, [toastRef, currentSelectedAccount]),
+  );
 
   const newTab = useCallback(
     (url, linkType) => {
