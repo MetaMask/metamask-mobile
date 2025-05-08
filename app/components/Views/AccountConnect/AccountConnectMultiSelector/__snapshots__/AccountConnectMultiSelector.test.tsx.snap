@@ -49,6 +49,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
         >
           <SvgMock
             color="#121314"
+            fill="currentColor"
             height={16}
             name="ArrowLeft"
             style={
@@ -142,6 +143,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={20}
               name="MinusBold"
               onPress={[Function]}
@@ -299,6 +301,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                   >
                     <SvgMock
                       color="#ffffff"
+                      fill="currentColor"
                       height={20}
                       name="CheckBold"
                       onPressIn={[Function]}
