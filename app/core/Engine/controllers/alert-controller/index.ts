@@ -207,18 +207,4 @@ export class AlertController extends BaseController<
       }
     });
   }
-
-  /**
-   * Sets the web3 shim usage state for the given origin to DISMISSED.
-   *
-   * @param origin - The origin that the web3 shim notification was
-   * dismissed for.
-   */
-  setWeb3ShimUsageAlertDismissed(origin: string): void {
-    this.update((state) => {
-      if (state.web3ShimUsageOrigins) {
-        state.web3ShimUsageOrigins[origin] = Web3ShimUsageAlertStates.dismissed;
-      }
-    });
-  }
 }

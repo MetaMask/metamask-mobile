@@ -1031,7 +1031,6 @@ export class BackgroundBridge extends EventEmitter {
           }),
         rejectApprovalRequestsForOrigin: () =>
           rejectOriginPendingApprovals(origin),
-        // TODO: [ffmcgee] investigate, this controller not in context
         // Web3 shim-related
         getWeb3ShimUsageState: this.alertController.getWeb3ShimUsageState.bind(
           this.alertController,
