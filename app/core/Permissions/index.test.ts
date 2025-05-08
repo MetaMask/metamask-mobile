@@ -29,7 +29,7 @@ import {
   sortAccountsByLastSelected,
   getPermittedAccounts,
 } from '.';
-import { Hex, Json } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, Hex, Json } from '@metamask/utils';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -372,7 +372,7 @@ describe('Permission Utility Functions', () => {
       };
 
       const existingAccounts = ['0x1', '0x2'];
-      const newAccounts: Hex[] = ['0x3', '0x4'];
+      const newAccounts: CaipAccountId[] = ['eip155:0:0x3', 'eip155:0:0x4'];
       const allAccounts = ['0x1', '0x2', '0x3', '0x4'];
 
       mockGetCaveat.mockReturnValue(mockCaveat);
@@ -406,7 +406,7 @@ describe('Permission Utility Functions', () => {
       mockGetCaveat.mockReturnValue(undefined);
 
       expect(() =>
-        addPermittedAccounts('https://example.com', ['0x1']),
+        addPermittedAccounts('https://example.com', ['eip155:0:0x1']),
       ).toThrow(
         'Cannot add account permissions for origin "https://example.com": no permission currently exists for this origin.',
       );
@@ -423,7 +423,7 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-      const existingAccounts: Hex[] = ['0x1', '0x2'];
+      const existingAccounts: CaipAccountId[] = ['eip155:0:0x1', 'eip155:0:0x2'];
 
       mockGetCaveat.mockReturnValue(mockCaveat);
 
@@ -638,7 +638,7 @@ describe('Permission Utility Functions', () => {
       };
 
       const existingChainIds = ['0x1'];
-      const newChainIds: Hex[] = ['0xa'];
+      const newChainIds: CaipChainId[] = ['eip155:10'];
       const allChainIds = ['0x1', '0xa'];
       const ethAccounts = ['0x123'];
 
@@ -689,7 +689,7 @@ describe('Permission Utility Functions', () => {
       };
 
       const existingChainIds = ['0x1'];
-      const newChainIds: Hex[] = ['0xa'];
+      const newChainIds: CaipChainId[] = ['eip155:10'];
       const ethAccounts = ['0x123'];
       const shouldRemoveExistingChainPermissions = true;
 
@@ -736,7 +736,7 @@ describe('Permission Utility Functions', () => {
       // Mock getCaip25Caveat to return undefined
       mockGetCaveat.mockReturnValue(undefined);
 
-      expect(() => updatePermittedChains('https://example.com', ['0x1'])).toThrow(
+      expect(() => updatePermittedChains('https://example.com', ['eip155:1'])).toThrow(
         'Cannot add chain permissions for origin "https://example.com": no permission currently exists for this origin.',
       );
     });

@@ -28,7 +28,6 @@ import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   InternalAccountWithCaipAccountId,
-  selectInternalAccounts,
   selectInternalAccountsWithCaipAccountId,
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';

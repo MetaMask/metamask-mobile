@@ -82,6 +82,7 @@ describe('PermissionsSummary', () => {
           chainId: '0x1',
         }}
         isNetworkSwitch
+        accounts={[]}
       />,
       { state: mockInitialState },
     );
@@ -95,6 +96,7 @@ describe('PermissionsSummary', () => {
           icon: '',
           url: 'https://app.uniswap.org/',
         }}
+        accounts={[]}
       />,
       { state: mockInitialState },
     );
