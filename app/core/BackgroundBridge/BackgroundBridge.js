@@ -147,8 +147,6 @@ export class BackgroundBridge extends EventEmitter {
       }),
     });
 
-    console.log('LOGGING YOUR DUCKHOLE: ', {alertControlller: this.alertController})
-
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
