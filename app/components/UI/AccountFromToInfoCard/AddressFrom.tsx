@@ -1,4 +1,3 @@
-import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -16,6 +15,7 @@ import {
 import {
   getLabelTextByAddress,
   renderAccountName,
+  safeToChecksumAddress,
 } from '../../../util/address';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
@@ -53,7 +53,7 @@ const AddressFrom = ({
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const internalAccounts = useSelector(selectInternalAccounts);
-  const activeAddress = toChecksumAddress(from);
+  const activeAddress = safeToChecksumAddress(from);
 
   const networkName = useSelector(selectEvmNetworkName);
 

@@ -1,4 +1,4 @@
-import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
+import { addHexPrefix } from 'ethereumjs-util';
 import BN from 'bnjs4';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
@@ -380,7 +380,7 @@ export async function isSmartContractAddress(
 ) {
   if (!address) return false;
 
-  address = toChecksumAddress(address);
+  address = safeToChecksumAddress(address);
 
   // If in contract map we don't need to cache it
   if (
@@ -591,11 +591,11 @@ export function getTransactionToName({
   }
 
   const networkAddressBook = addressBook[chainId];
-  const checksummedToAddress = toChecksumAddress(toAddress);
+  const checksummedToAddress = safeToChecksumAddress(toAddress);
 
   // Convert internalAccounts array to a map for quick lookup
   const internalAccountsMap = internalAccounts.reduce((acc, account) => {
-    acc[toChecksumAddress(account.address)] = account;
+    acc[safeToChecksumAddress(account.address)] = account;
     return acc;
   }, {});
 
