@@ -56,7 +56,7 @@ import URLParse from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
-import { getNetworkImageSource } from '../../../util/networks';
+import { getNetworkImageSource, isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
@@ -303,10 +303,18 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           const { rpcEndpoints, defaultRpcEndpointIndex } = config;
           const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
-          // Switch to the network using networkClientId
-          await Engine.context.MultichainNetworkController.setActiveNetwork(
-            networkClientId,
-          );
+          if (isPerDappSelectedNetworkEnabled()) {
+            // For per-dapp network selection, directly set the network for this domain
+            Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
+              hostname,
+              networkClientId,
+            );
+          } else {
+            // For global network selection, switch the active network
+            await Engine.context.MultichainNetworkController.setActiveNetwork(
+              networkClientId,
+            );
+          }
         }
       }
 
