@@ -1809,28 +1809,51 @@ workflows:
           inputs:
             - artifact_sources: .*
       - script@1:
-          title: Find and fix OpenSSL bitcode issues
+          title: Process IPA for App Store
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                set -e
-
+                set -ex
+                
+                # Check environment variables
+                echo "Current directory: $(pwd)"
+                echo "BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR"
+                echo "BITRISE_DEPLOY_DIR: $BITRISE_DEPLOY_DIR"
+                echo "BITRISE_APP_STORE_IPA_PATH: $BITRISE_APP_STORE_IPA_PATH"
+                
                 # Find the IPA file
-                IPA_FILE=$(find "${BITRISE_SOURCE_DIR}" -name "*.ipa" -type f | grep -i metamask | head -1)
-                if [ -z "$IPA_FILE" ]; then
-                  echo "No IPA file found. Checking deploy dir..."
-                  IPA_FILE=$(find "${BITRISE_DEPLOY_DIR}" -name "*.ipa" -type f | head -1)
+                if [ -n "$BITRISE_APP_STORE_IPA_PATH" ]; then
+                  IPA_PATH="$BITRISE_APP_STORE_IPA_PATH"
+                else
+                  echo "BITRISE_APP_STORE_IPA_PATH not set, searching for IPA..."
+                  IPA_PATH=$(find "${BITRISE_SOURCE_DIR}" -name "*.ipa" -type f | grep -i metamask | head -1)
+                  if [ -z "$IPA_PATH" ]; then
+                    echo "No IPA found in source directory, checking deploy directory..."
+                    IPA_PATH=$(find "${BITRISE_DEPLOY_DIR}" -name "*.ipa" -type f | head -1)
+                  fi
                 fi
                 
-                if [ -z "$IPA_FILE" ]; then
-                  echo "Warning: No IPA file found, skipping bitcode fix"
-                else
-                  echo "Found IPA file: $IPA_FILE"
-                  echo "Applying OpenSSL bitcode fix..."
-                  cd ios
-                  ./remove_bitcode_for_bitrise.sh "$IPA_FILE"
-                  echo "OpenSSL bitcode fix applied successfully"
+                if [ -z "$IPA_PATH" ]; then
+                  echo "Error: No IPA file found"
+                  exit 1
                 fi
+                
+                echo "Found IPA file: $IPA_PATH"
+                
+                # Make a working copy of the IPA
+                WORKING_IPA="${BITRISE_DEPLOY_DIR}/processed.ipa"
+                cp "$IPA_PATH" "$WORKING_IPA"
+                
+                # Make our bitcode removal script executable
+                cd "${BITRISE_SOURCE_DIR}/ios"
+                chmod +x remove_bitcode_for_bitrise.sh
+                
+                # Run our OpenSSL bitcode fix
+                echo "Applying OpenSSL bitcode fix..."
+                ./remove_bitcode_for_bitrise.sh "$WORKING_IPA"
+                
+                # Set this as the file to upload to App Store
+                envman add --key BITRISE_APP_STORE_IPA_PATH --value "$WORKING_IPA"
       - deploy-to-itunesconnect-application-loader@1:
           inputs:
             - ipa_path: $BITRISE_APP_STORE_IPA_PATH
@@ -1942,6 +1965,26 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+    steps:
+      - script@1:
+          title: Apply OpenSSL bitcode fix
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cd ios
+                
+                # Find the IPA file
+                IPA_FILE=$(find "../ios/build/output" -name "*.ipa" -type f | head -1)
+                if [ -n "$IPA_FILE" ]; then
+                  echo "Found IPA file: $IPA_FILE"
+                  chmod +x ./remove_bitcode_for_bitrise.sh
+                  ./remove_bitcode_for_bitrise.sh "$IPA_FILE"
+                  echo "OpenSSL bitcode fix applied successfully"
+                else
+                  echo "Error: No IPA file found"
+                  exit 1
+                fi
   build_ios_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
@@ -2251,13 +2294,6 @@ workflows:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/flaskRelease/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/flaskRelease/mapping.txt
           title: Bitrise ProGuard Map Files
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/flaskRelease/app-flask-release.aab:BITRISE_PLAY_STORE_ABB_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/flaskRelease/app-flask-release.aab
-          title: Bitrise Deploy AAB
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
