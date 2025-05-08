@@ -4716,10 +4716,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^61.0.0":
-  version "61.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-61.0.0.tgz#fe0f864d67e72618bfa364807da5e06f3997e0f5"
-  integrity sha512-DcsvdF7hls2KH9K8GkjtvwxX04sZqriD8Hb2NO+0JzOKDfLPZQqRDR1pYbrnTbQudkuBU8JJ+SuV8zwkBF3iVA==
+"@metamask/assets-controllers@^61.1.0":
+  version "61.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-61.1.0.tgz#f02be411f73d343ecde3e01f882ec4262937253a"
+  integrity sha512-zQbNQd4c2eIJxxteD6SKrBLEfBHmf1Xk1hZcuCjvnTr76yr5THyn871a0g/WT5L3/tKsxN1MhVa0E55hEiVifg==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4730,7 +4730,7 @@
     "@metamask/abi-utils" "^2.0.3"
     "@metamask/base-controller" "^8.0.1"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^11.7.0"
+    "@metamask/controller-utils" "^11.8.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/keyring-api" "^17.4.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
@@ -4870,6 +4870,23 @@
   version "11.7.0"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.7.0.tgz#1186daecffff9dec6846f64f9da7a319dd9c9a83"
   integrity sha512-Q2TPmTJT6L/ixBk5TEb+mJ1NRyFAGe+VjFuulNQMVu6AanEBeGSoxsuBnAzWQlIgbt3/EHGP7o31ep1H5gr5Gw==
+  dependencies:
+    "@ethereumjs/util" "^9.1.0"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/ethjs-unit" "^0.3.0"
+    "@metamask/utils" "^11.2.0"
+    "@spruceid/siwe-parser" "2.1.0"
+    "@types/bn.js" "^5.1.5"
+    bignumber.js "^9.1.2"
+    bn.js "^5.2.1"
+    cockatiel "^3.1.2"
+    eth-ens-namehash "^2.0.8"
+    fast-deep-equal "^3.1.3"
+
+"@metamask/controller-utils@^11.8.0":
+  version "11.8.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.8.0.tgz#7d573db8a2ab0ce594f92753b0bda02d18330142"
+  integrity sha512-FqApJXW0mnHWwnKC4HOQwf2P9fPxfiQmlLJdGWwK6hAYKQ+t7ADDw9Wf8RwVquFPzJGQbXnOcbXVBY2zAyoU5w==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/eth-query" "^4.0.0"
