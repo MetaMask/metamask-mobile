@@ -498,6 +498,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.BROWSER_VIEW,
+      unmountOnBlur: true,
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
@@ -509,6 +510,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
+      unmountOnBlur: true,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -561,9 +563,6 @@ const HomeTabs = () => {
         <Tab.Navigator
           initialRouteName={Routes.WALLET.HOME}
           tabBar={renderTabBar}
-          screenOptions={{
-            unmountOnBlur: true,
-          }}
         >
           <Tab.Screen
             name={Routes.WALLET.HOME}
