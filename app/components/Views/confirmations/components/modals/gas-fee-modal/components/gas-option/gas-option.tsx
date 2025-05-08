@@ -52,7 +52,7 @@ export const GasOption = ({ option }: { option: GasOptionType }) => {
           <Text variant={TextVariant.BodyMDMedium} style={styles.valueInFiat}>
             {valueInFiat}
           </Text>
-          {value && (
+          {!!value && (
             <Text variant={TextVariant.BodySMMedium} style={styles.value}>
               {value}
             </Text>
