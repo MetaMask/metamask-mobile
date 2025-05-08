@@ -173,16 +173,16 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
         // (e.g. renaming the account, select the account, etc...)
 
         // Set the selected account to the new account
-        this.#messenger.call(
-          'AccountsController:setSelectedAccount',
-          accountId,
-        );
-
         if (accountName) {
           this.#messenger.call(
-            'AccountsController:setAccountName',
+            'AccountsController:setAccountNameAndSelectAccount',
             accountId,
             accountName,
+          );
+        } else {
+          this.#messenger.call(
+            'AccountsController:setSelectedAccount',
+            accountId,
           );
         }
 
