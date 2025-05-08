@@ -1,5 +1,9 @@
 import type { Theme } from '@metamask/design-tokens';
 import { StyleSheet, TextStyle } from 'react-native';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -29,10 +33,12 @@ const styleSheet = (params: { theme: Theme }) => {
     } as TextStyle,
     text: {
       ...typography.sBodySM,
+      fontFamily: getFontFamily(TextVariant.BodySM),
       marginVertical: 0,
     } as TextStyle,
     fiatBalance: {
       ...typography.sHeadingMD,
+      fontFamily: getFontFamily(TextVariant.HeadingMD),
     } as TextStyle,
   });
 };

@@ -3,10 +3,18 @@ import { PooledStakeExitRequest } from '@metamask/stake-sdk';
 import { MOCK_GET_POOLED_STAKES_API_RESPONSE } from '../__mocks__/mockData';
 import { createMockAccountsControllerState } from '../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { stakingApiService } from '../sdk/stakeSdkProvider';
+import {
+  DeepPartial,
+  renderHookWithProvider,
+} from '../../../../util/test/renderWithProvider';
 import usePooledStakes from './usePooledStakes';
 import { act, waitFor } from '@testing-library/react-native';
+import {
+  EarnControllerState,
+  PooledStakingState,
+} from '@metamask/earn-controller';
+import Engine from '../../../../core/Engine';
+import { RootState } from '../../../../reducers';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -14,13 +22,13 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
 ]);
 
-const mockInitialState = {
-  settings: {},
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-    },
+const mockPooledStakeData = MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0];
+const mockExchangeRate = MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate;
+
+const mockInitialEarnControllerState: DeepPartial<EarnControllerState> = {
+  pooled_staking: {
+    pooledStakes: mockPooledStakeData,
+    exchangeRate: mockExchangeRate,
   },
 };
 
@@ -37,67 +45,65 @@ jest.mock('../../../../core/Engine', () => ({
       }),
       findNetworkClientIdByChainId: () => 'mainnet',
     },
+    EarnController: {
+      refreshPooledStakes: jest.fn(),
+    },
   },
 }));
 
-const mockPooledStakeData = MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0];
-const mockExchangeRate = MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate;
+const renderHook = (state?: {
+  pooledStakes?: PooledStakingState['pooledStakes'];
+  exchangeRate?: PooledStakingState['exchangeRate'];
+}) => {
+  const mockState: DeepPartial<RootState> = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        EarnController: {
+          ...mockInitialEarnControllerState,
+          pooled_staking: {
+            ...mockInitialEarnControllerState.pooled_staking,
+            pooledStakes: state?.pooledStakes,
+            exchangeRate: state?.exchangeRate,
+          },
+        },
+      },
+    },
+  };
+
+  return renderHookWithProvider(() => usePooledStakes(), { state: mockState });
+};
 
 describe('usePooledStakes', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  afterAll(() => {
+  beforeEach(() => {
     jest.resetAllMocks();
   });
 
   describe('when fetching pooled stakes data', () => {
-    it('fetches pooled stakes data and updates state', async () => {
-      jest.spyOn(stakingApiService, 'getPooledStakes').mockResolvedValue({
-        accounts: [mockPooledStakeData],
-        exchangeRate: mockExchangeRate,
-      });
-
-      const { result } = renderHookWithProvider(() => usePooledStakes(), {
-        state: mockInitialState,
-      });
-
-      // Use waitFor to wait for state updates
-      await waitFor(() => {
-        expect(result.current.pooledStakesData).toEqual(mockPooledStakeData);
-        expect(result.current.exchangeRate).toBe(mockExchangeRate);
-        expect(result.current.isLoadingPooledStakesData).toBe(false);
-        expect(result.current.error).toBeNull();
-      });
-    });
-
     it('handles error if the API request fails', async () => {
-      jest
-        .spyOn(stakingApiService, 'getPooledStakes')
-        .mockRejectedValue(new Error('API Error'));
+      (
+        Engine.context.EarnController.refreshPooledStakes as jest.Mock
+      ).mockRejectedValue(new Error('API Error'));
 
-      const { result } = renderHookWithProvider(() => usePooledStakes(), {
-        state: mockInitialState,
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.refreshPooledStakes();
       });
 
       await waitFor(() => {
         expect(result.current.isLoadingPooledStakesData).toBe(false);
         expect(result.current.error).toBe('Failed to fetch pooled stakes');
-        expect(result.current.pooledStakesData).toEqual({});
       });
     });
   });
 
   describe('when handling staking statuses', () => {
     it('returns ACTIVE status when assets are greater than 0', async () => {
-      jest.spyOn(stakingApiService, 'getPooledStakes').mockResolvedValue({
-        accounts: [{ ...mockPooledStakeData, assets: '100' }],
+      const { result } = renderHook({
+        pooledStakes: { ...mockPooledStakeData, assets: '100' },
         exchangeRate: '1.2',
-      });
-
-      const { result } = renderHookWithProvider(() => usePooledStakes(), {
-        state: mockInitialState,
       });
 
       await waitFor(() => {
@@ -108,21 +114,13 @@ describe('usePooledStakes', () => {
     });
 
     it('returns INACTIVE_WITH_EXIT_REQUESTS when assets are 0 and there are exit requests', async () => {
-      jest.spyOn(stakingApiService, 'getPooledStakes').mockResolvedValue({
-        accounts: [
-          {
-            ...mockPooledStakeData,
-            assets: '0',
-            exitRequests: [
-              { id: 'exit-1' } as unknown as PooledStakeExitRequest,
-            ],
-          },
-        ],
+      const { result } = renderHook({
+        pooledStakes: {
+          ...mockPooledStakeData,
+          assets: '0',
+          exitRequests: [{ id: 'exit-1' } as unknown as PooledStakeExitRequest],
+        },
         exchangeRate: '1.2',
-      });
-
-      const { result } = renderHookWithProvider(() => usePooledStakes(), {
-        state: mockInitialState,
       });
 
       await waitFor(() => {
@@ -132,20 +130,14 @@ describe('usePooledStakes', () => {
     });
 
     it('returns INACTIVE_WITH_REWARDS_ONLY when assets are 0 but has rewards', async () => {
-      jest.spyOn(stakingApiService, 'getPooledStakes').mockResolvedValue({
-        accounts: [
-          {
-            ...mockPooledStakeData,
-            assets: '0',
-            lifetimeRewards: '50',
-            exitRequests: [],
-          },
-        ],
+      const { result } = renderHook({
+        pooledStakes: {
+          ...mockPooledStakeData,
+          assets: '0',
+          lifetimeRewards: '50',
+          exitRequests: [],
+        },
         exchangeRate: '1.2',
-      });
-
-      const { result } = renderHookWithProvider(() => usePooledStakes(), {
-        state: mockInitialState,
       });
 
       await waitFor(() => {
@@ -155,53 +147,11 @@ describe('usePooledStakes', () => {
     });
 
     it('returns NEVER_STAKED when assets and rewards are 0', async () => {
-      jest.spyOn(stakingApiService, 'getPooledStakes').mockResolvedValue({
-        accounts: [
-          {
-            ...mockPooledStakeData,
-            assets: '0',
-            lifetimeRewards: '0',
-            exitRequests: [],
-          },
-        ],
-        exchangeRate: '1.2',
-      });
-
-      const { result } = renderHookWithProvider(() => usePooledStakes(), {
-        state: mockInitialState,
-      });
+      const { result } = renderHook();
 
       await waitFor(() => {
         expect(result.current.hasNeverStaked).toBe(true); // NEVER_STAKED status
         expect(result.current.hasStakedPositions).toBe(false); // No staked positions
-      });
-    });
-  });
-
-  describe('when refreshing pooled stakes', () => {
-    it('refreshes pooled stakes when refreshPooledStakes is called', async () => {
-      const getPooledStakesSpy = jest
-        .spyOn(stakingApiService, 'getPooledStakes')
-        .mockResolvedValue({
-          accounts: [mockPooledStakeData],
-          exchangeRate: mockExchangeRate,
-        });
-
-      const { result } = renderHookWithProvider(() => usePooledStakes(), {
-        state: mockInitialState,
-      });
-
-      await waitFor(() => {
-        expect(result.current.pooledStakesData).toEqual(mockPooledStakeData);
-      });
-
-      // Call refreshPooledStakes inside act() to ensure state update
-      await act(async () => {
-        result.current.refreshPooledStakes();
-      });
-
-      await waitFor(() => {
-        expect(getPooledStakesSpy).toHaveBeenCalledTimes(2);
       });
     });
   });

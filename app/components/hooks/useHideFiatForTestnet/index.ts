@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import type { Hex } from '@metamask/utils';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { selectShowFiatInTestnets } from '../../../selectors/settings';
 import { TEST_NETWORK_IDS } from '../../../constants/network';
 
@@ -12,7 +12,7 @@ import { TEST_NETWORK_IDS } from '../../../constants/network';
  */
 export default function useHideFiatForTestnet(providedChainId?: Hex): boolean {
   const showFiatInTestnets = useSelector(selectShowFiatInTestnets);
-  const selectedChainId = useSelector(selectChainId);
+  const selectedChainId = useSelector(selectEvmChainId);
   const chainId = providedChainId ?? selectedChainId;
   return TEST_NETWORK_IDS.includes(chainId) && !showFiatInTestnets;
 }

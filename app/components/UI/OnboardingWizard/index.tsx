@@ -5,6 +5,10 @@ import Modal from 'react-native-modal';
 import type { Theme } from '@metamask/design-tokens';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { colors as importedColors } from '../../../styles/common';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 import Step1 from './Step1';
 import Step2 from './Step2';
@@ -66,6 +70,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     skipText: {
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.primary.default,
     } as TextStyle,
   });

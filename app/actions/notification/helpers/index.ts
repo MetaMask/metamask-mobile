@@ -36,7 +36,6 @@ export const disableNotifications = async () => {
  */
 export const enablePushNotifications = async () => {
   assertIsFeatureEnabled();
-  // @ts-expect-error - TEMP - this will be added in the integration PR
   await Engine.context.NotificationServicesController.enablePushNotifications();
 };
 
@@ -46,7 +45,6 @@ export const enablePushNotifications = async () => {
  */
 export const disablePushNotifications = async () => {
   assertIsFeatureEnabled();
-  // @ts-expect-error - TEMP - this will be added in the integration PR
   await Engine.context.NotificationServicesController.disablePushNotifications();
 };
 

@@ -16,14 +16,38 @@ import {
   getLabelTextByAddress,
   isSnapAccount,
   toFormattedAddress,
+  isHDOrFirstPartySnapAccount,
+  renderAccountName,
 } from '.';
 import {
   mockHDKeyringAddress,
   mockQrKeyringAddress,
+  mockSecondHDKeyringAddress,
   mockSimpleKeyringAddress,
   mockSnapAddress1,
-  mockSnapAddress2,
+  mockSolanaAddress,
 } from '../test/keyringControllerTestUtils';
+import {
+  internalAccount1,
+  MOCK_SOLANA_ACCOUNT,
+} from '../test/accountsControllerTestUtils';
+import { KeyringTypes } from '@metamask/keyring-controller';
+
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn().mockReturnValue({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            provider: {
+              chainId: '0x1',
+            },
+          },
+        },
+      },
+    }),
+  },
+}));
 
 jest.mock('../../core/Engine', () => {
   const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
@@ -36,7 +60,8 @@ jest.mock('../../core/Engine', () => {
       KeyringController: {
         ...MOCK_KEYRING_CONTROLLER_STATE,
         state: {
-          keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings],
+          keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.keyrings],
+          keyringsMetadata: [...MOCK_KEYRING_CONTROLLER_STATE.keyringsMetadata],
         },
       },
       AccountsController: {
@@ -46,6 +71,17 @@ jest.mock('../../core/Engine', () => {
     },
   };
 });
+
+// Mock the selectors used in renderAccountName
+jest.mock('../../selectors/networkController', () => ({
+  selectChainId: jest.fn().mockReturnValue('0x1'),
+}));
+
+// Mock the ENS utils
+jest.mock('../../util/ENSUtils', () => ({
+  getCachedENSName: jest.fn().mockReturnValue(''),
+  isDefaultAccountName: jest.fn().mockReturnValue(false),
+}));
 
 describe('isENS', () => {
   it('should return false by default', () => {
@@ -107,13 +143,50 @@ describe('renderSlightlyLongAddress', () => {
   });
 });
 
+describe('renderAccountName', () => {
+  describe('with Ethereum accounts', () => {
+    it('returns the account name for a known Ethereum account', () => {
+      const ethAddress = internalAccount1.address;
+      const accounts = [internalAccount1];
+      expect(renderAccountName(ethAddress, accounts)).toBe('Account 1');
+    });
+
+    it('returns a shortened address for unknown Ethereum accounts', () => {
+      const unknownAddress = '0x1234567890123456789012345678901234567890';
+      const accounts = [internalAccount1];
+      // The shortened address format is first 7 chars + ... + last 5 chars
+      expect(renderAccountName(unknownAddress, accounts)).toBe(
+        '0x12345...67890',
+      );
+    });
+  });
+
+  describe('with Solana accounts', () => {
+    it('returns the account name for a known Solana account', () => {
+      const solanaAddress = MOCK_SOLANA_ACCOUNT.address;
+      const accounts = [MOCK_SOLANA_ACCOUNT];
+      expect(renderAccountName(solanaAddress, accounts)).toBe('Solana Account');
+    });
+
+    it('returns a shortened address for unknown Solana accounts', () => {
+      const unknownSolanaAddress =
+        '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+      const accounts = [internalAccount1]; // Only contains Ethereum account
+      // The shortened address format is first 7 chars + ... + last 5 chars
+      expect(renderAccountName(unknownSolanaAddress, accounts)).toBe(
+        '7EcDhSY...CFLtV',
+      );
+    });
+  });
+});
+
 describe('formatAddress', () => {
   const mockEvmAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
   const mockBtcAddress = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
 
   describe('with EVM addresses', () => {
     it('returns checksummed address formatted for short type', () => {
-      const expectedValue = '0xC495...D272';
+      const expectedValue = '0xC4955...4D272';
       expect(formatAddress(mockEvmAddress, 'short')).toBe(expectedValue);
     });
 
@@ -130,7 +203,7 @@ describe('formatAddress', () => {
 
   describe('with non-EVM addresses', () => {
     it('returns address formatted for short type without checksumming', () => {
-      const expectedValue = 'bc1qxy...0wlh';
+      const expectedValue = 'bc1qxy2...x0wlh';
       expect(formatAddress(mockBtcAddress, 'short')).toBe(expectedValue);
     });
 
@@ -402,12 +475,6 @@ describe('getLabelTextByAddress,', () => {
     expect(getLabelTextByAddress(mockSnapAddress1)).toBe('Snaps (Beta)');
   });
 
-  it('returns the snap name if account is a Snap keyring and there is a snap name', () => {
-    expect(getLabelTextByAddress(mockSnapAddress2)).toBe(
-      'MetaMask Simple Snap Keyring',
-    );
-  });
-
   it('should return null if address is empty', () => {
     expect(getLabelTextByAddress('')).toBe(null);
   });
@@ -416,6 +483,14 @@ describe('getLabelTextByAddress,', () => {
     expect(
       getLabelTextByAddress('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBe(null);
+  });
+
+  it('returns srp label for hd accounts when there are multiple hd keyrings', () => {
+    expect(getLabelTextByAddress(mockSecondHDKeyringAddress)).toBe('SRP #2');
+  });
+
+  it('returns srp label for snap accounts that uses hd keyring for its entropy source', () => {
+    expect(getLabelTextByAddress(mockSolanaAddress)).toBe('SRP #1');
   });
 });
 describe('getAddressAccountType', () => {
@@ -458,5 +533,69 @@ describe('isSnapAccount,', () => {
     expect(
       isSnapAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBeFalsy();
+  });
+});
+
+describe('isHDOrFirstPartySnapAccount', () => {
+  it('should return true for HD accounts', () => {
+    expect(isHDOrFirstPartySnapAccount(internalAccount1)).toBe(true);
+  });
+
+  it('should return true for first-party snap accounts (matching snapId)', () => {
+    expect(isHDOrFirstPartySnapAccount(MOCK_SOLANA_ACCOUNT)).toBe(true);
+  });
+
+  it('should return true for first-party snap accounts (with entropySource)', () => {
+    expect(isHDOrFirstPartySnapAccount(MOCK_SOLANA_ACCOUNT)).toBe(true);
+  });
+
+  it('should return false for third-party snap accounts', () => {
+    expect(
+      isHDOrFirstPartySnapAccount({
+        ...MOCK_SOLANA_ACCOUNT,
+        metadata: {
+          ...MOCK_SOLANA_ACCOUNT.metadata,
+          snap: {
+            id: 'third-party-snap',
+            name: 'Third Party Snap',
+            enabled: true,
+          },
+        },
+        options: {},
+      }),
+    ).toBe(false);
+  });
+
+  it.each([
+    {
+      type: KeyringTypes.simple,
+    },
+    {
+      type: KeyringTypes.ledger,
+    },
+    {
+      type: KeyringTypes.oneKey,
+    },
+    {
+      type: KeyringTypes.qr,
+    },
+    {
+      type: KeyringTypes.trezor,
+    },
+    {
+      type: KeyringTypes.lattice,
+    },
+  ])('returns false for keyring type $type', ({ type }) => {
+    expect(
+      isHDOrFirstPartySnapAccount({
+        ...internalAccount1,
+        metadata: {
+          ...internalAccount1.metadata,
+          keyring: {
+            type,
+          },
+        },
+      }),
+    ).toBe(false);
   });
 });

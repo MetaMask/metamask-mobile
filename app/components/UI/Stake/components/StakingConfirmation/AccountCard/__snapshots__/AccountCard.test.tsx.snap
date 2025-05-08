@@ -9,7 +9,7 @@ exports[`AccountCard render matches snapshot 1`] = `
         "backgroundColor": "#ffffff",
         "borderBottomLeftRadius": 0,
         "borderBottomRightRadius": 0,
-        "borderColor": "#848c96",
+        "borderColor": "#b7bbc8",
         "borderRadius": 8,
         "borderWidth": 0,
         "gap": 16,
@@ -61,12 +61,12 @@ exports[`AccountCard render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
               testID="label"
@@ -108,11 +108,11 @@ exports[`AccountCard render matches snapshot 1`] = `
               style={
                 {
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376C91A",
-                  "borderColor": "#0376c9",
+                  "backgroundColor": "#4459ff1a",
+                  "borderColor": "#4459ff",
                   "borderRadius": 999,
                   "borderWidth": 0,
-                  "color": "#0376c9",
+                  "color": "#4459ff",
                   "padding": 16,
                   "paddingHorizontal": 8,
                   "paddingVertical": 2,
@@ -281,12 +281,12 @@ exports[`AccountCard render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                   testID="tagbase-text"
@@ -343,12 +343,12 @@ exports[`AccountCard render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
               testID="label"
@@ -390,11 +390,11 @@ exports[`AccountCard render matches snapshot 1`] = `
               style={
                 {
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#f2f4f6",
-                  "borderColor": "#848c96",
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc8",
                   "borderRadius": 999,
                   "borderWidth": 0,
-                  "color": "#6a737d",
+                  "color": "#686e7d",
                   "padding": 16,
                   "paddingHorizontal": 8,
                   "paddingVertical": 2,
@@ -428,7 +428,7 @@ exports[`AccountCard render matches snapshot 1`] = `
                           "overflow": "hidden",
                         },
                         {
-                          "backgroundColor": "#1593F2",
+                          "backgroundColor": "#2490E1",
                           "borderRadius": 8,
                           "height": 16,
                           "width": 16,
@@ -468,19 +468,19 @@ exports[`AccountCard render matches snapshot 1`] = `
                         <RNSVGRect
                           fill={
                             {
-                              "payload": 4280574177,
+                              "payload": 4294379265,
                               "type": 0,
                             }
                           }
                           height={16}
                           matrix={
                             [
-                              -0.14608302856241107,
-                              0.9892723329629884,
-                              -0.9892723329629884,
-                              -0.14608302856241107,
-                              18.877507984599454,
-                              -1.41266974682138,
+                              -0.6896195437356696,
+                              0.7241718614374677,
+                              -0.7241718614374677,
+                              -0.6896195437356696,
+                              21.863437213408073,
+                              7.832927053102213,
                             ]
                           }
                           propList={
@@ -495,19 +495,19 @@ exports[`AccountCard render matches snapshot 1`] = `
                         <RNSVGRect
                           fill={
                             {
-                              "payload": 4294395137,
+                              "payload": 4294711700,
                               "type": 0,
                             }
                           }
                           height={16}
                           matrix={
                             [
-                              -0.02094241988335673,
-                              -0.9997806834748455,
-                              0.9997806834748455,
-                              -0.02094241988335673,
-                              -7.512435753557014,
-                              20.161960644608932,
+                              0.9018325264051136,
+                              0.43208574880198264,
+                              -0.43208574880198264,
+                              0.9018325264051136,
+                              -0.8897231368159675,
+                              -7.841632563456296,
                             ]
                           }
                           propList={
@@ -522,19 +522,19 @@ exports[`AccountCard render matches snapshot 1`] = `
                         <RNSVGRect
                           fill={
                             {
-                              "payload": 4294736640,
+                              "payload": 4294150656,
                               "type": 0,
                             }
                           }
                           height={16}
                           matrix={
                             [
-                              -0.458649554484315,
-                              0.8886172326549487,
-                              -0.8886172326549487,
-                              -0.458649554484315,
-                              14.2400072574634,
-                              19.300266514976617,
+                              0.858064905723645,
+                              0.5135412520581693,
+                              -0.5135412520581693,
+                              0.858064905723645,
+                              14.243095518592686,
+                              -10.69711485264671,
                             ]
                           }
                           propList={
@@ -563,12 +563,12 @@ exports[`AccountCard render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -589,7 +589,7 @@ exports[`AccountCard render matches snapshot 1`] = `
         "borderBottomLeftRadius": 8,
         "borderBottomRightRadius": 8,
         "borderBottomWidth": 0,
-        "borderColor": "#BBC0C566",
+        "borderColor": "#b7bbc866",
         "borderLeftWidth": 0,
         "borderRadius": 4,
         "borderRightWidth": 0,
@@ -644,12 +644,12 @@ exports[`AccountCard render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
               testID="label"
@@ -723,12 +723,12 @@ exports[`AccountCard render matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >

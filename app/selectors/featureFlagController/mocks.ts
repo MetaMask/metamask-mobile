@@ -1,12 +1,15 @@
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import { mockedMinimumAppVersion } from './minimumAppVersion/constants';
+import { mockedEarnFeatureFlagsEnabledState } from '../../components/UI/Earn/__mocks__/mockData';
 
 export const mockedState = {
   engine: {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          ...mockedMinimumAppVersion
+          ...mockedMinimumAppVersion,
+          ...mockedEarnFeatureFlagsEnabledState,
+          productSafetyDappScanning: true,
         },
         cacheTimestamp: 0,
       },
@@ -33,7 +36,9 @@ export const mockedUndefinedFlagsState = {
   },
 };
 
-export const getInvalidMockedFeatureFlag = (invalidFeatureFlag: FeatureFlags) => ({
+export const getInvalidMockedFeatureFlag = (
+  invalidFeatureFlag: FeatureFlags,
+) => ({
   engine: {
     backgroundState: {
       RemoteFeatureFlagController: {

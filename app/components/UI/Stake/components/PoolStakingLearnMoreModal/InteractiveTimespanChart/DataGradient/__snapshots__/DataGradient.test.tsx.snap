@@ -6,7 +6,7 @@ exports[`DataGradient render matches snapshot 1`] = `
     gradient={
       [
         0,
-        857506356,
+        857505331,
         1,
         872415231,
       ]

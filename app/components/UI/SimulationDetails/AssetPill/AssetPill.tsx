@@ -15,7 +15,7 @@ import Name from '../../Name/Name';
 import { NameType } from '../../Name/Name.types';
 import { AssetIdentifier, AssetType } from '../types';
 import styleSheet from './AssetPill.styles';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 
 interface AssetPillProperties extends ViewProps {
   asset: AssetIdentifier;
@@ -37,7 +37,7 @@ const NativeAssetPill: React.FC<AssetPillProperties> = ({ asset }) => {
   const imageSource = getNetworkImage(asset.chainId);
 
   const networkConfigurationsByChainId = useSelector(
-    selectNetworkConfigurations,
+    selectEvmNetworkConfigurationsByChainId,
   );
 
   const { nativeCurrency } =

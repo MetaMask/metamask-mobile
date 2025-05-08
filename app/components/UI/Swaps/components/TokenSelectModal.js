@@ -34,9 +34,8 @@ import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
 
 import {
-  selectChainId,
-  selectNetworkConfigurations,
-  selectProviderConfig,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -145,7 +144,6 @@ function TokenSelectModal({
   conversionRate,
   tokenExchangeRates,
   chainId,
-  providerConfig,
   networkConfigurations,
   balances,
 }) {
@@ -155,7 +153,7 @@ function TokenSelectModal({
   const searchInput = useRef(null);
   const list = useRef();
   const [searchString, setSearchString] = useState('');
-  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
+  const explorer = useBlockExplorer(networkConfigurations);
   const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] =
     useModalHandler(false);
   const { colors, themeAppearance } = useTheme();
@@ -401,7 +399,7 @@ function TokenSelectModal({
         </Text>
         <TouchableWithoutFeedback onPress={handleSearchPress}>
           <View style={styles.inputWrapper}>
-            <Icon name="ios-search" size={20} style={styles.searchIcon} />
+            <Icon name="search" size={20} style={styles.searchIcon} />
             <TextInput
               ref={searchInput}
               style={styles.input}
@@ -415,7 +413,7 @@ function TokenSelectModal({
             {searchString.length > 0 && (
               <TouchableOpacity onPress={handleClearSearch}>
                 <Icon
-                  name="ios-close-circle"
+                  name="close-circle"
                   size={20}
                   style={styles.searchIcon}
                 />
@@ -552,10 +550,6 @@ TokenSelectModal.propTypes = {
    */
   chainId: PropTypes.string,
   /**
-   * Current network provider configuration
-   */
-  providerConfig: PropTypes.object,
-  /**
    * Network configurations
    */
   networkConfigurations: PropTypes.object,
@@ -568,9 +562,8 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   tokenExchangeRates: selectContractExchangeRates(state),
   balances: selectContractBalances(state),
-  chainId: selectChainId(state),
-  providerConfig: selectProviderConfig(state),
-  networkConfigurations: selectNetworkConfigurations(state),
+  chainId: selectEvmChainId(state),
+  networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
 });
 
 export default connect(mapStateToProps)(TokenSelectModal);

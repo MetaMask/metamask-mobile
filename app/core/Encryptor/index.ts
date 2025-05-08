@@ -14,4 +14,3 @@ export {
   DERIVATION_OPTIONS_DEFAULT_OWASP2023,
   pbkdf2,
 };
-export * from './hmac';

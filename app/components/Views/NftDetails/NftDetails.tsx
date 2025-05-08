@@ -28,7 +28,7 @@ import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import {
   selectChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import etherscanLink from '@metamask/etherscan-link';
 import {
@@ -47,6 +47,9 @@ import { renderShortText } from '../../../util/general';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { formatTimestampToYYYYMMDD } from '../../../util/date';
 import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
+import Engine from '../../../core/Engine';
+import { toHex } from '@metamask/controller-utils';
+import { Hex } from '@metamask/utils';
 
 const NftDetails = () => {
   const navigation = useNavigation();
@@ -54,7 +57,7 @@ const NftDetails = () => {
   const chainId = useSelector(selectChainId);
   const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
   const { trackEvent, createEventBuilder } = useMetrics();
   const selectedNativeConversionRate = useSelector(selectConversionRate);
   const hasLastSalePrice = Boolean(
@@ -164,11 +167,26 @@ const NftDetails = () => {
   };
 
   const onSend = useCallback(async () => {
+    const chainIdHex = toHex(collectible?.chainId as number) as Hex;
+    if (chainIdHex !== chainId) {
+      const { NetworkController, MultichainNetworkController } = Engine.context;
+      const networkConfiguration =
+        NetworkController.getNetworkConfigurationByChainId(chainIdHex);
+
+      const networkClientId =
+        networkConfiguration?.rpcEndpoints?.[
+          networkConfiguration.defaultRpcEndpointIndex
+        ]?.networkClientId;
+
+      await MultichainNetworkController.setActiveNetwork(
+        networkClientId as string,
+      );
+    }
     dispatch(
       newAssetTransaction({ contractName: collectible.name, ...collectible }),
     );
     navigation.navigate('SendFlowView');
-  }, [collectible, navigation, dispatch]);
+  }, [collectible, chainId, dispatch, navigation]);
 
   const isTradable = useCallback(
     () =>

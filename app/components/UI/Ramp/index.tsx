@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import WebView from '@metamask/react-native-webview';
+import WebView, { WebViewNavigation } from '@metamask/react-native-webview';
 import AppConstants from '../../../core/AppConstants';
 import NotificationManager from '../../../core/NotificationManager';
 import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
@@ -277,7 +277,7 @@ function FiatOrders() {
         ),
       );
     },
-    pendingOrders.length ? POLLING_FREQUENCY : null,
+    { delay: pendingOrders.length ? POLLING_FREQUENCY : null, immediate: true },
   );
 
   useInterval(
@@ -293,11 +293,14 @@ function FiatOrders() {
         ),
       );
     },
-    customOrderIds.length ? POLLING_FREQUENCY : null,
+    {
+      delay: customOrderIds.length ? POLLING_FREQUENCY : null,
+      immediate: true,
+    },
   );
 
   const handleNavigationStateChange = useCallback(
-    async (navState, authenticationUrl) => {
+    async (navState: WebViewNavigation, authenticationUrl: string) => {
       if (
         navState.url.startsWith(callbackBaseUrl) &&
         navState.loading === false

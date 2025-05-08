@@ -13,6 +13,8 @@ import {
   getMetamaskNotificationsUnreadCount,
   getMetamaskNotificationsReadCount,
   getOnChainMetamaskNotificationsUnreadCount,
+  selectIsMetaMaskPushNotificationsLoading,
+  getValidNotificationAccounts,
 } from './index';
 import { RootState } from '../../reducers';
 import {
@@ -40,6 +42,12 @@ describe('Notification Selectors', () => {
   it('selectIsMetaMaskPushNotificationsEnabled returns correct value', () => {
     expect(selectIsMetaMaskPushNotificationsEnabled(mockState)).toEqual(
       MOCK_NOTIFICATION_SERVICES_PUSH_CONTROLLER.isPushEnabled,
+    );
+  });
+
+  it('selectIsMetaMaskPushNotificationsLoading returns correct value', () => {
+    expect(selectIsMetaMaskPushNotificationsLoading(mockState)).toEqual(
+      MOCK_NOTIFICATION_SERVICES_PUSH_CONTROLLER.isUpdatingFCMToken,
     );
   });
 
@@ -117,5 +125,22 @@ describe('Notification Selectors', () => {
     expect(getOnChainMetamaskNotificationsUnreadCount(mockState)).toEqual(
       unreadOnChainCount,
     );
+  });
+
+  it('getValidNotificationAccounts selects the valid accounts that can enable notifications', () => {
+    const state = { ...mockState };
+    state.engine.backgroundState.NotificationServicesController.subscriptionAccountsSeen =
+      ['0x1111'];
+    expect(getValidNotificationAccounts(state)).toStrictEqual(['0x1111']);
+  });
+
+  it('getValidNotificationAccounts returns same reference when called with same state', () => {
+    const state = { ...mockState };
+    state.engine.backgroundState.NotificationServicesController.subscriptionAccountsSeen =
+      ['0x1111'];
+
+    const result1 = getValidNotificationAccounts(state);
+    const result2 = getValidNotificationAccounts(state);
+    expect(result1 === result2).toBe(true);
   });
 });

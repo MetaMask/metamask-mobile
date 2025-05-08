@@ -153,7 +153,6 @@ describe('NetworkDetails', () => {
         return {
           '0x1': {
             chainId: '0x1',
-            // ... other network properties
           },
         };
       return {};
@@ -174,7 +173,7 @@ describe('NetworkDetails', () => {
     (
       Engine.context.NetworkController.updateNetwork as jest.Mock
     ).mockResolvedValue({
-      rpcEndpoints: [{ networkClientId: 'existing-network-id' }],
+      rpcEndpoints: [{ networkClientId: 'test-network-id' }],
       defaultRpcEndpointIndex: 0,
     });
 
@@ -184,7 +183,7 @@ describe('NetworkDetails', () => {
 
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
-    ).toHaveBeenCalledWith('existing-network-id');
+    ).toHaveBeenCalledWith('test-network-id');
   });
 
   it('should call onUpdateNetworkFilter and setActiveNetwork when networkClientId is present', async () => {
@@ -283,11 +282,6 @@ describe('NetworkDetails', () => {
           },
         ],
       });
-
-      // Verify active network was set
-      expect(
-        Engine.context.MultichainNetworkController.setActiveNetwork,
-      ).toHaveBeenCalledWith('new-network-id');
     });
   });
 });

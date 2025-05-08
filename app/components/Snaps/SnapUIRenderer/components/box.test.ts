@@ -2,11 +2,13 @@ import { BoxElement } from '@metamask/snaps-sdk/jsx';
 import { box } from './box';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { FlexDirection } from '../../../UI/Box/box.types';
+import { mockTheme } from '../../../../util/theme';
 
 describe('box UIComponentFactory', () => {
   const mockParams = {
     map: {},
     t: (key: string) => key,
+    theme: mockTheme,
   };
 
   const createTextElement = (text: string) => ({
@@ -35,11 +37,27 @@ describe('box UIComponentFactory', () => {
         {
           element: 'Text',
           key: 'mock-key',
-          children: ['Test content'],
+          children: [
+            {
+              key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_1',
+              element: 'Text',
+              children: 'Test content',
+              props: {
+                color: undefined,
+                variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
+              },
+            },
+          ],
           props: {
-            color: 'Default',
-            fontWeight: 'normal',
-            textAlign: 'left',
+            color: undefined,
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
         },
@@ -49,6 +67,7 @@ describe('box UIComponentFactory', () => {
         justifyContent: 'flex-start',
         color: TextColor.Default,
         alignItems: undefined,
+        gap: 8,
       },
     });
   });

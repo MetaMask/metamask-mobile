@@ -16,7 +16,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectProviderConfig,
   ProviderConfig,
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
+  selectEvmChainId,
 } from '../../../../selectors/networkController';
 import {
   IconColor,
@@ -26,9 +27,6 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import NetworkSelectorList from '../../../../components/UI/NetworkSelectorList/NetworkSelectorList';
-import Engine from '../../../../core/Engine';
-import { PermissionKeys } from '../../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../../core/Permissions/constants';
 import Logger from '../../../../util/Logger';
 
 // Internal dependencies.
@@ -49,6 +47,9 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
+import { getCaip25Caveat } from '../../../../core/Permissions';
+import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import { toHex } from '@metamask/controller-utils';
 
 const NetworkPermissionsConnected = ({
   onSetPermissionsScreen,
@@ -60,40 +61,37 @@ const NetworkPermissionsConnected = ({
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectEvmChainId);
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   // Get permitted chain IDs
   const getPermittedChainIds = () => {
     try {
-      const caveat = Engine.context.PermissionController.getCaveat(
-        hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-      );
-      if (Array.isArray(caveat?.value)) {
-        return caveat.value.filter(
-          (item): item is string => typeof item === 'string',
-        );
+      const caveat = getCaip25Caveat(hostname);
+      if (!caveat) {
+        return [];
       }
+      return getPermittedEthChainIds(caveat.value);
     } catch (e) {
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
     // If no permitted chains found, default to current chain
-    return providerConfig?.chainId ? [providerConfig.chainId] : [];
+    return chainId ? [chainId] : [];
   };
 
   const permittedChainIds = getPermittedChainIds();
 
   // Filter networks to only show permitted ones, excluding the active network
   const networks = Object.entries(networkConfigurations)
-    .filter(([key]) => permittedChainIds.includes(key))
+    .filter(([key]) => permittedChainIds.includes(toHex(key)))
     .map(([key, network]) => ({
       id: key,
       name: network.name,
       rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
       isSelected: false,
-      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       imageSource: getNetworkImageSource({
         chainId: network?.chainId,
       }),
@@ -130,21 +128,21 @@ const NetworkPermissionsConnected = ({
       <View style={styles.networkSelectorListContainer}>
         <NetworkSelectorList
           networks={networks}
-          onSelectNetwork={(chainId) => {
-            if (chainId === providerConfig?.chainId) {
+          onSelectNetwork={(onSelectChainId) => {
+            if (onSelectChainId === chainId) {
               onDismissSheet();
               return;
             }
 
             const theNetworkName = handleNetworkSwitch(
-              getDecimalChainId(chainId),
+              getDecimalChainId(onSelectChainId),
             );
 
             if (theNetworkName) {
               trackEvent(
                 createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
                   .addProperties({
-                    chain_id: getDecimalChainId(chainId),
+                    chain_id: getDecimalChainId(onSelectChainId),
                     from_network: providerConfig?.nickname || theNetworkName,
                     to_network: theNetworkName,
                   })

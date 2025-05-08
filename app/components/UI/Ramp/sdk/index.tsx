@@ -13,6 +13,7 @@ import {
   Context,
   RegionsService,
   CryptoCurrency,
+  Payment,
 } from '@consensys/on-ramp-sdk';
 
 import Logger from '../../../../util/Logger';
@@ -189,11 +190,15 @@ export const RampSDKProvider = ({
 
   const [intent, setIntent] = useState<RampIntent>();
 
-  const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
+  const [selectedAsset, setSelectedAsset] = useState<CryptoCurrency | null>(
+    INITIAL_SELECTED_ASSET,
+  );
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
     INITIAL_PAYMENT_METHOD_ID,
   );
-  const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState(null);
+  const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState<
+    string | null
+  >(null);
   const [getStarted, setGetStarted] = useState(
     (providerRampType ?? RampType.BUY) === RampType.BUY
       ? INITIAL_GET_STARTED
@@ -215,23 +220,26 @@ export const RampSDKProvider = ({
   );
 
   const setSelectedPaymentMethodIdCallback = useCallback(
-    (paymentMethodId) => {
+    (paymentMethodId: Payment['id'] | null) => {
       setSelectedPaymentMethodId(paymentMethodId);
       dispatch(setFiatOrdersPaymentMethodAGG(paymentMethodId));
     },
     [dispatch],
   );
 
-  const setSelectedAssetCallback = useCallback((asset) => {
+  const setSelectedAssetCallback = useCallback((asset: CryptoCurrency) => {
     setSelectedAsset(asset);
   }, []);
 
-  const setSelectedFiatCurrencyIdCallback = useCallback((currencyId) => {
-    setSelectedFiatCurrencyId(currencyId);
-  }, []);
+  const setSelectedFiatCurrencyIdCallback = useCallback(
+    (currencyId: string | null) => {
+      setSelectedFiatCurrencyId(currencyId);
+    },
+    [],
+  );
 
   const setGetStartedCallback = useCallback(
-    (getStartedFlag) => {
+    (getStartedFlag: boolean) => {
       setGetStarted(getStartedFlag);
       if (rampType === RampType.BUY) {
         dispatch(setFiatOrdersGetStartedAGG(getStartedFlag));

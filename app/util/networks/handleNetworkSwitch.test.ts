@@ -2,6 +2,7 @@ import Engine from '../../core/Engine';
 import { SEPOLIA } from '../../constants/network';
 import { store } from '../../store';
 import { handleNetworkSwitch } from './handleNetworkSwitch';
+import { SolScope } from '@metamask/keyring-api';
 
 const mockEngine = Engine;
 const mockStore = jest.mocked(store);
@@ -33,6 +34,12 @@ function setupGetStateMock() {
       ({
         engine: {
           backgroundState: {
+            MultichainNetworkController: {
+              isEvmSelected: true,
+              selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+              multichainNetworkConfigurationsByChainId: {},
+            },
             NetworkController: {
               selectedNetworkClientId: 'networkId1',
               networkConfigurationsByChainId: {
@@ -108,6 +115,7 @@ describe('useHandleNetworkSwitch', () => {
     expect(
       mockEngine.context.CurrencyRateController.updateExchangeRate,
     ).not.toBeCalled();
+
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toBeCalled();
@@ -125,6 +133,7 @@ describe('useHandleNetworkSwitch', () => {
     expect(
       mockEngine.context.CurrencyRateController.updateExchangeRate,
     ).not.toBeCalled();
+
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toBeCalled();

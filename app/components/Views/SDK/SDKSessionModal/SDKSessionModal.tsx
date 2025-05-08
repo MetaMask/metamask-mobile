@@ -96,7 +96,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
   const [permittedAccountsAddresses, setPermittedAccountsAddresses] = useState<
     string[]
   >([]);
-  const { accounts } = useAccounts({
+  const { evmAccounts: accounts } = useAccounts({
     isLoading: false,
   });
 
@@ -113,9 +113,8 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
   useEffect(() => {
     if (channelId) {
       const origin = channelId;
-      getPermittedAccounts(origin).then((_accounts) => {
-        setPermittedAccountsAddresses(_accounts);
-      });
+      const permittedAccountsForOrigin = getPermittedAccounts(origin);
+      setPermittedAccountsAddresses(permittedAccountsForOrigin);
     }
   }, [channelId]);
 

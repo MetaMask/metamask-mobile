@@ -34,9 +34,11 @@ import { useSelector } from 'react-redux';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import Avatar from '../../../../component-library/components/Avatars/Avatar/Avatar';
 import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { RootState } from '../../../../reducers';
+import { toHex } from '@metamask/controller-utils';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,
@@ -61,9 +63,8 @@ const AccountPermissionsRevoke = ({
   const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => Object.keys(selectNetworkConfigurations(state)).length + 1,
+    (state: RootState) =>
+      Object.keys(selectEvmNetworkConfigurationsByChainId(state)).length + 1,
   );
 
   const revokeAllAccounts = useCallback(
@@ -162,7 +163,7 @@ const AccountPermissionsRevoke = ({
                     accounts,
                     ensByAccountAddress,
                   });
-                  removePermittedAccounts(hostname, [address]);
+                  removePermittedAccounts(hostname, [toHex(address)]);
                   labelOptions.push(
                     {
                       label: `\n${newActiveAccountName} `,
@@ -179,7 +180,7 @@ const AccountPermissionsRevoke = ({
                   });
                 } else {
                   // Just disconnect
-                  removePermittedAccounts(hostname, [address]);
+                  removePermittedAccounts(hostname, [toHex(address)]);
                   toastRef?.current?.showToast({
                     variant: ToastVariants.Plain,
                     labelOptions,

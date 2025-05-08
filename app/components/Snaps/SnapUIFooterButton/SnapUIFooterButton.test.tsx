@@ -3,6 +3,7 @@ import { ButtonType } from '@metamask/snaps-sdk';
 import { render, screen } from '@testing-library/react-native';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button/Button.types';
 import { SnapUIFooterButton } from './SnapUIFooterButton';
+import { ActivityIndicator } from 'react-native';
 
 const mockHandleEvent = jest.fn();
 jest.mock('../SnapInterfaceContext', () => ({
@@ -30,9 +31,9 @@ describe('SnapUIFooterButton', () => {
   });
 
   const defaultProps = {
-    label: 'Test Button',
+    children: 'Test Button',
     type: ButtonType.Submit,
-    snapVariant: ButtonVariants.Primary,
+    snapVariant: 'primary' as const,
     onPress: jest.fn(),
     variant: ButtonVariants.Primary,
     accessibilityLabel: 'Test Button',
@@ -59,7 +60,7 @@ describe('SnapUIFooterButton', () => {
   it('shows loading state', () => {
     render(<SnapUIFooterButton {...defaultProps} loading />);
     const button = screen.getByRole('button', { name: 'Test Button' });
-    expect(button.findByType('ActivityIndicator')).toBeTruthy();
+    expect(button.findByType(ActivityIndicator)).toBeTruthy();
   });
 
   it('applies correct variant based on disabled state', () => {

@@ -5,7 +5,9 @@ import { GetSubjectMetadata } from '@metamask/permission-controller';
 import {
   AccountsControllerGetAccountByAddressAction,
   AccountsControllerSetAccountNameAction,
+  AccountsControllerSetAccountNameAndSelectAccountAction,
   AccountsControllerSetSelectedAccountAction,
+  AccountsControllerListMultichainAccountsAction,
 } from '@metamask/accounts-controller';
 import type {
   AcceptRequest,
@@ -35,7 +37,9 @@ export type SnapKeyringBuilderAllowActions =
   | GetSubjectMetadata
   | AccountsControllerSetSelectedAccountAction
   | AccountsControllerGetAccountByAddressAction
+  | AccountsControllerListMultichainAccountsAction
   | AccountsControllerSetAccountNameAction
+  | AccountsControllerSetAccountNameAndSelectAccountAction
   | SnapControllerHandleRequestActionType
   | SnapControllerGetSnapActionType;
 

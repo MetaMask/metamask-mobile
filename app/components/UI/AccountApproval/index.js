@@ -19,12 +19,11 @@ import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
-import Engine from '../../../core/Engine';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectTokensLength } from '../../../selectors/tokensController';
@@ -36,7 +35,7 @@ import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
 import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-
+import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 /**
  * Account access approval component
  */
@@ -155,6 +154,8 @@ class AccountApproval extends PureComponent {
   };
 
   componentDidMount = () => {
+    this._isMounted = true;
+
     const { currentPageInformation } = this.props;
 
     const prefixedUrl = prefixUrlWithProtocol(currentPageInformation?.url);
@@ -168,6 +169,10 @@ class AccountApproval extends PureComponent {
         .addProperties(this.getAnalyticsParams())
         .build(),
     );
+  };
+
+  componentWillUnmount = () => {
+    this._isMounted = false;
   };
 
   showWalletConnectNotification = (confirmation = false) => {
@@ -285,14 +290,13 @@ class AccountApproval extends PureComponent {
     });
   };
 
-  checkUrlFlaggedAsPhishing = (hostname) => {
-    const { PhishingController } = Engine.context;
-    PhishingController.maybeUpdateState();
-    const phishingControllerTestResult = PhishingController.test(hostname);
-
-    this.setState({
-      isUrlFlaggedAsPhishing: phishingControllerTestResult.result,
-    });
+  checkUrlFlaggedAsPhishing = async (hostname) => {
+    const scanResult = await getPhishingTestResultAsync(hostname);
+    if (this._isMounted) {
+      this.setState({
+        isUrlFlaggedAsPhishing: scanResult.result,
+      });
+    }
   };
 
   render = () => {
@@ -413,7 +417,7 @@ const mapStateToProps = (state) => ({
   tokensLength: selectTokensLength(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   networkType: selectProviderType(state),
-  chainId: selectChainId(state),
+  chainId: selectEvmChainId(state),
 });
 
 AccountApproval.contextType = ThemeContext;

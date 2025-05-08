@@ -1,5 +1,5 @@
 import { swapsUtils } from '@metamask/swaps-controller';
-import { BN } from 'ethereumjs-util';
+import BN from 'bnjs4';
 
 /* eslint-disable-next-line import/no-namespace */
 import * as controllerUtilsModule from '@metamask/controller-utils';
@@ -38,6 +38,7 @@ import {
   TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
   TOKEN_METHOD_APPROVE,
   getTransactionReviewActionKey,
+  getTransactionById,
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
@@ -75,7 +76,11 @@ ENGINE_MOCK.context = {
   },
   TokenListController: {
     state: {
-      tokenList: {},
+      tokensChainsCache: {
+        '0x1': {
+          data: [],
+        },
+      },
     },
   },
 };
@@ -1181,7 +1186,7 @@ describe('Transactions utils :: isApprovalTransaction', () => {
 });
 
 describe('Transactions utils :: getTransactionReviewActionKey', () => {
-  const transaction = { to: '0xContractAddress' };
+  const transaction = { to: '0x1234567890123456789012345678901234567890' };
   const chainId = '1';
   it('returns `Unknown Method` review action key when transaction action key exists', async () => {
     const expectedReviewActionKey = 'Unknown Method';
@@ -1199,5 +1204,55 @@ describe('Transactions utils :: getTransactionReviewActionKey', () => {
       chainId,
     );
     expect(result).toEqual(expectedReviewActionKey);
+  });
+});
+
+describe('Transactions utils :: getTransactionById', () => {
+  it('returns the correct transaction when given a valid transaction ID', () => {
+    const mockTransactions = [
+      { id: 'tx1', value: '0x1' },
+      { id: 'tx2', value: '0x2' },
+      { id: 'tx3', value: '0x3' },
+    ];
+    
+    const mockTransactionController = {
+      state: {
+        transactions: mockTransactions,
+      },
+    };
+
+    const result = getTransactionById('tx2', mockTransactionController);
+    
+    expect(result).toEqual(mockTransactions[1]);
+  });
+
+  it('returns undefined when given an invalid transaction ID', () => {
+    const mockTransactions = [
+      { id: 'tx1', value: '0x1' },
+      { id: 'tx2', value: '0x2' },
+      { id: 'tx3', value: '0x3' },
+    ];
+    
+    const mockTransactionController = {
+      state: {
+        transactions: mockTransactions,
+      },
+    };
+
+    const result = getTransactionById('nonexistent', mockTransactionController);
+    
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the transactions array is empty', () => {
+    const mockTransactionController = {
+      state: {
+        transactions: [],
+      },
+    };
+
+    const result = getTransactionById('tx1', mockTransactionController);
+    
+    expect(result).toBeUndefined();
   });
 });

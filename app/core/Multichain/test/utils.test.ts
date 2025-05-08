@@ -8,6 +8,7 @@ import {
   SolScope,
   SolAccountType,
   SolMethod,
+  CaipChainId,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -17,9 +18,32 @@ import {
   isBtcTestnetAddress,
   getFormattedAddressFromInternalAccount,
   isSolanaAccount,
+  nonEvmNetworkChainIdByAccountAddress,
+  lastSelectedAccountAddressInEvmNetwork,
+  lastSelectedAccountAddressByNonEvmNetworkChainId,
+  shortenTransactionId,
+  getAddressUrl,
+  getTransactionUrl,
 } from '../utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import Engine from '../../Engine';
+import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../constants';
+import { formatAddress } from '../../../util/address';
+import {
+  formatBlockExplorerAddressUrl,
+  formatBlockExplorerTransactionUrl,
+} from '../networks';
+
+// Mock these functions
+jest.mock('../../../util/address', () => ({
+  formatAddress: jest.fn(),
+}));
+
+jest.mock('../networks', () => ({
+  formatBlockExplorerAddressUrl: jest.fn(),
+  formatBlockExplorerTransactionUrl: jest.fn(),
+}));
 
 // P2WPKH
 const MOCK_BTC_MAINNET_ADDRESS = 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
@@ -117,6 +141,16 @@ const mockSolAccount: InternalAccount = {
   scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
 };
 
+// Add this at the top of the file with other imports
+jest.mock('../../Engine', () => ({
+  context: {
+    AccountsController: {
+      getSelectedAccount: jest.fn(),
+      getSelectedMultichainAccount: jest.fn(),
+    },
+  },
+}));
+
 describe('MultiChain utils', () => {
   describe('isEthAccount', () => {
     it('returns true for EOA accounts', () => {
@@ -211,6 +245,210 @@ describe('MultiChain utils', () => {
     it('returns unformatted address for BTC accounts', () => {
       const formatted = getFormattedAddressFromInternalAccount(mockBTCAccount);
       expect(formatted).toBe(MOCK_BTC_MAINNET_ADDRESS);
+    });
+  });
+
+  describe('nonEvmNetworkChainIdByAccountAddress', () => {
+    it('returns Solana mainnet chain id for Solana addresses', () => {
+      expect(nonEvmNetworkChainIdByAccountAddress(SOL_ADDRESS)).toBe(
+        SolScope.Mainnet,
+      );
+    });
+
+    it('returns Bitcoin mainnet chain id for Bitcoin addresses', () => {
+      expect(
+        nonEvmNetworkChainIdByAccountAddress(MOCK_BTC_MAINNET_ADDRESS),
+      ).toBe(BtcScope.Mainnet);
+      expect(
+        nonEvmNetworkChainIdByAccountAddress(MOCK_BTC_MAINNET_ADDRESS_2),
+      ).toBe(BtcScope.Mainnet);
+    });
+  });
+
+  describe('lastSelectedAccountAddressInEvmNetwork', () => {
+    beforeEach(() => {
+      jest.resetModules();
+    });
+
+    it('returns the selected EVM account address', () => {
+      // @ts-expect-error - getSelectedAccount is mocked in the top of the file
+      Engine.context.AccountsController.getSelectedAccount.mockReturnValue({
+        address: MOCK_ETH_ADDRESS,
+      });
+
+      expect(lastSelectedAccountAddressInEvmNetwork()).toBe(MOCK_ETH_ADDRESS);
+    });
+
+    it('returns undefined when no account is selected', () => {
+      // @ts-expect-error - getSelectedAccount is mocked in the top of the file
+      Engine.context.AccountsController.getSelectedAccount.mockReturnValue(
+        undefined,
+      );
+
+      expect(lastSelectedAccountAddressInEvmNetwork()).toBeUndefined();
+    });
+  });
+
+  describe('lastSelectedAccountAddressByNonEvmNetworkChainId', () => {
+    beforeEach(() => {
+      jest.resetModules();
+    });
+
+    it('returns the selected non-EVM account address for Solana', () => {
+      // @ts-expect-error - getSelectedMultichainAccount is mocked in the top of the file
+      Engine.context.AccountsController.getSelectedMultichainAccount.mockImplementation(
+        (chainId: string) =>
+          chainId === SolScope.Mainnet ? { address: SOL_ADDRESS } : undefined,
+      );
+
+      expect(
+        lastSelectedAccountAddressByNonEvmNetworkChainId(SolScope.Mainnet),
+      ).toBe(SOL_ADDRESS);
+    });
+
+    it('returns the selected non-EVM account address for Bitcoin', () => {
+      // @ts-expect-error - getSelectedMultichainAccount is mocked in the top of the file
+      Engine.context.AccountsController.getSelectedMultichainAccount.mockImplementation(
+        (chainId: string) =>
+          chainId === BtcScope.Mainnet
+            ? { address: MOCK_BTC_MAINNET_ADDRESS }
+            : undefined,
+      );
+
+      expect(
+        lastSelectedAccountAddressByNonEvmNetworkChainId(BtcScope.Mainnet),
+      ).toBe(MOCK_BTC_MAINNET_ADDRESS);
+    });
+
+    it('returns undefined when no account is selected for the chain', () => {
+      // @ts-expect-error - getSelectedMultichainAccount is mocked in the top of the file
+      Engine.context.AccountsController.getSelectedMultichainAccount.mockReturnValue(
+        undefined,
+      );
+
+      expect(
+        lastSelectedAccountAddressByNonEvmNetworkChainId(SolScope.Mainnet),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('Block Explorer URL utilities', () => {
+    const MOCK_SOL_TX_ID =
+      '4uQeVj5tqViQh7yWWGStvkEG1Zmhx6uasJtWCJziofM7cvkMPXTz5NAGvXUqaJyPmAB3Wyaq7FZggeuTEpjZM2r';
+    const MOCK_BTC_TX_ID =
+      '6a7d5d78f6a9c5d4e5f3a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('getTransactionUrl', () => {
+      it('returns a formatted transaction URL for Bitcoin', () => {
+        const mockUrl =
+          'https://blockstream.info/tx/6a7d5d78f6a9c5d4e5f3a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6';
+        (formatBlockExplorerTransactionUrl as jest.Mock).mockReturnValue(
+          mockUrl,
+        );
+
+        const result = getTransactionUrl(MOCK_BTC_TX_ID, BtcScope.Mainnet);
+
+        expect(formatBlockExplorerTransactionUrl).toHaveBeenCalledWith(
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[BtcScope.Mainnet],
+          MOCK_BTC_TX_ID,
+        );
+        expect(result).toBe(mockUrl);
+      });
+
+      it('returns a formatted transaction URL for Solana', () => {
+        const mockUrl =
+          'https://solscan.io/tx/4uQeVj5tqViQh7yWWGStvkEG1Zmhx6uasJtWCJziofM7cvkMPXTz5NAGvXUqaJyPmAB3Wyaq7FZggeuTEpjZM2r';
+        (formatBlockExplorerTransactionUrl as jest.Mock).mockReturnValue(
+          mockUrl,
+        );
+
+        const result = getTransactionUrl(MOCK_SOL_TX_ID, SolScope.Mainnet);
+
+        expect(formatBlockExplorerTransactionUrl).toHaveBeenCalledWith(
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[SolScope.Mainnet],
+          MOCK_SOL_TX_ID,
+        );
+        expect(result).toBe(mockUrl);
+      });
+
+      it('returns empty string when no explorer URLs exist for the chain', () => {
+        const result = getTransactionUrl(
+          MOCK_SOL_TX_ID,
+          'unsupported-chain-id' as CaipChainId,
+        );
+
+        expect(formatBlockExplorerTransactionUrl).not.toHaveBeenCalled();
+        expect(result).toBe('');
+      });
+    });
+
+    describe('getAddressUrl', () => {
+      it('returns a formatted address URL for Bitcoin', () => {
+        const mockUrl =
+          'https://blockstream.info/address/bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
+        (formatBlockExplorerAddressUrl as jest.Mock).mockReturnValue(mockUrl);
+
+        const result = getAddressUrl(
+          MOCK_BTC_MAINNET_ADDRESS,
+          BtcScope.Mainnet,
+        );
+
+        expect(formatBlockExplorerAddressUrl).toHaveBeenCalledWith(
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[BtcScope.Mainnet],
+          MOCK_BTC_MAINNET_ADDRESS,
+        );
+        expect(result).toBe(mockUrl);
+      });
+
+      it('returns a formatted address URL for Solana', () => {
+        const mockUrl =
+          'https://solscan.io/account/7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+        (formatBlockExplorerAddressUrl as jest.Mock).mockReturnValue(mockUrl);
+
+        const result = getAddressUrl(SOL_ADDRESS, SolScope.Mainnet);
+
+        expect(formatBlockExplorerAddressUrl).toHaveBeenCalledWith(
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[SolScope.Mainnet],
+          SOL_ADDRESS,
+        );
+        expect(result).toBe(mockUrl);
+      });
+
+      it('returns empty string when no explorer URLs exist for the chain', () => {
+        const result = getAddressUrl(
+          SOL_ADDRESS,
+          'unsupported-chain-id' as CaipChainId,
+        );
+
+        expect(formatBlockExplorerAddressUrl).not.toHaveBeenCalled();
+        expect(result).toBe('');
+      });
+    });
+
+    describe('shortenTransactionId', () => {
+      it('formats Solana transaction ID to a shortened version', () => {
+        const shortenedSolTxId = '4uQeVj...pjZM2r';
+        (formatAddress as jest.Mock).mockReturnValue(shortenedSolTxId);
+
+        const result = shortenTransactionId(MOCK_SOL_TX_ID);
+
+        expect(formatAddress).toHaveBeenCalledWith(MOCK_SOL_TX_ID, 'short');
+        expect(result).toBe(shortenedSolTxId);
+      });
+
+      it('formats Bitcoin transaction ID to a shortened version', () => {
+        const shortenedBtcTxId = '6a7d5d...4c5d6';
+        (formatAddress as jest.Mock).mockReturnValue(shortenedBtcTxId);
+
+        const result = shortenTransactionId(MOCK_BTC_TX_ID);
+
+        expect(formatAddress).toHaveBeenCalledWith(MOCK_BTC_TX_ID, 'short');
+        expect(result).toBe(shortenedBtcTxId);
+      });
     });
   });
 });

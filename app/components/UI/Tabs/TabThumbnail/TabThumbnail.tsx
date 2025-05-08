@@ -8,7 +8,9 @@ import Avatar, {
 } from '../../../../component-library/components/Avatars/Avatar';
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
 import Icon, {
   IconColor,
   IconName,
@@ -52,7 +54,7 @@ const TabThumbnail = ({
     tabTitle,
   );
   const activeAddress = permittedAccountsByHostname[0];
-  const { accounts } = useAccounts({});
+  const { evmAccounts: accounts } = useAccounts({});
   const selectedAccount = accounts.find(
     (account) => account.address.toLowerCase() === activeAddress?.toLowerCase(),
   );
@@ -96,9 +98,10 @@ const TabThumbnail = ({
           <Image source={{ uri: tab.image }} style={styles.tabImage} />
         </View>
         {selectedAccount && (
-          <View style={styles.footerContainer}>
+          <View testID="footer-container" style={styles.footerContainer}>
             <View style={styles.badgeWrapperContainer}>
               <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
                 badgeElement={
                   <Badge
                     size={AvatarSize.Xs}

@@ -27,10 +27,7 @@ import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import { getOrderAmount } from '../utils';
-import {
-  selectNetworkConfigurations,
-  selectProviderConfig,
-} from '../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import ListItem from '../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -95,12 +92,12 @@ interface PropsStage {
   isTransacted: boolean;
 }
 
-const Row: React.FC = (props) => {
+const Row: React.FC<{ children: React.ReactNode }> = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={styles.row} {...props} />;
 };
-const Group: React.FC = (props) => {
+const Group: React.FC<{ children: React.ReactNode }> = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={styles.group} {...props} />;
@@ -245,9 +242,10 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   } = order;
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const explorer = useBlockExplorer(networkConfigurations);
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
   const renderAmount = getOrderAmount(order);

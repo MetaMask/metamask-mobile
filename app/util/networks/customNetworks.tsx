@@ -1,6 +1,9 @@
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { BtcScope, SolScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -99,6 +102,16 @@ export const PopularList = [
     },
   },
 ];
+
+export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
+  if (chainId === SolScope.Mainnet) {
+    return require('../../images/solana-logo.png');
+  }
+  if (chainId === BtcScope.Mainnet) {
+    return require('../../images/bitcoin-logo.png');
+  }
+  return undefined;
+};
 
 export const INFURA_TESTNET_CHAIN_IDS = {
   GOERLI: '0x5',
@@ -215,6 +228,9 @@ export const NETWORK_CHAIN_ID: {
   readonly GRAVITY_ALPHA_MAINNET: '0x659';
   readonly KAIA_MAINNET: '0x2019';
   readonly KAIA_KAIROS_TESTNET: '0x3e9';
+  readonly SONEIUM_MAINNET: '0x74c';
+  readonly SONEIUM_MINATO_TESTNET: '0x79a';
+  readonly XRPLEVM_TESTNET: '0x161c28';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -223,6 +239,9 @@ export const NETWORK_CHAIN_ID: {
   GRAVITY_ALPHA_MAINNET: '0x659',
   KAIA_MAINNET: '0x2019',
   KAIA_KAIROS_TESTNET: '0x3e9',
+  SONEIUM_MAINNET: '0x74c',
+  SONEIUM_MINATO_TESTNET: '0x79a',
+  XRPLEVM_TESTNET: '0x161c28',
   ...CHAIN_IDS,
 };
 
@@ -236,4 +255,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.LINEA_MAINNET]: require('../../images/linea-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.KAIA_MAINNET]: require('../../images/kaia.png'),
   [NETWORK_CHAIN_ID.KAIA_KAIROS_TESTNET]: require('../../images/kaia.png'),
+  [NETWORK_CHAIN_ID.SONEIUM_MINATO_TESTNET]: require('../../images/soneium.png'),
+  [NETWORK_CHAIN_ID.SONEIUM_MAINNET]: require('../../images/soneium.png'),
+  [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: require('../../images/xrplevm.png'),
 };

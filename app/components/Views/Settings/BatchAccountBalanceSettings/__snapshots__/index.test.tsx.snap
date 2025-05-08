@@ -21,10 +21,10 @@ exports[`BatchAccountBalanceSettings should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -45,7 +45,7 @@ exports[`BatchAccountBalanceSettings should render correctly 1`] = `
         onChange={[Function]}
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
-        onTintColor="#0376c9"
+        onTintColor="#4459ff"
         style={
           [
             {
@@ -57,7 +57,7 @@ exports[`BatchAccountBalanceSettings should render correctly 1`] = `
                 "alignSelf": "flex-start",
               },
               {
-                "backgroundColor": "#BBC0C566",
+                "backgroundColor": "#b7bbc866",
                 "borderRadius": 16,
               },
             ],
@@ -65,7 +65,7 @@ exports[`BatchAccountBalanceSettings should render correctly 1`] = `
         }
         testID="security-settings-multi-account-balances-switch"
         thumbTintColor="#ffffff"
-        tintColor="#BBC0C566"
+        tintColor="#b7bbc866"
         value={false}
       />
     </View>
@@ -74,12 +74,12 @@ exports[`BatchAccountBalanceSettings should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#6a737d",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "color": "#686e7d",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
         "marginTop": 8,
       }
     }

@@ -150,7 +150,13 @@ exports[`Network Selector renders correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`Network Selector renders correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -317,7 +324,7 @@ exports[`Network Selector renders correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000099",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -389,7 +396,7 @@ exports[`Network Selector renders correctly 1`] = `
                             style={
                               {
                                 "alignSelf": "center",
-                                "backgroundColor": "#848c96",
+                                "backgroundColor": "#b7bbc8",
                                 "borderRadius": 4,
                                 "height": 5,
                                 "marginTop": 8,
@@ -401,8 +408,8 @@ exports[`Network Selector renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 18,
                                 "fontWeight": "700",
                                 "letterSpacing": 0,
@@ -428,10 +435,10 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "borderColor": "#848c96",
+                                  "borderColor": "#b7bbc8",
                                   "borderRadius": 5,
                                   "borderWidth": 1,
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "flexDirection": "row",
                                   "paddingHorizontal": 10,
                                   "paddingVertical": 10,
@@ -440,10 +447,11 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontSize": 20,
                                     },
                                     undefined,
@@ -456,17 +464,17 @@ exports[`Network Selector renders correctly 1`] = `
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                               <TextInput
                                 onChangeText={[Function]}
                                 placeholder="Search for previously added network"
-                                placeholderTextColor="#141618"
+                                placeholderTextColor="#121314"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "paddingLeft": 10,
@@ -479,6 +487,11 @@ exports[`Network Selector renders correctly 1`] = `
                           </View>
                           <View
                             onLayout={[Function]}
+                            style={
+                              {
+                                "minHeight": 667,
+                              }
+                            }
                           >
                             <RCTScrollView
                               collapsable={false}
@@ -537,7 +550,7 @@ exports[`Network Selector renders correctly 1`] = `
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 16,
+                                              "borderRadius": 8,
                                               "height": 32,
                                               "justifyContent": "center",
                                               "marginRight": 16,
@@ -573,8 +586,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             numberOfLines={1}
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -594,7 +607,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#0376C91A",
+                                        "backgroundColor": "#4459ff1a",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -607,7 +620,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     <View
                                       style={
                                         {
-                                          "backgroundColor": "#0376c9",
+                                          "backgroundColor": "#4459ff",
                                           "borderRadius": 2,
                                           "marginLeft": 4,
                                           "marginVertical": 4,
@@ -659,7 +672,7 @@ exports[`Network Selector renders correctly 1`] = `
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 16,
+                                              "borderRadius": 8,
                                               "height": 32,
                                               "justifyContent": "center",
                                               "marginRight": 16,
@@ -695,8 +708,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             numberOfLines={1}
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -756,7 +769,7 @@ exports[`Network Selector renders correctly 1`] = `
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 16,
+                                              "borderRadius": 8,
                                               "height": 32,
                                               "justifyContent": "center",
                                               "marginRight": 16,
@@ -792,8 +805,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             numberOfLines={1}
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -853,7 +866,7 @@ exports[`Network Selector renders correctly 1`] = `
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 16,
+                                              "borderRadius": 8,
                                               "height": 32,
                                               "justifyContent": "center",
                                               "marginRight": 16,
@@ -889,8 +902,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             numberOfLines={1}
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -950,7 +963,7 @@ exports[`Network Selector renders correctly 1`] = `
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 16,
+                                              "borderRadius": 8,
                                               "height": 32,
                                               "justifyContent": "center",
                                               "marginRight": 16,
@@ -986,8 +999,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             numberOfLines={1}
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -1046,7 +1059,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           style={
                                             {
                                               "alignItems": "center",
-                                              "backgroundColor": "#f2f4f6",
+                                              "backgroundColor": "#f3f5f9",
                                               "borderRadius": 16,
                                               "borderWidth": 1,
                                               "height": 32,
@@ -1062,8 +1075,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -1087,8 +1100,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             numberOfLines={1}
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -1098,6 +1111,103 @@ exports[`Network Selector renders correctly 1`] = `
                                             testID="cellbase-avatar-title"
                                           >
                                             Gnosis Chain
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
+                                  }
+                                  testID="cellselect"
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "marginRight": 16,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="cellbase-avatar"
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "flex": 1,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                            testID="cellbase-avatar-title"
+                                          >
+                                            Solana
                                           </Text>
                                         </View>
                                       </View>
@@ -1119,9 +1229,9 @@ exports[`Network Selector renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#6a737d",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 16,
+                                        "color": "#686e7d",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 18,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1136,7 +1246,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     onChange={[Function]}
                                     onResponderTerminationRequest={[Function]}
                                     onStartShouldSetResponder={[Function]}
-                                    onTintColor="#0376c9"
+                                    onTintColor="#4459ff"
                                     style={
                                       [
                                         {
@@ -1144,14 +1254,14 @@ exports[`Network Selector renders correctly 1`] = `
                                           "width": 51,
                                         },
                                         {
-                                          "backgroundColor": "#BBC0C566",
+                                          "backgroundColor": "#b7bbc866",
                                           "borderRadius": 16,
                                         },
                                       ]
                                     }
                                     testID="test-network-switch-id"
                                     thumbTintColor="#ffffff"
-                                    tintColor="#BBC0C566"
+                                    tintColor="#b7bbc866"
                                     value={false}
                                   />
                                 </View>
@@ -1169,7 +1279,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
                                   "backgroundColor": "transparent",
-                                  "borderColor": "#0376c9",
+                                  "borderColor": "#4459ff",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -1186,12 +1296,12 @@ exports[`Network Selector renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#0376c9",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
+                                    "color": "#4459ff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -1364,7 +1474,13 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1372,6 +1488,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1531,7 +1648,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                         style={
                           [
                             {
-                              "backgroundColor": "#00000099",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1603,7 +1720,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                             style={
                               {
                                 "alignSelf": "center",
-                                "backgroundColor": "#848c96",
+                                "backgroundColor": "#b7bbc8",
                                 "borderRadius": 4,
                                 "height": 5,
                                 "marginTop": 8,
@@ -1615,8 +1732,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 18,
                                 "fontWeight": "700",
                                 "letterSpacing": 0,
@@ -1642,10 +1759,10 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                               style={
                                 {
                                   "alignItems": "center",
-                                  "borderColor": "#848c96",
+                                  "borderColor": "#b7bbc8",
                                   "borderRadius": 5,
                                   "borderWidth": 1,
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "flexDirection": "row",
                                   "paddingHorizontal": 10,
                                   "paddingVertical": 10,
@@ -1654,10 +1771,11 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontSize": 20,
                                     },
                                     undefined,
@@ -1670,20 +1788,20 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                               <TextInput
                                 onBlur={[Function]}
                                 onChangeText={[Function]}
                                 onFocus={[Function]}
                                 placeholder="Search"
-                                placeholderTextColor="#141618"
+                                placeholderTextColor="#121314"
                                 style={
                                   {
-                                    "borderColor": "#848c96",
-                                    "color": "#141618",
+                                    "borderColor": "#b7bbc8",
+                                    "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "paddingLeft": 10,
@@ -1696,6 +1814,11 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                           </View>
                           <View
                             onLayout={[Function]}
+                            style={
+                              {
+                                "minHeight": 667,
+                              }
+                            }
                           >
                             <RCTScrollView
                               collapsable={false}
@@ -1725,9 +1848,9 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#6a737d",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 16,
+                                        "color": "#686e7d",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 18,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1741,7 +1864,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376C91A",
+                                      "backgroundColor": "#4459ff1a",
                                       "flexDirection": "row",
                                     }
                                   }
@@ -1800,7 +1923,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               {
                                                 "alignItems": "center",
                                                 "backgroundColor": "#ffffff",
-                                                "borderRadius": 12,
+                                                "borderRadius": 8,
                                                 "height": 24,
                                                 "justifyContent": "center",
                                                 "marginRight": 16,
@@ -1836,8 +1959,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -1882,19 +2005,20 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 numberOfLines={1}
                                                 style={
                                                   {
-                                                    "color": "#6a737d",
-                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "color": "#686e7d",
+                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontSize": 16,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 22,
+                                                    "lineHeight": 24,
                                                   }
                                                 }
                                               >
                                                 mainnet-rpc.publicnode.com
                                               </Text>
                                               <SvgMock
-                                                color="#141618"
+                                                color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -1917,7 +2041,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       accessible={true}
                                       style={
                                         {
-                                          "backgroundColor": "#0376C91A",
+                                          "backgroundColor": "#4459ff1a",
                                           "bottom": 0,
                                           "flexDirection": "row",
                                           "left": 0,
@@ -1931,7 +2055,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       <View
                                         style={
                                           {
-                                            "backgroundColor": "#0376c9",
+                                            "backgroundColor": "#4459ff",
                                             "borderRadius": 2,
                                             "marginLeft": 4,
                                             "marginVertical": 4,
@@ -1969,7 +2093,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       testID="button-menu-select-test-id"
                                     >
                                       <SvgMock
-                                        color="#141618"
+                                        color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2046,7 +2171,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               {
                                                 "alignItems": "center",
                                                 "backgroundColor": "#ffffff",
-                                                "borderRadius": 12,
+                                                "borderRadius": 8,
                                                 "height": 24,
                                                 "justifyContent": "center",
                                                 "marginRight": 16,
@@ -2082,8 +2207,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -2128,19 +2253,20 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 numberOfLines={1}
                                                 style={
                                                   {
-                                                    "color": "#6a737d",
-                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "color": "#686e7d",
+                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontSize": 16,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 22,
+                                                    "lineHeight": 24,
                                                   }
                                                 }
                                               >
                                                 linea-rpc.publicnode.com
                                               </Text>
                                               <SvgMock
-                                                color="#141618"
+                                                color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2187,7 +2313,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       testID="button-menu-select-test-id"
                                     >
                                       <SvgMock
-                                        color="#141618"
+                                        color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2264,7 +2391,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               {
                                                 "alignItems": "center",
                                                 "backgroundColor": "#ffffff",
-                                                "borderRadius": 12,
+                                                "borderRadius": 8,
                                                 "height": 24,
                                                 "justifyContent": "center",
                                                 "marginRight": 16,
@@ -2300,8 +2427,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -2346,19 +2473,20 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 numberOfLines={1}
                                                 style={
                                                   {
-                                                    "color": "#6a737d",
-                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "color": "#686e7d",
+                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontSize": 16,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 22,
+                                                    "lineHeight": 24,
                                                   }
                                                 }
                                               >
                                                 api.avax.network/ext/bc/C
                                               </Text>
                                               <SvgMock
-                                                color="#141618"
+                                                color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2405,7 +2533,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       testID="button-menu-select-test-id"
                                     >
                                       <SvgMock
-                                        color="#141618"
+                                        color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2482,7 +2611,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               {
                                                 "alignItems": "center",
                                                 "backgroundColor": "#ffffff",
-                                                "borderRadius": 12,
+                                                "borderRadius": 8,
                                                 "height": 24,
                                                 "justifyContent": "center",
                                                 "marginRight": 16,
@@ -2518,8 +2647,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -2564,19 +2693,20 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 numberOfLines={1}
                                                 style={
                                                   {
-                                                    "color": "#6a737d",
-                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "color": "#686e7d",
+                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontSize": 16,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 22,
+                                                    "lineHeight": 24,
                                                   }
                                                 }
                                               >
                                                 polygon-mainnet.infura.io/v3
                                               </Text>
                                               <SvgMock
-                                                color="#141618"
+                                                color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2623,7 +2753,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       testID="button-menu-select-test-id"
                                     >
                                       <SvgMock
-                                        color="#141618"
+                                        color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2700,7 +2831,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               {
                                                 "alignItems": "center",
                                                 "backgroundColor": "#ffffff",
-                                                "borderRadius": 12,
+                                                "borderRadius": 8,
                                                 "height": 24,
                                                 "justifyContent": "center",
                                                 "marginRight": 16,
@@ -2736,8 +2867,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -2782,19 +2913,20 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 numberOfLines={1}
                                                 style={
                                                   {
-                                                    "color": "#6a737d",
-                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "color": "#686e7d",
+                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontSize": 16,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 22,
+                                                    "lineHeight": 24,
                                                   }
                                                 }
                                               >
                                                 optimism-mainnet.infura.io/v3
                                               </Text>
                                               <SvgMock
-                                                color="#141618"
+                                                color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2841,7 +2973,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       testID="button-menu-select-test-id"
                                     >
                                       <SvgMock
-                                        color="#141618"
+                                        color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2917,7 +3050,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             style={
                                               {
                                                 "alignItems": "center",
-                                                "backgroundColor": "#f2f4f6",
+                                                "backgroundColor": "#f3f5f9",
                                                 "borderRadius": 12,
                                                 "borderWidth": 1,
                                                 "height": 24,
@@ -2933,12 +3066,12 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 14,
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
-                                                  "lineHeight": 22,
+                                                  "lineHeight": 24,
                                                 }
                                               }
                                             >
@@ -2958,8 +3091,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -3004,19 +3137,20 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 numberOfLines={1}
                                                 style={
                                                   {
-                                                    "color": "#6a737d",
-                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "color": "#686e7d",
+                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontSize": 16,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
-                                                    "lineHeight": 22,
+                                                    "lineHeight": 24,
                                                   }
                                                 }
                                               >
                                                 rpc.gnosischain.com
                                               </Text>
                                               <SvgMock
-                                                color="#141618"
+                                                color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -3063,7 +3197,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       testID="button-menu-select-test-id"
                                     >
                                       <SvgMock
-                                        color="#141618"
+                                        color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -3077,6 +3212,103 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     </TouchableOpacity>
                                   </View>
                                 </View>
+                                <TouchableOpacity
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
+                                  }
+                                  testID="cellselect"
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "height": 24,
+                                              "justifyContent": "center",
+                                              "marginRight": 16,
+                                              "overflow": "hidden",
+                                              "width": 24,
+                                            }
+                                          }
+                                          testID="cellbase-avatar"
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 24,
+                                                "width": 24,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "flex": 1,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                            testID="cellbase-avatar-title"
+                                          >
+                                            Solana
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
                                 <View
                                   style={
                                     {
@@ -3092,9 +3324,9 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#6a737d",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 16,
+                                        "color": "#686e7d",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 18,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -3122,6 +3354,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   >
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -3129,7 +3362,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             "fontSize": 14,
                                           },
                                           {
-                                            "color": "#6a737d",
+                                            "color": "#686e7d",
                                           },
                                           {
                                             "fontFamily": "Material Design Icons",
@@ -3140,7 +3373,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         ]
                                       }
                                     >
-                                      
+                                      󰋼
                                     </Text>
                                   </TouchableOpacity>
                                 </View>
@@ -3185,7 +3418,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 12,
+                                              "borderRadius": 8,
                                               "height": 24,
                                               "justifyContent": "center",
                                               "overflow": "hidden",
@@ -3211,8 +3444,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
@@ -3259,8 +3492,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
@@ -3285,7 +3518,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#0376c9",
+                                              "color": "#4459ff",
                                             },
                                             undefined,
                                             undefined,
@@ -3332,7 +3565,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 12,
+                                              "borderRadius": 8,
                                               "height": 24,
                                               "justifyContent": "center",
                                               "overflow": "hidden",
@@ -3358,8 +3591,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
@@ -3406,8 +3639,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
@@ -3432,7 +3665,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#0376c9",
+                                              "color": "#4459ff",
                                             },
                                             undefined,
                                             undefined,
@@ -3479,7 +3712,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 12,
+                                              "borderRadius": 8,
                                               "height": 24,
                                               "justifyContent": "center",
                                               "overflow": "hidden",
@@ -3505,8 +3738,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
@@ -3553,8 +3786,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
@@ -3579,7 +3812,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#0376c9",
+                                              "color": "#4459ff",
                                             },
                                             undefined,
                                             undefined,
@@ -3626,7 +3859,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 12,
+                                              "borderRadius": 8,
                                               "height": 24,
                                               "justifyContent": "center",
                                               "overflow": "hidden",
@@ -3652,8 +3885,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
@@ -3700,8 +3933,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
@@ -3726,7 +3959,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#0376c9",
+                                              "color": "#4459ff",
                                             },
                                             undefined,
                                             undefined,
@@ -3773,7 +4006,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 12,
+                                              "borderRadius": 8,
                                               "height": 24,
                                               "justifyContent": "center",
                                               "overflow": "hidden",
@@ -3799,8 +4032,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
@@ -3847,8 +4080,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
@@ -3873,7 +4106,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#0376c9",
+                                              "color": "#4459ff",
                                             },
                                             undefined,
                                             undefined,
@@ -3902,9 +4135,9 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#6a737d",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 16,
+                                        "color": "#686e7d",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 18,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -3919,7 +4152,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     onChange={[Function]}
                                     onResponderTerminationRequest={[Function]}
                                     onStartShouldSetResponder={[Function]}
-                                    onTintColor="#0376c9"
+                                    onTintColor="#4459ff"
                                     style={
                                       [
                                         {
@@ -3927,14 +4160,14 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           "width": 51,
                                         },
                                         {
-                                          "backgroundColor": "#BBC0C566",
+                                          "backgroundColor": "#b7bbc866",
                                           "borderRadius": 16,
                                         },
                                       ]
                                     }
                                     testID="test-network-switch-id"
                                     thumbTintColor="#ffffff"
-                                    tintColor="#BBC0C566"
+                                    tintColor="#b7bbc866"
                                     value={false}
                                   />
                                 </View>
@@ -3952,7 +4185,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
                                   "backgroundColor": "transparent",
-                                  "borderColor": "#0376c9",
+                                  "borderColor": "#4459ff",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -3969,12 +4202,12 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#0376c9",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
+                                    "color": "#4459ff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >

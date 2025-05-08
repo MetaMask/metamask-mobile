@@ -17,12 +17,28 @@ import {
 } from './MetaMetrics.types';
 import { MetricsEventBuilder } from './MetricsEventBuilder';
 
+
 jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
 const mockSet = jest.fn();
 const mockClear = jest.fn();
 
+
 jest.mock('axios');
+
+// Mock MetaMetricsTestUtils
+const mockTrackE2EEvent = jest.fn();
+const mockInstance = {
+  trackEvent: mockTrackE2EEvent,
+};
+
+jest.mock('./MetaMetricsTestUtils', () => ({
+  __esModule: true,
+  default: {
+    getInstance: jest.fn().mockImplementation(() => mockInstance),
+  },
+}));
+
 
 /**
  * Extend MetaMetrics to allow reset of the singleton instance
@@ -43,7 +59,6 @@ describe('MetaMetrics', () => {
     StorageWrapper.setItem = mockSet;
     StorageWrapper.clearAll = mockClear;
     TestMetaMetrics.resetInstance();
-    TestMetaMetrics.getInstance().setEventsPortionToTrack(1);
   });
 
   afterEach(() => {
@@ -308,45 +323,6 @@ describe('MetaMetrics', () => {
 
         // Only two events should be tracked, one anonymous and one non-anonymous
         expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
-      });
-
-      it('does not track event when metaMetricsId is an invalid UUID', async () => {
-        const invalidUUID = 'my invalid metametrics ID';
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? invalidUUID : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-        await metaMetrics.configure();
-        await metaMetrics.enable();
-        const event = MetricsEventBuilder.createEventBuilder({
-          category: 'test event',
-        }).build();
-        metaMetrics.trackEvent(event);
-
-        const { segmentMockClient } =
-          global as unknown as GlobalWithSegmentClient;
-
-        expect(segmentMockClient.track).not.toHaveBeenCalled();
-      });
-
-      it('does not track event when eventsPortionToTrack is zero', async () => {
-        const metaMetrics = TestMetaMetrics.getInstance();
-        await metaMetrics.configure();
-        await metaMetrics.enable();
-        const event = MetricsEventBuilder.createEventBuilder({
-          category: 'test event',
-        }).build();
-        metaMetrics.setEventsPortionToTrack(0);
-        metaMetrics.trackEvent(event);
-
-        const { segmentMockClient } =
-          global as unknown as GlobalWithSegmentClient;
-
-        // check if the event was tracked
-        expect(segmentMockClient.track).not.toHaveBeenCalledWith(event.name, {
-          anonymous: false,
-        });
-        expect(segmentMockClient.track).toHaveBeenCalledTimes(0);
       });
     });
 
@@ -771,6 +747,43 @@ describe('MetaMetrics', () => {
         expect(dataDeletionRequestStatus).toEqual(DataDeleteStatus.unknown);
         expect(deletionRequestDate).toBeUndefined();
       });
+    });
+  });
+
+  describe('E2E Mode', () => {
+
+    beforeEach(() => {
+      mockTrackE2EEvent.mockClear();
+    });
+
+    const testE2EMode = async (isE2E: boolean) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const utils = require('../../util/test/utils');
+      utils.isE2E = isE2E;
+
+      const metaMetrics = MetaMetrics.getInstance();
+      await metaMetrics.configure();
+      await metaMetrics.enable();
+
+      const event = MetricsEventBuilder.createEventBuilder({
+        category: 'test event',
+      }).build();
+
+      metaMetrics.trackEvent(event);
+
+      if (isE2E) {
+        expect(mockTrackE2EEvent).toHaveBeenCalledWith(event);
+      } else {
+        expect(mockTrackE2EEvent).not.toHaveBeenCalled();
+      }
+    };
+
+    it('calls MetaMetricsTestUtils.trackEvent when isE2E is true', async () => {
+      await testE2EMode(true);
+    });
+
+    it('does not call MetaMetricsTestUtils.trackEvent when isE2E is false', async () => {
+      await testE2EMode(false);
     });
   });
 });

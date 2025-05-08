@@ -20,16 +20,18 @@ jobs:
 
   create-release-pr:
     needs: generate-build-version
-    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@4f594ca7d90378da66b7efce987eff379934524b
+    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@d1ba843333b920fc9b0e1823fd519b7a64d07f5f
     with:
       platform: mobile
       base-branch: ${{ inputs.base-branch }}
       semver-version: ${{ inputs.semver-version }}
       previous-version-tag: ${{ inputs.previous-version-tag }}
       mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
+
     secrets:
       # This token needs read permissions to metamask-planning & write permissions to metamask-mobile
       github-token: ${{ secrets.PR_TOKEN }}
+      google-application-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}
     permissions:
       contents: write
       pull-requests: write

@@ -11,11 +11,11 @@ import { loginToApp } from '../../../../viewHelper';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
 import Assertions from '../../../../utils/Assertions';
-import { SmokeMultiChainPermissions } from '../../../../tags';
+import { SmokeNetworkExpansion } from '../../../../tags';
 
 const AccountTwoText = 'Account 2';
 
-describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
+describe(SmokeNetworkExpansion('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

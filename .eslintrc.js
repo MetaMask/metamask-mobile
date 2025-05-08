@@ -78,10 +78,11 @@ module.exports = {
         'app/components/UI/Name/**/*.{js,ts,tsx}',
         'app/components/UI/SimulationDetails/**/*.{js,ts,tsx}',
         'app/components/hooks/DisplayName/**/*.{js,ts,tsx}',
-        'app/components/Views/confirmations/**/*.{js,ts,tsx}'
+        'app/components/Views/confirmations/**/*.{js,ts,tsx}',
       ],
       excludedFiles: [
-        'app/components/Views/confirmations/components/WatchAssetRequest/**/*.{js,ts,tsx}'],
+        'app/components/Views/confirmations/components/WatchAssetRequest/**/*.{js,ts,tsx}',
+      ],
       rules: {
         'no-restricted-syntax': [
           'error',
@@ -97,7 +98,7 @@ module.exports = {
               'selectProviderType',
               'selectRpcUrl',
               'selectSelectedNetworkClientId',
-              'selectTicker',
+              'selectEvmTicker',
             ]
               .map((method) => `^${method}$`)
               .join('|')}/]`,

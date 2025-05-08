@@ -16,7 +16,7 @@ export const bold: UIComponentFactory<BoldElement> = ({
   ),
   props: {
     variant: TextVariant.BodyMDBold,
-    color: 'inherit',
+    color: params.textColor,
     numberOfLines: 0,
     flexWrap: 'wrap',
   },

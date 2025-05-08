@@ -1,4 +1,4 @@
-import { BN } from 'ethereumjs-util';
+import BN from 'bnjs4';
 import TransactionTypes from '../core/TransactionTypes';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 

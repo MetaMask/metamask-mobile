@@ -4,6 +4,7 @@ import useTokenBalancesPolling from './useTokenBalancesPolling';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 import { RootState } from '../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -25,6 +26,12 @@ describe('useTokenBalancesPolling', () => {
       backgroundState: {
         TokenBalancesController: {
           tokenBalances: {},
+        },
+        MultichainNetworkController: {
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+          multichainNetworkConfigurationsByChainId: {},
         },
         NetworkController: {
           selectedNetworkClientId: 'selectedNetworkClientId',
@@ -169,6 +176,11 @@ describe('useTokenBalancesPolling', () => {
                   },
                 },
               },
+              MultichainNetworkController: {
+                isEvmSelected: true,
+                selectedMultichainNetworkChainId: SolScope.Mainnet,
+                multichainNetworkConfigurationsByChainId: {},
+              },
             },
           },
         },
@@ -188,5 +200,28 @@ describe('useTokenBalancesPolling', () => {
     expect(
       mockedTokenBalancesController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should not poll when evm is not selected', async () => {
+    renderHookWithProvider(() => useTokenBalancesPolling(), {
+      state: {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            MultichainNetworkController: {
+              ...state.engine.backgroundState.MultichainNetworkController,
+              isEvmSelected: false,
+            },
+          },
+        },
+      },
+    });
+
+    const mockedTokenBalancesController = jest.mocked(
+      Engine.context.TokenBalancesController,
+    );
+    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(0);
   });
 });

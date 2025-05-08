@@ -3,6 +3,10 @@ import type { Theme } from '@metamask/design-tokens';
 import Device from '../../../../util/device';
 import { fontStyles } from '../../../../styles/common';
 import scaling from '../../../../util/scaling';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 const HEIGHT = scaling.scale(240);
 const DEVICE_WIDTH = Device.getDeviceWidth();
@@ -215,6 +219,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
     },
     announcementDescriptionText: {
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.text.default,
       marginHorizontal: 1,
       // Announcement Description has some underlying padding that we want to remove.

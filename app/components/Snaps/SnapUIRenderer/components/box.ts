@@ -30,13 +30,43 @@ function generateJustifyContent(alignment?: BoxProps['alignment']) {
   }
 }
 
+function generateAlignItems(
+  crossAlignment: BoxProps['crossAlignment'],
+  center?: BoxProps['center'],
+) {
+  if (center) {
+    return AlignItems.center;
+  }
+
+  switch (crossAlignment) {
+    default:
+      return undefined;
+
+    case 'start':
+      return AlignItems.flexStart;
+
+    case 'center':
+      return AlignItems.center;
+
+    case 'end':
+      return AlignItems.flexEnd;
+  }
+}
+
 export const box: UIComponentFactory<BoxElement> = ({
   element: e,
   ...params
 }) => ({
   element: 'Box',
   children: getJsxChildren(e).map((children) =>
-    mapToTemplate({ ...params, element: children as JSXElement }),
+    mapToTemplate({
+      ...params,
+      element: children as JSXElement,
+      // We have to pass this information down to the children so that they can
+      // hide the balance and fiat in inline mode when the asset selector has a sibling element
+      // and to reduce the padding of the snap ui selector when it has a sibling element.
+      isParentFlexRow: e.props.direction === 'horizontal',
+    }),
   ) as NonEmptyArray<UIComponent>,
   props: {
     flexDirection:
@@ -44,7 +74,8 @@ export const box: UIComponentFactory<BoxElement> = ({
         ? FlexDirection.Row
         : FlexDirection.Column,
     justifyContent: generateJustifyContent(e.props.alignment),
-    alignItems: e.props.center && AlignItems.center,
+    alignItems: generateAlignItems(e.props.crossAlignment, e.props.center),
     color: TextColor.Default,
+    gap: 8,
   },
 });

@@ -7,7 +7,7 @@ exports[`Button should render correctly 1`] = `
     [
       {
         "alignItems": "center",
-        "backgroundColor": "#0376c9",
+        "backgroundColor": "#4459ff",
         "borderRadius": 4,
         "flex": 1,
         "height": 40,

@@ -4,7 +4,7 @@ import { ViewStyle } from 'react-native';
 export interface Collectible {
   name: string;
   tokenId: string;
-  image: string;
+  image: string | string[];
   imagePreview: string;
   address: string;
   animation?: string;
@@ -17,10 +17,15 @@ export interface Collectible {
   description?: string;
   rarityRank?: number;
   isCurrentlyOwned?: boolean;
+  chainId: number;
 }
 
+type NFTData = Omit<Nft, 'image'> & {
+  image: Nft['image'] | string[];
+};
+
 export interface CollectibleMediaProps {
-  collectible: Nft;
+  collectible: NFTData;
   tiny?: boolean;
   small?: boolean;
   big?: boolean;

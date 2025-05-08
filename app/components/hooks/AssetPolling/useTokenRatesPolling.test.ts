@@ -2,6 +2,7 @@ import useTokenRatesPolling from './useTokenRatesPolling';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -22,6 +23,12 @@ describe('useTokenRatesPolling', () => {
       backgroundState: {
         TokenRatesController: {
           marketData: {},
+        },
+        MultichainNetworkController: {
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+          multichainNetworkConfigurationsByChainId: {},
         },
         NetworkController: {
           networkConfigurationsByChainId: {
@@ -52,7 +59,7 @@ describe('useTokenRatesPolling', () => {
 
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(1);
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledWith({
-      chainId: '0x1',
+      chainIds: ['0x1'],
     });
 
     expect(
@@ -68,6 +75,12 @@ describe('useTokenRatesPolling', () => {
     const stateToTest = {
       engine: {
         backgroundState: {
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+            multichainNetworkConfigurationsByChainId: {},
+          },
           NetworkController: {
             selectedNetworkClientId: 'selectedNetworkClientId',
             networkConfigurationsByChainId: {
@@ -106,7 +119,7 @@ describe('useTokenRatesPolling', () => {
 
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(1);
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledWith({
-      chainId: '0x82750',
+      chainIds: ['0x82750'],
     });
 
     expect(
@@ -116,5 +129,28 @@ describe('useTokenRatesPolling', () => {
     expect(
       mockedTokenRatesController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should not poll when evm is not selected', async () => {
+    renderHookWithProvider(() => useTokenRatesPolling(), {
+      state: {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            MultichainNetworkController: {
+              ...state.engine.backgroundState.MultichainNetworkController,
+              isEvmSelected: false,
+            },
+          },
+        },
+      },
+    });
+
+    const mockedTokenRatesController = jest.mocked(
+      Engine.context.TokenRatesController,
+    );
+    expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(0);
   });
 });

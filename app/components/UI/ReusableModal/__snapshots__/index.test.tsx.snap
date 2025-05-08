@@ -17,7 +17,7 @@ exports[`ReusableModal should render correctly 1`] = `
       style={
         [
           {
-            "backgroundColor": "#00000099",
+            "backgroundColor": "#00000066",
             "bottom": 0,
             "left": 0,
             "position": "absolute",

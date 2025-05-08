@@ -8,10 +8,6 @@ import PickerNetwork from '../../../component-library/components/Pickers/PickerN
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import {
-  ProviderConfig,
-  selectProviderConfig,
-} from '../../../selectors/networkController';
-import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
@@ -23,9 +19,10 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import AppConstants from '../../../core/AppConstants';
 import styles from './ManageNetworks.styles';
+import { selectChainId } from '../../../selectors/networkController';
 
 export default function ManageNetworksComponent() {
-  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectChainId);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -40,15 +37,19 @@ export default function ManageNetworksComponent() {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
         .addProperties({
-          chain_id: getDecimalChainId(providerConfig.chainId),
+          chain_id: getDecimalChainId(chainId),
         })
         .build(),
     );
-  }, [navigation, trackEvent, providerConfig, createEventBuilder]);
+  }, [navigation, trackEvent, chainId, createEventBuilder]);
 
-  const handleLink = () => {
+  const openPrivacyPolicyLink = useCallback(() => {
     Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);
-  };
+  }, []);
+
+  const openAddSolanaAccountPrivacyPolicyLink = useCallback(() => {
+    Linking.openURL(AppConstants.URLS.ADD_SOLANA_ACCOUNT_PRIVACY_POLICY);
+  }, []);
 
   return (
     <View style={styles.setting}>
@@ -63,10 +64,21 @@ export default function ManageNetworksComponent() {
         style={styles.description}
       >
         {strings('default_settings.manage_networks_body')}
-        <Text color={TextColor.Info} onPress={handleLink}>
+        <Text
+          color={TextColor.Info}
+          testID="privacy-policy-link"
+          onPress={openPrivacyPolicyLink}
+        >
           {strings('default_settings.privacy_policy')}
         </Text>
         {strings('default_settings.manage_networks_body2')}
+        <Text
+          color={TextColor.Info}
+          testID="solana-privacy-policy-link"
+          onPress={openAddSolanaAccountPrivacyPolicyLink}
+        >
+          {strings('default_settings.manage_networks_body3')}
+        </Text>
       </Text>
       <PickerNetwork
         label={networkName}

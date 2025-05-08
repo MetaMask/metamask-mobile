@@ -1,14 +1,9 @@
-import { NativeModules } from 'react-native';
 import { Encryptor } from './Encryptor';
+import { QuickCryptoLib } from './lib';
 import {
-  ShaAlgorithm,
-  CipherAlgorithm,
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
 } from './constants';
-
-const Aes = NativeModules.Aes;
-const AesForked = NativeModules.AesForked;
 
 describe('Encryptor', () => {
   let encryptor: Encryptor;
@@ -20,7 +15,7 @@ describe('Encryptor', () => {
   });
 
   describe('encrypt', () => {
-    it('should encrypt an object correctly', async () => {
+    it('encrypts an object correctly', async () => {
       const password = 'testPassword';
       const objectToEncrypt = { key: 'value' };
 
@@ -38,84 +33,22 @@ describe('Encryptor', () => {
   });
 
   describe('decrypt', () => {
-    let decryptAesSpy: jest.SpyInstance,
-      pbkdf2AesSpy: jest.SpyInstance,
-      decryptAesForkedSpy: jest.SpyInstance,
-      pbkdf2AesForkedSpy: jest.SpyInstance;
+    it('decrypts a string correctly', async () => {
+      const password = 'testPassword';
+      const mockVault = {
+        cipher: 'mockedCipher',
+        iv: 'mockedIV',
+        salt: 'mockedSalt',
+        lib: ENCRYPTION_LIBRARY.original,
+      };
 
-    beforeEach(() => {
-      decryptAesSpy = jest.spyOn(Aes, 'decrypt');
-      pbkdf2AesSpy = jest.spyOn(Aes, 'pbkdf2');
-      decryptAesForkedSpy = jest.spyOn(AesForked, 'decrypt');
-      pbkdf2AesForkedSpy = jest.spyOn(AesForked, 'pbkdf2');
+      const decryptedObject = await encryptor.decrypt(
+        password,
+        JSON.stringify(mockVault),
+      );
+
+      expect(decryptedObject).toEqual({ test: 'data' });
     });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it.each([
-      [
-        'with original library and legacy iterations number for key generation',
-        {
-          lib: ENCRYPTION_LIBRARY.original,
-          expectedKeyValue: 'mockedKey',
-          expectedPBKDF2Args: [
-            'testPassword',
-            'mockedSalt',
-            5000,
-            256,
-            ShaAlgorithm.Sha512,
-          ],
-        },
-      ],
-      [
-        'with library different to "original" and legacy iterations number for key generation',
-        {
-          lib: 'random-lib', // Assuming not using "original" should lead to AesForked
-          expectedKeyValue: 'mockedKeyForked',
-          expectedPBKDF2Args: ['testPassword', 'mockedSalt'],
-        },
-      ],
-    ])(
-      'decrypts a string correctly %s',
-      async (_, { lib, expectedKeyValue, expectedPBKDF2Args }) => {
-        const password = 'testPassword';
-        const mockVault = {
-          cipher: 'mockedCipher',
-          iv: 'mockedIV',
-          salt: 'mockedSalt',
-          lib,
-        };
-
-        const decryptedObject = await encryptor.decrypt(
-          password,
-          JSON.stringify(mockVault),
-        );
-
-        expect(decryptedObject).toEqual(expect.any(Object));
-
-        const expectedDecryptionArgs =
-          lib === ENCRYPTION_LIBRARY.original
-            ? [
-                mockVault.cipher,
-                expectedKeyValue,
-                mockVault.iv,
-                CipherAlgorithm.cbc,
-              ]
-            : [mockVault.cipher, expectedKeyValue, mockVault.iv];
-        expect(
-          lib === ENCRYPTION_LIBRARY.original
-            ? decryptAesSpy
-            : decryptAesForkedSpy,
-        ).toHaveBeenCalledWith(...expectedDecryptionArgs);
-        expect(
-          lib === ENCRYPTION_LIBRARY.original
-            ? pbkdf2AesSpy
-            : pbkdf2AesForkedSpy,
-        ).toHaveBeenCalledWith(...expectedPBKDF2Args);
-      },
-    );
   });
 
   describe('isVaultUpdated', () => {
@@ -294,5 +227,97 @@ describe('Encryptor', () => {
         ).rejects.toThrow('Invalid exported key structure');
       },
     );
+  });
+
+  describe('encryptWithDetail', () => {
+    it('encrypts data and returns the vault with the exported key string', async () => {
+      const password = 'testPassword';
+      const dataToEncrypt = { test: 'data' };
+      const mockSalt = 'mockSalt';
+
+      const result = await encryptor.encryptWithDetail(
+        password,
+        dataToEncrypt,
+        mockSalt,
+        LEGACY_DERIVATION_OPTIONS,
+      );
+
+      expect(result).toHaveProperty('vault');
+      expect(result).toHaveProperty('exportedKeyString');
+
+      const vaultObj = JSON.parse(result.vault);
+      expect(vaultObj).toHaveProperty('cipher');
+      expect(vaultObj).toHaveProperty('iv');
+      expect(vaultObj).toHaveProperty('salt', mockSalt);
+      expect(vaultObj).toHaveProperty('lib', 'original');
+      expect(vaultObj).toHaveProperty('keyMetadata', LEGACY_DERIVATION_OPTIONS);
+
+      const importedKey = await encryptor.importKey(result.exportedKeyString);
+      expect(importedKey).toHaveProperty('exportable', true);
+      expect(importedKey).toHaveProperty('lib', 'original');
+      expect(importedKey).toHaveProperty(
+        'keyMetadata',
+        LEGACY_DERIVATION_OPTIONS,
+      );
+    });
+  });
+
+  describe('decryptWithDetail', () => {
+    beforeEach(() => {
+      const mockDecrypt = jest
+        .fn()
+        .mockResolvedValue(JSON.stringify({ test: 'data' }));
+      jest.spyOn(QuickCryptoLib, 'decrypt').mockImplementation(mockDecrypt);
+
+      jest.spyOn(QuickCryptoLib, 'deriveKey').mockResolvedValue('mockedKey');
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('decrypts the vault and returns the data with key details', async () => {
+      const password = 'testPassword';
+      const originalData = { test: 'data' };
+      const { vault } = await encryptor.encryptWithDetail(
+        password,
+        originalData,
+      );
+
+      const result = await encryptor.decryptWithDetail(password, vault);
+
+      expect(result).toHaveProperty('exportedKeyString');
+      expect(result).toHaveProperty('vault');
+      expect(result).toHaveProperty('salt');
+
+      expect(result.vault).toEqual(originalData);
+
+      const importedKey = await encryptor.importKey(result.exportedKeyString);
+      expect(importedKey).toHaveProperty('exportable', true);
+      expect(importedKey).toHaveProperty('lib', 'original');
+      expect(importedKey).toHaveProperty('keyMetadata');
+    });
+
+    it('handles legacy vaults without keyMetadata', async () => {
+      const password = 'testPassword';
+      const mockVault = {
+        cipher: 'mockedCipher',
+        iv: 'mockedIV',
+        salt: 'mockedSalt',
+        lib: 'original',
+      };
+
+      const result = await encryptor.decryptWithDetail(
+        password,
+        JSON.stringify(mockVault),
+      );
+
+      expect(result).toHaveProperty('exportedKeyString');
+      expect(result).toHaveProperty('vault');
+      expect(result).toHaveProperty('salt', 'mockedSalt');
+
+      const importedKey = await encryptor.importKey(result.exportedKeyString);
+      expect(importedKey.keyMetadata).toEqual(LEGACY_DERIVATION_OPTIONS);
+    });
   });
 });

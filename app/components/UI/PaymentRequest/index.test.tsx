@@ -1,10 +1,16 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import {
+  render,
+  fireEvent,
+  act,
+  userEvent,
+} from '@testing-library/react-native';
 import PaymentRequest from './index';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { SolScope } from '@metamask/keyring-api';
 
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
@@ -38,7 +44,6 @@ const initialState = {
             },
           },
         },
-        tokens: [],
         allTokens: {
           '0x1': {
             '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272': [],
@@ -51,6 +56,12 @@ const initialState = {
           chainId: '1',
         },
       },
+      MultichainNetworkController: {
+        isEvmSelected: true,
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+        multichainNetworkConfigurationsByChainId: {},
+      },
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE,
         internalAccounts: {
@@ -59,17 +70,19 @@ const initialState = {
         },
       },
       TokenListController: {
-        tokenList: {
+        tokensChainsCache: {
           '0x1': {
-            '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc': {
-              address: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
-              symbol: 'BAT',
-              decimals: 18,
-              name: 'Basic Attention Token',
-              iconUrl:
-                'https://assets.coingecko.com/coins/images/677/thumb/basic-attention-token.png?1547034427',
-              type: 'erc20',
-            },
+            data: [
+              {
+                address: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
+                symbol: 'BAT',
+                decimals: 18,
+                name: 'Basic Attention Token',
+                iconUrl:
+                  'https://assets.coingecko.com/coins/images/677/thumb/basic-attention-token.png?1547034427',
+                type: 'erc20',
+              },
+            ],
           },
         },
       },
@@ -145,9 +158,7 @@ describe('PaymentRequest', () => {
   it('switches to amount input mode when an asset is selected', async () => {
     const { getByText } = renderComponent({ navigation: mockNavigation });
 
-    await act(async () => {
-      fireEvent.press(getByText('ETH'));
-    });
+    await userEvent.press(getByText('ETH'));
 
     expect(getByText('Enter amount')).toBeTruthy();
     expect(mockNavigation.setParams).toHaveBeenCalledWith({
@@ -160,21 +171,16 @@ describe('PaymentRequest', () => {
     const { getByText, getByPlaceholderText } = renderComponent();
 
     // First, select an asset
-    await act(async () => {
-      fireEvent.press(getByText('ETH'));
-    });
+    await userEvent.press(getByText('ETH'));
 
     const amountInput = getByPlaceholderText('0.00');
-    await act(async () => {
-      fireEvent.changeText(amountInput, '1.5');
-    });
+    await userEvent.type(amountInput, '1.5');
 
     expect(amountInput.props.value).toBe('1.5');
   });
 
   it('displays an error when an invalid amount is entered', async () => {
-    const { getByText, getByPlaceholderText, debug, queryByText } =
-      renderComponent();
+    const { getByText, getByPlaceholderText, queryByText } = renderComponent();
 
     (React.useState as jest.Mock).mockImplementation(() => [
       mockShowError,
@@ -183,9 +189,7 @@ describe('PaymentRequest', () => {
 
     mockSetShowError(true);
 
-    await act(async () => {
-      fireEvent.press(getByText('ETH'));
-    });
+    await userEvent.press(getByText('ETH'));
 
     const amountInput = getByPlaceholderText('0.00');
     const nextButton = getByText('Next');
@@ -194,8 +198,6 @@ describe('PaymentRequest', () => {
       fireEvent.changeText(amountInput, '0');
       fireEvent.press(nextButton);
     });
-
-    debug();
 
     expect(mockSetShowError).toHaveBeenCalledWith(true);
     expect(queryByText('Invalid request, please try again')).toBeTruthy();

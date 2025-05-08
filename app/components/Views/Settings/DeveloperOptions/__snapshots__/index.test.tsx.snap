@@ -137,7 +137,8 @@ exports[`DeveloperOptions should render correctly 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#141618"
+                  color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -168,7 +169,7 @@ exports[`DeveloperOptions should render correctly 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -178,8 +179,8 @@ exports[`DeveloperOptions should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -214,7 +215,13 @@ exports[`DeveloperOptions should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -222,6 +229,7 @@ exports[`DeveloperOptions should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -381,8 +389,8 @@ exports[`DeveloperOptions should render correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#141618",
-                              "fontFamily": "EuclidCircularB-Bold",
+                              "color": "#121314",
+                              "fontFamily": "CentraNo1-Bold",
                               "fontSize": 24,
                               "fontWeight": "700",
                               "letterSpacing": 0,
@@ -397,12 +405,12 @@ exports[`DeveloperOptions should render correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#6a737d",
-                              "fontFamily": "EuclidCircularB-Regular",
-                              "fontSize": 14,
+                              "color": "#686e7d",
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 16,
                               "fontWeight": "400",
                               "letterSpacing": 0,
-                              "lineHeight": 22,
+                              "lineHeight": 24,
                               "marginTop": 8,
                             }
                           }
@@ -421,7 +429,7 @@ exports[`DeveloperOptions should render correctly 1`] = `
                               "alignItems": "center",
                               "alignSelf": "stretch",
                               "backgroundColor": "transparent",
-                              "borderColor": "#0376c9",
+                              "borderColor": "#4459ff",
                               "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
@@ -436,12 +444,12 @@ exports[`DeveloperOptions should render correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#0376c9",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 14,
+                                "color": "#4459ff",
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                               }
                             }
                           >

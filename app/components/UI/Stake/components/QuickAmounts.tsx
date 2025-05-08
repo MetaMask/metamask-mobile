@@ -5,7 +5,6 @@ import {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   TextColor,
   TextVariant,
@@ -13,6 +12,9 @@ import {
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import type { QuickAmount } from '../../Ramp/types';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { useSelector } from 'react-redux';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -48,6 +50,10 @@ const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+
   const handlePress = useCallback(() => {
     if (value === 1 && onMaxPress) {
       onMaxPress();
@@ -65,7 +71,9 @@ const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
         label={label}
         labelColor={TextColor.Default}
         labelTextVariant={TextVariant.BodyMDMedium}
-        {...(value === 1 ? { startIconName: IconName.Sparkle } : {})}
+        {...(value === 1 && !isStablecoinLendingEnabled
+          ? { startIconName: IconName.Sparkle }
+          : {})}
         style={styles.amount}
       />
     </>

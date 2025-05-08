@@ -1,13 +1,11 @@
 import {
   BaseRestrictedControllerMessenger,
-  ControllerInitRequest,
   BaseControllerMessenger,
   ControllerInitFunction,
+  Controller,
+  ControllerName,
+  ControllerInitRequest,
 } from '../types';
-import {
-  AccountsController,
-  AccountsControllerMessenger,
-} from '@metamask/accounts-controller';
 
 /**
  * Build a mock for the ControllerInitRequest.
@@ -18,22 +16,36 @@ export function buildControllerInitRequestMock(
   controllerMessenger: BaseControllerMessenger,
 ): jest.Mocked<ControllerInitRequest<BaseRestrictedControllerMessenger>> {
   return {
-    getController: jest.fn(),
-    persistedState: {},
     controllerMessenger:
       controllerMessenger as unknown as BaseRestrictedControllerMessenger,
+    getController: jest.fn(),
+    getGlobalChainId: jest.fn(),
+    getState: jest.fn(),
+    initMessenger: jest.fn() as unknown as void,
+    persistedState: {},
   };
 }
 
-export const mockControllerInitFunction: ControllerInitFunction<
-  AccountsController,
-  AccountsControllerMessenger
-> = (request) => {
-  const { getController } = request;
+/**
+ * Create a generic mock controller init function
+ *
+ * @template T - The controller type
+ * @template M - The messenger type
+ * @returns A mock controller init function
+ */
+export function createMockControllerInitFunction<
+  T extends Controller,
+  M extends BaseRestrictedControllerMessenger,
+>(requiredController?: string): ControllerInitFunction<T, M> {
+  return (request) => {
+    const { getController } = request;
 
-  getController('NetworkController');
+    if (requiredController) {
+      getController(requiredController as unknown as ControllerName);
+    }
 
-  return {
-    controller: jest.fn() as unknown as AccountsController,
+    return {
+      controller: jest.fn() as unknown as T,
+    };
   };
-};
+}

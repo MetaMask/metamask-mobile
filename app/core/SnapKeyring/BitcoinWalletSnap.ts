@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { SnapId } from '@metamask/snaps-sdk';
 import { Sender } from '@metamask/keyring-snap-client';
 import { HandlerType } from '@metamask/snaps-utils';

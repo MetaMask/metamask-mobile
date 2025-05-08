@@ -19,7 +19,7 @@ import {
   TransactionStatus,
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
-import { query } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK, query } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
 import {
@@ -85,7 +85,7 @@ import {
   selectSwapsUsedGasEstimate,
   swapsTokensSelector,
 } from '../../../reducers/swaps';
-import { decGWEIToHexWEI } from '../../../util/conversions';
+import { decGWEIToHexWEI, hexToDecimal } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
@@ -94,10 +94,10 @@ import {
   isHardwareAccount,
 } from '../../../util/address';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectIsEIP1559Network,
   selectSelectedNetworkClientId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -116,9 +116,20 @@ import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
-import { getTransaction1559GasFeeEstimates } from './utils/gas';
+import {
+  DEFAULT_GAS_FEE_OPTION_FEE_MARKET,
+  DEFAULT_GAS_FEE_OPTION_LEGACY,
+  getGasFeeEstimatesForTransaction,
+} from './utils/gas';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
-import SmartTransactionsMigrationBanner from '../../Views/confirmations/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
+import SmartTransactionsMigrationBanner from '../../Views/confirmations/legacy/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
+import { useSwapsSmartTransaction } from './utils/useSwapsSmartTransaction';
+import Routes from '../../../constants/navigation/Routes';
+import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { getTradeTxTokenFee } from '../../../util/smart-transactions';
+import { useFiatConversionRates } from './utils/useFiatConversionRates';
+import { useGasTokenFiatAmount } from './utils/useGasTokenFiatAmount';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -126,9 +137,6 @@ const SLIPPAGE_BUCKETS = {
   MEDIUM: AppConstants.GAS_OPTIONS.MEDIUM,
   HIGH: AppConstants.GAS_OPTIONS.HIGH,
 };
-
-const DEFAULT_GAS_FEE_OPTION_LEGACY = AppConstants.GAS_OPTIONS.MEDIUM;
-const DEFAULT_GAS_FEE_OPTION_FEE_MARKET = AppConstants.GAS_OPTIONS.HIGH;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -301,6 +309,9 @@ const createStyles = (colors) =>
     fetchingText: {
       color: colors.text.default,
     },
+    included: {
+      fontStyle: 'italic',
+    },
   });
 
 async function resetAndStartPolling({
@@ -310,6 +321,7 @@ async function resetAndStartPolling({
   sourceAmount,
   walletAddress,
   networkClientId,
+  enableGasIncludedQuotes,
 }) {
   if (!sourceToken || !destinationToken) {
     return;
@@ -323,6 +335,7 @@ async function resetAndStartPolling({
     sourceAmount,
     walletAddress,
     networkClientId,
+    enableGasIncludedQuotes,
   });
   await SwapsController.stopPollingAndResetState();
   await SwapsController.startFetchAndSetQuotes(
@@ -341,39 +354,26 @@ const gasLimitWithMultiplier = (gasLimit, multiplier) => {
   return new BigNumber(gasLimit).times(multiplier).integerValue();
 };
 
-async function getGasFeeEstimatesForTransaction(
-  transaction,
-  gasEstimates,
-  { chainId, isEIP1559Network },
-) {
-  if (isEIP1559Network) {
-    const transactionGasFeeEstimates = await getTransaction1559GasFeeEstimates(
-      transaction,
-      chainId,
-    );
-    delete transaction.gasPrice;
-    return transactionGasFeeEstimates;
-  }
-
-  return {
-    gasPrice: addHexPrefix(
-      decGWEIToHexWEI(
-        gasEstimates.gasPrice || gasEstimates[DEFAULT_GAS_FEE_OPTION_LEGACY],
-      ),
-    ),
-  };
-}
-
-async function addTokenToAssetsController(newToken) {
+async function addTokenToAssetsController(newToken, chainId, networkClientId) {
   const { TokensController } = Engine.context;
+
+  const allTokens = TokensController.state.allTokens?.[chainId]
+    ? Object.values(TokensController.state.allTokens[chainId]).flat()
+    : [];
   if (
     !isSwapsNativeAsset(newToken) &&
-    !TokensController.state.tokens.includes((token) =>
+    !allTokens.includes((token) =>
       toLowerCaseEquals(token.address, newToken.address),
     )
   ) {
     const { address, symbol, decimals, name } = newToken;
-    await TokensController.addToken({ address, symbol, decimals, name });
+    await TokensController.addToken({
+      address,
+      symbol,
+      decimals,
+      name,
+      networkClientId,
+    });
   }
 }
 
@@ -492,23 +492,23 @@ function SwapsQuotesView({
 
     const orderedAggregators = hasConversionRate
       ? Object.values(quoteValues).sort(
-        (a, b) =>
-          Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote),
-      )
+          (a, b) =>
+            Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote),
+        )
       : Object.values(quotes).sort((a, b) => {
-        const comparison = new BigNumber(b.destinationAmount).comparedTo(
-          a.destinationAmount,
-        );
-        if (comparison === 0) {
-          // If the  destination amount is the same, we sort by fees ascending
-          return (
-            Number(quoteValues[a.aggregator]?.ethFee) -
-            Number(quoteValues[b.aggregator]?.ethFee) || 0
+          const comparison = new BigNumber(b.destinationAmount).comparedTo(
+            a.destinationAmount,
           );
-        }
-        return comparison;
-        // eslint-disable-next-line no-mixed-spaces-and-tabs
-      });
+          if (comparison === 0) {
+            // If the  destination amount is the same, we sort by fees ascending
+            return (
+              Number(quoteValues[a.aggregator]?.ethFee) -
+                Number(quoteValues[b.aggregator]?.ethFee) || 0
+            );
+          }
+          return comparison;
+          // eslint-disable-next-line no-mixed-spaces-and-tabs
+        });
 
     return orderedAggregators.map(
       (quoteValue) => quotes[quoteValue.aggregator],
@@ -519,6 +519,18 @@ function SwapsQuotesView({
   const selectedQuote = useMemo(
     () => allQuotes.find((quote) => quote?.aggregator === selectedQuoteId),
     [allQuotes, selectedQuoteId],
+  );
+  const tradeTxTokenFee = useMemo(
+    () => getTradeTxTokenFee(selectedQuote),
+    [selectedQuote],
+  );
+  const isGasIncludedTrade = useMemo(
+    () => selectedQuote?.isGasIncludedTrade ?? false,
+    [selectedQuote],
+  );
+  const canUseGasIncludedSwap = useMemo(
+    () => isGasIncludedTrade && tradeTxTokenFee,
+    [isGasIncludedTrade, tradeTxTokenFee],
   );
   const selectedQuoteValue = useMemo(() => {
     if (!quoteValues[selectedQuoteId] || !multiLayerL1ApprovalFeeTotal) {
@@ -550,6 +562,12 @@ function SwapsQuotesView({
     () => customGasEstimate || usedGasEstimate,
     [customGasEstimate, usedGasEstimate],
   );
+
+  const { submitSwapsSmartTransaction } = useSwapsSmartTransaction({
+    quote: selectedQuote,
+    gasEstimates,
+  });
+
   const initialGasLimit = useMemo(() => {
     if (!selectedQuote) {
       return '0';
@@ -575,10 +593,20 @@ function SwapsQuotesView({
         ? new BigNumber(sourceAmount)
         : new BigNumber(0);
       const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
-      const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
+      const hasEnoughEthBalance =
+        isGasIncludedTrade && tradeTxTokenFee
+          ? true
+          : ethBalanceBN.gte(ethAmountBN.plus(gasBN));
       return hasEnoughEthBalance;
     },
-    [accounts, selectedAddress, sourceAmount, sourceToken],
+    [
+      accounts,
+      selectedAddress,
+      sourceAmount,
+      sourceToken,
+      tradeTxTokenFee,
+      isGasIncludedTrade,
+    ],
   );
 
   const balance = useBalance(accounts, balances, selectedAddress, sourceToken, {
@@ -603,7 +631,9 @@ function SwapsQuotesView({
       : new BigNumber(0);
     const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
     const gasBN = toWei(selectedQuoteValue?.maxEthFee || '0');
-    const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
+    const hasEnoughEthBalance = canUseGasIncludedSwap
+      ? true
+      : ethBalanceBN.gte(ethAmountBN.plus(gasBN));
     const missingEthBalance = hasEnoughEthBalance
       ? null
       : ethAmountBN.plus(gasBN).minus(ethBalanceBN);
@@ -621,6 +651,7 @@ function SwapsQuotesView({
     selectedAddress,
     sourceAmount,
     sourceToken,
+    canUseGasIncludedSwap,
   ]);
 
   /* Selected quote slippage */
@@ -705,6 +736,12 @@ function SwapsQuotesView({
     useModalHandler(false);
   const [isGasTooltipVisible, , showGasTooltip, hideGasTooltip] =
     useModalHandler(false);
+  const [
+    isGasIncludedTooltipVisible,
+    ,
+    showGasIncludedTooltip,
+    hideGasIncludedTooltip,
+  ] = useModalHandler(false);
 
   const handleGasFeeUpdate = useCallback(
     (changedGasEstimate, changedGasLimit) => {
@@ -727,19 +764,19 @@ function SwapsQuotesView({
           GAS_ESTIMATE_TYPES.ETH_GASPRICE,
         ].includes(gasEstimateType)
           ? weiToFiat(
-            toWei(
-              swapsUtils.calcTokenAmount(
-                new BigNumber(changedGasLimit, 10).times(
-                  decGWEIToHexWEI(changedGasEstimate.gasPrice),
-                  16,
+              toWei(
+                swapsUtils.calcTokenAmount(
+                  new BigNumber(changedGasLimit, 10).times(
+                    decGWEIToHexWEI(changedGasEstimate.gasPrice),
+                    16,
+                  ),
+                  18,
                 ),
-                18,
               ),
-            ),
-            conversionRate,
-            currentCurrency,
-            // eslint-disable-next-line no-mixed-spaces-and-tabs
-          )
+              conversionRate,
+              currentCurrency,
+              // eslint-disable-next-line no-mixed-spaces-and-tabs
+            )
           : '',
         chain_id: getDecimalChainId(chainId),
       };
@@ -786,6 +823,7 @@ function SwapsQuotesView({
         sourceAmount,
         walletAddress: selectedAddress,
         networkClientId: selectedNetworkClientId,
+        enableGasIncludedQuotes: shouldUseSmartTransaction,
       });
     } else {
       navigation.pop();
@@ -799,10 +837,11 @@ function SwapsQuotesView({
     selectedAddress,
     navigation,
     selectedNetworkClientId,
+    shouldUseSmartTransaction,
   ]);
 
   const updateSwapsTransactions = useCallback(
-    async (transactionMeta, approvalTransactionMetaId) => {
+    async (transactionMetaId, approvalTransactionMetaId) => {
       const ethQuery = getGlobalEthQuery();
       const blockNumber = await query(ethQuery, 'blockNumber', []);
       const currentBlock = await query(ethQuery, 'getBlockByNumber', [
@@ -810,7 +849,7 @@ function SwapsQuotesView({
         false,
       ]);
 
-      addSwapsTransaction(transactionMeta.id, {
+      addSwapsTransaction(transactionMetaId, {
         action: 'swap',
         sourceToken: {
           address: sourceToken.address,
@@ -850,6 +889,8 @@ function SwapsQuotesView({
           network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
           other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
           chain_id: getDecimalChainId(chainId),
+          is_smart_transaction: shouldUseSmartTransaction,
+          gas_included: canUseGasIncludedSwap,
         },
         paramsForAnalytics: {
           sentAt: currentBlock.timestamp,
@@ -874,6 +915,8 @@ function SwapsQuotesView({
       selectedQuoteId,
       conversionRate,
       selectedQuoteValue,
+      shouldUseSmartTransaction,
+      canUseGasIncludedSwap,
     ],
   );
 
@@ -897,6 +940,7 @@ function SwapsQuotesView({
         network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
         chain_id: getDecimalChainId(chainId),
         is_smart_transaction: shouldUseSmartTransaction,
+        gas_included: canUseGasIncludedSwap,
       };
       const sensitiveParameters = {
         token_from_amount: fromTokenMinimalUnitString(
@@ -968,11 +1012,16 @@ function SwapsQuotesView({
           transactionMeta.id,
         );
 
-        updateSwapsTransactions(transactionMeta, approvalTransactionMetaId);
+        updateSwapsTransactions(transactionMeta.id, approvalTransactionMetaId);
 
         setRecipient(selectedAddress);
-        await addTokenToAssetsController(destinationToken);
-        await addTokenToAssetsController(sourceToken);
+
+        await addTokenToAssetsController(
+          destinationToken,
+          chainId,
+          networkClientId,
+        );
+        await addTokenToAssetsController(sourceToken, chainId, networkClientId);
       } catch (e) {
         Logger.log(LOG_PREFIX, 'Failed to submit trade transaction', e);
       }
@@ -1063,7 +1112,7 @@ function SwapsQuotesView({
           ).toString(10),
         });
 
-        if (isHardwareAddress || shouldUseSmartTransaction) {
+        if (isHardwareAddress) {
           const { id: transactionId } = transactionMeta;
 
           Engine.controllerMessenger.subscribeOnceIf(
@@ -1092,7 +1141,6 @@ function SwapsQuotesView({
       selectedAddress,
       setRecipient,
       resetTransaction,
-      shouldUseSmartTransaction,
       chainId,
       networkClientId,
     ],
@@ -1112,27 +1160,71 @@ function SwapsQuotesView({
 
     let approvalTransactionMetaId;
 
-    if (approvalTransaction) {
-      approvalTransactionMetaId = await handleApprovalTransaction(
-        isHardwareAddress,
-      );
+    if (shouldUseSmartTransaction) {
+      try {
+        const { approvalTxUuid, tradeTxUuid } =
+          await submitSwapsSmartTransaction();
 
-      if (isHardwareAddress) {
+        // Update info to show in Activity list
+        // We use the stx uuids instead of the txMeta.id since we don't have the txMeta
+        // Approval tx info
+        if (approvalTxUuid) {
+          addSwapsTransaction(approvalTxUuid, {
+            action: 'approval',
+            sourceToken: {
+              address: sourceToken.address,
+              decimals: sourceToken.decimals,
+            },
+            destinationToken: { swaps: 'swaps' },
+            upTo: new BigNumber(
+              decodeApproveData(approvalTransaction.data).encodedAmount,
+              16,
+            ).toString(10),
+          });
+        }
+
+        // Trade tx info
+        updateSwapsTransactions(tradeTxUuid, approvalTxUuid);
+
+        // Route to TransactionsView and show Swaps STX modal
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        Engine.context.ApprovalController.addAndShowApprovalRequest({
+          id: tradeTxUuid, // Doesn't really matter what this is, as long as it's unique, we will just read it from latest STX in SmartTransactionStatus
+          origin: ORIGIN_METAMASK,
+          type: ApprovalTypes.SMART_TRANSACTION_STATUS,
+          // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
+          // can also be read from approvalController.state.pendingApprovals[approvalId].requestState
+          requestState: {
+            smartTransaction: {
+              status: SmartTransactionStatuses.PENDING,
+              creationTime: Date.now(),
+              uuid: tradeTxUuid,
+            },
+            isInSwapFlow: true,
+          },
+        });
+      } catch (e) {
+        Logger.log(LOG_PREFIX, 'Failed to submit smart transaction', e);
         setIsHandlingSwap(false);
-        navigation.dangerouslyGetParent()?.pop();
-        return;
       }
-    }
+    } else {
+      if (approvalTransaction) {
+        approvalTransactionMetaId = await handleApprovalTransaction(
+          isHardwareAddress,
+        );
 
-    if (
-      !shouldUseSmartTransaction ||
-      (shouldUseSmartTransaction && !approvalTransaction)
-    ) {
+        if (isHardwareAddress) {
+          setIsHandlingSwap(false);
+          navigation.dangerouslyGetParent()?.pop();
+          return;
+        }
+      }
+
       await handleSwapTransaction(approvalTransactionMetaId);
-    }
 
-    setIsHandlingSwap(false);
-    navigation.dangerouslyGetParent()?.pop();
+      setIsHandlingSwap(false);
+      navigation.dangerouslyGetParent()?.pop();
+    }
   }, [
     selectedQuote,
     selectedAddress,
@@ -1142,6 +1234,10 @@ function SwapsQuotesView({
     handleSwapTransaction,
     navigation,
     shouldUseSmartTransaction,
+    submitSwapsSmartTransaction,
+    sourceToken.address,
+    sourceToken.decimals,
+    updateSwapsTransactions,
   ]);
 
   const onEditQuoteTransactionsGas = useCallback(() => {
@@ -1186,6 +1282,8 @@ function SwapsQuotesView({
       custom_spend_limit_set: originalAmount !== currentAmount,
       custom_spend_limit_amount: currentAmount,
       chain_id: getDecimalChainId(chainId),
+      is_smart_transaction: shouldUseSmartTransaction,
+      gas_included: canUseGasIncludedSwap,
     };
     const sensitiveParameters = {
       token_from_amount: fromTokenMinimalUnitString(
@@ -1220,6 +1318,8 @@ function SwapsQuotesView({
     sourceToken,
     trackEvent,
     createEventBuilder,
+    shouldUseSmartTransaction,
+    canUseGasIncludedSwap,
   ]);
 
   const handleQuotesReceivedMetric = useCallback(() => {
@@ -1247,7 +1347,7 @@ function SwapsQuotesView({
         sourceToken.decimals,
       ),
       token_to_amount: fromTokenMinimalUnitString(
-          selectedQuote.destinationAmount,
+        selectedQuote.destinationAmount,
         destinationToken.decimals,
       ),
     };
@@ -1424,6 +1524,7 @@ function SwapsQuotesView({
       sourceAmount,
       walletAddress: selectedAddress,
       networkClientId: selectedNetworkClientId,
+      enableGasIncludedQuotes: shouldUseSmartTransaction,
     });
 
     return () => {
@@ -1438,6 +1539,7 @@ function SwapsQuotesView({
     sourceAmount,
     sourceToken.address,
     selectedNetworkClientId,
+    shouldUseSmartTransaction,
   ]);
 
   /** selectedQuote alert effect */
@@ -1727,6 +1829,27 @@ function SwapsQuotesView({
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     );
 
+  const openLinkAboutGasIncluded = () =>
+    Linking.openURL(
+      'https://support.metamask.io/token-swaps/user-guide-swaps/#gas-fees',
+    );
+
+  const fiatConversionRates = useFiatConversionRates({
+    canUseGasIncludedSwap,
+    selectedQuote,
+    tradeTxTokenFee,
+    currentCurrency,
+    chainId,
+  });
+
+  const gasTokenFiatAmount = useGasTokenFiatAmount({
+    canUseGasIncludedSwap,
+    selectedQuote,
+    tradeTxTokenFee,
+    currentCurrency,
+    fiatConversionRates: fiatConversionRates?.value,
+  });
+
   /* Rendering */
   if (isFirstLoad || (!error?.key && !selectedQuote)) {
     return (
@@ -1804,9 +1927,9 @@ function SwapsQuotesView({
               <Text reset bold>
                 {!hasEnoughTokenBalance && !isSwapsNativeAsset(sourceToken)
                   ? `${renderFromTokenMinimalUnit(
-                    missingTokenBalance,
-                    sourceToken.decimals,
-                  )} ${sourceToken.symbol} `
+                      missingTokenBalance,
+                      sourceToken.decimals,
+                    )} ${sourceToken.symbol} `
                   : `${renderFromWei(missingEthBalance)} ${getTicker(ticker)} `}
               </Text>
               {!hasEnoughTokenBalance
@@ -1814,10 +1937,10 @@ function SwapsQuotesView({
                 : `${strings('swaps.more_gas_to_complete')} `}
               {(isSwapsNativeAsset(sourceToken) ||
                 (hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
-                  <Text link underline small onPress={buyEth}>
-                    {strings('swaps.token_marketplace')}
-                  </Text>
-                )}
+                <Text link underline small onPress={buyEth}>
+                  {strings('swaps.token_marketplace')}
+                </Text>
+              )}
             </Alert>
           </View>
         )}
@@ -1872,7 +1995,7 @@ function SwapsQuotesView({
                           {weiToFiat(
                             toWei(
                               selectedQuote.priceSlippage?.sourceAmountInETH ||
-                              0,
+                                0,
                             ),
                             conversionRate,
                             currentCurrency,
@@ -1962,7 +2085,7 @@ function SwapsQuotesView({
               />
               <Text style={styles.tokenText}>{sourceToken.symbol}</Text>
             </View>
-            <IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+            <IonicIcon style={styles.arrowDown} name="arrow-down" />
             <View style={styles.sourceTokenContainer}>
               <TokenIcon
                 style={styles.tokenIcon}
@@ -2024,167 +2147,238 @@ function SwapsQuotesView({
               )}
             </QuotesSummary.Header>
             <QuotesSummary.Body>
-              <View
-                style={styles.quotesRow}
-                testID={SwapsViewSelectors.QUOTE_SUMMARY}
-              >
-                <View style={styles.quotesDescription}>
-                  <View style={styles.quotesLegend}>
-                    <Text primary bold>
-                      {strings('swaps.estimated_gas_fee')}
-                    </Text>
-                    <TouchableOpacity
-                      testID={SwapsViewSelectors.GAS_FEE}
-                      style={styles.gasInfoContainer}
-                      onPress={showGasTooltip}
-                      hitSlop={styles.hitSlop}
-                    >
-                      <MaterialCommunityIcons
-                        name="information"
-                        size={13}
-                        style={styles.gasInfoIcon}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                {usedGasEstimate.gasPrice ? (
-                  <View style={styles.quotesFiatColumn}>
-                    <Text primary bold>
-                      {renderFromWei(toWei(selectedQuoteValue?.ethFee))}{' '}
-                      {getTicker(ticker)}
-                    </Text>
-                    <Text primary bold upper>
-                      {`  ${weiToFiat(
-                        toWei(selectedQuoteValue?.ethFee),
-                        conversionRate,
-                        currentCurrency,
-                      ) || ''
-                        }`}
-                    </Text>
-                  </View>
-                ) : (
-                  <FadeAnimationView
-                    valueToWatch={`${selectedQuoteValue?.ethFee}${selectedQuoteValue?.maxEthFee}`}
-                    animateOnChange={animateOnGasChange}
-                    onAnimationStart={onGasAnimationStart}
-                    onAnimationEnd={onGasAnimationEnd}
-                    style={styles.quotesFiatColumn}
-                  >
-                    {primaryCurrency === 'ETH' ? (
-                      <>
-                        <Text>
-                          {`${weiToFiat(
-                            toWei(selectedQuoteValue?.ethFee),
-                            conversionRate,
-                            currentCurrency,
-                          ) || ''
-                            } `}
-                        </Text>
-                        <TouchableOpacity
-                          disabled={unableToSwap}
-                          onPress={
-                            unableToSwap
-                              ? undefined
-                              : onEditQuoteTransactionsGas
-                          }
-                        >
-                          <Text
-                            bold
-                            upper
-                            link={!unableToSwap}
-                            underline={!unableToSwap}
-                          >
-                            {renderFromWei(toWei(selectedQuoteValue?.ethFee))}{' '}
-                            {getTicker(ticker)}
-                          </Text>
-                        </TouchableOpacity>
-                      </>
-                    ) : (
-                      <>
-                        <TouchableOpacity
-                          disabled={unableToSwap}
-                          onPress={
-                            unableToSwap
-                              ? undefined
-                              : onEditQuoteTransactionsGas
-                          }
-                        >
-                          <Text
-                            upper
-                            link={!unableToSwap}
-                            underline={!unableToSwap}
-                          >
-                            {renderFromWei(toWei(selectedQuoteValue?.ethFee))}{' '}
-                            {getTicker(ticker)}
-                          </Text>
-                        </TouchableOpacity>
-                        <Text primary bold>
-                          {` ${weiToFiat(
-                            toWei(selectedQuoteValue?.ethFee),
-                            conversionRate,
-                            currentCurrency,
-                          ) || ''
-                            }`}
-                        </Text>
-                      </>
-                    )}
-                  </FadeAnimationView>
-                )}
-              </View>
-
-              <View style={styles.quotesRow}>
-                {usedGasEstimate.gasPrice ? (
-                  <>
-                    <View style={styles.quotesDescription}>
-                      <View style={styles.quotesLegend}>
-                        <Text>{strings('swaps.max_gas_fee')} </Text>
-                      </View>
+              {canUseGasIncludedSwap && (
+                <View
+                  style={styles.quotesRow}
+                  testID={SwapsViewSelectors.QUOTE_SUMMARY}
+                >
+                  <View style={styles.quotesDescription}>
+                    <View style={styles.quotesLegend}>
+                      <Text primary bold>
+                        {strings('swaps.gas_fee')}
+                      </Text>
+                      <TouchableOpacity
+                        testID={SwapsViewSelectors.GAS_FEE}
+                        style={styles.gasInfoContainer}
+                        onPress={showGasIncludedTooltip}
+                        hitSlop={styles.hitSlop}
+                      >
+                        <MaterialCommunityIcons
+                          name="information"
+                          size={13}
+                          style={styles.gasInfoIcon}
+                        />
+                      </TouchableOpacity>
                     </View>
+                  </View>
+                  {usedGasEstimate.gasPrice ? (
                     <View style={styles.quotesFiatColumn}>
-                      <Text>
-                        {renderFromWei(
-                          toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                        )}{' '}
+                      <Text primary bold>
+                        {renderFromWei(toWei(selectedQuoteValue?.ethFee))}{' '}
                         {getTicker(ticker)}
                       </Text>
-                      <Text upper>
-                        {`  ${weiToFiat(
-                          toWei(selectedQuoteValue?.maxEthFee),
-                          conversionRate,
-                          currentCurrency,
-                        ) || ''
-                          }`}
+                      <Text primary bold upper>
+                        {`  ${
+                          weiToFiat(
+                            toWei(selectedQuoteValue?.ethFee),
+                            conversionRate,
+                            currentCurrency,
+                          ) || ''
+                        } `}
                       </Text>
                     </View>
-                  </>
-                ) : (
-                  <>
-                    <View style={styles.quotesDescription} />
+                  ) : (
                     <FadeAnimationView
                       valueToWatch={`${selectedQuoteValue?.ethFee}${selectedQuoteValue?.maxEthFee}`}
                       animateOnChange={animateOnGasChange}
+                      onAnimationStart={onGasAnimationStart}
+                      onAnimationEnd={onGasAnimationEnd}
                       style={styles.quotesFiatColumn}
                     >
-                      <Text small primary bold>
-                        {strings('transaction_review_eip1559.max_fee')}:
-                      </Text>
-                      <Text small primary>
-                        {primaryCurrency === 'ETH'
-                          ? ` ${renderFromWei(
-                            toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                          )} ${getTicker(ticker)}` // eslint-disable-line
-                          : ` ${weiToFiat(
-                            toWei(selectedQuoteValue?.maxEthFee),
-                            conversionRate,
-                            currentCurrency,
-                          ) || '' // eslint-disable-next-line
-                          }`}
-                      </Text>
+                      <>
+                        <Text strikethrough>{gasTokenFiatAmount}</Text>
+                        <Text style={styles.included}>{` ${strings(
+                          'swaps.included',
+                        )}`}</Text>
+                      </>
                     </FadeAnimationView>
-                  </>
-                )}
-              </View>
+                  )}
+                </View>
+              )}
+              {!canUseGasIncludedSwap && (
+                <>
+                  <View
+                    style={styles.quotesRow}
+                    testID={SwapsViewSelectors.QUOTE_SUMMARY}
+                  >
+                    <View style={styles.quotesDescription}>
+                      <View style={styles.quotesLegend}>
+                        <Text primary bold>
+                          {strings('swaps.estimated_gas_fee')}
+                        </Text>
+                        <TouchableOpacity
+                          testID={SwapsViewSelectors.GAS_FEE}
+                          style={styles.gasInfoContainer}
+                          onPress={showGasTooltip}
+                          hitSlop={styles.hitSlop}
+                        >
+                          <MaterialCommunityIcons
+                            name="information"
+                            size={13}
+                            style={styles.gasInfoIcon}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    {usedGasEstimate.gasPrice ? (
+                      <View style={styles.quotesFiatColumn}>
+                        <Text primary bold>
+                          {renderFromWei(toWei(selectedQuoteValue?.ethFee))}{' '}
+                          {getTicker(ticker)}
+                        </Text>
+                        <Text primary bold upper>
+                          {`  ${
+                            weiToFiat(
+                              toWei(selectedQuoteValue?.ethFee),
+                              conversionRate,
+                              currentCurrency,
+                            ) || ''
+                          }`}
+                        </Text>
+                      </View>
+                    ) : (
+                      <FadeAnimationView
+                        valueToWatch={`${selectedQuoteValue?.ethFee}${selectedQuoteValue?.maxEthFee}`}
+                        animateOnChange={animateOnGasChange}
+                        onAnimationStart={onGasAnimationStart}
+                        onAnimationEnd={onGasAnimationEnd}
+                        style={styles.quotesFiatColumn}
+                      >
+                        {primaryCurrency === 'ETH' ? (
+                          <>
+                            <Text>
+                              {`${
+                                weiToFiat(
+                                  toWei(selectedQuoteValue?.ethFee),
+                                  conversionRate,
+                                  currentCurrency,
+                                ) || ''
+                              } `}
+                            </Text>
+                            <TouchableOpacity
+                              disabled={unableToSwap}
+                              onPress={
+                                unableToSwap
+                                  ? undefined
+                                  : onEditQuoteTransactionsGas
+                              }
+                            >
+                              <Text
+                                bold
+                                upper
+                                link={!unableToSwap}
+                                underline={!unableToSwap}
+                              >
+                                {renderFromWei(
+                                  toWei(selectedQuoteValue?.ethFee),
+                                )}{' '}
+                                {getTicker(ticker)}
+                              </Text>
+                            </TouchableOpacity>
+                          </>
+                        ) : (
+                          <>
+                            <TouchableOpacity
+                              disabled={unableToSwap}
+                              onPress={
+                                unableToSwap
+                                  ? undefined
+                                  : onEditQuoteTransactionsGas
+                              }
+                            >
+                              <Text
+                                upper
+                                link={!unableToSwap}
+                                underline={!unableToSwap}
+                              >
+                                {renderFromWei(
+                                  toWei(selectedQuoteValue?.ethFee),
+                                )}{' '}
+                                {getTicker(ticker)}
+                              </Text>
+                            </TouchableOpacity>
+                            <Text primary bold>
+                              {` ${
+                                weiToFiat(
+                                  toWei(selectedQuoteValue?.ethFee),
+                                  conversionRate,
+                                  currentCurrency,
+                                ) || ''
+                              }`}
+                            </Text>
+                          </>
+                        )}
+                      </FadeAnimationView>
+                    )}
+                  </View>
+
+                  <View style={styles.quotesRow}>
+                    {usedGasEstimate.gasPrice ? (
+                      <>
+                        <View style={styles.quotesDescription}>
+                          <View style={styles.quotesLegend}>
+                            <Text>{strings('swaps.max_gas_fee')} </Text>
+                          </View>
+                        </View>
+                        <View style={styles.quotesFiatColumn}>
+                          <Text>
+                            {renderFromWei(
+                              toWei(selectedQuoteValue?.maxEthFee || '0x0'),
+                            )}{' '}
+                            {getTicker(ticker)}
+                          </Text>
+                          <Text upper>
+                            {`  ${
+                              weiToFiat(
+                                toWei(selectedQuoteValue?.maxEthFee),
+                                conversionRate,
+                                currentCurrency,
+                              ) || ''
+                            }`}
+                          </Text>
+                        </View>
+                      </>
+                    ) : (
+                      <>
+                        <View style={styles.quotesDescription} />
+                        <FadeAnimationView
+                          valueToWatch={`${selectedQuoteValue?.ethFee}${selectedQuoteValue?.maxEthFee}`}
+                          animateOnChange={animateOnGasChange}
+                          style={styles.quotesFiatColumn}
+                        >
+                          <Text small primary bold>
+                            {strings('transaction_review_eip1559.max_fee')}:
+                          </Text>
+                          <Text small primary>
+                            {primaryCurrency === 'ETH'
+                              ? ` ${renderFromWei(
+                                  toWei(selectedQuoteValue?.maxEthFee || '0x0'),
+                                )} ${getTicker(ticker)}` // eslint-disable-line
+                              : ` ${
+                                  weiToFiat(
+                                    toWei(selectedQuoteValue?.maxEthFee),
+                                    conversionRate,
+                                    currentCurrency,
+                                  ) || '' // eslint-disable-next-line
+                                }`}
+                          </Text>
+                        </FadeAnimationView>
+                      </>
+                    )}
+                  </View>
+                </>
+              )}
 
               {!!approvalTransaction && !unableToSwap && (
                 <View style={styles.quotesRow}>
@@ -2211,9 +2405,16 @@ function SwapsQuotesView({
                   onPress={toggleFeeModal}
                 >
                   <Text small>
-                    {`${strings('swaps.quotes_include_fee', {
-                      fee: selectedQuote.fee,
-                    })} `}
+                    {canUseGasIncludedSwap
+                      ? `${strings(
+                          'swaps.quotes_include_gas_and_metamask_fee',
+                          {
+                            fee: selectedQuote.fee,
+                          },
+                        )} `
+                      : `${strings('swaps.quotes_include_fee', {
+                          fee: selectedQuote.fee,
+                        })} `}
                     <MaterialCommunityIcons
                       name="information"
                       style={styles.infoIcon}
@@ -2275,8 +2476,8 @@ function SwapsQuotesView({
           <Text style={styles.text}>
             {selectedQuote && selectedQuote?.fee > 0
               ? strings('swaps.fee_text.fee_is_applied', {
-                fee: `${selectedQuote.fee}%`,
-              })
+                  fee: `${selectedQuote.fee}%`,
+                })
               : strings('swaps.fee_text.fee_is_not_applied')}
           </Text>
         }
@@ -2306,6 +2507,23 @@ function SwapsQuotesView({
             <TouchableOpacity onPress={openLinkAboutGas}>
               <Text grey link infoModal>
                 {strings('swaps.gas_education_learn_more')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        }
+      />
+      <InfoModal
+        isVisible={isGasIncludedTooltipVisible}
+        title={strings(`swaps.gas_fee`)}
+        toggleModal={hideGasIncludedTooltip}
+        body={
+          <View>
+            <Text grey infoModal>
+              {strings('swaps.gas_included_tooltip_explanation')}
+            </Text>
+            <TouchableOpacity onPress={openLinkAboutGasIncluded}>
+              <Text grey link infoModal>
+                {strings('swaps.gas_education_title')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -2420,9 +2638,9 @@ SwapsQuotesView.propTypes = {
 
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
-  chainId: selectChainId(state),
+  chainId: selectEvmChainId(state),
   networkClientId: selectSelectedNetworkClientId(state),
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
   balances: selectContractBalances(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   conversionRate: selectConversionRate(state),
@@ -2443,7 +2661,10 @@ const mapStateToProps = (state) => ({
   usedCustomGas: selectSwapsUsedCustomGas(state),
   primaryCurrency: state.settings.primaryCurrency,
   swapsTokens: swapsTokensSelector(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
+    state,
+    selectEvmChainId(state),
+  ),
   isEIP1559Network: selectIsEIP1559Network(state),
 });
 

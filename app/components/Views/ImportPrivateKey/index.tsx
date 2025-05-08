@@ -36,7 +36,6 @@ const ImportPrivateKey = () => {
   const mounted = useRef<boolean>(false);
   const { colors, themeAppearance } = useAppTheme();
   const styles = createStyles(colors);
-
   useEffect(() => {
     mounted.current = true;
     // Workaround https://github.com/facebook/react-native/issues/9958
@@ -128,18 +127,14 @@ const ImportPrivateKey = () => {
       >
         <View
           style={styles.content}
-          testID={
-            ImportAccountFromPrivateKeyIDs.CONTAINER
-          }
+          testID={ImportAccountFromPrivateKeyIDs.CONTAINER}
         >
           <TouchableOpacity onPress={dismiss} style={styles.navbarRightButton}>
             <MaterialIcon
               name="close"
               size={15}
               style={styles.closeIcon}
-              testID={
-                ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON
-              }
+              testID={ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON}
             />
           </TouchableOpacity>
           <View style={styles.top}>
@@ -170,9 +165,7 @@ const ImportPrivateKey = () => {
               multiline
               style={[styles.input, inputWidth ? { width: inputWidth } : {}]}
               onChangeText={setPrivateKey}
-              testID={
-                ImportAccountFromPrivateKeyIDs.PRIVATE_KEY_INPUT_BOX
-              }
+              testID={ImportAccountFromPrivateKeyIDs.PRIVATE_KEY_INPUT_BOX}
               blurOnSubmit
               onSubmitEditing={() => goNext()}
               returnKeyType={'next'}
@@ -195,9 +188,7 @@ const ImportPrivateKey = () => {
             containerStyle={styles.button}
             type={'confirm'}
             onPress={() => goNext()}
-            testID={
-              ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON
-            }
+            testID={ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON}
           >
             {loading ? (
               <ActivityIndicator size="small" color={colors.primary.inverse} />

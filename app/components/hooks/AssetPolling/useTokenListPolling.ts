@@ -3,7 +3,7 @@ import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
 import {
   selectAllPopularNetworkConfigurations,
-  selectChainId,
+  selectEvmChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
@@ -13,15 +13,17 @@ import {
   selectERC20TokensByChain,
   selectTokenList,
 } from '../../../selectors/tokenListController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   // Selectors to determine polling input
   const networkConfigurationsPopularNetworks = useSelector(
     selectAllPopularNetworkConfigurations,
   );
-  const currentChainId = useSelector(selectChainId);
+  const currentChainId = useSelector(selectEvmChainId);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   // Selectors returning state updated by the polling
   const tokenList = useSelector(selectTokenList);
@@ -43,7 +45,9 @@ const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
     startPolling: TokenListController.startPolling.bind(TokenListController),
     stopPollingByPollingToken:
       TokenListController.stopPollingByPollingToken.bind(TokenListController),
-    input: chainIdsToPoll.map((chainId) => ({ chainId: chainId as Hex })),
+    input: isEvmSelected
+      ? chainIdsToPoll.map((chainId) => ({ chainId: chainId as Hex }))
+      : [],
   });
 
   return {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { waitFor } from '@testing-library/react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 import CollectibleMedia from './CollectibleMedia';
@@ -6,6 +7,8 @@ import CollectibleMedia from './CollectibleMedia';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
+// eslint-disable-next-line import/no-namespace
+import * as AssetControllers from '@metamask/assets-controllers';
 
 const mockInitialState = {
   engine: {
@@ -82,5 +85,48 @@ describe('CollectibleMedia', () => {
 
     const fallbackCollectible = getByTestId('nft-image');
     expect(fallbackCollectible).toBeDefined();
+  });
+
+  it('should handle an nft with multiple images and render the first image', async () => {
+    const images = [
+      'ipfs://bafybeidgklvljyifilhtrxzh77brgnhcy6s2wxoxqc2l73zr2nxlwuxfcy',
+      'ipfs://bafybeic26kitpujb3q5h5w7yovmvgmtxl3y4ldsb2pfgual5jq62emsmxq',
+    ];
+
+    const mockGetFormattedIpfsUrl = jest
+      .spyOn(AssetControllers, 'getFormattedIpfsUrl')
+      .mockResolvedValue(
+        'https://bafybeidgklvljyifilhtrxzh77brgnhcy6s2wxoxqc2l73zr2nxlwuxfcy.ipfs.dweb.link',
+      );
+
+    const expectedUri =
+      'https://bafybeidgklvljyifilhtrxzh77brgnhcy6s2wxoxqc2l73zr2nxlwuxfcy.ipfs.dweb.link';
+
+    const { getByTestId } = renderWithProvider(
+      <CollectibleMedia
+        collectible={{
+          name: 'NAME',
+          image: images,
+          imagePreview: 'https://',
+          tokenId: '123',
+          address: '0x123',
+          backgroundColor: 'red',
+          tokenURI:
+            'ipfs://QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7',
+          description: '123',
+          standard: 'ERC721',
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    await new Promise((r) => setTimeout(r, 2000));
+
+    await waitFor(() => {
+      const elem = getByTestId('nft-image');
+      expect(elem.props.source).toEqual({ uri: expectedUri });
+      const mocksImageParam = mockGetFormattedIpfsUrl.mock.lastCall?.[1];
+      expect(mocksImageParam).toBe(images[0]);
+    });
   });
 });

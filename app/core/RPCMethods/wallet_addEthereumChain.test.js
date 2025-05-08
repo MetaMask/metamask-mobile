@@ -1,17 +1,16 @@
 import { InteractionManager } from 'react-native';
-import { providerErrors } from '@metamask/rpc-errors';
-import wallet_addEthereumChain from './wallet_addEthereumChain';
+import { wallet_addEthereumChain } from './wallet_addEthereumChain';
 import Engine from '../Engine';
-import { CaveatFactories, PermissionKeys } from '../Permissions/specifications';
-import { CaveatTypes } from '../Permissions/constants';
 import { mockNetworkState } from '../../util/test/network';
 import MetaMetrics from '../Analytics/MetaMetrics';
+import { flushPromises } from '../../util/test/utils';
 
 const mockEngine = Engine;
 
 const existingNetworkConfiguration = {
   id: 'test-network-configuration-id',
   chainId: '0x2',
+  name: 'Test Chain',
   rpcUrl: 'https://rpc.test-chain.com',
   ticker: 'TST',
   nickname: 'Test Chain',
@@ -32,9 +31,6 @@ jest.mock('../Engine', () => ({
     MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
     },
-    CurrencyRateController: {
-      updateExchangeRate: jest.fn(),
-    },
     ApprovalController: {
       clear: jest.fn(),
     },
@@ -43,6 +39,9 @@ jest.mock('../Engine', () => ({
       grantPermissionsIncremental: jest.fn(),
       requestPermissionsIncremental: jest.fn(),
       getCaveat: jest.fn(),
+    },
+    KeyringController: {
+      isUnlocked: jest.fn(),
     },
     SelectedNetworkController: {
       setNetworkClientIdForDomain: jest.fn(),
@@ -95,6 +94,13 @@ const correctParams = {
   rpcUrls: ['https://rpc.gnosischain.com'],
 };
 
+const networkConfigurationResult = {
+  id: '1',
+  chainId: '0x64',
+  rpcEndpoints: [correctParams.rpcUrls[0]],
+  defaultRpcEndpointIndex: 0,
+};
+
 describe('RPC Method - wallet_addEthereumChain', () => {
   let mockFetch;
   let otherOptions;
@@ -106,8 +112,13 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       addCustomNetworkRequest: {},
       switchCustomNetworkRequest: {},
       requestUserApproval: jest.fn(() => Promise.resolve()),
-      startApprovalFlow: jest.fn(() => ({ id: '1', loadingText: null })),
-      endApprovalFlow: jest.fn(),
+      hooks: {
+        getCurrentChainIdForDomain: jest.fn(),
+        getNetworkConfigurationByChainId: jest.fn(),
+        getCaveat: jest.fn(),
+        requestPermittedChainsPermissionIncrementalForOrigin: jest.fn(),
+        hasApprovalRequestsForOrigin: jest.fn(),
+      },
     };
 
     jest
@@ -331,7 +342,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     jest.mock('./networkChecker.util');
     jest
       .spyOn(Engine.context.NetworkController, 'addNetwork')
-      .mockResolvedValue({ rpcEndpoints: [] });
+      .mockReturnValue(networkConfigurationResult);
 
     await wallet_addEthereumChain({
       req: {
@@ -347,41 +358,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
   });
 
   describe('Approval Flow', () => {
-    it('should start and end a new approval flow if chain does not already exist', async () => {
-      jest
-        .spyOn(Engine.context.NetworkController, 'addNetwork')
-        .mockResolvedValue({
-          id: '1',
-          chainId: '0x64',
-          rpcEndpoints: [correctParams.rpcUrls[0]],
-          defaultRpcEndpointIndex: 0,
-        });
-      await wallet_addEthereumChain({
-        req: {
-          params: [correctParams],
-        },
-        ...otherOptions,
-      });
-
-      expect(otherOptions.startApprovalFlow).toBeCalledTimes(1);
-      expect(otherOptions.endApprovalFlow).toBeCalledTimes(1);
-    });
-
-    it('should end approval flow even if the approval process fails', async () => {
-      await expect(
-        wallet_addEthereumChain({
-          req: {
-            params: [correctParams],
-          },
-          ...otherOptions,
-          requestUserApproval: jest.fn(() => Promise.reject()),
-        }),
-      ).rejects.toThrow(providerErrors.userRejectedRequest());
-
-      expect(otherOptions.startApprovalFlow).toBeCalledTimes(1);
-      expect(otherOptions.endApprovalFlow).toBeCalledTimes(1);
-    });
-
     it('clears existing approval requests', async () => {
       Engine.context.ApprovalController.clear.mockClear();
 
@@ -397,6 +373,10 @@ describe('RPC Method - wallet_addEthereumChain', () => {
   });
 
   it('should not modify/add permissions', async () => {
+    jest
+      .spyOn(Engine.context.NetworkController, 'addNetwork')
+      .mockReturnValue(networkConfigurationResult);
+
     const spyOnGrantPermissionsIncremental = jest.spyOn(
       Engine.context.PermissionController,
       'grantPermissionsIncremental',
@@ -414,20 +394,11 @@ describe('RPC Method - wallet_addEthereumChain', () => {
   it('should correctly add and switch to a new chain when chain is not already in wallet state ', async () => {
     const spyOnAddNetwork = jest
       .spyOn(Engine.context.NetworkController, 'addNetwork')
-      .mockResolvedValue({
-        id: '1',
-        chainId: '0x64',
-        rpcEndpoints: [correctParams.rpcUrls[0]],
-        defaultRpcEndpointIndex: 0,
-      });
+      .mockReturnValue(networkConfigurationResult);
 
     const spyOnSetActiveNetwork = jest.spyOn(
       Engine.context.MultichainNetworkController,
       'setActiveNetwork',
-    );
-    const spyOnUpdateExchangeRate = jest.spyOn(
-      Engine.context.CurrencyRateController,
-      'updateExchangeRate',
     );
 
     await wallet_addEthereumChain({
@@ -437,6 +408,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       },
       ...otherOptions,
     });
+    await flushPromises();
 
     expect(spyOnAddNetwork).toHaveBeenCalledTimes(1);
     expect(spyOnAddNetwork).toHaveBeenCalledWith(
@@ -447,22 +419,18 @@ describe('RPC Method - wallet_addEthereumChain', () => {
         name: correctParams.chainName,
       }),
     );
+
     expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
   });
 
-  it('should not add a networkConfiguration that has a chainId that already exists in wallet state, and should switch to the existing network', async () => {
-    const spyOnAddNetwork = jest.spyOn(
-      Engine.context.NetworkController,
-      'addNetwork',
-    );
+  it('should update the networkConfiguration that has a chainId that already exists in wallet state, and should switch to the existing network', async () => {
+    const spyOnUpdateNetwork = jest
+      .spyOn(Engine.context.NetworkController, 'updateNetwork')
+      .mockReturnValue(networkConfigurationResult);
 
     const spyOnSetActiveNetwork = jest.spyOn(
       Engine.context.MultichainNetworkController,
       'setActiveNetwork',
-    );
-    const spyOnUpdateExchangeRate = jest.spyOn(
-      Engine.context.CurrencyRateController,
-      'updateExchangeRate',
     );
 
     const existingParams = {
@@ -483,8 +451,22 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       },
       ...otherOptions,
     });
+    await flushPromises();
 
-    expect(spyOnAddNetwork).not.toHaveBeenCalled();
+    expect(spyOnUpdateNetwork).toHaveBeenCalledWith(
+      existingParams.chainId,
+      expect.objectContaining({
+        rpcEndpoints: expect.arrayContaining([
+          {
+            name: 'Test Chain',
+            type: 'custom',
+            url: 'https://different-rpc-url.com',
+          },
+        ]),
+        defaultRpcEndpointIndex: 1,
+      }),
+      undefined,
+    );
     expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
   });
 
@@ -499,10 +481,22 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       jest.clearAllMocks();
     });
     it('should grant permissions when chain is not already permitted', async () => {
+      jest
+        .spyOn(Engine.context.NetworkController, 'addNetwork')
+        .mockReturnValue(networkConfigurationResult);
+      jest.spyOn(otherOptions.hooks, 'getCaveat').mockReturnValue({
+        value: {
+          optionalScopes: {},
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      });
       const spyOnGrantPermissionsIncremental = jest.spyOn(
-        Engine.context.PermissionController,
-        'grantPermissionsIncremental',
+        otherOptions.hooks,
+        'requestPermittedChainsPermissionIncrementalForOrigin',
       );
+
       await wallet_addEthereumChain({
         req: {
           params: [correctParams],
@@ -513,25 +507,29 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
       expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(1);
       expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
-        subject: { origin: 'https://example.com' },
-        approvedPermissions: {
-          [PermissionKeys.permittedChains]: {
-            caveats: [
-              CaveatFactories[CaveatTypes.restrictNetworkSwitching](['0x64']),
-            ],
-          },
-        },
+        origin: 'https://example.com',
+        autoApprove: true,
+        chainId: '0x64',
       });
     });
 
     it('should not grant permissions when chain is already permitted', async () => {
+      jest
+        .spyOn(Engine.context.NetworkController, 'addNetwork')
+        .mockReturnValue(networkConfigurationResult);
+
       const spyOnGrantPermissionsIncremental = jest.spyOn(
         Engine.context.PermissionController,
         'grantPermissionsIncremental',
       );
-      jest
-        .spyOn(Engine.context.PermissionController, 'getCaveat')
-        .mockReturnValue({ value: ['0x64'] });
+      jest.spyOn(otherOptions.hooks, 'getCaveat').mockReturnValue({
+        value: {
+          optionalScopes: { 'eip155:100': { accounts: [] } },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      });
       await wallet_addEthereumChain({
         req: {
           params: [correctParams],

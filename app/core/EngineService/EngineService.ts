@@ -69,10 +69,14 @@ export class EngineService {
         error as Error,
         'Failed to initialize Engine! Falling back to vault recovery.',
       );
-      // Navigate to vault recovery
-      NavigationService.navigation?.reset({
-        routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
-      });
+
+      // Give the navigation stack a chance to load
+      // This can be removed if the vault recovery flow is moved higher up in the stack
+      setTimeout(() => {
+        NavigationService.navigation.reset({
+          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+        });
+      }, 150);
     }
     endTrace({ name: TraceName.EngineInitialization });
   };
@@ -138,6 +142,7 @@ export class EngineService {
         keyrings: [],
         vault: keyringState.vault,
         isUnlocked: false,
+        keyringsMetadata: [],
       };
 
       Logger.log(`${LOG_TAG}: Initializing Engine from backup:`, {
