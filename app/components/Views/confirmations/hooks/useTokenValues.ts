@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
+import { NetworkClientId } from '@metamask/network-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
@@ -22,6 +23,19 @@ interface TokenValuesProps {
   amountWei?: string;
 }
 
+const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) => useAsyncResult(
+  async () => await fetchErc20Decimals(tokenAddress, networkClientId),
+  [tokenAddress, networkClientId],
+);
+
+const useFiatConversion = (amount: BigNumber, chainId: Hex) => {
+  const conversionRate = useSelector((state: RootState) =>
+    selectConversionRateByChainId(state, chainId),
+  );
+  const fiatFormatter = useFiatFormatter();
+  return fiatFormatter(amount.times(conversionRate || 1));
+};
+
 /** Hook to calculate the token amount and fiat values from a transaction. */
 export const useTokenValues = ({ amountWei }: TokenValuesProps = {}) => {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -29,30 +43,17 @@ export const useTokenValues = ({ amountWei }: TokenValuesProps = {}) => {
 
   const transactionData = parseStandardTokenTransactionData(txParams?.data);
   const tokenAddress = transactionData?.args?._to as Hex;
-  const value = amountWei ? toBigNumber.dec(amountWei) : transactionData?.args?._value || txParams?.value as BigNumber | undefined;
+  const value = amountWei ? toBigNumber.dec(amountWei) : transactionData?.args?._value || txParams?.value;
   const valueBN = value ? new BigNumber(value.toString()) : new BigNumber(0);
 
-  const { value: decimals } = useAsyncResult(async () => await fetchErc20Decimals(tokenAddress, networkClientId), [tokenAddress, networkClientId]);
-
-  const locale = I18n.locale;
+  const { value: decimals } = useTokenDecimals(tokenAddress, networkClientId);
   const tokenAmount = calcTokenAmount(valueBN, decimals ?? 1);
-  const tokenAmountDisplay = formatAmount(locale, tokenAmount);
-
-  // Get the conversion rate for the chain
-  const conversionRate = useSelector((state: RootState) =>
-    selectConversionRateByChainId(state, chainId as Hex),
-  );
-  const conversionRateBN = new BigNumber(conversionRate || 1);
-
-  // Calculate the fiat value
-  const fiatFormatter = useFiatFormatter();
-  const fiatValue = tokenAmount.times(conversionRateBN);
-  const fiatDisplay = fiatFormatter(fiatValue);
+  const fiatDisplay = useFiatConversion(tokenAmount, chainId as Hex);
 
   // todo: we can return values as BN. We are converting to string to preserve existing behavior
   return {
     tokenAmountValue: tokenAmount.toString(),
-    tokenAmountDisplayValue: tokenAmountDisplay,
+    tokenAmountDisplayValue: formatAmount(I18n.locale, tokenAmount),
     fiatDisplayValue: fiatDisplay,
   };
 };
