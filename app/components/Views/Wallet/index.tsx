@@ -739,8 +739,7 @@ const Wallet = ({
         {isEvmSelected &&
           !isTestNet(chainId) &&
           basicFunctionalityEnabled &&
-          /* TODO: Restore the flags before merging */
-          (assetsDefiPositionsEnabled || true) && (
+          assetsDefiPositionsEnabled && (
             <DeFiPositionsList {...defiPositionsTabProps} />
           )}
         {isEvmSelected && (

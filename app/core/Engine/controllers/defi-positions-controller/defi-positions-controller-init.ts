@@ -32,8 +32,7 @@ export const defiPositionsControllerInit: ControllerInitFunction<
           ?.remoteFeatureFlags?.assetsDefiPositionsEnabled,
       );
 
-      // TODO: Restore the flags before merging
-      return isBasicFunctionalityToggleEnabled && (true || featureFlagForDeFi);
+      return isBasicFunctionalityToggleEnabled && featureFlagForDeFi;
     },
   });
 
