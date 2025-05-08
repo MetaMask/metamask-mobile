@@ -44,6 +44,8 @@ import {
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { isSolanaAccount } from '../../../core/Multichain/utils';
 
 const MAX_BROWSER_TABS = 5;
 
@@ -82,6 +84,8 @@ export const Browser = (props) => {
     (state) => state.security.dataCollectionForMarketing,
   );
 
+  const currentSelectedAccount = useSelector(selectSelectedInternalAccount);
+
   const homePageUrl = useCallback(
     () =>
       appendURLParams(AppConstants.HOMEPAGE_URL, {
@@ -92,24 +96,30 @@ export const Browser = (props) => {
   );
 
   useEffect(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Network,
-      networkImageSource: require('../../../images/solana-logo.png'),
-      labelOptions: [
-        {
-          label: `${strings(
-            'browser.toast.solana_dapp_connection_coming_soon.title',
-          )} \n`,
-          isBold: true,
-        },
-        {
-          label: `${strings(
-            'browser.toast.solana_dapp_connection_coming_soon.message',
-          )}`,
-        },
-      ],
-    });
-  }, [toastRef]);
+    console.log(
+      'currentSelectedAccount',
+      isSolanaAccount(currentSelectedAccount),
+    );
+    if (isSolanaAccount(currentSelectedAccount)) {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Network,
+        networkImageSource: require('../../../images/solana-logo.png'),
+        labelOptions: [
+          {
+            label: `${strings(
+              'browser.toast.solana_dapp_connection_coming_soon.title',
+            )} \n`,
+            isBold: true,
+          },
+          {
+            label: `${strings(
+              'browser.toast.solana_dapp_connection_coming_soon.message',
+            )}`,
+          },
+        ],
+      });
+    }
+  }, [toastRef, currentSelectedAccount]);
 
   const newTab = useCallback(
     (url, linkType) => {
