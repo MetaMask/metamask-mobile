@@ -231,6 +231,8 @@ export const NETWORK_CHAIN_ID: {
   readonly SONEIUM_MAINNET: '0x74c';
   readonly SONEIUM_MINATO_TESTNET: '0x79a';
   readonly XRPLEVM_TESTNET: '0x161c28';
+  readonly JOC_MAINNET: '0x51';
+  readonly JOC_TESTNET: '0x2761';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -242,6 +244,8 @@ export const NETWORK_CHAIN_ID: {
   SONEIUM_MAINNET: '0x74c',
   SONEIUM_MINATO_TESTNET: '0x79a',
   XRPLEVM_TESTNET: '0x161c28',
+  JOC_MAINNET: '0x51',
+  JOC_TESTNET: '0x2761',
   ...CHAIN_IDS,
 };
 
@@ -258,4 +262,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.SONEIUM_MINATO_TESTNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.SONEIUM_MAINNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: require('../../images/xrplevm.png'),
+  [NETWORK_CHAIN_ID.JOC_MAINNET]: require('../../images/joc-mainnet-logo.png'),
+  [NETWORK_CHAIN_ID.JOC_TESTNET]: require('../../images/joc-testnet-logo.png'),
 };
