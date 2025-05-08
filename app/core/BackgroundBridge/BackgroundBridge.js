@@ -140,8 +140,8 @@ export class BackgroundBridge extends EventEmitter {
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
-      ? new WalletConnectPort(wcRequestActions)
-      : new Port(this._webviewRef, isMainFrame);
+        ? new WalletConnectPort(wcRequestActions)
+        : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
     this.multichainEngine = null;
@@ -1061,13 +1061,13 @@ export class BackgroundBridge extends EventEmitter {
         //     this.alertController,
         //   ),
 
-      //   requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
-      //     Engine.requestPermittedChainsPermissionIncremental({
-      //       ...options,
-      //       origin,
-      //     }),
-      //   rejectApprovalRequestsForOrigin: () =>
-      //     Engine.rejectOriginPendingApprovals(origin),
+        //   requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
+        //     Engine.requestPermittedChainsPermissionIncremental({
+        //       ...options,
+        //       origin,
+        //     }),
+        //   rejectApprovalRequestsForOrigin: () =>
+        //     Engine.rejectOriginPendingApprovals(origin),
       }),
     );
 
@@ -1284,10 +1284,10 @@ export class BackgroundBridge extends EventEmitter {
         params:
           newAccounts.length < 2
             ? // If the length is 1 or 0, the accounts are sorted by definition.
-              newAccounts
+            newAccounts
             : // If the length is 2 or greater, we have to execute
-              // `eth_accounts` vi this method.
-              this.getPermittedAccounts(origin),
+            // `eth_accounts` vi this method.
+            this.getPermittedAccounts(origin),
       },
       API_TYPE.EIP1193,
     );
@@ -1340,7 +1340,7 @@ export class BackgroundBridge extends EventEmitter {
   _restartSmartTransactionPoller() {
     const { PreferencesController, TransactionController } = Engine.context;
 
-    if (PreferencesController.state.useExternalServices === true) {
+    if (PreferencesController?.state?.useExternalServices === true && TransactionController) {
       TransactionController.stopIncomingTransactionPolling();
       TransactionController.startIncomingTransactionPolling();
     }
@@ -1350,7 +1350,7 @@ export class BackgroundBridge extends EventEmitter {
     const previousEnabled = this._isTokenListPollingRequired(previousState);
     const newEnabled = this._isTokenListPollingRequired(currentState);
 
-    if (previousEnabled === newEnabled) {
+    if (previousEnabled === newEnabled || !Engine.context.TokenListController) {
       return;
     }
 
@@ -1360,12 +1360,16 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   _isTokenListPollingRequired(preferencesControllerState) {
+    if (!preferencesControllerState) {
+      return false;
+    }
+
     const { useTokenDetection, useTransactionSimulations, preferences } =
-      preferencesControllerState ?? {};
+      preferencesControllerState;
 
     const { petnamesEnabled } = preferences ?? {};
 
-    return useTokenDetection || petnamesEnabled || useTransactionSimulations;
+    return Boolean(useTokenDetection || petnamesEnabled || useTransactionSimulations);
   }
 }
 
