@@ -13,7 +13,8 @@ import { useSignatureRequest } from '../../../../../hooks/useSignatureRequest';
 import useApprovalRequest from '../../../../../hooks/useApprovalRequest';
 import { View } from 'react-native';
 import styleSheet from './InfoSectionOriginAndDetails.styles';
-import { isValidAddress } from 'ethereumjs-util';
+import { isValidHexAddress } from '../../../../../../../../util/address';
+
 
 export const InfoSectionOriginAndDetails = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -56,7 +57,7 @@ export const InfoSectionOriginAndDetails = () => {
       >
         <DisplayURL url={origin} />
       </InfoRow>
-      {isValidAddress(verifyingContract) && (
+      {isValidHexAddress(verifyingContract) && (
           <InfoRow label={strings('confirm.label.interacting_with')}>
             <InfoRowAddress
               address={verifyingContract}

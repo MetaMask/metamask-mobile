@@ -16,7 +16,6 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
 import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
-import { isValidAddress } from 'ethereumjs-util';
 
 import Device from '../../../../util/device';
 import { addCurrencySymbol } from '../../../../util/number';
@@ -52,6 +51,7 @@ import { useTheme } from '../../../../util/theme';
 import { QuoteViewSelectorIDs } from '../../../../../e2e/selectors/swaps/QuoteView.selectors';
 import { getDecimalChainId } from '../../../../util/networks';
 import { getSortedTokensByFiatValue } from '../utils/token-list-utils';
+import { isValidHexAddress } from '../../../../util/address';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -230,7 +230,7 @@ function TokenSelectModal({
   const shouldFetchToken = useMemo(
     () =>
       tokenSearchResults.length === 0 &&
-      isValidAddress(searchString) &&
+      isValidHexAddress(searchString) &&
       !excludedAddresses.includes(searchString?.toLowerCase()),
     [excludedAddresses, searchString, tokenSearchResults.length],
   );

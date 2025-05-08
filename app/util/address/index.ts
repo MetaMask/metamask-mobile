@@ -395,10 +395,22 @@ export function isENS(name: string | undefined = undefined) {
 export function resemblesAddress(address: string) {
   return address && address.length === 2 + 20 * 2;
 }
-
+/**
+ * Converts a hex address to a checksummed address if it is valid.
+ * If the address is not a hex string, it returns the address as is.
+ * If the address is empty or undefined, it returns undefined.
+ * This function is a wrapper around ethereumjs-util.toChecksumAddress.
+ * It is used to ensure that the address is in a valid format before
+ * performing any operations on it.
+ *
+ * @returns {string} - Returns the checksummed address or undefined if input is invalid
+ */
 export function safeToChecksumAddress(address: string) {
-  if (!address) return undefined;
-  return toChecksumAddress(address) as Hex;
+  if (!address) return '';
+  if (isHexString(address)) {
+    return toChecksumHexAddress(address);
+  }
+  return address as string;
 }
 
 /**
