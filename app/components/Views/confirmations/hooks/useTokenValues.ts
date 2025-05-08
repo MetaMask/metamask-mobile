@@ -1,45 +1,58 @@
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
-import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
-import { selectConversionRateByChainId } from '../../../../selectors/currencyRateController';
 import I18n from '../../../../../locales/i18n';
 import { formatAmount } from '../../../../components/UI/SimulationDetails/formatAmount';
-import { fromWei, hexToBN, toBigNumber } from '../../../../util/number';
+import { useAsyncResult } from '../../../hooks/useAsyncResult';
 import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { RootState } from '../../../../reducers';
+import { selectConversionRateByChainId } from '../../../../selectors/currencyRateController';
+import { toBigNumber } from '../../../../util/number';
+import { calcTokenAmount } from '../../../../util/transactions';
+import { fetchErc20Decimals } from '../utils/token';
+import { parseStandardTokenTransactionData } from '../utils/transaction';
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
-// TODO: This hook will be extended to calculate token and fiat information from transaction metadata on upcoming redesigned confirmations
-export const useTokenValues = ({ amountWei }: { amountWei?: string } = {}) => {
+interface TokenValuesProps {
+  /**
+   * Optional value in wei to display. If not provided, the amount from the transactionMetadata will be used.
+   */
+  amountWei?: string;
+}
 
+/** Hook to calculate the token amount and fiat values from a transaction. */
+export const useTokenValues = ({ amountWei }: TokenValuesProps = {}) => {
   const transactionMetadata = useTransactionMetadataRequest();
+  const { chainId, networkClientId, txParams } = transactionMetadata as TransactionMeta;
 
-  let ethAmountInWei;
-  if (amountWei) {
-    ethAmountInWei = toBigNumber.dec(amountWei);
-  } else {
-    ethAmountInWei = hexToBN(transactionMetadata?.txParams?.value);
-  }
+  const transactionData = parseStandardTokenTransactionData(txParams?.data);
+  const tokenAddress = transactionData?.args?._to as Hex;
+  const value = amountWei ? toBigNumber.dec(amountWei) : transactionData?.args?._value || txParams?.value as BigNumber | undefined;
+  const valueBN = value ? new BigNumber(value.toString()) : new BigNumber(0);
 
-  const ethAmountInBN = new BigNumber(fromWei(ethAmountInWei, 'ether'));
-
-  const tokenAmountValue = ethAmountInBN.toFixed();
+  const { value: decimals } = useAsyncResult(async () => await fetchErc20Decimals(tokenAddress, networkClientId), [tokenAddress, networkClientId]);
 
   const locale = I18n.locale;
-  const tokenAmountDisplayValue = formatAmount(locale, ethAmountInBN);
+  const tokenAmount = calcTokenAmount(valueBN, decimals ?? 1);
+  const tokenAmountDisplay = formatAmount(locale, tokenAmount);
 
-  const fiatFormatter = useFiatFormatter();
-  const nativeConversionRate = useSelector((state: RootState) =>
-    selectConversionRateByChainId(state, transactionMetadata?.chainId as Hex),
+  // Get the conversion rate for the chain
+  const conversionRate = useSelector((state: RootState) =>
+    selectConversionRateByChainId(state, chainId as Hex),
   );
-  const nativeConversionRateInBN = new BigNumber(nativeConversionRate || 1);
-  const preciseFiatValue = ethAmountInBN.times(nativeConversionRateInBN);
-  const fiatDisplayValue = preciseFiatValue && fiatFormatter(preciseFiatValue);
+  const conversionRateBN = new BigNumber(conversionRate || 1);
 
+  // Calculate the fiat value
+  const fiatFormatter = useFiatFormatter();
+  const fiatValue = tokenAmount.times(conversionRateBN);
+  const fiatDisplay = fiatFormatter(fiatValue);
+
+  // todo: we can return values as BN. We are converting to string to preserve existing behavior
   return {
-    tokenAmountValue,
-    tokenAmountDisplayValue,
-    fiatDisplayValue,
+    tokenAmountValue: tokenAmount.toString(),
+    tokenAmountDisplayValue: tokenAmountDisplay,
+    fiatDisplayValue: fiatDisplay,
   };
 };
