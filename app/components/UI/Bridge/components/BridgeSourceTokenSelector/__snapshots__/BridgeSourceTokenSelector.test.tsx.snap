@@ -310,21 +310,14 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                     }
                   >
                     <View
-                      onLayout={[Function]}
                       style={
-                        [
-                          {
-                            "bottom": 0,
-                            "justifyContent": "flex-end",
-                            "left": 0,
-                            "position": "absolute",
-                            "right": 0,
-                            "top": 0,
-                          },
-                          {
-                            "paddingBottom": 0,
-                          },
-                        ]
+                        {
+                          "bottom": 0,
+                          "left": 0,
+                          "position": "absolute",
+                          "right": 0,
+                          "top": 0,
+                        }
                       }
                     >
                       <View
@@ -339,60 +332,24 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               "top": 0,
                             },
                             {
-                              "opacity": 0,
+                              "opacity": undefined,
                             },
                           ]
                         }
-                      >
-                        <TouchableOpacity
-                          onPress={[Function]}
-                          style={
-                            {
-                              "flex": 1,
-                            }
-                          }
-                        />
-                      </View>
+                      />
                       <View
-                        onLayout={[Function]}
+                        collapsable={false}
+                        onGestureHandlerEvent={[Function]}
+                        onGestureHandlerStateChange={[Function]}
                         style={
                           [
-                            {
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                            },
-                            {
-                              "paddingBottom": 0,
-                            },
-                          ]
-                        }
-                      >
-                        <View
-                          collapsable={false}
-                          onGestureHandlerEvent={[Function]}
-                          onGestureHandlerStateChange={[Function]}
-                          onLayout={[Function]}
-                          style={
                             [
                               {
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
-                                "borderWidth": 1,
-                                "height": undefined,
-                                "maxHeight": 1334,
-                                "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
                               },
                               {
                                 "transform": [
@@ -401,29 +358,67 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   },
                                 ],
                               },
+                            ],
+                            [
+                              {
+                                "justifyContent": "flex-end",
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                            ],
+                          ]
+                        }
+                      >
+                        <TouchableOpacity
+                          disabled={false}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "bottom": 0,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": 0,
+                              "top": 0,
+                            }
+                          }
+                        />
+                        <View
+                          style={
+                            [
+                              {},
+                              [
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "flex": 1,
+                                },
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "borderTopLeftRadius": 20,
+                                  "borderTopRightRadius": 20,
+                                },
+                                {
+                                  "paddingBottom": 0,
+                                },
+                              ],
                             ]
                           }
                         >
                           <View
                             style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "padding": 4,
-                              }
-                            }
-                          >
-                            <View
-                              style={
+                              [
+                                {},
                                 {
-                                  "backgroundColor": "#b7bbc866",
-                                  "borderRadius": 2,
-                                  "height": 4,
-                                  "width": 40,
-                                }
-                              }
-                            />
-                          </View>
+                                  "alignSelf": "center",
+                                  "backgroundColor": "#b7bbc8",
+                                  "borderRadius": 4,
+                                  "height": 5,
+                                  "marginTop": 8,
+                                  "width": 48,
+                                },
+                              ]
+                            }
+                          />
                           <View
                             gap={4}
                             style={
