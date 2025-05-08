@@ -8,13 +8,31 @@ import I18n from '../../../../../locales/i18n';
 import { formatAmount } from '../../../../components/UI/SimulationDetails/formatAmount';
 import { useAsyncResult } from '../../../hooks/useAsyncResult';
 import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { RootState } from '../../../../reducers';
-import { selectConversionRateByChainId } from '../../../../selectors/currencyRateController';
+import { fetchTokenFiatRates } from '../../../UI/SimulationDetails/useBalanceChanges';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { toBigNumber } from '../../../../util/number';
 import { calcTokenAmount } from '../../../../util/transactions';
 import { fetchErc20Decimals } from '../utils/token';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
+
+const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) => useAsyncResult(
+  async () => await fetchErc20Decimals(tokenAddress, networkClientId),
+  [tokenAddress, networkClientId],
+);
+
+const useFiatConversion = (amount: BigNumber, chainId: Hex, tokenAddress: Hex) => {
+  const fiatFormatter = useFiatFormatter();
+  const fiatCurrency = useSelector(selectCurrentCurrency);
+
+  const erc20FiatRates = useAsyncResult(
+    async () => await fetchTokenFiatRates(fiatCurrency, [tokenAddress], chainId),
+    [tokenAddress, chainId, fiatCurrency],
+  );
+
+  const testFiatValue = amount.times(erc20FiatRates.value?.[tokenAddress] ?? 1);
+  return fiatFormatter(testFiatValue);
+};
 
 interface TokenValuesProps {
   /**
@@ -23,32 +41,19 @@ interface TokenValuesProps {
   amountWei?: string;
 }
 
-const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) => useAsyncResult(
-  async () => await fetchErc20Decimals(tokenAddress, networkClientId),
-  [tokenAddress, networkClientId],
-);
-
-const useFiatConversion = (amount: BigNumber, chainId: Hex) => {
-  const conversionRate = useSelector((state: RootState) =>
-    selectConversionRateByChainId(state, chainId),
-  );
-  const fiatFormatter = useFiatFormatter();
-  return fiatFormatter(amount.times(conversionRate || 1));
-};
-
 /** Hook to calculate the token amount and fiat values from a transaction. */
 export const useTokenValues = ({ amountWei }: TokenValuesProps = {}) => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId, networkClientId, txParams } = transactionMetadata as TransactionMeta;
 
   const transactionData = parseStandardTokenTransactionData(txParams?.data);
-  const tokenAddress = transactionData?.args?._to as Hex;
+  const tokenAddress = transactionMetadata?.txParams?.to as Hex || '0x';
   const value = amountWei ? toBigNumber.dec(amountWei) : transactionData?.args?._value || txParams?.value;
   const valueBN = value ? new BigNumber(value.toString()) : new BigNumber(0);
 
   const { value: decimals, pending } = useTokenDecimals(tokenAddress, networkClientId);
   const tokenAmount = calcTokenAmount(valueBN, decimals ?? 1);
-  const fiatDisplay = useFiatConversion(tokenAmount, chainId as Hex);
+  const fiatDisplay = useFiatConversion(tokenAmount, chainId as Hex, tokenAddress);
 
   // todo: we can return values as BN. We are converting to string to preserve existing behavior
   return pending ?
