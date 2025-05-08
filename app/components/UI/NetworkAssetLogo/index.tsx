@@ -5,7 +5,7 @@ import TokenIcon from '../Swaps/components/TokenIcon';
 interface NetworkAssetLogoProps {
   chainId: string;
   ticker: string;
-  style: object;
+  style?: object;
   big: boolean;
   biggest: boolean;
   testID: string;
