@@ -16,6 +16,14 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { act } from '@testing-library/react';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
+jest.mock('../../hooks/useAccounts', () => ({
+  useAccounts: jest.fn().mockReturnValue({
+    evmAccounts: [],
+    accounts: [],
+    ensByAccountAddress: {},
+  }),
+}));
+
 const mockTabs = [
   { id: 1, url: 'about:blank', image: '', isArchived: false },
   { id: 2, url: 'about:blank', image: '', isArchived: false },
