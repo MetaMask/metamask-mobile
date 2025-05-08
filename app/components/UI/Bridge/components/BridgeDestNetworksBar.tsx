@@ -8,7 +8,7 @@ import Button, {
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -36,6 +36,7 @@ import { AvatarSize } from '../../../../component-library/components/Avatars/Ava
 import { selectChainId } from '../../../../selectors/networkController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
+import { ScrollView } from 'react-native-gesture-handler';
 ///: END:ONLY_INCLUDE_IF
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
