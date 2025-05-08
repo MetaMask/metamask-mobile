@@ -1804,70 +1804,36 @@ workflows:
           is_expand: true
         MM_ANDROID_PACKAGE_NAME: io.metamask
   deploy_ios_to_store:
-    before_run:
-      - setup
-      - prep_environment
-    after_run:
-      - notify_failure
     steps:
-      - script@1:
-          title: Set version env vars
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                # Ignore if user changes branch to avoid errors in CircleCI
-                if [[ -z "$VERSION_NAME" || -z "$VERSION_NUMBER" ]]; then
-                  BRANCH="release/v$VERSION_NAME"
-                  BRANCH_VERSION_NAME="$VERSION_NAME"
-
-                  # Store build number (only if provided directly)
-                  if [[ -n "$VERSION_NUMBER" ]]; then
-                    BRANCH_VERSION_NUMBER="$VERSION_NUMBER"
-                  fi
-                fi
-
-                # Setup default env vars
-                envman add --key BITRISE_SCHEME --value "MetaMask"
-                envman add --key VERSION_NAME --value "$BRANCH_VERSION_NAME"
-                envman add --key VERSION_NUMBER --value "$BRANCH_VERSION_NUMBER"
       - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
-          title: Pull artifact IPA file from build workflow
       - script@1:
-          title: Find IPA file and fix OpenSSL bitcode issues
+          title: Find and fix OpenSSL bitcode issues
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 set -e
 
-                echo "Searching for IPA file in artifact directory..."
-                IPA_FILE=$(find "$BITRISE_DEPLOY_DIR" -name "*.ipa" -type f | head -1)
-                
+                # Find the IPA file
+                IPA_FILE=$(find "${BITRISE_SOURCE_DIR}" -name "*.ipa" -type f | grep -i metamask | head -1)
                 if [ -z "$IPA_FILE" ]; then
-                  echo "No IPA file found in deploy directory. Searching in temp directory..."
-                  IPA_FILE=$(find /var/folders -name "*.ipa" -type f 2>/dev/null | grep -i metamask | head -1)
+                  echo "No IPA file found. Checking deploy dir..."
+                  IPA_FILE=$(find "${BITRISE_DEPLOY_DIR}" -name "*.ipa" -type f | head -1)
                 fi
                 
                 if [ -z "$IPA_FILE" ]; then
-                  echo "Error: No IPA file found"
-                  exit 1
+                  echo "Warning: No IPA file found, skipping bitcode fix"
+                else
+                  echo "Found IPA file: $IPA_FILE"
+                  echo "Applying OpenSSL bitcode fix..."
+                  cd ios
+                  ./remove_bitcode_for_bitrise.sh "$IPA_FILE"
+                  echo "OpenSSL bitcode fix applied successfully"
                 fi
-                
-                echo "Found IPA file: $IPA_FILE"
-                envman add --key IPA_PATH --value "$IPA_FILE"
-                
-                echo "Applying OpenSSL bitcode fix..."
-                cd ios
-                ./remove_bitcode_for_bitrise.sh "$IPA_FILE"
-                
-                echo "OpenSSL bitcode fix applied successfully"
       - deploy-to-itunesconnect-application-loader@1:
           inputs:
-            - ipa_path: $IPA_PATH
-            - password: $MM_APPSTORE_PASSWORD
-            - app_password: $MM_APPSTORE_APP_PASSWORD
-            - connection: 'off'
+            - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   # iOS Builds
   _ios_build_template:
     envs:
