@@ -431,6 +431,7 @@ exports[`AssetOverview should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="Add"
               style={
@@ -537,6 +538,7 @@ exports[`AssetOverview should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="SwapHorizontal"
               style={
@@ -643,6 +645,7 @@ exports[`AssetOverview should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="Bridge"
               style={
@@ -749,8 +752,9 @@ exports[`AssetOverview should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
-              name="Arrow2Upright"
+              name="Arrow2UpRight"
               style={
                 {
                   "height": 24,
@@ -855,6 +859,7 @@ exports[`AssetOverview should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="QrCode"
               style={
@@ -1586,6 +1591,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="Add"
               style={
@@ -1692,6 +1698,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="SwapHorizontal"
               style={
@@ -1798,6 +1805,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="Bridge"
               style={
@@ -1904,8 +1912,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
-              name="Arrow2Upright"
+              name="Arrow2UpRight"
               style={
                 {
                   "height": 24,
@@ -2010,6 +2019,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="QrCode"
               style={
@@ -2748,6 +2758,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="Add"
               style={
@@ -2854,6 +2865,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="SwapHorizontal"
               style={
@@ -2960,6 +2972,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="Bridge"
               style={
@@ -3066,6 +3079,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="QrCode"
               style={
@@ -3479,6 +3493,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 </Text>
                 <SvgMock
                   color="#4459ff"
+                  fill="currentColor"
                   height={16}
                   name="Copy"
                   style={
