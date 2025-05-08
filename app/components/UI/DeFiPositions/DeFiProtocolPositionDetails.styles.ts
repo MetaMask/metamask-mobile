@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native';
 /**
  *
- * @param params Style sheet params.
  * @returns StyleSheet object.
  */
 const styleSheet = () =>

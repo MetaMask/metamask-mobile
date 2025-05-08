@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { View, FlatList } from 'react-native';
-import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import {
@@ -31,8 +30,7 @@ export interface DeFiPositionsListProps {
 }
 
 const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
-  const theme = useTheme();
-  const styles = styleSheet({ theme });
+  const styles = styleSheet();
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const currentChainId = useSelector(selectChainId) as Hex;
