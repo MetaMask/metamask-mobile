@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import useLendingTokenPair from '../../hooks/useLendingTokenPair';
 
 export interface EarnLendingBalanceProps {
   asset: TokenI;
@@ -26,11 +27,13 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   const navigation = useNavigation();
 
+  const { receiptToken } = useLendingTokenPair(asset);
+
   const handleNavigateToWithdrawalInputScreen = () => {
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
       params: {
-        token: asset,
+        token: receiptToken,
       },
     });
   };

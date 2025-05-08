@@ -26,21 +26,40 @@ import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import { TokenI } from '../../../Tokens/types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
 
 interface EarnTokenSelectorProps {
   token: TokenI;
+  action: EARN_INPUT_VIEW_ACTIONS;
 }
 
-const EarnTokenSelector = ({ token }: EarnTokenSelectorProps) => {
+const EarnTokenSelector = ({ token, action }: EarnTokenSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkName = useSelector(selectNetworkName);
   const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-  const tokenDetails = getTokenWithBalanceAndApr(token);
+  const earnToken = getTokenWithBalanceAndApr(token);
 
   const handlePress = () => {
+    const tokenFilter = {
+      // Staking tokens visible for both deposit and withdrawals
+      includeStakingTokens: true,
+      includeLendingTokens: false,
+      includeReceiptTokens: false,
+    };
+
+    if (action === EARN_INPUT_VIEW_ACTIONS.WITHDRAW) {
+      tokenFilter.includeReceiptTokens = true;
+    } else {
+      tokenFilter.includeLendingTokens = true;
+    }
+
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+      params: {
+        tokenFilter,
+        onItemPressScreen: action,
+      },
     });
   };
 
@@ -91,11 +110,11 @@ const EarnTokenSelector = ({ token }: EarnTokenSelectorProps) => {
   const renderEndAccessory = () => (
     <View style={styles.endAccessoryContainer}>
       <Text variant={TextVariant.BodyMDMedium} color={TextColor.Success}>
-        {`${tokenDetails.apr}% APR`}
+        {`${earnToken.apr}% APR`}
       </Text>
-      {tokenDetails.balanceFormatted !== undefined && (
+      {earnToken.balanceFormatted !== undefined && (
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {tokenDetails.balanceFormatted}
+          {earnToken.balanceFormatted}
         </Text>
       )}
     </View>

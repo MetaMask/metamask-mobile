@@ -140,7 +140,10 @@ export const TokenListItem = React.memo(
     const multiChainMarketData = useSelector(selectTokenMarketData);
     const multiChainCurrencyRates = useSelector(selectCurrencyRates);
 
-    const earnTokens = useEarnTokens();
+    const earnTokens = useEarnTokens({
+      includeStakingTokens: true,
+      includeLendingTokens: true,
+    });
 
     // Earn feature flags
     const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
@@ -384,6 +387,7 @@ export const TokenListItem = React.memo(
           asset.chainId === token?.chainId &&
           !asset?.isStaked,
       );
+
       const shouldShowStablecoinLendingCta =
         isAssetSupportedStablecoin && isStablecoinLendingEnabled;
 

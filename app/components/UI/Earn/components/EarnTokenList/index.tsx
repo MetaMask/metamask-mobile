@@ -17,7 +17,7 @@ import {
 import { TokenI } from '../../../Tokens/types';
 import { ScrollView } from 'react-native-gesture-handler';
 import { Hex } from '@metamask/utils';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import {
@@ -27,12 +27,15 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import UpsellBanner from '../../../Stake/components/UpsellBanner';
 import { UPSELL_BANNER_VARIANTS } from '../../../Stake/components/UpsellBanner/UpsellBanner.types';
-import EarnTokenListItem from '../EarnTokenListItem';
 import Engine from '../../../../../core/Engine';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { useSelector } from 'react-redux';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
+import { EarnTokenDetails } from '../../hooks/useEarnTokenDetails';
+import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
+import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -62,13 +65,34 @@ const EarnTokenListSkeletonPlaceholder = () => (
   </SkeletonPlaceholder>
 );
 
+interface EarnTokenListViewRouteParams {
+  tokenFilter: {
+    includeStakingTokens: boolean;
+    includeLendingTokens: boolean;
+    includeReceiptTokens: boolean;
+  };
+  onItemPressScreen: string;
+}
+
+export interface EarnTokenListProps {
+  route: RouteProp<{ params: EarnTokenListViewRouteParams }, 'params'>;
+}
+
 const EarnTokenList = () => {
   const { createEventBuilder, trackEvent } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
+  const { params } = useRoute<EarnTokenListProps['route']>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const supportedStablecoins = useEarnTokens();
+  const { includeStakingTokens, includeLendingTokens, includeReceiptTokens } =
+    params?.tokenFilter ?? {};
+
+  const supportedEarnTokens = useEarnTokens({
+    includeStakingTokens,
+    includeLendingTokens,
+    includeReceiptTokens,
+  });
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -77,7 +101,7 @@ const EarnTokenList = () => {
     [],
   );
 
-  const handleRedirectToInputScreen = async (token: TokenI) => {
+  const redirectToDepositScreen = async (token: TokenI) => {
     const { NetworkController } = Engine.context;
 
     const networkClientId = NetworkController.findNetworkClientIdByChainId(
@@ -86,7 +110,7 @@ const EarnTokenList = () => {
 
     if (!networkClientId) {
       console.error(
-        `EarnTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${token.chainId}`,
+        `EarnDepositTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${token.chainId}`,
       );
       return;
     }
@@ -99,6 +123,25 @@ const EarnTokenList = () => {
         params: { token },
       });
     });
+  };
+
+  const redirectToWithdrawalScreen = (token: TokenI) => {
+    closeBottomSheetAndNavigate(() => {
+      navigate('StakeScreens', {
+        screen: Routes.STAKING.UNSTAKE,
+        params: { token },
+      });
+    });
+  };
+
+  const handleRedirectToInputScreen = async (token: TokenI) => {
+    const onItemPressScreen = params?.onItemPressScreen ?? '';
+
+    if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT) {
+      redirectToDepositScreen(token);
+    } else if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW) {
+      redirectToWithdrawalScreen(token);
+    }
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_TOKEN_LIST_ITEM_CLICKED)
@@ -113,6 +156,34 @@ const EarnTokenList = () => {
     );
   };
 
+  const renderTokenListItem = (token: EarnTokenDetails) => {
+    const onItemPressScreen = params?.onItemPressScreen;
+    if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW) {
+      return (
+        <EarnWithdrawalTokenListItem
+          earnToken={token}
+          onPress={handleRedirectToInputScreen}
+        />
+      );
+    }
+
+    return (
+      <EarnDepositTokenListItem
+        token={token}
+        onPress={handleRedirectToInputScreen}
+        primaryText={{
+          value: `${token.apr}% APR`,
+          color: TextColor.Success,
+        }}
+        {...(!isEmptyBalance(token) && {
+          secondaryText: {
+            value: token.balanceFormatted,
+          },
+        })}
+      />
+    );
+  };
+
   return (
     <BottomSheet ref={bottomSheetRef}>
       <BottomSheetHeader>
@@ -121,34 +192,24 @@ const EarnTokenList = () => {
         </Text>
       </BottomSheetHeader>
       <ScrollView style={styles.container}>
-        {supportedStablecoins?.length ? (
+        {supportedEarnTokens?.length ? (
           <>
-            <UpsellBanner
-              primaryText={strings('stake.you_could_earn')}
-              secondaryText={MOCK_ESTIMATE_REWARDS}
-              tertiaryText={strings('stake.per_year_on_your_tokens')}
-              variant={UPSELL_BANNER_VARIANTS.HEADER}
-            />
-            {supportedStablecoins?.map(
+            {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT && (
+              <UpsellBanner
+                primaryText={strings('stake.you_could_earn')}
+                secondaryText={MOCK_ESTIMATE_REWARDS}
+                tertiaryText={strings('stake.per_year_on_your_tokens')}
+                variant={UPSELL_BANNER_VARIANTS.HEADER}
+              />
+            )}
+            {supportedEarnTokens?.map(
               (token, index) =>
                 token?.chainId && (
                   <View
                     style={styles.listItemContainer}
                     key={`${token.name}-${token.symbol}-${index}`}
                   >
-                    <EarnTokenListItem
-                      token={token}
-                      onPress={handleRedirectToInputScreen}
-                      primaryText={{
-                        value: `${token.apr}% APR`,
-                        color: TextColor.Success,
-                      }}
-                      {...(!isEmptyBalance(token) && {
-                        secondaryText: {
-                          value: token.balanceFormatted,
-                        },
-                      })}
-                    />
+                    {renderTokenListItem(token)}
                   </View>
                 ),
             )}

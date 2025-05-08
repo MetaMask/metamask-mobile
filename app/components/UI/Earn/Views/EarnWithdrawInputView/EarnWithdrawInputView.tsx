@@ -30,7 +30,6 @@ import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
 import useEarnWithdrawInput from '../../../Earn/hooks/useEarnWithdrawInput';
 import { StakeNavigationParamsList } from '../../../Stake/types';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
-import UnstakeInputViewBanner from './UnstakeBanner';
 import styleSheet from './EarnWithdrawInputView.styles';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
@@ -41,19 +40,27 @@ import { selectContractExchangeRatesByChainId } from '../../../../../selectors/t
 import { StackNavigationProp } from '@react-navigation/stack';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import { isSupportedLendingTokenByChainId } from '../../utils';
+import {
+  isSupportedLendingReceiptTokenByChainId,
+  isSupportedLendingTokenByChainId,
+} from '../../utils';
+import EarnTokenSelector from '../../components/EarnTokenSelector';
+import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
   const { token } = route.params;
   const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
   const earnToken = getTokenWithBalanceAndApr(token);
-  const title = isSupportedLendingTokenByChainId(
-    token.symbol,
-    token?.chainId as string,
-  )
-    ? strings('earn.withdraw')
-    : strings('stake.unstake_eth');
+  const title =
+    isSupportedLendingTokenByChainId(token.symbol, token?.chainId as string) ||
+    isSupportedLendingReceiptTokenByChainId(
+      token.symbol,
+      token?.chainId as string,
+    )
+      ? strings('earn.withdraw')
+      : strings('stake.unstake_eth');
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -130,7 +137,8 @@ const EarnWithdrawInputView = () => {
   const earnNavBarOptions = {
     hasCancelButton: false,
     hasBackButton: true,
-    hasIconButton: true,
+    // TODO: STAKE-903
+    hasIconButton: !isStablecoinLendingEnabled,
     // TODO: STAKE-903
     // handleIconPress: ???,
   };
@@ -181,7 +189,9 @@ const EarnWithdrawInputView = () => {
     }, []),
   );
 
-  const handleUnstakePress = useCallback(async () => {
+  const handleLendingWithdrawalFlow = useCallback(async () => {}, []);
+
+  const handleUnstakeWithdrawalFlow = useCallback(async () => {
     const isStakingDepositRedesignedEnabled =
       confirmationRedesignFlags?.staking_confirmations;
 
@@ -241,15 +251,29 @@ const EarnWithdrawInputView = () => {
         .build(),
     );
   }, [
+    activeAccount?.address,
+    amountFiatNumber,
     amountToken,
     amountTokenMinimalUnit,
+    attemptUnstakeTransaction,
+    confirmationRedesignFlags?.staking_confirmations,
     createEventBuilder,
-    amountFiatNumber,
     navigation,
     trackEvent,
-    attemptUnstakeTransaction,
-    activeAccount?.address,
-    confirmationRedesignFlags?.staking_confirmations,
+  ]);
+
+  const handleWithdrawPress = useCallback(async () => {
+    if (earnToken?.experience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      return handleLendingWithdrawalFlow();
+    }
+
+    if (earnToken?.experience === EARN_EXPERIENCES.POOLED_STAKING) {
+      return handleUnstakeWithdrawalFlow();
+    }
+  }, [
+    earnToken?.experience,
+    handleLendingWithdrawalFlow,
+    handleUnstakeWithdrawalFlow,
   ]);
 
   return (
@@ -276,7 +300,14 @@ const EarnWithdrawInputView = () => {
         })}
         currencyToggleValue={currencyToggleValue}
       />
-      <UnstakeInputViewBanner style={styles.unstakeBanner} />
+      {isStablecoinLendingEnabled && (
+        <View style={styles.earnTokenSelectorContainer}>
+          <EarnTokenSelector
+            token={token}
+            action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
+          />
+        </View>
+      )}
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={({ value }: { value: number }) =>
@@ -314,7 +345,7 @@ const EarnWithdrawInputView = () => {
             isSubmittingStakeWithdrawalTransaction
           }
           width={ButtonWidthTypes.Full}
-          onPress={handleUnstakePress}
+          onPress={handleWithdrawPress}
         />
       </View>
     </ScreenLayout>
