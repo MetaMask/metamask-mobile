@@ -1,6 +1,6 @@
 import './shim.js';
 
-import { enableFreeze } from "react-native-screens";
+import { enableFreeze } from 'react-native-screens';
 enableFreeze(true);
 
 // Needed to polyfill random number generation.
