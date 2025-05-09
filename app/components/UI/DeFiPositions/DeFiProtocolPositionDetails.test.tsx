@@ -79,8 +79,7 @@ describe('DeFiProtocolPositionDetails', () => {
     expect(mockSetOptions).toHaveBeenCalledTimes(1);
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(
-      (await findByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID)).props
-        .children,
+      await findByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID),
     ).toHaveTextContent('$100.00');
   });
 
@@ -106,8 +105,7 @@ describe('DeFiProtocolPositionDetails', () => {
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(queryByText('$100.00')).not.toBeOnTheScreen();
     expect(
-      (await findByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID)).props
-        .children,
+      await findByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID),
     ).toHaveTextContent('•••••••••');
   });
 });
