@@ -19,14 +19,14 @@ const styleSheet = (params: {
       textAlign: 'center',
       color: theme.colors.text.alternative,
     },
-    networkAndTokenContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     container: {
       paddingBottom: 16,
       paddingTop: isFlatConfirmation ? 16 : 0,
+    },
+    containerAvatarTokenNetworkWithBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 };

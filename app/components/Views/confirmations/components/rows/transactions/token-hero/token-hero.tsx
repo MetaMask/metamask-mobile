@@ -143,7 +143,7 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.networkAndTokenContainer}>
+      <View style={styles.containerAvatarTokenNetworkWithBadge}>
         <AvatarTokenNetworkWithBadge />
       </View>
       <AssetAmount
