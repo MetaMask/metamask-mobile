@@ -50,7 +50,7 @@ export const useTokenValues = ({ amountWei }: TokenValuesProps = {}) => {
   const isNative = isNativeToken(transactionMetadata);
 
   const transactionData = parseStandardTokenTransactionData(txParams?.data);
-  const tokenAddress = isNative ? NATIVE_TOKEN_ADDRESS : transactionMetadata?.txParams?.to as Hex || '0x';
+  const tokenAddress = isNative ? NATIVE_TOKEN_ADDRESS : txParams?.to as Hex || '0x';
 
   const value: string | undefined = amountWei ?
     toBigNumber.dec(amountWei) :
