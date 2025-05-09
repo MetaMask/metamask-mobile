@@ -35,6 +35,7 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       paddingHorizontal: 16,
       alignItems: 'center',
+      borderRadius: 20,
     },
   });
 
