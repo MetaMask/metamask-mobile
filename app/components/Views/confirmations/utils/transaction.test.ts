@@ -1,7 +1,7 @@
 import { Interface } from '@ethersproject/abi';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
-  addTransaction,
+  addMMOriginatedTransaction,
   parseStandardTokenTransactionData,
 } from './transaction';
 import {
@@ -122,7 +122,7 @@ describe('parseStandardTokenTransactionData', () => {
       const mockValidateRequest = jest
         .spyOn(ppomUtil, 'validateRequest')
         .mockImplementation(() => Promise.resolve());
-      const transactionMeta = await addTransaction(
+      const transactionMeta = await addMMOriginatedTransaction(
         upgradeAccountConfirmation.txParams,
         {
           networkClientId: 'sepolia',

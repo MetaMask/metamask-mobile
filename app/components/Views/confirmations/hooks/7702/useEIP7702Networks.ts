@@ -3,10 +3,10 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
-import Engine from '../../../../core/Engine';
-import { TESTNET_CHAIN_IDS } from '../../../../util/networks';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import { useAsyncResultOrThrow } from '../../../hooks/useAsyncResult';
+import Engine from '../../../../../core/Engine';
+import { TESTNET_CHAIN_IDS } from '../../../../../util/networks';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { useAsyncResultOrThrow } from '../../../../hooks/useAsyncResult';
 
 export type EIP7702NetworkConfiguration = MultichainNetworkConfiguration & {
   isSupported: boolean;
