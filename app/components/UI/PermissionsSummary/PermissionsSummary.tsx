@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ImageSourcePropType,
   SafeAreaView,
@@ -90,6 +90,7 @@ const PermissionsSummary = ({
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
   const privacyMode = useSelector(selectPrivacyMode);
+  const [bottomSheetHeight, setBottomSheetHeight] = useState(0);
 
   const hostname = useMemo(
     () => new URL(currentPageInformation.url).hostname,
@@ -414,10 +415,22 @@ const PermissionsSummary = ({
     );
   }
 
-  const onChangeTab = useCallback((tabInfo: { i: number; ref: unknown }) => {
-    // eslint-disable-next-line no-console
-    console.log('tabInfo', tabInfo);
-  }, []);
+  const getElementHeight = useMemo(() => {
+    const listHeight = ITEM_HEIGHT * accountAddresses.length;
+    const baseHeight = Dimensions.get('window').height / 2.75;
+    return baseHeight + listHeight;
+  }, [accountAddresses.length]);
+
+  const onChangeTab = useCallback(
+    (tabInfo: { i: number; ref: unknown }) => {
+      if (tabInfo.i === 0) {
+        setBottomSheetHeight(getElementHeight);
+      } else {
+        setBottomSheetHeight(460);
+      }
+    },
+    [getElementHeight],
+  );
 
   const accountsConnectedTabProps = useMemo(
     () => ({
@@ -478,15 +491,9 @@ const PermissionsSummary = ({
     </ScrollableTabView>
   );
 
-  const getElementHeight = useMemo(() => {
-    const listHeight = ITEM_HEIGHT * accountAddresses.length;
-    const baseHeight = Dimensions.get('window').height / 2.75;
-    return baseHeight + listHeight;
-  }, [accountAddresses.length]);
-
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={[styles.mainContainer, { minHeight: getElementHeight }]}>
+      <View style={[styles.mainContainer, { minHeight: bottomSheetHeight }]}>
         <View style={styles.contentContainer}>
           {renderHeader()}
           <View

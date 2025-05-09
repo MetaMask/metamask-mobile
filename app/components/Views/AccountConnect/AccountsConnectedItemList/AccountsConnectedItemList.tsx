@@ -2,7 +2,7 @@
 import React, { useCallback } from 'react';
 import { View, FlatList, TouchableOpacity } from 'react-native';
 import { useSelector, shallowEqual } from 'react-redux';
-import { CaipAccountId } from '@metamask/utils';
+import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 
 // external dependencies
 import Engine from '../../../../core/Engine';
@@ -100,9 +100,8 @@ const AccountsConnectedItemList = ({
 
   const renderAccountItem = useCallback(
     ({ item }: { item: CaipAccountId }) => {
-      // TODO: Find out if we have a standardized util function to
-      // get the address from the caipAccountId
-      const address = item.split(':')[2];
+      const parsedItem = parseCaipAccountId(item);
+      const address = parsedItem.address;
       const shortAddress = formatAddress(address, 'short');
       const accountMetadata =
         Engine.context.AccountsController.getAccountByAddress(address);
