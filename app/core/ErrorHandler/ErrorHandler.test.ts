@@ -55,4 +55,17 @@ describe('ErrorHandler', () => {
       'KeystoneError#Tx_canceled',
     );
   });
+
+  it('handles DisconnectedDevice error without crashing the app', () => {
+    const mockError = {
+      name: 'DisconnectedDevice',
+      message: 'DisconnectedDevice',
+    };
+    console.error = jest.fn();
+    handleCustomError(mockError, true);
+    expect(console.error).toHaveBeenCalledWith(
+      'Ledger error: ',
+      'DisconnectedDevice',
+    );
+  });
 });

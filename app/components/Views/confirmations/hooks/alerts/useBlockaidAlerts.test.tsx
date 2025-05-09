@@ -1,10 +1,10 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { Reason, SecurityAlertResponse } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
-import { RowAlertKey } from '../../components/UI/InfoRow/AlertRow/constants';
+import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { useMetrics } from '../../../../hooks/useMetrics';
-import { useSecurityAlertResponse } from '../useSecurityAlertResponse';
-import { useSignatureRequest } from '../useSignatureRequest';
+import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';
+import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
 import useBlockaidAlerts from './useBlockaidAlerts';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
@@ -16,15 +16,15 @@ jest.mock('../../../../../util/confirmation/signatureUtils', () => ({
 
 jest.mock('../../../../hooks/useMetrics');
 
-jest.mock('../useSecurityAlertResponse', () => ({
+jest.mock('./useSecurityAlertResponse', () => ({
   useSecurityAlertResponse: jest.fn(),
 }));
 
-jest.mock('../useSignatureRequest', () => ({
+jest.mock('../signatures/useSignatureRequest', () => ({
   useSignatureRequest: jest.fn(),
 }));
 
-jest.mock('../../components/Confirm/BlockaidAlertContent/BlockaidAlertContent', () => 'BlockaidAlertContent');
+jest.mock('../../components/blockaid-alert-content/blockaid-alert-content', () => 'BlockaidAlertContent');
 
 describe('useBlockaidAlerts', () => {
   const mockSignatureRequest = {

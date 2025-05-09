@@ -22,6 +22,7 @@ const ApprovalModal = (props: ApprovalModalProps) => {
 
   return (
     <Modal
+      useNativeDriver
       isVisible={props.isVisible}
       animationIn="slideInUp"
       animationOut="slideOutDown"

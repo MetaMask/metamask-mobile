@@ -1,4 +1,4 @@
-export const AddNewHdAccountIds = {
+export const AddNewAccountIds = {
   CONTAINER: 'add-hd-account-screen',
   NAME_INPUT: 'add-hd-account-name-input',
   CANCEL: 'add-hd-account-screen-cancel-button',

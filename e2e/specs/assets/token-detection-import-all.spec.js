@@ -1,6 +1,6 @@
 'use strict';
 import { loginToApp } from '../../viewHelper';
-import { SmokeAssets } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import DetectedTokensView from '../../pages/wallet/DetectedTokensView';
 import Assertions from '../../utils/Assertions';
@@ -11,7 +11,7 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 const ETHEREUM_NAME = 'Ethereum';
 const USDC_NAME = 'USDC';
 
-describe(SmokeAssets('Import all tokens detected'), () => {
+describe(SmokeNetworkAbstractions('Import all tokens detected'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

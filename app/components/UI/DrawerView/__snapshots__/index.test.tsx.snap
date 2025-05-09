@@ -240,7 +240,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 }
               }
             >
-              0xC496...a756
+              0xC4966...4a756
             </Text>
           </TouchableOpacity>
         </View>

@@ -7,13 +7,35 @@ import { UIComponentFactory } from './types';
 export const link: UIComponentFactory<LinkElement> = ({
   element: e,
   ...params
-}) => ({
-  element: 'SnapUILink',
-  children: mapTextToTemplate(
-    getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
-    { ...params, textColor: params.theme.colors.info.default },
-  ),
-  props: {
-    href: e.props.href,
-  },
-});
+}) => {
+  const linkColor = params.theme.colors.info.default;
+
+  const processedChildren = getJsxChildren(e).map((child) => {
+    if (typeof child === 'string') {
+      return child;
+    }
+
+    if (child?.type === 'Icon') {
+      return {
+        ...child,
+        props: {
+          ...child.props,
+          color: 'primary',
+        },
+      };
+    }
+
+    return child;
+  });
+
+  return {
+    element: 'SnapUILink',
+    children: mapTextToTemplate(
+      processedChildren as NonEmptyArray<string | JSXElement>,
+      { ...params, textColor: linkColor },
+    ),
+    props: {
+      href: e.props.href,
+    },
+  };
+};

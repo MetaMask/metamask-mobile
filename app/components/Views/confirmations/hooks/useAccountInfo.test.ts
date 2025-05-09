@@ -24,9 +24,11 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS]: {
-            balance: '0x5',
+        accountsByChainId: {
+          '0x1': {
+            [MOCK_ADDRESS]: {
+              balance: '0x5',
+            },
           },
         },
       },

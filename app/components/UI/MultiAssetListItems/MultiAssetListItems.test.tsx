@@ -14,6 +14,7 @@ const mockSearchResults = [
     symbol: 'USDT',
     name: 'Tether USD',
     iconUrl: 'https://example.com/usdt.png',
+    chainId: '0x1',
   },
 ];
 
@@ -39,6 +40,10 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../util/networks', () => ({
   getNetworkImageSource: jest.fn().mockReturnValue('mockedImageSource'),
+}));
+
+jest.mock('../AssetOverview/Balance/Balance', () => ({
+  NetworkBadgeSource: jest.fn().mockReturnValue('mockedImageSource'),
 }));
 
 describe('MultiAssetListItems', () => {

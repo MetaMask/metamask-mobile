@@ -62,6 +62,7 @@ import { isBuyQuote } from '../../utils';
 import { getOrdersProviders } from './../../../../../reducers/fiatOrders';
 import { QuoteSelectors } from '../../../../../../e2e/selectors/Ramps/Quotes.selectors';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 export interface QuotesParams {
   amount: number | string;
@@ -659,6 +660,8 @@ function Quotes() {
             provider_offramp_best_price: providerBestPrice,
           });
         }
+
+        endTrace({ name: TraceName.RampQuoteLoading });
       }
 
       quotesWithError.forEach((quoteError) => {

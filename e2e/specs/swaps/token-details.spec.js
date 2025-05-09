@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeSwaps } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import {
@@ -10,7 +10,7 @@ import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
 import TestHelpers from '../../helpers';
 
-describe(SmokeSwaps('Token Chart Tests'), () => {
+describe(SmokeTrade('Token Chart Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();

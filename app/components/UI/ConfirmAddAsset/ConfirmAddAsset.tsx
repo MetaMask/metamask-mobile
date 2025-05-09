@@ -16,13 +16,6 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../component-library/components/Badges/BadgeWrapper';
 import AssetIcon from '../AssetIcon';
-import {
-  getTestNetImageByChainId,
-  isLineaMainnet,
-  isMainNet,
-  isTestNet,
-} from '../../../util/networks';
-import images from 'images/image-icons';
 import SkeletonText from '../Ramp/components/SkeletonText';
 import { TOKEN_BALANCE_LOADING } from '../Tokens/constants';
 import useBalance from '../Ramp/hooks/useBalance';
@@ -40,6 +33,8 @@ import SheetHeader from '../../../component-library/components/Sheet/SheetHeader
 import Routes from '../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
+import { Hex } from '@metamask/utils';
+import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 
 const RenderBalance = (asset: {
   symbol: string;
@@ -73,10 +68,11 @@ const RenderBalance = (asset: {
 };
 
 const ConfirmAddAsset = () => {
-  const { selectedAsset, networkName, chainId, ticker, addTokenList } =
+  const { selectedAsset, networkName, addTokenList } =
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useParams<any>();
+
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
@@ -160,16 +156,6 @@ const ConfirmAddAsset = () => {
     </Modal>
   );
 
-  const NetworkBadgeSource = () => {
-    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
-
-    if (isMainNet(chainId)) return images.ETHEREUM;
-
-    if (isLineaMainnet(chainId)) return images['LINEA-MAINNET'];
-
-    return ticker ? images[ticker] : undefined;
-  };
-
   return (
     <View
       style={styles.rowWrapper}
@@ -187,6 +173,7 @@ const ConfirmAddAsset = () => {
               iconUrl: string;
               name: string;
               decimals: number;
+              chainId: string;
             },
             i: number,
           ) => (
@@ -197,7 +184,7 @@ const ConfirmAddAsset = () => {
                   badgeElement={
                     <Badge
                       variant={BadgeVariant.Network}
-                      imageSource={NetworkBadgeSource()}
+                      imageSource={NetworkBadgeSource(asset.chainId as Hex)}
                       name={networkName}
                     />
                   }

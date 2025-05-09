@@ -1,4 +1,4 @@
-import React, { useState, useCallback, FC, useMemo } from 'react';
+import React, { useState, useCallback, FC, useMemo, useEffect } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -24,7 +24,7 @@ import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
 import { selectDismissedBanners } from '../../../selectors/banner';
 
-export const Carousel: FC<CarouselProps> = ({ style }) => {
+const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -109,7 +109,64 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   );
 
   const renderBannerSlides = useCallback(
-    ({ item: slide }: { item: CarouselSlide }) => {
+    ({ item: slide }: { item: CarouselSlide }) => (
+      <Pressable
+        key={slide.id}
+        testID={slide.testID}
+        style={[
+          styles.slideContainer,
+          pressedSlideId === slide.id && styles.slideContainerPressed,
+        ]}
+        onPress={() => handleSlideClick(slide.id, slide.navigation)}
+        onPressIn={() => setPressedSlideId(slide.id)}
+        onPressOut={() => setPressedSlideId(null)}
+      >
+        <View style={styles.slideContent}>
+          <View style={styles.imageContainer}>
+            <Image
+              source={BANNER_IMAGES[slide.id]}
+              style={styles.bannerImage}
+              resizeMode="contain"
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <View style={styles.textWrapper}>
+              <Text
+                variant={TextVariant.BodyMD}
+                style={styles.title}
+                testID={slide.testIDTitle}
+              >
+                {slide.title}
+              </Text>
+              <Text variant={TextVariant.BodySM} style={styles.description}>
+                {slide.description}
+              </Text>
+            </View>
+          </View>
+          {!slide.undismissable && (
+            <TouchableOpacity
+              testID={slide.testIDCloseButton}
+              style={styles.closeButton}
+              onPress={() => handleClose(slide.id)}
+            >
+              <Icon name="close" size={18} color={colors.icon.default} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </Pressable>
+    ),
+    [
+      styles,
+      handleSlideClick,
+      handleClose,
+      colors.icon.default,
+      pressedSlideId,
+    ],
+  );
+
+  // Track banner display events when visible slides change
+  useEffect(() => {
+    visibleSlides.forEach((slide) => {
       trackEvent(
         createEventBuilder({
           category: 'Banner Display',
@@ -118,64 +175,8 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
           },
         }).build(),
       );
-
-      return (
-        <Pressable
-          key={slide.id}
-          testID={slide.testID}
-          style={[
-            styles.slideContainer,
-            pressedSlideId === slide.id && styles.slideContainerPressed,
-          ]}
-          onPress={() => handleSlideClick(slide.id, slide.navigation)}
-          onPressIn={() => setPressedSlideId(slide.id)}
-          onPressOut={() => setPressedSlideId(null)}
-        >
-          <View style={styles.slideContent}>
-            <View style={styles.imageContainer}>
-              <Image
-                source={BANNER_IMAGES[slide.id]}
-                style={styles.bannerImage}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.textContainer}>
-              <View style={styles.textWrapper}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  style={styles.title}
-                  testID={slide.testIDTitle}
-                >
-                  {slide.title}
-                </Text>
-                <Text variant={TextVariant.BodySM} style={styles.description}>
-                  {slide.description}
-                </Text>
-              </View>
-            </View>
-            {!slide.undismissable && (
-              <TouchableOpacity
-                testID={slide.testIDCloseButton}
-                style={styles.closeButton}
-                onPress={() => handleClose(slide.id)}
-              >
-                <Icon name="close" size={18} color={colors.icon.default} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </Pressable>
-      );
-    },
-    [
-      styles,
-      handleSlideClick,
-      handleClose,
-      colors.icon.default,
-      pressedSlideId,
-      trackEvent,
-      createEventBuilder,
-    ],
-  );
+    });
+  }, [visibleSlides, trackEvent, createEventBuilder]);
 
   const renderProgressDots = useMemo(
     () => (
@@ -233,4 +234,6 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   );
 };
 
+// Split memo component so we still see a Component name when profiling
+export const Carousel = React.memo(CarouselComponent);
 export default Carousel;

@@ -6,12 +6,12 @@ import { AlertKeys } from '../../constants/alerts';
 import { Alert, AlertSeverity, Severity } from '../../types/alerts';
 import { getAnalyticsParams } from '../../../../../util/confirmation/signatureUtils';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { useSecurityAlertResponse } from '../useSecurityAlertResponse';
-import { useSignatureRequest } from '../useSignatureRequest';
+import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';
+import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
 // TODO: Remove legacy import
 import { REASON_TITLE_I18N_KEY_MAP } from '../../legacy/components/BlockaidBanner/BlockaidBanner.constants';
-import BlockaidAlertContent from '../../components/Confirm/BlockaidAlertContent/BlockaidAlertContent';
+import BlockaidAlertContent from '../../components/blockaid-alert-content/blockaid-alert-content';
 
 const IGNORED_RESULT_TYPES = [
   BlockaidResultType.Benign,

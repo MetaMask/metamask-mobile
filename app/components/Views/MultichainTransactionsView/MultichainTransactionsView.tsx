@@ -21,6 +21,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import { getBlockExplorerName } from '../../../util/networks';
 import styles from './MultichainTransactionsView.styles';
+import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 
 const MultichainTransactionsView = () => {
   const { colors } = useTheme();
@@ -38,6 +39,8 @@ const MultichainTransactionsView = () => {
     () => solanaAccountTransactions?.transactions,
     [solanaAccountTransactions],
   );
+
+  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const renderEmptyList = () => (
     <View style={style.emptyContainer}>
@@ -71,13 +74,19 @@ const MultichainTransactionsView = () => {
     );
   };
 
-  const renderTransactionItem = ({ item }: { item: Transaction }) => (
-    <MultichainTransactionListItem
-      transaction={item}
-      selectedAddress={selectedAddress || ''}
-      navigation={navigation}
-    />
-  );
+  const renderTransactionItem = ({ item }: { item: Transaction }) => {
+    const srcTxHash = item.id;
+    const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
+
+    return (
+      <MultichainTransactionListItem
+        transaction={item}
+        bridgeHistoryItem={bridgeHistoryItem}
+        selectedAddress={selectedAddress || ''}
+        navigation={navigation}
+      />
+    );
+  };
 
   return (
     <View style={style.wrapper}>

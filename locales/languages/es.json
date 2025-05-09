@@ -13,7 +13,7 @@
       "message": "Le sugerimos que rechace esta solicitud. Si continúa, podría poner en peligro sus activos.",
       "title_blockaid": "Sus activos pueden estar en peligro",
       "blockaid": {
-        "message": "Si confirma esta solicitud, podría perder sus activos. Le recomendamos que cancele esta solicitud.",
+        "message": "Si confirma esta solicitud, podría perder sus activos. Le recomendamos que la cancele.",
         "message1": "Si confirma esta solicitud, permitirá que un estafador retire y gaste sus activos. No los recuperará.",
         "message2": "Está enviando sus activos a un estafador. Si continúa, perderá esos activos.",
         "message3": "Si continúa, todos los activos que ha registrado en OpenSea podrían estar en peligro.",
@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Solicitud de inicio de sesión sospechosa",
       "message": "El sitio que realiza la solicitud no es el sitio en el que está iniciando sesión. Esto podría ser un intento de robo de sus credenciales de inicio de sesión."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "en"
   },
   "autocomplete": {
-    "placeholder": "Búsqueda por sitio o dirección",
+    "placeholder": "Search by token, site or address",
     "recents": "Recientes",
     "favorites": "Favoritos",
-    "sites": "Sitios"
+    "sites": "Sitios",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Volver",
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "La frase secreta de recuperación de su nueva cuenta se generará a partir de",
     "accounts": "cuentas",
     "show_accounts": "Mostrar",
-    "hide_accounts": "Ocultar"
+    "hide_accounts": "Ocultar",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
+      "bitcoin_account_name": "Bitcoin Account",
+      "solana_devnet_account_name": "Solana Devnet Account",
+      "solana_testnet_account_name": "Solana Testnet Account",
+      "solana_account_name": "Solana Account"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Failed to create {{clientType}} account"
+    }
   },
   "toast": {
     "connected_and_active": "conectado y activo.",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snaps",
       "description": "Revise y gestione sus snaps",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Eliminar Snap",
         "remove_snap_section_description": "Esta acción eliminará el snap, sus datos y revocará sus permisos otorgados.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "LENTO",
     "hex_data": "Datos hexadecimales",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "Esta es una función avanzada que se usa para cancelar o acelerar transacciones pendientes.",
     "current_suggested_nonce": "Nonce actual sugerido:",
     "edit_transaction_nonce": "Editar nonce de transacción",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "No disponible",
     "smart_contract_interaction": "Interacción con el contrato inteligente",
     "swaps_transaction": "Transacción de intercambios",
+    "bridge_transaction": "Bridge",
     "approve": "Aprobar",
     "increase_allowance": "Aumentar la asignación",
     "set_approval_for_all": "Establecer aprobación para todos",
@@ -2251,7 +2274,7 @@
     "proceed_anyway": "continuar de todas formas,",
     "but_please_do_so_at_your_own_risk": "pero hágalo bajo su propia responsabilidad.",
     "report_detection_problem": "Informar sobre un problema de detección",
-    "share_on_twitter": "Si le resultó útil, ¡compártalo en X!",
+    "share_on_twitter": "Si esto le resultó útil, ¡compártalo en X!",
     "share_text": "MetaMask me protegió de visitar un sitio potencialmente peligroso: {{url}}. ¡Manténgase seguro!"
   },
   "notifications": {
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Obtenga",
       "best_price": "el mejor precio",
@@ -3780,19 +3804,22 @@
       "permit": "Solicitud de límite de gasto",
       "permit_revoke": "Eliminar permiso",
       "permit_NFTs": "Solicitud de retiro",
-      "signature_siwe": "Solicitud de inicio de sesión"
+      "signature_siwe": "Solicitud de inicio de sesión",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "Este sitio necesita permiso para gastar sus tokens.",
       "permit_NFTs": "Este sitio necesita permiso para retirar sus NFT.",
       "signature": "Revise los detalles de la solicitud antes de confirmar.",
-      "signature_siwe": "Un sitio quiere que inicie sesión para demostrar que usted es el titular de esta cuenta."
+      "signature_siwe": "Un sitio quiere que inicie sesión para demostrar que usted es el titular de esta cuenta.",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "Solicitud de",
     "staking_from": "Staking de",
     "signing_in_with": "Iniciando sesión con",
     "message": "Mensaje",
     "personal_sign_tooltip": "Este sitio solicita su firma",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "Detalles",
     "qr_get_sign": "Obtener firma",
     "qr_scan_text": "Escanee con su monedero físico",
@@ -3827,7 +3854,9 @@
       "unavailable": "No disponible"
     },
     "unlimited": "Ilimitado",
-    "none": "Ninguno"
+    "none": "Ninguno",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with"
   },
   "change_in_simulation_modal": {
     "title": "Los resultados cambiaron",
@@ -3868,6 +3897,29 @@
     "time": "Hora",
     "quote_info_content": "Esta cotización ofrece el mejor rendimiento según nuestra búsqueda. Se basa en la tarifa de intercambio, incluidas las tarifas de puente y una tarifa MetaMask del 0,875 %, pero no las tarifas de gas. Las tarifas de gas varían según la actividad de la red y la complejidad de la transacción.",
     "quote_info_title": "Por qué recomendamos esta cotización",
-    "see_other_quotes": "Ver otras cotizaciones"
+    "see_other_quotes": "Ver otras cotizaciones",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge",
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
   }
 }

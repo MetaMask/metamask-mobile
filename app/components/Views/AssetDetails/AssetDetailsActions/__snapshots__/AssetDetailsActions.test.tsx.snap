@@ -130,7 +130,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
   >
     <TouchableOpacity
       disabled={true}
-      onPress={[MockFunction]}
+      onPress={[Function]}
       style={
         [
           {

@@ -17,10 +17,16 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     contentContainer: {
       paddingVertical: 15,
     },
+    categoryWrapper: {
+      padding: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background.default,
+    },
     category: {
       color: colors.text.default,
-      padding: 10,
       backgroundColor: colors.background.default,
+      marginRight: 10,
       ...typography.lHeadingSM,
       fontFamily: getFontFamily(TextVariant.HeadingSM),
     } as TextStyle,
@@ -58,9 +64,19 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     bg: {
       flex: 1,
     },
-    deleteFavorite: {
+    resultActionButton: {
       marginLeft: 10,
     },
+    hiddenButton: {
+      opacity: 0,
+    },
+    priceContainer: {
+      flexDirection: 'column',
+      alignItems: 'flex-end',
+    },
+    price: {
+      color: colors.text.default,
+    }
   });
 
 export default styleSheet;

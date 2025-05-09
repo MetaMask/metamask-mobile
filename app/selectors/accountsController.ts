@@ -58,7 +58,9 @@ export const selectInternalAccounts = createDeepEqualSelector(
  */
 export const selectSelectedInternalAccount = createDeepEqualSelector(
   selectAccountsControllerState,
-  (accountsControllerState: AccountsControllerState) => {
+  (
+    accountsControllerState: AccountsControllerState,
+  ): InternalAccount | undefined => {
     const accountId = accountsControllerState.internalAccounts.selectedAccount;
     const account =
       accountsControllerState.internalAccounts.accounts[accountId];
@@ -72,6 +74,42 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
     }
     return account;
   },
+);
+
+/**
+ * A memoized selector that returns the internal accounts sorted by the last selected timestamp
+ */
+export const selectOrderedInternalAccountsByLastSelected = createSelector(
+  selectAccountsControllerState,
+  (accountsControllerState) => {
+    const accounts = accountsControllerState.internalAccounts.accounts;
+
+    // Convert accounts object to array and sort by lastSelected timestamp
+    return Object.values(accounts).sort((a, b) => {
+      const aLastSelected = a.metadata?.lastSelected || 0;
+      const bLastSelected = b.metadata?.lastSelected || 0;
+
+      // Sort in descending order (most recent first)
+      return bLastSelected - aLastSelected;
+    });
+  },
+);
+
+/**
+ * A memoized selector that returns the last selected EVM account
+ */
+export const selectLastSelectedEvmAccount = createSelector(
+  selectOrderedInternalAccountsByLastSelected,
+  (accounts) => accounts.find((account) => account.type === 'eip155:eoa'),
+);
+
+/**
+ * A memoized selector that returns the last selected Solana account
+ */
+export const selectLastSelectedSolanaAccount = createSelector(
+  selectOrderedInternalAccountsByLastSelected,
+  (accounts) =>
+    accounts.find((account) => account.type === 'solana:data-account'),
 );
 
 /**

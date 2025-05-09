@@ -1,10 +1,23 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { isEqual } from 'lodash';
 import Routes from '../../../../constants/navigation/Routes';
 import { useRampSDK } from '../sdk';
 import { Region } from '../types';
 import useSDKMethod from './useSDKMethod';
+import { Country, State } from '@consensys/on-ramp-sdk';
+
+const isCountry = (region: Country | State | null): region is Country =>
+  (region as Country).states !== undefined;
+
+const findDetectedRegion = (regions: Region[]): Region | null => {
+  const detectedRegion = regions.find((region) => region.detected);
+  if (!detectedRegion) return null;
+  if (isCountry(detectedRegion) && detectedRegion.states.length > 0) {
+    return findDetectedRegion(detectedRegion.states as Region[]);
+  }
+  return detectedRegion;
+};
 
 export default function useRegions() {
   const navigation = useNavigation();
@@ -17,6 +30,8 @@ export default function useRegions() {
     isBuy,
     isSell,
   } = useRampSDK();
+
+  const [isDetecting, setisDetecting] = useState(!selectedRegion);
 
   const [{ data, isFetching, error }, queryGetCountries] =
     useSDKMethod('getCountries');
@@ -49,6 +64,16 @@ export default function useRegions() {
       });
     }
   }, [navigation, route.name]);
+
+  useEffect(() => {
+    if (!data || selectedRegion || !isDetecting) return;
+    const detectedRegion = findDetectedRegion(data);
+    if (detectedRegion) {
+      setSelectedRegion(detectedRegion);
+    }
+
+    setisDetecting(false);
+  }, [data, navigation, selectedRegion, setSelectedRegion, isDetecting]);
 
   useEffect(() => {
     if (!updatedRegion) return;
@@ -90,6 +115,7 @@ export default function useRegions() {
   return {
     data,
     isFetching,
+    isDetecting,
     error,
     query: queryGetCountries,
     selectedRegion,

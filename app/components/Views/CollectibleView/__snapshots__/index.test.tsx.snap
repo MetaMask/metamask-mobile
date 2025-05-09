@@ -395,7 +395,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                     ]
                   }
                 >
-                  0xABCD...CDEF
+                  0xABCDE...BCDEF
                 </Text>
               </View>
             </View>

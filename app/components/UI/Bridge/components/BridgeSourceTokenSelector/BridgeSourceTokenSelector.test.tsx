@@ -9,12 +9,17 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
-  }),
-}));
+    ...jest.requireActual('@react-navigation/native'),
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+    }),
+    useRoute: jest.fn().mockReturnValue({
+      params: {
+        bridgeViewMode: 'Bridge',
+      },
+    })
+  }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => {
   const actual = jest.requireActual('../../../../../core/redux/slices/bridge');
@@ -188,6 +193,7 @@ describe('BridgeSourceTokenSelector', () => {
   });
 
   it('displays empty state when no tokens match search', async () => {
+    jest.useFakeTimers();
     const { getByTestId, getByText } = renderScreen(
       BridgeSourceTokenSelector,
       {

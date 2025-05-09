@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { SmokeCore } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -17,7 +17,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeCore('Browser Tests'), () => {
+describe(SmokeWalletPlatform('Browser Tests'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();

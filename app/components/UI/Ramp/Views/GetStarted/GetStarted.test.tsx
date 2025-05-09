@@ -1,13 +1,13 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-
 import GetStarted from './GetStarted';
-import { RampType, Region } from '../../types';
+import { RampType } from '../../types';
 import { RampSDK } from '../../sdk';
 import useRampNetwork from '../../hooks/useRampNetwork';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import useRegions from '../../hooks/useRegions';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -47,6 +47,15 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   intent: undefined,
   setIntent: jest.fn(),
 };
+
+const mockUseRegionInitialValues: Partial<ReturnType<typeof useRegions>> = {
+  isDetecting: false,
+  selectedRegion: null,
+};
+
+jest.mock('../../hooks/useRegions', () =>
+  jest.fn(() => mockUseRegionInitialValues),
+);
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
   ...mockuseRampSDKInitialValues,
@@ -97,6 +106,9 @@ describe('GetStarted', () => {
     mockUseRampSDKValues = {
       ...mockuseRampSDKInitialValues,
     };
+    (useRegions as jest.Mock).mockReturnValue({
+      ...mockUseRegionInitialValues,
+    });
   });
 
   it('renders correctly', async () => {
@@ -177,10 +189,13 @@ describe('GetStarted', () => {
   });
 
   it('navigates to select region screen when getStarted is true and selectedRegion is null', async () => {
+    (useRegions as jest.Mock).mockReturnValue({
+      isDetecting: false,
+      selectedRegion: null,
+    });
     mockUseRampSDKValues = {
       ...mockuseRampSDKInitialValues,
       getStarted: true,
-      selectedRegion: null,
     };
     render(GetStarted);
     expect(mockReset).toBeCalledTimes(1);
@@ -191,12 +206,15 @@ describe('GetStarted', () => {
   });
 
   it('navigates to build quote when getStarted is true and selectedRegion is defined', async () => {
+    (useRegions as jest.Mock).mockReturnValue({
+      isDetecting: false,
+      selectedRegion: {
+        id: 'us-al',
+      },
+    });
     mockUseRampSDKValues = {
       ...mockuseRampSDKInitialValues,
       getStarted: true,
-      selectedRegion: {
-        id: 'us-al',
-      } as Region,
     };
     render(GetStarted);
     expect(mockReset).toBeCalledTimes(1);
@@ -211,5 +229,15 @@ describe('GetStarted', () => {
         },
       ],
     });
+  });
+
+  it('does not redirect when isDetecting is true', async () => {
+    (useRegions as jest.Mock).mockReturnValue({
+      isDetecting: true,
+      selectedRegion: undefined,
+    });
+
+    render(GetStarted);
+    expect(mockReset).not.toBeCalled();
   });
 });

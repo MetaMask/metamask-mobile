@@ -23,7 +23,9 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
 
 jest.mock('../../../../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
-    jest.requireActual('../../../../../../util/test/accountsControllerTestUtils');
+    jest.requireActual(
+      '../../../../../../util/test/accountsControllerTestUtils',
+    );
   return {
     context: {
       TokensController: {
@@ -48,12 +50,14 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS_1]: {
-            balance: '200',
-          },
-          [MOCK_ADDRESS_2]: {
-            balance: '200',
+        accountsByChainId: {
+          [CHAIN_IDS.SEPOLIA]: {
+            [MOCK_ADDRESS_1]: {
+              balance: '200',
+            },
+            [MOCK_ADDRESS_2]: {
+              balance: '200',
+            },
           },
         },
       },

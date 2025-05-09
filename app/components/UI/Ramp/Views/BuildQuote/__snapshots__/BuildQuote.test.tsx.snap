@@ -5777,7 +5777,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     >
                                       Account 2
                                        
-                                      (0xC496...a756)
+                                      (0xC4966...4a756)
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
@@ -11369,7 +11369,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     >
                                       Account 2
                                        
-                                      (0xC496...a756)
+                                      (0xC4966...4a756)
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
@@ -14487,7 +14487,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     >
                                       Account 2
                                        
-                                      (0xC496...a756)
+                                      (0xC4966...4a756)
                                     </Text>
                                     <Text
                                       allowFontScaling={false}

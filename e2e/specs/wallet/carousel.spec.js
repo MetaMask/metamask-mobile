@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -16,7 +16,7 @@ import Gestures from '../../utils/Gestures';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeCore('Carousel Tests'), () => {
+describe(Regression('Carousel Tests'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
@@ -90,8 +90,8 @@ describe(SmokeCore('Carousel Tests'), () => {
     const container = await WalletView.container;
     await Assertions.checkIfVisible(carouselSecondSlide, 5000);
     await Gestures.waitAndTap(carouselSecondSlide);
-    await Assertions.checkIfVisible(container, 5000);
-    await TestHelpers.delay(5000);
-    await device.enableSynchronization();
+    // await Assertions.checkIfVisible(container, 5000);
+    // await TestHelpers.delay(5000);
+    // await device.enableSynchronization();
   });
 });

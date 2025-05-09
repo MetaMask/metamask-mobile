@@ -13,7 +13,7 @@ function generateBorderRadius(
       return 6;
 
     case 'full':
-      return 'full';
+      return 999;
   }
 }
 

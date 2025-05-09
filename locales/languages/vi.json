@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Yêu cầu đăng nhập đáng ngờ",
       "message": "Trang web thực hiện yêu cầu không phải là trang web bạn đang đăng nhập. Đây có thể là một nỗ lực đánh cắp thông tin đăng nhập của bạn."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "tại"
   },
   "autocomplete": {
-    "placeholder": "Tìm kiếm theo trang web hoặc địa chỉ",
+    "placeholder": "Search by token, site or address",
     "recents": "Gần đây",
     "favorites": "Yêu thích",
-    "sites": "Trang web"
+    "sites": "Trang web",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Quay lại",
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "Tài khoản mới của bạn sẽ được tạo từ Cụm từ khôi phục bí mật này",
     "accounts": "tài khoản",
     "show_accounts": "Hiển thị",
-    "hide_accounts": "Ẩn"
+    "hide_accounts": "Ẩn",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
+      "bitcoin_account_name": "Bitcoin Account",
+      "solana_devnet_account_name": "Solana Devnet Account",
+      "solana_testnet_account_name": "Solana Testnet Account",
+      "solana_account_name": "Solana Account"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Failed to create {{clientType}} account"
+    }
   },
   "toast": {
     "connected_and_active": "đã được kết nối và đang hoạt động.",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snap",
       "description": "Tổng quan và quản lý Snap của bạn",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Xóa Snap",
         "remove_snap_section_description": "Hành động này sẽ xóa Snap, cũng như dữ liệu và các quyền đã cấp của Snap đó.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "CHẬM",
     "hex_data": "Dữ liệu với mã hex",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "Đây là tính năng nâng cao, được dùng để hủy hoặc tăng tốc bất kỳ giao dịch đang chờ xử lý nào.",
     "current_suggested_nonce": "Số nonce được đề xuất hiện tại:",
     "edit_transaction_nonce": "Sửa số nonce giao dịch",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "Không có sẵn",
     "smart_contract_interaction": "Tương tác hợp đồng thông minh",
     "swaps_transaction": "Giao dịch hoán đổi",
+    "bridge_transaction": "Bridge",
     "approve": "Chấp thuận",
     "increase_allowance": "Tăng hạn mức",
     "set_approval_for_all": "Thiết lập phê duyệt tất cả",
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Nhận",
       "best_price": "giá tốt nhất",
@@ -3780,19 +3804,22 @@
       "permit": "Yêu cầu giới hạn chi tiêu",
       "permit_revoke": "Xóa quyền",
       "permit_NFTs": "Yêu cầu rút tiền",
-      "signature_siwe": "Yêu cầu đăng nhập"
+      "signature_siwe": "Yêu cầu đăng nhập",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "Trang web này muốn được cấp quyền chi tiêu token của bạn.",
       "permit_NFTs": "Trang web này muốn được cấp quyền rút NFT của bạn.",
       "signature": "Xem lại thông tin yêu cầu trước khi bạn xác nhận.",
-      "signature_siwe": "Trang web muốn bạn đăng nhập để chứng minh bạn sở hữu tài khoản này."
+      "signature_siwe": "Trang web muốn bạn đăng nhập để chứng minh bạn sở hữu tài khoản này.",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "Yêu cầu từ",
     "staking_from": "Ký gửi từ",
     "signing_in_with": "Đăng nhập bằng",
     "message": "Thông báo",
     "personal_sign_tooltip": "Trang web này đang yêu cầu chữ ký của bạn",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "Chi tiết",
     "qr_get_sign": "Lấy Chữ Ký",
     "qr_scan_text": "Quét bằng ví cứng của bạn",
@@ -3827,7 +3854,9 @@
       "unavailable": "Không khả dụng"
     },
     "unlimited": "Không giới hạn",
-    "none": "Không có"
+    "none": "Không có",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with"
   },
   "change_in_simulation_modal": {
     "title": "Kết quả đã thay đổi",
@@ -3868,6 +3897,29 @@
     "time": "Thời gian",
     "quote_info_content": "Báo giá này mang lại lợi nhuận tốt nhất từ kết quả tìm kiếm của chúng tôi. Được dựa trên tỷ giá hoán đổi, bao gồm phí cầu nối và phí 0,875% của MetaMask, không bao gồm phí gas. Phí gas thay đổi theo hoạt động mạng và độ phức tạp của giao dịch.",
     "quote_info_title": "Tại sao chúng tôi đề xuất báo giá này",
-    "see_other_quotes": "Xem các báo giá khác"
+    "see_other_quotes": "Xem các báo giá khác",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge",
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
   }
 }

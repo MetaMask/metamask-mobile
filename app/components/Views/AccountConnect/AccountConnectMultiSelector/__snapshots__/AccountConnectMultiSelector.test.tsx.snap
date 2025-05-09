@@ -392,7 +392,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                         }
                       }
                     >
-                      0x1234...1234
+                      0x1234...x1234
                     </Text>
                   </View>
                 </View>
@@ -568,7 +568,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                         }
                       }
                     >
-                      0x5678...5678
+                      0x5678...x5678
                     </Text>
                   </View>
                 </View>

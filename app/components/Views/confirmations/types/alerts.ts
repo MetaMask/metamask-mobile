@@ -66,6 +66,11 @@ export type Alert  = {
   severity: AlertSeverity;
 
   /**
+   * Whether the alert should be skipped confirmation.
+   */
+  skipConfirmation?: boolean;
+
+  /**
    * The title of the alert.
    */
   title: string;

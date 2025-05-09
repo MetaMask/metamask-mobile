@@ -415,7 +415,7 @@ const AccountActions = () => {
   ]);
 
   const goToEditAccountName = () => {
-    navigate('EditAccountName', { selectedAccount });
+    navigate(Routes.EDIT_ACCOUNT_NAME, { selectedAccount });
   };
 
   const isExplorerVisible = Boolean(

@@ -220,7 +220,7 @@ class WalletView {
   get testCollectible() {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
+      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE,1);
   }
 
   async tapOnNftName() {

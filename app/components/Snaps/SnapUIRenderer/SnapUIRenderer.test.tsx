@@ -265,12 +265,11 @@ describe('SnapUIRenderer', () => {
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
-        origin: '',
+        origin: 'metamask',
         request: {
           jsonrpc: '2.0',
           method: ' ',
           params: {
-            context: null,
             event: { name: 'input', type: 'InputChangeEvent', value: 'a' },
             id: MOCK_INTERFACE_ID,
           },
@@ -402,12 +401,11 @@ describe('SnapUIRenderer', () => {
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
-        origin: '',
+        origin: 'metamask',
         request: {
           jsonrpc: '2.0',
           method: ' ',
           params: {
-            context: null,
             event: { name: 'input', type: 'InputChangeEvent', value: 'abc' },
             id: MOCK_INTERFACE_ID,
           },
@@ -430,12 +428,11 @@ describe('SnapUIRenderer', () => {
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
-        origin: '',
+        origin: 'metamask',
         request: {
           jsonrpc: '2.0',
           method: ' ',
           params: {
-            context: null,
             event: { name: 'checkbox', type: 'InputChangeEvent', value: true },
             id: MOCK_INTERFACE_ID,
           },
@@ -461,12 +458,11 @@ describe('SnapUIRenderer', () => {
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
-        origin: '',
+        origin: 'metamask',
         request: {
           jsonrpc: '2.0',
           method: ' ',
           params: {
-            context: null,
             event: {
               name: 'selector',
               type: 'InputChangeEvent',
@@ -487,12 +483,11 @@ describe('SnapUIRenderer', () => {
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
-        origin: '',
+        origin: 'metamask',
         request: {
           jsonrpc: '2.0',
           method: ' ',
           params: {
-            context: null,
             event: { name: 'submit', type: 'ButtonClickEvent' },
             id: MOCK_INTERFACE_ID,
           },
@@ -506,12 +501,11 @@ describe('SnapUIRenderer', () => {
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
-        origin: '',
+        origin: 'metamask',
         request: {
           jsonrpc: '2.0',
           method: ' ',
           params: {
-            context: null,
             event: {
               name: 'form',
               type: 'FormSubmitEvent',
@@ -540,7 +534,11 @@ describe('SnapUIRenderer', () => {
             Field({
               label: 'My Input',
               children: [
-                ImageComponent({ src: '<svg />' }),
+                Box({
+                  children: [
+                    ImageComponent({ src: '<svg height="32" width="32" />' }),
+                  ],
+                }),
                 Input({ name: 'input' }),
                 Button({ type: 'submit', name: 'submit', children: 'Submit' }),
               ],

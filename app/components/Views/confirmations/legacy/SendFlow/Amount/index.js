@@ -170,13 +170,6 @@ const createStyles = (colors) =>
       alignSelf: 'flex-end',
       textTransform: 'uppercase',
     },
-    maxTextDisabled: {
-      ...fontStyles.normal,
-      fontSize: 12,
-      color: colors.text.alternative,
-      alignSelf: 'flex-end',
-      textTransform: 'uppercase',
-    },
     actionMax: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -1471,10 +1464,6 @@ class Amount extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const isEstimateedTotalGasValid = estimatedTotalGas
-      ? BigNumber(estimatedTotalGas).gt(0)
-      : false;
-
     return (
       <SafeAreaView
         edges={['bottom']}
@@ -1534,16 +1523,10 @@ class Amount extends PureComponent {
                 {!selectedAsset.tokenId && (
                   <TouchableOpacity
                     style={styles.actionMaxTouchable}
-                    disabled={!isEstimateedTotalGasValid}
+                    disabled={!estimatedTotalGas}
                     onPress={this.useMax}
                   >
-                    <Text
-                      style={
-                        isEstimateedTotalGasValid
-                          ? styles.maxText
-                          : styles.maxTextDisabled
-                      }
-                    >
+                    <Text style={styles.maxText}>
                       {strings('transaction.use_max')}
                     </Text>
                   </TouchableOpacity>

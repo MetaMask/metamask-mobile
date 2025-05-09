@@ -21,7 +21,11 @@ import {
 } from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { renderFromWei, weiToFiat } from '../../util/number';
-import { hexToBN, toHex } from '@metamask/controller-utils';
+import {
+  hexToBN,
+  toChecksumHexAddress,
+  toHex,
+} from '@metamask/controller-utils';
 import {
   selectConversionRate,
   selectCurrencyRates,
@@ -38,6 +42,9 @@ import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
 import { isTestNet } from '../../util/networks';
 import { selectTokenMarketData } from '../tokenRatesController';
 import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
+import { RootState } from '../../reducers';
+import { selectTokenList } from '../tokenListController';
+import { safeToChecksumAddress, toFormattedAddress } from '../../util/address';
 
 interface NativeTokenBalance {
   balance: string;
@@ -54,38 +61,63 @@ type ChainBalances = Record<string, NativeTokenBalance>;
  * @param {RootState} state - The root state.
  * @returns {ChainBalances} The cached native token balance for the selected account by chainId.
  */
-export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
-  [selectSelectedInternalAccountFormattedAddress, selectAccountsByChainId],
-  (selectedAddress, accountsByChainId): ChainBalances => {
-    if (!selectedAddress || !accountsByChainId) {
-      return {};
-    }
-
-    const result: ChainBalances = {};
-    for (const chainId in accountsByChainId) {
-      const accounts = accountsByChainId[chainId];
-      const account = accounts[selectedAddress];
-      if (account) {
-        result[chainId] = {
-          balance: account.balance,
-          stakedBalance: account.stakedBalance ?? '0x0',
-          isStaked: account.stakedBalance !== '0x0',
-          name: '',
-        };
+export const selectedAccountNativeTokenCachedBalanceByChainIdForAddress =
+  createSelector(
+    [
+      selectAccountsByChainId,
+      (_: RootState, address: string | undefined) => address,
+    ],
+    (accountsByChainId, address): ChainBalances => {
+      if (!accountsByChainId || !address) {
+        return {};
       }
-    }
 
-    return result;
-  },
+      const checksumAddress = toChecksumHexAddress(address);
+
+      const result: ChainBalances = {};
+      for (const chainId in accountsByChainId) {
+        const accounts = accountsByChainId[chainId];
+        const account = accounts[checksumAddress];
+        if (account) {
+          result[chainId] = {
+            balance: account.balance,
+            stakedBalance: account.stakedBalance ?? '0x0',
+            isStaked: account.stakedBalance !== '0x0',
+            name: '',
+          };
+        }
+      }
+
+      return result;
+    },
+  );
+
+/**
+ * Get the cached native token balance for the selected account by chainId.
+ *
+ * @param {RootState} state - The root state.
+ * @returns {ChainBalances} The cached native token balance for the selected account by chainId.
+ */
+export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
+  [(state: RootState) => state, selectSelectedInternalAccountFormattedAddress],
+  (state, selectedAddress): ChainBalances =>
+    selectedAccountNativeTokenCachedBalanceByChainIdForAddress(
+      state,
+      selectedAddress,
+    ),
 );
 
 /**
  * Selector to get native tokens for the selected account across all chains.
  */
-export const selectNativeTokensAcrossChains = createSelector(
+export const selectNativeTokensAcrossChainsForAddress = createSelector(
   [
     selectEvmNetworkConfigurationsByChainId,
-    selectedAccountNativeTokenCachedBalanceByChainId,
+    (state: RootState, address: string | undefined) =>
+      selectedAccountNativeTokenCachedBalanceByChainIdForAddress(
+        state,
+        address,
+      ),
     selectCurrencyRates,
     selectCurrentCurrency,
   ],
@@ -100,9 +132,13 @@ export const selectNativeTokensAcrossChains = createSelector(
       const nativeChainId = token.chainId as Hex;
       const nativeTokenInfoByChainId =
         nativeTokenBalancesByChainId[nativeChainId];
-      const isETH = ['ETH', 'GOETH', 'SepoliaETH', 'LineaETH', 'MegaETH'].includes(
-        token.nativeCurrency || '',
-      );
+      const isETH = [
+        'ETH',
+        'GOETH',
+        'SepoliaETH',
+        'LineaETH',
+        'MegaETH',
+      ].includes(token.nativeCurrency || '');
 
       const name = isETH ? 'Ethereum' : token.nativeCurrency;
       const logo = isETH ? '../images/eth-logo-new.png' : '';
@@ -190,53 +226,76 @@ export const selectNativeTokensAcrossChains = createSelector(
 );
 
 /**
+ * Selector to get native tokens for the selected account across all chains.
+ */
+export const selectNativeTokensAcrossChains = createSelector(
+  [(state: RootState) => state, selectSelectedInternalAccountFormattedAddress],
+  (state, selectedAddress) =>
+    selectNativeTokensAcrossChainsForAddress(state, selectedAddress),
+);
+
+export const selectAccountTokensAcrossChainsForAddress =
+  createDeepEqualSelector(
+    selectAllTokens,
+    selectEvmNetworkConfigurationsByChainId,
+    (state: RootState, address: string | undefined) =>
+      selectNativeTokensAcrossChainsForAddress(state, address),
+    (_: RootState, address: string | undefined) => address,
+    (allTokens, networkConfigurations, nativeTokens, address) => {
+      const tokensByChain: {
+        [chainId: string]: (
+          | TokenI
+          | (Token & {
+              isStaked?: boolean;
+              isNative?: boolean;
+              isETH?: boolean;
+            })
+        )[];
+      } = {};
+
+      if (!address) {
+        return tokensByChain;
+      }
+
+      // Create a list of available chainIds
+      const chainIds = Object.keys(networkConfigurations);
+
+      for (const chainId of chainIds) {
+        const currentChainId = chainId as Hex;
+        const nonNativeTokens =
+          allTokens[currentChainId]?.[address]?.map((token) => ({
+            ...token,
+            token: token.name,
+            chainId,
+            isETH: false,
+            isNative: false,
+            balanceFiat: '',
+            isStaked: false,
+          })) || [];
+
+        // Add both native and non-native tokens
+        tokensByChain[currentChainId] = [
+          ...(nativeTokens[currentChainId] || []),
+          ...nonNativeTokens,
+        ];
+      }
+
+      return tokensByChain;
+    },
+  );
+
+/**
  * Get the tokens for the selected account across all chains.
  *
  * @param {RootState} state - The root state.
  * @returns {TokensByChain} The tokens for the selected account across all chains.
  */
-export const selectAccountTokensAcrossChains = createDeepEqualSelector(
+export const selectAccountTokensAcrossChains = createSelector(
+  (state: RootState) => state,
   selectSelectedInternalAccount,
-  selectAllTokens,
-  selectEvmNetworkConfigurationsByChainId,
-  selectNativeTokensAcrossChains,
-  (selectedAccount, allTokens, networkConfigurations, nativeTokens) => {
+  (state, selectedAccount) => {
     const selectedAddress = selectedAccount?.address;
-    const tokensByChain: {
-      [chainId: string]: (
-        | TokenI
-        | (Token & { isStaked?: boolean; isNative?: boolean; isETH?: boolean })
-      )[];
-    } = {};
-
-    if (!selectedAddress) {
-      return tokensByChain;
-    }
-
-    // Create a list of available chainIds
-    const chainIds = Object.keys(networkConfigurations);
-
-    for (const chainId of chainIds) {
-      const currentChainId = chainId as Hex;
-      const nonNativeTokens =
-        allTokens[currentChainId]?.[selectedAddress]?.map((token) => ({
-          ...token,
-          token: token.name,
-          chainId,
-          isETH: false,
-          isNative: false,
-          balanceFiat: '',
-          isStaked: false,
-        })) || [];
-
-      // Add both native and non-native tokens
-      tokensByChain[currentChainId] = [
-        ...(nativeTokens[currentChainId] || []),
-        ...nonNativeTokens,
-      ];
-    }
-
-    return tokensByChain;
+    return selectAccountTokensAcrossChainsForAddress(state, selectedAddress);
   },
 );
 
@@ -424,3 +483,130 @@ export const selectEvmTokenFiatBalances = createDeepEqualSelector(
           ).balanceFiatCalculation;
     }),
 );
+
+export const selectEvmTokenMarketData = createDeepEqualSelector(
+  [
+    selectTokenList,
+    selectTokenMarketData,
+    (_state: RootState, params: { chainId: Hex; tokenAddress?: string }) =>
+      params.chainId,
+    (_state: RootState, params: { chainId: Hex; tokenAddress?: string }) =>
+      params.tokenAddress,
+  ],
+  (tokenList, marketData, chainId, tokenAddress) => {
+    // Handle native token case (no address)
+    if (!tokenAddress) {
+      return marketData?.[chainId]?.[zeroAddress() as Hex];
+    }
+
+    // Get checksummed address
+    const checksumAddress = safeToChecksumAddress(tokenAddress);
+    if (!checksumAddress) return null;
+
+    // Get token metadata and market data
+    const tokenMetadata = tokenList?.[checksumAddress.toLowerCase()];
+    const tokenMarketData = marketData?.[chainId]?.[checksumAddress as Hex];
+
+    return {
+      metadata: tokenMetadata,
+      marketData: tokenMarketData,
+    };
+  },
+);
+
+/**
+ * Creates a selector that finds a specific asset (token) by its address and chain ID.
+ * This selector is particularly important for handling both native and staked assets
+ * that may share the same address (e.g., 0x00) on the same chain.
+ *
+ * The selector uses a three-level nested map structure for efficient lookups:
+ * 1. First level: chainId -> Map
+ * 2. Second level: address -> Map
+ * 3. Third level: isStaked (boolean) -> TokenI
+ *
+ * This structure allows us to:
+ * - Efficiently look up tokens by chainId and address
+ * - Properly distinguish between staked and non-staked assets that share the same address
+ * - Handle native tokens (address: 0x00) correctly
+ *
+ * @example
+ * // For native asset
+ * const nativeAsset = selectAssetByAddressAndChainId(state, {
+ *   address: '0x00',
+ *   chainId: '0x1',
+ *   isStaked: false
+ * });
+ *
+ * // For staked asset
+ * const stakedAsset = selectAssetByAddressAndChainId(state, {
+ *   address: '0x00',
+ *   chainId: '0x1',
+ *   isStaked: true
+ * });
+ *
+ * @returns A selector function that returns the matching TokenI or undefined if not found
+ */
+export const makeSelectAssetByAddressAndChainId = () =>
+  createSelector(
+    [
+      selectEvmTokens, // TokenI[]
+      selectIsEvmNetworkSelected,
+      (
+        _state: RootState,
+        params: { address: string; chainId: string; isStaked?: boolean },
+      ) => toFormattedAddress(params.address),
+      (
+        _state: RootState,
+        params: { address: string; chainId: string; isStaked?: boolean },
+      ) => params.chainId,
+      (
+        _state: RootState,
+        params: { address: string; chainId: string; isStaked?: boolean },
+      ) => params.isStaked,
+    ],
+    (
+      tokens,
+      isEvmNetworkSelected,
+      address,
+      chainId,
+      isStaked,
+    ): TokenI | undefined => {
+      if (!isEvmNetworkSelected) {
+        return undefined;
+      }
+      // Step 1: build nested map once per call
+      const lookup = new Map<string, Map<string, Map<boolean, TokenI>>>();
+
+      for (const token of tokens) {
+        if (!token.chainId || !token.address) {
+          continue; // skip invalid tokens
+        }
+
+        const tokenChainId = token.chainId;
+        const tokenAddress = toFormattedAddress(token.address) as string;
+        const tokenIsStaked = Boolean(token.isStaked); // this is important in order to differentiate between staked and non-staked tokens on the same chain
+
+        if (!lookup.has(tokenChainId)) {
+          lookup.set(tokenChainId, new Map());
+        }
+        const chainMap = lookup.get(tokenChainId);
+
+        if (chainMap && !chainMap.has(tokenAddress)) {
+          chainMap.set(tokenAddress, new Map());
+        }
+        const addressMap = chainMap?.get(tokenAddress);
+
+        if (addressMap) {
+          addressMap.set(tokenIsStaked, token);
+        }
+      }
+
+      // Step 2: lookup
+      const token = lookup
+        .get(chainId)
+        ?.get(address as string)
+        ?.get(Boolean(isStaked));
+
+      return token;
+    },
+  );

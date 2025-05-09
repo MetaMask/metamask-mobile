@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NetworkImageComponent should render correctly 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 12,
+        "height": 24,
+        "overflow": "hidden",
+        "width": 24,
+      }
+    }
+    testID="network-avatar-picker"
+  >
+    <Image
+      onError={[Function]}
+      resizeMode="contain"
+      source="default-network-image"
+      testID="network-avatar-image"
+    />
+  </View>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    disabled={false}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    testID="button-icon-test-id"
+  >
+    <SvgMock
+      color="#121314"
+      height={16}
+      name="ArrowDown"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </TouchableOpacity>
+</View>
+`;

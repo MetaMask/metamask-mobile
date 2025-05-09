@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Solicitação de entrada suspeita",
       "message": "O site solicitante não é o site em que você está fazendo login. Isso pode ser uma tentativa de roubar suas credenciais de login."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "em"
   },
   "autocomplete": {
-    "placeholder": "Pesquisar por site ou por endereço",
+    "placeholder": "Search by token, site or address",
     "recents": "Recentes",
     "favorites": "Favoritos",
-    "sites": "Sites"
+    "sites": "Sites",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Voltar",
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "A frase de recuperação secreta de sua nova conta será gerada de",
     "accounts": "contas",
     "show_accounts": "Exibir",
-    "hide_accounts": "Ocultar"
+    "hide_accounts": "Ocultar",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
+      "bitcoin_account_name": "Bitcoin Account",
+      "solana_devnet_account_name": "Solana Devnet Account",
+      "solana_testnet_account_name": "Solana Testnet Account",
+      "solana_account_name": "Solana Account"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Failed to create {{clientType}} account"
+    }
   },
   "toast": {
     "connected_and_active": "conectada e ativa.",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snaps",
       "description": "Visualize e gerencie seus Snaps",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Remover Snap",
         "remove_snap_section_description": "Esta ação excluirá o Snap, seus dados e suas permissões.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "LENTO",
     "hex_data": "Dados hexa",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "Esse é um recurso avançado usado para cancelar ou acelerar qualquer transação pendente.",
     "current_suggested_nonce": "Nonce atual sugerido:",
     "edit_transaction_nonce": "Editar nonce da transação",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "Não disponível",
     "smart_contract_interaction": "Interação com contrato inteligente",
     "swaps_transaction": "Transação de trocas",
+    "bridge_transaction": "Bridge",
     "approve": "Aprovar",
     "increase_allowance": "Aumentar permissão",
     "set_approval_for_all": "Definir aprovação para todos",
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Encontre o",
       "best_price": "melhor preço",
@@ -3780,19 +3804,22 @@
       "permit": "Solicitação de limite de gastos",
       "permit_revoke": "Remover permissão",
       "permit_NFTs": "Solicitação de saque",
-      "signature_siwe": "Solicitação de login"
+      "signature_siwe": "Solicitação de login",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "Este site quer permissão para gastar seus tokens.",
       "permit_NFTs": "Este site quer permissão para sacar seus NFTs.",
       "signature": "Revise os detalhes da solicitação antes de confirmar.",
-      "signature_siwe": "Um site deseja que você faça login para comprovar que você é o titular desta conta."
+      "signature_siwe": "Um site deseja que você faça login para comprovar que você é o titular desta conta.",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "Solicitação de",
     "staking_from": "Staking de",
     "signing_in_with": "Fazendo login com",
     "message": "Mensagem",
     "personal_sign_tooltip": "Este site está solicitando sua assinatura",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "Detalhes",
     "qr_get_sign": "Obter assinatura",
     "qr_scan_text": "Leia com sua carteira de hardware",
@@ -3827,7 +3854,9 @@
       "unavailable": "Indisponível"
     },
     "unlimited": "Ilimitado",
-    "none": "Nenhum"
+    "none": "Nenhum",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with"
   },
   "change_in_simulation_modal": {
     "title": "Os resultados mudaram",
@@ -3868,6 +3897,29 @@
     "time": "Horário",
     "quote_info_content": "Esta cotação oferece o melhor retorno segundo nossa pesquisa. Ela se baseia na taxa de troca, incluindo taxas de ponte e uma taxa de 0,875% da MetaMask, mas não as taxas de gás. Estas variam conforme a atividade da rede e a complexidade da transação.",
     "quote_info_title": "Por que recomendamos essa cotação",
-    "see_other_quotes": "Ver outras cotações"
+    "see_other_quotes": "Ver outras cotações",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge",
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
   }
 }

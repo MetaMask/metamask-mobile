@@ -1,4 +1,4 @@
-import { SmokeMultiChainPermissions } from '../../../../tags';
+import { SmokeNetworkExpansion } from '../../../../tags';
 import { loginToApp } from '../../../../viewHelper';
 import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
@@ -7,10 +7,8 @@ import Assertions from '../../../../utils/Assertions';
 import TestHelpers from '../../../../helpers';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import {
-  stopFixtureServer,
   withFixtures,
 } from '../../../../fixtures/fixture-helper';
-import FixtureServer from '../../../../fixtures/fixture-server';
 import { CustomNetworks } from '../../../../resources/networks.e2e';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
@@ -18,11 +16,10 @@ import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonP
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 
-const fixtureServer = new FixtureServer();
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
 describe(
-  SmokeMultiChainPermissions('Chain Permission System, non-permitted chain, '),
+  SmokeNetworkExpansion('Chain Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
@@ -32,9 +29,6 @@ describe(
       jest.setTimeout(150000);
     });
 
-    afterAll(async () => {
-      await stopFixtureServer(fixtureServer);
-    });
 
     it('should show bottom sheet when switching to non-permitted chain', async () => {
       await withFixtures(
@@ -54,8 +48,9 @@ describe(
           await WalletView.tapNetworksButtonOnNavBar();
           await NetworkListModal.scrollToBottomOfNetworkList();
           await NetworkListModal.changeNetworkTo(SEPOLIA);
+          await device.disableSynchronization();
           await NetworkEducationModal.tapGotItButton();
-
+          await device.enableSynchronization();
           // Verify bottom sheet appears
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000);
@@ -88,8 +83,9 @@ describe(
           await WalletView.tapNetworksButtonOnNavBar();
           await NetworkListModal.scrollToBottomOfNetworkList();
           await NetworkListModal.changeNetworkTo(SEPOLIA);
+          await device.disableSynchronization();
           await NetworkEducationModal.tapGotItButton();
-
+          await device.enableSynchronization();
           // Verify no bottom sheet appears
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000);
@@ -119,7 +115,9 @@ describe(
           await WalletView.tapNetworksButtonOnNavBar();
           await NetworkListModal.scrollToBottomOfNetworkList();
           await NetworkListModal.changeNetworkTo(SEPOLIA);
+          await device.disableSynchronization();
           await NetworkEducationModal.tapGotItButton();
+          await device.enableSynchronization();
 
           // Add network permission
           await TabBarComponent.tapBrowser();
@@ -206,7 +204,9 @@ describe(
           await WalletView.tapNetworksButtonOnNavBar();
           await NetworkListModal.scrollToBottomOfNetworkList();
           await NetworkListModal.changeNetworkTo(SEPOLIA);
+          await device.disableSynchronization();
           await NetworkEducationModal.tapGotItButton();
+          await device.enableSynchronization();
 
           // Verify bottom sheet appears and navigate to edit permissions
           await TabBarComponent.tapBrowser();

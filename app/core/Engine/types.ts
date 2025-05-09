@@ -42,6 +42,10 @@ import {
   RatesController,
   RatesControllerEvents,
   RatesControllerActions,
+  TokenSearchDiscoveryDataController,
+  TokenSearchDiscoveryDataControllerState,
+  TokenSearchDiscoveryDataControllerActions,
+  TokenSearchDiscoveryDataControllerEvents,
   MultichainAssetsController,
   MultichainAssetsControllerState,
   MultichainAssetsControllerEvents,
@@ -257,6 +261,12 @@ import { Hex } from '@metamask/utils';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
 import type { RootState } from '../../reducers';
+import {
+  AppMetadataController,
+  AppMetadataControllerActions,
+  AppMetadataControllerEvents,
+  AppMetadataControllerState,
+} from '@metamask/app-metadata-controller';
 
 /**
  * Controllers that area always instantiated
@@ -337,10 +347,12 @@ type GlobalActions =
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
   | TokenSearchDiscoveryControllerActions
+  | TokenSearchDiscoveryDataControllerActions
   | MultichainNetworkControllerActions
   | BridgeControllerActions
   | BridgeStatusControllerActions
-  | EarnControllerActions;
+  | EarnControllerActions
+  | AppMetadataControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -385,11 +397,13 @@ type GlobalEvents =
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
   | TokenSearchDiscoveryControllerEvents
+  | TokenSearchDiscoveryDataControllerEvents
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
-  | EarnControllerEvents;
+  | EarnControllerEvents
+  | AppMetadataControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -410,6 +424,7 @@ export type Controllers = {
   AccountsController: AccountsController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
+  AppMetadataController: AppMetadataController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   CurrencyRateController: CurrencyRateController;
@@ -457,6 +472,7 @@ export type Controllers = {
   MultichainAssetsController: MultichainAssetsController;
   MultichainTransactionsController: MultichainTransactionsController;
   ///: END:ONLY_INCLUDE_IF
+  TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
@@ -477,6 +493,7 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
+  AppMetadataController: AppMetadataControllerState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
@@ -518,6 +535,7 @@ export type EngineState = {
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   MultichainTransactionsController: MultichainTransactionsControllerState;
   ///: END:ONLY_INCLUDE_IF
+  TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
   MultichainNetworkController: MultichainNetworkControllerState;
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
@@ -560,6 +578,7 @@ export type ControllersToInitialize =
   | 'SnapsRegistry'
   | 'NotificationServicesController'
   | 'NotificationServicesPushController'
+  | 'AppMetadataController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
@@ -571,7 +590,8 @@ export type ControllersToInitialize =
   | 'AccountsController'
   | 'MultichainNetworkController'
   | 'TransactionController'
-  | 'GasFeeController';
+  | 'GasFeeController'
+  | 'SignatureController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

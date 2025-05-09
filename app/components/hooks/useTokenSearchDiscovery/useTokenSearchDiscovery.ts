@@ -1,14 +1,14 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import Engine from '../../../core/Engine';
 import { selectRecentTokenSearches } from '../../../selectors/tokenSearchDiscoveryController';
-import {
-  TokenSearchResponseItem,
-  TokenSearchParams,
-} from '@metamask/token-search-discovery-controller';
+import { TokenSearchResponseItem } from '@metamask/token-search-discovery-controller';
+import { tokenSearchDiscoveryEnabled } from '../../../selectors/featureFlagController/tokenSearchDiscovery';
 
-const SEARCH_DEBOUNCE_DELAY = 300;
+const SEARCH_DEBOUNCE_DELAY = 150;
+const MINIMUM_QUERY_LENGTH = 2;
+export const MAX_RESULTS = '20';
 
 export const useTokenSearchDiscovery = () => {
   const recentSearches = useSelector(selectRecentTokenSearches);
@@ -16,25 +16,35 @@ export const useTokenSearchDiscovery = () => {
   const [error, setError] = useState<Error | null>(null);
   const [results, setResults] = useState<TokenSearchResponseItem[]>([]);
   const latestRequestId = useRef<number>(0);
+  const tokenSearchEnabled = useSelector(tokenSearchDiscoveryEnabled);
+
 
   const searchTokens = useMemo(
     () =>
-      debounce(async (params: TokenSearchParams) => {
+      debounce(async (query: string) => {
         setIsLoading(true);
         setError(null);
+
+        if (query.length < MINIMUM_QUERY_LENGTH || !tokenSearchEnabled) {
+          setResults([]);
+          setIsLoading(false);
+          return;
+        }
+
         const requestId = ++latestRequestId.current;
 
         try {
           const { TokenSearchDiscoveryController } = Engine.context;
-          const result = await TokenSearchDiscoveryController.searchTokens(
-            params,
-          );
+          const result = await TokenSearchDiscoveryController.searchSwappableTokens({
+            query,
+            limit: MAX_RESULTS,
+          });
           if (requestId === latestRequestId.current) {
             setResults(result);
           }
         } catch (err) {
           if (requestId === latestRequestId.current) {
-            setError(err as Error);
+          setError(err as Error);
           }
         } finally {
           if (requestId === latestRequestId.current) {
@@ -42,8 +52,14 @@ export const useTokenSearchDiscovery = () => {
           }
         }
       }, SEARCH_DEBOUNCE_DELAY),
-    [],
+    [tokenSearchEnabled],
   );
+
+  const reset = useCallback(() => {
+    setResults([]);
+    setError(null);
+    setIsLoading(false);
+  }, []);
 
   return {
     searchTokens,
@@ -51,6 +67,7 @@ export const useTokenSearchDiscovery = () => {
     isLoading,
     error,
     results,
+    reset,
   };
 };
 

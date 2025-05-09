@@ -3,6 +3,9 @@ import { useTokenSearch } from '.';
 import { BridgeToken } from '../../types';
 import { Hex } from '@metamask/utils';
 
+// Mock timers
+jest.useFakeTimers();
+
 describe('useTokenSearch', () => {
   // Mock token data
   const mockTokens: BridgeToken[] = [
@@ -52,6 +55,10 @@ describe('useTokenSearch', () => {
     },
   ];
 
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
   it('should initialize with empty search string and empty token list', () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
@@ -76,6 +83,9 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('ETH');
     });
 
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
+
     expect(result.current.searchResults[0].symbol).toBe('ETH');
   });
 
@@ -85,6 +95,9 @@ describe('useTokenSearch', () => {
     act(() => {
       result.current.setSearchString('Coin');
     });
+
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults[0].symbol).toBe('USDC');
   });
@@ -96,6 +109,9 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('0x1');
     });
 
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
+
     expect(result.current.searchResults[0].symbol).toBe('ETH');
   });
 
@@ -106,6 +122,9 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('NONEXISTENT');
     });
 
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
+
     expect(result.current.searchResults).toHaveLength(0);
   });
 
@@ -115,6 +134,9 @@ describe('useTokenSearch', () => {
     act(() => {
       result.current.setSearchString('USD'); // Should match both USDC and USDT
     });
+
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults).toHaveLength(2);
     expect(result.current.searchResults[0].symbol).toBe('USDC'); // Higher fiat value should be first
@@ -128,6 +150,9 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('ETH');
     });
 
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
+
     expect(result.current.searchResults).toHaveLength(0);
   });
 
@@ -137,6 +162,9 @@ describe('useTokenSearch', () => {
     act(() => {
       result.current.setSearchString('ETH');
     });
+
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults).toHaveLength(0);
   });
@@ -160,6 +188,9 @@ describe('useTokenSearch', () => {
     act(() => {
       result.current.setSearchString('TKN'); // Should match all tokens
     });
+
+    // Advance timers to trigger the debounce
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults.length).toBeLessThanOrEqual(20); // MAX_TOKENS_RESULTS is 20
   });

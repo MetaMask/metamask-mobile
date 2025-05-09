@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "의심스러운 로그인 요청",
       "message": "요청을 보낸 사이트는 회원님이 로그인하려는 사이트가 아닙니다. 로그인 정보를 훔치려는 시도일 수 있습니다."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": ":"
   },
   "autocomplete": {
-    "placeholder": "사이트 또는 주소로 검색",
+    "placeholder": "Search by token, site or address",
     "recents": "최근",
     "favorites": "즐겨찾기",
-    "sites": "사이트"
+    "sites": "사이트",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "뒤로",
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "새 계정이 생성될 때 사용될 비밀복구구문",
     "accounts": "계정",
     "show_accounts": "표시",
-    "hide_accounts": "숨기기"
+    "hide_accounts": "숨기기",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
+      "bitcoin_account_name": "Bitcoin Account",
+      "solana_devnet_account_name": "Solana Devnet Account",
+      "solana_testnet_account_name": "Solana Testnet Account",
+      "solana_account_name": "Solana Account"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Failed to create {{clientType}} account"
+    }
   },
   "toast": {
     "connected_and_active": "연결되어 활성화됨.",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snap",
       "description": "Snap 개요 및 관리",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Snap 제거",
         "remove_snap_section_description": "이렇게 하면 Snap과 데이터가 삭제되고 허용된 권한이 취소됩니다.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "느림",
     "hex_data": "헥스 데이터",
     "custom_nonce": "논스",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "이 기능은 대기 중인 트랜잭션을 취소하거나 속도를 향상하는 고급 기능입니다.",
     "current_suggested_nonce": "현재 제안된 논스:",
     "edit_transaction_nonce": "논스 트랜잭션 편집",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "이용할 수 없음",
     "smart_contract_interaction": "스마트 계약 인터렉션",
     "swaps_transaction": "스와프 트랜잭션",
+    "bridge_transaction": "Bridge",
     "approve": "승인",
     "increase_allowance": "한도 증가",
     "set_approval_for_all": "모두 승인 설정",
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "최고의",
       "best_price": "가격을",
@@ -3780,19 +3804,22 @@
       "permit": "지출 한도 요청",
       "permit_revoke": "권한 제거",
       "permit_NFTs": "출금 요청",
-      "signature_siwe": "로그인 요청"
+      "signature_siwe": "로그인 요청",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",
       "permit_NFTs": "이 사이트에서 NFT 인출 권한을 요청합니다.",
       "signature": "컨펌하기 전에 요청 세부 사항을 검토하세요.",
-      "signature_siwe": "어떤 사이트에서 귀하가 이 계정을 소유했는지 확인하기 위해 로그인을 요청하고 있습니다."
+      "signature_siwe": "어떤 사이트에서 귀하가 이 계정을 소유했는지 확인하기 위해 로그인을 요청하고 있습니다.",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "요청자:",
     "staking_from": "스테이킹 출처:",
     "signing_in_with": "다음으로 로그인 중",
     "message": "메시지",
     "personal_sign_tooltip": "서명이 필요한 사이트입니다",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "세부 정보",
     "qr_get_sign": "서명 받기",
     "qr_scan_text": "하드웨어 지갑으로 스캔하기",
@@ -3827,7 +3854,9 @@
       "unavailable": "사용 불가"
     },
     "unlimited": "무제한",
-    "none": "없음"
+    "none": "없음",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with"
   },
   "change_in_simulation_modal": {
     "title": "결과가 변경되었습니다",
@@ -3868,6 +3897,29 @@
     "time": "시간",
     "quote_info_content": "이 견적은 검색 결과 중 가장 높은 수익을 제공합니다. 브릿징 수수료와 0.875% MetaMask 수수료가 포함된 스왑 비율을 기반으로 하며, 가스비는 포함되어 있지 않습니다. 가스비는 네트워크 활동과 트랜잭션 복잡성에 따라 달라집니다.",
     "quote_info_title": "이 견적 추천 이유",
-    "see_other_quotes": "다른 견적 보기"
+    "see_other_quotes": "다른 견적 보기",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge",
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
   }
 }

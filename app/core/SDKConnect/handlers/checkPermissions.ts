@@ -11,6 +11,7 @@ import {
   waitForCondition,
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
+import { Platform } from 'react-native';
 
 // TODO: should be more generic and be used in wallet connect and android service as well
 export const checkPermissions = async ({
@@ -111,6 +112,15 @@ export const checkPermissions = async ({
     }
 
     const res = await connection.approvalPromise;
+    if (Platform.OS === 'ios') {
+      // A UI crash happening on ios from AccountConnect.tsx which is triggered by permissionsController.getPermission().
+      // Seems to be a race condition between the connect being accepted and the approvalPromise being resolved.
+      // Adding a small delay seems to fix the issue.
+      // *** Assertion failure in -[RCTNativeAnimatedNodesManager disconnectAnimatedNodes:childTag:](), metamask-mobile/node_modules/react-native/Libraries/NativeAnimation/RCTNativeAnimatedNodesManager.m:142
+      // Exception thrown while executing UI block: 'childNode' is a required parameter
+      // 0x14146e100 - GPUProcessProxy::gpuProcessExited: reason=IdleExit
+      await wait(100);
+    }
     const accounts = await getPermittedAccounts(connection.channelId);
     DevLogger.log(`checkPermissions approvalPromise completed`, res);
     return accounts.length > 0;

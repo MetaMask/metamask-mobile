@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeAccounts } from '../../tags';
+import { SmokeNetworkExpansion } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
@@ -10,7 +10,7 @@ import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import TestHelpers from '../../helpers';
 
-describe(SmokeAccounts('Import account via private to wallet'), () => {
+describe(SmokeNetworkExpansion('Import account via private to wallet'), () => {
   // This key is for testing private key import only
   // I should NEVER hold any eth or token
   const TEST_PRIVATE_KEY =
@@ -22,7 +22,11 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
   });
 
   it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase(process.env.MM_TEST_WALLET_SRP);
+    await importWalletWithRecoveryPhrase(
+      {
+        seedPhrase: process.env.MM_TEST_WALLET_SRP,
+      },
+    );
   });
 
   it('should be able to import account', async () => {

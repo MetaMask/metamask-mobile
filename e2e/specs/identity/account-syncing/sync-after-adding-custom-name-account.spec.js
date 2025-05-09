@@ -17,11 +17,11 @@ import Assertions from '../../../utils/Assertions';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeIdentity } from '../../../tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
 describe(
-  SmokeIdentity(
+  SmokeWalletPlatform(
     'Account syncing - syncs and retrieves accounts after adding a custom name account',
   ),
   () => {
@@ -73,8 +73,10 @@ describe(
 
     it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
       await importWalletWithRecoveryPhrase(
-        IDENTITY_TEAM_SEED_PHRASE,
-        IDENTITY_TEAM_PASSWORD,
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        }
       );
 
       await WalletView.tapIdenticon();
@@ -106,8 +108,10 @@ describe(
       });
 
       await importWalletWithRecoveryPhrase(
-        IDENTITY_TEAM_SEED_PHRASE,
-        IDENTITY_TEAM_PASSWORD,
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        }
       );
 
       await WalletView.tapIdenticon();
