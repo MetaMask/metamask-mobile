@@ -60,7 +60,7 @@ export const restoreImportedSrp = async (seedPhrase, numberOfAccounts) => {
 
     return keyringId;
   } catch (e) {
-    Logger.log(
+    Logger.error(
       e,
       'error while trying to restore imported srp accounts on recreate vault',
     );
