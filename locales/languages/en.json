@@ -97,7 +97,7 @@
     "ok": "OK"
   },
   "onboarding": {
-    "title": "Wallet setup",
+    "title": "Let’s get started!",
     "sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
     "create_desc": "Set up your first wallet and start exploring decentralized apps.",
     "import": "Import an existing wallet or create a new one",
@@ -129,7 +129,17 @@
     "scan_step_4": "Scan the QR code to start syncing",
     "success": "Success",
     "your_wallet": "Your wallet was successfully erased",
-    "delete_current": "Deleting current wallet"
+    "delete_current": "Erasing current wallet",
+    "continue_with_google": "Continue with Google",
+    "continue_with_apple": "Continue with Apple",
+    "or": "OR",
+    "import_existing_wallet": "Import existing wallet",
+    "bottom_sheet_title": "Choose an option to continue",
+    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "have_existing_wallet": "I have an existing wallet",
+    "import_srp": "Import using Secret Recovery Phrase",
+    "sign_in_with_google": "Sign in with Google",
+    "sign_in_with_apple": "Sign in with Apple"
   },
   "onboarding_success": {
     "title": "Congratulations!",
@@ -144,10 +154,22 @@
     "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
     "no_srp_title": "Reminder set!",
     "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
-    "import_title": "Your Wallet is ready",
-    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
-    "import_description2": "to keep this set of words safe so you can always access your funds.",
-    "done": "Done"
+    "import_title": "Your Wallet is ready!",
+    "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
+    "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "done": "Done",
+    "create_hint": "Create a password hint",
+    "hint_title": "Password hint",
+    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "hint_button": "Create hint",
+    "hint_placeholder": "e.g. mom’s home",
+    "hint_saved": "Save",
+    "hint_saved_toast": "Password hint saved",
+    "remind_later": "We’ll remind you later",
+    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
+    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
+    "setting_security_privacy": "Settings > Security & Privacy"
   },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",
@@ -250,18 +272,23 @@
   "login": {
     "title": "Welcome Back!",
     "password": "Password",
-    "unlock_button": "UNLOCK",
+    "password_placeholder": "Enter password",
+    "unlock_button": "Unlock",
+    "show_hint": "Show hint",
+    "hide_hint": "Hide hint",
+    "hint": "Hint: {{hint}}",
     "go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
-    "reset_wallet": "Reset Wallet",
+    "reset_wallet": "Erase wallet",
     "cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
-    "invalid_password": "Invalid password",
-    "type_delete": "Type ‘%{delete}’ to erase current wallet permanently",
-    "delete_my": "Delete my wallet",
+    "invalid_password": "Password is incorrect, try again.",
+    "type_delete": "Type ‘%{erase}’ to confirm",
+    "erase_my": "Yes, erase wallet",
+    "cancel": "Cancel",
     "are_you_sure": "Are you sure you want to erase your wallet?",
-    "your_current_wallet": "Your current wallet, accounts and assets will be ",
-    "removed_from": "removed from this app permanently. ",
+    "your_current_wallet": "Your wallet, accounts, and assets will be",
+    "removed_from": " permanently removed from this app",
     "this_action": "This action cannot be undone.",
-    "you_can_only": "You can ONLY recover this wallet with your ",
+    "you_can_only": "You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.",
     "recovery_phrase": "Secret Recovery Phrase ",
     "metamask_does_not": "MetaMask does not have your Secret Recovery Phrase.",
     "i_understand": "I understand, continue",
@@ -271,7 +298,11 @@
     "vault_error": "Error: Cannot unlock without a previous vault.",
     "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "security_alert_title": "Security Alert",
-    "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
+    "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
+    
+    "apple_button": "Sign in with Apple",
+    "google_button": "Sign in with Google",
+    "other_methods": "Use another method"
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
@@ -308,7 +339,9 @@
     "learn_more": "Learn more.",
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
-    "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again."
+    "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again.",
+    "confirm_cta": "Confirm",
+    "password_error": "Passwords don’t match. Try again."
   },
   "reset_password": {
     "title": "Change password",
@@ -335,10 +368,17 @@
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
     "password_updated": "Password updated",
-    "successfully_changed": "Your password has been successfully changed"
+    "successfully_changed": "Your password has been successfully changed",
+    "new_password_placeholder": "Use at least 8 characters",
+    "confirm_password_placeholder": "Re-enter your password",
+    "confirm_btn": "Confirm",
+    "warning_password_change_title": "Warning: Wallets will be locked from all devices",
+    "warning_password_change_description": "For safety, this action will lock wallet access on any other device you're currently signed into. To regain access, you'll need to log in again with your new password.",
+    "warning_password_change_button": "Confirm",
+    "warning_password_cancel_button": "Cancel"
   },
   "import_from_seed": {
-    "title": "Import from Secret Recovery Phrase",
+    "title": "Import a wallet",
     "seed_phrase_placeholder": "Enter your Secret Recovery Phrase",
     "new_password": "New Password",
     "confirm_password": "Confirm password",
@@ -347,10 +387,31 @@
     "password_length_error": "The password needs to be at least 8 characters long",
     "password_dont_match": "Passwords don't match",
     "seed_phrase_requirements": "Secret Recovery Phrases contain 12, 15, 18, 21, or 24 words",
-    "invalid_seed_phrase": "Invalid Secret Recovery Phrase",
+    "invalid_seed_phrase": "Secret Recovery Phrase not found.",
     "error": "Error",
     "invalid_qr_code_title": "Invalid QR Code",
-    "invalid_qr_code_message": "This QR code doesn't represent a valid Secret Recovery Phrase"
+    "invalid_qr_code_message": "This QR code doesn't represent a valid Secret Recovery Phrase",
+    "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
+    "create_password": "Create password",
+    "seed_phrase_required": "Secret Recovery Phrase is required",
+    "re_enter_password": "Re-enter your password",
+    "use_at_least_8_characters": "Use at least 8 characters",
+    "unlock_with_face_id": "Unlock with Face ID?",
+    "learn_more": "MetaMask can’t reset this password if you forget it",
+    "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
+    "continue": "Continue",
+    "clear_all": "Clear all",
+    "show_all": "Show all",
+    "paste": "Paste",
+    "hide_all": "Hide all",
+    "srp": "Secret Recovery Phrase",
+    "srp_placeholder": "Add a space between each word and make sure no one is watching 👀",
+    "learn_more_link": "Learn more",
+    "confirm": "Confirm",
+    "pass_flow": "Continue with Flow",
+    "step": "Step {{currentStep}} of {{totalSteps}}",
+    "password_error": "Passwords don’t match. Try again.",
+    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again."
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -447,6 +508,10 @@
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
     },
+    "secure": {
+      "title": "A new way to secure your wallet",
+      "subtitle": "Link your Apple or Google account."
+    },
     "backupAndSync": {
       "title": "Introducing backup and sync",
       "subtitle": "Back up your accounts and sync settings."
@@ -454,10 +519,6 @@
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
-    },
-    "backupAndSync": {
-      "title": "Introducing backup and sync",
-      "subtitle": "Back up your accounts and sync settings."
     }
   },
   "wallet": {
@@ -922,11 +983,13 @@
     "protect_cta": "Protect",
     "protect_title": "Protect your wallet",
     "video_failed": "Video Failed to Load.",
-    "protect_desc": "Protect your wallet by saving your Secret Recovery Phrase in a place only you can access and that you will not forget. Be sure to keep it offline for optimal safety.",
+    "protect_desc": "Back up your Secret Recovery Phrase and link your wallet to an Apple or Google account. Be sure to store your Secret Recovery Phrase in a safe place that only you can access and won’t forget.",
     "protect_desc_no_backup": "This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.",
     "learn_more": "Learn more.",
-    "seedphrase_not_backed_up": "Important! Secret Recovery Phrase not backed up",
+    "seedphrase_not_backed_up": "Back up Secret Recovery Phrase",
     "seedphrase_backed_up": "Secret Recovery Phrase backed up",
+    "social_login_linked": "Logged in with",
+    "social_login_not_linked": "Link your wallet to an Apple or Google account",
     "back_up_now": "Back up now",
     "back_up_again": "Back up again",
     "view_hint": "View hint",
@@ -1360,7 +1423,8 @@
     "password_title": "Password",
     "password_desc": "Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your Secret Recovery Phrase to re-import your wallet.",
     "password_learn_more": "Learn more.",
-    "change_password": "Change password"
+    "change_password": "Change password",
+    "password_hint": "Password hint"
   },
   "asset_overview": {
     "send_button": "Send",
@@ -2132,16 +2196,21 @@
     "info_text_1_2": "Secret Recovery Phrase",
     "info_text_1_3": "in a place you trust.",
     "info_text_1_4": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
-    "cta_text": "Start",
+    "cta_text": "Get Started",
     "cta_subText": "Highly recommended",
     "skip_button_cancel": "Secure now",
     "skip_button_confirm": "Skip",
     "skip_title": "Skip account security?",
-    "skip_check": "I understand that if I lose my Secret Recovery Phrase I will not be able to access my wallet.",
-    "what_is_seedphrase_title": "What is a ‘Secret Recovery Phrase’",
-    "what_is_seedphrase_text_1": "A Secret Recovery Phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.",
+    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
+    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
+    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
     "what_is_seedphrase_text_2": "You must keep your Secret Recovery Phrase secret and safe. If someone gets your Secret Recovery Phrase, they’ll gain control over your accounts.",
-    "what_is_seedphrase_text_3": "Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it."
+    "what_is_seedphrase_text_3": "Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it.",
+    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
+    "seedPhrase_point_1": "Take all your money",
+    "seedPhrase_point_2": "Confirm transactions",
+    "seedPhrase_point_3": "Change your login information",
+    "what_is_seedphrase_confirm": "Got it"
   },
   "account_backup_step_1B": {
     "title": "Secure your wallet",
@@ -2232,23 +2301,34 @@
     "progressThree": "Confirm Secret Recovery Phrase"
   },
   "manual_backup_step_1": {
-    "action": "Write down your Secret Recovery Phrase",
-    "info": "This is your Secret Recovery Phrase. Write it down on paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "Continue",
-    "reveal": "Tap to reveal your Secret Recovery Phrase",
+    "reveal": "Tap to reveal",
     "watching": "Make sure no one is watching your screen.",
     "view": "View",
     "confirm_password": "Confirm your password",
     "before_continiuing": "Before continuing we need you to confirm your password",
-    "confirm": "CONFIRM",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "Got it",
     "learn_more": "Learn More"
   },
   "manual_backup_step_2": {
-    "action": "Confirm Secret Recovery Phrase",
-    "info": "Select each word in the order it was presented to you.",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "Complete Backup",
-    "success": "Success"
+    "success": "Success",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got It",
+    "error-button": "Try Again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
     "congratulations": "Congratulations",
@@ -3322,10 +3402,11 @@
     "description": "Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed."
   },
   "terms_of_use_modal": {
-    "title": "Review our latest Terms of Use",
+    "title": "Review our Terms of Use",
     "terms_of_use_check_description": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
     "accept_cta": "Accept",
-    "accept_helper_description": "Please scroll to read all sections"
+    "accept_helper_description": "Please scroll to read all sections",
+    "agree_cta": "Agree"
   },
   "update_needed": {
     "title": "Updates needed",
@@ -3948,6 +4029,55 @@
     "transaction_details": "Transaction Details",
     "bridge_to_chain": "Bridge to {{chainName}}",
     "recipient": "Recipient"
+  },
+  "account_status": {
+    "account_already_exists": "Account already exists",
+    "account_already_exists_description": "An account with {{accountName}} already exists. Do you want to try logging in instead?",
+    "log_in": "Log in",
+    "account_not_found": "Account not found",
+    "account_not_found_description": "No existing wallet found for {{accountName}}. Want to create one now with this login?",
+    "create_new_wallet": "Create a new wallet",
+    "use_different_login_method": "Use a different login method"
+  },
+  "error_sheet": {
+    "still_there_title": "Still there?",
+    "still_there_description": "Your login timed out due to inactivity. Try again when you’re ready.",
+    "unable_to_login_title": "Unable to connect",
+    "unable_to_login_description": "Your internet connection is unstable. Check your connection and try again.",
+    "something_went_wrong_title": "Something went wrong",
+    "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
+    "support_button": "MetaMask Support.",
+    "error_button": "Try again",
+    
+    "user_cancelled_title": "Login cancelled",
+    "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
+    "user_cancelled_button": "Try again",
+    "oauth_error_title": "Login failed",
+    "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
+    "oauth_error_button": "Try again"
+  },
+  "password_hint": {
+    "title": "Password hint",
+    "description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "button": "Create hint",
+    "placeholder": "e.g. mom’s home",
+    "saved": "Save",
+    "saved_toast": "Password hint updated",
+    "error_matches_password": "You cannot use your password as a hint"
+  },
+  "protect_your_wallet": {
+    "title": "Protect your wallet",
+    "login_with_social": "Log in with Social Accounts",
+    "setup": "Set Up",
+    "secret_recovery_phrase": "Secret recovery phrase {{num}}",
+    "back_up": "Back up",
+    "reveal": "Reveal",
+    "social_recovery_title": "GOOGLE OR APPLE RECOVERY",
+    "social_recovery_enable": "Enabled",
+    "social_login_description": "This email and your MetaMask password will help you recover your account and recovery phrases.",
+    "srps_title": "SECRET RECOVERY PHRASES",
+    "srps_description": "Your wallet is most protected when both recovery methods are set up. If one fail, the other helps you recover your wallet."
   },
   "backupAndSync": {
     "title": "Backup and sync",

@@ -237,4 +237,13 @@ export enum IconName {
   Wallet = 'Wallet',
   Warning = 'Warning',
   Wifi = 'Wifi',
+  Google = 'Google',
+  Apple = 'Apple',
+  EyeSlashSolid = 'EyeSlashSolid',
+  EyeSolid = 'EyeSolid',
+  DangerSolid = 'DangerSolid',
+  SuccessSolid = 'SuccessSolid',
+  Account = 'Account',
+  AccountType = 'AccountType',
+  RichDanger = 'RichDanger',
 }
