@@ -32,7 +32,7 @@ const EarnDepositTokenListItem = ({
     <TouchableOpacity style={styles.container} onPress={() => onPress(token)}>
       <View style={styles.left}>
         <BadgeWrapper
-          badgePosition={BadgePosition.TopRight}
+          badgePosition={BadgePosition.BottomRight}
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}

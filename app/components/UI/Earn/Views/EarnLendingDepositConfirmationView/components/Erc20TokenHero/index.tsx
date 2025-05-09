@@ -54,7 +54,7 @@ const NetworkAndTokenImage = ({ token }: { token: TokenI }) => {
   return (
     <View style={styles.networkAndTokenContainer}>
       <BadgeWrapper
-        badgePosition={BadgePosition.TopRight}
+        badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
