@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useEffect, useReducer } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -79,6 +79,8 @@ export interface EarnTokenListProps {
 }
 
 const EarnTokenList = () => {
+  // Temp: Used as workaround for BadgeNetwork not properly anchoring to its parent BadgeWrapper.
+  const [, forceUpdate] = useReducer((x) => x + 1, 0);
   const { createEventBuilder, trackEvent } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
@@ -93,6 +95,17 @@ const EarnTokenList = () => {
     includeLendingTokens,
     includeReceiptTokens,
   });
+
+  // Temp workaround for BadgeNetwork component not anchoring correctly on initial render.
+  // We force a rerender to ensure the BadgeNetwork component properly anchors to its BadgeWrapper.
+  useEffect(() => {
+    // Force a re-render after initial mount
+    const timer = setTimeout(() => {
+      forceUpdate();
+    }, 100); // Adjust timing as needed
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -203,11 +216,11 @@ const EarnTokenList = () => {
               />
             )}
             {supportedEarnTokens?.map(
-              (token, index) =>
+              (token) =>
                 token?.chainId && (
                   <View
                     style={styles.listItemContainer}
-                    key={`${token.name}-${token.symbol}-${index}`}
+                    key={`${token.name}-${token.symbol}-${token.chainId}`}
                   >
                     {renderTokenListItem(token)}
                   </View>

@@ -6,11 +6,27 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    container: {
+    pageContainer: {
       backgroundColor: colors.background.alternative,
       height: '100%',
-      justifyContent: 'center',
+      justifyContent: 'space-between',
+    },
+    contentContainer: {
+      paddingHorizontal: 16,
+    },
+    infoSections: {
+      paddingTop: 16,
+    },
+    infoSectionContainer: {
+      paddingTop: 4,
+      paddingHorizontal: 8,
+      paddingBottom: 8,
+      gap: 16,
+    },
+    networkRowRight: {
+      flexDirection: 'row',
       alignItems: 'center',
+      gap: 8,
     },
   });
 };

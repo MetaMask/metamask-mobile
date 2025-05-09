@@ -17,6 +17,7 @@ import { EarnTokenListItemProps } from './EarnDepositTokenListItem.types';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { EarnNetworkAvatar } from '../EarnNetworkAvatar';
 import styleSheet from './EarnDepositTokenListItem.styles';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 
 const EarnDepositTokenListItem = ({
   token,
@@ -37,8 +38,11 @@ const EarnDepositTokenListItem = ({
             <Badge
               variant={BadgeVariant.Network}
               name={networkName}
-              // @ts-expect-error The utils/network file is still JS and this function expects a networkType that should be optional
-              imageSource={getNetworkImageSource({ chainId: token.chainId })}
+              imageSource={getNetworkImageSource({
+                chainId: token.chainId ?? '',
+              })}
+              isScaled={false}
+              size={AvatarSize.Xs}
             />
           }
         >
