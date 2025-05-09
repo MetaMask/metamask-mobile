@@ -81,7 +81,7 @@ describe('DeFiProtocolPositionDetails', () => {
     expect(
       (await findByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID)).props
         .children,
-    ).toStrictEqual('$100.00');
+    ).toHaveTextContent('$100.00');
   });
 
   it('renders the component without aggregated balance in privacy mode', async () => {
@@ -108,6 +108,6 @@ describe('DeFiProtocolPositionDetails', () => {
     expect(
       (await findByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID)).props
         .children,
-    ).toStrictEqual('•••••••••');
+    ).toHaveTextContent('•••••••••');
   });
 });
