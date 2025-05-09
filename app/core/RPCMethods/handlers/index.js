@@ -2,10 +2,22 @@ import { MESSAGE_TYPE } from '../../createTracingMiddleware';
 import requestEthereumAccounts from '../eth-request-accounts';
 import ethAccounts from '../eth_accounts';
 import getProviderState from '../getProviderState';
+import { makeMethodMiddlewareMaker } from '../utils';
 import { wallet_addEthereumChain } from '../wallet_addEthereumChain';
 import { wallet_watchAsset } from '../wallet_watchAsset';
 
-// TODO: [ffmcgee] tsdocs why we want different handlers defined here for these two watchAsset and addEthereumCHain
+/**
+ * Wrapper handler for wallet_watchAsset to match expected format from {@link makeMethodMiddlewareMaker}.
+ * Used by Multichain API, and to avoid breaking previously existing APIs and deliver at the desired dates, we follow this approach.
+ * We should refactor original implementation in the future and updated all it's references to avoid having this extra piece.
+ *
+ * @param req - The JsonRpcEngine request
+ * @param res - The JsonRpcEngine result object
+ * @param _ - JsonRpcEngine next() callback - unused
+ * @param __ - JsonRpcEngine end() callback - unused
+ * @param hooks - Method hooks passed to the method implementation
+ * @returns {void}
+ */
 const watchAssetHandler = (req, res, _, __, hooks) =>
   wallet_watchAsset({
     req,
@@ -14,6 +26,18 @@ const watchAssetHandler = (req, res, _, __, hooks) =>
     checkTabActive: hooks.checkTabActive,
   });
 
+/**
+ * Wrapper handler for wallet_addEthereumChain to match expected format from {@link makeMethodMiddlewareMaker}.
+ * Used by Multichain API, and to avoid breaking previously existing APIs and deliver at the desired dates, we follow this approach.
+ * We should refactor original implementation in the future and updated all it's references to avoid having this extra piece.
+ *
+ * @param req - The JsonRpcEngine request
+ * @param res - The JsonRpcEngine result object
+ * @param _ - JsonRpcEngine next() callback - unused
+ * @param __ - JsonRpcEngine end() callback - unused
+ * @param hooks - Method hooks passed to the method implementation
+ * @returns {void}
+ */
 const addEthereumChainHandler = (req, res, _, __, hooks) =>
   wallet_addEthereumChain({
     req,

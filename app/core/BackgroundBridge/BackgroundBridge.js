@@ -21,7 +21,7 @@ import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { rpcErrors } from '@metamask/rpc-errors';
+import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import {
   PermissionDoesNotExistError,
@@ -109,6 +109,7 @@ const legacyNetworkId = () => {
 
 export class BackgroundBridge extends EventEmitter {
   constructor({
+    tabId,
     webview,
     url,
     getRpcMethodMiddleware,
@@ -123,6 +124,7 @@ export class BackgroundBridge extends EventEmitter {
     channelId,
   }) {
     super();
+    this.tabId = tabId;
     this.url = url;
     // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
     this.hostname = new URL(url).hostname;
@@ -385,11 +387,7 @@ export class BackgroundBridge extends EventEmitter {
     controllerMessenger.subscribe(
       'PreferencesController:stateChange',
       previousValueComparator(async (prevState, currState) => {
-        // const { currentLocale } = currState;
         this._restartSmartTransactionPoller();
-
-        // TODO: [ffmcgee] invoke function to update current locale here..Do we have one already ?
-        // await updateCurrentLocale(currentLocale);
         this._checkTokenListPolling(currState, prevState);
       }, PreferencesController.state),
     );
@@ -643,14 +641,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   async getProviderState(origin) {
-    const metadata = {};
-    if (AppConstants.MULTICHAIN_API) {
-      // TODO: [ffmcgee] get extensionId ?
-      // const { chrome } = globalThis;
-      // metadata.extensionId = chrome?.runtime?.id;
-    }
     return {
-      ...metadata,
       isUnlocked: this.isUnlocked(),
       ...(await this.getProviderNetworkState(origin)),
     };
@@ -976,7 +967,12 @@ export class BackgroundBridge extends EventEmitter {
       createMultichainMethodMiddleware({
         // wallet_watchAsset handler related
         hostname: origin,
-        checkActiveTab: () => true, // TODO: [ffmcgee] check how to get tabId in here, same as RpcMethodMiddleware impl
+        checkActiveTab: () => {
+          if (!this.tabId) return true;
+          const { browser } = store.getState();
+          if (this.tabId !== browser.activeTab)
+            throw providerErrors.userRejectedRequest();
+        },
         // getProviderState handler related
         getProviderState: this.getProviderState.bind(this),
         // wallet_addEthereumChain handler related
