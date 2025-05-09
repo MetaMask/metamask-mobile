@@ -24,10 +24,6 @@ const styleSheet = (params: {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    networkLogo: {
-      width: 48,
-      height: 48,
-    },
     container: {
       paddingBottom: 16,
       paddingTop: isFlatConfirmation ? 16 : 0,
