@@ -938,7 +938,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   ) : null}
                 </View>
 
-                {this.renderSwitch()}
+                {renderSwitch()}
               </View>
 
               <View style={styles.learnMoreContainer}>
