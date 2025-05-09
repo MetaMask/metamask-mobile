@@ -675,7 +675,7 @@ describe('CaipAccountSelectorList', () => {
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
           isMultiSelect
-          selectedAddresses={[BUSINESS_ACCOUNT]}
+          selectedAddresses={[`eip155:0:${BUSINESS_ACCOUNT}`]}
         />
       );
     };
@@ -699,7 +699,7 @@ describe('CaipAccountSelectorList', () => {
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
           isSelectWithoutMenu
-          selectedAddresses={[BUSINESS_ACCOUNT]}
+          selectedAddresses={[`eip155:0:${BUSINESS_ACCOUNT}`]}
         />
       );
     };

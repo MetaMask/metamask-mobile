@@ -14,6 +14,7 @@ import {
   MOCK_ADDRESS_2 as mockAddress2,
 } from '../../../util/test/accountsControllerTestUtils';
 import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import { PermissionConstraint } from '@metamask/permission-controller';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -179,6 +180,7 @@ describe('AccountConnect', () => {
                 origin: 'mockOrigin',
               },
               permissions: {
+                // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
                   caveats: [{
@@ -194,7 +196,7 @@ describe('AccountConnect', () => {
                       sessionProperties: {},
                     }
                   }]
-                },
+                } as PermissionConstraint,
               }
             },
             permissionRequestId: 'test',
@@ -220,6 +222,7 @@ describe('AccountConnect', () => {
                 origin: '',
               },
               permissions: {
+                // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
                   caveats: [{
@@ -235,7 +238,7 @@ describe('AccountConnect', () => {
                       sessionProperties: {},
                     }
                   }]
-                },
+                } as PermissionConstraint,
               }
             },
             permissionRequestId: 'test',
@@ -262,6 +265,7 @@ describe('AccountConnect', () => {
                 origin: 'https://example.com',
               },
               permissions: {
+                // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
                   caveats: [{
@@ -277,7 +281,7 @@ describe('AccountConnect', () => {
                       sessionProperties: {},
                     }
                   }]
-                },
+                } as PermissionConstraint,
               },
             },
             permissionRequestId: 'test',
@@ -309,6 +313,7 @@ describe('AccountConnect', () => {
                     origin: 'https://example.com',
                   },
                   permissions: {
+                    // @ts-expect-error partial object
                     [Caip25EndowmentPermissionName]: {
                       parentCapability: Caip25EndowmentPermissionName,
                       caveats: [{
@@ -324,7 +329,7 @@ describe('AccountConnect', () => {
                           sessionProperties: {},
                         }
                       }]
-                    },
+                    } as PermissionConstraint,
                   },
                 },
                 permissionRequestId: 'test',
@@ -362,6 +367,7 @@ describe('AccountConnect', () => {
                 origin: 'mockOrigin',
               },
               permissions: {
+                // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
                   caveats: [{
@@ -377,7 +383,7 @@ describe('AccountConnect', () => {
                       sessionProperties: {},
                     }
                   }]
-                },
+                } as PermissionConstraint,
               },
             },
             permissionRequestId: 'test',
