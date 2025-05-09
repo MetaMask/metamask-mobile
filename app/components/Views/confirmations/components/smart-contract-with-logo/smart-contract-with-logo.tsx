@@ -6,7 +6,8 @@ import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './smart-contract-with-logo.styles';
 
-const foxImage = require('../../../../../images/branding/fox.png'); // eslint-disable-line import/no-commonjs
+// eslint-disable-next-line import/no-commonjs
+const foxImage = require('../../../../../images/branding/fox.png');
 
 const SmartContractWithLogo = () => {
   const { styles } = useStyles(styleSheet, {});
