@@ -299,7 +299,6 @@ describe('Wallet Client Implementations', () => {
         scope: BtcScope.Mainnet,
         accountNameSuggestion: 'Bitcoin Account 1',
         entropySource: 'test-entropy',
-        synchronize: true,
       };
 
       const mockKeyring = {
@@ -317,7 +316,7 @@ describe('Wallet Client Implementations', () => {
 
       expect(mockKeyring.createAccount).toHaveBeenCalledWith(
         BITCOIN_WALLET_SNAP_ID,
-        mockOptions,
+        { ...mockOptions, synchronize: true },
         mockSnapKeyringOptions,
       );
     });
