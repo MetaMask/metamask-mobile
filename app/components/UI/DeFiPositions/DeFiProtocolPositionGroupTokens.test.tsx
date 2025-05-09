@@ -11,6 +11,7 @@ const mockInitialState = {
 
 const mockTokens = [
   {
+    key: 'token1',
     name: 'Token 1',
     symbol: 'TKN1',
     iconUrl: 'https://example.com/tkn1.png',
@@ -18,6 +19,7 @@ const mockTokens = [
     marketValue: 50,
   },
   {
+    key: 'token2',
     name: 'Token 2',
     symbol: 'TKN2',
     iconUrl: 'https://example.com/tkn2.png',
