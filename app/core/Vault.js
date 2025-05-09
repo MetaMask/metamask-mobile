@@ -128,9 +128,9 @@ export const recreateVaultWithNewPassword = async (
     .filter((keyring) => keyring.type === KeyringTypes.hd);
 
   const seedPhrases = await Promise.all(
-    hdKeyringsWithMetadata.map((keyring) => {
+    hdKeyringsWithMetadata.map(async (keyring) => {
       try {
-        return getSeedPhrase(password, keyring.metadata.id);
+        return await getSeedPhrase(password, keyring.metadata.id);
       } catch (e) {
         Logger.error(
           e,

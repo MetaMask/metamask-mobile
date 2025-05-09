@@ -120,7 +120,7 @@ export abstract class MultichainWalletSnapClient {
     );
 
     return await this.withSnapKeyring(async (keyring) => {
-      keyring.createAccount(
+      await keyring.createAccount(
         this.snapId,
         {
           ...options,
@@ -205,7 +205,7 @@ export abstract class MultichainWalletSnapClient {
       await this.withSnapKeyring(async (keyring) => {
         const results = await Promise.allSettled(
           discoveredAccounts.map(async (account) => {
-            keyring.createAccount(
+            await keyring.createAccount(
               this.snapId,
               {
                 derivationPath: account.derivationPath,
