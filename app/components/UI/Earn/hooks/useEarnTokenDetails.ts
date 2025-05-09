@@ -22,6 +22,7 @@ import {
   isSupportedLendingReceiptTokenByChainId,
   isSupportedLendingTokenByChainId,
 } from '../utils';
+import useVaultMetadata from '../../Stake/hooks/useVaultMetadata';
 
 // Mock APR values - will be replaced with real API data later
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
@@ -48,6 +49,7 @@ export interface EarnTokenDetails extends TokenI {
 }
 
 export const useEarnTokenDetails = () => {
+  const { annualRewardRate: pooledStakingApy } = useVaultMetadata();
   const multiChainTokenBalance = useSelector(selectTokensBalances);
   const multiChainMarketData = useSelector(selectTokenMarketData);
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
@@ -98,7 +100,9 @@ export const useEarnTokenDetails = () => {
       let estimatedAnnualRewardsFormatted = '';
       let apr = '0.0';
       if (isStablecoinLendingFeatureEnabled) {
-        apr = MOCK_APR_VALUES[token.symbol] || apr;
+        apr = token.isETH
+          ? parseFloat(pooledStakingApy).toString()
+          : MOCK_APR_VALUES[token.symbol] || apr;
         const rewardRateDecimal = new BigNumber(apr).dividedBy(100).toNumber();
         const estimatedAnnualRewardsDecimal = new BigNumber(
           assetBalanceFiatNumber,
@@ -179,6 +183,7 @@ export const useEarnTokenDetails = () => {
       currentCurrency,
       balanceFiatNumber,
       isStablecoinLendingFeatureEnabled,
+      pooledStakingApy,
     ],
   );
 
