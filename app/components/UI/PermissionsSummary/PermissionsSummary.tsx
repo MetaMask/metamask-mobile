@@ -51,7 +51,6 @@ import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
-import Logger from '../../../util/Logger';
 
 const PermissionsSummary = ({
   currentPageInformation,
