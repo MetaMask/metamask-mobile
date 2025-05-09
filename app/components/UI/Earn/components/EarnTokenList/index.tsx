@@ -102,21 +102,6 @@ const EarnTokenList = () => {
   );
 
   const redirectToDepositScreen = async (token: TokenI) => {
-    const { NetworkController } = Engine.context;
-
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(
-      token.chainId as Hex,
-    );
-
-    if (!networkClientId) {
-      console.error(
-        `EarnDepositTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${token.chainId}`,
-      );
-      return;
-    }
-
-    await Engine.context.NetworkController.setActiveNetwork(networkClientId);
-
     closeBottomSheetAndNavigate(() => {
       navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE,
@@ -135,11 +120,26 @@ const EarnTokenList = () => {
   };
 
   const handleRedirectToInputScreen = async (token: TokenI) => {
+    const { NetworkController } = Engine.context;
+
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      token.chainId as Hex,
+    );
+
+    if (!networkClientId) {
+      console.error(
+        `EarnDepositTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${token.chainId}`,
+      );
+      return;
+    }
+
     const onItemPressScreen = params?.onItemPressScreen ?? '';
 
     if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT) {
+      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
       redirectToDepositScreen(token);
     } else if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW) {
+      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
       redirectToWithdrawalScreen(token);
     }
 
