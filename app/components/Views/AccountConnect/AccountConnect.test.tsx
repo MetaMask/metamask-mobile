@@ -77,7 +77,7 @@ jest.mock('../../../core/Engine', () => {
         }),
         scanUrl: jest.fn((domainName: string) => ({
           domainName,
-          recommendedAction: 'NONE'
+          recommendedAction: 'NONE',
         })),
       },
       PermissionController: {

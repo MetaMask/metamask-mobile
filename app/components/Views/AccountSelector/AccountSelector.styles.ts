@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginHorizontal: 16,
     },
     bottomSheetContent: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.default,
     },
   });
 };

@@ -11,6 +11,7 @@ import React, {
 } from 'react';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
+
 // External dependencies.
 import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
@@ -46,7 +47,7 @@ import { Account, useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
-import { ImageURISource, ImageSourcePropType, StyleSheet } from 'react-native';
+import { ImageURISource } from 'react-native';
 import URLParse from 'url-parse';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -66,6 +67,7 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import {
   AccountConnectProps,
   AccountConnectScreens,
+  NetworkAvatarProps,
 } from './AccountConnect.types';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
@@ -100,21 +102,13 @@ import {
   getCaipAccountIdsFromCaip25CaveatValue,
   isCaipAccountIdInPermittedAccountIds,
 } from '@metamask/chain-agnostic-permission';
-import { isEqualCaseInsensitive } from '@metamask/controller-utils';
-import AccountConnectSummary, {
-  type AccountConnectSummaryProps,
-} from './AccountConnectSummary';
-
-const createStyles = () =>
-  StyleSheet.create({
-    fullScreenModal: {
-      flex: 1,
-    },
-  });
+import { isEqualCaseInsensitive, toHex } from '@metamask/controller-utils';
+import styleSheet from './AccountConnect.styles';
+import { useStyles } from '../../../component-library/hooks';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
-  const styles = createStyles();
+  const { styles } = useStyles(styleSheet, {});
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const { accounts, ensByAccountAddress } = useAccounts({
@@ -129,11 +123,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [blockedUrl, setBlockedUrl] = useState('');
 
   const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
-    {
-      size: AvatarSize;
-      name: string;
-      imageSource: ImageSourcePropType;
-    }[]
+    NetworkAvatarProps[]
   >([]);
 
   const requestedCaip25CaveatValue = getRequestedCaip25CaveatValue(
@@ -173,12 +163,17 @@ const AccountConnect = (props: AccountConnectProps) => {
       _setSelectedChainIds(newSelectedChainIds);
 
       const newNetworkAvatars = newSelectedChainIds.map(
-        (newSelectedChainId) => ({
-          size: AvatarSize.Xs,
-          name: networkConfigurations[newSelectedChainId]?.name || '',
-          imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
-        }),
+        (newSelectedChainId) => {
+          const parsedCaipChainId = parseCaipChainId(newSelectedChainId);
+          const chainId = toHex(parsedCaipChainId.reference);
+          return {
+            size: AvatarSize.Xs,
+            name: networkConfigurations[newSelectedChainId]?.name || '',
+            imageSource: getNetworkImageSource({ chainId }),
+          };
+        },
       );
+
       setSelectedNetworkAvatars(newNetworkAvatars);
     },
     [networkConfigurations, setSelectedNetworkAvatars],
@@ -231,7 +226,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
-    AccountConnectScreens.AccountConnectSummary,
+    AccountConnectScreens.SingleConnect,
   );
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
@@ -305,13 +300,18 @@ const AccountConnect = (props: AccountConnectProps) => {
   useEffect(() => {
     // Create network avatars for all enabled networks
     const networkAvatars = Object.values(networkConfigurations).map(
-      (network) => ({
-        size: AvatarSize.Xs,
-        name: network.name || '',
-        imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
-      }),
+      (network) => {
+        const parsedCaipChainId = parseCaipChainId(network.caipChainId);
+        const chainId = toHex(parsedCaipChainId.reference);
+        return {
+          size: AvatarSize.Xs,
+          name: network.name || '',
+          imageSource: getNetworkImageSource({
+            chainId,
+          }),
+        };
+      },
     );
-
     setSelectedNetworkAvatars(networkAvatars);
 
     // No need to update selectedChainIds here since it's already initialized with all networks
@@ -610,7 +610,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
       setSelectedChainIds(updatedSelectedChains);
       setSelectedAddresses(newSelectedAccountAddresses);
-      setScreen(AccountConnectScreens.AccountConnectSummary);
+      setScreen(AccountConnectScreens.SingleConnect);
     },
     [
       setSelectedAddresses,
@@ -714,28 +714,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     cancelPermissionRequest(permissionRequestId);
   };
 
-  const renderAccountConnectSummaryScreen = useCallback(() => {
-    const accountConnectSummaryProps: AccountConnectSummaryProps = {
-      currentPageInformation: {
-        currentEnsName: '',
-        icon: faviconSource as string,
-        url: urlWithProtocol,
-      },
-      onEditAccountsPermissions: () => {
-        setScreen(AccountConnectScreens.MultiConnectSelector);
-      },
-      selectedAddresses,
-      ensByAccountAddress,
-    };
-    return <AccountConnectSummary {...accountConnectSummaryProps} />;
-  }, [
-    faviconSource,
-    urlWithProtocol,
-    selectedAddresses,
-    setScreen,
-    ensByAccountAddress,
-  ]);
-
   const renderSingleConnectScreen = useCallback(() => {
     const selectedAddress = selectedAddresses[0];
     const selectedAccount = accounts.find(
@@ -796,8 +774,8 @@ const AccountConnect = (props: AccountConnectProps) => {
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
       accountAddresses: selectedAddresses,
+      ensByAccountAddress,
       accounts,
-      // @ts-expect-error imageSource not yet typed
       networkAvatars: selectedNetworkAvatars,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -807,6 +785,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     selectedAddresses,
     selectedNetworkAvatars,
     accounts,
+    ensByAccountAddress,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
@@ -841,7 +820,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         onSubmit={handleAccountsSelected}
         isLoading={isLoading}
         onBack={() => {
-          setScreen(AccountConnectScreens.AccountConnectSummary);
+          setScreen(AccountConnectScreens.SingleConnect);
         }}
         connection={sdkConnection}
         hostname={hostname}
@@ -910,8 +889,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const renderConnectScreens = useCallback(() => {
     switch (screen) {
-      case AccountConnectScreens.AccountConnectSummary:
-        return renderAccountConnectSummaryScreen();
       case AccountConnectScreens.SingleConnect:
         return isSdkUrlUnknown
           ? renderSingleConnectScreen()
@@ -931,11 +908,14 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
-    renderAccountConnectSummaryScreen,
   ]);
 
   return (
-    <BottomSheet onClose={handleSheetDismiss} ref={sheetRef}>
+    <BottomSheet
+      style={styles.bottomSheetBackground}
+      onClose={handleSheetDismiss}
+      ref={sheetRef}
+    >
       {renderConnectScreens()}
       {renderPhishingModal()}
     </BottomSheet>
