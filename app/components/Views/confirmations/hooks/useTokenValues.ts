@@ -12,7 +12,8 @@ import { fetchTokenFiatRates } from '../../../UI/SimulationDetails/useBalanceCha
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { toBigNumber } from '../../../../util/number';
 import { calcTokenAmount } from '../../../../util/transactions';
-import { fetchErc20Decimals } from '../utils/token';
+import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
+import { fetchErc20Decimals, isNativeToken } from '../utils/token';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
@@ -43,11 +44,14 @@ interface TokenValuesProps {
 
 /** Hook to calculate the token amount and fiat values from a transaction. */
 export const useTokenValues = ({ amountWei }: TokenValuesProps = {}) => {
-  const transactionMetadata = useTransactionMetadataRequest();
-  const { chainId, networkClientId, txParams } = transactionMetadata as TransactionMeta;
+  const transactionMetadata = useTransactionMetadataRequest() ?? {} as TransactionMeta;
+  const { chainId, networkClientId, txParams } = transactionMetadata;
+
+  const isNative = isNativeToken(transactionMetadata);
 
   const transactionData = parseStandardTokenTransactionData(txParams?.data);
-  const tokenAddress = transactionMetadata?.txParams?.to as Hex || '0x';
+  const tokenAddress = isNative ? NATIVE_TOKEN_ADDRESS : transactionMetadata?.txParams?.to as Hex || '0x';
+
   const value: string | undefined = amountWei ?
     toBigNumber.dec(amountWei) :
     transactionData?.args?._value || txParams?.value;
