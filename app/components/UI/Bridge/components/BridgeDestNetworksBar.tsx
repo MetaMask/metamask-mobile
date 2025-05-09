@@ -8,7 +8,7 @@ import Button, {
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -34,6 +34,8 @@ import { AlignItems, FlexDirection } from '../../Box/box.types';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import { selectChainId } from '../../../../selectors/networkController';
+// Using ScrollView from react-native-gesture-handler to fix scroll issues with the bottom sheet
+import { ScrollView } from 'react-native-gesture-handler';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
