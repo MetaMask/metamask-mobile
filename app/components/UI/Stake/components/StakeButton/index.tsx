@@ -132,7 +132,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       screen: Routes.STAKING.STAKE,
       params: {
         token: asset,
-        action: EARN_INPUT_VIEW_ACTIONS.LEND,
       },
     });
   };
