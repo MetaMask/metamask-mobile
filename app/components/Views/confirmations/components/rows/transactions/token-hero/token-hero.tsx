@@ -52,8 +52,8 @@ const AvatarTokenNetwork = () => {
     <NetworkAssetLogo
       chainId={chainId ?? ''}
       ticker={symbol ?? ''}
-      big={true}
-      biggest={true}
+      big
+      biggest
       testID={`avatar-token-network-${symbol}-${chainId}`}
     />
   ) : (
@@ -66,21 +66,22 @@ const AvatarTokenNetwork = () => {
 };
 
 const AvatarTokenNetworkWithBadge = () => {
-  const transactionMeta = useTransactionMetadataRequest();
+  const transactionMeta = useTransactionMetadataRequest() ?? ({} as TransactionMeta);
   const { networkName, networkImage } = useNetworkInfo(
     transactionMeta?.chainId,
   );
+  const isNative = isNativeToken(transactionMeta);
 
   return (
     <BadgeWrapper
       badgePosition={BadgePosition.BottomRight}
-      badgeElement={
+      badgeElement={!isNative && networkImage ? (
         <Badge
           imageSource={networkImage}
           variant={BadgeVariant.Network}
           name={networkName}
         />
-      }
+      ) : null}
     >
       <AvatarTokenNetwork />
     </BadgeWrapper>
@@ -119,13 +120,11 @@ const AssetFiatConversion = ({
 }: {
   fiatDisplayValue?: string;
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
-}) => {
-  return fiatDisplayValue ? (
+}) => fiatDisplayValue ? (
     <Text style={styles.assetFiatConversionText} variant={TextVariant.BodyMD}>
       {fiatDisplayValue}
     </Text>
   ) : null;
-};
 
 const TokenHero = ({ amountWei }: { amountWei?: string }) => {
   const { isFlatConfirmation } = useFlatConfirmation();
