@@ -14,7 +14,6 @@ import { regex } from '../regex';
  * @param [initialValue] - The initial value to supply to prevValue
  * on first call of the method.
  */
-// TODO: [ffmcgee] --> unit tests
 export function previousValueComparator<A>(
   comparator: (previous: A, next: A) => boolean,
   initialValue: A,

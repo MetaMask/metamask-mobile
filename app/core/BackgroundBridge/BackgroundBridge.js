@@ -217,14 +217,9 @@ export class BackgroundBridge extends EventEmitter {
       });
       this.multichainMiddlewareManager = new MultichainMiddlewareManager();
 
-      // TODO: [ffmcgee] remove this try..catch
-      try {
-        this.setupProviderConnectionCaip(
-          mux.createStream('metamask-multichain-provider'),
-        );
-      } catch (e) {
-        Logger.log('failed to setupProviderConnectionCaip: ', e);
-      }
+      this.setupProviderConnectionCaip(
+        mux.createStream('metamask-multichain-provider'),
+      );
     }
 
     this.setupControllerEventSubscriptions();
@@ -351,6 +346,19 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   /**
+   * Gets supported methods for a given scope using the Multichain Router.
+   * 
+   * @param {string} scope - The scope to get supported methods for.
+   * @returns {string[]} Array of supported method names.
+   */
+  getNonEvmSupportedMethods(scope) {
+    return Engine.controllerMessenger.call(
+      'MultichainRouter:getSupportedMethods',
+      scope,
+    );
+  }
+
+  /**
    * Sets up BaseController V2 event subscriptions. Currently, this includes
    * the subscriptions necessary to notify permission subjects of account
    * changes.
@@ -433,12 +441,7 @@ export class BackgroundBridge extends EventEmitter {
             authorization,
           ] of removedAuthorizations.entries()) {
             const sessionScopes = getSessionScopes(authorization, {
-              // TODO: [ffmcgee] DRY this one
-              getNonEvmSupportedMethods: (scope) =>
-                Engine.controllerMessenger.call(
-                  'MultichainRouter:getSupportedMethods',
-                  scope,
-                ),
+              getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
             });
             // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
             // then remove middleware and unsubscribe
@@ -461,12 +464,7 @@ export class BackgroundBridge extends EventEmitter {
             authorization,
           ] of changedAuthorizations.entries()) {
             const sessionScopes = getSessionScopes(authorization, {
-              // TODO: [ffmcgee] DRY this one
-              getNonEvmSupportedMethods: (scope) =>
-                controllerMessenger.call(
-                  'MultichainRouter:getSupportedMethods',
-                  scope,
-                ),
+              getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
             });
 
             // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
@@ -946,12 +944,7 @@ export class BackgroundBridge extends EventEmitter {
           origin,
         ),
 
-        // TODO: [ffmcgee] DRY this one
-        getNonEvmSupportedMethods: (scope) =>
-          Engine.controllerMessenger.call(
-            'MultichainRouter:getSupportedMethods',
-            scope,
-          ),
+        getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
         isNonEvmScopeSupported: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger.controllerMessenger,
           'MultichainRouter:isSupportedScope',
@@ -1032,12 +1025,7 @@ export class BackgroundBridge extends EventEmitter {
 
       // add new notification subscriptions for changed authorizations
       const sessionScopes = getSessionScopes(caip25Caveat.value, {
-        // TODO: [ffmcgee] DRY this one
-        getNonEvmSupportedMethods: (scope) =>
-          Engine.controllerMessenger.call(
-            'MultichainRouter:getSupportedMethods',
-            scope,
-          ),
+        getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
       });
 
       // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
