@@ -15,42 +15,8 @@ import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { useStyles } from '../../../../hooks/useStyles';
 import { EarnTokenListItemProps } from './EarnDepositTokenListItem.types';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { EarnNetworkAvatar } from '../EarnNetworkAvatar';
 import styleSheet from './EarnDepositTokenListItem.styles';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import NetworkAssetLogo from '../../../NetworkAssetLogo';
-import { TokenI } from '../../../Tokens/types';
-
-interface EarnNetworkAvatarProps {
-  token: TokenI;
-}
-
-// TODO: Breakout and reuse across EarnTokenListItem components.
-export const EarnNetworkAvatar = ({ token }: EarnNetworkAvatarProps) => {
-  const { styles } = useStyles(styleSheet, {});
-
-  if (token.isNative) {
-    return (
-      <NetworkAssetLogo
-        chainId={token.chainId ?? ''}
-        style={styles.networkAvatar}
-        ticker={token.ticker ?? ''}
-        big={false}
-        biggest={false}
-        testID={`earn-token-list-item-${token.symbol}-${token.chainId}`}
-      />
-    );
-  }
-
-  return (
-    <AvatarToken
-      name={token.symbol}
-      imageSource={{ uri: token.image }}
-      size={AvatarSize.Md}
-      style={styles.networkAvatar}
-    />
-  );
-};
 
 const EarnDepositTokenListItem = ({
   token,
@@ -66,7 +32,7 @@ const EarnDepositTokenListItem = ({
     <TouchableOpacity style={styles.container} onPress={() => onPress(token)}>
       <View style={styles.left}>
         <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
+          badgePosition={BadgePosition.TopRight}
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}

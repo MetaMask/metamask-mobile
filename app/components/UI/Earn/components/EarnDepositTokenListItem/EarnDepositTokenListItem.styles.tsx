@@ -16,11 +16,6 @@ const styleSheet = () =>
       alignItems: 'flex-end',
       justifyContent: 'center',
     },
-    networkAvatar: {
-      height: 32,
-      width: 32,
-      flexShrink: 0,
-    },
   });
 
 export default styleSheet;

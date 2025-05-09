@@ -1,7 +1,7 @@
 import React from 'react';
 import styleSheet from './EarnWithdrawalTokenListItem.styles';
 import { useStyles } from '../../../../hooks/useStyles';
-import { EarnNetworkAvatar } from '../EarnDepositTokenListItem';
+import { EarnNetworkAvatar } from '../EarnNetworkAvatar';
 import { TouchableOpacity, View } from 'react-native';
 import BadgeWrapper, {
   BadgePosition,
