@@ -39,8 +39,9 @@ export function useMaxValueRefresher() {
     const fee = new BigNumber(preciseNativeFeeInHex);
     const maxValue = balance.minus(fee);
     const maxValueHex = add0x(maxValue.toString(16));
+    const shouldUpdate = maxValueHex !== txParams.value;
 
-    if (maxValueHex !== txParams.value) {
+    if (shouldUpdate && maxValue.isPositive()) {
       setIsTransactionValueUpdating(true);
       updateEditableParams(id, {
         value: maxValueHex,

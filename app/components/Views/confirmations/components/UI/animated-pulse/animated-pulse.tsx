@@ -7,6 +7,12 @@ interface AnimatedPulseProps extends ViewProps {
   minCycles?: number;
 }
 
+const DURATION = {
+  fadeIn: 750,
+  fadeOut: 750,
+  fadeInFinal: 300,
+} as const;
+
 const AnimatedPulse = ({
   children,
   isPulsing = true,
@@ -43,12 +49,12 @@ const AnimatedPulse = ({
     const sequence = Animated.sequence([
       Animated.timing(opacity, {
         toValue: 1,
-        duration: durationFadeIn,
+        duration: DURATION.fadeIn,
         useNativeDriver: true,
       }),
       Animated.timing(opacity, {
         toValue: 0.3,
-        duration: durationFadeOut,
+        duration: DURATION.fadeOut,
         useNativeDriver: true,
       }),
     ]);
@@ -75,7 +81,7 @@ const AnimatedPulse = ({
           // Fade to full opacity
           Animated.timing(opacity, {
             toValue: 1,
-            duration: durationFadeInFinal,
+            duration: DURATION.fadeInFinal,
             useNativeDriver: true,
           }).start();
 
@@ -84,7 +90,7 @@ const AnimatedPulse = ({
         }
       }
     });
-  }, [opacity, durationFadeIn, durationFadeOut, durationFadeInFinal]);
+  }, [opacity]);
 
   // Handle animation lifecycle
   useEffect(() => {
@@ -101,7 +107,7 @@ const AnimatedPulse = ({
       // No animation needed, just ensure full opacity
       Animated.timing(opacity, {
         toValue: 1,
-        duration: durationFadeInFinal,
+        duration: DURATION.fadeInFinal,
         useNativeDriver: true,
       }).start();
     }
@@ -112,7 +118,7 @@ const AnimatedPulse = ({
         currentAnimationRef.current.stop();
         currentAnimationRef.current = null;
       }
-    };
+    };  
   }, [isPulsing, opacity, runSinglePulseCycle]);
 
   return (
