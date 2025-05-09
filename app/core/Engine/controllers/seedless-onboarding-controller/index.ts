@@ -7,15 +7,18 @@ import {
   getDefaultSeedlessOnboardingControllerState,
   type SeedlessOnboardingControllerMessenger,
 } from '@metamask/seedless-onboarding-controller';
+import AppConstants from '../../../AppConstants';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
-import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
 import { EncryptionKey, EncryptionResult } from '../../../Encryptor/types';
 
-// const web3AuthNetwork = process.env.Web3AuthNetwork as Web3AuthNetwork;
+const web3AuthNetwork = AppConstants.SEEDLESS_ONBOARDING.WEB3AUTH_NETWORK;
 
-// if (!web3AuthNetwork) {
-//   throw new Error('Missing environment variables');
-// }
+if (!web3AuthNetwork) {
+  throw new Error(
+    `Missing environment variables for SeedlessOnboardingController\n
+    WEB3AUTH_NETWORK: ${web3AuthNetwork}\n`,
+  );
+}
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,

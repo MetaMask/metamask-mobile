@@ -220,10 +220,6 @@ export class OAuthService {
   };
 }
 
-if (!AuthServerUrl || !AuthConnectionId || !GroupedAuthConnectionId) {
-  throw new Error('Missing environment variables');
-}
-
 export default new OAuthService({
   web3AuthNetwork: currentWeb3AuthNetwork as Web3AuthNetwork,
   authConnectionId: AuthConnectionId,
