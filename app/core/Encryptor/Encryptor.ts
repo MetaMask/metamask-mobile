@@ -1,3 +1,4 @@
+import { getDeviceId } from 'react-native-device-info';
 import { hasProperty, isPlainObject, Json } from '@metamask/utils';
 import {
   SALT_BYTES_COUNT,
@@ -130,7 +131,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    * @param data - The data to encrypt.
    * @returns A promise that resolves to an object containing the cipher text and initialization vector (IV).
    */
-  //@ts-expect-error - TODO: will be implemented at the keyring controller the support for this key type
   encryptWithKey = async (
     key: EncryptionKey,
     data: Json,
@@ -155,7 +155,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    * @param payload - The encrypted payload to decrypt.
    * @returns The decrypted object.
    */
-  //@ts-expect-error - TODO: will be implemented at the keyring controller the support for this key type
   decryptWithKey = async (
     key: EncryptionKey,
     payload: EncryptionResult,
