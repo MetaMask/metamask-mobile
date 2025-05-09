@@ -2,6 +2,9 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { withLedgerKeyring } from './Ledger/Ledger';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import ReduxService from './redux';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 /**
  * Restore the given serialized QR keyring.
@@ -103,6 +106,16 @@ export const recreateVaultWithNewPassword = async (
   // Recreate keyring with password given to this method
   await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  const { SeedlessOnboardingController } = Engine.context;
+  // TODO: Fix with latest controller isCompleted
+  if (
+    ReduxService.store.getState().engine.backgroundState
+      .SeedlessOnboardingController.authConnection
+  ) {
+    await SeedlessOnboardingController.changePassword(newPassword, password);
+  }
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   if (serializedQrKeyring !== undefined) {
     await restoreQRKeyring(serializedQrKeyring);
   }
