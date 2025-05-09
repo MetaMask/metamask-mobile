@@ -4716,10 +4716,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^62.0.0":
-  version "62.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-62.0.0.tgz#6fba18e4082f35624e0d22a2c903bc56dd5b9c77"
-  integrity sha512-yNH4ikXVBbAcaSsGNba/2tKK7bjq4IFqkVMR9oa6APCiwrQl7enulFKnyylsL89TvF1dv/kovNFG1uiieDMGtA==
+"@metamask/assets-controllers@^61.0.0":
+  version "61.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-61.0.0.tgz#fe0f864d67e72618bfa364807da5e06f3997e0f5"
+  integrity sha512-DcsvdF7hls2KH9K8GkjtvwxX04sZqriD8Hb2NO+0JzOKDfLPZQqRDR1pYbrnTbQudkuBU8JJ+SuV8zwkBF3iVA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4730,7 +4730,7 @@
     "@metamask/abi-utils" "^2.0.3"
     "@metamask/base-controller" "^8.0.1"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^11.8.0"
+    "@metamask/controller-utils" "^11.7.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/keyring-api" "^17.4.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
@@ -4866,10 +4866,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.5.0.tgz#33921fa9c15eb1863f55dcd5f75467ae15614ebb"
   integrity sha512-+j7jEcp0P1OUMEpa/OIwfJs/ahBC/akwgWxaRTSWX2SWABvlUKBVRMtslfL94Qj2wN2xw8xjaUy5nSHqrznqDA==
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.7.0", "@metamask/controller-utils@^11.8.0":
-  version "11.8.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.8.0.tgz#7d573db8a2ab0ce594f92753b0bda02d18330142"
-  integrity sha512-FqApJXW0mnHWwnKC4HOQwf2P9fPxfiQmlLJdGWwK6hAYKQ+t7ADDw9Wf8RwVquFPzJGQbXnOcbXVBY2zAyoU5w==
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.7.0":
+  version "11.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.7.0.tgz#1186daecffff9dec6846f64f9da7a319dd9c9a83"
+  integrity sha512-Q2TPmTJT6L/ixBk5TEb+mJ1NRyFAGe+VjFuulNQMVu6AanEBeGSoxsuBnAzWQlIgbt3/EHGP7o31ep1H5gr5Gw==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/eth-query" "^4.0.0"

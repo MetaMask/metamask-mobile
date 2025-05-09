@@ -16,6 +16,7 @@ import { PositionType } from './position-types';
 interface DeFiProtocolPositionGroupTokensProps {
   positionType: PositionType;
   tokens: {
+    key: string;
     name: string;
     symbol: string;
     iconUrl: string;
@@ -45,8 +46,8 @@ const DeFiProtocolPositionGroupTokens: React.FC<
       <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
         {strings(`defi_positions.${positionType}`)}
       </Text>
-      {tokens.map((token, i) => (
-        <View key={i} style={styles.underlyingBalancesWrapper}>
+      {tokens.map((token) => (
+        <View key={token.key} style={styles.underlyingBalancesWrapper}>
           <View>
             <DeFiAvatarWithBadge
               networkIconAvatar={networkIconAvatar}

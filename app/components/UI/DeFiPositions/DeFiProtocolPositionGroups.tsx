@@ -40,7 +40,8 @@ const DeFiProtocolPositionGroups: React.FC<
                 .filter(
                   (underlyingToken) => underlyingToken.type === 'underlying',
                 )
-                .map((underlyingToken) => ({
+                .map((underlyingToken, index) => ({
+                  key: `${protocolToken.address}-${underlyingToken.address}-${index}`,
                   name: underlyingToken.name,
                   symbol: underlyingToken.symbol,
                   iconUrl: underlyingToken.iconUrl,
@@ -52,7 +53,8 @@ const DeFiProtocolPositionGroups: React.FC<
                   (underlyingToken) =>
                     underlyingToken.type === 'underlying-claimable',
                 )
-                .map((underlyingToken) => ({
+                .map((underlyingToken, index) => ({
+                  key: `${protocolToken.address}-${underlyingToken.address}-${index}`,
                   name: underlyingToken.name,
                   symbol: underlyingToken.symbol,
                   iconUrl: underlyingToken.iconUrl,
@@ -72,8 +74,8 @@ const DeFiProtocolPositionGroups: React.FC<
     <View style={styles.protocolDetailsPositionsWrapper}>
       {positionGroups.map((positionGroup) => (
         <Fragment key={positionGroup.positionType}>
-          {positionGroup.positions.map((position, i, positions) => {
-            const isLast = i === positions.length - 1;
+          {positionGroup.positions.map((position, index, positions) => {
+            const isLast = index === positions.length - 1;
             return (
               <Fragment
                 key={`${positionGroup.positionType}-${position.protocolTokenAddress}`}

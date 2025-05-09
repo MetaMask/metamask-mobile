@@ -121,11 +121,11 @@ describe('DeFiPositionsListItem', () => {
       { state: mockInitialState },
     );
 
-    expect(await findByText('Staked ETH Protocol')).toBeDefined();
-    expect(await findByText('$51,100.00')).toBeDefined();
+    expect(await findByText('Staked ETH Protocol')).toBeOnTheScreen();
+    expect(await findByText('$51,100.00')).toBeOnTheScreen();
     expect(await findAllByTestId('token-avatar-image')).toHaveLength(3);
     expect(await findAllByTestId('network-avatar-image')).toHaveLength(1);
-    expect(await findByText('ETH +1 other')).toBeDefined();
+    expect(await findByText('ETH +1 other')).toBeOnTheScreen();
   });
 
   it('renders the component without balances in privacy mode', async () => {
@@ -138,10 +138,10 @@ describe('DeFiPositionsListItem', () => {
       { state: mockInitialState },
     );
 
-    expect(await findByText('Staked ETH Protocol')).toBeDefined();
-    expect(queryByText('$51,100.00')).toBeNull();
-    expect(await findByText('•••••••••')).toBeDefined();
-    expect(await findByText('ETH +1 other')).toBeDefined();
+    expect(await findByText('Staked ETH Protocol')).toBeOnTheScreen();
+    expect(queryByText('$51,100.00')).not.toBeOnTheScreen();
+    expect(await findByText('•••••••••')).toBeOnTheScreen();
+    expect(await findByText('ETH +1 other')).toBeOnTheScreen();
   });
 
   it('navigates to DeFiProtocolPositionDetails on press', async () => {

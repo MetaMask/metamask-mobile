@@ -53,13 +53,13 @@ describe('DeFiProtocolPositionGroupTokens', () => {
       },
     );
 
-    expect(await findByText('Supplied')).toBeDefined();
-    expect(await findByText('TKN1')).toBeDefined();
-    expect(await findByText('$50.00')).toBeDefined();
-    expect(await findByText('500 TKN1')).toBeDefined();
-    expect(await findByText('TKN2')).toBeDefined();
-    expect(await findByText('$2.00')).toBeDefined();
-    expect(await findByText('20 TKN2')).toBeDefined();
+    expect(await findByText('Supplied')).toBeOnTheScreen();
+    expect(await findByText('TKN1')).toBeOnTheScreen();
+    expect(await findByText('$50.00')).toBeOnTheScreen();
+    expect(await findByText('500 TKN1')).toBeOnTheScreen();
+    expect(await findByText('TKN2')).toBeOnTheScreen();
+    expect(await findByText('$2.00')).toBeOnTheScreen();
+    expect(await findByText('20 TKN2')).toBeOnTheScreen();
   });
 
   it('renders the component without balances in privacy mode', async () => {
@@ -75,13 +75,13 @@ describe('DeFiProtocolPositionGroupTokens', () => {
       },
     );
 
-    expect(await findByText('Supplied')).toBeDefined();
-    expect(await findByText('TKN1')).toBeDefined();
-    expect(queryByText('$50.00')).toBeNull();
-    expect(queryByText('500 TKN1')).toBeNull();
-    expect(await findByText('TKN2')).toBeDefined();
-    expect(queryByText('$2.00')).toBeNull();
-    expect(queryByText('20 TKN2')).toBeNull();
+    expect(await findByText('Supplied')).toBeOnTheScreen();
+    expect(await findByText('TKN1')).toBeOnTheScreen();
+    expect(queryByText('$50.00')).not.toBeOnTheScreen();
+    expect(queryByText('500 TKN1')).not.toBeOnTheScreen();
+    expect(await findByText('TKN2')).toBeOnTheScreen();
+    expect(queryByText('$2.00')).not.toBeOnTheScreen();
+    expect(queryByText('20 TKN2')).not.toBeOnTheScreen();
     expect(await findAllByText('•••••••••')).toHaveLength(2);
     expect(await findAllByText('••••••')).toHaveLength(2);
   });
