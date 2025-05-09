@@ -145,8 +145,7 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
   const { tokenAmountValue, tokenAmountDisplayValue, fiatDisplayValue } =
     useTokenValues({ amountWei });
 
-  const displayTokenAmountIsRounded =
-    tokenAmountValue !== tokenAmountDisplayValue;
+  const isRoundedTokenAmount = tokenAmountValue !== tokenAmountDisplayValue;
 
   return (
     <View style={styles.container}>
@@ -155,15 +154,13 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
         tokenAmountDisplayValue={tokenAmountDisplayValue}
         tokenSymbol={symbol}
         styles={styles}
-        setIsModalVisible={
-          displayTokenAmountIsRounded ? setIsModalVisible : null
-        }
+        setIsModalVisible={isRoundedTokenAmount ? setIsModalVisible : null}
       />
       <AssetFiatConversion
         fiatDisplayValue={fiatDisplayValue}
         styles={styles}
       />
-      {displayTokenAmountIsRounded && (
+      {isRoundedTokenAmount && (
         <TooltipModal
           open={isModalVisible}
           setOpen={setIsModalVisible}
