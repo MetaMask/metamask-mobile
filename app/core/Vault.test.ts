@@ -145,7 +145,8 @@ const mockSimpleKeyringMetadata = {
 jest.mock('./Engine', () => ({
   context: {
     KeyringController: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -  Mock any callback.
+      // Using any to mock any callback.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       withKeyring: (selectedKeyring: KeyringSelector, callback: any) =>
         mockWithKeyring(selectedKeyring, callback),
       addNewKeyring: (type: KeyringTypes, options: { mnemonic?: string }) =>
