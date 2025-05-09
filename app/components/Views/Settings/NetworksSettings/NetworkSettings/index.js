@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   StyleSheet,
-  Text,
   View,
   TextInput,
   SafeAreaView,
@@ -92,7 +91,7 @@ import { AvatarVariant } from '../../../../../component-library/components/Avata
 import ReusableModal from '../../../../../components/UI/ReusableModal';
 import Device from '../../../../../util/device';
 import { ScrollView } from 'react-native-gesture-handler';
-import {
+import Text, {
   getFontFamily,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
