@@ -70,6 +70,7 @@ class NetworkListModal {
 
   async changeNetworkTo(networkName, custom) {
     const elem = this.getCustomNetwork(networkName, custom);
+    await TestHelpers.delay(3000);
     await Gestures.waitAndTap(elem);
     await TestHelpers.delay(3000);
   }
@@ -103,6 +104,7 @@ class NetworkListModal {
   }
 
   async tapAddNetworkButton() {
+    await TestHelpers.delay(3000);
     await Gestures.waitAndTap(this.addPopularNetworkButton);
   }
   async deleteNetwork() {

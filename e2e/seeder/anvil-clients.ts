@@ -5,7 +5,6 @@ import {
   http,
 } from 'viem';
 import { anvil as baseAnvil } from 'viem/chains';
-
 /**
  * Creates a set of clients for interacting with an Anvil test node
  * @param {number} chainId - The chain ID for the network
