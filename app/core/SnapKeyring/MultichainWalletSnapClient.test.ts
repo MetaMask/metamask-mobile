@@ -11,6 +11,7 @@ import Engine from '../Engine';
 import { Sender } from '@metamask/keyring-snap-client';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { s } from 'react-native-size-matters';
 
 jest.mock('../Engine', () => ({
   controllerMessenger: {
@@ -126,11 +127,38 @@ describe('MultichainWalletSnapClient', () => {
   });
 
   describe('createAccount', () => {
-    it('creates an account with the provided options', async () => {
+    it('creates a solana account with the provided options', async () => {
       const mockOptions = {
         scope: SolScope.Mainnet,
         accountNameSuggestion: 'Solana Account 1',
         entropySource: 'test-entropy',
+      };
+
+      const mockKeyring = {
+        createAccount: jest.fn(),
+      };
+
+      (Engine.controllerMessenger.call as jest.Mock).mockImplementationOnce(
+        async (_, __, callback) => {
+          await callback({ keyring: mockKeyring });
+        },
+      );
+
+      await client.createAccount(mockOptions);
+
+      expect(mockKeyring.createAccount).toHaveBeenCalledWith(
+        mockSnapId,
+        mockOptions,
+        mockSnapKeyringOptions,
+      );
+    });
+
+    it('creates a bitcoin account with the provided options', async () => {
+      const mockOptions = {
+        scope: BtcScope.Mainnet,
+        accountNameSuggestion: 'Bitcoin Account 1',
+        entropySource: 'test-entropy',
+        synchronize: true,
       };
 
       const mockKeyring = {
