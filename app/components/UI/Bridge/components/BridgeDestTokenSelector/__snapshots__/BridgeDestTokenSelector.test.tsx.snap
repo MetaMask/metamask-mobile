@@ -517,6 +517,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="Close"
                                         style={
@@ -559,6 +560,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             }
                           >
                             <RCTScrollView
+                              collapsable={false}
                               contentContainerStyle={
                                 {
                                   "alignItems": "center",
@@ -568,6 +570,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 }
                               }
                               horizontal={true}
+                              onGestureHandlerEvent={[Function]}
+                              onGestureHandlerStateChange={[Function]}
                               showsHorizontalScrollIndicator={false}
                               style={
                                 {
@@ -589,7 +593,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       "alignSelf": "flex-start",
                                       "backgroundColor": "transparent",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 20,
+                                      "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -615,6 +619,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   </Text>
                                   <SvgMock
                                     color="#4459ff"
+                                    fill="currentColor"
                                     height={16}
                                     name="ArrowDown"
                                     style={
@@ -640,7 +645,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       "alignSelf": "flex-start",
                                       "backgroundColor": "transparent",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 20,
+                                      "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -709,6 +714,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               >
                                 <SvgMock
                                   color="#121314"
+                                  fill="currentColor"
                                   height={16}
                                   name="Search"
                                   style={
@@ -757,6 +763,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                           </View>
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
+                            bounces={true}
+                            collapsable={false}
                             data={
                               [
                                 {
@@ -798,6 +806,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             getItemCount={[Function]}
                             keyExtractor={[Function]}
                             onContentSizeChange={[Function]}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
                             onMomentumScrollEnd={[Function]}
@@ -806,7 +816,11 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             onScrollEndDrag={[Function]}
                             removeClippedSubviews={false}
                             renderItem={[Function]}
+                            renderScrollComponent={[Function]}
+                            scrollEnabled={true}
                             scrollEventThrottle={0.0001}
+                            showsHorizontalScrollIndicator={false}
+                            showsVerticalScrollIndicator={true}
                             stickyHeaderIndices={[]}
                             viewabilityConfigCallbackPairs={[]}
                           >
@@ -1093,6 +1107,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   >
                                     <SvgMock
                                       color="#686e7d"
+                                      fill="currentColor"
                                       height={20}
                                       name="Info"
                                       style={
@@ -1388,6 +1403,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   >
                                     <SvgMock
                                       color="#686e7d"
+                                      fill="currentColor"
                                       height={20}
                                       name="Info"
                                       style={
@@ -1715,6 +1731,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   >
                                     <SvgMock
                                       color="#686e7d"
+                                      fill="currentColor"
                                       height={20}
                                       name="Info"
                                       style={

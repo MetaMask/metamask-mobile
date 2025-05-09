@@ -1145,6 +1145,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 >
                                   <SvgMock
                                     color="#121314"
+                                    fill="currentColor"
                                     height={16}
                                     name="Close"
                                     style={
@@ -1513,7 +1514,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 20,
+                                  "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 40,
                                   "justifyContent": "center",
@@ -3255,6 +3256,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 >
                                   <SvgMock
                                     color="#121314"
+                                    fill="currentColor"
                                     height={16}
                                     name="Close"
                                     style={
@@ -5092,6 +5094,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 >
                                   <SvgMock
                                     color="#121314"
+                                    fill="currentColor"
                                     height={16}
                                     name="Close"
                                     style={
@@ -5612,7 +5615,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 20,
+                                  "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 40,
                                   "justifyContent": "center",

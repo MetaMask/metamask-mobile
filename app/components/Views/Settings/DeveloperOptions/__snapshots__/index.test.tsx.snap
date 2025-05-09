@@ -138,6 +138,7 @@ exports[`DeveloperOptions should render correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -429,7 +430,7 @@ exports[`DeveloperOptions should render correctly 1`] = `
                               "alignSelf": "stretch",
                               "backgroundColor": "transparent",
                               "borderColor": "#4459ff",
-                              "borderRadius": 24,
+                              "borderRadius": 12,
                               "borderWidth": 1,
                               "flexDirection": "row",
                               "height": 48,
