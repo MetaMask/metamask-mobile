@@ -7,7 +7,7 @@ import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
 import NotificationsService from '../util/notifications/services/NotificationService';
 import { NotificationTransactionTypes, ChannelId } from '../util/notifications';
-import { safeToChecksumAddress, formatAddress } from '../util/address';
+import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectEvmTicker } from '../selectors/networkController';
 import { store } from '../store';
@@ -71,14 +71,6 @@ export const constructTitleAndMessage = (notification) => {
       title = strings('notifications.received_payment_title');
       message = strings('notifications.received_payment_message', {
         amount: notification.transaction.amount,
-      });
-      break;
-    case NotificationTransactionTypes.eth_received:
-      title = strings('notifications.default_message_title');
-      message = strings('notifications.eth_received_message', {
-        amount: notification.transaction.amount.usd,
-        ticker: 'USD',
-        address: formatAddress(notification.transaction.from, 'short'),
       });
       break;
     default:

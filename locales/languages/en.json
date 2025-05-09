@@ -546,7 +546,7 @@
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance",
-    "unable_to_find_conversion_rate": "unable to find conversion rate",
+    "unable_to_find_conversion_rate": "no conversion rate",
     "display_nft_media_desc": "To import an NFT, turn on Display NFT media in Settings > Security and privacy.",
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
@@ -3515,6 +3515,7 @@
     "add_bitcoin_account_testnet": "Bitcoin testnet account",
     "add_bitcoin_account_mainnet": "Bitcoin account",
     "add_solana_account": "Solana account",
+    "switch_to_smart_account": "Switch to Smart account",
     "headers": {
       "bitcoin": "Bitcoin",
       "solana": "Solana"
@@ -3719,7 +3720,8 @@
     "basic_functionality": "Basic functionality",
     "manage_networks": "Choose your network",
     "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
-    "manage_networks_body2": " to learn more about how Infura handles data.",
+    "manage_networks_body2": " to learn more about how Infura handles data for EVM accounts, for Solana accounts ",
+    "manage_networks_body3": "click here.",
     "functionality_body": "MetaMask offers basic features like token details and gas settings through internet services. When you use internet services, your IP address is shared, in this case with MetaMask. This is just like when you visit any website. MetaMask uses this data temporarily and never sells your data. You can use a VPN or turn off these services, but it may affect your MetaMask experience. Read our ",
     "functionality_body2": " to learn more.",
     "sheet": {
@@ -3867,6 +3869,11 @@
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Smart Account",
+      "standardAccountLabel": "Standard Account",
+      "switch": "Switch"
+    },
     "unlimited": "Unlimited",
     "none": "None",
     "advanced_details": "Advanced details",
@@ -3925,7 +3932,7 @@
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "description": "Rates update every {{refreshRate}} seconds, so tap Get new quote when you're ready.",
     "get_new_quote": "Get new quote"
   },
   "bridge_transaction_details": {
@@ -3962,6 +3969,11 @@
     "manageWhatYouSync": {
       "title": "Manage what you sync",
       "description": "Turn on what’s synced between your devices."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Select an asset"
     }
   }
 }
