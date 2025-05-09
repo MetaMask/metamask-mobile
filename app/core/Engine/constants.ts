@@ -65,6 +65,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'MultichainAssetsRatesController:stateChange',
   // TODO: Export this from the assets controller
   'MultichainAssetsController:stateChange',
+  'MultichainAssetsController:accountAssetListUpdated',
   'MultichainTransactionsController:stateChange',
   ///: END:ONLY_INCLUDE_IF
   'BridgeController:stateChange',
