@@ -63,17 +63,31 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
     );
 
     const sortedTokens = allTokens.sort((a, b) => {
-      if (a.marketValue === undefined && b.marketValue === undefined) {
-        return 0;
-      }
-      if (a.marketValue === undefined) {
-        return 1;
-      }
-      if (b.marketValue === undefined) {
-        return -1;
-      }
-      return b.marketValue - a.marketValue;
+      const aMarketValue = a.marketValue ?? 0;
+      const bMarketValue = b.marketValue ?? 0;
+      return bMarketValue - aMarketValue;
     });
+
+    const getTokenStringFromLength: Record<string, () => string> = {
+      0: () => '',
+      1: () =>
+        strings('defi_positions.single_token', {
+          symbol: sortedTokens[0].symbol,
+        }),
+      2: () =>
+        strings('defi_positions.two_tokens', {
+          symbol: sortedTokens[0].symbol,
+        }),
+      multiple: () =>
+        strings('defi_positions.multiple_tokens', {
+          symbol: sortedTokens[0].symbol,
+          count: sortedTokens.length - 1,
+        }),
+    };
+
+    const tokenStr =
+      getTokenStringFromLength[sortedTokens.length] ??
+      getTokenStringFromLength.multiple;
 
     return {
       tokenAvatars: sortedTokens.map((token) => ({
@@ -83,21 +97,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
           uri: token.iconUrl,
         },
       })),
-      tokenNames:
-        sortedTokens.length === 0
-          ? ''
-          : sortedTokens.length === 1
-          ? strings('defi_positions.single_token', {
-              symbol: sortedTokens[0].symbol,
-            })
-          : sortedTokens.length === 2
-          ? strings('defi_positions.two_tokens', {
-              symbol: sortedTokens[0].symbol,
-            })
-          : strings('defi_positions.multiple_tokens', {
-              symbol: sortedTokens[0].symbol,
-              count: sortedTokens.length - 1,
-            }),
+      tokenNames: tokenStr(),
     };
   }, [protocolAggregate]);
 
