@@ -7,7 +7,6 @@ import { useNavigation } from '@react-navigation/native';
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
 import {
-  getDecimalChainId,
   getNetworkImageSource,
 } from '../../../../util/networks';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
@@ -64,7 +63,7 @@ const NetworkPermissionsConnected = ({
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const evmChainId = useSelector(selectEvmChainId);
-  const evmCaipChainId = `eip155:${parseInt(evmChainId, 16)}`
+  const evmCaipChainId = `eip155:${parseInt(evmChainId, 16)}`;
 
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,

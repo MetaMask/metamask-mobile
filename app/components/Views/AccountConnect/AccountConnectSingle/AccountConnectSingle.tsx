@@ -93,7 +93,7 @@ const AccountConnectSingle = ({
       onSetSelectedAddresses,
       isLoading,
       styles,
-      defaultSelectedAccount?.address,
+      defaultSelectedAccount?.caipAccountId,
       connection,
     ],
   );

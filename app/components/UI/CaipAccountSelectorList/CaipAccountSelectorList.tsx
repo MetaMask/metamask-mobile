@@ -206,7 +206,7 @@ const CaipAccountSelectorList = ({
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
-      item: { name, address, assets, type, isSelected, balanceError, caipAccountId },
+      item: { name, address, assets, type, balanceError, caipAccountId },
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');

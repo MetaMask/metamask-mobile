@@ -74,7 +74,6 @@ import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSumma
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
@@ -89,7 +88,7 @@ import {
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
 import { CaipAccountId, CaipChainId, KnownCaipNamespace, parseCaipAccountId, parseCaipChainId } from '@metamask/utils';
-import { getAllNamespacesFromCaip25CaveatValue, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue, isCaipAccountIdInPermittedAccountIds, isInternalAccountInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
+import { getAllNamespacesFromCaip25CaveatValue, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue, isCaipAccountIdInPermittedAccountIds} from '@metamask/chain-agnostic-permission';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 
 const createStyles = () =>
@@ -163,7 +162,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       }),
     );
     setSelectedNetworkAvatars(newNetworkAvatars);
-  }, [networkConfigurations, setSelectedNetworkAvatars])
+  }, [networkConfigurations, setSelectedNetworkAvatars]);
 
   // all accounts that match the requested namespaces
   const supportedAccountsForRequestedNamespaces = internalAccounts.filter(
@@ -280,8 +279,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     hostname && !isUUID(hostname)
       ? prefixUrlWithProtocol(getHost(hostname))
       : domainTitle;
-
-  const { chainId } = useNetworkInfo(hostname);
 
   useEffect(() => {
     // Create network avatars for all enabled networks
@@ -519,7 +516,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     faviconSource,
     createEventBuilder,
     selectedChainIds,
-    chainId,
+    requestedCaip25CaveatValue,
   ]);
 
   // This only handles EVM
@@ -600,7 +597,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       setSelectedChainIds(newSelectedChainIds);
       setScreen(AccountConnectScreens.SingleConnect);
     },
-    [networkConfigurations, setScreen],
+    [setScreen, setSelectedChainIds],
   );
 
   const hideSheet = (callback?: () => void) =>
@@ -691,7 +688,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderSingleConnectScreen = useCallback(() => {
     const selectedAddress = selectedAddresses[0];
     const selectedAccount = accounts.find((account) => account.caipAccountId === selectedAddress);
-    const { address } = parseCaipAccountId(selectedAddress)
+    const { address } = parseCaipAccountId(selectedAddress);
     const ensName = ensByAccountAddress[address];
     const defaultSelectedAccount: Account | undefined = selectedAccount
       ? {
@@ -721,12 +718,12 @@ const AccountConnect = (props: AccountConnectProps) => {
     selectedAddresses,
     isLoading,
     setScreen,
-    setSelectedAddresses,
     actualIcon,
     secureIcon,
     sdkConnection,
     urlWithProtocol,
     setUserIntent,
+    handleAccountsSelected,
   ]);
 
   const renderPermissionsSummaryScreen = useCallback(() => {
@@ -775,8 +772,8 @@ const AccountConnect = (props: AccountConnectProps) => {
       selectedAddresses,
       isLoading,
       setUserIntent,
-      setSelectedAddresses,
       setScreen,
+    handleAccountsSelected,
     ],
   );
 

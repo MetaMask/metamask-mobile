@@ -218,7 +218,6 @@ const PermissionsSummary = ({
   }, [navigate, isRenderedAsBottomSheet, onRevokeAllHandler, hostname]);
 
   const getAccountLabel = useCallback(() => {
-    Logger.log({accountAddresses, accounts})
     if (isAlreadyConnected) {
       if (accountAddresses.length === 1) {
         const matchedConnectedAccount = accounts.find(

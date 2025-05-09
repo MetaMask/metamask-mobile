@@ -3,11 +3,9 @@ import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
 import { CaipAccountId, CaipChainId, Hex, KnownCaipNamespace, parseCaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromCaip25CaveatValue, getAllScopesFromPermission, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, isCaipAccountIdInPermittedAccountIds, isInternalAccountInPermittedAccountIds, setChainIdsInCaip25CaveatValue, setEthAccounts, setNonSCACaipAccountIdsInCaip25CaveatValue, setPermittedEthChainIds} from '@metamask/chain-agnostic-permission';
+import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, isInternalAccountInPermittedAccountIds, setChainIdsInCaip25CaveatValue, setNonSCACaipAccountIdsInCaip25CaveatValue} from '@metamask/chain-agnostic-permission';
 import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
-import { toHex } from '@metamask/controller-utils';
-import { selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -107,7 +105,7 @@ function getAccountsFromSubject(subject: any) {
     ({ type }: CaveatConstraint) => type === Caip25CaveatType,
   );
   if (caveat) {
-    return getCaipAccountIdsFromCaip25CaveatValue(caveat.value)
+    return getCaipAccountIdsFromCaip25CaveatValue(caveat.value);
   }
 
   return [];
@@ -121,8 +119,8 @@ export const getPermittedAccountsByHostname = (
   hostname: string,
 ): CaipAccountId[] => {
   const { subjects } = state;
-  const subject = subjects[hostname]
-  return subject ? getAccountsFromSubject(subject) : []
+  const subject = subjects[hostname];
+  return subject ? getAccountsFromSubject(subject) : [];
 };
 
 // TODO: Replace "any" with type
@@ -151,11 +149,11 @@ export const getPermittedChainIdsByHostname = (
   hostname: string,
 ): CaipChainId[] => {
   const { subjects } = state;
-  const subject = subjects[hostname]
+  const subject = subjects[hostname];
   if (!subject) {
-    return []
+    return [];
   }
-  const permittedScopes = getPermittedScopesFromSubject(subject)
+  const permittedScopes = getPermittedScopesFromSubject(subject);
     // our `endowment:caip25` permission can include a special class of `wallet` scopes,
   // see https://github.com/ChainAgnostic/namespaces/tree/main/wallet &
   // https://github.com/ChainAgnostic/namespaces/blob/main/wallet/caip2.md
@@ -229,7 +227,7 @@ export const addPermittedAccounts = (
   let updatedPermittedChainIds = [...existingPermittedChainIds];
 
   // Fix this
-  const allNetworksList: CaipChainId[] = []
+  const allNetworksList: CaipChainId[] = [];
 
   updatedAccountIds.forEach((caipAccountAddress) => {
     const {
@@ -295,7 +293,7 @@ export const removePermittedAccounts = (origin: string, addresses: string[]) => 
     );
   }
 
-  const internalAccounts = addresses.map((address) => AccountsController.getAccountByAddress(address)) as InternalAccount[]
+  const internalAccounts = addresses.map((address) => AccountsController.getAccountByAddress(address)) as InternalAccount[];
 
   const existingAccountIds = getCaipAccountIdsFromCaip25CaveatValue(
     caip25Caveat.value,

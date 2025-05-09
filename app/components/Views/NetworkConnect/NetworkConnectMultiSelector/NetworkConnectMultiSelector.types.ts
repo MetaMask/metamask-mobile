@@ -1,4 +1,4 @@
-import { CaipChainId } from "@metamask/utils";
+import { CaipChainId } from '@metamask/utils';
 
 /**
  * NetworkConnectMultiSelector props.
