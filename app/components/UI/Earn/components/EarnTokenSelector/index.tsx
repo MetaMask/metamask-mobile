@@ -89,7 +89,7 @@ const EarnTokenSelector = ({ token, action }: EarnTokenSelectorProps) => {
   const renderStartAccessory = () => (
     <View style={styles.startAccessoryContainer}>
       <BadgeWrapper
-        badgePosition={BadgePosition.TopRight}
+        badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
