@@ -114,10 +114,6 @@ export abstract class MultichainWalletSnapClient {
     options: MultichainWalletSnapOptions,
     snapKeyringOptions?: SnapKeyringOptions,
   ) {
-    if (this.snapId === BITCOIN_WALLET_SNAP_ID) {
-      options.synchronize = true;
-    }
-
     // This flow is async and start here, to end in the `SnapKeyring.addAccountFinalize` method.
     store.dispatch(
       startPerformanceTrace({
@@ -257,6 +253,16 @@ export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
 
   protected getSnapSender(): Sender {
     return new BitcoinWalletSnapSender();
+  }
+
+  async createAccount(
+    options: MultichainWalletSnapOptions,
+    snapKeyringOptions?: SnapKeyringOptions,
+  ) {
+    return super.createAccount(
+      { ...options, synchronize: true },
+      snapKeyringOptions,
+    );
   }
 }
 
