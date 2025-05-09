@@ -22,6 +22,7 @@ import { isE2E } from './app/util/test/utils.js';
 import { Performance } from './app/core/Performance';
 import { handleCustomError, setReactNativeDefaultHandler } from './app/core/ErrorHandler';
 Performance.setupPerformanceObservers();
+Performance.handleFreshInstallWithRestoredData();
 
 LogBox.ignoreAllLogs();
 // List of warnings that we're ignoring

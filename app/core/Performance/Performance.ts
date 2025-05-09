@@ -1,5 +1,15 @@
 /* eslint-disable no-console */
 import performance, { PerformanceObserver } from 'react-native-performance';
+import {
+  getFirstInstallTime,
+  getLastUpdateTime,
+} from 'react-native-device-info';
+import {
+  EXISTING_USER,
+  FRESH_INSTALL_CHECK_DONE,
+} from '../../constants/storage';
+import Logger from '../../util/Logger';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import StorageWrapper from '../../store/storage-wrapper';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import getUIStartupSpan from './UIStartup';
@@ -15,6 +25,45 @@ async function setPerformanceValues(appStartTime: number) {
 
 class Performance {
   static appLaunchTime: number;
+
+  /**
+   * Checks if this is a fresh install with restored MMKV data from a backup.
+   * If so, clears the MMKV storage to ensure a clean state.
+   */
+  static handleFreshInstallWithRestoredData = () => {
+    (async () => {
+      try {
+        // Check if we've already performed this check
+        const freshInstallCheckDone = await AsyncStorage.getItem(
+          FRESH_INSTALL_CHECK_DONE,
+        );
+
+        if (!freshInstallCheckDone) {
+          // Check if this is a fresh install
+          const firstInstallTime = await getFirstInstallTime();
+          const lastUpdateTime = await getLastUpdateTime();
+          const isFreshInstall = firstInstallTime === lastUpdateTime;
+
+          if (isFreshInstall) {
+            const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+
+            if (existingUser) {
+              // This is a fresh install but we have an existing user flag. This indicates restored data from a backup
+              await StorageWrapper.clearAll();
+            }
+          }
+
+          await AsyncStorage.setItem('FRESH_INSTALL_CHECK_DONE', 'true');
+        }
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'Error checking for fresh install with restored data',
+        );
+      }
+    })();
+  };
+
   /**
    * Measures app start and JS bundle loading times
    */

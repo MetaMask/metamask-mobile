@@ -34,7 +34,7 @@ import {
   EXISTING_USER,
   LAST_APP_VERSION,
 } from '../../../constants/storage';
-import { getVersion, getFirstInstallTime, getLastUpdateTime } from 'react-native-device-info';
+import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
 import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
@@ -922,15 +922,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     async function startApp() {
-      const firstInstallTime = await getFirstInstallTime();
-      const lastUpdateTime = await getLastUpdateTime();
-      const isFreshInstall = firstInstallTime === lastUpdateTime;
-      
-      if (isFreshInstall) {
-        // Clear all MMKV storage on fresh install to avoid leftovers of EXISTING_USER in case of phone migration
-        await StorageWrapper.clearAll();
-      }
-
       const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       if (!existingUser) {
         // List of chainIds to add (as hex strings)
