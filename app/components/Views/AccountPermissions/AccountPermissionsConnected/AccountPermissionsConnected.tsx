@@ -37,7 +37,6 @@ const AccountPermissionsConnected = ({
   isLoading,
   selectedAddresses,
   onSetPermissionsScreen,
-  onSetSelectedAddresses,
   onDismissSheet,
   hostname,
   favicon,
@@ -47,9 +46,8 @@ const AccountPermissionsConnected = ({
   const { toastRef } = useContext(ToastContext);
 
   const onConnectMoreAccounts = useCallback(() => {
-    onSetSelectedAddresses([]);
     onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreAccounts);
-  }, [onSetSelectedAddresses, onSetPermissionsScreen]);
+  }, [onSetPermissionsScreen]);
 
   const switchActiveAccount = useCallback(
     (address: string) => {
