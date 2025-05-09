@@ -454,10 +454,10 @@ const Main = (props) => {
           toggleSkipCheckbox={toggleSkipCheckbox}
         />
         <ProtectYourWalletModal navigation={props.navigation} />
-        <ProtectWalletMandatoryModal />
         <InfoNetworkModal />
         <RootRPCMethodsUI navigation={props.navigation} />
         <PendingDeeplinkHandler />
+        <ProtectWalletMandatoryModal />
       </View>
     </React.Fragment>
   );
