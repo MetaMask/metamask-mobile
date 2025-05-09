@@ -65,31 +65,25 @@ const AvatarTokenNetwork = () => {
   );
 };
 
-const AvatarTokenNetworkWithBadge = ({
-  styles,
-}: {
-  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
-}) => {
+const AvatarTokenNetworkWithBadge = () => {
   const transactionMeta = useTransactionMetadataRequest();
   const { networkName, networkImage } = useNetworkInfo(
     transactionMeta?.chainId,
   );
 
   return (
-    <View style={styles.networkAndTokenContainer}>
-      <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            imageSource={networkImage}
-            variant={BadgeVariant.Network}
-            name={networkName}
-          />
-        }
-      >
-        <AvatarTokenNetwork />
-      </BadgeWrapper>
-    </View>
+    <BadgeWrapper
+      badgePosition={BadgePosition.BottomRight}
+      badgeElement={
+        <Badge
+          imageSource={networkImage}
+          variant={BadgeVariant.Network}
+          name={networkName}
+        />
+      }
+    >
+      <AvatarTokenNetwork />
+    </BadgeWrapper>
   );
 };
 
@@ -149,7 +143,9 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
 
   return (
     <View style={styles.container}>
-      <AvatarTokenNetworkWithBadge styles={styles} />
+      <View style={styles.networkAndTokenContainer}>
+        <AvatarTokenNetworkWithBadge />
+      </View>
       <AssetAmount
         tokenAmountDisplayValue={tokenAmountDisplayValue}
         tokenSymbol={symbol}
