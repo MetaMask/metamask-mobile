@@ -22,7 +22,7 @@ interface ContractOptions {
  * Local network seeder is used to seed initial smart contract or set initial blockchain state.
  */
 export class AnvilSeeder {
-  private smartContractRegistry: ContractAddressRegistry;
+  private smartContractRegistry: InstanceType<typeof ContractAddressRegistry>;
   private provider: any;
 
   constructor(provider: any) {
