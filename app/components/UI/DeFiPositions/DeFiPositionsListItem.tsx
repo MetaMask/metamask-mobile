@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
@@ -13,7 +14,7 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import I18n from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import { AvatarProps } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
@@ -41,23 +42,64 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
     [chainId],
   );
 
-  const tokenAvatars: AvatarProps[] = useMemo(
-    () =>
-      Object.values(protocolAggregate.positionTypes).flatMap((displayTokens) =>
+  const {
+    tokenAvatars,
+    tokenNames,
+  }: { tokenAvatars: AvatarProps[]; tokenNames: string } = useMemo(() => {
+    const seenAvatar = new Set<string>();
+    const allTokens = Object.values(protocolAggregate.positionTypes).flatMap(
+      (displayTokens) =>
         displayTokens.positions.flatMap((nestedToken) =>
           nestedToken.flatMap((token) =>
-            token.tokens.map((underlying) => ({
-              variant: AvatarVariant.Token,
-              name: underlying.name,
-              imageSource: {
-                uri: underlying.iconUrl,
-              },
-            })),
+            token.tokens.filter((underlying) => {
+              if (seenAvatar.has(underlying.iconUrl)) {
+                return false;
+              }
+              seenAvatar.add(underlying.iconUrl);
+              return true;
+            }),
           ),
         ),
-      ),
-    [protocolAggregate],
-  );
+    );
+
+    const sortedTokens = allTokens.sort((a, b) => {
+      if (a.marketValue === undefined && b.marketValue === undefined) {
+        return 0;
+      }
+      if (a.marketValue === undefined) {
+        return 1;
+      }
+      if (b.marketValue === undefined) {
+        return -1;
+      }
+      return b.marketValue - a.marketValue;
+    });
+
+    return {
+      tokenAvatars: sortedTokens.map((token) => ({
+        variant: AvatarVariant.Token,
+        name: token.name,
+        imageSource: {
+          uri: token.iconUrl,
+        },
+      })),
+      tokenNames:
+        sortedTokens.length === 0
+          ? ''
+          : sortedTokens.length === 1
+          ? strings('defi_positions.single_token', {
+              symbol: sortedTokens[0].symbol,
+            })
+          : sortedTokens.length === 2
+          ? strings('defi_positions.two_tokens', {
+              symbol: sortedTokens[0].symbol,
+            })
+          : strings('defi_positions.multiple_tokens', {
+              symbol: sortedTokens[0].symbol,
+              count: sortedTokens.length - 1,
+            }),
+    };
+  }, [protocolAggregate]);
 
   return (
     <TouchableOpacity
@@ -75,9 +117,14 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
         avatarIconUrl={protocolAggregate.protocolDetails.iconUrl}
       />
 
-      <Text style={styles.protocolNameText} variant={TextVariant.BodyLGMedium}>
-        {protocolAggregate.protocolDetails.name}
-      </Text>
+      <View style={styles.contentWrapper}>
+        <Text variant={TextVariant.BodyLGMedium}>
+          {protocolAggregate.protocolDetails.name}
+        </Text>
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+          {tokenNames}
+        </Text>
+      </View>
 
       <View style={styles.balance}>
         <SensitiveText

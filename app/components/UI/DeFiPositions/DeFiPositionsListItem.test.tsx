@@ -58,7 +58,7 @@ const mockProtocolAggregateData: GroupedDeFiPositions['protocols'][number] = {
       ],
     },
     reward: {
-      aggregatedMarketValue: 30000,
+      aggregatedMarketValue: 30100,
       positions: [
         [
           {
@@ -83,13 +83,25 @@ const mockProtocolAggregateData: GroupedDeFiPositions['protocols'][number] = {
                 decimals: 18,
                 type: 'underlying',
               },
+              {
+                address: '0x3',
+                name: 'USDC',
+                symbol: 'USDC',
+                iconUrl: 'https://example.com/usdc.png',
+                balance: 100,
+                balanceRaw: '100',
+                marketValue: 100,
+                price: 1,
+                decimals: 18,
+                type: 'underlying',
+              },
             ],
           },
         ],
       ],
     },
   },
-  aggregatedMarketValue: 51000,
+  aggregatedMarketValue: 51100,
 };
 
 const ethereumChainId: Hex = '0x1';
@@ -110,9 +122,10 @@ describe('DeFiPositionsListItem', () => {
     );
 
     expect(await findByText('Staked ETH Protocol')).toBeDefined();
-    expect(await findByText('$51,000.00')).toBeDefined();
+    expect(await findByText('$51,100.00')).toBeDefined();
     expect(await findAllByTestId('token-avatar-image')).toHaveLength(3);
     expect(await findAllByTestId('network-avatar-image')).toHaveLength(1);
+    expect(await findByText('ETH +1 other')).toBeDefined();
   });
 
   it('renders the component without balances in privacy mode', async () => {
@@ -126,8 +139,9 @@ describe('DeFiPositionsListItem', () => {
     );
 
     expect(await findByText('Staked ETH Protocol')).toBeDefined();
-    expect(queryByText('$51,000.00')).toBeNull();
+    expect(queryByText('$51,100.00')).toBeNull();
     expect(await findByText('•••••••••')).toBeDefined();
+    expect(await findByText('ETH +1 other')).toBeDefined();
   });
 
   it('navigates to DeFiProtocolPositionDetails on press', async () => {

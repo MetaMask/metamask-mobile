@@ -12,6 +12,9 @@ const styleSheet = () =>
       paddingVertical: 10,
       alignItems: 'flex-start',
     },
+    contentWrapper: {
+      marginLeft: 20,
+    },
     protocolNameText: {
       marginLeft: 20,
     },
