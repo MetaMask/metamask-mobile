@@ -5,6 +5,16 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { InteractionManager } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 
+// Mock Device utility
+const mockIsIphoneX = jest.fn();
+jest.mock('../../../util/device', () => ({
+  isIphoneX: () => mockIsIphoneX(),
+  isAndroid: () => false,
+  isIos: () => true,
+  getDeviceWidth: () => 375,
+  getDeviceHeight: () => 812,
+}));
+
 // Mock the navigation
 const mockNavigate = jest.fn();
 const mockDangerouslyGetState = jest.fn();
@@ -72,6 +82,15 @@ describe('ProtectWalletMandatoryModal', () => {
   });
 
   it('renders correctly', () => {
+    const { toJSON } = renderWithProvider(<ProtectWalletMandatoryModal />, {
+      state: initialState,
+    });
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly on iPhoneX', () => {
+    mockIsIphoneX.mockReturnValue(true);
+
     const { toJSON } = renderWithProvider(<ProtectWalletMandatoryModal />, {
       state: initialState,
     });
