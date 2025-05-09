@@ -349,7 +349,7 @@ export class BackgroundBridge extends EventEmitter {
 
   /**
    * Gets supported methods for a given scope using the Multichain Router.
-   * 
+   *
    * @param {string} scope - The scope to get supported methods for.
    * @returns {string[]} Array of supported method names.
    */
@@ -1008,9 +1008,6 @@ export class BackgroundBridge extends EventEmitter {
           rejectOriginPendingApprovals(origin),
       }),
     );
-
-    // TODO: [ffmcgee] implement
-    // engine.push(this.metamaskMiddleware);
 
     try {
       const caip25Caveat = PermissionController.getCaveat(
