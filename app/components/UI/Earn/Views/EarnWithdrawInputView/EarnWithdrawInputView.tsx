@@ -47,6 +47,7 @@ import {
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../utils/tempLending';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -190,10 +191,22 @@ const EarnWithdrawInputView = () => {
   );
 
   const handleLendingWithdrawalFlow = useCallback(async () => {
+    if (!token.chainId) return;
+
+    const lendingPoolContractAddress =
+      CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[token.chainId] ?? '';
+
     navigation.navigate(Routes.EARN.ROOT, {
       screen: Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION,
+      params: {
+        token,
+        amountTokenMinimalUnit: amountTokenMinimalUnit.toString(),
+        amountFiat: amountFiatNumber,
+        lendingProtocol: 'AAVE v3',
+        lendingContractAddress: lendingPoolContractAddress,
+      },
     });
-  }, [navigation]);
+  }, [amountFiatNumber, amountTokenMinimalUnit, navigation, token]);
 
   const handleUnstakeWithdrawalFlow = useCallback(async () => {
     const isStakingDepositRedesignedEnabled =
