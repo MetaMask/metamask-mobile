@@ -36,17 +36,23 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
     >
       <View style={styles.srpItem}>
         <View style={styles.srpItemContent}>
-          <Text variant={TextVariant.BodyMDMedium}>{name}</Text>
-          <Button
-            testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_TOGGLE_SHOW}-${keyring.metadata.id}`}
-            variant={ButtonVariants.Link}
-            label={`${strings(
-              !showAccounts
-                ? 'accounts.show_accounts'
-                : 'accounts.hide_accounts',
-            )} ${keyring.accounts.length} ${strings('accounts.accounts')}`}
-            onPress={() => setShowAccounts(!showAccounts)}
-          />
+          <View style={styles.srpItemIconContainer}>
+            <View>
+              <Text variant={TextVariant.BodyMDMedium}>{name}</Text>
+              <Button
+                testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_TOGGLE_SHOW}-${keyring.metadata.id}`}
+                variant={ButtonVariants.Link}
+                label={`${strings(
+                  !showAccounts
+                    ? 'accounts.show_accounts'
+                    : 'accounts.hide_accounts',
+                )} ${keyring.accounts.length} ${strings('accounts.accounts')}`}
+                onPress={() => setShowAccounts(!showAccounts)}
+              />
+            </View>
+
+            <Icon name={IconName.ArrowRight} style={styles.srpItemIcon} />
+          </View>
           {showAccounts && (
             <>
               <View style={styles.horizontalLine} />
@@ -81,7 +87,6 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
             </>
           )}
         </View>
-        <Icon name={IconName.ArrowRight} style={styles.srpItemIcon} />
       </View>
     </TouchableWithoutFeedback>
   );

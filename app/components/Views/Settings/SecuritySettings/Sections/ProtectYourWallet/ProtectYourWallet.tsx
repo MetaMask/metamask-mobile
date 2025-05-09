@@ -27,7 +27,14 @@ import Banner, {
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { hasMultipleHDKeyrings } from '../../../../../../selectors/keyringController';
+
 ///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import {
+  selectSeedlessOnboardingUserId,
+  selectSeedlessOnboardingAuthConnection,
+} from '../../../../../../selectors/seedlessOnboardingController';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 interface IProtectYourWalletProps {
   srpBackedup: boolean;
@@ -48,6 +55,10 @@ const ProtectYourWallet = ({
   const shouldShowSRPList = useSelector(hasMultipleHDKeyrings);
   ///: END:ONLY_INCLUDE_IF
 
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  const seedlessOnboardingUserId = useSelector(selectSeedlessOnboardingUserId);
+  const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   const openSRPQuiz = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.SRP_REVEAL_QUIZ,
@@ -84,6 +95,31 @@ const ProtectYourWallet = ({
     openSRPQuiz();
   };
 
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  const onProtectYourWalletPressed = () => {
+    navigation.navigate('ProtectYourWallet');
+  };
+
+  const seedlessOnboardingBanner = () =>
+    seedlessOnboardingUserId ? (
+      <Banner
+        variant={BannerVariant.Alert}
+        severity={BannerAlertSeverity.Success}
+        title={
+          strings('app_settings.social_login_linked') + ' ' + authConnection
+        }
+        style={styles.accessory}
+      />
+    ) : (
+      <Banner
+        variant={BannerVariant.Alert}
+        severity={BannerAlertSeverity.Error}
+        title={strings('app_settings.social_login_not_linked')}
+        style={styles.accessory}
+      />
+    );
+  ///: END:ONLY_INCLUDE_IF(multi-srp)
+
   return (
     <View style={[styles.setting, styles.firstSetting]}>
       <Text variant={TextVariant.BodyLGMedium}>
@@ -109,6 +145,13 @@ const ProtectYourWallet = ({
           label={strings('app_settings.learn_more')}
         />
       )}
+
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+        seedlessOnboardingBanner()
+        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+      }
+
       {srpBackedup ? (
         <Banner
           variant={BannerVariant.Alert}
@@ -154,6 +197,19 @@ const ProtectYourWallet = ({
           testID={SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON}
         />
       )}
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+        <Button
+          label={strings('app_settings.protect_title')}
+          width={ButtonWidthTypes.Full}
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          onPress={onProtectYourWalletPressed}
+          style={styles.accessory}
+          testID={SecurityPrivacyViewSelectorsIDs.PROTECT_YOUR_WALLET}
+        />
+        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+      }
     </View>
   );
 };
