@@ -28,6 +28,7 @@ import { SnapUITooltip } from '../../Snaps/SnapUITooltip/SnapUITooltip';
 import { Skeleton } from '../../../component-library/components/Skeleton';
 import { SnapUIAddressInput } from '../../Snaps/SnapUIAddressInput/SnapUIAddressInput';
 import { SnapUIInfoRow } from '../../Snaps/SnapUIInfoRow/SnapUIInfoRow';
+import { SnapUIAssetSelector } from '../../Snaps/SnapUIAssetSelector/SnapUIAssetSelector';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -55,6 +56,7 @@ export const safeComponentList = {
   SnapUIAvatar,
   SnapUIAddress,
   SnapUIBanner,
+  SnapUIAssetSelector,
   SnapUISelector,
   SnapUISpinner,
   SnapUIInfoRow,

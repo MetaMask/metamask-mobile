@@ -91,4 +91,4 @@ describe('parseStandardTokenTransactionData', () => {
     const invalidData = '0xinvaliddata';
     expect(parseStandardTokenTransactionData(invalidData)).toBeUndefined();
   });
-}); 
+});

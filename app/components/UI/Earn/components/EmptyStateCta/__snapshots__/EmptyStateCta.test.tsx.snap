@@ -35,6 +35,7 @@ exports[`EmptyStateCta renders correctly 1`] = `
     >
       <SvgMock
         color="#1c7e33"
+        fill="currentColor"
         height={20}
         name="Plant"
         style={

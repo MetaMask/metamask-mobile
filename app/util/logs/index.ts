@@ -11,7 +11,7 @@ import { Buffer } from 'buffer';
 import Logger from '../../util/Logger';
 import { RootState } from '../../reducers';
 import Device from '../../util/device';
-import {MetaMetrics} from '../../core/Analytics';
+import { MetaMetrics } from '../../core/Analytics';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/prefer-default-export
@@ -25,15 +25,14 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
 
-  // Remove encrypted vault from logs
-  delete fullState.engine.backgroundState.KeyringController.vault;
+  // Remove Keyring controller data  so that encrypted vault is not included in logs
+  delete fullState.engine.backgroundState.KeyringController;
 
   if (!loggedIn) {
     return JSON.stringify(fullState);
   }
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { KeyringController } = Engine.context as any;
+
+  const { KeyringController } = Engine.context;
   const newState = {
     ...fullState,
     engine: {
@@ -41,8 +40,9 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
       backgroundState: {
         ...fullState.engine.backgroundState,
         KeyringController: {
-          ...fullState.engine.backgroundState.KeyringController,
           keyrings: KeyringController.state.keyrings,
+          isUnlocked: KeyringController.state.isUnlocked,
+          keyringsMetadata: KeyringController.state.keyringsMetadata,
         },
       },
     },
@@ -59,7 +59,9 @@ export const downloadStateLogs = async (
   const appVersion = await getVersion();
   const buildNumber = await getBuildNumber();
   const metrics = MetaMetrics.getInstance();
-  const metaMetricsId = metrics.isEnabled() ? await metrics.getMetaMetricsId() : undefined;
+  const metaMetricsId = metrics.isEnabled()
+    ? await metrics.getMetaMetricsId()
+    : undefined;
   const path =
     RNFS.DocumentDirectoryPath +
     `/state-logs-v${appVersion}-(${buildNumber}).json`;

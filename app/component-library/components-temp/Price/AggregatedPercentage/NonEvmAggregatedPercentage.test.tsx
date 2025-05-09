@@ -72,6 +72,33 @@ const mockMultichainAssetsRatesPositive = {
     },
 };
 
+const mockMultichainAssetsRatesWithNoPercentChange = {
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+    marketData: {
+
+    },
+    rate: '147.98',
+  },
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv':
+    {
+      marketData: {
+        pricePercentChange: {
+          P1D: +2.7,
+        },
+      },
+      rate: '0.00624788',
+    },
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
+    {
+      marketData: {
+        pricePercentChange: {
+          P1D: +0.5,
+        },
+      },
+      rate: '0.999998',
+    },
+};
+
 const mockMultichainAssetsRatesNegative = {
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
     marketData: {
@@ -115,6 +142,20 @@ describe('NonEvmAggregatedPercentage', () => {
     (useSelector as jest.Mock).mockClear();
   });
 
+  it('renders with no crash if pricePercentChange was not found', () => {
+    jest
+      .spyOn(multichain, 'getMultichainNetworkAggregatedBalance')
+      .mockReturnValue(mockGetMultichainNetworkAggregatedBalance);
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectCurrentCurrency) return 'USD';
+      if (selector === selectMultichainAssetsRates)
+        return mockMultichainAssetsRatesWithNoPercentChange;
+    });
+    const {  getByTestId } = render(<NonEvmAggregatedPercentage />);
+
+    expect(getByTestId(FORMATTED_PERCENTAGE_TEST_ID).props.children).toBeDefined();
+  });
+
   it('renders positive percentage change correctly', () => {
     jest
       .spyOn(multichain, 'getMultichainNetworkAggregatedBalance')
@@ -129,7 +170,7 @@ describe('NonEvmAggregatedPercentage', () => {
     expect(getByText('(+1.25%)')).toBeTruthy();
     expect(getByText('+$0.20')).toBeTruthy();
 
-     expect(getByText('(+1.25%)').props.style).toMatchObject({
+    expect(getByText('(+1.25%)').props.style).toMatchObject({
       color: mockTheme.colors.success.default,
     });
   });

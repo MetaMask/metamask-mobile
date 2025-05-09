@@ -13,6 +13,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
 >
   <SvgMock
     color="#121314"
+    fill="currentColor"
     height={24}
     name="Sparkle"
     style={

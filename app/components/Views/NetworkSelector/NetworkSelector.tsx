@@ -520,7 +520,6 @@ const NetworkSelector = () => {
 
       if (isNetworkUiRedesignEnabled() && isNoSearchResults(name)) return null;
 
-      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
       if (isNetworkUiRedesignEnabled()) {

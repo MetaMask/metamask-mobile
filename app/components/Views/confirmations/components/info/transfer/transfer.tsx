@@ -4,12 +4,14 @@ import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { SimulationDetails } from '../../../../../UI/SimulationDetails/SimulationDetails';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
 import FromTo from '../../rows/transactions/from-to';
 import GasFeesDetails from '../../rows/transactions/gas-fee-details';
+import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
 import TokenHero from '../../rows/transactions/token-hero';
 import styleSheet from './transfer.styles';
 
@@ -18,6 +20,7 @@ const Transfer = () => {
   const { styles } = useStyles(styleSheet, {});
   const { trackPageViewedEvent } = useConfirmationMetricEvents();
 
+  useClearConfirmationOnBackSwipe();
   useNavbar(strings('confirm.review'));
   useMaxValueRefresher();
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
@@ -34,6 +37,7 @@ const Transfer = () => {
         />
       </View>
       <GasFeesDetails />
+      <AdvancedDetailsRow />
     </View>
   );
 };

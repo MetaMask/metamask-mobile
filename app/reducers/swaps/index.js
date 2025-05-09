@@ -88,7 +88,8 @@ export const swapsSmartTxFlagEnabled = createSelector(
  */
 export const selectSwapsChainFeatureFlags = createSelector(
   swapsStateSelector,
-  chainIdSelector,
+  (_state, transactionChainId) =>
+    transactionChainId || selectEvmChainId(_state),
   (swapsState, chainId) => ({
     ...swapsState[chainId].featureFlags,
     smartTransactions: {

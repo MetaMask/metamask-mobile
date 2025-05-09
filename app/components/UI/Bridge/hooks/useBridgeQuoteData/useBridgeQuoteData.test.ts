@@ -18,6 +18,7 @@ jest.mock('../../utils/quoteUtils', () => ({
 
 const mockSelectPrimaryCurrency = jest.fn();
 jest.mock('../../../../../selectors/settings', () => ({
+  ...jest.requireActual('../../../../../selectors/settings'),
   selectPrimaryCurrency: () => mockSelectPrimaryCurrency(),
 }));
 
@@ -62,7 +63,7 @@ describe('useBridgeQuoteData', () => {
     expect(result.current).toEqual({
       activeQuote: mockQuoteWithMetadata,
       bestQuote: mockQuoteWithMetadata,
-      destTokenAmount: '57.06',
+      destTokenAmount: '57.056221',
       formattedQuoteData: {
         networkFee: '-',
         estimatedTime: '1 min',

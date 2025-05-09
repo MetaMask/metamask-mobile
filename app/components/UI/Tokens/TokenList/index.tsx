@@ -19,8 +19,14 @@ import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/Wall
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 
+export interface FlashListAssetKey {
+  address: string;
+  chainId: string | undefined;
+  isStaked: boolean | undefined;
+}
+
 interface TokenListProps {
-  tokenKeys: { address: string; chainId: string | undefined }[];
+  tokenKeys: FlashListAssetKey[];
   refreshing: boolean;
   isAddTokenEnabled: boolean;
   onRefresh: () => void;
@@ -46,18 +52,17 @@ export const TokenList = ({
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
-  const listRef =
-    useRef<FlashList<{ address: string; chainId: string | undefined }>>(null);
+  const listRef = useRef<FlashList<FlashListAssetKey>>(null);
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
   const { width: deviceWidth } = Dimensions.get('window');
 
-  const itemHeight = 80; // Adjust this to match TokenListItem height
+  const itemHeight = 70; // Adjust this to match TokenListItem height
+  const numberOfItemsOnScreen = 6; // Adjust this to match number of items on screen
 
-  const listLength = tokenKeys.length;
-  const estimatedListHeight = itemHeight * listLength;
+  const estimatedListHeight = itemHeight * numberOfItemsOnScreen;
 
   useLayoutEffect(() => {
     listRef.current?.recomputeViewableItems();
@@ -70,7 +75,7 @@ export const TokenList = ({
   };
 
   const renderTokenListItem = useCallback(
-    ({ item }: { item: { address: string; chainId: string | undefined } }) => (
+    ({ item }: { item: FlashListAssetKey }) => (
       <TokenListItem
         assetKey={item}
         showRemoveMenu={showRemoveMenu}
@@ -100,8 +105,13 @@ export const TokenList = ({
         itemVisiblePercentThreshold: 50,
         minimumViewTime: 1000,
       }}
+      decelerationRate={0}
+      disableAutoLayout
       renderItem={renderTokenListItem}
-      keyExtractor={(item) => `${item.address}-${item.chainId}`}
+      keyExtractor={(item) => {
+        const staked = item.isStaked ? 'staked' : 'unstaked';
+        return `${item.address}-${item.chainId}-${staked}`;
+      }}
       ListFooterComponent={
         <TokenListFooter
           goToAddToken={goToAddToken}
@@ -116,7 +126,7 @@ export const TokenList = ({
           onRefresh={onRefresh}
         />
       }
-      extraData={{ isTokenNetworkFilterEqualCurrentNetwork, listLength }}
+      extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
     />
   ) : (
     <View style={styles.emptyView}>

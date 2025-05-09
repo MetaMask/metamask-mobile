@@ -152,9 +152,9 @@ export const Browser = (props) => {
   }, [tabs, activeTabId, updateTab]);
 
   useEffect(() => {
-    const checkIfActiveAccountChanged = async () => {
+    const checkIfActiveAccountChanged = () => {
       const hostname = new URL(browserUrl).hostname;
-      const permittedAccounts = await getPermittedAccounts(hostname);
+      const permittedAccounts = getPermittedAccounts(hostname);
       const activeAccountAddress = permittedAccounts?.[0];
 
       if (activeAccountAddress) {
@@ -375,7 +375,6 @@ export const Browser = (props) => {
       homePageUrl={homePageUrl()}
     />
   )), [tabs, route.params?.showTabs, newTab, homePageUrl, updateTabInfo, showTabs]);
-
 
   return (
     <View

@@ -708,6 +708,58 @@ describe('Multichain Selectors', () => {
         result.find((token) => token.chainId === '0xaa36a7'),
       ).toBeUndefined();
     });
+
+    it('should render native and staked assets in state when no erc20 tokens are present', () => {
+      const nativeAndStakedTestState = {
+        ...mockState,
+        engine: {
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            TokensController: {
+              allTokens: {},
+            },
+            AccountTrackerController: {
+              accountsByChainId: {
+                [ETH_CHAIN_ID]: {
+                  '0xAddress1': {
+                    balance: '0x1',
+                    stakedBalance: '0x2',
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectEvmTokens(nativeAndStakedTestState);
+      expect(result).toBeDefined();
+      expect(result.length).toBe(3);
+
+      // Check for Staked Ethereum
+      const stakedEth = result.find(
+        (token) => token.isStaked && token.chainId === ETH_CHAIN_ID,
+      );
+      expect(stakedEth).toBeDefined();
+      expect(stakedEth?.chainId).toBe(ETH_CHAIN_ID);
+      expect(stakedEth?.name).toBe('Staked Ethereum');
+
+      // Check for Native Ethereum
+      const nativeEth = result.find(
+        (token) => !token.isStaked && token.chainId === ETH_CHAIN_ID,
+      );
+      expect(nativeEth).toBeDefined();
+      expect(nativeEth?.chainId).toBe(ETH_CHAIN_ID);
+      expect(nativeEth?.name).toBe('Ethereum');
+
+      // Check for Native Polygon
+      const nativePol = result.find(
+        (token) => !token.isStaked && token.chainId === POLYGON_CHAIN_ID,
+      );
+      expect(nativePol).toBeDefined();
+      expect(nativePol?.chainId).toBe(POLYGON_CHAIN_ID);
+      expect(nativePol?.name).toBe('POL');
+    });
   });
 
   describe('makeSelectAssetByAddressAndChainId', () => {

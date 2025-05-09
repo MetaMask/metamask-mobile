@@ -7,6 +7,7 @@ import reducer, {
   SWAPS_SET_HAS_ONBOARDED,
   swapsSmartTxFlagEnabled,
   swapsTokensObjectSelector,
+  selectSwapsChainFeatureFlags,
 } from './index';
 import { NetworkClientType } from '@metamask/network-controller';
 // eslint-disable-next-line import/no-namespace
@@ -326,6 +327,141 @@ describe('swaps reducer', () => {
     });
   });
 
+  describe('selectSwapsChainFeatureFlags', () => {
+    const createTestState = ({
+      selectedChainId = '0x1',
+      globalFeatureFlags = {},
+      chainFeatureFlags = {},
+    } = {}) => ({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networkConfigurations: {
+              mainnet: {
+                id: 'mainnet',
+                chainId: selectedChainId,
+              },
+            },
+            getNetworkClientById: () => ({
+              configuration: {
+                chainId: selectedChainId,
+              },
+            }),
+          },
+        },
+      },
+      swaps: {
+        featureFlags: globalFeatureFlags,
+        ...Object.entries(chainFeatureFlags).reduce(
+          (acc, [chainId, flags]) => ({ ...acc, [chainId]: { featureFlags: flags } }),
+          {}
+        ),
+      },
+    });
+
+    it('should return chain feature flags with merged smartTransactions from global flags', () => {
+      const globalFlags = {
+        smartTransactions: {
+          mobileActive: true,
+          extensionActive: true,
+          globalSetting: true,
+        },
+      };
+      
+      const chainFlags = {
+        '0x1': {
+          fallbackToV1: false,
+          mobileActive: true,
+          smartTransactions: {
+            chainSpecificSetting: true,
+          },
+        },
+      };
+      
+      const rootState = createTestState({
+        globalFeatureFlags: globalFlags,
+        chainFeatureFlags: chainFlags,
+      });
+      
+      const result = selectSwapsChainFeatureFlags(rootState);
+      expect(result).toEqual({
+        fallbackToV1: false,
+        mobileActive: true,
+        smartTransactions: {
+          chainSpecificSetting: true,
+          globalSetting: true,
+          mobileActive: true,
+          extensionActive: true,
+        },
+      });
+    });
+
+    it('should use provided transactionChainId instead of current chainId', () => {
+      const rootState = createTestState({
+        globalFeatureFlags: {
+          smartTransactions: {
+            globalSetting: true,
+          },
+        },
+        chainFeatureFlags: {
+          '0x1': {
+            mainnetFlag: true,
+          },
+          '0x5': {
+            goerliFlag: true,
+            smartTransactions: {
+              goerliSetting: true,
+            },
+          },
+        },
+      });
+
+      const chainFlags = selectSwapsChainFeatureFlags(rootState, '0x5');
+      expect(chainFlags).toEqual({
+        goerliFlag: true,
+        smartTransactions: {
+          goerliSetting: true,
+          globalSetting: true,
+        },
+      });
+    });
+
+    it('should handle missing feature flags gracefully', () => {
+      const rootState = createTestState({
+        globalFeatureFlags: {
+          smartTransactions: {
+            globalSetting: true,
+          },
+        },
+        chainFeatureFlags: {
+          '0x1': {},  // Empty feature flags
+        },
+      });
+
+      const chainFlags = selectSwapsChainFeatureFlags(rootState);
+      expect(chainFlags).toEqual({
+        smartTransactions: {
+          globalSetting: true,
+        },
+      });
+    });
+
+    it('should throw when no chain entry exists', () => {
+      const rootState = createTestState({
+        selectedChainId: '0x89',  // Chain ID not in swaps state
+        globalFeatureFlags: {
+          smartTransactions: {
+            globalSetting: true,
+          },
+        },
+        // No chain feature flags for 0x89
+      });
+
+      expect(() => selectSwapsChainFeatureFlags(rootState)).toThrow();
+    });
+  });
+
   describe('swapsTokensObjectSelector', () => {
     it('should return a object that returns an object combining TokensController and SwapsController tokens where each key is an address and each value is undefined', () => {
       jest.spyOn(tokensControllerSelectors, 'selectTokens').mockReturnValue([
@@ -405,3 +541,4 @@ describe('swaps reducer', () => {
     expect(liveState.hasOnboarded).toBe(true);
   });
 });
+

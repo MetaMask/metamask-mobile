@@ -63,9 +63,17 @@ class AccountListBottomSheet {
     return Matchers.getElementByID(CellComponentSelectorsIDs.MULTISELECT, index);
   }
 
-  getSelectWithMenuElement(index) {
+  /**
+   * Retrieves the title/name of an element using the `cellbase-avatar-title` ID.
+   * Note: The `select-with-menu` ID element seems to never receive the tap event, 
+   * so this method fetches the title/name instead.
+   *
+   * @param {number} index - The index of the element to retrieve.
+   * @returns {Detox.IndexableNativeElement} The matcher for the element's title/name.
+   */
+  getSelectWithMenuElementName(index) {
     return Matchers.getElementByID(
-      CellComponentSelectorsIDs.SELECT_WITH_MENU,
+      CellComponentSelectorsIDs.BASE_TITLE,
       index,
     );
   }
@@ -85,11 +93,11 @@ class AccountListBottomSheet {
   }
 
   async tapToSelectActiveAccountAtIndex(index) {
-    await Gestures.tap(this.getSelectWithMenuElement(index));
+    await Gestures.tap(this.getSelectWithMenuElementName(index));
   }
 
   async longPressAccountAtIndex(index) {
-    await Gestures.tapAndLongPress(this.getSelectWithMenuElement(index));
+    await Gestures.tapAndLongPress(this.getSelectWithMenuElementName(index));
   }
 
   async tapAddAccountButton() {

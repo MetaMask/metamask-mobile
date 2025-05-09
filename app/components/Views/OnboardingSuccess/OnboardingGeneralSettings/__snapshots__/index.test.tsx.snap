@@ -129,11 +129,10 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             }
           }
         >
-          Profile Sync
+          Backup and sync
         </Text>
         <RCTSwitch
           accessibilityRole="switch"
-          disabled={true}
           onChange={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
@@ -150,6 +149,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
               },
             ]
           }
+          testID="toggle-backupAndSync"
           thumbTintColor="#ffffff"
           tintColor="#b7bbc866"
           value={false}
@@ -168,7 +168,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           }
         }
       >
-        Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. 
+        Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask.
         <Text
           accessibilityRole="text"
           onPress={[Function]}
@@ -248,10 +248,28 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
               "lineHeight": 24,
             }
           }
+          testID="privacy-policy-link"
         >
           Privacy policy
         </Text>
-         to learn more about how Infura handles data.
+         to learn more about how Infura handles data for EVM accounts, for Solana accounts 
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+          testID="solana-privacy-policy-link"
+        >
+          click here.
+        </Text>
       </Text>
       <TouchableOpacity
         disabled={false}
@@ -327,6 +345,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
         </Text>
         <SvgMock
           color="#121314"
+          fill="currentColor"
           height={12}
           name="ArrowDown"
           style={

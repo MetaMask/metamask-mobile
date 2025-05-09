@@ -1,8 +1,7 @@
-import { useRoute, RouteProp } from '@react-navigation/native';
 import { setSourceToken } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useRef } from 'react';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken } from '../../types';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
@@ -28,14 +27,7 @@ const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   return nativeSourceTokenFormatted;
 };
 
-export interface BridgeRouteParams {
-  token: BridgeToken;
-  sourcePage: string;
-  bridgeViewMode: BridgeViewMode;
-}
-
-export const useInitialSourceToken = () => {
-  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
+export const useInitialSourceToken = (initialSourceToken?: BridgeToken) => {
   const dispatch = useDispatch();
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -57,8 +49,6 @@ export const useInitialSourceToken = () => {
     selectedChainId,
     selectedNetworkName,
   });
-
-  const initialSourceToken = route.params?.token;
 
   useEffect(() => {
     if (hasSetInitialSourceToken.current) return;

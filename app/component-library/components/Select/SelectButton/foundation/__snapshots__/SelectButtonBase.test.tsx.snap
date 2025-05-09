@@ -233,6 +233,7 @@ exports[`SelectButtonBase should render snapshot correctly 1`] = `
   <View>
     <SvgMock
       color="#121314"
+      fill="currentColor"
       height={20}
       name="ArrowDown"
       style={

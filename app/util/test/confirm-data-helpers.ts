@@ -949,7 +949,7 @@ export const transferConfirmationState = merge(
       backgroundState: {
         TransactionController: {
           transactions: [
-            { 
+            {
               type: TransactionType.simpleSend,
               txParams: {
                 from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',

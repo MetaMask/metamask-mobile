@@ -142,6 +142,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={16}
         name="Close"
         style={

@@ -117,7 +117,7 @@ describe('SmartTransactionsMigrationBanner', () => {
 
    it('opens URL and dismisses banner when learn more link is pressed', () => {
      const store = mockStore({});
-     
+
      const { getByText } = render(
        <Provider store={store}>
          <SmartTransactionsMigrationBanner />
@@ -125,7 +125,7 @@ describe('SmartTransactionsMigrationBanner', () => {
      );
 
      fireEvent.press(getByText('smart_transactions_migration.link'));
-     
+
      expect(mockOpenURL).toHaveBeenCalledTimes(1);
      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.SMART_TXS);
      expect(mockSetFeatureFlag).toHaveBeenCalledWith(

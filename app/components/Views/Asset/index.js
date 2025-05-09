@@ -20,8 +20,6 @@ import AppConstants from '../../../core/AppConstants';
 import {
   getFeatureFlagChainId,
   setSwapsLiveness,
-  swapsLivenessMultichainSelector,
-  swapsLivenessSelector,
   swapsTokensMultiChainObjectSelector,
   swapsTokensObjectSelector,
 } from '../../../reducers/swaps';
@@ -69,12 +67,10 @@ import {
 } from '../../../selectors/transactionController';
 import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
-import {
-  isAssetFromSearch,
-  selectSupportedSwapTokenAddressesForChainId,
-} from '../../../selectors/tokenSearchDiscoveryDataController';
+import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { selectIsBridgeEnabledSource } from '../../../core/redux/slices/bridge';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -187,10 +183,6 @@ class Asset extends PureComponent {
      * Function to set the swaps liveness
      */
     setLiveness: PropTypes.func,
-    /**
-     * Boolean that indicates if bridge is enabled for the source chain
-     */
-    isBridgeEnabledSource: PropTypes.bool,
   };
 
   state = {
@@ -525,25 +517,22 @@ class Asset extends PureComponent {
     const styles = createStyles(colors);
     const asset = navigation && params;
     const isSwapsFeatureLive = this.props.swapsIsLive;
-    const isNetworkAllowed = isPortfolioViewEnabled()
+    const isSwapsNetworkAllowed = isPortfolioViewEnabled()
       ? isSwapsAllowed(asset.chainId)
       : isSwapsAllowed(chainId);
 
-    let isAssetAllowed;
-    if (asset.isETH || asset.isNative) {
-      isAssetAllowed = true;
-    } else if (isAssetFromSearch(asset)) {
-      isAssetAllowed = this.props.searchDiscoverySwapsTokens?.includes(
-        asset.address?.toLowerCase(),
-      );
-    } else {
-      isAssetAllowed = asset.address?.toLowerCase() in this.props.swapsTokens;
-    }
+    const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
+      asset,
+      searchDiscoverySwapsTokens: this.props.searchDiscoverySwapsTokens,
+      swapsTokens: this.props.swapsTokens,
+    });
 
     const displaySwapsButton =
-      isNetworkAllowed && isAssetAllowed && AppConstants.SWAPS.ACTIVE;
+      isSwapsNetworkAllowed && isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
-    const displayBridgeButton = this.props.isBridgeEnabledSource;
+    const displayBridgeButton = isPortfolioViewEnabled()
+      ? isBridgeAllowed(asset.chainId)
+      : isBridgeAllowed(chainId);
 
     const displayBuyButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
@@ -592,9 +581,7 @@ class Asset extends PureComponent {
 Asset.contextType = ThemeContext;
 
 const mapStateToProps = (state, { route }) => ({
-  swapsIsLive: isPortfolioViewEnabled()
-    ? swapsLivenessMultichainSelector(state, route.params.chainId)
-    : swapsLivenessSelector(state),
+  swapsIsLive: getSwapsIsLive(state, route.params.chainId),
   swapsTokens: isPortfolioViewEnabled()
     ? swapsTokensMultiChainObjectSelector(state)
     : swapsTokensObjectSelector(state),
@@ -620,10 +607,6 @@ const mapStateToProps = (state, { route }) => ({
     getRampNetworks(state),
   ),
   networkClientId: selectNetworkClientId(state),
-  isBridgeEnabledSource: selectIsBridgeEnabledSource(
-    state,
-    route.params.chainId,
-  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

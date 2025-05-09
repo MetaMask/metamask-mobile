@@ -71,7 +71,7 @@ const NonEvmAggregatedPercentage = ({
       (total1dAgo: number, item: { id: CaipAssetType; fiatAmount: number }) => {
         const pricePercentChange1d =
           multichainAssetsRates?.[item.id]?.marketData?.pricePercentChange
-            .P1D ?? 0;
+            ?.P1D ?? 0;
         const splTokenFiat1dAgo = getCalculatedTokenAmount1dAgo(
           Number(item.fiatAmount),
           pricePercentChange1d,

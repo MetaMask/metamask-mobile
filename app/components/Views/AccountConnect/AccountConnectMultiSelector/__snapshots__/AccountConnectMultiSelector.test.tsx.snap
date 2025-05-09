@@ -49,6 +49,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
         >
           <SvgMock
             color="#121314"
+            fill="currentColor"
             height={16}
             name="ArrowLeft"
             style={
@@ -123,6 +124,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               "opacity": 1,
             }
           }
+          testID="select-all-button"
         >
           <View
             accessibilityRole="checkbox"
@@ -141,6 +143,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={20}
               name="MinusBold"
               onPress={[Function]}
@@ -150,7 +153,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                   "width": 20,
                 }
               }
-              testID="checkbox-icon-component"
+              testID="select-all-button"
               width={20}
             />
           </View>
@@ -296,6 +299,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                   >
                     <SvgMock
                       color="#ffffff"
+                      fill="currentColor"
                       height={20}
                       name="CheckBold"
                       onPressIn={[Function]}
@@ -650,7 +654,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             accessibilityRole="button"
             accessible={true}
             activeOpacity={1}
-            disabled={true}
+            disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
@@ -664,7 +668,6 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
-                "opacity": 0.5,
                 "paddingHorizontal": 16,
               }
             }

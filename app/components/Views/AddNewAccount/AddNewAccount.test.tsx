@@ -62,6 +62,10 @@ const mockMultichainWalletSnapClient = {
 
 jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../../../core/SnapKeyring/MultichainWalletSnapClient'),
+  WalletClientType: {
+    Bitcoin: 'bitcoin',
+    Solana: 'solana',
+  },
   MultichainWalletSnapFactory: {
     createClient: jest
       .fn()

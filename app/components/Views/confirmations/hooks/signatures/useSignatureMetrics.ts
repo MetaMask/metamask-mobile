@@ -14,7 +14,7 @@ import { getSignatureDecodingEventProps } from '../../utils/signature-metrics';
 import { useSignatureRequest } from './useSignatureRequest';
 import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';
 import { useTypedSignSimulationEnabled } from './useTypedSignSimulationEnabled';
-import { parseTypedDataMessageFromSignatureRequest } from '../../utils/signature';
+import { parseAndNormalizeSignTypedDataFromSignatureRequest } from '../../utils/signature';
 import { useSelector } from 'react-redux';
 import { selectConfirmationMetricsById } from '../../../../../core/redux/slices/confirmationMetrics';
 import { RootState } from '../../../../../reducers';
@@ -66,7 +66,7 @@ export const useSignatureMetrics = () => {
 
   const { chainId, decodingData, decodingLoading, messageParams, type, id } =
     signatureRequest ?? {};
-  const { primaryType } = parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
+  const { primaryType } = parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
 
   const confirmationMetrics = useSelector((state: RootState) =>
     selectConfirmationMetricsById(state, id ?? '')

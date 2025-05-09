@@ -138,6 +138,7 @@ exports[`NetworksSettings should render correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -648,7 +649,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                       }
                                     }
                                   >
-                                    Solana Mainnet
+                                    Solana
                                   </Text>
                                 </View>
                               </View>

@@ -10,7 +10,10 @@ import {
   renderFromWei,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import { selectEvmTicker } from '../../../selectors/networkController';
+import {
+  selectEvmTicker,
+  selectSelectedNetworkClientId,
+} from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -29,6 +32,7 @@ const useAddressBalance = (
     selectSelectedInternalAccountFormattedAddress,
   );
   const ticker = useSelector(selectEvmTicker);
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   useEffect(() => {
     if (asset && !asset.isETH && !asset.tokenId) {
@@ -54,6 +58,7 @@ const useAddressBalance = (
           decimals,
           image,
           name,
+          networkClientId: selectedNetworkClientId,
         });
       }
     }
