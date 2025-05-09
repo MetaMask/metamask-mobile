@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useRef, useMemo } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   Alert,
   InteractionManager,
@@ -40,7 +40,6 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './CaipAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
-import Logger from '../../../util/Logger';
 import { CaipAccountId } from '@metamask/utils';
 import { parseAccountId } from '@walletconnect/utils';
 
@@ -127,7 +126,6 @@ const CaipAccountSelectorList = ({
       isSelected: boolean;
       caipAccountId: CaipAccountId;
     }) => {
-      console.log({isAccountRemoveable, isRemoveAccountEnabled})
       if (!isAccountRemoveable || !isRemoveAccountEnabled) return;
       Alert.alert(
         strings('accounts.remove_account_title'),
@@ -148,13 +146,12 @@ const CaipAccountSelectorList = ({
                 if (isSelected) {
                   nextActiveAddress = accounts.find(acc => acc.caipAccountId !== caipAccountId)?.address || '';
                 } else {
-                  const nextSelectedCaipAccountId = selectedAddresses.find(address => address !== caipAccountId)
+                  const nextSelectedCaipAccountId = selectedAddresses.find(selectedAddress => selectedAddress !== caipAccountId);
                   let nextSelectedAddress: string | undefined;
                   if (nextSelectedCaipAccountId) {
-                    const {address} = parseAccountId(nextSelectedCaipAccountId)
-                    nextSelectedAddress = address;
+                    ({address: nextSelectedAddress} = parseAccountId(nextSelectedCaipAccountId));
                   }
-                  const selectedAccountAddress = accounts.find((acc) => acc.isSelected)?.address
+                  const selectedAccountAddress = accounts.find((acc) => acc.isSelected)?.address;
                   nextActiveAddress = nextSelectedAddress || selectedAccountAddress || '';
                 }
 
@@ -231,7 +228,6 @@ const CaipAccountSelectorList = ({
       }
 
       const handleLongPress = () => {
-        console.log('long press')
         onLongPress({
           address,
           isAccountRemoveable:
@@ -242,7 +238,6 @@ const CaipAccountSelectorList = ({
       };
 
       const handlePress = () => {
-        console.log('press', { name, address, assets, type, balanceError, caipAccountId })
         onSelectAccount?.(caipAccountId, isSelectedAccount);
       };
 

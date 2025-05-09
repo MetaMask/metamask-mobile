@@ -216,7 +216,6 @@ const CaipAccountSelectorListUseAccounts: React.FC<CaipAccountSelectorListProps>
     setAccountsMock(defaultAccountsMock);
   }
   const { accounts, ensByAccountAddress } = useAccounts();
-  console.log({accounts})
   return (
     <CaipAccountSelectorList
       onSelectAccount={onSelectAccount}
