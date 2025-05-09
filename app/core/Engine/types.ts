@@ -35,6 +35,8 @@ import {
   AssetsContractControllerEvents,
   DeFiPositionsController,
   DeFiPositionsControllerState,
+  DeFiPositionsControllerEvents,
+  DeFiPositionsControllerActions,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
   MultichainBalancesController,
@@ -210,9 +212,7 @@ import {
   AccountsControllerEvents,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
-import {
-  getPermissionSpecifications,
-} from '../Permissions/specifications.js';
+import { getPermissionSpecifications } from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
@@ -356,7 +356,8 @@ type GlobalActions =
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | EarnControllerActions
-  | AppMetadataControllerActions;
+  | AppMetadataControllerActions
+  | DeFiPositionsControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -407,7 +408,8 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
-  | AppMetadataControllerEvents;
+  | AppMetadataControllerEvents
+  | DeFiPositionsControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
