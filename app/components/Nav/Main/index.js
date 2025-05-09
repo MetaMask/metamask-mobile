@@ -457,6 +457,7 @@ const Main = (props) => {
         <ProtectWalletMandatoryModal />
         <InfoNetworkModal />
         <RootRPCMethodsUI navigation={props.navigation} />
+        <PendingDeeplinkHandler />
       </View>
     </React.Fragment>
   );
@@ -561,11 +562,6 @@ const MainFlow = () => (
     <Stack.Screen
       name={'ReviewModal'}
       component={ReviewModal}
-      options={{ animationEnabled: false }}
-    />
-    <Stack.Screen
-      name={'PendingDeeplinkHandler'}
-      component={PendingDeeplinkHandler}
       options={{ animationEnabled: false }}
     />
   </Stack.Navigator>

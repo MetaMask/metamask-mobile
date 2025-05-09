@@ -1,31 +1,26 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import PendingDeeplinkHandler from './';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
-// Mock the dependencies
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    dangerouslyGetState: () => ({
-      routes: [{ name: 'Home' }],
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      dangerouslyGetState: () => ({
+        routes: [{ name: 'Home' }],
+      }),
     }),
-  }),
-}));
+  };
+});
 
 jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
   getPendingDeeplink: jest.fn(),
   expireDeeplink: jest.fn(),
   parse: jest.fn(),
-}));
-
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      isUnlocked: jest.fn(),
-    },
-  },
 }));
 
 describe('PendingDeeplinkHandler', () => {
@@ -34,7 +29,18 @@ describe('PendingDeeplinkHandler', () => {
   });
 
   it('should render an empty View', () => {
-    const { toJSON } = render(<PendingDeeplinkHandler />);
+    const { toJSON } = renderWithProvider(<PendingDeeplinkHandler />, {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              isUnlocked: true,
+            },
+          },
+        },
+      },
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -43,11 +49,19 @@ describe('PendingDeeplinkHandler', () => {
     (DeeplinkManager.getPendingDeeplink as jest.Mock).mockReturnValue(
       mockPendingDeeplink,
     );
-    (Engine.context.KeyringController.isUnlocked as jest.Mock).mockReturnValue(
-      true,
-    );
 
-    render(<PendingDeeplinkHandler />);
+    renderWithProvider(<PendingDeeplinkHandler />, {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              isUnlocked: true,
+            },
+          },
+        },
+      },
+    });
 
     expect(DeeplinkManager.getPendingDeeplink).toHaveBeenCalled();
     expect(DeeplinkManager.expireDeeplink).toHaveBeenCalled();
@@ -61,11 +75,19 @@ describe('PendingDeeplinkHandler', () => {
     (DeeplinkManager.getPendingDeeplink as jest.Mock).mockReturnValue(
       mockPendingDeeplink,
     );
-    (Engine.context.KeyringController.isUnlocked as jest.Mock).mockReturnValue(
-      false,
-    );
 
-    render(<PendingDeeplinkHandler />);
+    renderWithProvider(<PendingDeeplinkHandler />, {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              isUnlocked: false,
+            },
+          },
+        },
+      },
+    });
 
     expect(DeeplinkManager.getPendingDeeplink).toHaveBeenCalled();
     expect(DeeplinkManager.expireDeeplink).not.toHaveBeenCalled();
@@ -76,9 +98,6 @@ describe('PendingDeeplinkHandler', () => {
     const mockPendingDeeplink = 'metamask://test';
     (DeeplinkManager.getPendingDeeplink as jest.Mock).mockReturnValue(
       mockPendingDeeplink,
-    );
-    (Engine.context.KeyringController.isUnlocked as jest.Mock).mockReturnValue(
-      true,
     );
 
     // Mock navigation state to be on lock screen
@@ -91,7 +110,18 @@ describe('PendingDeeplinkHandler', () => {
         }),
       });
 
-    render(<PendingDeeplinkHandler />);
+    renderWithProvider(<PendingDeeplinkHandler />, {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              isUnlocked: true,
+            },
+          },
+        },
+      },
+    });
 
     expect(DeeplinkManager.getPendingDeeplink).toHaveBeenCalled();
     expect(DeeplinkManager.expireDeeplink).not.toHaveBeenCalled();
@@ -100,11 +130,19 @@ describe('PendingDeeplinkHandler', () => {
 
   it('not process deeplink when there is no pending deeplink', () => {
     (DeeplinkManager.getPendingDeeplink as jest.Mock).mockReturnValue(null);
-    (Engine.context.KeyringController.isUnlocked as jest.Mock).mockReturnValue(
-      true,
-    );
 
-    render(<PendingDeeplinkHandler />);
+    renderWithProvider(<PendingDeeplinkHandler />, {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              isUnlocked: true,
+            },
+          },
+        },
+      },
+    });
 
     expect(DeeplinkManager.getPendingDeeplink).toHaveBeenCalled();
     expect(DeeplinkManager.expireDeeplink).not.toHaveBeenCalled();
