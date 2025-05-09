@@ -37,6 +37,7 @@ export const WALLET_SNAP_MAP = {
 
 export interface MultichainWalletSnapOptions {
   scope: CaipChainId;
+  synchronize?: boolean;
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   entropySource?: string;
   accountNameSuggestion?: string;
@@ -109,6 +110,9 @@ export abstract class MultichainWalletSnapClient {
    *
    */
   async createAccount(options: MultichainWalletSnapOptions) {
+    if (this.snapId === BITCOIN_WALLET_SNAP_ID) {
+      options.synchronize = true;
+    }
     // This flow is async and start here, to end in the `SnapKeyring.addAccountFinalize` method.
     store.dispatch(
       startPerformanceTrace({
