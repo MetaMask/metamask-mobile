@@ -216,7 +216,6 @@ export enum IconName {
   Mail = 'Mail',
   Map = 'Map',
   Menu = 'Menu',
-  MetamaskFox = 'MetamaskFox',
   MessageQuestion = 'MessageQuestion',
   Messages = 'Messages',
   Mic = 'Mic',

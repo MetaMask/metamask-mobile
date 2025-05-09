@@ -16,6 +16,10 @@ const styleSheet = (params: { theme: Theme }) => {
     label: {
       marginLeft: 8,
     },
+    image: {
+      height: 20,
+      width: 20,
+    },
   });
 };
 
