@@ -15,9 +15,6 @@ const styleSheet = () =>
     contentWrapper: {
       marginLeft: 20,
     },
-    protocolNameText: {
-      marginLeft: 20,
-    },
     balance: {
       flex: 1,
       alignItems: 'flex-end',
