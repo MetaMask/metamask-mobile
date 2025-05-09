@@ -67,6 +67,7 @@ exports[`DepositReceiveSection renders correctly 1`] = `
       >
         <SvgMock
           color="#686e7d"
+          fill="currentColor"
           height={16}
           name="Info"
           style={
