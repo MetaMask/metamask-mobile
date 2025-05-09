@@ -108,6 +108,8 @@ export const recreateVaultWithNewPassword = async (
 
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   const { SeedlessOnboardingController } = Engine.context;
+  await SeedlessOnboardingController.changePassword(newPassword, password);
+
   // TODO: Fix with latest controller isCompleted
   if (
     ReduxService.store.getState().engine.backgroundState
