@@ -508,6 +508,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.BROWSER_VIEW,
+      unmountOnBlur: true,
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
@@ -519,6 +520,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
+      unmountOnBlur: true,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
