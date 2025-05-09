@@ -28,7 +28,7 @@ import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { appendURLParams } from '../../../util/browser';
+import { appendURLParams, isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { THUMB_WIDTH, THUMB_HEIGHT, IDLE_TIME_CALC_INTERVAL, IDLE_TIME_MAX } from './constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
@@ -83,11 +83,13 @@ export const Browser = (props) => {
     // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
     if (tabs.length >= MAX_BROWSER_TABS) {
       navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
-    } else {
+    } else if (isTokenDiscoveryBrowserEnabled()) {
       // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+      createNewTab(url, linkType);
+    } else {
       createNewTab(url || homePageUrl(), linkType);
     }
-  }, [tabs, navigation, homePageUrl, createNewTab]);
+  }, [tabs, navigation, createNewTab, homePageUrl]);
 
   const updateTabInfo = useCallback((tabID, info) => {
     updateTab(tabID, info);

@@ -12,6 +12,7 @@ import {
   ImageSourcePropType,
   KeyboardAvoidingView,
   Platform,
+  Text,
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -30,6 +31,7 @@ import {
   getAlertMessage,
   allowLinkOpen,
   getUrlObj,
+  isTokenDiscoveryBrowserEnabled,
 } from '../../../util/browser';
 import {
   SPA_urlChangeListener,
@@ -119,6 +121,7 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
+import { TokenDiscovery } from '../TokenDiscovery';
 import { toHex } from '@metamask/controller-utils';
 
 /**
@@ -141,6 +144,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   homePageUrl,
   activeChainId,
 }) => {
+  const [firstUrl, setFirstUrl] = useState(initialUrl);
   // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -174,6 +178,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
   //const [resolvedUrl, setResolvedUrl] = useState('');
   const resolvedUrlRef = useRef('');
+  const isLastSelectedTokenRef = useRef(false);
   // Tracks currently loading URL to prevent phishing alerts when user navigates away from malicious sites before detection completes
   const loadingUrlRef = useRef('');
   const submittedUrlRef = useRef('');
@@ -496,7 +501,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
    */
   useEffect(() => {
-    if (!isTabActive || isWebViewReadyToLoad.current) return;
+    if (
+      !isTabActive ||
+      (isTokenDiscoveryBrowserEnabled() && !firstUrl) ||
+      isWebViewReadyToLoad.current
+    ) {
+      return;
+    }
 
     isWebViewReadyToLoad.current = true;
 
@@ -507,7 +518,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
     getEntryScriptWeb3();
     handleFirstUrl();
-  }, [isTabActive, handleFirstUrl]);
+  }, [isTabActive, handleFirstUrl, firstUrl]);
 
   // Cleanup bridges when tab is closed
   useEffect(
@@ -1085,15 +1096,26 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     [handleIpfsContent, setIsResolvedIpfsUrl],
   );
 
+  /**
+   * Hide the autocomplete results
+   */
+  const hideAutocomplete = useCallback(
+    () => autocompleteRef.current?.hide(),
+    [],
+  );
+
   const onSubmitEditing = useCallback(
     async (text: string) => {
       if (!text) return;
+
+      isLastSelectedTokenRef.current = false;
+      hideAutocomplete();
+      // Format url for browser to be navigatable by webview
+      const processedUrl = processUrlForBrowser(text, searchEngine);
       setConnectionType(ConnectionType.UNKNOWN);
       urlBarRef.current?.setNativeProps({ text });
       submittedUrlRef.current = text;
       webviewRef.current?.stopLoading();
-      // Format url for browser to be navigatable by webview
-      const processedUrl = processUrlForBrowser(text, searchEngine);
       if (isENSUrl(processedUrl, ensIgnoreListRef.current)) {
         const handledEnsUrl = await handleEnsUrl(
           processedUrl.replace(regex.urlHttpToHttps, 'https://'),
@@ -1106,6 +1128,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           return;
         }
         return onSubmitEditingRef.current(handledEnsUrl);
+      } else if (isTokenDiscoveryBrowserEnabled() && !firstUrl) {
+        setFirstUrl(processedUrl);
+        return;
       }
       // Directly update url in webview
       webviewRef.current?.injectJavaScript(`
@@ -1113,7 +1138,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       true;  // Required for iOS
     `);
     },
-    [searchEngine, handleEnsUrl, setConnectionType],
+    [searchEngine, handleEnsUrl, setConnectionType, firstUrl, hideAutocomplete],
   );
 
   // Assign the memoized function to the ref. This is needed since onSubmitEditing is a useCallback and is accessed recursively
@@ -1208,15 +1233,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const onSelect = useCallback(
     (item: AutocompleteSearchResult) => {
-      // Unfocus the url bar and hide the autocomplete results
-      urlBarRef.current?.hide();
-
       if (item.category === 'tokens') {
+        isLastSelectedTokenRef.current = true;
         navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
           chainId: item.chainId,
           address: item.address,
         });
       } else {
+        // Unfocus the url bar and hide the autocomplete results
+        urlBarRef.current?.hide();
         onSubmitEditing(item.url);
       }
     },
@@ -1234,14 +1259,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     urlBarRef.current?.setNativeProps({ text: hostName });
   }, []);
 
-  /**
-   * Hide the autocomplete results
-   */
-  const hideAutocomplete = useCallback(
-    () => autocompleteRef.current?.hide(),
-    [],
-  );
-
   const onCancelUrlBar = useCallback(() => {
     hideAutocomplete();
     // Reset the url bar to the current url
@@ -1253,7 +1270,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const onFocusUrlBar = useCallback(() => {
     // Show the autocomplete results
     autocompleteRef.current?.show();
-    urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
+    if (resolvedUrlRef.current && !isLastSelectedTokenRef.current) {
+      urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
+    }
   }, []);
 
   const onChangeUrlBar = useCallback((text: string) => {
@@ -1344,8 +1363,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     [onLoadEnd],
   );
 
+  const onSwap = useCallback(() => {
+    isLastSelectedTokenRef.current = true;
+  }, []);
+
   // Don't render webview unless ready to load. This should save on performance for initial app start.
-  if (!isWebViewReadyToLoad.current) return null;
+  if (!isTokenDiscoveryBrowserEnabled() && !isWebViewReadyToLoad.current) {
+    return null;
+  }
 
   /**
    * Main render
@@ -1366,7 +1391,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             onSubmitEditing={onSubmitEditing}
             onCancel={onCancelUrlBar}
             onFocus={onFocusUrlBar}
-            onBlur={hideAutocomplete}
             onChangeText={onChangeUrlBar}
             connectedAccounts={permittedAccountsList}
             activeUrl={resolvedUrlRef.current}
@@ -1376,7 +1400,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           <View style={styles.wrapper}>
             {renderProgressBar()}
             <View style={styles.webview}>
-              {!!entryScriptWeb3 && firstUrlLoaded && (
+              {!!entryScriptWeb3 && firstUrl && firstUrlLoaded && (
                 <>
                   <WebView
                     originWhitelist={[
@@ -1399,7 +1423,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                       />
                     )}
                     source={{
-                      uri: prefixUrlWithProtocol(initialUrl),
+                      uri: prefixUrlWithProtocol(firstUrl),
                       ...(isExternalLink ? { headers: { Cookie: '' } } : null),
                     }}
                     injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
@@ -1423,11 +1447,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                   )}
                 </>
               )}
+              {isTokenDiscoveryBrowserEnabled() && !firstUrl && (
+                <TokenDiscovery />
+              )}
             </View>
             <UrlAutocomplete
               ref={autocompleteRef}
               onSelect={onSelect}
               onDismiss={onDismissAutocomplete}
+              onSwap={onSwap}
             />
           </View>
           {isTabActive && (
@@ -1458,7 +1486,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
               icon={iconRef}
             />
           )}
-
           {renderBottomBar()}
           {isTabActive && renderOnboardingWizard()}
         </View>

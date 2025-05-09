@@ -16,6 +16,11 @@ export type UrlAutocompleteComponentProps = {
    * tapping on the background
    */
   onDismiss: () => void;
+  /**
+   * Callback that is triggered while
+   * swapping a token
+   */
+  onSwap: () => void;
 };
 
 export enum UrlAutocompleteCategory {
