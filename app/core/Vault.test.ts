@@ -145,6 +145,7 @@ const mockSimpleKeyringMetadata = {
 jest.mock('./Engine', () => ({
   context: {
     KeyringController: {
+      // @typescript-eslint/no-explicit-any - Mock any callback.
       withKeyring: (selectedKeyring: KeyringSelector, callback: any) =>
         mockWithKeyring(selectedKeyring, callback),
       addNewKeyring: (type: KeyringTypes, options: { mnemonic?: string }) =>
@@ -220,7 +221,6 @@ describe('Vault', () => {
   });
   describe('restoreQRKeyring', () => {
     it('should restore QR keyring if it exists', async () => {
-      const { KeyringController } = MockEngine.context;
       const mockSerializedQrKeyring = 'serialized-keyring';
 
       await restoreQRKeyring(mockSerializedQrKeyring);
