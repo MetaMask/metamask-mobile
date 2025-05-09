@@ -8,6 +8,7 @@ import {
 } from './SnapKeyring/MultichainWalletSnapClient';
 import {
   BtcAccountType,
+  BtcScope,
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';

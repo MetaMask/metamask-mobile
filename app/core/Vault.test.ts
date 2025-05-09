@@ -308,6 +308,7 @@ describe('Vault', () => {
       expect(mockMultichainWalletSnapClient.createAccount).toHaveBeenCalledWith(
         {
           entropySource: 'entropy-source',
+          scope: SolScope.Mainnet,
         },
       );
     });
