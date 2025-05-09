@@ -191,7 +191,7 @@ const defaultAccountsMock = [
     yOffset: 0,
     isSelected: true,
     balanceError: undefined,
-    caipChainId: `eip155:0:${BUSINESS_ACCOUNT}`
+    caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
   },
   {
     name: 'Account 2',
@@ -204,7 +204,7 @@ const defaultAccountsMock = [
     yOffset: 78,
     isSelected: false,
     balanceError: undefined,
-    caipChainId: `eip155:0:${PERSONAL_ACCOUNT}`
+    caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`
   },
 ];
 
@@ -216,6 +216,7 @@ const CaipAccountSelectorListUseAccounts: React.FC<CaipAccountSelectorListProps>
     setAccountsMock(defaultAccountsMock);
   }
   const { accounts, ensByAccountAddress } = useAccounts();
+  console.log({accounts})
   return (
     <CaipAccountSelectorList
       onSelectAccount={onSelectAccount}
@@ -502,6 +503,7 @@ describe('CaipAccountSelectorList', () => {
 
     // Verify onRemoveImportedAccount was called with correct parameters
     expect(onRemoveImportedAccount).toHaveBeenCalledWith({
+      nextActiveAddress: '',
       removedAddress: BUSINESS_ACCOUNT,
     });
 
