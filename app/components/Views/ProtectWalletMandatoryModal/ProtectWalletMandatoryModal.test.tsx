@@ -2,6 +2,8 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ProtectWalletMandatoryModal from './ProtectWalletMandatoryModal';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { InteractionManager } from 'react-native';
+import { fireEvent } from '@testing-library/react-native';
 
 // Mock the navigation
 const mockNavigate = jest.fn();
@@ -38,6 +40,17 @@ jest.mock('../../../core/Engine', () => ({
   hasFunds: jest.fn().mockReturnValue(true),
 }));
 
+// Mock InteractionManager
+jest.mock('react-native', () => {
+  const actualRN = jest.requireActual('react-native');
+  return {
+    ...actualRN,
+    InteractionManager: {
+      runAfterInteractions: jest.fn((callback) => callback()),
+    },
+  };
+});
+
 const initialState = {
   engine: {
     backgroundState: {
@@ -55,6 +68,7 @@ describe('ProtectWalletMandatoryModal', () => {
     mockDangerouslyGetState.mockReturnValue({
       routes: [{ name: 'Home' }],
     });
+    jest.clearAllMocks();
   });
 
   it('renders correctly', () => {
@@ -62,5 +76,17 @@ describe('ProtectWalletMandatoryModal', () => {
       state: initialState,
     });
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('tracks metrics event after interactions when securing wallet', () => {
+    const { getByText } = renderWithProvider(<ProtectWalletMandatoryModal />, {
+      state: initialState,
+    });
+
+    const secureButton = getByText('Protect wallet');
+    fireEvent.press(secureButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('SetPasswordFlow', undefined);
+    expect(InteractionManager.runAfterInteractions).toHaveBeenCalled();
   });
 });
