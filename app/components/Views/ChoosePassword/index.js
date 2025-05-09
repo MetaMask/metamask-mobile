@@ -6,6 +6,7 @@ import {
   View,
   SafeAreaView,
   StyleSheet,
+  Image,
   TouchableOpacity,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -27,6 +28,7 @@ import {
   passcodeType,
   updateAuthTypeStorageFlags,
 } from '../../../util/authentication';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
@@ -69,6 +71,8 @@ import Button, {
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
+import Routes from '../../../constants/navigation/Routes';
+import { withMetricsAwareness } from '../../hooks/useMetrics';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 
@@ -144,12 +148,7 @@ const createStyles = (colors) =>
       marginBottom: 16,
     },
     learnMoreTextContainer: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      justifyContent: 'flex-start',
-      gap: 1,
-      width: '100%',
-      flexWrap: 'wrap',
+      flex: 1,
     },
     headerLeft: {
       marginLeft: 16,
@@ -204,6 +203,10 @@ class ChoosePassword extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -341,7 +344,11 @@ class ChoosePassword extends PureComponent {
         this.state.rememberMe,
       );
 
-      if (previous_screen === ONBOARDING) {
+      const oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
+      authType.oauth2Login = oauth2LoginSuccess;
+
+      Logger.log('previous_screen', previous_screen);
+      if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
@@ -356,7 +363,36 @@ class ChoosePassword extends PureComponent {
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
-      this.props.navigation.replace('AccountBackupStep1');
+
+      if (authType.oauth2Login) {
+        if (this.props.metrics.isEnabled()) {
+          this.props.navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.ONBOARDING.SUCCESS,
+                params: { showPasswordHint: true },
+              },
+            ],
+          });
+        } else {
+          this.props.navigation.navigate('OptinMetrics', {
+            onContinue: () => {
+              this.props.navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: Routes.ONBOARDING.SUCCESS,
+                    params: { showPasswordHint: true },
+                  },
+                ],
+              });
+            },
+          });
+        }
+      } else {
+        this.props.navigation.replace('AccountBackupStep1');
+      }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
       });
@@ -401,6 +437,9 @@ class ChoosePassword extends PureComponent {
       false,
       false,
     );
+
+    const oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
+    newAuthData.oauth2Login = oauth2LoginSuccess;
     try {
       await Authentication.newWalletAndKeychain(
         this.state.password,
@@ -754,28 +793,23 @@ class ChoosePassword extends PureComponent {
                       ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
                     }
                     style={styles.checkbox}
-                    label={
-                      <View style={styles.learnMoreTextContainer}>
-                        <Text
-                          variant={TextVariant.BodySM}
-                          color={TextColor.Default}
-                          numberOfLines={2}
-                        >
-                          {strings('import_from_seed.learn_more')}{' '}
-                        </Text>
-                        <Text
-                          variant={TextVariant.BodySM}
-                          color={TextColor.Primary}
-                          onPress={this.learnMore}
-                        >
-                          {' ' + strings('reset_password.learn_more')}
-                        </Text>
-                      </View>
-                    }
                   />
+                  <View style={styles.learnMoreTextContainer}>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Default}
+                    >
+                      {strings('import_from_seed.learn_more')}
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Primary}
+                        onPress={this.learnMore}
+                      >
+                        {' ' + strings('reset_password.learn_more')}
+                      </Text>
+                    </Text>
+                  </View>
                 </View>
-
-                {/* <View>{this.renderSwitch()}</View> */}
 
                 {!!error && <Text color={TextColor.Error}>{error}</Text>}
               </View>
@@ -812,4 +846,7 @@ const mapStateToProps = (state) => ({
   oauth2LoginSuccess: state.user.oauth2LoginSuccess,
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ChoosePassword);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(ChoosePassword));
