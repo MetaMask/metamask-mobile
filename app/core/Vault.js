@@ -43,7 +43,6 @@ export const restoreLedgerKeyring = async (serializedLedgerKeyring) => {
 
 export const restoreImportedSrp = async (seedPhrase, numberOfAccounts) => {
   const { KeyringController } = Engine.context;
-  Logger.log('restoreImportedSrp', seedPhrase, numberOfAccounts);
   try {
     const { id: keyringId } = await KeyringController.addNewKeyring(
       KeyringTypes.hd,
@@ -52,10 +51,7 @@ export const restoreImportedSrp = async (seedPhrase, numberOfAccounts) => {
       },
     );
 
-    Logger.log('keyringId', keyringId);
-
     for (let i = 0; i < numberOfAccounts; i++) {
-      Logger.log('adding account', i);
       await KeyringController.withKeyring(
         { id: keyringId },
         async ({ keyring }) => await keyring.addAccounts(1),
@@ -244,6 +240,7 @@ export const recreateVaultWithNewPassword = async (
     importedSrpKeyringIds.push(importedSrpKeyring);
   }
   ///: END:ONLY_INCLUDE_IF(multi-srp)
+
   const newHdKeyringIds = [newPrimaryKeyringId, ...importedSrpKeyringIds];
   // map old keyring id to new keyring id
   const keyringIdMap = new Map();
