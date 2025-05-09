@@ -1,4 +1,8 @@
-import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
+import {
+  EthAccountType,
+  SolAccountType,
+  SolScope,
+} from '@metamask/keyring-api';
 import Logger from '../util/Logger';
 import Engine from './Engine';
 import { withLedgerKeyring } from './Ledger/Ledger';
@@ -460,6 +464,7 @@ describe('Vault', () => {
       expect(mockMultichainWalletSnapClient.createAccount).toHaveBeenCalledWith(
         {
           entropySource: mockNewKeyringIdForSecondSrp,
+          scope: SolScope.Mainnet,
         },
       );
     });

@@ -6,7 +6,11 @@ import {
   MultichainWalletSnapFactory,
   WalletClientType,
 } from './SnapKeyring/MultichainWalletSnapClient';
-import { BtcAccountType, SolAccountType } from '@metamask/keyring-api';
+import {
+  BtcAccountType,
+  SolAccountType,
+  SolScope,
+} from '@metamask/keyring-api';
 
 /**
  * Restore the given serialized QR keyring.
@@ -69,13 +73,16 @@ export const restoreImportedSrp = async (seedPhrase, numberOfAccounts) => {
 
 export const restoreSnapAccounts = async (accountType, entropySource) => {
   let walletClientType;
+  let scope;
   switch (accountType) {
     case SolAccountType.DataAccount: {
       walletClientType = WalletClientType.Solana;
+      scope = SolScope.Mainnet;
       break;
     }
     case BtcAccountType.P2wpkh: {
       walletClientType = WalletClientType.Bitcoin;
+      scope = BtcScope.Mainnet;
       break;
     }
     default:
@@ -86,6 +93,7 @@ export const restoreSnapAccounts = async (accountType, entropySource) => {
     const client = MultichainWalletSnapFactory.createClient(walletClientType);
     await client.createAccount({
       entropySource,
+      scope,
     });
   } catch (e) {
     Logger.error(
