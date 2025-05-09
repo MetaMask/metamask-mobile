@@ -205,7 +205,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   }, [copyToClipboard, numberOfWords, onSrpChange]);
 
   const onSrpWordChange = useCallback(
-    (index, newWord) => {
+    (index: number, newWord: string) => {
       const newSrp = secretRecoveryPhrase.slice();
       newSrp[index] = newWord.trim();
       onSrpChange(newSrp);

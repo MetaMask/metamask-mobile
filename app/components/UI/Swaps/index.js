@@ -552,7 +552,13 @@ function SwapsAmountView({
     ) {
       const { TokensController } = Engine.context;
       const { address, symbol, decimals, name } = sourceToken;
-      await TokensController.addToken({ address, symbol, decimals, name });
+      await TokensController.addToken({
+        address,
+        symbol,
+        decimals,
+        name,
+        networkClientId: selectedNetworkClientId,
+      });
     }
     return navigation.navigate(
       'SwapsQuotesView',
@@ -573,6 +579,7 @@ function SwapsAmountView({
     slippage,
     sourceToken,
     isBalanceZero,
+    selectedNetworkClientId,
   ]);
 
   /* Keypad Handlers */
@@ -768,7 +775,7 @@ function SwapsAmountView({
         >
           <View style={styles.horizontalRule} />
           <TouchableOpacity onPress={handleFlipTokens}>
-            <IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+            <IonicIcon style={styles.arrowDown} name="arrow-down" />
           </TouchableOpacity>
           <View style={styles.horizontalRule} />
         </View>
