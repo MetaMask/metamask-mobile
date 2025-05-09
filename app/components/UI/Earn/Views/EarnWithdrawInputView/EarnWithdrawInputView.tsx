@@ -189,7 +189,11 @@ const EarnWithdrawInputView = () => {
     }, []),
   );
 
-  const handleLendingWithdrawalFlow = useCallback(async () => {}, []);
+  const handleLendingWithdrawalFlow = useCallback(async () => {
+    navigation.navigate(Routes.EARN.ROOT, {
+      screen: Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION,
+    });
+  }, [navigation]);
 
   const handleUnstakeWithdrawalFlow = useCallback(async () => {
     const isStakingDepositRedesignedEnabled =
