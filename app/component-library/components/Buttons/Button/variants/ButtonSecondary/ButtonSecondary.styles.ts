@@ -20,13 +20,17 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style, isDanger, pressed } = vars;
+  const { style, isDanger, pressed, overridePressedColor } = vars;
   const colorObj = isDanger ? colors.error : colors.primary;
+
+  const pressedColor = pressed
+    ? overridePressedColor || colorObj.alternative
+    : 'transparent';
 
   return StyleSheet.create({
     base: Object.assign(
       {
-        backgroundColor: pressed ? colorObj.alternative : 'transparent',
+        backgroundColor: pressedColor,
         borderWidth: 1,
         borderColor: colorObj.default,
       } as ViewStyle,

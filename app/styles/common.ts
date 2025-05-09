@@ -18,6 +18,25 @@ export const colors = {
   // https://developer.apple.com/design/human-interface-guidelines/apple-pay
   applePayBlack: '#000000',
   applePayWhite: '#FFFFFF',
+  btnBlack: '#1C1E21',
+};
+
+export const onboardingCarouselColors: Record<
+  string,
+  { color: string; background: string }
+> = {
+  one: {
+    color: '#190066',
+    background: '#E5FFC3',
+  },
+  two: {
+    color: '#3D065F',
+    background: '#FFA680',
+  },
+  three: {
+    color: '#190066',
+    background: '#CCE7FF',
+  },
 };
 
 /**

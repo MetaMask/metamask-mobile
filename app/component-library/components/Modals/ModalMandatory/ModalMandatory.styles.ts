@@ -1,9 +1,12 @@
 // Third party dependencies.
-import { StyleSheet, TextStyle, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, TextStyle } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 import { getFontFamily, TextVariant } from '../../Texts/Text';
+import { typography } from '@metamask/design-tokens';
 
 const screenHeight = Dimensions.get('window').height;
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
+const bgColor = '#ECEEFF';
 /**
  * Style sheet function for ModalConfirmation component.
  *
@@ -12,9 +15,10 @@ const screenHeight = Dimensions.get('window').height;
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
+
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors, typography } = theme;
+  const { colors } = theme;
 
   return StyleSheet.create({
     screen: {
@@ -26,6 +30,11 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 16,
       marginHorizontal: 16,
     },
+    headerContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
     headerText: {
       color: colors.text.default,
       ...(typography.sHeadingMD as TextStyle),
@@ -33,10 +42,17 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
       marginBottom: 16,
     },
+    headerEmpty: {
+      width: 32,
+      height: 32,
+    },
     bodyContainer: { height: screenHeight / 2 },
     checkboxContainer: {
       flexDirection: 'row',
       marginTop: 16,
+      columnGap: 8,
+      marginRight: 16,
+      width: '90%',
     },
     checkboxText: {
       marginLeft: 8,
@@ -50,22 +66,20 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
     },
     scrollToEndButton: {
-      width: 32,
-      height: 32,
-      borderRadius: 32 / 2,
-      backgroundColor: colors.background.default,
+      width: 40,
+      height: 40,
+      borderRadius: 40 / 2,
+      backgroundColor: bgColor,
       justifyContent: 'center',
       alignItems: 'center',
-      zIndex: 1,
+      zIndex: 10,
       position: 'absolute',
       bottom: 175,
       right: 32,
-      borderWidth: 1,
-      borderColor: colors.primary.default,
+      boxShadow: `0px 3px 8px ${bgColor}`,
     },
     footerHelpText: {
       marginTop: 16,
-      marginBottom: 4,
       textAlign: 'center',
       color: colors.text.alternative,
       ...(typography.sBodySM as TextStyle),
