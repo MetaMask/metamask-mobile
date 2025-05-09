@@ -294,7 +294,7 @@ describe('Wallet Client Implementations', () => {
       expect(bitcoinClient.getScope()).toEqual(BtcScope.Mainnet);
     });
 
-    it('adds synchronize parameter to createAccount', () => {
+    it('adds synchronize parameter to createAccount', async () => {
       const mockOptions = {
         scope: BtcScope.Mainnet,
         accountNameSuggestion: 'Bitcoin Account 1',
@@ -313,7 +313,7 @@ describe('Wallet Client Implementations', () => {
       );
 
       const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
-      bitcoinClient.createAccount(mockOptions);
+      await bitcoinClient.createAccount(mockOptions);
 
       expect(mockKeyring.createAccount).toHaveBeenCalledWith(
         BITCOIN_WALLET_SNAP_ID,
