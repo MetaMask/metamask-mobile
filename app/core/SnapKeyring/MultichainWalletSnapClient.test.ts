@@ -127,7 +127,7 @@ describe('MultichainWalletSnapClient', () => {
   });
 
   describe('createAccount', () => {
-    it('creates a solana account with the provided options', async () => {
+    it('creates an account with the provided options', async () => {
       const mockOptions = {
         scope: SolScope.Mainnet,
         accountNameSuggestion: 'Solana Account 1',
