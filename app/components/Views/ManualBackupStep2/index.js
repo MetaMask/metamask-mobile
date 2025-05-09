@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   FlatList,
   Dimensions,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import ActionView from '../../UI/ActionView';
@@ -246,7 +247,9 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
                     styles.gridItem,
                     isEmpty && styles.emptySlot,
                     isSelected && styles.selectedSlotBox,
-                    { width: innerWidth / 3.8 },
+                    {
+                      width: innerWidth / (Platform.OS === 'ios' ? 3.75 : 3.8),
+                    },
                   ]}
                   onPress={() => handleSlotPress(index)}
                 >

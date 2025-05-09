@@ -398,6 +398,7 @@ const ImportFromSecretRecoveryPhrase = ({
         setSeedPhrase(newData);
         seedPhraseInputRefs.current[index]?.focus();
       }
+      return;
     }
     if (
       (key === ' ' || key === 'Enter' || key === 'return' || enterPressed) &&
@@ -406,6 +407,7 @@ const ImportFromSecretRecoveryPhrase = ({
     ) {
       setSeedPhrase([...seedPhrase, '']);
       seedPhraseInputRefs.current[index + 1]?.focus();
+      return;
     }
     if (
       (key === ' ' || key === 'Enter' || key === 'return' || enterPressed) &&
@@ -413,8 +415,9 @@ const ImportFromSecretRecoveryPhrase = ({
     ) {
       const firstList = seedPhrase.slice(0, index + 1);
       const secondList = seedPhrase.slice(index + 1);
-      setSeedPhrase([...firstList, '', ...secondList]);
+      setSeedPhrase([...firstList, ' ', ...secondList]);
       seedPhraseInputRefs.current[index + 1]?.focus();
+      return;
     }
   };
 
@@ -690,6 +693,7 @@ const ImportFromSecretRecoveryPhrase = ({
                           onKeyPress={(e) => handleKeyPress(e, 0)}
                           autoComplete="off"
                           blurOnSubmit={false}
+                          autoCapitalize="none"
                         />
                       ) : (
                         <View
@@ -754,10 +758,11 @@ const ImportFromSecretRecoveryPhrase = ({
                                   size={TextFieldSize.Md}
                                   style={[styles.input]}
                                   autoComplete="off"
-                                  textAlignVertical="top"
+                                  textAlignVertical="center"
                                   showSoftInputOnFocus
                                   blurOnSubmit={false}
                                   isError={!isValidSeed(item)}
+                                  autoCapitalize="none"
                                 />
                               </View>
                             )}

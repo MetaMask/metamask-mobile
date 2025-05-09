@@ -88,8 +88,7 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.text.default,
     },
     enterPassword: {
-      marginBottom: 15,
-      color: theme.colors.text.default,
+      marginBottom: 4,
     },
     boldText: {
       color: theme.colors.text.default,
@@ -131,5 +130,13 @@ export const createStyles = (theme: Theme) =>
     },
     stretch: {
       flex: 1,
+    },
+    ctaContainer: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      marginTop: 'auto',
+    },
+    warning: {
+      paddingHorizontal: 16,
     },
   });

@@ -327,30 +327,31 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
           </View>
         ) : (
           <View style={styles.seedPhraseContainer}>
-            <View style={styles.seedPhraseInputContainer}>
-              <FlatList
-                data={words}
-                numColumns={3}
-                keyExtractor={(_, index) => index.toString()}
-                renderItem={({ item, index }) => (
-                  <View style={[styles.inputContainer]}>
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
-                    >
-                      {index + 1}.
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Default}
-                      key={index}
-                    >
-                      {item}
-                    </Text>
-                  </View>
-                )}
-              />
-            </View>
+            <FlatList
+              data={words}
+              numColumns={3}
+              keyExtractor={(_, index) => index.toString()}
+              renderItem={({ item, index }) => (
+                <View style={[styles.inputContainer]}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {index + 1}.
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Default}
+                    key={index}
+                    ellipsizeMode="tail"
+                    numberOfLines={1}
+                    style={styles.word}
+                  >
+                    {item}
+                  </Text>
+                </View>
+              )}
+            />
           </View>
         )}
       </View>

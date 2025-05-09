@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, Platform } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 
 const { height } = Dimensions.get('window');
@@ -91,13 +91,13 @@ const createStyles = (colors: any) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'flex-start',
-      gap: 4,
+      gap: Platform.OS === 'ios' ? 4 : 3,
       height: 40,
       fontSize: 14,
       color: colors.text.default,
       ...fontStyles.normal,
       opacity: 0.5,
-      margin: 4,
+      margin: Platform.OS === 'ios' ? 4 : 3,
     },
     gridContainer: {
       flex: 1,

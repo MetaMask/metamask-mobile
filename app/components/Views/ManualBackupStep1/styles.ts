@@ -82,6 +82,9 @@ export const createStyles = (colors: any) =>
       borderRadius: 10,
       minHeight: 232,
     },
+    word: {
+      flex: 1,
+    },
     inputContainer: {
       flexDirection: 'row',
       alignItems: 'center',

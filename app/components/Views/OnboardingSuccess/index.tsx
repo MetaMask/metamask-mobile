@@ -5,13 +5,7 @@ import React, {
   useLayoutEffect,
   useState,
 } from 'react';
-import {
-  ScrollView,
-  View,
-  Linking,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import { ScrollView, View, Linking, TouchableOpacity } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -51,6 +45,7 @@ import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
 import createStyles from './index.styles';
 import CelebratingFox from '../../../animations/Celebrating_Fox.json';
+import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 
 interface OnboardingSuccessProps {
@@ -191,10 +186,12 @@ const OnboardingSuccess = ({
           <Text variant={TextVariant.DisplayMD}>
             {strings('onboarding_success.title')}
           </Text>
-          <Image
-            source={wallet_ready_image}
-            resizeMethod={'auto'}
+          <LottieView
             style={styles.walletReadyImage}
+            autoPlay
+            loop
+            source={SearchingFox}
+            resizeMode="contain"
           />
           <View style={styles.descriptionWrapper}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -234,10 +231,12 @@ const OnboardingSuccess = ({
           <Text variant={TextVariant.DisplayMD}>
             {strings('onboarding_success.remind_later')}
           </Text>
-          <Image
-            source={wallet_ready_image}
-            resizeMethod={'auto'}
+          <LottieView
             style={styles.walletReadyImage}
+            autoPlay
+            loop
+            source={SearchingFox}
+            resizeMode="contain"
           />
           <View style={styles.descriptionWrapper}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -285,43 +284,42 @@ const OnboardingSuccess = ({
 
   const renderFooter = () => (
     <View style={styles.footerWrapper}>
-      {showPasswordHint && (
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[styles.linkWrapper]}
-            onPress={() => setShowHint(true)}
-          >
-            <View style={styles.row}>
-              <Icon
-                name={IconName.AddSquare}
-                size={IconSize.Lg}
-                color={IconColor.Default}
-              />
-              <View style={styles.hintTextWrapper}>
-                <Text
-                  color={TextColor.Default}
-                  variant={TextVariant.BodyMDMedium}
-                >
-                  {strings('onboarding_success.create_hint')}
-                </Text>
-                {savedHint && (
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                  >
-                    {savedHint}
-                  </Text>
-                )}
-              </View>
-            </View>
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[styles.linkWrapper]}
+          onPress={() => setShowHint(true)}
+        >
+          <View style={styles.row}>
             <Icon
-              name={IconName.ArrowRight}
+              name={IconName.AddSquare}
               size={IconSize.Lg}
-              color={IconColor.Alternative}
+              color={IconColor.Default}
             />
-          </TouchableOpacity>
-        </View>
-      )}
+            <View style={styles.hintTextWrapper}>
+              <Text
+                color={TextColor.Default}
+                variant={TextVariant.BodyMDMedium}
+              >
+                {strings('onboarding_success.create_hint')}
+              </Text>
+              {savedHint && (
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {savedHint}
+                </Text>
+              )}
+            </View>
+          </View>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Lg}
+            color={IconColor.Alternative}
+          />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.linkWrapper]}
