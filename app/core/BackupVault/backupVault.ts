@@ -1,5 +1,4 @@
 import { KeyringControllerState } from '@metamask/keyring-controller';
-import Logger from '../../util/Logger';
 import {
   getInternetCredentials,
   setInternetCredentials,
