@@ -25,9 +25,12 @@ const AnimatedPulse = ({
   const cyclesNeededRef = useRef(0);
   const cyclesCompletedRef = useRef(0);
 
-  const durationFadeIn = 750;
-  const durationFadeOut = 750;
-  const durationFadeInFinal = 300;
+  const cleanup = useCallback(() => {
+    if (currentAnimationRef.current) {
+      currentAnimationRef.current.stop();
+      currentAnimationRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     if (isCurrentlyPulsingRef.current && !isPulsing) {
@@ -113,13 +116,8 @@ const AnimatedPulse = ({
     }
 
     // Cleanup
-    return () => {
-      if (currentAnimationRef.current) {
-        currentAnimationRef.current.stop();
-        currentAnimationRef.current = null;
-      }
-    };  
-  }, [isPulsing, opacity, runSinglePulseCycle]);
+    return cleanup;
+  }, [cleanup, isPulsing, opacity, runSinglePulseCycle]);
 
   return (
     <Animated.View style={{ opacity }} {...props}>
