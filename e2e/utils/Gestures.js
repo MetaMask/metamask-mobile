@@ -56,6 +56,7 @@ class Gestures {
   static async waitAndTap(elementID, timeout = 15000) {
     const element = await elementID;
     await waitFor(element).toBeVisible().withTimeout(timeout);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     await element.tap();
   }
 
