@@ -560,6 +560,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             }
                           >
                             <RCTScrollView
+                              collapsable={false}
                               contentContainerStyle={
                                 {
                                   "alignItems": "center",
@@ -569,6 +570,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 }
                               }
                               horizontal={true}
+                              onGestureHandlerEvent={[Function]}
+                              onGestureHandlerStateChange={[Function]}
                               showsHorizontalScrollIndicator={false}
                               style={
                                 {
@@ -760,6 +763,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                           </View>
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
+                            bounces={true}
+                            collapsable={false}
                             data={
                               [
                                 {
@@ -801,6 +806,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             getItemCount={[Function]}
                             keyExtractor={[Function]}
                             onContentSizeChange={[Function]}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
                             onMomentumScrollEnd={[Function]}
@@ -809,7 +816,11 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             onScrollEndDrag={[Function]}
                             removeClippedSubviews={false}
                             renderItem={[Function]}
+                            renderScrollComponent={[Function]}
+                            scrollEnabled={true}
                             scrollEventThrottle={0.0001}
+                            showsHorizontalScrollIndicator={false}
+                            showsVerticalScrollIndicator={true}
                             stickyHeaderIndices={[]}
                             viewabilityConfigCallbackPairs={[]}
                           >
