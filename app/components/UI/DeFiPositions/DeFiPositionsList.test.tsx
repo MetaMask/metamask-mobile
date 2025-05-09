@@ -268,7 +268,7 @@ describe('DeFiPositionsList', () => {
     );
 
     expect(
-      await findByText(`An error occurred fetching your DeFi positions`),
+      await findByText(`An error occurred fetching DeFi positions`),
     ).toBeDefined();
   });
 
