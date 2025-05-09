@@ -9,6 +9,11 @@ import {
 import { useEditNonce } from '../../../../../../hooks/useEditNonce';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import Name from '../../../../../../UI/Name';
+import {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../../../component-library/components/Icons/Icon';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import CustomNonceModal from '../../../../legacy/SendFlow/components/CustomNonceModal';
@@ -37,12 +42,17 @@ const AdvancedDetailsRow = () => {
 
   return (
     <>
-      <ExpandableSection
+      <Expandable
         collapsedContent={
           <InfoSection>
             <InfoRow
               label={strings('stake.advanced_details')}
               style={styles.infoRowOverride}
+              withIcon={{
+                color: IconColor.Muted,
+                size: IconSize.Sm,
+                name: IconName.ArrowRight,
+              }}
             />
           </InfoSection>
         }

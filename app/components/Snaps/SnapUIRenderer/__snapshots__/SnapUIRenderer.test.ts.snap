@@ -224,7 +224,9 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }
@@ -347,7 +349,9 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }
@@ -409,7 +413,9 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }
@@ -533,7 +539,9 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }
@@ -594,7 +602,9 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }
@@ -1619,7 +1629,9 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
+                    "flexGrow": 1,
                     "height": 48,
+                    "maxHeight": 58,
                     "opacity": 1,
                     "paddingHorizontal": 16,
                   }
@@ -1862,7 +1874,9 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }
