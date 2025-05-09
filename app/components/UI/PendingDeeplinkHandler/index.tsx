@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Engine from '../../../core/Engine';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import Routes from '../../../constants/navigation/Routes';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { useSelector } from 'react-redux';
+import { selectIsUnlocked } from '../../../selectors/keyringController';
 
 /**
  * Screen component that handles pending deeplinks
@@ -14,22 +15,16 @@ import { findRouteNameFromNavigatorState } from '../../../util/general';
  */
 const PendingDeeplinkHandler = () => {
   const navigation = useNavigation();
-
+  const isUnlocked = useSelector(selectIsUnlocked);
+  const route = findRouteNameFromNavigatorState(
+    navigation.dangerouslyGetState().routes,
+  );
   useEffect(() => {
     const processPendingDeeplink = () => {
       const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
-      const { KeyringController } = Engine.context;
-      const route = findRouteNameFromNavigatorState(
-        navigation.dangerouslyGetState().routes,
-      );
 
-      if (
-        pendingDeeplink &&
-        KeyringController.isUnlocked() &&
-        route !== Routes.LOCK_SCREEN
-      ) {
+      if (pendingDeeplink && isUnlocked && route !== Routes.LOCK_SCREEN) {
         DeeplinkManager.expireDeeplink();
-
         DeeplinkManager.parse(pendingDeeplink, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
@@ -37,7 +32,7 @@ const PendingDeeplinkHandler = () => {
     };
 
     processPendingDeeplink();
-  }, [navigation]);
+  }, [navigation, isUnlocked, route]);
 
   return <View />;
 };
