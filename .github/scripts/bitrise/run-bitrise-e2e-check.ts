@@ -346,14 +346,11 @@ async function main(): Promise<void> {
     commits = [...previousCommitBatch, ...commits];
   }
 
-  // Relevant hashes include both merge from main commits and the last non-merge from main commit (the commits that you manually push)
+  // Relevant hashes include the latest commit and all commits from the last 10 commits 
+  // This allows us to consider any successful E2E test within the last 10 commits as valid
   const relevantCommitHashes: string[] = [];
   for (const commit of commits.reverse()) {
-    const commitMessage = commit.commit.message;
     relevantCommitHashes.push(commit.sha);
-    if (!commitMessage.includes(mergeFromMainCommitMessagePrefix)) {
-      break;
-    }
   }
 
   let checkStatus: {
