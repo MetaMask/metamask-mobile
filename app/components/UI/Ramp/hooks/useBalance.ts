@@ -14,6 +14,10 @@ import { selectContractExchangeRates } from '../../../../selectors/tokenRatesCon
 import { selectEvmChainId } from '../../../../selectors/networkController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  addCurrencySymbol,
+  balanceToFiatNumber,
+  ///: END:ONLY_INCLUDE_IF
   balanceToFiat,
   hexToBN,
   renderFromTokenMinimalUnit,
@@ -23,7 +27,10 @@ import {
 } from '../../../../util/number';
 import { Hex } from '@metamask/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectMultichainBalances } from '../../../../selectors/multichain';
+import {
+  selectMultichainAssetsRates,
+  selectMultichainBalances,
+} from '../../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 
 const defaultReturn = {
@@ -43,6 +50,7 @@ export default function useBalance(asset?: Asset) {
   const accountsByChainId = useSelector(selectAccountsByChainId);
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multiChainTokenBalance = useSelector(selectMultichainBalances);
+  const multiChainAssetsRates = useSelector(selectMultichainAssetsRates);
   ///: END:ONLY_INCLUDE_IF
   const chainId = useSelector(selectEvmChainId);
   const selectedAddress = useSelector(
@@ -68,12 +76,21 @@ export default function useBalance(asset?: Asset) {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   if (asset.assetId) {
     // CAIP19 asset identifier
-    const assetCaip19Identifier = `${asset.chainId}/${asset.assetId}`;
+    const assetCaip19Identifier =
+      `${asset.chainId}/${asset.assetId}` as `${string}:${string}/${string}:${string}`;
     const assetBalance =
       multiChainTokenBalance?.[selectedAccount.id]?.[assetCaip19Identifier];
     balance = `${assetBalance?.amount ?? ''} ${
       assetBalance?.unit ?? ''
     }`.trim();
+
+    const rate = multiChainAssetsRates?.[assetCaip19Identifier]?.rate;
+    const balanceFiatAsNumber = Number(
+      balanceToFiatNumber(assetBalance.amount, Number(rate), 1),
+    );
+    balanceFiat = balanceFiatAsNumber
+      ? addCurrencySymbol(balanceFiatAsNumber, currentCurrency)
+      : null;
   }
   ///: END:ONLY_INCLUDE_IF
   if (!balance && asset.address === NATIVE_ADDRESS) {

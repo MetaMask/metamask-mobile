@@ -12,6 +12,7 @@ import { hexToBN } from '../../../../util/number';
 import { TokenBalancesControllerState } from '@metamask/assets-controllers';
 
 const MOCK_ADDRESS_1 = '0x0';
+const SOLANA_ASSET_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE =
   createMockAccountsControllerStateWithSnap([MOCK_ADDRESS_1]);
@@ -63,10 +64,17 @@ const initialState = {
       MultichainBalancesController: {
         balances: {
           [MOCK_SOLANA_ACCOUNT.id]: {
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+            [SOLANA_ASSET_ID]: {
               amount: '5.5',
               unit: 'SOL',
             },
+          },
+        },
+      },
+      MultichainAssetsRatesController: {
+        conversionRates: {
+          [SOLANA_ASSET_ID]: {
+            rate: '100',
           },
         },
       },
@@ -159,7 +167,7 @@ describe('useBalance', () => {
     );
 
     expect(result.current.balance).toBe('5.5 SOL');
-    expect(result.current.balanceFiat).toBe(undefined);
+    expect(result.current.balanceFiat).toBe('$550.00');
     expect(result.current.balanceBN).toBe(undefined);
   });
 });
