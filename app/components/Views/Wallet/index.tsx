@@ -44,6 +44,7 @@ import {
   getDecimalChainId,
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
+  isTestNet,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -125,6 +126,8 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
+import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
+import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -369,6 +372,10 @@ const Wallet = ({
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
+
+  const assetsDefiPositionsEnabled = useSelector(
+    selectAssetsDefiPositionsEnabled,
+  );
 
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
@@ -707,6 +714,15 @@ const Wallet = ({
     [navigation],
   );
 
+  const defiPositionsTabProps = useMemo(
+    () => ({
+      key: 'defi-tab',
+      tabLabel: strings('wallet.defi'),
+      navigation,
+    }),
+    [navigation],
+  );
+
   const collectibleContractsTabProps = useMemo(
     () => ({
       key: 'nfts-tab',
@@ -720,6 +736,12 @@ const Wallet = ({
     return (
       <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
         <Tokens {...tokensTabProps} />
+        {isEvmSelected &&
+          !isTestNet(chainId) &&
+          basicFunctionalityEnabled &&
+          assetsDefiPositionsEnabled && (
+            <DeFiPositionsList {...defiPositionsTabProps} />
+          )}
         {isEvmSelected && (
           <CollectibleContracts {...collectibleContractsTabProps} />
         )}

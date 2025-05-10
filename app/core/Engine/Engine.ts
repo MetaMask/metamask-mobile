@@ -197,6 +197,7 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
@@ -1033,6 +1034,7 @@ export class Engine {
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
+        DeFiPositionsController: defiPositionsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         SnapController: snapControllerInit,
@@ -1401,6 +1403,7 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
+      DeFiPositionsController: controllersByName.DeFiPositionsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2029,6 +2032,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      DeFiPositionsController,
     } = instance.datamodel.state;
 
     return {
@@ -2079,6 +2083,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      DeFiPositionsController,
     };
   },
 

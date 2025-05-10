@@ -496,5 +496,8 @@
         }
       ]
     }
+  },
+  "DeFiPositionsController": {
+    "allDeFiPositions": {}
   }
 }
