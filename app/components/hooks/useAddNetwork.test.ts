@@ -21,7 +21,6 @@ describe('useAddNetwork', () => {
         rpcPrefs: {
           blockExplorerUrl: 'https://etherscan.io',
           imageUrl: 'https://etherscan.io/images/svg/brands/eth.svg',
-          imageSource: 'https://etherscan.io/images/svg/brands/eth.svg',
         },
       });
     });
