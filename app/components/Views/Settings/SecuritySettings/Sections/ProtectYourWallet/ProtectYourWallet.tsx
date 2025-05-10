@@ -102,24 +102,6 @@ const ProtectYourWallet = ({
     navigation.navigate('ProtectYourWallet');
   };
 
-  const seedlessOnboardingBanner = () =>
-    seedlessOnboardingUserId ? (
-      <Banner
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Success}
-        title={
-          strings('app_settings.social_login_linked') + ' ' + authConnection
-        }
-        style={styles.accessory}
-      />
-    ) : (
-      <Banner
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Error}
-        title={strings('app_settings.social_login_not_linked')}
-        style={styles.accessory}
-      />
-    );
   ///: END:ONLY_INCLUDE_IF(multi-srp)
 
   return (
@@ -145,11 +127,6 @@ const ProtectYourWallet = ({
           label={strings('app_settings.learn_more')}
         />
       )}
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-        seedlessOnboardingBanner()
-        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
-      }
       {srpBackedup ? (
         <Banner
           variant={BannerVariant.Alert}
