@@ -461,6 +461,7 @@ const HomeTabs = () => {
     try {
       const permissionsControllerState = selectPermissionControllerState(state);
       const hostname = new URL(activeTabUrl).hostname;
+      // Why is this returned here?..
       const permittedAcc = getPermittedAccountsByHostname(
         permissionsControllerState,
         hostname,

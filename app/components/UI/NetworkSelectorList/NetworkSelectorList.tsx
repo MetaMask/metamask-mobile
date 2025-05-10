@@ -44,14 +44,14 @@ const NetworkSelectorList = ({
   const getKeyExtractor = ({ id }: Network) => id;
 
   const renderNetworkItem: ListRenderItem<Network> = useCallback(
-    ({ item: { id, name, isSelected, imageSource } }) => {
+    ({ item: { caipChainId, name, isSelected, imageSource } }) => {
       const isDisabled = isLoading || isSelectionDisabled;
       const cellVariant = isMultiSelect
         ? CellVariant.MultiSelect
         : CellVariant.Select;
       let isSelectedNetwork = isSelected;
       if (selectedChainIds) {
-        isSelectedNetwork = selectedChainIds.includes(id);
+        isSelectedNetwork = selectedChainIds.includes(caipChainId);
       }
       return (
         <View
@@ -61,7 +61,7 @@ const NetworkSelectorList = ({
             variant={cellVariant}
             isSelected={isSelectedNetwork}
             title={name}
-            onPress={() => onSelectNetwork?.(id, isSelectedNetwork)}
+            onPress={() => onSelectNetwork?.(caipChainId, isSelectedNetwork)}
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -70,7 +70,7 @@ const NetworkSelectorList = ({
             }}
             disabled={isDisabled}
           >
-            {renderRightAccessory?.(id, name)}
+            {renderRightAccessory?.(caipChainId, name)}
           </Cell>
         </View>
       );

@@ -33,15 +33,15 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 
 // Internal dependencies.
-import { AccountSelectorListProps } from './AccountSelectorList.types';
-import styleSheet from './AccountSelectorList.styles';
+import { EvmAccountSelectorListProps } from './EvmAccountSelectorList.types';
+import styleSheet from './EvmAccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { RootState } from '../../../reducers';
-import { ACCOUNT_SELECTOR_LIST_TESTID } from './AccountSelectorList.constants';
+import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
 
-const AccountSelectorList = ({
+const EvmAccountSelectorList = ({
   onSelectAccount,
   onRemoveImportedAccount,
   accounts,
@@ -56,7 +56,7 @@ const AccountSelectorList = ({
   isAutoScrollEnabled = true,
   privacyMode = false,
   ...props
-}: AccountSelectorListProps) => {
+}: EvmAccountSelectorListProps) => {
   const { navigate } = useNavigation();
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -341,4 +341,4 @@ const AccountSelectorList = ({
   );
 };
 
-export default React.memo(AccountSelectorList);
+export default React.memo(EvmAccountSelectorList);

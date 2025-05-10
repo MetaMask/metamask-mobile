@@ -14,6 +14,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 // Internal dependencies
 import NetworkSelectorList from './NetworkSelectorList';
+import { CaipChainId } from '@metamask/utils';
 
 const mockNetworks = [
   {
@@ -23,6 +24,7 @@ const mockNetworks = [
     isSelected: false,
     yOffset: 0,
     rpcUrl: 'https://mainnet.infura.io/v3',
+    caipChainId: 'eip155:1' as const
   },
   {
     id: 'network-2',
@@ -31,6 +33,7 @@ const mockNetworks = [
     isSelected: true,
     yOffset: 100,
     rpcUrl: 'https://polygon-rpc.com',
+    caipChainId: 'eip155:137' as const
   },
 ];
 
@@ -77,7 +80,7 @@ describe('NetworkSelectorList', () => {
   });
 
   it('handles selectedChainIds prop correctly', () => {
-    const selectedChainIds = ['network-1'];
+    const selectedChainIds: CaipChainId[] = ['eip155:1'];
     const { getByTestId } = renderWithProvider(
       <NetworkSelectorList
         networks={mockNetworks}

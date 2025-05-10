@@ -191,6 +191,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const fromHomepage = useRef(false);
   const wizardScrollAdjustedRef = useRef(false);
   const searchEngine = useSelector(selectSearchEngine);
+  // TODO: ... accountsChanged and others rely on this
   const permittedAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
     const hostname = new URLParse(resolvedUrlRef.current).hostname;
@@ -653,6 +654,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       let permittedChains = [];
       try {
         const caveat = getCaip25Caveat(hostname);
+        // Todo: should be caipified
         permittedChains = caveat ? getPermittedEthChainIds(caveat.value) : [];
 
         const currentChainId = toHex(activeChainId);

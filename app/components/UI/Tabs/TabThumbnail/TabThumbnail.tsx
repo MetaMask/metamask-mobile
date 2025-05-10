@@ -53,6 +53,8 @@ const TabThumbnail = ({
     permittedAccountsList,
     tabTitle,
   );
+
+  // TODO: fix this
   const activeAddress = permittedAccountsByHostname[0];
   const { evmAccounts: accounts } = useAccounts({});
   const selectedAccount = accounts.find(
