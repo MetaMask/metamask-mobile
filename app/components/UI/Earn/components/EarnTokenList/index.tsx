@@ -29,7 +29,6 @@ import UpsellBanner from '../../../Stake/components/UpsellBanner';
 import { UPSELL_BANNER_VARIANTS } from '../../../Stake/components/UpsellBanner/UpsellBanner.types';
 import EarnTokenListItem from '../EarnTokenListItem';
 import Engine from '../../../../../core/Engine';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { useSelector } from 'react-redux';
@@ -94,14 +93,10 @@ const EarnTokenList = () => {
 
     await Engine.context.NetworkController.setActiveNetwork(networkClientId);
 
-    const action = token.isETH
-      ? EARN_INPUT_VIEW_ACTIONS.STAKE
-      : EARN_INPUT_VIEW_ACTIONS.LEND;
-
     closeBottomSheetAndNavigate(() => {
       navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE,
-        params: { token, action },
+        params: { token },
       });
     });
 
@@ -113,7 +108,6 @@ const EarnTokenList = () => {
           token_name: token.name,
           token_symbol: token.symbol,
           token_chain_id: getDecimalChainId(token.chainId),
-          action,
         })
         .build(),
     );
