@@ -8,13 +8,13 @@ import I18n from '../../../../../locales/i18n';
 import { formatAmount } from '../../../../components/UI/SimulationDetails/formatAmount';
 import { useAsyncResult } from '../../../hooks/useAsyncResult';
 import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { fetchTokenFiatRates } from '../../../UI/SimulationDetails/useBalanceChanges';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { fetchTokenFiatRates } from '../../../../util/tokens';
 import { toBigNumber } from '../../../../util/number';
 import { calcTokenAmount } from '../../../../util/transactions';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
-import { fetchErc20Decimals, isNativeToken } from '../utils/token';
+import { isNativeToken } from '../utils/token';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
