@@ -6,6 +6,7 @@ import {
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import TestHelpers from '../..//helpers';
+import { waitFor } from 'detox';
 
 class SwapView {
   get quoteSummary() {
@@ -30,6 +31,16 @@ class SwapView {
     return Matchers.getElementByText(SwapViewSelectorsTexts.I_UNDERSTAND);
   }
 
+  async isPriceWarningDisplayed() {
+    try {
+      const element = await this.iUnderstandLabel;
+      await waitFor(element).toBeVisible().withTimeout(5000);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   generateSwapCompleteLabel(sourceToken, destinationToken) {
     let title = SwapViewSelectorsTexts.SWAP_CONFIRMED;
     title = title.replace('{{sourceToken}}', sourceToken);
@@ -48,11 +59,12 @@ class SwapView {
   }
 
   async tapIUnderstandPriceWarning() {
-    try {
-      await Gestures.waitAndTap(this.iUnderstandLabel, 3000);
-    } catch (e) {
+    const isDisplayed = await this.isPriceWarningDisplayed();
+    if (isDisplayed) {
+      await Gestures.waitAndTap(this.iUnderstandLabel);
+    } else {
       // eslint-disable-next-line no-console
-      console.log(`Price warning not displayed: ${e}`);
+      console.log('Price warning not displayed');
     }
   }
 }
