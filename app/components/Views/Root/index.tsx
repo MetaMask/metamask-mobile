@@ -14,6 +14,7 @@ import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
+import { AnalyticsProvider, createClient } from '../../../core/Analytics/typewriter/segment';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -25,6 +26,10 @@ import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
  */
 const Root = ({ foxCode }: RootProps) => {
   const [isLoading, setIsLoading] = useState(true);
+
+  const segmentClient = createClient({
+    writeKey: 'IKTFv1wYObT20NTYO85nJ1E3LW3NF9Kb'
+  });
 
   /**
    * Wait for store to be initialized in Detox tests
@@ -75,7 +80,9 @@ const Root = ({ foxCode }: RootProps) => {
                 <ToastContextWrapper>
                   <ErrorBoundary view="Root">
                     <ReducedMotionConfig mode={ReduceMotion.Never} />
-                    <App />
+                    <AnalyticsProvider client={segmentClient}>
+                      <App />
+                    </AnalyticsProvider>
                   </ErrorBoundary>
                 </ToastContextWrapper>
               </ControllersGate>
