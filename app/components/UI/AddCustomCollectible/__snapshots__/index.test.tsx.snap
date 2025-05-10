@@ -27,6 +27,10 @@ exports[`AddCustomCollectible should render correctly 1`] = `
     }
   }
 >
-  <AddCustomCollectible />
+  <AddCustomCollectible
+    chainId="0x1"
+    selectedNetwork="mainnet"
+    setOpenNetworkSelector={[MockFunction]}
+  />
 </ContextProvider>
 `;

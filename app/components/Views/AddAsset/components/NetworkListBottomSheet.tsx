@@ -54,6 +54,7 @@ export default function NetworkListBottomSheet({
         {Object.values(networkConfigurations).map((network) => (
           <View style={styles.bottomSheetWrapper} key={network.chainId}>
             <Cell
+              testID={network.name}
               variant={CellVariant.Select}
               title={network.name}
               avatarProps={{
