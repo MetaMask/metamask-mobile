@@ -95,8 +95,9 @@ function parseDeeplink({
   } catch (error) {
     const isPrivateKey = url.length === 64;
     if (error && !isPrivateKey) {
-      Logger.error(
-        error as Error,
+      // TODO: show the user the error.
+      // Create an UI interface for that
+      Logger.log(
         'DeepLinkManager:parse error parsing deeplink',
       );
       if (origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
