@@ -30,7 +30,7 @@ import {
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import Logger from '../../../util/Logger';
-import { safeToChecksumAddress } from '../../../util/address';
+import { toFormattedAddress } from '../../../util/address';
 import {
   renderFromTokenMinimalUnit,
   renderFromWei,
@@ -191,28 +191,32 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       },
     });
 
-    if (asset.chainId !== selectedChainId) {
-      const { NetworkController, MultichainNetworkController } = Engine.context;
-      const networkConfiguration =
-        NetworkController.getNetworkConfigurationByChainId(
-          asset.chainId as Hex,
+    if (isEvmSelected) {
+      if (asset.chainId !== selectedChainId) {
+        const { NetworkController, MultichainNetworkController } =
+          Engine.context;
+        const networkConfiguration =
+          NetworkController.getNetworkConfigurationByChainId(
+            asset.chainId as Hex,
+          );
+
+        const networkClientId =
+          networkConfiguration?.rpcEndpoints?.[
+            networkConfiguration.defaultRpcEndpointIndex
+          ]?.networkClientId;
+
+        await MultichainNetworkController.setActiveNetwork(
+          networkClientId as string,
         );
+      }
 
-      const networkClientId =
-        networkConfiguration?.rpcEndpoints?.[
-          networkConfiguration.defaultRpcEndpointIndex
-        ]?.networkClientId;
-
-      await MultichainNetworkController.setActiveNetwork(
-        networkClientId as string,
-      );
+      if ((asset.isETH || asset.isNative) && ticker) {
+        dispatch(newAssetTransaction(getEther(ticker)));
+      } else {
+        dispatch(newAssetTransaction(asset));
+      }
     }
 
-    if ((asset.isETH || asset.isNative) && ticker) {
-      dispatch(newAssetTransaction(getEther(ticker)));
-    } else {
-      dispatch(newAssetTransaction(asset));
-    }
     navigation.navigate('SendFlowView', {});
   };
 
@@ -288,7 +292,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   const itemAddress = isEvmSelected
-    ? safeToChecksumAddress(asset.address)
+    ? toFormattedAddress(asset.address)
     : asset.address;
 
   const currentChainId = chainId as Hex;
