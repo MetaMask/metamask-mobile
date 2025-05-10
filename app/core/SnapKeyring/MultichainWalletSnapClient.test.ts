@@ -11,6 +11,7 @@ import Engine from '../Engine';
 import { Sender } from '@metamask/keyring-snap-client';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { BITCOIN_WALLET_SNAP_ID } from './BitcoinWalletSnap';
 
 jest.mock('../Engine', () => ({
   controllerMessenger: {
@@ -291,6 +292,33 @@ describe('Wallet Client Implementations', () => {
     it('getScope returns bitcoin network', () => {
       const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
       expect(bitcoinClient.getScope()).toEqual(BtcScope.Mainnet);
+    });
+
+    it('adds synchronize parameter to createAccount', async () => {
+      const mockOptions = {
+        scope: BtcScope.Mainnet,
+        accountNameSuggestion: 'Bitcoin Account 1',
+        entropySource: 'test-entropy',
+      };
+
+      const mockKeyring = {
+        createAccount: jest.fn(),
+      };
+
+      (Engine.controllerMessenger.call as jest.Mock).mockImplementationOnce(
+        async (_, __, callback) => {
+          await callback({ keyring: mockKeyring });
+        },
+      );
+
+      const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
+      await bitcoinClient.createAccount(mockOptions);
+
+      expect(mockKeyring.createAccount).toHaveBeenCalledWith(
+        BITCOIN_WALLET_SNAP_ID,
+        { ...mockOptions, synchronize: true },
+        mockSnapKeyringOptions,
+      );
     });
   });
 
