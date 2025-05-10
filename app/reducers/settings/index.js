@@ -4,7 +4,7 @@ const initialState = {
   searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
   primaryCurrency: 'ETH',
   lockTime: -1, // Disabled by default
-  useBlockieIcon: true,
+  useBlockieIcon: false, // Default to Jazzicon
   hideZeroBalanceTokens: false,
   basicFunctionalityEnabled: true,
 };
