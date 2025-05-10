@@ -95,7 +95,9 @@ const ProtectYourWallet = ({
     openSRPQuiz();
   };
 
+  let oauthFlow = false;
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  oauthFlow = !!authConnection;
   const onProtectYourWalletPressed = () => {
     navigation.navigate('ProtectYourWallet');
   };
@@ -125,7 +127,6 @@ const ProtectYourWallet = ({
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.protect_title')}
       </Text>
-
       <Text
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}
@@ -137,7 +138,6 @@ const ProtectYourWallet = ({
             : 'app_settings.protect_desc_no_backup',
         )}
       </Text>
-
       {!srpBackedup && (
         <Button
           variant={ButtonVariants.Link}
@@ -145,13 +145,11 @@ const ProtectYourWallet = ({
           label={strings('app_settings.learn_more')}
         />
       )}
-
       {
         ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
         seedlessOnboardingBanner()
         ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
       }
-
       {srpBackedup ? (
         <Banner
           variant={BannerVariant.Alert}
@@ -177,37 +175,41 @@ const ProtectYourWallet = ({
           style={styles.accessory}
         />
       )}
-      {!srpBackedup ? (
-        <Button
-          label={strings('app_settings.back_up_now')}
-          width={ButtonWidthTypes.Full}
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          onPress={goToBackup}
-          style={styles.accessory}
-        />
-      ) : (
-        <Button
-          label={strings('reveal_credential.seed_phrase_title')}
-          width={ButtonWidthTypes.Full}
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          onPress={onRevealPressed}
-          style={styles.accessory}
-          testID={SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON}
-        />
-      )}
+
+      {!oauthFlow &&
+        (!srpBackedup ? (
+          <Button
+            label={strings('app_settings.back_up_now')}
+            width={ButtonWidthTypes.Full}
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            onPress={goToBackup}
+            style={styles.accessory}
+          />
+        ) : (
+          <Button
+            label={strings('reveal_credential.seed_phrase_title')}
+            width={ButtonWidthTypes.Full}
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            onPress={onRevealPressed}
+            style={styles.accessory}
+            testID={SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON}
+          />
+        ))}
       {
         ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-        <Button
-          label={strings('app_settings.protect_title')}
-          width={ButtonWidthTypes.Full}
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          onPress={onProtectYourWalletPressed}
-          style={styles.accessory}
-          testID={SecurityPrivacyViewSelectorsIDs.PROTECT_YOUR_WALLET}
-        />
+        oauthFlow && (
+          <Button
+            label={strings('app_settings.protect_title')}
+            width={ButtonWidthTypes.Full}
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            onPress={onProtectYourWalletPressed}
+            style={styles.accessory}
+            testID={SecurityPrivacyViewSelectorsIDs.PROTECT_YOUR_WALLET}
+          />
+        )
         ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
       }
     </View>
