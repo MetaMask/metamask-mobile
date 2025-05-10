@@ -446,6 +446,14 @@
     "multisrp": {
       "title": "Mehrere geheime Wiederherstellungsphrasen hinzufügen",
       "subtitle": "Mehrere Wallets in MetaMask importieren und verwenden"
+    },
+    "backupAndSync": {
+      "title": "Einführung in Backup und Synchronisierung",
+      "subtitle": "Sichern Sie Ihre Konten und Synchronisierungseinstellungen."
+    },
+    "solana": {
+      "title": "Solana wird jetzt unterstützt",
+      "subtitle": "Erstellen Sie ein Solana-Konto, um loszulegen"
     }
   },
   "wallet": {
@@ -483,6 +491,7 @@
     "sort_by": "Sortieren nach",
     "filter_by": "Filtern nach",
     "current_network": "Aktuelles Netzwerk",
+    "popular_networks": "Beliebte Netzwerke",
     "all_networks": "Alle Netzwerke",
     "declining_balance": "Abnehmender Kontostand ({{currency}} hoch-niedrig)",
     "alphabetically": "Alphabetisch (A-Z)",
@@ -534,7 +543,7 @@
     "logout_to_import_seed": "Sie müssen sich erst abmelden, um eine geheime Wiederherstellungsphrase zu importieren.",
     "ready_to_explore": "Sind Sie bereit, mit der Erforschung von Blockchain-Applikationen zu beginnen?",
     "unable_to_load": "Guthaben konnte nicht geladen werden",
-    "unable_to_find_conversion_rate": "Finden des Umrechungswechselkurs nicht möglich",
+    "unable_to_find_conversion_rate": "Kein Umrechnungskurs",
     "display_nft_media_desc": "Zum NFT-Import aktivieren Sie „NFT-Medien anzeigen“ unter Einstellungen > Sicherheit und Datenschutz.",
     "display_nft_media_cta": "„NFT-Medien anzeigen“ aktivieren",
     "display_media_nft_warning": "Das Anzeigen von NFT-Medien und -Daten könnte Ihre IT-Adresse an zentralisierte Server weitergeben. Importieren Sie nur dann ein NFT, wenn Sie sich über die damit verbundenen Risiken im Klaren sind.",
@@ -730,6 +739,7 @@
     "receive": "EMPFANGEN"
   },
   "accounts": {
+    "srp_index": "GWP #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Neues Konto erstellen",
     "import_account": "Ein Konto importieren",
@@ -860,8 +870,6 @@
     "reset_notifications_description": "Das Zurücksetzen von Benachrichtigungen führt zum Löschen Ihrer Speicherschlüssel für Benachrichtigungen sowie zum Zurücksetzen Ihres gesamten Benachrichtigungsverlaufs. Möchten Sie diesen Vorgang wirklich fortsetzen?",
     "reset_notifications": "Benachrichtigungen zurücksetzen",
     "reset_notifications_success": "Der Speicherungsschlüssel für Benachrichtigungen wurde gelöscht/neu erstellt und der Benachrichtigungsverlauf zurückgesetzt.",
-    "enabling_profile_sync": "Aktivierung der Profilsynchronisierung ...",
-    "disabling_profile_sync": "Deaktivierung der Profilsynchronisierung ...",
     "notifications_dismiss_modal": "Verwerfen",
     "select_rpc_url": "RPC-URL auswählen",
     "title": "Einstellungen",
@@ -985,8 +993,6 @@
     "network_rpc_url_label": "RPC-URL",
     "network_rpc_name_label": "RPC-Name",
     "network_rpc_placeholder": "Neues RPC-Netzwerk",
-    "network_failover_rpc_url_label": "RPC-URL-Failover",
-    "failover": "Failover",
     "network_chain_id_label": "Chain-ID",
     "network_chain_id_placeholder": "Chain-ID",
     "network_symbol_label": "Symbol",
@@ -1729,7 +1735,13 @@
       "generic": "Diese Webseite wurde automatisch für das Öffnen einer externen App blockiert."
     },
     "ipfs_gateway_off_title": "IPFS-Gateway ist deaktiviert",
-    "ipfs_gateway_off_content": "Um diese Webseite zu sehen, aktivieren Sie IPFS-Gateway in den Datenschutz- und Sicherheitseinstellungen."
+    "ipfs_gateway_off_content": "Um diese Webseite zu sehen, aktivieren Sie IPFS-Gateway in den Datenschutz- und Sicherheitseinstellungen.",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Solana Dapp-Verbindung bald verfügbar",
+        "message": "Sie können sich mit Solana-Dapps in der Erweiterung verbinden oder in der App mit Solana-Tokens handeln."
+      }
+    }
   },
   "backup_alert": {
     "title": "Schützen Sie Ihre Wallet.",
@@ -3294,15 +3306,6 @@
     "enable_remember_me": "„Angemeldet bleiben“ aktivieren",
     "enable_remember_me_description": "Wenn „Angemeldet bleiben“ aktiviert ist, kann jeder, der Zugriff zu Ihrem Handy hat, auf Ihr MetaMask-Konto zugreifen."
   },
-  "profile_sync": {
-    "title": "Profilsynchronisierung",
-    "disable_warning": "Wenn Sie die Profilsynchronisierung deaktivieren, können Sie keine Benachrichtigungen empfangen.",
-    "enable_description": "Erstellt ein Profil, über das MetaMask bestimmte Einstellungen zwischen Ihren Geräten synchronisiert. Dies ist für den Erhalt von Benachrichtigungen erforderlich. ",
-    "enable_description2": " um mehr zu erfahren.",
-    "enable_privacy_link": "Erfahren Sie, wie wir Ihre Privatsphäre schützen",
-    "bottomSheetTurnOn": "Einschalten der Profilsynchronisierung",
-    "bottomSheetTurnOff": "Ausschalten der Profilsynchronisierung"
-  },
   "turn_off_remember_me": {
     "title": "Geben Sie Ihr Passwort ein, um „Angemeldet bleiben“ zu deaktivieren.",
     "placeholder": "Passwort",
@@ -3505,6 +3508,7 @@
     "connect_hardware_wallet": "Ein Konto verbinden",
     "import_wallet_or_account": "Eine Wallet oder ein Konto importieren",
     "add_account": "Neues Konto erstellen",
+    "add_multichain_account": "Ein neues {{networkName}}-Konto erstellen",
     "create_an_account": "Neues Konto erstellen",
     "add_new_account": "Ethereum-Konto",
     "import_srp": "Geheime Wiederherstellungsphrase",
@@ -3512,7 +3516,12 @@
     "import_account": "Privater Schlüssel",
     "add_bitcoin_account_testnet": "Bitcoin-Testnet-Konto",
     "add_bitcoin_account_mainnet": "Bitcoin-Konto",
-    "add_solana_account": "Solana-Konto"
+    "add_solana_account": "Solana-Konto",
+    "switch_to_smart_account": "Zum Smart-Konto wechseln",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "NFT anzeigen",
@@ -3535,13 +3544,14 @@
     "title": "Solana auf MetaMask",
     "create_solana_account": "Solana-Konto erstellen",
     "not_now": "Nicht jetzt",
-    "got_it": "Verstanden",
+    "view_solana_account": "Solana-Konto anzeigen",
     "feature_1_title": "Tokens senden, empfangen und tauschen",
     "feature_1_description": "Übertragen und handeln Sie mit Tokens wie SOL, USDC und viele mehr.",
     "feature_2_title": "Solana-Konten importieren",
     "feature_2_description": "Importieren Sie eine geheime Wiederherstellungsphrase, um Ihr Solana-Konto von einer anderen Wallet zu migrieren.",
     "feature_3_title": "Weitere Funktionen in Kürze",
-    "feature_3_description": "Solana-DApps, NFTs, Hardware-Wallet-Unterstützung und vieles mehr in Kürze verfügbar."
+    "feature_3_description": "Solana-DApps, NFTs, Hardware-Wallet-Unterstützung und vieles mehr in Kürze verfügbar.",
+    "learn_more": "Erfahren Sie mehr über Solana-Konten"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS-Gateway",
@@ -3575,6 +3585,9 @@
       "body_prefix": "Sie könnten bis zu",
       "body_suffix": "pro Jahr verdienen, indem Sie Ihre {{tokenSymbol}} verleihen.",
       "start_earning": "Mit dem Verdienen beginnen"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "Wir sind wegen Wartungsarbeiten nicht erreichbar. Wir sind bald wieder online!"
     }
   },
   "stake": {
@@ -3709,12 +3722,17 @@
     "basic_functionality": "Grundfunktionalität",
     "manage_networks": "Wählen Sie Ihr Netzwerk",
     "manage_networks_body": "Wir verwenden Infura als RPC-Anbieter (Remote Procedure Call), um einen möglichst zuverlässigen und privaten Zugriff auf Ethereum-Daten zu ermöglichen. Sie können Ihren eigenen RPC auswählen, bedenken Sie aber, dass RPC Ihre IP-Adresse und Ihre Ethereum-Wallet erhalten wird, um Transaktionen durchzuführen. Lesen Sie unsere ",
-    "manage_networks_body2": " um mehr darüber zu erfahren, wie Infura mit Daten umgeht.",
+    "manage_networks_body2": " um mehr darüber zu erfahren, wie Infura die Daten für EVM-Konten verarbeitet, für Solana-Konten  ",
+    "manage_networks_body3": "klicken Sie hier.",
     "functionality_body": "MetaMask bietet grundlegende Funktionen wie Token-Details und Gas-Einstellungen über Internetdienste. Wenn Sie Internetdienste nutzen, wird Ihre IP-Adresse weitergegeben, in diesem Fall an MetaMask. Das ist genau so, wie wenn Sie eine beliebige Website besuchen. MetaMask verwendet diese Daten vorübergehend und verkauft Ihre Daten niemals. Sie können ein VPN verwenden oder diese Dienste abschalten, aber das kann Ihr MetaMask-Erlebnis beeinträchtigen. Lesen Sie unsere ",
     "functionality_body2": " um mehr zu erfahren.",
     "sheet": {
       "title_off": "Grundfunktionalität ausschalten",
       "description_off": "Dies bedeutet, dass Sie Ihre Zeit auf MetaMask nicht vollständig optimieren können. Grundlegende Funktionen (wie Token-Details, optimale Gas-Einstellungen und andere) stehen Ihnen nicht zur Verfügung.",
+      "description_off2": "Das Ausschalten dieser Funktion deaktiviert auch alle Funktionen innerhalb von",
+      "description_off2_related_features1": "Sicherheit und Datenschutz, Backup und Synchronisierung",
+      "description_off2_related_features1_and": "und",
+      "description_off2_related_features2": "Benachrichtigungen.",
       "title_on": "Grundfunktionalität einschalten",
       "description_on": "Um Ihre Zeit auf MetaMask zu optimieren, müssen Sie diese Funktion einschalten. Grundlegende Funktionen (wie Token-Details, optimale Gas-Einstellungen, Benachrichtigungen und andere) sind für das Web3-Erlebnis wichtig.",
       "checkbox_label": "Ich verstehe und möchte fortfahren",
@@ -3804,7 +3822,8 @@
       "permit_revoke": "Genehmigung entfernen",
       "permit_NFTs": "Auszahlungsanfrage",
       "signature_siwe": "Anmeldeanfrage",
-      "contract_interaction": "Transaktionsanfrage"
+      "contract_interaction": "Transaktionsanfrage",
+      "transfer": "Übertragungsanfrage"
     },
     "sub_title": {
       "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
@@ -3852,11 +3871,17 @@
       "tooltip": "Die geschätzten Änderungen beziehen sich auf das, was passieren könnte, wenn Sie diese Transaktion durchführen. Es handelt sich hierbei lediglich um eine Prognose, nicht um eine Garantie.",
       "unavailable": "Nicht verfügbar"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Smart-Konto",
+      "standardAccountLabel": "Standardkonto",
+      "switch": "Wechseln"
+    },
     "unlimited": "Unbegrenzt",
     "none": "Keine",
     "advanced_details": "Erweiterte Details",
     "interacting_with": "Interaktion mit",
-    "review": "Review"
+    "review": "Überprüfen",
+    "transferRequest": "Übertragungsanfrage"
   },
   "change_in_simulation_modal": {
     "title": "Ergebnisse haben sich geändert",
@@ -3908,9 +3933,9 @@
     "fetching_quote": "Angebot einholen"
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "Neue Angebote sind verfügbar",
+    "description": "Die Preise werden alle {{refreshRate}} Sekunden aktualisiert. Tippen Sie also auf „Neues Angebot einholen“, wenn Sie bereit sind.",
+    "get_new_quote": "Neues Angebot einholen"
   },
   "bridge_transaction_details": {
     "status": "Status",
@@ -3926,5 +3951,31 @@
     "transaction_details": "Transaktionsdetails",
     "bridge_to_chain": "Bridge zu {{chainName}}",
     "recipient": "Empfänger"
+  },
+  "backupAndSync": {
+    "title": "Backup und Synchronisierung",
+    "description": "Sichern Sie Ihre Konten und Synchronisierungseinstellungen.",
+    "enabling": "Backup und Synchronisierung aktivieren",
+    "disabling": "Backup und Synchronisierung deaktivieren",
+    "enable": {
+      "title": "Backup und Synchronisierung einschalten",
+      "confirmation": "Durch Einschalten von Backup und Synchronisierung aktivieren Sie auch die Grundfunktionalität. Möchten Sie fortfahren?",
+      "description": "Mit Backup und Synchronisierung können wir verschlüsselte Daten für Ihre benutzerdefinierten Einstellungen und Funktionen speichern. Dadurch bleibt Ihr MetaMask-Erlebnis auf allen Geräten gleich und die Einstellungen und Funktionen werden bei eventueller Neuinstallation von MetaMask wiederhergestellt.",
+      "updatePreferences": "Sie können Ihre Einstellungen jederzeit aktualisieren unter",
+      "settingsPath": "Einstellungen > Backup und Synchronisierung."
+    },
+    "privacyLink": "Erfahren Sie, wie wir Ihre Privatsphäre schützen",
+    "features": {
+      "accounts": "Konten"
+    },
+    "manageWhatYouSync": {
+      "title": "Verwalten Sie, was Sie synchronisieren",
+      "description": "Schalten Sie ein, was Sie zwischen Ihren Geräten synchronisieren."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Ein Asset auswählen"
+    }
   }
 }

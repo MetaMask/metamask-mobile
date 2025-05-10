@@ -446,6 +446,14 @@
     "multisrp": {
       "title": "添加多个私钥助记词",
       "subtitle": "在 MetaMask 中导入并使用多个钱包"
+    },
+    "backupAndSync": {
+      "title": "备份与同步简介",
+      "subtitle": "备份您的账户与同步设置。"
+    },
+    "solana": {
+      "title": "Solana 现已获支持",
+      "subtitle": "创建 Solana 账户以开始使用"
     }
   },
   "wallet": {
@@ -483,6 +491,7 @@
     "sort_by": "排序方式",
     "filter_by": "筛选方式",
     "current_network": "当前网络",
+    "popular_networks": "热门网络",
     "all_networks": "所有网络",
     "declining_balance": "余额降序（{{currency}} 高-低）",
     "alphabetically": "按字母顺序（A-Z）",
@@ -534,7 +543,7 @@
     "logout_to_import_seed": "您需要先注销，然后才能导入私钥助记词。",
     "ready_to_explore": "准备开始探索区块链应用？",
     "unable_to_load": "无法载入余额",
-    "unable_to_find_conversion_rate": "无法找到兑换率",
+    "unable_to_find_conversion_rate": "无兑换率",
     "display_nft_media_desc": "要导入NFT，请在“设置>安全和隐私”中打开“显示NFT媒体”。",
     "display_nft_media_cta": "打开“显示NFT媒体”",
     "display_media_nft_warning": "显示NFT媒体和数据可能会导致您的IP地址被中心化服务器获悉。仅当您了解相关风险时才可导入NFT。",
@@ -730,6 +739,7 @@
     "receive": "接收"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snap（测试版）",
     "create_new_account": "创建新账户",
     "import_account": "导入账户",
@@ -860,8 +870,6 @@
     "reset_notifications_description": "重设通知意味着您要删除通知存储密钥并重设所有通知历史记录。您确定要这样做吗？",
     "reset_notifications": "重设通知",
     "reset_notifications_success": "已删除/重新创建通知存储密钥，并重设通知历史记录。",
-    "enabling_profile_sync": "正在启用配置文件同步...",
-    "disabling_profile_sync": "正在禁用配置文件同步...",
     "notifications_dismiss_modal": "关闭",
     "select_rpc_url": "选择 RPC（远程过程调用）URL",
     "title": "设置",
@@ -982,11 +990,9 @@
     "networks_desc": "添加并编辑自定义 RPC 网络",
     "network_name_label": "网络名称",
     "network_name_placeholder": "网络名称（可选）",
-    "network_rpc_url_label": "RPC（远程过程调用）URL",
+    "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC（远程过程调用）名称",
     "network_rpc_placeholder": "新 RPC 网络",
-    "network_failover_rpc_url_label": "故障转移 RPC（远程过程调用）URL",
-    "failover": "故障转移",
     "network_chain_id_label": "链 ID",
     "network_chain_id_placeholder": "链 ID（可选）",
     "network_symbol_label": "符号",
@@ -1359,7 +1365,7 @@
     "token_marketplace": "代币市场",
     "sell_button": "卖出",
     "receive_button": "接收",
-    "portfolio_button": "投资组合",
+    "portfolio_button": "Portfolio",
     "earn_button": "赚取",
     "add_collectible_button": "添加",
     "info": "信息",
@@ -1729,7 +1735,13 @@
       "generic": "此网站已被禁止自动打开外部应用程序"
     },
     "ipfs_gateway_off_title": "IPFS网关关闭",
-    "ipfs_gateway_off_content": "要查看此网站，请在隐私和安全设置中开启IPFS网关。"
+    "ipfs_gateway_off_content": "要查看此网站，请在隐私和安全设置中开启IPFS网关。",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Solana dapp（去中心化应用）连接功能即将上线",
+        "message": "您可通过扩展程序连接 Solana 去中心化应用，或在应用内交易 Solana 代币。"
+      }
+    }
   },
   "backup_alert": {
     "title": "保护您的钱包",
@@ -3294,15 +3306,6 @@
     "enable_remember_me": "打开“记住我”",
     "enable_remember_me_description": "在“记住我”功能打开时，任何有访问您手机权限的人都可以访问您的 MetaMask 账户。"
   },
-  "profile_sync": {
-    "title": "配置文件同步",
-    "disable_warning": "如果您关闭配置文件同步，您将无法收到通知。",
-    "enable_description": "创建配置文件，MetaMask 用以在您的不同设备之间同步某些设置。这是获取通知的必需条件。 ",
-    "enable_description2": " 以了解详情。",
-    "enable_privacy_link": "了解我们如何保护您的隐私",
-    "bottomSheetTurnOn": "开启配置文件同步",
-    "bottomSheetTurnOff": "关闭配置文件同步"
-  },
   "turn_off_remember_me": {
     "title": "输入密码以关闭“记住我”",
     "placeholder": "密码",
@@ -3505,6 +3508,7 @@
     "connect_hardware_wallet": "连接账户",
     "import_wallet_or_account": "导入钱包或账户",
     "add_account": "创建新账户",
+    "add_multichain_account": "创建新的 {{networkName}} 账户",
     "create_an_account": "创建新账户",
     "add_new_account": "以太坊账户",
     "import_srp": "私钥助记词",
@@ -3512,7 +3516,12 @@
     "import_account": "私钥",
     "add_bitcoin_account_testnet": "比特币测试网账户",
     "add_bitcoin_account_mainnet": "比特币账户",
-    "add_solana_account": "Solana 账户"
+    "add_solana_account": "Solana 账户",
+    "switch_to_smart_account": "切换到智能账户",
+    "headers": {
+      "bitcoin": "比特币",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "显示NFT",
@@ -3535,13 +3544,14 @@
     "title": "MetaMask 上的 Solana",
     "create_solana_account": "创建 Solana 账户",
     "not_now": "暂时不",
-    "got_it": "知道了",
+    "view_solana_account": "查看 Solana 账户",
     "feature_1_title": "发送、接收和兑换代币",
     "feature_1_description": "使用 SOL、USDC 等代币进行转账和交易。",
     "feature_2_title": "导入 Solana 账户",
     "feature_2_description": "导入私钥助记词，从其他钱包迁移您的 Solana 账户。",
     "feature_3_title": "即将推出更多功能",
-    "feature_3_description": "即将推出 Solana 去中心化应用、NFT、硬件钱包支持等。"
+    "feature_3_description": "即将推出 Solana 去中心化应用、NFT、硬件钱包支持等。",
+    "learn_more": "了解有关 Solana 账户的更多详情"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS 网关",
@@ -3575,6 +3585,9 @@
       "body_prefix": "您可赚取高达",
       "body_suffix": "即通过借出您的 {{tokenSymbol}} 每年可赚取的金额。",
       "start_earning": "开始赚取"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "我们正在进行系统维护。即将恢复服务！"
     }
   },
   "stake": {
@@ -3709,12 +3722,17 @@
     "basic_functionality": "基本功能",
     "manage_networks": "选择您的网络",
     "manage_networks_body": "我们使用 Infura 作为我们的远程过程调用（RPC）提供商，以提供最可靠和最私密的以太坊数据访问。您可以选择自己的 RPC，但请谨记，任何 RPC 都可以接收您的 IP 地址和以太坊钱包以进行交易。请阅读我们的 ",
-    "manage_networks_body2": " 以进一步了解 Infura 如何处理数据。",
+    "manage_networks_body2": " 以进一步了解 Infura 如何针对 EVM 账户和 Solana 账户处理数据 ",
+    "manage_networks_body3": "点击此处。",
     "functionality_body": "MetaMask 通过互联网服务提供代币详情和燃料设置等基本功能。当您使用互联网服务时，您的 IP 地址会共享，在本例中与 MetaMask 共享。这就像您访问任何网站一样。MetaMask 暂时使用这些数据，并且绝不会出卖您的数据。您可以使用 VPN 或关闭这些服务，但这可能会影响您的 MetaMask 体验。阅读我们的 ",
     "functionality_body2": " 了解详情。",
     "sheet": {
       "title_off": "关闭基本功能",
       "description_off": "这意味着您不能充分优化您在 MetaMask 上的时间。您将无法使用基本功能（例如代币详情、最优燃料设置等）。",
+      "description_off2": "关闭此选项也会禁用其中的所有功能",
+      "description_off2_related_features1": "安全与隐私，备份与同步",
+      "description_off2_related_features1_and": "与",
+      "description_off2_related_features2": "通知。",
       "title_on": "开启基本功能",
       "description_on": "如需优化您在 MetaMask 上的时间，您将需要开启此功能。基本功能（例如代币详情、最优燃料设置、通知等）对于 Web3 体验至关重要。",
       "checkbox_label": "我理解并想继续",
@@ -3804,7 +3822,8 @@
       "permit_revoke": "去除许可",
       "permit_NFTs": "提取请求",
       "signature_siwe": "登录请求",
-      "contract_interaction": "交易请求"
+      "contract_interaction": "交易请求",
+      "transfer": "转账请求"
     },
     "sub_title": {
       "permit": "该网站想获得花费您的代币的许可。",
@@ -3852,11 +3871,17 @@
       "tooltip": "预期变化是指您完成该交易可能发生的变化。这只是预测，而不是保证。",
       "unavailable": "不可用"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "智能账户",
+      "standardAccountLabel": "标准账户",
+      "switch": "切换"
+    },
     "unlimited": "无限制",
     "none": "无",
     "advanced_details": "高级信息",
     "interacting_with": "正在与下述内容交互：",
-    "review": "Review"
+    "review": "查看",
+    "transferRequest": "转账请求"
   },
   "change_in_simulation_modal": {
     "title": "结果已发生变化",
@@ -3908,9 +3933,9 @@
     "fetching_quote": "正在获取报价"
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "有新的报价",
+    "description": "价格每 {{refreshRate}} 秒更新一次，请在准备就绪后点击“获取新报价”。",
+    "get_new_quote": "获取新报价"
   },
   "bridge_transaction_details": {
     "status": "状态",
@@ -3926,5 +3951,31 @@
     "transaction_details": "交易详情",
     "bridge_to_chain": "桥接至 {{chainName}}",
     "recipient": "接收者"
+  },
+  "backupAndSync": {
+    "title": "备份与同步",
+    "description": "备份您的账户与同步设置。",
+    "enabling": "启用备份与同步",
+    "disabling": "禁用备份与同步",
+    "enable": {
+      "title": "开启备份与同步",
+      "confirmation": "当您开启备份与同步时，基本功能也将同时开启。是否继续？",
+      "description": "备份与同步功能使我们能够为您的自定义设置和功能存储加密数据。这将使您的 MetaMask 体验在不同设备上保持一致，并在需要重新安装 MetaMask 时恢复相关设置和功能。",
+      "updatePreferences": "您可以随时通过以下方式更新偏好设置：",
+      "settingsPath": "设置 > 备份与同步。"
+    },
+    "privacyLink": "了解我们如何保护您的隐私",
+    "features": {
+      "accounts": "账户"
+    },
+    "manageWhatYouSync": {
+      "title": "管理同步内容",
+      "description": "开启设备间的同步内容。"
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "选择一项资产"
+    }
   }
 }

@@ -446,6 +446,14 @@
     "multisrp": {
       "title": "Ajoutez plusieurs phrases secrètes de récupération",
       "subtitle": "Importez et utilisez plusieurs portefeuilles dans MetaMask"
+    },
+    "backupAndSync": {
+      "title": "Présentation de la fonction de sauvegarde et de synchronisation",
+      "subtitle": "Sauvegardez vos comptes et synchronisez vos paramètres."
+    },
+    "solana": {
+      "title": "Solana est désormais pris en charge",
+      "subtitle": "Créez un compte Solana pour commencer"
     }
   },
   "wallet": {
@@ -483,6 +491,7 @@
     "sort_by": "Trier par",
     "filter_by": "Filtrer par",
     "current_network": "Réseau actuel",
+    "popular_networks": "Réseaux populaires",
     "all_networks": "Tous les réseaux",
     "declining_balance": "Solde décroissant ({{currency}} du solde le plus élevé au solde le moins élevé)",
     "alphabetically": "Par ordre alphabétique (de A à Z)",
@@ -534,7 +543,7 @@
     "logout_to_import_seed": "Vous devez d’abord vous déconnecter pour pouvoir importer une phrase secrète de récupération.",
     "ready_to_explore": "Prêt(e) à partir à la découverte des applications de blockchain ?",
     "unable_to_load": "Impossible de charger le solde",
-    "unable_to_find_conversion_rate": "impossible de trouver le taux de conversion",
+    "unable_to_find_conversion_rate": "aucun taux de conversion",
     "display_nft_media_desc": "Pour importer un NFT, activez l’option « Afficher les supports NFT » dans Paramètres > Sécurité et confidentialité.",
     "display_nft_media_cta": "Activez l’option « Afficher les supports NFT »",
     "display_media_nft_warning": "L’affichage des supports et des données NFT peut exposer votre adresse IP à des serveurs centralisés. N’importez un NFT que si vous comprenez les risques encourus.",
@@ -730,6 +739,7 @@
     "receive": "RECEVOIR"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (Bêta)",
     "create_new_account": "Créer un nouveau compte",
     "import_account": "Importer un compte",
@@ -860,8 +870,6 @@
     "reset_notifications_description": "La réinitialisation des notifications entrainera la suppression des clés de stockage des notifications et de l’historique des notifications. Êtes-vous sûr(e) de vouloir continuer ?",
     "reset_notifications": "Réinitialiser les notifications",
     "reset_notifications_success": "La clé de stockage des notifications a été supprimée/recréée et l’historique des notifications a été réinitialisé.",
-    "enabling_profile_sync": "Activation de la synchronisation des profils…",
-    "disabling_profile_sync": "Désactivation de la synchronisation des profils…",
     "notifications_dismiss_modal": "Annuler",
     "select_rpc_url": "Sélectionner l’URL du RPC",
     "title": "Paramètres",
@@ -982,11 +990,9 @@
     "networks_desc": "Ajouter et modifier des réseaux RPC personnalisés",
     "network_name_label": "Nom du réseau",
     "network_name_placeholder": "Nom du réseau (facultatif)",
-    "network_rpc_url_label": "URL de l’appel de procédure à distance",
+    "network_rpc_url_label": "URL RPC",
     "network_rpc_name_label": "Nom du RPC",
     "network_rpc_placeholder": "Nouveau réseau RPC",
-    "network_failover_rpc_url_label": "Basculement vers l’URL de l’appel de procédure à distance",
-    "failover": "Basculement",
     "network_chain_id_label": "ID de chaîne",
     "network_chain_id_placeholder": "ID de chaîne",
     "network_symbol_label": "Symbole",
@@ -1359,7 +1365,7 @@
     "token_marketplace": "Marché des jetons",
     "sell_button": "Vendre",
     "receive_button": "Recevoir",
-    "portfolio_button": "Portefeuille",
+    "portfolio_button": "Portfolio",
     "earn_button": "Gagner",
     "add_collectible_button": "Ajouter",
     "info": "Infos",
@@ -1729,7 +1735,13 @@
       "generic": "L’autorisation d’ouvrir automatiquement une application externe n’a pas été accordée à ce site Web"
     },
     "ipfs_gateway_off_title": "Passerelle IPFS désactivée",
-    "ipfs_gateway_off_content": "Pour voir ce site, activez la passerelle IPFS dans les paramètres de confidentialité et de sécurité."
+    "ipfs_gateway_off_content": "Pour voir ce site, activez la passerelle IPFS dans les paramètres de confidentialité et de sécurité.",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Connexion aux dapps Solana bientôt disponible",
+        "message": "Vous pouvez vous connecter aux dapps Solana dans l’extension ou échanger des jetons Solana dans l’application."
+      }
+    }
   },
   "backup_alert": {
     "title": "Protéger votre portefeuille",
@@ -2861,7 +2873,7 @@
     }
   },
   "swaps": {
-    "title": "Swap",
+    "title": "Échanger",
     "onboarding": {
       "get_the": "Bénéficiez en permanence",
       "best_price": "du meilleur prix",
@@ -3294,15 +3306,6 @@
     "enable_remember_me": "Activer l'option « Se souvenir de moi »",
     "enable_remember_me_description": "Lorsque l'option « Se souvenir de moi » est activée, toute personne ayant accès à votre téléphone peut accéder à votre compte MetaMask."
   },
-  "profile_sync": {
-    "title": "Synchronisation du profil",
-    "disable_warning": "Si vous désactivez la synchronisation du profil, vous ne pourrez plus recevoir de notifications.",
-    "enable_description": "Crée un profil que MetaMask utilise pour synchroniser certains paramètres entre vos appareils. Ceci est nécessaire pour activer les notifications. ",
-    "enable_description2": " pour en savoir plus.",
-    "enable_privacy_link": "Découvrez comment nous protégeons vos données personnelles",
-    "bottomSheetTurnOn": "Activation de la synchronisation du profil",
-    "bottomSheetTurnOff": "Désactivation de la synchronisation du profil"
-  },
   "turn_off_remember_me": {
     "title": "Saisissez votre mot de passe pour désactiver l'option « Se souvenir de moi »",
     "placeholder": "Mot de passe",
@@ -3505,6 +3508,7 @@
     "connect_hardware_wallet": "Connecter un compte",
     "import_wallet_or_account": "Importer un portefeuille ou un compte",
     "add_account": "Créer un nouveau compte",
+    "add_multichain_account": "Créer un nouveau compte {{networkName}}",
     "create_an_account": "Créer un nouveau compte",
     "add_new_account": "Compte Ethereum",
     "import_srp": "Phrase secrète de récupération",
@@ -3512,7 +3516,12 @@
     "import_account": "Clé privée",
     "add_bitcoin_account_testnet": "Compte Bitcoin testnet",
     "add_bitcoin_account_mainnet": "Compte Bitcoin",
-    "add_solana_account": "Compte Solana"
+    "add_solana_account": "Compte Solana",
+    "switch_to_smart_account": "Passer à un compte intelligent",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "Afficher le NFT",
@@ -3535,13 +3544,14 @@
     "title": "Solana sur MetaMask",
     "create_solana_account": "Créer un compte Solana",
     "not_now": "Pas maintenant",
-    "got_it": "J’ai compris",
+    "view_solana_account": "Voir le compte Solana",
     "feature_1_title": "Envoyez, recevez et échangez des jetons",
     "feature_1_description": "Transférez et effectuez des transactions avec des jetons tels que SOL, USDC, etc.",
     "feature_2_title": "Importer des comptes Solana",
     "feature_2_description": "Importez une phrase secrète de récupération pour migrer votre compte Solana depuis un autre portefeuille.",
     "feature_3_title": "D’autres fonctionnalités seront bientôt disponibles",
-    "feature_3_description": "Les dapps Solana, les NFT, la prise en charge des portefeuilles matériels, etc., seront bientôt disponibles."
+    "feature_3_description": "Les dapps Solana, les NFT, la prise en charge des portefeuilles matériels, etc., seront bientôt disponibles.",
+    "learn_more": "En savoir plus sur les comptes Solana"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Passerelle IPFS",
@@ -3575,6 +3585,9 @@
       "body_prefix": "Vous pouvez gagner jusqu’à",
       "body_suffix": "par an en prêtant vos {{tokenSymbol}}.",
       "start_earning": "Commencez à générer des revenus"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "Maintenance en cours. Le service sera bientôt rétabli !"
     }
   },
   "stake": {
@@ -3709,12 +3722,17 @@
     "basic_functionality": "Fonctionnalité de base",
     "manage_networks": "Choisissez votre réseau",
     "manage_networks_body": "Nous utilisons Infura comme fournisseur d’appel de procédure à distance (APD) pour offrir l’accès le plus fiable et le plus privé possible aux données Ethereum. Vous pouvez choisir votre propre fournisseur d’APD, mais rappelez-vous qu’il aura besoin d’accéder à votre adresse IP et à l’adresse de votre portefeuille Ethereum pour effectuer des transactions. Lisez notre ",
-    "manage_networks_body2": " pour en savoir plus sur la façon dont Infura traite les données.",
+    "manage_networks_body2": " pour en savoir plus sur la façon dont Infura traite les données pour les comptes EVM, et pour les comptes Solana, ",
+    "manage_networks_body3": "cliquez ici.",
     "functionality_body": "MetaMask offre des fonctionnalités de base telles que l’affichage des détails des jetons et des paramètres de gaz par le biais de services Internet. Lorsque vous utilisez des services Internet, votre adresse IP est partagée avec le fournisseur de ces services, dans ce cas MetaMask. C’est la même chose que lorsque vous visitez un site web. MetaMask conserve ces données temporairement et ne les vend jamais. Vous pouvez utiliser un VPN ou désactiver ces services, mais cela peut affecter votre expérience avec MetaMask. Lisez notre ",
     "functionality_body2": " pour en savoir plus.",
     "sheet": {
       "title_off": "Désactiver la fonctionnalité de base",
       "description_off": "Cela signifie que vous n’optimiserez pas complètement votre temps sur MetaMask. Vous n’aurez pas accès aux fonctions de base (comme les détails des jetons, les réglages optimaux du gaz, etc.).",
+      "description_off2": "La désactivation de cette option entraîne également la désactivation de toutes les fonctionnalités liées",
+      "description_off2_related_features1": "à la sécurité et à la confidentialité, à la sauvegarde et à la synchronisation",
+      "description_off2_related_features1_and": ", et",
+      "description_off2_related_features2": "aux notifications.",
       "title_on": "Activer la fonctionnalité de base",
       "description_on": "Pour optimiser votre temps sur MetaMask, vous devez activer cette fonction. Les fonctions de base (comme les détails des jetons, les réglages optimaux du gaz, les notifications et autres) améliorent votre expérience Web3.",
       "checkbox_label": "Je comprends et je veux continuer",
@@ -3804,7 +3822,8 @@
       "permit_revoke": "Supprimer l’autorisation",
       "permit_NFTs": "Demande de retrait",
       "signature_siwe": "Demande de connexion",
-      "contract_interaction": "Demande de transaction"
+      "contract_interaction": "Demande de transaction",
+      "transfer": "Demande de transfert"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",
@@ -3852,11 +3871,17 @@
       "tooltip": "Les changements estimés représentent ce qui pourrait se produire si vous effectuez cette transaction. Il s’agit juste d’une estimation fournie à titre d’information.",
       "unavailable": "Non disponible"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Compte intelligent",
+      "standardAccountLabel": "Compte standard",
+      "switch": "Changer"
+    },
     "unlimited": "Illimité",
     "none": "Aucun",
     "advanced_details": "Détails avancés",
     "interacting_with": "Interagissant avec",
-    "review": "Review"
+    "review": "Examiner",
+    "transferRequest": "Demande de transfert"
   },
   "change_in_simulation_modal": {
     "title": "Les résultats ont changé",
@@ -3908,9 +3933,9 @@
     "fetching_quote": "Récupération de la cotation"
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "De nouvelles cotations sont disponibles",
+    "description": "Les taux de change sont mis à jour toutes les {{refreshRate}} secondes. Appuyez sur « Obtenir une nouvelle cotation » lorsque vous êtes prêt.",
+    "get_new_quote": "Obtenir une nouvelle cotation"
   },
   "bridge_transaction_details": {
     "status": "État",
@@ -3918,13 +3943,39 @@
     "total_gas_fee": "Montant total des frais de gaz",
     "estimated_completion": "Temps estimé pour la réalisation de l’opération",
     "bridge_step_action_bridge_complete": "{{destSymbol}} reçu sur {{destChainName}}",
-    "bridge_step_action_bridge_pending": "Recevoir {{destSymbol}} sur {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Recevant {{destSymbol}} sur {{destChainName}}",
     "bridge_step_action_swap_complete": "A échangé {{srcSymbol}} contre {{destSymbol}}",
-    "bridge_step_action_swap_pending": "Échanger {{srcSymbol}} contre {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Échangeant {{srcSymbol}} contre {{destSymbol}}",
     "view_on_block_explorer": "Afficher sur l’explorateur de blocs",
     "block_explorer_description": "Cette transaction se déroule sur deux réseaux. Le premier lien indique la source ; le second indique la destination une fois qu’elle est confirmée.",
     "transaction_details": "Détails de la transaction",
-    "bridge_to_chain": "Établir une passerelle vers {{chainName}}",
+    "bridge_to_chain": "Passerelle vers {{chainName}}",
     "recipient": "Destinataire"
+  },
+  "backupAndSync": {
+    "title": "Sauvegarder et synchroniser",
+    "description": "Sauvegardez vos comptes et synchronisez vos paramètres.",
+    "enabling": "Activer la fonction de sauvegarde et de synchronisation",
+    "disabling": "Désactiver la fonction de sauvegarde et de synchronisation",
+    "enable": {
+      "title": "Activer la fonction de sauvegarde et de synchronisation",
+      "confirmation": "Lorsque vous activez la sauvegarde et la synchronisation, vous activez également les fonctionnalités de base. Voulez-vous continuer ?",
+      "description": "La sauvegarde et la synchronisation nous permettent de stocker des données chiffrées concernant vos paramètres et fonctionnalités personnalisés. Cela permet de maintenir une expérience MetaMask cohérente sur tous les appareils et de restaurer les paramètres et les fonctionnalités si jamais vous avez besoin de réinstaller MetaMask.",
+      "updatePreferences": "Vous pouvez modifier vos préférences à tout moment dans",
+      "settingsPath": "Paramètres > Sauvegarde et synchronisation."
+    },
+    "privacyLink": "Découvrez comment nous protégeons vos données personnelles",
+    "features": {
+      "accounts": "Comptes"
+    },
+    "manageWhatYouSync": {
+      "title": "Sélectionnez ce que vous voulez synchroniser",
+      "description": "Sélectionnez ce que vous voulez synchroniser entre vos appareils."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Sélectionner un actif"
+    }
   }
 }
