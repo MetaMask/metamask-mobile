@@ -554,7 +554,6 @@ export class NetworkSettings extends PureComponent {
       if (allNetworks.find((net) => networkTypeOrRpcUrl === net)) {
         const networkInformation = Networks[networkTypeOrRpcUrl];
         chainId = networkInformation.chainId.toString();
-
         nickname = networkConfigurations?.[chainId]?.name;
         editable = false;
         blockExplorerUrl =
@@ -2035,7 +2034,7 @@ export class NetworkSettings extends PureComponent {
               style={inputChainIdStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
-              value={chainId}
+              value={this.getDecimalChainId(chainId)}
               editable={!this.isAnyModalVisible() && addMode}
               onChangeText={this.onChainIDChange}
               onBlur={() => {
