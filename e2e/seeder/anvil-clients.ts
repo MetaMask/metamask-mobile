@@ -17,7 +17,7 @@ import { anvil as baseAnvil } from 'viem/chains';
 function createAnvilClients(chainId: number, port: number) {
   const anvil = {
     ...baseAnvil,
-    chainId,
+    id: chainId,
     rpcUrls: {
       default: {
         http: [`http://localhost:${port}`],
