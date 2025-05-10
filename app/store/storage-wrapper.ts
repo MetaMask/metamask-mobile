@@ -2,7 +2,12 @@ import ReadOnlyNetworkStore from '../util/test/network-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isE2E } from '../util/test/utils';
 import { MMKV } from 'react-native-mmkv';
-
+import {
+  getFirstInstallTime,
+  getLastUpdateTime,
+} from 'react-native-device-info';
+import { EXISTING_USER, FRESH_INSTALL_CHECK_DONE } from '../constants/storage';
+import Logger from '../util/Logger';
 /**
  * Wrapper class for MMKV.
  * Provides a unified interface for storage operations, with fallback to AsyncStorage in E2E test mode.
@@ -153,6 +158,49 @@ class StorageWrapper {
     }
     return StorageWrapper.instance;
   }
+
+  /**
+   * Checks if this is a fresh install with restored MMKV data from a backup.
+   * If so, clears the MMKV storage to ensure a clean state.
+   */
+  static handleFreshInstallWithRestoredData = () => {
+    (async () => {
+      try {
+        // Check if we've already performed this check
+        const freshInstallCheckDone = await AsyncStorage.getItem(
+          FRESH_INSTALL_CHECK_DONE,
+        );
+
+        if (!freshInstallCheckDone) {
+          // Check if this is a fresh install
+          const firstInstallTime = await getFirstInstallTime();
+          const lastUpdateTime = await getLastUpdateTime();
+          const isFreshInstall = firstInstallTime === lastUpdateTime;
+
+          if (isFreshInstall) {
+            const existingUser = await StorageWrapper.getInstance().getItem(
+              EXISTING_USER,
+            );
+
+            if (existingUser) {
+              // This is a fresh install but we have an existing user flag. This indicates restored data from a backup
+              await clearAll();
+            }
+          }
+
+          await AsyncStorage.setItem('FRESH_INSTALL_CHECK_DONE', 'true');
+        }
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'Error checking for fresh install with restored data',
+        );
+      }
+    })();
+  };
 }
 
 export default StorageWrapper.getInstance();
+function clearAll() {
+  throw new Error('Function not implemented.');
+}

@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import performance, { PerformanceObserver } from 'react-native-performance';
+
 import StorageWrapper from '../../store/storage-wrapper';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import getUIStartupSpan from './UIStartup';
@@ -15,6 +16,7 @@ async function setPerformanceValues(appStartTime: number) {
 
 class Performance {
   static appLaunchTime: number;
+
   /**
    * Measures app start and JS bundle loading times
    */
