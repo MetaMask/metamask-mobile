@@ -7,11 +7,11 @@ import Text from '../../../../component-library/components/Texts/Text';
 import renderWithProvider, {
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
-import { RootState } from '../../../../reducers';
 import {
   MOCK_MULTICHAIN_NETWORK_CONTROLLER_STATE,
   MOCK_NETWORK_CONTROLLER_STATE,
-} from '../mock-data';
+} from '../../../../util/test/confirm-data-helpers';
+import { RootState } from '../../../../reducers';
 import { useEIP7702Networks } from './useEIP7702Networks';
 
 const mockNetworkBatchSupport = [

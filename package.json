@@ -149,7 +149,8 @@
     "metro/image-size": "^1.2.1",
     "content-hash/**/base-x": "3.0.11",
     "multihashes/**/base-x": "3.0.11",
-    "@keystonehq/ur-decoder/**/base-x": "3.0.11"
+    "@keystonehq/ur-decoder/**/base-x": "3.0.11",
+    "@ethereumjs/tx": "^5.4.0"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",

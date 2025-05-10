@@ -25,12 +25,14 @@ import {
   SmartTransactionsControllerSmartTransactionEvent,
   SmartTransactionsControllerSmartTransactionConfirmationDoneEvent,
 } from '@metamask/smart-transactions-controller';
+import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
 
 type MessengerActions =
   | AccountsControllerGetStateAction
   | AccountsControllerGetSelectedAccountAction
   | ApprovalControllerActions
   | NetworkControllerFindNetworkClientIdByChainIdAction
+  | KeyringControllerSignEip7702AuthorizationAction
   | NetworkControllerGetEIP1559CompatibilityAction
   | NetworkControllerGetNetworkClientByIdAction
   | RemoteFeatureFlagControllerGetStateAction;
@@ -61,6 +63,7 @@ export function getTransactionControllerMessenger(
       'AccountsController:getSelectedAccount',
       'AccountsController:getState',
       `ApprovalController:addRequest`,
+      'KeyringController:signEip7702Authorization',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
       'RemoteFeatureFlagController:getState',

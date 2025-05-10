@@ -20,12 +20,8 @@ export const useEIP7702Networks = (address: string) => {
     () =>
       Object.entries(networks).reduce(
         ([nonTestnetsList, testnetsList], [chainId, network]) => {
-          try {
-            const isTest = (TESTNET_CHAIN_IDS as string[]).includes(chainId);
-            (isTest ? testnetsList : nonTestnetsList)[chainId] = network;
-          } catch (err: unknown) {
-            // console.log(err);
-          }
+          const isTest = (TESTNET_CHAIN_IDS as string[]).includes(chainId);
+          (isTest ? testnetsList : nonTestnetsList)[chainId] = network;
           return [nonTestnetsList, testnetsList];
         },
         [
@@ -35,6 +31,7 @@ export const useEIP7702Networks = (address: string) => {
       ),
     [networks],
   );
+
   const networkList = useMemo(
     () => ({ ...nonTestNetworks, ...testNetworks }),
     [nonTestNetworks, testNetworks],
@@ -54,6 +51,7 @@ export const useEIP7702Networks = (address: string) => {
       if (!value) {
         return [];
       }
+
       const networksSupporting7702: EIP7702NetworkConfiguration[] = [];
       Object.values(networkList).forEach((network) => {
         try {
