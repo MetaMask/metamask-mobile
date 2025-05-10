@@ -2,6 +2,7 @@ import { memoize } from 'lodash';
 import { Hex } from '@metamask/utils';
 import { AssetsContractController } from '@metamask/assets-controllers';
 import { NetworkClientId } from '@metamask/network-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { getTokenDetails } from '../../../../util/address';
 
 export type TokenDetailsERC20 = Awaited<
@@ -96,4 +97,12 @@ export const fetchErc20Decimals = async (
   } catch {
     return ERC20_DEFAULT_DECIMALS;
   }
+};
+
+export const isNativeToken = (transactionMeta: TransactionMeta): boolean => {
+  const { txParams } = transactionMeta;
+  const hasNoData = txParams?.data === '0x' || !txParams?.data;
+  const hasValue = txParams?.value !== undefined;
+
+  return hasNoData && hasValue;
 };
