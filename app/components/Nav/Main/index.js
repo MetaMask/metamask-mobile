@@ -91,6 +91,9 @@ import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
+import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
+import PendingDeeplinkHandler from '../../UI/PendingDeeplinkHandler';
+import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
 
 const Stack = createStackNavigator();
 
@@ -451,7 +454,10 @@ const Main = (props) => {
           toggleSkipCheckbox={toggleSkipCheckbox}
         />
         <ProtectYourWalletModal navigation={props.navigation} />
+        <InfoNetworkModal />
         <RootRPCMethodsUI navigation={props.navigation} />
+        <PendingDeeplinkHandler />
+        <ProtectWalletMandatoryModal />
       </View>
     </React.Fragment>
   );
