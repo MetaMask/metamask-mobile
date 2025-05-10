@@ -110,7 +110,7 @@ const fetchTokenExchangeRates = async (
   }
 };
 
-async function fetchTokenFiatRates(
+export async function fetchTokenFiatRates(
   fiatCurrency: string,
   erc20TokenAddresses: Hex[],
   chainId: Hex,
