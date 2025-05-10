@@ -9,6 +9,7 @@ import {
   AuthConnection,
   AuthResponse,
   OAuthUserInfo,
+  OAuthLoginResultType,
 } from './OAuthInterface';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { createLoginHandler } from './OAuthLoginHandlers';
@@ -27,15 +28,15 @@ export interface OAuthServiceConfig {
   authServerUrl: string;
 }
 
+interface OAuthServiceLocalState {
+  userId?: string;
+  accountName?: string;
+  loginInProgress: boolean;
+  oauthLoginSuccess: boolean;
+  oauthLoginError: string | null;
+}
 export class OAuthService {
-  public localState: {
-    userId?: string;
-    accountName?: string;
-
-    loginInProgress: boolean;
-    oauthLoginSuccess: boolean;
-    oauthLoginError: string | null;
-  };
+  public localState: OAuthServiceLocalState;
 
   public config: OAuthServiceConfig;
 
@@ -66,9 +67,6 @@ export class OAuthService {
     this.updateLocalState({ loginInProgress: true });
     ReduxService.store.dispatch({
       type: UserActionType.LOADING_SET,
-      payload: {
-        loadingMsg: 'Logging in...',
-      },
     });
   };
 
@@ -76,15 +74,12 @@ export class OAuthService {
     const stateToUpdate: Partial<OAuthService['localState']> = {
       loginInProgress: false,
     };
-    if (result.type === 'success') {
+    if (result.type === OAuthLoginResultType.SUCCESS) {
       stateToUpdate.oauthLoginSuccess = true;
       stateToUpdate.oauthLoginError = null;
-    } else if (result.type === 'error' && 'error' in result) {
-      stateToUpdate.oauthLoginSuccess = false;
-      stateToUpdate.oauthLoginError = result.error;
     } else {
       stateToUpdate.oauthLoginSuccess = false;
-      stateToUpdate.oauthLoginError = null;
+      stateToUpdate.oauthLoginError = result.error;
     }
     this.updateLocalState(stateToUpdate);
     ReduxService.store.dispatch({
@@ -95,12 +90,7 @@ export class OAuthService {
   handleSeedlessAuthenticate = async (
     data: AuthResponse,
     authConnection: AuthConnection,
-  ): Promise<{
-    type: 'success' | 'error';
-    error?: string;
-    existingUser: boolean;
-    accountName?: string;
-  }> => {
+  ): Promise<HandleOAuthLoginResult> => {
     try {
       const { userId, accountName } = this.localState;
 
@@ -118,9 +108,12 @@ export class OAuthService {
           socialLoginEmail: accountName,
         });
       Logger.log('handleCodeFlow: result', result);
-      return { type: 'success', existingUser: !result.isNewUser, accountName };
+      return {
+        type: OAuthLoginResultType.SUCCESS,
+        existingUser: !result.isNewUser,
+      };
     } catch (error) {
-      Logger.error(error as Error, {
+      Logger.log(error as Error, {
         message: 'handleCodeFlow',
       });
       throw error;
@@ -173,11 +166,13 @@ export class OAuthService {
         this.#dispatchPostLogin(handleCodeFlowResult);
         return handleCodeFlowResult;
       }
-      this.#dispatchPostLogin({ type: 'dismiss', existingUser: false });
-      return { type: 'dismiss', existingUser: false };
+      throw new OAuthError('No result', OAuthErrorType.LoginError);
     } catch (error) {
+      Logger.log(error as Error, {
+        message: 'handleOAuthLogin',
+      });
       this.#dispatchPostLogin({
-        type: 'error',
+        type: OAuthLoginResultType.ERROR,
         existingUser: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       });

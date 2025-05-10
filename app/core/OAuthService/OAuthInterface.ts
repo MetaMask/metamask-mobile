@@ -1,10 +1,16 @@
-import { AuthSessionResult } from 'expo-auth-session';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 
-export type HandleOAuthLoginResult =
-  | { type: 'pending' }
-  | { type: AuthSessionResult['type']; existingUser: boolean }
-  | { type: 'error'; error: string };
+export enum OAuthLoginResultType {
+  SUCCESS = 'success',
+  ERROR = 'error',
+}
+
+export interface HandleOAuthLoginResult {
+  type: OAuthLoginResultType;
+  existingUser: boolean;
+  accountName?: string;
+  error?: string;
+}
 
 export enum AuthConnection {
   Google = 'google',
