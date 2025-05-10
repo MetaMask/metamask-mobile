@@ -130,6 +130,7 @@ export function useSwitchNetworks({
           origin,
           networkConfigurationId,
         );
+        dismissModal?.();
       } else {
         trace({
           name: TraceName.SwitchCustomNetwork,
@@ -190,6 +191,7 @@ export function useSwitchNetworks({
 
       if (domainIsConnectedDapp && isMultichainV1Enabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+        dismissModal?.();
       } else {
         const networkConfiguration =
           networkConfigurations[BUILT_IN_NETWORKS[type].chainId];

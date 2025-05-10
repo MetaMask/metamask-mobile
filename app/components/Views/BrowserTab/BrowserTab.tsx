@@ -119,6 +119,7 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
 
 /**
@@ -635,6 +636,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
 
   const checkTabPermissions = useCallback(() => {
+    if (isPerDappSelectedNetworkEnabled()) {
+      return;
+    }
+
     if (!(isFocused && !isInTabsView && isTabActive)) {
       return;
     }
@@ -679,7 +684,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         Logger.error(checkTabPermissionsError, 'Error in checkTabPermissions');
       }
     }
-  }, [activeChainId, navigation, isFocused, isInTabsView, isTabActive]);
+  }, [
+    activeChainId,
+    navigation,
+    isFocused,
+    isInTabsView,
+    isTabActive,
+  ]);
 
   /**
    * Handles state changes for when the url changes
@@ -723,7 +734,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
       });
 
-      checkTabPermissions();
+      if (!isPerDappSelectedNetworkEnabled()) {
+        checkTabPermissions();
+      }
     },
     [
       isUrlBarFocused,
@@ -1049,8 +1062,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
 
   useEffect(() => {
-    checkTabPermissions();
-  }, [checkTabPermissions, isFocused, isInTabsView, isTabActive]);
+    if (!isPerDappSelectedNetworkEnabled()) {
+      checkTabPermissions();
+    }
+  }, [
+    checkTabPermissions,
+    isFocused,
+    isInTabsView,
+    isTabActive,
+  ]);
 
   const handleEnsUrl = useCallback(
     async (ens: string) => {

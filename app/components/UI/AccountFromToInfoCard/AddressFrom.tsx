@@ -10,16 +10,13 @@ import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import {
-  selectEvmNetworkImageSource,
-  selectEvmNetworkName,
-} from '../../../selectors/networkInfos';
-import {
   getLabelTextByAddress,
   renderAccountName,
 } from '../../../util/address';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 interface Asset {
   isETH?: boolean;
@@ -37,10 +34,12 @@ interface AddressFromProps {
   dontWatchAsset?: boolean;
   from: string;
   origin?: string;
+  chainId?: string;
 }
 
 const AddressFrom = ({
   asset,
+  chainId,
   dontWatchAsset,
   from,
   origin,
@@ -48,14 +47,19 @@ const AddressFrom = ({
   const [accountName, setAccountName] = useState('');
 
   const { styles } = useStyles(stylesheet, {});
-  const { addressBalance } = useAddressBalance(asset, from, dontWatchAsset);
+  const { addressBalance } = useAddressBalance(
+    asset,
+    from,
+    dontWatchAsset,
+    chainId,
+  );
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress = toChecksumAddress(from);
 
-  const networkName = useSelector(selectEvmNetworkName);
+  const { networkName, networkImageSource } = useNetworkInfo(origin);
 
   const useBlockieIcon = useSelector(
     // TODO: Replace "any" with type
@@ -74,7 +78,7 @@ const AddressFrom = ({
     }
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  const networkImage = useSelector(selectEvmNetworkImageSource);
+  // const networkImage = useSelector(selectNetworkImageSource);
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
@@ -95,7 +99,7 @@ const AddressFrom = ({
         badgeProps={{
           variant: BadgeVariant.Network,
           name: networkName,
-          imageSource: networkImage,
+          imageSource: networkImageSource,
         }}
         useBlockieIcon={useBlockieIcon}
       />

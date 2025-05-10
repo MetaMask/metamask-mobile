@@ -27,9 +27,10 @@ import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
-  selectChainId,
   selectNetworkConfigurations,
-  selectEvmTicker,
+  selectProviderConfig,
+  selectTicker,
+  selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -122,10 +123,6 @@ class TransactionDetails extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
-     * Chain Id
-     */
-    chainId: PropTypes.string,
-    /**
      * Object corresponding to a transaction, containing transaction object, networkId and transaction hash string
      */
     transactionObject: PropTypes.object,
@@ -156,13 +153,17 @@ class TransactionDetails extends PureComponent {
     swapsTransactions: PropTypes.object,
     swapsTokens: PropTypes.array,
     primaryCurrency: PropTypes.string,
-
+    /**
+     * Chain ID string
+     */
+    chainId: PropTypes.string,
     /**
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
   };
 
+  // temp comment
   state = {
     rpcBlockExplorer: undefined,
     renderTxActions: true,
@@ -216,7 +217,6 @@ class TransactionDetails extends PureComponent {
       transactionDetails,
       selectedAddress,
       ticker,
-      chainId,
       conversionRate,
       currentCurrency,
       contractExchangeRates,
@@ -226,6 +226,7 @@ class TransactionDetails extends PureComponent {
       swapsTokens,
       transactions,
     } = this.props;
+    const { chainId } = transactionObject;
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
     const transactionHash = transactionDetails?.hash;
     if (
@@ -361,8 +362,7 @@ class TransactionDetails extends PureComponent {
 
   render = () => {
     const {
-      chainId,
-      transactionObject: { status, time, txParams },
+      transactionObject: { status, time, txParams, chainId },
       shouldUseSmartTransaction,
     } = this.props;
     const { updatedTransactionDetails } = this.state;
@@ -510,11 +510,11 @@ class TransactionDetails extends PureComponent {
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  chainId: selectChainId(state),
+  providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),
-  ticker: selectEvmTicker(state),
+  ticker: selectTickerByChainId(state, ownProps.transactionObject.chainId),
   tokens: selectTokensByAddress(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
