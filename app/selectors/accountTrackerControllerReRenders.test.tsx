@@ -349,7 +349,7 @@ describe('selectAccountBalanceByChainId', () => {
         store.dispatch({
           type: 'UPDATE_BG_STATE',
           payload: {
-            key: 'NetworkController',
+            updatedControllers: ['NetworkController'],
           },
         });
       });
@@ -375,7 +375,7 @@ describe('selectAccountBalanceByChainId', () => {
         store.dispatch({
           type: 'UPDATE_BG_STATE',
           payload: {
-            key: 'AccountTrackerController',
+            updatedControllers: ['AccountTrackerController'],
           },
         });
       });
@@ -403,7 +403,7 @@ describe('selectAccountBalanceByChainId', () => {
         store.dispatch({
           type: 'UPDATE_BG_STATE',
           payload: {
-            key: 'AccountsController',
+            updatedControllers: ['AccountsController'],
           },
         });
       });
@@ -438,7 +438,7 @@ describe('selectAccountBalanceByChainId', () => {
         store.dispatch({
           type: 'UPDATE_BG_STATE',
           payload: {
-            key: 'NetworkController',
+            updatedControllers: ['NetworkController'],
           },
         });
       });
@@ -464,7 +464,7 @@ describe('selectAccountBalanceByChainId', () => {
         store.dispatch({
           type: 'UPDATE_BG_STATE',
           payload: {
-            key: 'AccountTrackerController',
+            updatedControllers: ['AccountTrackerController'],
           },
         });
       });
@@ -487,7 +487,7 @@ describe('selectAccountBalanceByChainId', () => {
         store.dispatch({
           type: 'UPDATE_BG_STATE',
           payload: {
-            key: 'AccountsController',
+            updatedControllers: ['AccountsController'],
           },
         });
       });

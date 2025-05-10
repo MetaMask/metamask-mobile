@@ -15,6 +15,7 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { MetaMetrics } from '../Analytics';
+import { debounce } from 'lodash';
 
 const LOG_TAG = 'EngineService';
 
@@ -103,19 +104,29 @@ export class EngineService {
       () => !this.engineInitialized,
     );
 
-    const update_bg_state_cb = (controllerName: string) => {
+    const updatedControllers = new Set<string>();
+
+    // Reduce the amount of state updates being flushed by using debouncing
+    // and a running list of controllers to update.
+    const flushStateDebounced = debounce(() => {
       if (!engine.context.KeyringController.metadata.vault) {
         Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
       }
       ReduxService.store.dispatch({
         type: UPDATE_BG_STATE_KEY,
-        payload: { key: controllerName },
+        payload: { updatedControllers: updatedControllers.values() },
       });
+      updatedControllers.clear();
+    }, 200);
+
+    const updateReduxState = (controllerName: string) => {
+      updatedControllers.add(controllerName);
+      flushStateDebounced();
     };
 
     BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
       engine.controllerMessenger.subscribe(eventName, () =>
-        update_bg_state_cb(eventName.split(':')[0]),
+        updateReduxState(eventName.split(':')[0]),
       );
     });
   };
