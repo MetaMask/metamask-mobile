@@ -7,19 +7,11 @@ import { version, migrations } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
-import { debounce } from 'lodash';
 import Engine, { EngineContext } from '../core/Engine';
 import { getPersistentState } from '@metamask/base-controller';
 
 const TIMEOUT = 40000;
 const STORAGE_DEBOUNCE_DELAY = 200;
-
-const debouncedSetItem = debounce(
-  async (key: string, value: string) =>
-    await FilesystemStorage.setItem(key, value, Device.isIos()),
-  STORAGE_DEBOUNCE_DELAY,
-  { leading: false, trailing: true },
-);
 
 const MigratedStorage = {
   async getItem(key: string) {
@@ -49,7 +41,7 @@ const MigratedStorage = {
   },
   async setItem(key: string, value: string) {
     try {
-      return await debouncedSetItem(key, value);
+      return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to set item for ${key}`,
@@ -139,6 +131,7 @@ const persistConfig = {
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),
   timeout: TIMEOUT,
+  throttle: STORAGE_DEBOUNCE_DELAY,
   writeFailHandler: (error: Error) =>
     Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
 };
