@@ -10,6 +10,7 @@ import { useAsyncResult } from '../../../hooks/useAsyncResult';
 import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { fetchTokenFiatRates } from '../../../UI/SimulationDetails/useBalanceChanges';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { safeToChecksumAddress } from '../../../../util/address';
 import { toBigNumber } from '../../../../util/number';
 import { calcTokenAmount } from '../../../../util/transactions';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
@@ -17,7 +18,7 @@ import { fetchErc20Decimals, isNativeToken } from '../utils/token';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
-const useFiatConversion = (amount: BigNumber, chainId: Hex, tokenAddress: Hex) => {
+const useFiatConversion = (amount: BigNumber, chainId: Hex, tokenAddress: Hex): string => {
   const fiatFormatter = useFiatFormatter();
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
@@ -50,7 +51,7 @@ export const useTokenValues = ({ amountWei }: TokenValuesProps = {}) => {
   const isNative = isNativeToken(transactionMetadata);
 
   const transactionData = parseStandardTokenTransactionData(txParams?.data);
-  const tokenAddress = isNative ? NATIVE_TOKEN_ADDRESS : txParams?.to as Hex || '0x';
+  const tokenAddress = isNative ? NATIVE_TOKEN_ADDRESS : safeToChecksumAddress(txParams?.to) || '0x';
 
   const value: string | undefined = amountWei ?
     toBigNumber.dec(amountWei) :
