@@ -92,6 +92,7 @@ const useEarnInputHandlers = ({
     estimatedGasFeeWei,
   ]);
 
+  // TODO: Update useVaultMetadata to support lending and pooled-staking or separate and call separate hooks.
   const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultMetadata } =
     useVaultMetadata();
 

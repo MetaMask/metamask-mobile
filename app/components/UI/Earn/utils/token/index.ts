@@ -3,17 +3,51 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { TokenI } from '../../../Tokens/types';
 
-// Temporary: Will be replaced with supported vaults from API request
 const HOLESKY_CHAIN_ID_HEX = '0x4268';
 
 const SUPPORTED_STAKING_TOKENS = new Set(['Ethereum']);
 
+// Temporary: Will be replaced with supported markets from API request
+export const SUPPORTED_LENDING_RECEIPT_TOKENS = new Set([
+  // Ethereum mainnet
+  'ADAI',
+  'AETHUSDC',
+  'AUSDT',
+  // Base
+  'aBasUSDC',
+]);
+
+// Temporary: Will be replaced with supported markets from API request
 export const SUPPORTED_LENDING_TOKENS = new Set(['DAI', 'USDC', 'USDT']);
 
-const SUPPORTED_EARN_TOKENS = new Set([
-  ...SUPPORTED_STAKING_TOKENS,
-  ...SUPPORTED_LENDING_TOKENS,
-]);
+export const LENDING_TOKEN_TO_RECEIPT_TOKEN_MAP: Record<
+  string,
+  Record<string, string>
+> = {
+  '0x1': {
+    DAI: 'ADAI',
+    USDC: 'AETHUSDC',
+    USDT: 'AUSDT',
+  },
+  '0x2105': {
+    USDC: 'aBasUSDC',
+  },
+};
+
+export const RECEIPT_TOKEN_TO_LENDING_TOKEN_MAP: Record<
+  string,
+  Record<string, string>
+> = {
+  '0x1': {
+    ADAI: 'DAI',
+    AETHUSDC: 'USDC',
+    AUSDT: 'USDT',
+  },
+  '0x2105': {
+    aBasUSDC: 'USDC',
+  },
+};
+
 const SUPPORTED_CHAIN_IDS = new Set<string>([
   CHAIN_IDS.MAINNET,
   CHAIN_IDS.BASE,
@@ -22,15 +56,42 @@ const SUPPORTED_CHAIN_IDS = new Set<string>([
   HOLESKY_CHAIN_ID_HEX,
 ]);
 
-export const getSupportedEarnTokens = (tokens: TokenI[]) =>
+export const getSupportedEarnTokens = (
+  tokens: TokenI[],
+  filter: Partial<{
+    stakingTokens: boolean;
+    lendingTokens: boolean;
+    receiptTokens: boolean;
+  }> = {},
+) =>
   Object.values(tokens).filter(({ isETH, isStaked, symbol, chainId }) => {
     // We only support staking on Ethereum
     if (isETH && !isSupportedChain(getDecimalChainId(chainId))) return false;
     if (isStaked) return false;
 
+    const {
+      stakingTokens = false,
+      lendingTokens = false,
+      receiptTokens = false,
+    } = filter;
+
+    const tokenFilter = new Set();
+
+    if (stakingTokens) {
+      for (const token of SUPPORTED_STAKING_TOKENS) tokenFilter.add(token);
+    }
+
+    if (lendingTokens) {
+      for (const token of SUPPORTED_LENDING_TOKENS) tokenFilter.add(token);
+    }
+
+    if (receiptTokens) {
+      for (const token of SUPPORTED_LENDING_RECEIPT_TOKENS)
+        tokenFilter.add(token);
+    }
+
     return (
-      SUPPORTED_CHAIN_IDS.has(chainId as string) &&
-      SUPPORTED_EARN_TOKENS.has(symbol)
+      SUPPORTED_CHAIN_IDS.has(chainId as string) && tokenFilter.has(symbol)
     );
   });
 
@@ -73,3 +134,11 @@ export const isSupportedLendingTokenByChainId = (
   chainId: string,
 ) =>
   SUPPORTED_LENDING_TOKENS.has(tokenSymbol) && SUPPORTED_CHAIN_IDS.has(chainId);
+
+// TODO: Add tests for this new util
+export const isSupportedLendingReceiptTokenByChainId = (
+  tokenSymbol: string,
+  chainId: string,
+) =>
+  SUPPORTED_LENDING_RECEIPT_TOKENS.has(tokenSymbol) &&
+  SUPPORTED_CHAIN_IDS.has(chainId);

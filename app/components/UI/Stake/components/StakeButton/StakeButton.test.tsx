@@ -4,7 +4,7 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import StakeButton from './index';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { MOCK_ETH_MAINNET_ASSET } from '../../__mocks__/mockData';
+import { MOCK_ETH_MAINNET_ASSET } from '../../__mocks__/stakeMockData';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { mockNetworkState } from '../../../../../util/test/network';
@@ -13,7 +13,6 @@ import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
@@ -189,7 +188,6 @@ describe('StakeButton', () => {
         screen: Routes.STAKING.STAKE,
         params: {
           token: MOCK_ETH_MAINNET_ASSET,
-          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         },
       });
     });
@@ -246,7 +244,6 @@ describe('StakeButton', () => {
         screen: Routes.STAKING.STAKE,
         params: {
           token: MOCK_ETH_MAINNET_ASSET,
-          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         },
       });
     });
