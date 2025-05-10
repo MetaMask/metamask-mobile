@@ -1,7 +1,7 @@
 import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_POOLED_STAKES_API_RESPONSE_HIGH_ASSETS_AMOUNT,
-} from '../__mocks__/mockData';
+} from '../__mocks__/stakeMockData';
 import { createMockAccountsControllerState } from '../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';

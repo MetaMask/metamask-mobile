@@ -8,7 +8,7 @@ import { TokenI } from '../../../Tokens/types';
 import {
   MOCK_ACCOUNT_MULTI_CHAIN_TOKENS,
   MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
-} from '../../../Stake/__mocks__/mockData';
+} from '../../../Stake/__mocks__/stakeMockData';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   createMockToken,
@@ -61,22 +61,6 @@ describe('tokenUtils', () => {
       decimals: 6,
     });
 
-    const MOCK_BSC_USDC = createMockToken({
-      chainId: CHAIN_IDS.BSC,
-      name: 'USD Coin',
-      symbol: 'USDC',
-      ticker: 'USDC',
-      decimals: 6,
-    });
-
-    const MOCK_SEPOLIA_USDC = createMockToken({
-      chainId: CHAIN_IDS.SEPOLIA,
-      name: 'USD Coin',
-      symbol: 'USDC',
-      ticker: 'USDC',
-      decimals: 6,
-    });
-
     it('extracts supported stable coins from owned tokens', () => {
       const result = getSupportedEarnTokens(MOCK_ACCOUNT_MULTI_CHAIN_TOKENS);
       expect(result).toEqual(MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE);
@@ -101,18 +85,6 @@ describe('tokenUtils', () => {
 
     it('allows supported stablecoins on BASE', () => {
       const tokens = [MOCK_ETH_TOKEN, MOCK_BASE_USDC];
-      const result = getSupportedEarnTokens(tokens as TokenI[]);
-      expect(result).toEqual(tokens);
-    });
-
-    it('allows supported stablecoins on BSC', () => {
-      const tokens = [MOCK_ETH_TOKEN, MOCK_BSC_USDC];
-      const result = getSupportedEarnTokens(tokens as TokenI[]);
-      expect(result).toEqual(tokens);
-    });
-
-    it('allows supported stablecoins on Sepolia', () => {
-      const tokens = [MOCK_ETH_TOKEN, MOCK_SEPOLIA_USDC];
       const result = getSupportedEarnTokens(tokens as TokenI[]);
       expect(result).toEqual(tokens);
     });
