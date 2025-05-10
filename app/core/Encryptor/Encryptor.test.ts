@@ -3,6 +3,7 @@ import { QuickCryptoLib } from './lib';
 import {
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
+  DERIVATION_OPTIONS_MINIMUM_OWASP2023,
 } from './constants';
 
 describe('Encryptor', () => {
@@ -10,7 +11,7 @@ describe('Encryptor', () => {
 
   beforeEach(() => {
     encryptor = new Encryptor({
-      keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
+      keyDerivationOptions: DERIVATION_OPTIONS_MINIMUM_OWASP2023,
     });
   });
 
@@ -60,7 +61,7 @@ describe('Encryptor', () => {
             iv: 'mockedIV',
             salt: 'mockedSalt',
             lib: 'original',
-            keyMetadata: LEGACY_DERIVATION_OPTIONS,
+            keyMetadata: DERIVATION_OPTIONS_MINIMUM_OWASP2023,
           }),
         ),
       ).toBe(true);
@@ -318,6 +319,67 @@ describe('Encryptor', () => {
 
       const importedKey = await encryptor.importKey(result.exportedKeyString);
       expect(importedKey.keyMetadata).toEqual(LEGACY_DERIVATION_OPTIONS);
+    });
+  });
+
+  describe('updateVault', () => {
+    let encryptSpy: jest.SpyInstance, decryptSpy: jest.SpyInstance;
+    const expectedKeyMetadata = DERIVATION_OPTIONS_MINIMUM_OWASP2023;
+
+    beforeEach(() => {
+      encryptSpy = jest
+        .spyOn(QuickCryptoLib, 'encrypt')
+        .mockResolvedValue(JSON.stringify({ test: 'data' }));
+      decryptSpy = jest
+        .spyOn(QuickCryptoLib, 'decrypt')
+        .mockResolvedValue(JSON.stringify({ test: 'data' }));
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('updates a vault correctly if keyMetadata is not present', async () => {
+      const mockVault = {
+        cipher: 'mockedCipher',
+        iv: 'mockedIV',
+        salt: 'mockedSalt',
+        lib: 'original',
+      };
+
+      const updatedVault = await encryptor.updateVault(
+        JSON.stringify(mockVault),
+        'mockPassword',
+      );
+
+      const vault = JSON.parse(updatedVault);
+
+      expect(encryptSpy).toHaveBeenCalledTimes(1);
+      expect(decryptSpy).toHaveBeenCalledTimes(1);
+      expect(vault).toHaveProperty('keyMetadata');
+      expect(vault.keyMetadata).toStrictEqual(expectedKeyMetadata);
+    });
+
+    it('does not update a vault if algorithm is PBKDF2 and the number of iterations is 600000', async () => {
+      const mockVault = {
+        cipher: 'mockedCipher',
+        iv: 'mockedIV',
+        salt: 'mockedSalt',
+        lib: 'original',
+        keyMetadata: DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+      };
+
+      const updatedVault = await encryptor.updateVault(
+        JSON.stringify(mockVault),
+        'mockPassword',
+      );
+
+      const vault = JSON.parse(updatedVault);
+
+      expect(encryptSpy).toHaveBeenCalledTimes(0);
+      expect(decryptSpy).toHaveBeenCalledTimes(0);
+      expect(vault).toHaveProperty('keyMetadata');
+      expect(vault.keyMetadata).toStrictEqual(expectedKeyMetadata);
     });
   });
 });
