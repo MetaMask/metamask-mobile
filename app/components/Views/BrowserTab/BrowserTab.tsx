@@ -901,6 +901,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
       //@ts-expect-error - We should type bacgkround bridge js file
       const newBridge = new BackgroundBridge({
+        tabId,
         webview: webviewRef,
         url: urlBridge,
         getRpcMethodMiddleware: ({

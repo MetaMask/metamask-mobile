@@ -15,6 +15,7 @@ import { SolScope } from '@metamask/keyring-api';
 
 const MAX_TOP_TOKENS = 30;
 
+
 interface UseTopTokensProps {
   chainId?: Hex | CaipChainId;
 }

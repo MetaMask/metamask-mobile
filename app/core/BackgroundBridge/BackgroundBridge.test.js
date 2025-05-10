@@ -6,6 +6,10 @@ import createEthAccountsMethodMiddleware from '../RPCMethods/createEthAccountsMe
 import { getPermittedAccounts } from '../Permissions';
 import { getCaip25PermissionFromLegacyPermissions } from '../../util/permissions';
 
+// Mock duplicated mockData files to resolve the warning
+jest.mock('../../components/UI/Stake/__mocks__/mockData', () => ({}), { virtual: true });
+jest.mock('../../components/UI/Earn/__mocks__/mockData', () => ({}), { virtual: true });
+
 jest.mock('../../util/permissions', () => ({
   getCaip25PermissionFromLegacyPermissions: jest.fn(),
 }));
@@ -54,6 +58,13 @@ jest.mock('@metamask/eth-json-rpc-filters/subscriptionManager', () => () => ({
   },
 }));
 
+// Add the missing getRestricted method to Engine.controllerMessenger
+Engine.controllerMessenger.getRestricted = jest.fn().mockReturnValue({
+  call: jest.fn(),
+  subscribe: jest.fn(),
+  unsubscribe: jest.fn(),
+});
+
 function setupBackgroundBridge(url) {
   // Arrange
   const {
@@ -65,9 +76,6 @@ function setupBackgroundBridge(url) {
 
   AccountsController.getSelectedAccount.mockReturnValue({
     address: '0x0',
-  });
-  PermissionController.getPermissions.mockReturnValue({
-    bind: jest.fn(),
   });
   PermissionController.getPermissions.mockReturnValue({
     bind: jest.fn(),

@@ -25,6 +25,7 @@ export const setupBridge = ({
   }
 
   const backgroundBridge = new BackgroundBridge({
+    tabId: '',
     webview: null,
     isMMSDK: true,
     channelId: connection.channelId,

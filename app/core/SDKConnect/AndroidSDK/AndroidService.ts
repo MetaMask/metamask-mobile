@@ -468,6 +468,7 @@ export default class AndroidService extends EventEmitter2 {
     const defaultBridgeParams = getDefaultBridgeParams(clientInfo);
 
     const bridge = new BackgroundBridge({
+      tabId: '',
       webview: null,
       channelId: clientInfo.clientId,
       isMMSDK: true,
