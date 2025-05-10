@@ -18,7 +18,9 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../core/redux/slices/bridge', () => {
   const actual = jest.requireActual('../../../../../core/redux/slices/bridge');
   return {
+    __esModule: true,
     ...actual,
+    default: actual.default,
     setDestToken: jest.fn(actual.setDestToken),
   };
 });
