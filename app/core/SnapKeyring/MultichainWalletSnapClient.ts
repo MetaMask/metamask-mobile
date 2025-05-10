@@ -13,7 +13,6 @@ import {
   SolanaWalletSnapSender,
 } from './SolanaWalletSnap';
 import Engine from '../Engine';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { store } from '../../store';
 import { startPerformanceTrace } from '../redux/slices/performance';
@@ -87,16 +86,11 @@ export abstract class MultichainWalletSnapClient {
    *
    */
   protected async withSnapKeyring(
-    callback: (keyring: SnapKeyring) => Promise<void>,
+    callback: (keyring: SnapKeyring) => Promise<unknown>,
   ) {
-    const controllerMessenger = Engine.controllerMessenger;
-    await Engine.getSnapKeyring();
+    const snapKeyring = (await Engine.getSnapKeyring()) as SnapKeyring;
 
-    return await controllerMessenger.call(
-      'KeyringController:withKeyring',
-      { type: KeyringTypes.snap },
-      async ({ keyring }) => await callback(keyring as unknown as SnapKeyring),
-    );
+    return await callback(snapKeyring);
   }
 
   /**
@@ -126,7 +120,7 @@ export abstract class MultichainWalletSnapClient {
     );
 
     return await this.withSnapKeyring(async (keyring) => {
-      (keyring as unknown as SnapKeyring).createAccount(
+      await keyring.createAccount(
         this.snapId,
         {
           ...options,
@@ -211,7 +205,7 @@ export abstract class MultichainWalletSnapClient {
       await this.withSnapKeyring(async (keyring) => {
         const results = await Promise.allSettled(
           discoveredAccounts.map(async (account) => {
-            keyring.createAccount(
+            await keyring.createAccount(
               this.snapId,
               {
                 derivationPath: account.derivationPath,
