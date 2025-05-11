@@ -1,5 +1,6 @@
 import { NativeModules } from 'react-native';
 import {
+  ENCRYPTION_LIBRARY,
   KDF_ALGORITHM,
   SHA256_DIGEST_LENGTH,
   LEGACY_DERIVATION_OPTIONS,
@@ -40,11 +41,10 @@ export function assertIsKdfAlgorithm(algorithm: string): asserts algorithm is ty
   }
 }
 
-/**
- * @deprecated This class is deprecated and will be removed in future versions.
- * Please use `QuickCryptoEncryptionLibrary` instead.
- */
+
 class AesEncryptionLibrary implements EncryptionLibrary {
+  getType = () => ENCRYPTION_LIBRARY.original;
+
   deriveKey = async (
     password: string,
     salt: string,
@@ -72,10 +72,10 @@ class AesEncryptionLibrary implements EncryptionLibrary {
     // See: https://www.npmjs.com/package/react-native-aes-crypto#example
     await Aes.randomKey(size);
 
-  encrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
+  encrypt = async (data: string, key: string, iv: string): Promise<string> =>
     await Aes.encrypt(data, key, iv, CipherAlgorithmAesCrypto.Cbc);
 
-  decrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
+  decrypt = async (data: string, key: string, iv: string): Promise<string> =>
     await Aes.decrypt(data, key, iv, CipherAlgorithmAesCrypto.Cbc);
 }
 
@@ -84,6 +84,8 @@ class AesEncryptionLibrary implements EncryptionLibrary {
  * Please use `QuickCryptoEncryptionLibrary` instead.
  */
 class AesForkedEncryptionLibrary implements EncryptionLibrary {
+  getType = () => ENCRYPTION_LIBRARY.forked;
+
   deriveKey = async (
     password: string,
     salt: string,
@@ -120,9 +122,6 @@ class AesForkedEncryptionLibrary implements EncryptionLibrary {
 
 // Those wrappers are stateless, we can build them only once!
 
-/**
- * @deprecated - This class is deprecated and will be removed in future versions.
- */
 export const AesLib = new AesEncryptionLibrary();
 /**
  * @deprecated - This class is deprecated and will be removed in future versions.

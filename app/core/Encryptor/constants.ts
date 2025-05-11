@@ -4,18 +4,6 @@ export const SALT_BYTES_COUNT = 32;
 export const SHA256_DIGEST_LENGTH = 256;
 
 /**
- * Unsupported iOS devices for react-native-quick-crypto.
- * iPhone8,1 = iPhone 6S
- * iPhone8,2 = iPhone 6S Plus
- * iPhone8,4 = iPhone SE (1st generation)
- * iPhone9,1 = iPhone 7 (Global ID)
- * iPhone9,2 = iPhone 7 Plus (Global ID))
- * iPhone9,3 = iPhone 7 (USA ID)
- * iPhone9,4 = iPhone 7 Plus (USA ID)
- */
-export const UNSUPPORTED_IPHONE_DEVICES = ['iPhone8,1', 'iPhone8,2', 'iPhone8,4', 'iPhone9,1', 'iPhone9,2', 'iPhone9,3', 'iPhone9,4'];
-
-/**
  * We use "OWASP2023" to indicate the source and year of the recommendation.
  * This will help us version the recommend number in case it changes in the future.
  * Source: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2

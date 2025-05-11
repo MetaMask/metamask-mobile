@@ -1,8 +1,7 @@
-import { getDeviceId } from 'react-native-device-info';
+import { getBaseOs } from 'react-native-device-info';
 import { hasProperty, isPlainObject, Json } from '@metamask/utils';
 import {
   SALT_BYTES_COUNT,
-  ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
 } from './constants';
 import type {
@@ -10,8 +9,9 @@ import type {
   EncryptionKey,
   EncryptionResult,
   KeyDerivationOptions,
+  EncryptionLibrary,
 } from './types';
-import { QuickCryptoLib } from './lib';
+import { QuickCryptoLib, AesLib } from './lib';
 import { getRandomBytes } from './bytes';
 
 // Add these interfaces near the top with the other types
@@ -113,14 +113,14 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     salt: string,
     exportable = true,
     opts: KeyDerivationOptions = this.keyDerivationOptions,
-    lib = ENCRYPTION_LIBRARY.quickCrypto,
   ): Promise<EncryptionKey> => {
-    const derivedKey = await QuickCryptoLib.deriveKey(password, salt, opts);
+    const cryptoLib = await this.#getCryptoLib();
+
     return {
-      key: derivedKey,
+      key: await cryptoLib.deriveKey(password, salt, opts),
       keyMetadata: opts,
       exportable,
-      lib,
+      lib: cryptoLib.getType(),
     };
   };
 
@@ -136,9 +136,10 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     data: Json,
   ): Promise<EncryptionResult> => {
     const text = JSON.stringify(data);
+    const cryptoLib = await this.#getCryptoLib();
 
-    const iv = await QuickCryptoLib.generateIv(16);
-    const result = await QuickCryptoLib.encrypt(text, key.key, iv);
+    const iv = await cryptoLib.generateIv(16);
+    const result = await cryptoLib.encrypt(text, key.key, iv);
 
     return {
       cipher: result,
@@ -159,7 +160,8 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     key: EncryptionKey,
     payload: EncryptionResult,
   ): Promise<unknown> => {
-    const result = await QuickCryptoLib.decrypt(payload.cipher, key.key, payload.iv);
+    const cryptoLib = await this.#getCryptoLib();
+    const result = await cryptoLib.decrypt(payload.cipher, key.key, payload.iv);
 
     return JSON.parse(result);
   };
@@ -181,7 +183,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       salt,
       false,
       this.keyDerivationOptions,
-      ENCRYPTION_LIBRARY.original,
     );
 
     // NOTE: When re-encrypting, we always use the original library and the KDF parameters from
@@ -216,7 +217,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       payload.salt,
       false,
       payload.keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
-      payload.lib,
     );
 
     return await this.decryptWithKey(key, payload);
@@ -294,7 +294,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const payload = JSON.parse(text);
 
     const { salt, keyMetadata } = payload;
-    const key = await this.keyFromPassword(password, salt, true, keyMetadata ?? LEGACY_DERIVATION_OPTIONS, payload.lib);
+    const key = await this.keyFromPassword(password, salt, true, keyMetadata ?? LEGACY_DERIVATION_OPTIONS);
     const exportedKeyString = await this.exportKey(key);
     const vault = await this.decryptWithKey(key, payload);
 
@@ -321,7 +321,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     salt = this.generateSalt(),
     keyDerivationOptions = this.keyDerivationOptions,
   ): Promise<DetailedEncryptionResult> => {
-    const key = await this.keyFromPassword(password, salt, true, keyDerivationOptions, ENCRYPTION_LIBRARY.original);
+    const key = await this.keyFromPassword(password, salt, true, keyDerivationOptions);
     const exportedKeyString = await this.exportKey(key);
 
     const result = await this.encryptWithKey(key, dataObj);
@@ -333,6 +333,11 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       vault,
       exportedKeyString,
     };
+  };
+
+  #getCryptoLib = async (): Promise<EncryptionLibrary> => {
+    const os = await getBaseOs();
+    return os === 'ios' ? AesLib : QuickCryptoLib;
   };
 }
 

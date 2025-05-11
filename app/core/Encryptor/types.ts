@@ -9,6 +9,7 @@ export type { KeyDerivationOptions };
  * Interface that needs to be implemented for the underlying library used by the `Encryptor`.
  */
 export interface EncryptionLibrary {
+  getType: () => string;
   /**
    * Derive a key based on a password and some other parameters (KDF).
    *

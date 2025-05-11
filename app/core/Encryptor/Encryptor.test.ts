@@ -5,6 +5,10 @@ import {
   LEGACY_DERIVATION_OPTIONS,
 } from './constants';
 
+jest.mock('react-native-device-info', () => ({
+  getBaseOs: jest.fn(() => Promise.resolve('android')),
+}));
+
 describe('Encryptor', () => {
   let encryptor: Encryptor;
 
@@ -28,7 +32,7 @@ describe('Encryptor', () => {
       expect(encryptedObject).toHaveProperty('cipher');
       expect(encryptedObject).toHaveProperty('iv');
       expect(encryptedObject).toHaveProperty('salt');
-      expect(encryptedObject).toHaveProperty('lib', 'original');
+      expect(encryptedObject).toHaveProperty('lib', 'quick-crypto');
     });
   });
 
@@ -83,17 +87,17 @@ describe('Encryptor', () => {
   describe('keyFromPassword', () => {
     it.each([
       [
-        'exportable with original lib',
+        'exportable with quick crypto lib',
         {
-          lib: ENCRYPTION_LIBRARY.original,
+          lib: ENCRYPTION_LIBRARY.quickCrypto,
           exportable: true,
           keyMetadata: LEGACY_DERIVATION_OPTIONS,
         },
       ],
       [
-        'non-exportable with original lib',
+        'non-exportable with quick crypto lib',
         {
-          lib: ENCRYPTION_LIBRARY.original,
+          lib: ENCRYPTION_LIBRARY.quickCrypto,
           exportable: false,
           keyMetadata: LEGACY_DERIVATION_OPTIONS,
         },
@@ -122,7 +126,6 @@ describe('Encryptor', () => {
           encryptor.generateSalt(),
           exportable,
           keyMetadata,
-          lib,
         );
 
         expect(key.key).not.toBe(undefined);
@@ -249,12 +252,12 @@ describe('Encryptor', () => {
       expect(vaultObj).toHaveProperty('cipher');
       expect(vaultObj).toHaveProperty('iv');
       expect(vaultObj).toHaveProperty('salt', mockSalt);
-      expect(vaultObj).toHaveProperty('lib', 'original');
+      expect(vaultObj).toHaveProperty('lib', 'quick-crypto');
       expect(vaultObj).toHaveProperty('keyMetadata', LEGACY_DERIVATION_OPTIONS);
 
       const importedKey = await encryptor.importKey(result.exportedKeyString);
       expect(importedKey).toHaveProperty('exportable', true);
-      expect(importedKey).toHaveProperty('lib', 'original');
+      expect(importedKey).toHaveProperty('lib', 'quick-crypto');
       expect(importedKey).toHaveProperty(
         'keyMetadata',
         LEGACY_DERIVATION_OPTIONS,

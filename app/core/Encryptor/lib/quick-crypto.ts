@@ -2,7 +2,7 @@ import Crypto from 'react-native-quick-crypto';
 import { bytesToHex, remove0x } from '@metamask/utils';
 import { EncryptionLibrary, KeyDerivationOptions } from './../types';
 import { getRandomBytes } from '../bytes';
-import { KDF_ALGORITHM } from '../constants';
+import { KDF_ALGORITHM, ENCRYPTION_LIBRARY } from '../constants';
 
 /**
  * AES cipher algorithm used in QuickCrypto.
@@ -22,6 +22,12 @@ export enum HashAlgorithmQuickCrypto {
  * Class representing the QuickCrypto encryption library.
  */
 class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
+  /**
+   * The encryption library type.
+   * @returns The type of encryption library being used.
+   */
+  getType = (): string => ENCRYPTION_LIBRARY.quickCrypto;
+
   /**
    * Generates a random IV (Initialization Vector) of the specified size.
    * @param size - The size of the IV in bytes.
