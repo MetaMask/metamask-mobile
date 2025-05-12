@@ -92,8 +92,6 @@ const NetworkPermissionsConnected = ({
     .map(([key, network]) => ({
       id: key,
       name: network.name,
-      // fix this
-      // rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
       isSelected: false,
       imageSource: getNetworkImageSource({
         chainId: network.caipChainId,
@@ -139,9 +137,6 @@ const NetworkPermissionsConnected = ({
             }
 
             const { reference } =  parseCaipChainId(onSelectChainId);
-
-            // This helper needs to work with caipChainIds so that this component
-            // can be updated to work with non-evm networks
             const theNetworkName = handleNetworkSwitch(reference);
 
             if (theNetworkName) {

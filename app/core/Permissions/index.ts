@@ -154,7 +154,7 @@ export const getPermittedChainIdsByHostname = (
     return [];
   }
   const permittedScopes = getPermittedScopesFromSubject(subject);
-    // our `endowment:caip25` permission can include a special class of `wallet` scopes,
+  // our `endowment:caip25` permission can include a special class of `wallet` scopes,
   // see https://github.com/ChainAgnostic/namespaces/tree/main/wallet &
   // https://github.com/ChainAgnostic/namespaces/blob/main/wallet/caip2.md
   // amongs the other chainId scopes. We want to exclude the `wallet` scopes here.

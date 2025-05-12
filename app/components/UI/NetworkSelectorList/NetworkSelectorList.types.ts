@@ -3,8 +3,6 @@ import { ImageSourcePropType } from 'react-native';
 export interface Network {
   id: string;
   name: string;
-  // Is this needed?
-  // rpcUrl: string;
   isSelected: boolean;
   yOffset?: number;
   imageSource: ImageSourcePropType;

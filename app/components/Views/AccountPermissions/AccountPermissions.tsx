@@ -400,7 +400,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           .addProperties({
             number_of_accounts: totalAccounts,
             number_of_accounts_connected: connectedAccountLength,
-            // TODO: This might need to be updated
+            // this only considers EVM networks right now
             number_of_networks: nonTestnetNetworks,
           })
           .build(),

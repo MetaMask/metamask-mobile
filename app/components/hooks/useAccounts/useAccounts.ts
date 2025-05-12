@@ -180,7 +180,7 @@ const useAccounts = ({
                 }
               : undefined,
           balanceError: accountBalance.balanceError,
-          // TODO - This only works for EOAs
+          // This only works for EOAs
           caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`
         };
         // Calculate height of the account item.

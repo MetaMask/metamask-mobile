@@ -63,8 +63,6 @@ const NetworkConnectMultiSelector = ({
     ([key, network]: [string, EvmAndMultichainNetworkConfigurationsWithCaipChainId]) => ({
       id: key,
       name: network.name,
-      // Fix this
-      // rpcUrl: network.rpcEndpoints?[network.defaultRpcEndpointIndex].url,
       isSelected: false,
       imageSource: getNetworkImageSource({
         chainId: network.caipChainId,

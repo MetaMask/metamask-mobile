@@ -294,15 +294,13 @@ const CaipAccountSelectorList = ({
     ],
   );
 
-  // TODO: Fix this. cannot determine selected account this way
   const onContentSizeChanged = useCallback(() => {
     // Handle auto scroll to account
     if (!accounts.length || !isAutoScrollEnabled) return;
     if (accountsLengthRef.current !== accounts.length) {
       let selectedAccount: Account | undefined;
 
-      if (selectedAddresses?.length) {
-        // FIX THIS
+      if (selectedAddresses.length) {
         const selectedAddress = selectedAddresses[0];
         selectedAccount = accounts.find(
           (acc) => acc.caipAccountId === selectedAddress,
