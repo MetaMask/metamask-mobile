@@ -27,7 +27,7 @@ import createStyles from './TabThumbnail.styles';
 import { TabThumbnailProps } from './TabThumbnail.types';
 import { useSelector } from 'react-redux';
 import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
-import { getPermittedAccountsByHostname } from '../../../../core/Permissions';
+import { getPermittedEvmAddresesByHostname } from '../../../../core/Permissions';
 import { useAccounts } from '../../../hooks/useAccounts';
 import { useFavicon } from '../../../hooks/useFavicon';
 
@@ -49,12 +49,12 @@ const TabThumbnail = ({
 
   // Get permitted accounts for this hostname
   const permittedAccountsList = useSelector(selectPermissionControllerState);
-  const permittedAccountsByHostname = getPermittedAccountsByHostname(
+  const permittedAccountsByHostname = getPermittedEvmAddresesByHostname(
     permittedAccountsList,
     tabTitle,
   );
 
-  // TODO: fix this
+  // This only works for EVM currently
   const activeAddress = permittedAccountsByHostname[0];
   const { evmAccounts: accounts } = useAccounts({});
   const selectedAccount = accounts.find(

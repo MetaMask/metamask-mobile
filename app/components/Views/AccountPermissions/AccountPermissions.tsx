@@ -20,7 +20,7 @@ import {
   addPermittedAccounts,
   updatePermittedChains,
   getCaip25Caveat,
-  getPermittedAccountsByHostname,
+  getPermittedCaipAccountIdsByHostname,
   removePermittedAccounts,
   getPermittedChainIdsByHostname,
 } from '../../../core/Permissions';
@@ -107,7 +107,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
   const permittedAccountsList = useSelector(selectPermissionControllerState);
-  const nonRemappedPermittedAccounts = getPermittedAccountsByHostname(
+  const nonRemappedPermittedAccounts = getPermittedCaipAccountIdsByHostname(
     permittedAccountsList,
     hostname,
   );

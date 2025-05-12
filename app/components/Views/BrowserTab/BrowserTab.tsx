@@ -53,7 +53,8 @@ import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import {
   getCaip25Caveat,
-  getPermittedAccountsByHostname,
+  getPermittedCaipAccountIdsByHostname,
+  getPermittedEvmAddresesByHostname,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -191,11 +192,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const fromHomepage = useRef(false);
   const wizardScrollAdjustedRef = useRef(false);
   const searchEngine = useSelector(selectSearchEngine);
-  // TODO: ... accountsChanged and others rely on this
-  const permittedAccountsList = useSelector((state: RootState) => {
+  const permittedEvmAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
     const hostname = new URLParse(resolvedUrlRef.current).hostname;
-    const permittedAcc = getPermittedAccountsByHostname(
+    const permittedAcc = getPermittedEvmAddresesByHostname(
       permissionsControllerState,
       hostname,
     );
@@ -450,7 +450,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     const permissionsControllerState =
       Engine.context.PermissionController.state;
     const hostname = new URLParse(urlToTrigger).hostname;
-    const connectedAccounts = getPermittedAccountsByHostname(
+    const connectedAccounts = getPermittedCaipAccountIdsByHostname(
       permissionsControllerState,
       hostname,
     );
@@ -643,7 +643,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     const hostname = new URLParse(resolvedUrlRef.current).hostname;
     const permissionsControllerState =
       Engine.context.PermissionController.state;
-    const permittedAccounts = getPermittedAccountsByHostname(
+    const permittedAccounts = getPermittedCaipAccountIdsByHostname(
       permissionsControllerState,
       hostname,
     );
@@ -654,7 +654,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       let permittedChains = [];
       try {
         const caveat = getCaip25Caveat(hostname);
-        // Todo: should be caipified
         permittedChains = caveat ? getPermittedEthChainIds(caveat.value) : [];
 
         const currentChainId = toHex(activeChainId);
@@ -944,10 +943,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const sendActiveAccount = useCallback(async () => {
     notifyAllConnections({
       method: NOTIFICATION_NAMES.accountsChanged,
-      params: permittedAccountsList,
+      params: permittedEvmAccountsList,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifyAllConnections, permittedAccountsList]);
+  }, [notifyAllConnections, permittedEvmAccountsList]);
 
   /**
    * Website started to load
@@ -995,7 +994,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   useEffect(() => {
     sendActiveAccount();
-  }, [sendActiveAccount, permittedAccountsList]);
+  }, [sendActiveAccount, permittedEvmAccountsList]);
 
   /**
    * Check when the ipfs gateway is enabled to hide the banner
@@ -1370,7 +1369,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             onFocus={onFocusUrlBar}
             onBlur={hideAutocomplete}
             onChangeText={onChangeUrlBar}
-            connectedAccounts={permittedAccountsList}
+            connectedAccounts={permittedEvmAccountsList}
             activeUrl={resolvedUrlRef.current}
             setIsUrlBarFocused={setIsUrlBarFocused}
             isUrlBarFocused={isUrlBarFocused}

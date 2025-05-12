@@ -94,7 +94,7 @@ export const sortAccountsByLastSelected = (accounts: Hex[]) => {
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsFromSubject(subject: any) {
+function getCaipAccountIdsFromSubject(subject: any) {
   const caveats =
     subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
@@ -111,8 +111,7 @@ function getAccountsFromSubject(subject: any) {
   return [];
 }
 
-// TODO: Verify the usage of this method which use to return lowercased and ordered evm hex addresses
-export const getPermittedAccountsByHostname = (
+export const getPermittedCaipAccountIdsByHostname = (
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
@@ -120,7 +119,38 @@ export const getPermittedAccountsByHostname = (
 ): CaipAccountId[] => {
   const { subjects } = state;
   const subject = subjects[hostname];
-  return subject ? getAccountsFromSubject(subject) : [];
+  return subject ? getCaipAccountIdsFromSubject(subject) : [];
+};
+
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getEvmAddessesFromSubject(subject: any) {
+  const caveats =
+    subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
+  if (!caveats) {
+    return [];
+  }
+
+  const caveat = caveats.find(
+    ({ type }: CaveatConstraint) => type === Caip25CaveatType,
+  );
+  if (caveat) {
+    const ethAccounts = getEthAccounts(caveat.value);
+    return sortAccountsByLastSelected(ethAccounts);
+  }
+
+  return [];
+}
+
+export const getPermittedEvmAddresesByHostname = (
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  state: any,
+  hostname: string,
+): Hex[] => {
+  const { subjects } = state;
+  const subject = subjects[hostname];
+  return subject ? getEvmAddessesFromSubject(subject) : [];
 };
 
 // TODO: Replace "any" with type

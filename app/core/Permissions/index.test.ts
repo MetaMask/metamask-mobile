@@ -18,7 +18,7 @@ import {
   ValidPermission,
 } from '@metamask/permission-controller';
 import {
-  getPermittedAccountsByHostname,
+  getPermittedCaipAccountIdsByHostname,
   getPermittedChainIdsByHostname,
   getDefaultCaip25CaveatValue,
   getCaip25Caveat,
@@ -61,7 +61,7 @@ describe('Permission Utility Functions', () => {
     jest.clearAllMocks();
   });
 
-  describe('getPermittedAccountsByHostname', () => {
+  describe('getPermittedCaipAccountIdsByHostname', () => {
     it('should return accounts for a given hostname', () => {
       const mockState = {
         subjects: {
@@ -121,7 +121,7 @@ describe('Permission Utility Functions', () => {
         return mockAccounts2;
       });
 
-      const result = getPermittedAccountsByHostname(
+      const result = getPermittedCaipAccountIdsByHostname(
         mockState,
         'https://example.com',
       );
@@ -152,7 +152,7 @@ describe('Permission Utility Functions', () => {
       // Mock sortAccountsByLastSelected to return empty array
       jest.spyOn(permissions, 'sortAccountsByLastSelected').mockReturnValue([]);
 
-      const result = getPermittedAccountsByHostname(
+      const result = getPermittedCaipAccountIdsByHostname(
         mockState,
         'https://nonexistent.com',
       );
@@ -166,7 +166,7 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-      const result = getPermittedAccountsByHostname(
+      const result = getPermittedCaipAccountIdsByHostname(
         mockState,
         'https://example.com',
       );
