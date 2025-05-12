@@ -34,7 +34,8 @@ import {
   saveOnboardingEvent as SaveEvent,
   OnboardingActionTypes,
 } from '../../../actions/onboarding';
-import { useAnalytics } from '../../../core/Analytics/typewriter/segment';
+// import { useAnalytics } from '../../../core/Analytics/typewriter/segment';
+import { useEnhancedMetrics } from '../../../core/Analytics/MetaMetricsTypewriterAdapter';
 
 const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -155,7 +156,8 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   const [appStartTime, setAppStartTime] = useState<string | undefined>(
     undefined,
   );
-  const { welcomeMessageViewed } = useAnalytics();
+  // const { welcomeMessageViewed } = useAnalytics();
+  const { typewriter } = useEnhancedMetrics();
   const themeContext = useContext(ThemeContext);
   const colors = themeContext.colors || mockTheme.colors;
   const styles = createStyles(colors);
@@ -206,9 +208,14 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     //   ).build(),
     // );
     try {
-      await welcomeMessageViewed({
+      // await welcomeMessageViewed({
+      //   properties: {
+      //     $country_code: 'US',
+      //   },
+      // });
+      await typewriter.welcomeMessageViewed({
         properties: {
-          $country_code: 'KK',
+          $country_code: 'US',
         },
       });
     } catch (error) {
@@ -216,7 +223,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     }
     const newAppStartTime = await StorageWrapper.getItem('appStartTime');
     setAppStartTime(newAppStartTime);
-  }, [updateNavBar, welcomeMessageViewed]);
+  }, [updateNavBar, typewriter]);
 
   useEffect(() => {
     initialize();
