@@ -514,7 +514,7 @@ describe('Permission Utility Functions', () => {
       mockGetAccountByAddress.mockImplementation((address) => ({
           address,
           scopes: ['eip155:0']
-      }))
+      }));
       mockGetCaveat.mockReturnValue(mockCaveat);
       (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
         ...mockCaveat.value,
@@ -557,7 +557,7 @@ describe('Permission Utility Functions', () => {
       mockGetAccountByAddress.mockImplementation((address) => ({
         address,
         scopes: ['eip155:0']
-    }))
+    }));
 
       mockGetCaveat.mockReturnValue(mockCaveat);
 
@@ -605,7 +605,7 @@ describe('Permission Utility Functions', () => {
       mockGetAccountByAddress.mockImplementation((address) => ({
         address,
         scopes: ['eip155:0']
-    }))
+    }));
 
       mockGetCaveat.mockReturnValue(mockCaveat);
 
