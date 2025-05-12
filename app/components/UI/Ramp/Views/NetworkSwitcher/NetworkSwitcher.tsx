@@ -23,7 +23,7 @@ import imageIcons from '../../../../../images/image-icons';
 import Text from '../../../../Base/Text';
 import CustomNetwork from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import customNetworkStyles from '../../../../Views/Settings/NetworksSettings/NetworkSettings/styles';
-import { ExtendedNetwork, Network } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import { Network, ExtendedNetwork } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 
 import useFetchRampNetworks from '../../hooks/useFetchRampNetworks';
 import useRampNetwork from '../../hooks/useRampNetwork';
