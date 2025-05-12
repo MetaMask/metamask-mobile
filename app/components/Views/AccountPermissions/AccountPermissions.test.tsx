@@ -24,6 +24,7 @@ const MOCK_ACCOUNTS = [      {
   yOffset: 0,
   isSelected: true,
   balanceError: undefined,
+  caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'
 },
 {
   name: 'Account 2',
@@ -36,6 +37,7 @@ const MOCK_ACCOUNTS = [      {
   yOffset: 78,
   isSelected: false,
   balanceError: undefined,
+  caipAccountId: 'eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7'
 }];
 
 const mockedNavigate = jest.fn();
@@ -226,8 +228,8 @@ describe('AccountPermissions', () => {
     fireEvent.press(updateButton);
 
     expect(mockUpdatePermittedChains).toHaveBeenCalledWith('test', [
-      '0x1',
-      '0xaa36a7'
+      'eip155:1',
+      'eip155:11155111',
     ], true);
   });
 
@@ -285,7 +287,7 @@ describe('AccountPermissions', () => {
     fireEvent.press(updateButton);
 
     expect(mockAddPermittedAccounts).toHaveBeenCalledWith('test', [
-      '0xd018538C87232FF95acbCe4870629b75640a78E7'
+      'eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7'
     ]);
     expect(mockRemovePermittedAccounts).toHaveBeenCalledWith('test', [
       '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'
