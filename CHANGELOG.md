@@ -6,8 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- fix(bridge): show "Auto" slippage for Solana swaps
 
+- fix(bridge): show "Auto" slippage for Solana swaps
 
 ### Added
 
@@ -47,7 +47,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(bridge): change networks properly when user switches between source and destination tokens ([#14812](https://github.com/MetaMask/metamask-mobile/pull/14812))
 - fix(bridge): fix(bridge): update quote details card toggle to handle same chain swaps and improve slippage button layout ([#15153](https://github.com/MetaMask/metamask-mobile/pull/15153))
 
+## [7.45.2]
+
+### Fixed
+
+- fix: 15108 create a wrapper for toChecksumAddress to prevent app crash ([#15202](https://github.com/MetaMask/metamask-mobile/pull/15202))
+- chore(runway): cherry-pick fix: base-x audit issue ([#15216](https://github.com/MetaMask/metamask-mobile/pull/15216))
+
+## [7.45.1]
+
+### Fixed
+- fix: update patch to use old AccountTrackerController data structures ([dfc076c](https://github.com/MetaMask/metamask-mobile/commit/dfc076cee12aab974720b2dd1e8a145b3fafd484))
+
 ## [7.45.0]
+
+### Changed
+
+- fix(multi-srp): display errors only after all the words are have been entered ([#14607](https://github.com/MetaMask/metamask-mobile/pull/14607))
+- fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
 
 ### Added
 
@@ -5383,7 +5400,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.2...HEAD
+[7.45.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.1...v7.45.2
+[7.45.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.0...v7.45.1
 [7.45.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.44.0...v7.45.0
 [7.44.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.43.0...v7.44.0
 [7.43.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.42.1...v7.43.0
