@@ -441,7 +441,16 @@ export const removePermittedChain = (hostname: string, chainId: CaipChainId) => 
 
   const permittedChainIds = getAllScopesFromCaip25CaveatValue(caveat.value);
   const newPermittedChains = permittedChainIds.filter((chain: string) => chain !== chainId);
-  updatePermittedChains(hostname, newPermittedChains, true);
+  if (newPermittedChains.length === permittedChainIds.length) {
+    return;
+  } else if (newPermittedChains.length === 0) {
+    PermissionController.revokePermission(
+      hostname,
+      Caip25EndowmentPermissionName,
+    );
+  } else {
+    updatePermittedChains(hostname, newPermittedChains, true);
+  }
 };
 
 /**

@@ -28,6 +28,7 @@ import {
   updatePermittedChains,
   sortAccountsByLastSelected,
   getPermittedAccounts,
+  removePermittedChain,
 } from '.';
 import { CaipAccountId, CaipChainId, Hex, Json } from '@metamask/utils';
 
@@ -1052,76 +1053,107 @@ describe('Permission Utility Functions', () => {
     });
   });
 
-  // describe('removePermittedChain', () => {
-  //   it('removes a chain from permitted chains', async () => {
-  //     const hostname = 'example.com';
-  //     const chainId = '0x1';
-  //     Engine.context.PermissionController.getCaveat.mockReturnValue({
-  //       value: ['0xa', '0x1', '0x5'],
-  //     });
-  //     Engine.context.PermissionController.grantPermissions.mockResolvedValue(undefined);
+  describe('removePermittedChain', () => {
+    it('removes a chain from permitted chains', () => {
+      const hostname = 'example.com';
+      const mockCaveat = {
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'eip155:1': {
+              accounts: []
+            },
+            'eip155:5': {
+              accounts: []
+            },
+            'eip155:10': {
+              accounts: []
+            }
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      };
 
-  //     await removePermittedChain(hostname, chainId);
+      mockGetCaveat.mockReturnValue(mockCaveat);
 
-  //     expect(Engine.context.PermissionController.getCaveat).toHaveBeenCalledWith(
-  //       hostname,
-  //       PermissionKeys.permittedChains,
-  //       CaveatTypes.restrictNetworkSwitching,
-  //     );
-  //     expect(Engine.context.PermissionController.grantPermissions).toHaveBeenCalledWith({
-  //       approvedPermissions: {
-  //         [PermissionKeys.permittedChains]: {
-  //           caveats: [
-  //             { type: CaveatTypes.restrictNetworkSwitching, value: ['0xa', '0x5'] },
-  //           ],
-  //         },
-  //       },
-  //       subject: {
-  //         origin: hostname,
-  //       },
-  //       preserveExistingPermissions: true,
-  //     });
-  //   });
+      (setChainIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
+        ...mockCaveat.value,
+        // The updated accounts would be here in the real implementation
+      });
 
-  //   it('does not update permissions if chain is not in permitted chains', async () => {
-  //     const hostname = 'example.com';
-  //     const chainId = '0x99';
-  //     Engine.context.PermissionController.getCaveat.mockReturnValue({
-  //       value: ['0xa', '0x1'],
-  //     });
+      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
+        ...mockCaveat.value,
+        // The updated accounts would be here in the real implementation
+      });
 
-  //     await removePermittedChain(hostname, chainId);
+      removePermittedChain(hostname, 'eip155:1');
 
-  //     expect(Engine.context.PermissionController.getCaveat).toHaveBeenCalledWith(
-  //       hostname,
-  //       PermissionKeys.permittedChains,
-  //       CaveatTypes.restrictNetworkSwitching,
-  //     );
-  //     expect(Engine.context.PermissionController.grantPermissions).not.toHaveBeenCalled();
-  //   });
+      expect(setChainIdsInCaip25CaveatValue).toHaveBeenCalledWith(
+        mockCaveat.value,
+        ['eip155:5', 'eip155:10']
+      );
 
-  //   it('handles removing the last chain from permitted chains', async () => {
-  //     const hostname = 'example.com';
-  //     const chainId = '0x1';
-  //     Engine.context.PermissionController.getCaveat.mockReturnValue({
-  //       value: ['0x1'],
-  //     });
+      expect(Engine.context.PermissionController.updateCaveat).toHaveBeenCalledWith(
+        hostname,
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
+        mockCaveat.value
+      );
+    });
 
-  //     await removePermittedChain(hostname, chainId);
+    it('does not update permissions if chain is not in permitted chains', async () => {
+      const hostname = 'example.com';
+      const mockCaveat = {
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'eip155:1': {
+              accounts: []
+            },
+            'eip155:10': {
+              accounts: []
+            }
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      };
 
-  //     expect(Engine.context.PermissionController.grantPermissions).toHaveBeenCalledWith({
-  //       approvedPermissions: {
-  //         [PermissionKeys.permittedChains]: {
-  //           caveats: [
-  //             { type: CaveatTypes.restrictNetworkSwitching, value: [] },
-  //           ],
-  //         },
-  //       },
-  //       subject: {
-  //         origin: hostname,
-  //       },
-  //       preserveExistingPermissions: true,
-  //     });
-  //   });
-  // });
+      mockGetCaveat.mockReturnValue(mockCaveat);
+
+      removePermittedChain(hostname, 'eip155:99');
+
+      expect(Engine.context.PermissionController.revokePermission).not.toHaveBeenCalled();
+      expect(Engine.context.PermissionController.updateCaveat).not.toHaveBeenCalled();
+    });
+
+    it('revokes the permission if the last chain is removed', () => {
+      const hostname = 'example.com';
+      const mockCaveat = {
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'eip155:1': {
+              accounts: []
+            },
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      };
+
+      mockGetCaveat.mockReturnValue(mockCaveat);
+
+      removePermittedChain(hostname, 'eip155:1');
+
+      expect(Engine.context.PermissionController.revokePermission).toHaveBeenCalledWith(
+        hostname,
+        Caip25EndowmentPermissionName
+      );
+    });
+  });
 });
