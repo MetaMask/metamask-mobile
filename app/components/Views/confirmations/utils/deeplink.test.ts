@@ -1,5 +1,4 @@
 import { TransactionType } from '@metamask/transaction-controller';
-import { ParseOutput } from 'eth-url-parser';
 
 import { ETH_ACTIONS } from '../../../../constants/deeplinks';
 import { selectConfirmationRedesignFlagsFromRemoteFeatureFlags } from '../../../../selectors/featureFlagController/confirmations';
@@ -9,8 +8,8 @@ import { generateTransferData } from '../../../../util/transactions';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
+  type DeeplinkRequest,
 } from './deeplink';
-import { type DeeplinkRequest } from './deeplink';
 
 const ORIGIN_MOCK = 'example.test-dapp.com';
 
