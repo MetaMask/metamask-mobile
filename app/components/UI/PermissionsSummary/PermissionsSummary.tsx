@@ -51,6 +51,7 @@ import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
+import { parseCaipAccountId } from '@metamask/utils';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -307,11 +308,14 @@ const PermissionsSummary = ({
               </View>
               <View style={styles.avatarGroup}>
                   <AvatarGroup
-                    avatarPropsList={accountAddresses.map((address) => ({
+                    avatarPropsList={accountAddresses.map((caipAccountId) => {
+                      const { address } = parseCaipAccountId(caipAccountId);
+                      return {
                       variant: AvatarVariant.Account,
                       accountAddress: address,
                       size: AvatarSize.Xs,
-                    }))}
+                    };
+                  })}
                   />
               </View>
             </View>
