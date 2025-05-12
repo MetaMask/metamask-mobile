@@ -63,8 +63,7 @@ const mockedNetworksDetails = [
       blockExplorerUrl: 'https://cronoscan.com',
       imageUrl:
         'https://static.cx.metamask.io/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png',
-    },
-    isEvm: true,
+    }
   },
 ];
 
