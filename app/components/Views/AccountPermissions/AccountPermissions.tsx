@@ -22,7 +22,7 @@ import {
   getCaip25Caveat,
   getPermittedCaipAccountIdsByHostname,
   removePermittedAccounts,
-  getPermittedChainIdsByHostname,
+  getPermittedCaipChainIdsByHostname,
 } from '../../../core/Permissions';
 import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
@@ -125,7 +125,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     }),
   );
 
-  const permittedChainIds = getPermittedChainIdsByHostname(
+  const permittedChainIds = getPermittedCaipChainIdsByHostname(
     permittedAccountsList,
     hostname,
   );

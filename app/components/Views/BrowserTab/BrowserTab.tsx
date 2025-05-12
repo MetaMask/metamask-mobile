@@ -54,7 +54,7 @@ import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import {
   getCaip25Caveat,
   getPermittedCaipAccountIdsByHostname,
-  getPermittedEvmAddresesByHostname,
+  getPermittedEvmAddressesByHostname,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -195,7 +195,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const permittedEvmAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
     const hostname = new URLParse(resolvedUrlRef.current).hostname;
-    const permittedAcc = getPermittedEvmAddresesByHostname(
+    const permittedAcc = getPermittedEvmAddressesByHostname(
       permissionsControllerState,
       hostname,
     );

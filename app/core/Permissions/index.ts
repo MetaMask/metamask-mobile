@@ -142,7 +142,7 @@ function getEvmAddessesFromSubject(subject: any) {
   return [];
 }
 
-export const getPermittedEvmAddresesByHostname = (
+export const getPermittedEvmAddressesByHostname = (
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
@@ -172,7 +172,7 @@ function getPermittedScopesFromSubject(subject: any) {
   return [];
 }
 
-export const getPermittedChainIdsByHostname = (
+export const getPermittedCaipChainIdsByHostname = (
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,

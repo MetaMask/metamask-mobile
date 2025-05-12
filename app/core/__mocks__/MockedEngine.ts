@@ -31,6 +31,7 @@ export const mockedEngine = {
     AccountsController: {
       listAccounts: jest.fn(),
       getSelectedAccount: jest.fn(),
+      getAccountByAddress: jest.fn(),
     },
     AccountTrackerController: {
       state: {
