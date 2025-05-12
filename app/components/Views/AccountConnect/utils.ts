@@ -1,4 +1,4 @@
-import { CaipAccountId, CaipChainId, CaipNamespace, , parseCaipAccountId } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, CaipNamespace, parseCaipAccountId } from '@metamask/utils';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
