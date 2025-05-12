@@ -1,4 +1,4 @@
-import { getBaseOs } from 'react-native-device-info';
+import { getSystemName } from 'react-native-device-info';
 import { hasProperty, isPlainObject, Json } from '@metamask/utils';
 import {
   SALT_BYTES_COUNT,
@@ -336,8 +336,8 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   };
 
   #getCryptoLib = async (): Promise<EncryptionLibrary> => {
-    const os = await getBaseOs();
-    return os === 'ios' ? AesLib : QuickCryptoLib;
+    const os = await getSystemName();
+    return os === 'iOS' ? AesLib : QuickCryptoLib;
   };
 }
 

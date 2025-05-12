@@ -6,7 +6,7 @@ import {
 } from './constants';
 
 jest.mock('react-native-device-info', () => ({
-  getBaseOs: jest.fn(() => Promise.resolve('android')),
+  getSystemName: jest.fn(() => Promise.resolve('Android')),
 }));
 
 describe('Encryptor', () => {
