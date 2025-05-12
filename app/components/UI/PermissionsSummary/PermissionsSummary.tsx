@@ -226,7 +226,7 @@ const PermissionsSummary = ({
             [accountAddresses[0]]
           )
         );
-        return matchedConnectedAccount?.name;
+        return `${strings('permissions.connected_to')} ${matchedConnectedAccount?.name}`;
       }
 
       return `${accountAddresses.length} ${strings(
