@@ -238,8 +238,7 @@ export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
   });
   return batchSupport.reduce<GetCapabilitiesResult>(
     (acc, chainBatchSupport) => {
-      const { chainId } = chainBatchSupport;
-      const { delegationAddress, isSupported, upgradeContractAddress } =
+      const { chainId, delegationAddress, isSupported, upgradeContractAddress } =
         chainBatchSupport;
       const canUpgrade = upgradeContractAddress && !delegationAddress;
       if (!isSupported && !canUpgrade) {
