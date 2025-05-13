@@ -1,3 +1,4 @@
+import { getSystemName } from 'react-native-device-info';
 import { Encryptor } from './Encryptor';
 import { QuickCryptoLib } from './lib';
 import {
@@ -87,7 +88,7 @@ describe('Encryptor', () => {
   describe('keyFromPassword', () => {
     it.each([
       [
-        'exportable with quick crypto lib',
+        'exportable with quick crypto lib (android)',
         {
           lib: ENCRYPTION_LIBRARY.quickCrypto,
           exportable: true,
@@ -95,25 +96,9 @@ describe('Encryptor', () => {
         },
       ],
       [
-        'non-exportable with quick crypto lib',
+        'non-exportable with quick crypto lib (android)',
         {
           lib: ENCRYPTION_LIBRARY.quickCrypto,
-          exportable: false,
-          keyMetadata: LEGACY_DERIVATION_OPTIONS,
-        },
-      ],
-      [
-        'exportable with random lib',
-        {
-          lib: 'random-lib',
-          exportable: true,
-          keyMetadata: LEGACY_DERIVATION_OPTIONS,
-        },
-      ],
-      [
-        'non-exportable with random lib',
-        {
-          lib: 'random-lib',
           exportable: false,
           keyMetadata: LEGACY_DERIVATION_OPTIONS,
         },
@@ -121,6 +106,42 @@ describe('Encryptor', () => {
     ])(
       'generates a key with the right attributes: %s',
       async (_, { lib, exportable, keyMetadata }) => {
+        const key = await encryptor.keyFromPassword(
+          'mockPassword',
+          encryptor.generateSalt(),
+          exportable,
+          keyMetadata,
+        );
+
+        expect(key.key).not.toBe(undefined);
+        expect(key.lib).toBe(lib);
+        expect(key.exportable).toBe(exportable);
+        expect(key.keyMetadata).toBe(keyMetadata);
+      },
+    );
+
+    it.each([
+      [
+        'exportable with original lib (iOS)',
+        {
+          lib: ENCRYPTION_LIBRARY.original,
+          exportable: true,
+          keyMetadata: LEGACY_DERIVATION_OPTIONS,
+        },
+      ],
+      [
+        'non-exportable with quick lib iOS',
+        {
+          lib: ENCRYPTION_LIBRARY.original,
+          exportable: false,
+          keyMetadata: LEGACY_DERIVATION_OPTIONS,
+        },
+      ],
+    ])(
+      'generates a key with the right attributes: %s',
+      async (_, { lib, exportable, keyMetadata }) => {
+        // @ts-expect-error - Mocking the getSystemName to return 'iOS'
+        jest.mocked(getSystemName).mockResolvedValueOnce('iOS');
         const key = await encryptor.keyFromPassword(
           'mockPassword',
           encryptor.generateSalt(),
@@ -297,7 +318,7 @@ describe('Encryptor', () => {
 
       const importedKey = await encryptor.importKey(result.exportedKeyString);
       expect(importedKey).toHaveProperty('exportable', true);
-      expect(importedKey).toHaveProperty('lib', 'original');
+      expect(importedKey).toHaveProperty('lib', ENCRYPTION_LIBRARY.quickCrypto);
       expect(importedKey).toHaveProperty('keyMetadata');
     });
 
