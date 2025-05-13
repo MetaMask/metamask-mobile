@@ -6,7 +6,9 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { resetVaultBackup } from '../../../core/BackupVault/backupVault';
 import { useMetrics } from '../useMetrics';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import Engine from '../../../core/Engine';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 const useDeleteWallet = () => {
   const metrics = useMetrics();
@@ -19,7 +21,7 @@ const useDeleteWallet = () => {
       ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       await Engine.context.SeedlessOnboardingController.reset();
       ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
-      
+
       await resetVaultBackup();
       await Authentication.lockApp();
       // TODO: Replace "any" with type
