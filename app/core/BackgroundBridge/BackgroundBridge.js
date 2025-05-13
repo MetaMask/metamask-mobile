@@ -1031,6 +1031,7 @@ export class BackgroundBridge extends EventEmitter {
           this.addMultichainApiEthSubscriptionMiddleware({
             scope,
             origin,
+            tabId: this.tabId,
           });
         }
       });
@@ -1050,7 +1051,16 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(
       this.multichainMiddlewareManager.generateMultichainMiddlewareForOriginAndTabId(
         origin,
+        this.tabId,
       ),
+    );
+
+    // user-facing RPC methods
+    engine.push(
+      this.createMiddleware({
+        hostname: this.hostname,
+        getProviderState: this.getProviderState.bind(this),
+      }),
     );
 
     engine.push(async (req, res, _next, end) => {
