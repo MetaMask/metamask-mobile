@@ -29,7 +29,10 @@ import {
   isEIP1559Transaction,
 } from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { selectTickerByChainId } from '../../../selectors/networkController';
+import {
+  selectTickerByChainId,
+  selectEvmNetworkConfigurationsByChainId,
+} from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
@@ -58,6 +61,7 @@ import {
   isSolanaChainId,
 } from '@metamask/bridge-controller';
 import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -187,6 +191,10 @@ class TransactionElement extends PureComponent {
      * Chain Id
      */
     txChainId: PropTypes.string,
+     /**
+     * Network configurations by chain id
+     */
+     networkConfigurationsByChainId: PropTypes.object,
     /**
      * Navigation object for routing
      */
@@ -689,11 +697,12 @@ class TransactionElement extends PureComponent {
 }
 
 const mapStateToProps = (state, ownProps) => ({
+  networkConfigurationsByChainId: isPerDappSelectedNetworkEnabled() ? undefined : selectEvmNetworkConfigurationsByChainId(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
   swapsTokens: swapsControllerTokens(state),
-  ticker: selectTickerByChainId(state, ownProps.tx.chainId),
+  ticker: isPerDappSelectedNetworkEnabled() ? selectTickerByChainId(state, ownProps.tx.chainId) : undefined,
 });
 
 TransactionElement.contextType = ThemeContext;
