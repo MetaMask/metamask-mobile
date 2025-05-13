@@ -60,6 +60,8 @@ import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { selectNativeCurrencyByChainId } from '../../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import SmartTransactionsMigrationBanner from '../SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
+import { isPerDappSelectedNetworkEnabled } from '../../../../../../util/networks';
+
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
 let intervalIdForEstimatedL1Fee;
@@ -612,7 +614,7 @@ class TransactionReview extends PureComponent {
                         <AccountFromToInfoCard
                           transactionState={transaction}
                           layout="vertical"
-                          origin={origin}
+                          origin={isPerDappSelectedNetworkEnabled() ? origin : undefined }
                         />
                       </View>
                     )}
