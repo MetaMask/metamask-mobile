@@ -1,6 +1,7 @@
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
 import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
+import { getBundleId } from 'react-native-device-info';
 
 const DEVELOPMENT = 'development';
 const PORTFOLIO_URL =
@@ -231,7 +232,7 @@ export default {
   },
   SEEDLESS_ONBOARDING: {
     AUTH_SERVER_URL: process.env.AUTH_SERVER_URL,
-    IOS_APPLE_CLIENT_ID: process.env.IOS_APPLE_CLIENT_ID,
+    IOS_APPLE_CLIENT_ID: getBundleId(),
     IOS_GOOGLE_CLIENT_ID: process.env.IOS_GOOGLE_CLIENT_ID,
     IOS_GOOGLE_REDIRECT_URI: process.env.IOS_GOOGLE_REDIRECT_URI,
     ANDROID_WEB_GOOGLE_CLIENT_ID: process.env.ANDROID_WEB_GOOGLE_CLIENT_ID,
