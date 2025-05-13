@@ -95,8 +95,6 @@ function parseDeeplink({
   } catch (error) {
     const isPrivateKey = url.length === 64;
     if (error && !isPrivateKey) {
-      // TODO: show the user the error.
-      // Create an UI interface for that
       Logger.log(
         'DeepLinkManager:parse error parsing deeplink',
       );
