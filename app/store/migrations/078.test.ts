@@ -1,7 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { cloneDeep } from 'lodash';
 import { ensureValidState } from './util';
-import migrate from './077';
+import migrate from './078';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -25,7 +25,7 @@ const createTestState = () => ({
   },
 });
 
-describe('Migration 77: Update profile sync state properties to backup and sync ones', () => {
+describe('Migration 78: Update profile sync state properties to backup and sync ones', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -72,7 +72,7 @@ describe('Migration 77: Update profile sync state properties to backup and sync 
       },
       test: 'invalid UserStorageController state',
       expectedError:
-        "FATAL ERROR: Migration 77: Invalid UserStorageController state error: 'string'",
+        "FATAL ERROR: Migration 78: Invalid UserStorageController state error: 'string'",
     },
     {
       state: {
@@ -82,7 +82,7 @@ describe('Migration 77: Update profile sync state properties to backup and sync 
       },
       test: 'invalid UserStorageController state',
       expectedError:
-        "FATAL ERROR: Migration 77: Invalid UserStorageController state error: 'undefined'",
+        "FATAL ERROR: Migration 78: Invalid UserStorageController state error: 'undefined'",
     },
   ])(
     'captures exception and returns state unchanged for invalid state - $test',

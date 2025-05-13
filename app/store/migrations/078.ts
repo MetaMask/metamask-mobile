@@ -3,7 +3,7 @@ import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
 /**
- * Migration 77: Update profile sync state properties to backup and sync ones
+ * Migration 78: Update profile sync state properties to backup and sync ones
  * Copy `isProfileSyncingEnabled` to `isBackupAndSyncEnabled`
  * Copy `isProfileSyncingUpdateLoading` to `isBackupAndSyncUpdateLoading`
  * Delete `isProfileSyncingEnabled` from `UserStorageController`
@@ -12,7 +12,7 @@ import { captureException } from '@sentry/react-native';
  */
 
 const migration = (state: unknown): unknown => {
-  if (!ensureValidState(state, 76)) {
+  if (!ensureValidState(state, 77)) {
     return state;
   }
 
@@ -22,7 +22,7 @@ const migration = (state: unknown): unknown => {
   if (!isObject(userStorageControllerState)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 77: Invalid UserStorageController state error: '${typeof userStorageControllerState}'`,
+        `FATAL ERROR: Migration 78: Invalid UserStorageController state error: '${typeof userStorageControllerState}'`,
       ),
     );
     return state;
