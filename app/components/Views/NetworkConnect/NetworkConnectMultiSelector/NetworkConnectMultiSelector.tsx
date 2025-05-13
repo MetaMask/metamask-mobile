@@ -2,7 +2,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { NetworkConfiguration } from '@metamask/network-controller';
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
 import Button, {
@@ -24,11 +23,10 @@ import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelector
 import {
   selectEvmNetworkConfigurationsByChainId,
 } from '../../../../selectors/networkController';
-import {
-  getNetworkImageSource,
-} from '../../../../util/networks';
+import { getNetworkImageSource } from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -43,7 +41,6 @@ const NetworkConnectMultiSelector = ({
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-
 
   useEffect(() => {
     setSelectedChainIds(defaultSelectedChainIds);
