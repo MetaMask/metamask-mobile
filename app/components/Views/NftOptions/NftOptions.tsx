@@ -3,6 +3,7 @@ import React, { useRef } from 'react';
 import { Alert, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import { toHex } from '@metamask/controller-utils';
 import { useStyles } from '../../../component-library/hooks';
 import { strings } from '../../../../locales/i18n';
 import Icon, {
@@ -26,7 +27,6 @@ import {
   MetaMetricsEvents,
 } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
-import { toHex } from '@metamask/controller-utils';
 
 interface Props {
   route: {
@@ -76,7 +76,7 @@ const NftOptions = (props: Props) => {
   };
 
   const getOpenSeaLink = () => {
-    switch (collectible.chainId) {
+    switch (toHex(collectible.chainId)) {
       case CHAIN_IDS.MAINNET:
         return `https://opensea.io/assets/ethereum/${collectible.address}/${collectible.tokenId}`;
       case CHAIN_IDS.POLYGON:
