@@ -17,6 +17,7 @@ import {
 import Utilities from '../utils/Utilities';
 import TestHelpers from '../helpers';
 import { startMockServer, stopMockServer } from '../api-mocking/mock-server';
+import { AnvilSeeder } from '../seeder/anvil-seeder';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
@@ -247,10 +248,36 @@ export async function withFixtures(options, testSuite) {
 
   try {
     let contractRegistry;
-    if (!disableGanache && smartContract) {
-      const ganacheSeeder = new GanacheSeeder(localNodes[0].getProvider());
-      await ganacheSeeder.deploySmartContract(smartContract);
-      contractRegistry = ganacheSeeder.getContractRegistry();
+    let seeder;
+
+    // We default the smart contract seeder to the first node client
+    // If there's a future need to deploy multiple smart contracts in multiple clients
+    // this assumption is no longer correct and the below code needs to be modified accordingly
+    if (smartContract) {
+      switch (localNodeOptsNormalized[0].type) {
+        case 'anvil':
+          seeder = new AnvilSeeder(localNodes[0].getProvider());
+          break;
+
+        case 'ganache':
+          seeder = new GanacheSeeder(localNodes[0].getProvider());
+          break;
+
+        default:
+          throw new Error(
+            `Unsupported localNode: '${localNodeOptsNormalized[0].type}'. Cannot deploy smart contracts.`,
+          );
+      }
+      const contracts =
+        smartContract instanceof Array ? smartContract : [smartContract];
+
+      const hardfork =
+        localNodeOptsNormalized[0].options.hardfork || 'prague';
+      for (const contract of contracts) {
+        await seeder.deploySmartContract(contract, hardfork);
+      }
+
+      contractRegistry = seeder.getContractRegistry();
     }
 
     if (dapp) {
