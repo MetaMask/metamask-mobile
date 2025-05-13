@@ -52,6 +52,7 @@ describe(SmokeNetworkAbstractions('Connect account to Portfolio'), () => {
       console.log('The Portfolio privacy modal is not visible');
     }
     await device.disableSynchronization();
+    await PortfolioHomePage.tapBurgerMenu();
     await PortfolioHomePage.tapConnectMetaMask();
     await TestHelpers.delay(2000);
     await ConnectBottomSheet.tapConnectButton();
