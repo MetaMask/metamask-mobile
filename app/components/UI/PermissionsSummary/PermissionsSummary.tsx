@@ -134,7 +134,7 @@ const PermissionsSummary = ({
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
 
-    if (!isAlreadyConnected) {
+    if (!isAlreadyConnected && isPerDappSelectedNetworkEnabled()) {
       return (
         <WebsiteIcon
           style={styles.domainLogoContainer}
