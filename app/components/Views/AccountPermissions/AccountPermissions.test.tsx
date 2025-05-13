@@ -1,4 +1,5 @@
 import React from 'react';
+import { act , fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
@@ -6,13 +7,13 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import AccountPermissions from './AccountPermissions';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { fireEvent } from '@testing-library/react-native';
 import { AccountPermissionsScreens } from './AccountPermissions.types';
 import { updatePermittedChains, addPermittedAccounts, removePermittedAccounts } from '../../../core/Permissions';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import { Hex } from '@metamask/utils';
+import Engine from '../../../core/Engine';
 
 const MOCK_ACCOUNTS = [      {
   name: 'Account 1',
@@ -47,7 +48,7 @@ const mockedTrackEvent = jest.fn();
 
 jest.mock('../../../core/Engine', () => ({
   context: {
-    NetworkController: {
+    MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
     },
     PermissionController: {
@@ -236,6 +237,41 @@ describe('AccountPermissions', () => {
 
     expect(mockUpdatePermittedChains).toHaveBeenCalledWith('test', [
       'eip155:1',
+      'eip155:11155111',
+    ], true);
+  });
+
+  it('handles switches the active network when active network is no longer selected', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <AccountPermissions
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            initialScreen: AccountPermissionsScreens.ConnectMoreNetworks,
+          },
+        }}
+      />,
+      { state: mockInitialState() },
+    );
+
+    // Unselect existing network
+    const existingNetwork = getByText('Ethereum Mainnet');
+    fireEvent.press(existingNetwork);
+
+    // Select a network
+    const network = getByText('Sepolia');
+    fireEvent.press(network);
+
+    // Press update button
+    const updateButton = getByTestId(
+      NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
+    );
+    await act(() => {
+      fireEvent.press(updateButton);
+    });
+
+    expect(Engine.context.MultichainNetworkController.setActiveNetwork).toHaveBeenCalled();
+    expect(mockUpdatePermittedChains).toHaveBeenCalledWith('test', [
       'eip155:11155111',
     ], true);
   });
