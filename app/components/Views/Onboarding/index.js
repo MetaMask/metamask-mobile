@@ -75,18 +75,19 @@ const createStyles = (colors) =>
       paddingVertical: 30,
     },
     foxWrapper: {
-      width: 200,
-      height: 200,
+      width: Device.isLargeDevice() ? 200 : 175,
+      height: Device.isLargeDevice() ? 200 : 175,
       marginVertical: 20,
     },
     image: {
       alignSelf: 'center',
-      width: 200,
-      height: 200,
+      width: Device.isLargeDevice() ? 200 : 175,
+      height: Device.isLargeDevice() ? 200 : 175,
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      marginVertical: 80,
+      paddingTop: Device.isLargeDevice() ? 60 : 40,
+      paddingBottom: Device.isLargeDevice() ? 100 : 40,
     },
     foxImage: {
       width: 145,
@@ -96,12 +97,10 @@ const createStyles = (colors) =>
     title: {
       fontSize: 40,
       lineHeight: 40,
-      marginBottom: 28,
       justifyContent: 'center',
       textAlign: 'center',
       paddingHorizontal: 60,
       fontFamily: 'MMSans-Regular',
-      marginTop: 80,
       color: brandColor,
     },
     ctas: {
@@ -622,12 +621,7 @@ class Onboarding extends PureComponent {
         >
           <View style={styles.wrapper}>
             {loading && (
-              <View style={styles.foxWrapper}>
-                {/* <Image
-                  source={require('../../../images/branding/fox.png')}
-                  style={styles.image}
-                  resizeMethod={'auto'}
-                /> */}
+              <View style={styles.largeFoxWrapper}>
                 <LottieView
                   style={styles.image}
                   autoPlay

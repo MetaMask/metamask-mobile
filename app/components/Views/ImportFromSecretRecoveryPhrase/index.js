@@ -674,7 +674,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     <View style={styles.seedPhraseInnerContainer}>
                       {seedPhrase.length <= 1 ? (
                         <TextInput
-                          textAlignVertical="top"
+                          textAlignVertical="center"
                           label={strings('import_from_seed.srp')}
                           placeholder={strings(
                             'import_from_seed.srp_placeholder',
@@ -763,6 +763,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   blurOnSubmit={false}
                                   isError={!isValidSeed(item)}
                                   autoCapitalize="none"
+                                  numberOfLines={1}
                                 />
                               </View>
                             )}
