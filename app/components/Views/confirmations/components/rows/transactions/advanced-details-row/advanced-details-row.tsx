@@ -21,8 +21,8 @@ import { useSmartAccountSwitchType } from '../../../../hooks/7702/useSmartAccoun
 import Expandable from '../../../UI/expandable';
 import InfoRow from '../../../UI/info-row';
 import InfoSection from '../../../UI/info-row/info-section';
-import styleSheet from './advanced-details-row.styles';
 import SmartContractWithLogo from '../../../smart-contract-with-logo';
+import styleSheet from './advanced-details-row.styles';
 
 const AdvancedDetailsRow = () => {
   const { styles } = useStyles(styleSheet, {});
