@@ -49,8 +49,8 @@ describe('useAdvancedGasFeeOption', () => {
 
     const advancedGasFeeOption = result.current[0];
     expect(advancedGasFeeOption.key).toEqual('advanced');
-    expect(advancedGasFeeOption.value).toEqual('');
-    expect(advancedGasFeeOption.valueInFiat).toEqual('--');
+    expect(advancedGasFeeOption.value).toEqual('--');
+    expect(advancedGasFeeOption.valueInFiat).toEqual('');
     expect(advancedGasFeeOption.isSelected).toEqual(false);
   });
 
