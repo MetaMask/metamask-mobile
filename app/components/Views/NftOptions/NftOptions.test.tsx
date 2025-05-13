@@ -134,7 +134,7 @@ const TEST_COLLECTIBLE = {
   backgroundColor: '',
   tokenURI: '',
   error: '',
-  chainId: '1',
+  chainId: 1,
 };
 
 let mockUseParamsValues = {

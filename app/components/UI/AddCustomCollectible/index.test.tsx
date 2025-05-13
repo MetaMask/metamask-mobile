@@ -12,6 +12,10 @@ import {
 import { isValidAddress } from 'ethereumjs-util';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Engine from '../../../core/Engine';
+import {
+  NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
 
 const mockStore = configureMockStore();
 
@@ -42,14 +46,32 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+const mockNetworkConfiguration: NetworkConfiguration = {
+  chainId: '0x1',
+  name: 'mainnet',
+  nativeCurrency: 'ETH',
+  blockExplorerUrls: ['https://etherscan.io'],
+  defaultBlockExplorerUrlIndex: 0,
+  rpcEndpoints: [
+    {
+      networkClientId: 'mainnet',
+      type: RpcEndpointType.Infura,
+      url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+    },
+  ],
+  defaultRpcEndpointIndex: 0,
+};
+
 describe('AddCustomCollectible', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
         <AddCustomCollectible
           setOpenNetworkSelector={jest.fn()}
-          selectedNetwork={'mainnet'}
+          selectedNetwork={mockNetworkConfiguration}
           chainId={'0x1'}
+          navigation={undefined}
+          collectibleContract={undefined}
         />
       </Provider>,
     );

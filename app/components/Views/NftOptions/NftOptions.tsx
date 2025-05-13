@@ -31,7 +31,7 @@ import { toHex } from '@metamask/controller-utils';
 interface Props {
   route: {
     params: {
-      collectible: Collectible & { chainId: string };
+      collectible: Collectible;
     };
   };
 }
