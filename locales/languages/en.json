@@ -447,6 +447,10 @@
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
     },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
+    },
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
@@ -490,7 +494,8 @@
     "import": "Import",
     "sort_by": "Sort by",
     "filter_by": "Filter by",
-    "current_network": "Current Network",
+    "current_network": "Current network",
+    "popular_networks": "Popular networks",
     "all_networks": "All Networks",
     "declining_balance": "Declining balance ({{currency}} high-low)",
     "alphabetically": "Alphabetically (A-Z)",
@@ -542,7 +547,7 @@
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance",
-    "unable_to_find_conversion_rate": "unable to find conversion rate",
+    "unable_to_find_conversion_rate": "no conversion rate",
     "display_nft_media_desc": "To import an NFT, turn on Display NFT media in Settings > Security and privacy.",
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
@@ -869,8 +874,6 @@
     "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
     "reset_notifications": "Reset notifications",
     "reset_notifications_success": "Notifications storage key deleted/recreated, and notifications history reset.",
-    "enabling_profile_sync": "Enabling profile syncing...",
-    "disabling_profile_sync": "Disabling profile syncing...",
     "notifications_dismiss_modal": "Dismiss",
     "select_rpc_url": "Select RPC URL",
     "title": "Settings",
@@ -1736,7 +1739,13 @@
       "generic": "This website has been blocked from automatically opening an external application"
     },
     "ipfs_gateway_off_title": "IPFS gateway is off",
-    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
+    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings.",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Solana dapp connection coming soon",
+        "message": "You can connect to Solana dapps in the extension or trade Solana tokens in-app."
+      }
+    }
   },
   "backup_alert": {
     "title": "Protect your wallet",
@@ -3302,15 +3311,6 @@
     "enable_remember_me": "Turn on Remember me",
     "enable_remember_me_description": "When Remember me is on, anyone with access to your phone can access your MetaMask account."
   },
-  "profile_sync": {
-    "title": "Profile Sync",
-    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
-    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
-    "enable_description2": " to learn more.",
-    "enable_privacy_link": "Learn how we protect your privacy",
-    "bottomSheetTurnOn": "Turning on Profile Sync",
-    "bottomSheetTurnOff": "Turning off Profile Sync"
-  },
   "turn_off_remember_me": {
     "title": "Enter your password to turn off Remember me",
     "placeholder": "Password",
@@ -3522,6 +3522,7 @@
     "add_bitcoin_account_testnet": "Bitcoin testnet account",
     "add_bitcoin_account_mainnet": "Bitcoin account",
     "add_solana_account": "Solana account",
+    "switch_to_smart_account": "Switch to Smart account",
     "headers": {
       "bitcoin": "Bitcoin",
       "solana": "Solana"
@@ -3726,7 +3727,8 @@
     "basic_functionality": "Basic functionality",
     "manage_networks": "Choose your network",
     "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
-    "manage_networks_body2": " to learn more about how Infura handles data.",
+    "manage_networks_body2": " to learn more about how Infura handles data for EVM accounts, for Solana accounts ",
+    "manage_networks_body3": "click here.",
     "functionality_body": "MetaMask offers basic features like token details and gas settings through internet services. When you use internet services, your IP address is shared, in this case with MetaMask. This is just like when you visit any website. MetaMask uses this data temporarily and never sells your data. You can use a VPN or turn off these services, but it may affect your MetaMask experience. Read our ",
     "functionality_body2": " to learn more.",
     "sheet": {
@@ -3874,6 +3876,11 @@
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Smart Account",
+      "standardAccountLabel": "Standard Account",
+      "switch": "Switch"
+    },
     "unlimited": "Unlimited",
     "none": "None",
     "advanced_details": "Advanced details",
@@ -3932,7 +3939,7 @@
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "description": "Rates update every {{refreshRate}} seconds, so tap Get new quote when you're ready.",
     "get_new_quote": "Get new quote"
   },
   "bridge_transaction_details": {
@@ -3969,6 +3976,11 @@
     "manageWhatYouSync": {
       "title": "Manage what you sync",
       "description": "Turn on what’s synced between your devices."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Select an asset"
     }
   }
 }

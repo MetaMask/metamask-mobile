@@ -91,7 +91,7 @@ const Routes = {
     ADD_ACCOUNT: 'AddAccount',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
-    PROFILE_SYNCING: 'ProfileSyncing',
+    CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
     RESET_NOTIFICATIONS: 'ResetNotifications',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
@@ -116,7 +116,6 @@ const Routes = {
     TOKEN_SORT: 'TokenSort',
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
-    CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
     ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
     SELECT_SRP: 'SelectSRP',
     ///: END:ONLY_INCLUDE_IF
@@ -163,6 +162,7 @@ const Routes = {
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_FLAT: 'ConfirmationRequestFlat',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
+  CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
@@ -188,6 +188,9 @@ const Routes = {
     STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
     STAKE_CLAIM: 'RedesignedStakeClaim',
     TRANSFER: 'RedesignedTransfer',
+  },
+  IDENTITY: {
+    TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   MULTI_SRP: {
