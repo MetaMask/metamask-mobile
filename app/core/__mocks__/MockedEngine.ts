@@ -31,6 +31,7 @@ export const mockedEngine = {
     AccountsController: {
       listAccounts: jest.fn(),
       getSelectedAccount: jest.fn(),
+      getAccountByAddress: jest.fn(),
     },
     AccountTrackerController: {
       state: {
@@ -58,7 +59,12 @@ export const mockedEngine = {
     SelectedNetworkController: {
       getProviderAndBlockTracker: jest.fn(),
     },
-    KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
+    KeyringController: {
+      ...MOCK_KEYRING_CONTROLLER_STATE,
+      setLocked: jest.fn(),
+      createNewVaultAndRestore: jest.fn(),
+      createNewVaultAndKeychain: jest.fn(),
+    },
     NetworkController: {
       getNetworkConfigurationByChainId: jest.fn(),
       getNetworkClientById: (networkClientId: NetworkClientId) => {
@@ -94,6 +100,7 @@ export const mockedEngine = {
     },
   },
   hasFunds: jest.fn(),
+  resetState: jest.fn(),
   getCaip25PermissionFromLegacyPermissions: jest.fn(),
 };
 

@@ -717,11 +717,10 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderSingleConnectScreen = useCallback(() => {
     const selectedAddress = selectedAddresses[0];
     const selectedAccount = accounts.find(
-      (account) =>
-        safeToChecksumAddress(account.address) ===
-        safeToChecksumAddress(selectedAddress),
+      (account) => account.caipAccountId === selectedAddress,
     );
-    const ensName = ensByAccountAddress[selectedAddress];
+    const { address } = parseCaipAccountId(selectedAddress);
+    const ensName = ensByAccountAddress[address];
     const defaultSelectedAccount: Account | undefined = selectedAccount
       ? {
           ...selectedAccount,
@@ -732,7 +731,6 @@ const AccountConnect = (props: AccountConnectProps) => {
         }
       : undefined;
     return (
-      // TODO: does this need to be refactored too?..
       <AccountConnectSingle
         onSetSelectedAddresses={handleAccountsSelected}
         connection={sdkConnection}

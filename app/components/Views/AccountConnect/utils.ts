@@ -1,15 +1,11 @@
-import { CaipAccountId, CaipChainId, CaipNamespace, Hex, parseCaipAccountId } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, CaipNamespace, parseCaipAccountId } from '@metamask/utils';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
   Caip25EndowmentPermissionName,
   setChainIdsInCaip25CaveatValue,
-  setEthAccounts,
   setNonSCACaipAccountIdsInCaip25CaveatValue,
-  setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
-import Logger from '../../../util/Logger';
-import { Account } from '../../hooks/useAccounts';
 import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
 
 /**
@@ -88,6 +84,7 @@ export function getRequestedCaip25CaveatValue(
  * @param caip25CaveatValue - The requested CAIP-25 caveat value to modify.
  * @param caipAccountIds - The list of permitted CAIP account IDs.
  * @param caipChainIds - The list of permitted CAIP chain IDs.
+ * @returns the CAIP-25 permissions object.
  */
 export function getCaip25PermissionsResponse(
   caip25CaveatValue: Caip25CaveatValue,
@@ -120,17 +117,22 @@ export function getCaip25PermissionsResponse(
   };
 }
 
-// COMMENT THIS
+/**
+ * Sorts a list of InternalAccounts by most recently selected
+ *
+ * @param internalAccounts - The list of InternalAccounts.
+ * @returns the sorted list of InternalAccounts.
+ */
 export function sortSelectedInternalAccounts(internalAccounts: InternalAccountWithCaipAccountId[]) {
   // This logic comes from the `AccountsController`:
   // TODO: Expose a free function from this controller and use it here
-  return internalAccounts.sort((accountA, accountB) => {
+  return internalAccounts.sort((accountA, accountB) =>
     // Sort by `.lastSelected` in descending order
-    return (
+     (
       (accountB.metadata.lastSelected ?? 0) -
       (accountA.metadata.lastSelected ?? 0)
-    );
-  });
+    )
+  );
 }
 
 /**
@@ -142,6 +144,7 @@ export function sortSelectedInternalAccounts(internalAccounts: InternalAccountWi
  * @param requestedNamespaces - The namespaces requested.
  * @param supportedRequestedAccounts - The supported requested accounts.
  * @param allAccounts - All available accounts.
+ * @returns the default accounts.
  */
 export function getDefaultAccounts(
   requestedNamespaces: CaipNamespace[],

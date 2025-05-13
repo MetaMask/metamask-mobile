@@ -51,8 +51,9 @@ export interface Account {
    * Optional error that indicates if the account has enough funds. Non-empty string will render the account item non-selectable.
    */
   balanceError?: string;
-
-  // TODO comment this
+  /**
+   * Account address in CAIP-10 format.
+   */
   caipAccountId: CaipAccountId
 }
 

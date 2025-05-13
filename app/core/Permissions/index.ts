@@ -3,11 +3,10 @@ import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
 import { CaipAccountId, CaipChainId, Hex, KnownCaipNamespace, parseCaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromCaip25CaveatValue, getAllScopesFromPermission, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, isCaipAccountIdInPermittedAccountIds, isInternalAccountInPermittedAccountIds, setChainIdsInCaip25CaveatValue, setEthAccounts, setNonSCACaipAccountIdsInCaip25CaveatValue, setPermittedEthChainIds} from '@metamask/chain-agnostic-permission';
+import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, isInternalAccountInPermittedAccountIds, setChainIdsInCaip25CaveatValue, setNonSCACaipAccountIdsInCaip25CaveatValue} from '@metamask/chain-agnostic-permission';
 import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
-import { toHex } from '@metamask/controller-utils';
-import { selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
+import { getNetworkConfigurationsByCaipChainId } from '../Multichain/networks';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -96,7 +95,7 @@ export const sortAccountsByLastSelected = (accounts: Hex[]) => {
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsFromSubject(subject: any) {
+function getCaipAccountIdsFromSubject(subject: any) {
   const caveats =
     subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
@@ -107,22 +106,52 @@ function getAccountsFromSubject(subject: any) {
     ({ type }: CaveatConstraint) => type === Caip25CaveatType,
   );
   if (caveat) {
-    return getCaipAccountIdsFromCaip25CaveatValue(caveat.value)
+    return getCaipAccountIdsFromCaip25CaveatValue(caveat.value);
   }
 
   return [];
 }
 
-// TODO: Verify the usage of this method which use to return lowercased and ordered evm hex addresses
-export const getPermittedAccountsByHostname = (
+export const getPermittedCaipAccountIdsByHostname = (
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
   hostname: string,
 ): CaipAccountId[] => {
   const { subjects } = state;
-  const subject = subjects[hostname]
-  return subject ? getAccountsFromSubject(subject) : []
+  const subject = subjects[hostname];
+  return subject ? getCaipAccountIdsFromSubject(subject) : [];
+};
+
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getEvmAddessesFromSubject(subject: any) {
+  const caveats =
+    subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
+  if (!caveats) {
+    return [];
+  }
+
+  const caveat = caveats.find(
+    ({ type }: CaveatConstraint) => type === Caip25CaveatType,
+  );
+  if (caveat) {
+    const ethAccounts = getEthAccounts(caveat.value);
+    return sortAccountsByLastSelected(ethAccounts);
+  }
+
+  return [];
+}
+
+export const getPermittedEvmAddressesByHostname = (
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  state: any,
+  hostname: string,
+): Hex[] => {
+  const { subjects } = state;
+  const subject = subjects[hostname];
+  return subject ? getEvmAddessesFromSubject(subject) : [];
 };
 
 // TODO: Replace "any" with type
@@ -144,19 +173,19 @@ function getPermittedScopesFromSubject(subject: any) {
   return [];
 }
 
-export const getPermittedChainIdsByHostname = (
+export const getPermittedCaipChainIdsByHostname = (
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
   hostname: string,
 ): CaipChainId[] => {
   const { subjects } = state;
-  const subject = subjects[hostname]
+  const subject = subjects[hostname];
   if (!subject) {
-    return []
+    return [];
   }
-  const permittedScopes = getPermittedScopesFromSubject(subject)
-    // our `endowment:caip25` permission can include a special class of `wallet` scopes,
+  const permittedScopes = getPermittedScopesFromSubject(subject);
+  // our `endowment:caip25` permission can include a special class of `wallet` scopes,
   // see https://github.com/ChainAgnostic/namespaces/tree/main/wallet &
   // https://github.com/ChainAgnostic/namespaces/blob/main/wallet/caip2.md
   // amongs the other chainId scopes. We want to exclude the `wallet` scopes here.
@@ -228,8 +257,8 @@ export const addPermittedAccounts = (
 
   let updatedPermittedChainIds = [...existingPermittedChainIds];
 
-  // Fix this
-  const allNetworksList: CaipChainId[] = []
+  const networkConfigurations = getNetworkConfigurationsByCaipChainId();
+  const allNetworksList = Object.keys(networkConfigurations) as CaipChainId[];
 
   updatedAccountIds.forEach((caipAccountAddress) => {
     const {
@@ -295,7 +324,7 @@ export const removePermittedAccounts = (origin: string, addresses: string[]) => 
     );
   }
 
-  const internalAccounts = addresses.map((address) => AccountsController.getAccountByAddress(address)) as InternalAccount[]
+  const internalAccounts = addresses.map((address) => AccountsController.getAccountByAddress(address)) as InternalAccount[];
 
   const existingAccountIds = getCaipAccountIdsFromCaip25CaveatValue(
     caip25Caveat.value,
@@ -412,7 +441,16 @@ export const removePermittedChain = (hostname: string, chainId: CaipChainId) => 
 
   const permittedChainIds = getAllScopesFromCaip25CaveatValue(caveat.value);
   const newPermittedChains = permittedChainIds.filter((chain: string) => chain !== chainId);
-  updatePermittedChains(hostname, newPermittedChains, true);
+  if (newPermittedChains.length === permittedChainIds.length) {
+    return;
+  } else if (newPermittedChains.length === 0) {
+    PermissionController.revokePermission(
+      hostname,
+      Caip25EndowmentPermissionName,
+    );
+  } else {
+    updatePermittedChains(hostname, newPermittedChains, true);
+  }
 };
 
 /**

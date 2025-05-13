@@ -168,6 +168,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           >
             <SvgMock
               color="#686e7d"
+              fill="currentColor"
               height={20}
               name="Wallet"
               style={
@@ -263,141 +264,162 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 <View
                   style={
                     {
-                      "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
-                      "height": 16,
-                      "overflow": "hidden",
-                      "width": 16,
+                      "alignItems": "center",
+                      "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      [
-                        {
-                          "overflow": "hidden",
-                        },
-                        {
-                          "backgroundColor": "#1593F2",
-                          "borderRadius": 8,
-                          "height": 16,
-                          "width": 16,
-                        },
-                        undefined,
-                      ]
-                    }
-                  >
-                    <RNSVGSvgView
-                      bbHeight={16}
-                      bbWidth={16}
-                      focusable={false}
-                      height={16}
-                      style={
-                        [
-                          {
-                            "backgroundColor": "transparent",
-                            "borderWidth": 0,
-                          },
-                          {
-                            "flex": 0,
-                            "height": 16,
-                            "width": 16,
-                          },
-                        ]
+                      {
+                        "marginLeft": 0,
                       }
-                      width={16}
+                    }
+                    testID="avatargroup-avatar-container-0"
+                  >
+                    <View
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 1.5,
+                          "height": 16,
+                          "overflow": "hidden",
+                          "width": 16,
+                        }
+                      }
+                      testID="avatargroup-avatar"
                     >
-                      <RNSVGGroup
-                        fill={
-                          {
-                            "payload": 4278190080,
-                            "type": 0,
-                          }
+                      <View
+                        style={
+                          [
+                            {
+                              "overflow": "hidden",
+                            },
+                            {
+                              "backgroundColor": "#018C8C",
+                              "borderRadius": 8,
+                              "height": 16,
+                              "width": 16,
+                            },
+                            undefined,
+                          ]
                         }
                       >
-                        <RNSVGRect
-                          fill={
-                            {
-                              "payload": 4280574177,
-                              "type": 0,
-                            }
-                          }
+                        <RNSVGSvgView
+                          bbHeight={16}
+                          bbWidth={16}
+                          focusable={false}
                           height={16}
-                          matrix={
+                          style={
                             [
-                              -0.14608302856241107,
-                              0.9892723329629884,
-                              -0.9892723329629884,
-                              -0.14608302856241107,
-                              18.877507984599454,
-                              -1.41266974682138,
-                            ]
-                          }
-                          propList={
-                            [
-                              "fill",
+                              {
+                                "backgroundColor": "transparent",
+                                "borderWidth": 0,
+                              },
+                              {
+                                "flex": 0,
+                                "height": 16,
+                                "width": 16,
+                              },
                             ]
                           }
                           width={16}
-                          x={0}
-                          y={0}
-                        />
-                        <RNSVGRect
-                          fill={
-                            {
-                              "payload": 4294395137,
-                              "type": 0,
+                        >
+                          <RNSVGGroup
+                            fill={
+                              {
+                                "payload": 4278190080,
+                                "type": 0,
+                              }
                             }
-                          }
-                          height={16}
-                          matrix={
-                            [
-                              -0.02094241988335673,
-                              -0.9997806834748455,
-                              0.9997806834748455,
-                              -0.02094241988335673,
-                              -7.512435753557014,
-                              20.161960644608932,
-                            ]
-                          }
-                          propList={
-                            [
-                              "fill",
-                            ]
-                          }
-                          width={16}
-                          x={0}
-                          y={0}
-                        />
-                        <RNSVGRect
-                          fill={
-                            {
-                              "payload": 4294736640,
-                              "type": 0,
-                            }
-                          }
-                          height={16}
-                          matrix={
-                            [
-                              -0.458649554484315,
-                              0.8886172326549487,
-                              -0.8886172326549487,
-                              -0.458649554484315,
-                              14.2400072574634,
-                              19.300266514976617,
-                            ]
-                          }
-                          propList={
-                            [
-                              "fill",
-                            ]
-                          }
-                          width={16}
-                          x={0}
-                          y={0}
-                        />
-                      </RNSVGGroup>
-                    </RNSVGSvgView>
+                          >
+                            <RNSVGRect
+                              fill={
+                                {
+                                  "payload": 4291236946,
+                                  "type": 0,
+                                }
+                              }
+                              height={16}
+                              matrix={
+                                [
+                                  -0.8280603346224941,
+                                  0.5606389945632423,
+                                  -0.5606389945632423,
+                                  -0.8280603346224941,
+                                  21.77408503450534,
+                                  8.916923243088606,
+                                ]
+                              }
+                              propList={
+                                [
+                                  "fill",
+                                ]
+                              }
+                              width={16}
+                              x={0}
+                              y={0}
+                            />
+                            <RNSVGRect
+                              fill={
+                                {
+                                  "payload": 4278407773,
+                                  "type": 0,
+                                }
+                              }
+                              height={16}
+                              matrix={
+                                [
+                                  -0.8589598969306643,
+                                  -0.5120428648705717,
+                                  0.5120428648705717,
+                                  -0.8589598969306643,
+                                  4.595805678182876,
+                                  22.346674607701132,
+                                ]
+                              }
+                              propList={
+                                [
+                                  "fill",
+                                ]
+                              }
+                              width={16}
+                              x={0}
+                              y={0}
+                            />
+                            <RNSVGRect
+                              fill={
+                                {
+                                  "payload": 4294162688,
+                                  "type": 0,
+                                }
+                              }
+                              height={16}
+                              matrix={
+                                [
+                                  0.0558215049931637,
+                                  -0.998440764181981,
+                                  0.998440764181981,
+                                  0.0558215049931637,
+                                  -4.845722049995887,
+                                  2.286408698531531,
+                                ]
+                              }
+                              propList={
+                                [
+                                  "fill",
+                                ]
+                              }
+                              width={16}
+                              x={0}
+                              y={0}
+                            />
+                          </RNSVGGroup>
+                        </RNSVGSvgView>
+                      </View>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -408,6 +430,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -452,6 +475,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           >
             <SvgMock
               color="#686e7d"
+              fill="currentColor"
               height={20}
               name="Data"
               style={
@@ -559,6 +583,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -602,7 +627,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "transparent",
               "borderColor": "#ca3542",
-              "borderRadius": 24,
+              "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
@@ -615,6 +640,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
         >
           <SvgMock
             color="#ca3542"
+            fill="currentColor"
             height={16}
             name="Logout"
             style={
@@ -949,6 +975,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           >
             <SvgMock
               color="#686e7d"
+              fill="currentColor"
               height={20}
               name="Data"
               style={
@@ -1106,7 +1133,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "transparent",
               "borderColor": "#ca3542",
-              "borderRadius": 24,
+              "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
@@ -1119,6 +1146,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
         >
           <SvgMock
             color="#ca3542"
+            fill="currentColor"
             height={16}
             name="Logout"
             style={

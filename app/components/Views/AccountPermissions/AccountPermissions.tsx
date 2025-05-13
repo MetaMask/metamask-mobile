@@ -20,9 +20,9 @@ import {
   addPermittedAccounts,
   updatePermittedChains,
   getCaip25Caveat,
-  getPermittedAccountsByHostname,
+  getPermittedCaipAccountIdsByHostname,
   removePermittedAccounts,
-  getPermittedChainIdsByHostname,
+  getPermittedCaipChainIdsByHostname,
 } from '../../../core/Permissions';
 import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
@@ -107,7 +107,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
   const permittedAccountsList = useSelector(selectPermissionControllerState);
-  const nonRemappedPermittedAccounts = getPermittedAccountsByHostname(
+  const nonRemappedPermittedAccounts = getPermittedCaipAccountIdsByHostname(
     permittedAccountsList,
     hostname,
   );
@@ -125,7 +125,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     }),
   );
 
-  const permittedChainIds = getPermittedChainIdsByHostname(
+  const permittedChainIds = getPermittedCaipChainIdsByHostname(
     permittedAccountsList,
     hostname,
   );
@@ -151,8 +151,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     USER_INTENT.None,
   );
 
-  const networks = Object.entries(networkConfigurations)
-    .map(([key, network]) => ({
+  const networks = Object.values(networkConfigurations)
+    .map(network => ({
       name: network.name,
       caipChainId: network.caipChainId,
       imageSource: getNetworkImageSource({
@@ -289,12 +289,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       return;
     }
 
-    const currentEvmCaipChainId: CaipChainId = `eip155:${parseInt(currentEvmChainId, 16)}`
+    const currentEvmCaipChainId: CaipChainId = `eip155:${parseInt(currentEvmChainId, 16)}`;
 
     const newSelectedEvmChainId = chainIds.find((chainId) => {
-      const { namespace } = parseChainId(chainId)
-      namespace === KnownCaipNamespace.Eip155
-    })
+      const { namespace } = parseChainId(chainId);
+      return namespace === KnownCaipNamespace.Eip155;
+    });
 
       // Check if current network was originally permitted and is now being removed
       const wasCurrentNetworkOriginallyPermitted =
@@ -354,7 +354,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       // Identify accounts to be added
       accountsToAdd = selectedAccounts.filter(account =>
         !isCaipAccountIdInPermittedAccountIds(account, permittedAccounts)
-      )
+      );
 
       if (accountsToAdd.length > 0) {
         addPermittedAccounts(hostname, accountsToAdd);
@@ -362,17 +362,17 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       }
 
       accountsToRemove = permittedAccounts
-      .filter((account) => !isCaipAccountIdInPermittedAccountIds(account, selectedAccounts))
+      .filter((account) => !isCaipAccountIdInPermittedAccountIds(account, selectedAccounts));
 
       if (accountsToRemove.length > 0) {
         const accountsToRemoveHex = accountsToRemove.map(account => {
-          const {address} = parseCaipAccountId(account)
-          return address
-        })
+          const {address} = parseCaipAccountId(account);
+          return address;
+        });
         removePermittedAccounts(hostname, accountsToRemoveHex);
         newPermittedAccounts = newPermittedAccounts.filter(account =>
           !accountsToRemove.includes(account)
-        )
+        );
       }
 
       // Calculate the number of connected accounts after changes
@@ -385,7 +385,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       const toastAccount = accountsToAdd[0] ?? newPermittedAccounts[0];
 
-      const { address } = parseCaipAccountId(toastAccount)
+      const { address } = parseCaipAccountId(toastAccount);
 
       toastRef?.current?.showToast({
         variant: ToastVariants.Account,
@@ -400,7 +400,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           .addProperties({
             number_of_accounts: totalAccounts,
             number_of_accounts_connected: connectedAccountLength,
-            // TODO: This might need to be updated
+            // this only considers EVM networks right now
             number_of_networks: nonTestnetNetworks,
           })
           .build(),
@@ -413,10 +413,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     }
   }, [
     permittedAccounts,
-    accounts,
     setIsLoading,
     hostname,
-    ensByAccountAddress,
     toastRef,
     accountAvatarType,
     accountsLength,
@@ -717,7 +715,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           throw new Error('No chainId provided');
         }
 
-        const currentEvmCaipChainId: CaipChainId = `eip155:${parseInt(currentEvmChainId, 16)}`
+        const currentEvmCaipChainId: CaipChainId = `eip155:${parseInt(currentEvmChainId, 16)}`;
 
         let currentlyPermittedChains: CaipChainId[] = [];
         try {

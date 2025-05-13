@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useRef, useMemo } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   Alert,
   InteractionManager,
@@ -40,6 +40,8 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './CaipAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
+import { CaipAccountId } from '@metamask/utils';
+import { parseAccountId } from '@walletconnect/utils';
 
 const CaipAccountSelectorList = ({
   onSelectAccount,
@@ -71,16 +73,7 @@ const CaipAccountSelectorList = ({
         : AvatarAccountType.JazzIcon,
     shallowEqual,
   );
-  const getKeyExtractor = ({ address }: Account) => address;
-
-  const selectedAddressesLookup = useMemo(() => {
-    const lookupSet = new Set<string>();
-    selectedAddresses.forEach((addr) => {
-      // FIX: this isn't right
-      if (addr) lookupSet.add(addr.toLowerCase());
-    });
-    return lookupSet;
-  }, [selectedAddresses]);
+  const getKeyExtractor = ({ caipAccountId }: Account) => caipAccountId;
 
   const renderAccountBalances = useCallback(
     ({ fiatBalance, tokens }: Assets, address: string) => {
@@ -126,12 +119,12 @@ const CaipAccountSelectorList = ({
       address,
       isAccountRemoveable,
       isSelected,
-      index,
+      caipAccountId,
     }: {
       address: string;
       isAccountRemoveable: boolean;
       isSelected: boolean;
-      index: number;
+      caipAccountId: CaipAccountId;
     }) => {
       if (!isAccountRemoveable || !isRemoveAccountEnabled) return;
       Alert.alert(
@@ -151,15 +144,24 @@ const CaipAccountSelectorList = ({
                 let nextActiveAddress: string;
 
                 if (isSelected) {
-                  // If removing the selected account, choose an adjacent one
-                  const nextActiveIndex = index === 0 ? 1 : index - 1;
-                  nextActiveAddress = accounts[nextActiveIndex]?.address;
-                } else {
-                  // Not removing selected account, so keep current selection
                   nextActiveAddress =
-                    selectedAddresses?.[0] ||
-                    accounts.find((acc) => acc.isSelected)?.address ||
-                    '';
+                    accounts.find((acc) => acc.caipAccountId !== caipAccountId)
+                      ?.address || '';
+                } else {
+                  const nextSelectedCaipAccountId = selectedAddresses.find(
+                    (selectedAddress) => selectedAddress !== caipAccountId,
+                  );
+                  let nextSelectedAddress: string | undefined;
+                  if (nextSelectedCaipAccountId) {
+                    ({ address: nextSelectedAddress } = parseAccountId(
+                      nextSelectedCaipAccountId,
+                    ));
+                  }
+                  const selectedAccountAddress = accounts.find(
+                    (acc) => acc.isSelected,
+                  )?.address;
+                  nextActiveAddress =
+                    nextSelectedAddress || selectedAccountAddress || '';
                 }
 
                 // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
@@ -230,9 +232,10 @@ const CaipAccountSelectorList = ({
       if (isSelectWithoutMenu) {
         cellVariant = CellVariant.Select;
       }
-      const isSelectedAccount = selectedAddressesLookup.has(
-        caipAccountId.toLowerCase(),
-      );
+      let isSelectedAccount = isSelected;
+      if (selectedAddresses.length > 0) {
+        isSelectedAccount = selectedAddresses.includes(caipAccountId);
+      }
 
       const cellStyle: ViewStyle = {
         opacity: isLoading ? 0.5 : 1,
@@ -247,7 +250,7 @@ const CaipAccountSelectorList = ({
           isAccountRemoveable:
             type === KeyringTypes.simple || type === KeyringTypes.snap,
           isSelected: isSelectedAccount,
-          index,
+          caipAccountId,
         });
       };
 
@@ -299,7 +302,7 @@ const CaipAccountSelectorList = ({
       renderAccountBalances,
       ensByAccountAddress,
       isLoading,
-      selectedAddressesLookup,
+      selectedAddresses,
       isMultiSelect,
       isSelectWithoutMenu,
       renderRightAccessory,
@@ -308,18 +311,16 @@ const CaipAccountSelectorList = ({
     ],
   );
 
-  // TODO: Fix this. cannot determine selected account this way
   const onContentSizeChanged = useCallback(() => {
     // Handle auto scroll to account
     if (!accounts.length || !isAutoScrollEnabled) return;
     if (accountsLengthRef.current !== accounts.length) {
       let selectedAccount: Account | undefined;
 
-      if (selectedAddresses?.length) {
-        // FIX THIS
-        const selectedAddressLower = selectedAddresses[0].toLowerCase();
+      if (selectedAddresses.length) {
+        const selectedAddress = selectedAddresses[0];
         selectedAccount = accounts.find(
-          (acc) => acc.caipAccountId.toLowerCase() === selectedAddressLower,
+          (acc) => acc.caipAccountId === selectedAddress,
         );
       }
       // Fall back to the account with isSelected flag if no override or match found

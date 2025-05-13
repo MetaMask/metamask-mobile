@@ -57,6 +57,7 @@ import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selec
 import Logger from '../../../util/Logger';
 import AccountsConnectedItemList from '../../Views/AccountConnect/AccountsConnectedItemList';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
+import { parseCaipAccountId } from '@metamask/utils';
 
 const ITEM_HEIGHT = 75;
 
@@ -230,7 +231,6 @@ const PermissionsSummary = ({
   }, [isRenderedAsBottomSheet, onRevokeAllHandler, hostname, navigation]);
 
   const getAccountLabel = useCallback(() => {
-    Logger.log({ accountAddresses, accounts });
     if (isAlreadyConnected) {
       if (accountAddresses.length === 1) {
         const matchedConnectedAccount = accounts.find((account) =>
@@ -238,7 +238,9 @@ const PermissionsSummary = ({
             accountAddresses[0],
           ]),
         );
-        return matchedConnectedAccount?.name;
+        return `${strings('permissions.connected_to')} ${
+          matchedConnectedAccount?.name
+        }`;
       }
 
       return `${accountAddresses.length} ${strings(
@@ -319,11 +321,14 @@ const PermissionsSummary = ({
               </View>
               <View style={styles.avatarGroup}>
                 <AvatarGroup
-                  avatarPropsList={accountAddresses.map((address) => ({
-                    variant: AvatarVariant.Account,
-                    accountAddress: address,
-                    size: AvatarSize.Xs,
-                  }))}
+                  avatarPropsList={accountAddresses.map((caipAccountId) => {
+                    const { address } = parseCaipAccountId(caipAccountId);
+                    return {
+                      variant: AvatarVariant.Account,
+                      accountAddress: address,
+                      size: AvatarSize.Xs,
+                    };
+                  })}
                 />
               </View>
             </View>
@@ -560,7 +565,7 @@ const PermissionsSummary = ({
               <StyledButton
                 type={'confirm'}
                 onPress={confirm}
-                disabled={accountAddresses.length === 0}
+                disabled={!isNetworkSwitch && accountAddresses.length === 0}
                 containerStyle={[
                   styles.buttonPositioning,
                   styles.confirmButton,

@@ -6,6 +6,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
   data={
     [
       {
+        "caipChainId": "eip155:1",
         "id": "network-1",
         "imageSource": {
           "uri": "https://ethereum.org/icon.png",
@@ -16,6 +17,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
         "yOffset": 0,
       },
       {
+        "caipChainId": "eip155:137",
         "id": "network-2",
         "imageSource": {
           "uri": "https://polygon.org/icon.png",
@@ -267,6 +269,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                 >
                   <SvgMock
                     color="#ffffff"
+                    fill="currentColor"
                     height={20}
                     name="CheckBold"
                     onPressIn={[Function]}

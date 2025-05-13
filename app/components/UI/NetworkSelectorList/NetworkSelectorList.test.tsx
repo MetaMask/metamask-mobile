@@ -76,7 +76,7 @@ describe('NetworkSelectorList', () => {
     );
 
     fireEvent.press(getByText('Ethereum Mainnet'));
-    expect(mockOnSelectNetwork).toHaveBeenCalledWith('network-1', false);
+    expect(mockOnSelectNetwork).toHaveBeenCalledWith('eip155:1', false);
   });
 
   it('handles selectedChainIds prop correctly', () => {
@@ -105,11 +105,11 @@ describe('NetworkSelectorList', () => {
 
     expect(getAllByTestId('right-accessory')).toHaveLength(2);
     expect(mockRenderRightAccessory).toHaveBeenCalledWith(
-      'network-1',
+      'eip155:1',
       'Ethereum Mainnet',
     );
     expect(mockRenderRightAccessory).toHaveBeenCalledWith(
-      'network-2',
+      'eip155:137',
       'Polygon',
     );
   });

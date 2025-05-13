@@ -75,6 +75,7 @@ jest.mock('../../hooks/useAccounts', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
+        caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'
       },
       {
         name: 'Account 2',
@@ -87,6 +88,7 @@ jest.mock('../../hooks/useAccounts', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
+        caipAccountId: 'eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7',
       },
     ],
     evmAccounts: [],
@@ -119,7 +121,7 @@ jest.mock('../../../core/Engine', () => ({
       },
     },
   },
-  getTotalCaipFiatAccountBalance: jest.fn().mockReturnValue('0'),
+  getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue('0'),
 }));
 
 const initialState = {
@@ -189,6 +191,7 @@ const defaultAccountsMock = [
     yOffset: 0,
     isSelected: true,
     balanceError: undefined,
+    caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
   },
   {
     name: 'Account 2',
@@ -201,6 +204,7 @@ const defaultAccountsMock = [
     yOffset: 78,
     isSelected: false,
     balanceError: undefined,
+    caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`
   },
 ];
 
@@ -346,6 +350,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
       },
     ];
 
@@ -447,6 +452,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
       },
     ];
 
@@ -496,6 +502,7 @@ describe('CaipAccountSelectorList', () => {
 
     // Verify onRemoveImportedAccount was called with correct parameters
     expect(onRemoveImportedAccount).toHaveBeenCalledWith({
+      nextActiveAddress: '',
       removedAddress: BUSINESS_ACCOUNT,
     });
 
@@ -530,6 +537,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
       },
       {
         name: 'Snap Account 2',
@@ -542,6 +550,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_2}`
       },
     ];
 
@@ -610,6 +619,7 @@ describe('CaipAccountSelectorList', () => {
       yOffset: 0,
       isSelected: true,
       balanceError: 'Balance error message',
+      caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
     };
 
     // Create a component that explicitly verifies the account data
@@ -652,6 +662,7 @@ describe('CaipAccountSelectorList', () => {
             yOffset: 0,
             isSelected: true,
             balanceError: undefined,
+            caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
           },
         ],
         evmAccounts: [],
@@ -787,6 +798,7 @@ describe('CaipAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
         },
       ],
       evmAccounts: [],
@@ -911,6 +923,7 @@ describe('CaipAccountSelectorList', () => {
           yOffset: 150,
           isSelected: true,
           balanceError: undefined,
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
         },
       ],
       evmAccounts: [],
@@ -926,18 +939,8 @@ describe('CaipAccountSelectorList', () => {
   });
 
   // TODO: fix this test
-  it.skip('should not auto-scroll when isAutoScrollEnabled is false', async () => {
-    // Create a mock FlatList ref with scrollToOffset method
+  it('should not auto-scroll when isAutoScrollEnabled is false', async () => {
     const mockScrollToOffset = jest.fn();
-    const mockFlatListRef = {
-      current: {
-        scrollToOffset: mockScrollToOffset,
-      },
-    };
-
-    // Override React.useRef to return our mock reference
-    const originalUseRef = React.useRef;
-    jest.spyOn(React, 'useRef').mockImplementation(() => mockFlatListRef);
 
     // Create test component with auto-scroll disabled
     const CaipAccountSelectorListNoAutoScrollTest: React.FC = () => {
@@ -964,9 +967,6 @@ describe('CaipAccountSelectorList', () => {
 
     // Verify that scrollToOffset was not called
     expect(mockScrollToOffset).not.toHaveBeenCalled();
-
-    // Restore the original useRef implementation
-    React.useRef = originalUseRef;
   });
 
   it('should display ENS name instead of account name when available', async () => {
@@ -987,6 +987,7 @@ describe('CaipAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
         },
       ],
       evmAccounts: [],
@@ -1024,6 +1025,7 @@ describe('CaipAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
         },
       ],
       evmAccounts: [],
@@ -1057,6 +1059,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
       },
       {
         name: 'Account 2',
@@ -1069,6 +1072,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
       },
     ];
 
@@ -1083,7 +1087,7 @@ describe('CaipAccountSelectorList', () => {
     fireEvent.press(cells[1]);
 
     // Verify the onSelectAccount was called with the correct address
-    expect(onSelectAccount).toHaveBeenCalledWith(MOCK_ADDRESS_1, false);
+    expect(onSelectAccount).toHaveBeenCalledWith(`eip155:0:${MOCK_ADDRESS_1}`, false);
   });
 
   it('navigates to account details when a balance error is tapped', () => {
@@ -1100,6 +1104,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: true, // Account has balance error
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
       },
     ];
 
@@ -1133,6 +1138,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: false,
         balanceError: undefined,
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
       },
       {
         name: 'Account 2',
@@ -1146,6 +1152,7 @@ describe('CaipAccountSelectorList', () => {
         isSelected: true,
         balanceError: undefined,
         autoScroll: true, // This account should be auto-scrolled to
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
       },
     ];
 
@@ -1170,7 +1177,7 @@ describe('CaipAccountSelectorList', () => {
 
     await waitFor(() => {
       // Verify onSelectAccount was called with correct parameters
-      expect(onSelectAccount).toHaveBeenCalledWith(PERSONAL_ACCOUNT, false);
+      expect(onSelectAccount).toHaveBeenCalledWith(`eip155:0:${PERSONAL_ACCOUNT}`, false);
     });
   });
 });

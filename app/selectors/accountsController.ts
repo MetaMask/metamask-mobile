@@ -59,7 +59,11 @@ export const selectInternalAccounts = createDeepEqualSelector(
   },
 );
 
-// COMMENT THIS
+/**
+ * A memoized selector that returns internal accounts from the AccountsController,
+ * sorted by the order of KeyringController's keyring accounts,
+ * with an additional caipAccountId property
+ */
 export const selectInternalAccountsWithCaipAccountId = createDeepEqualSelector(
   selectInternalAccounts,
   (accounts): InternalAccountWithCaipAccountId[] =>

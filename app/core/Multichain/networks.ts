@@ -1,3 +1,7 @@
+import { CaipChainId } from '@metamask/utils';
+import { EvmAndMultichainNetworkConfigurationsWithCaipChainId } from '../../selectors/networkController';
+import Engine from '../Engine';
+
 /**
  * Base URL of a block explorer.
  */
@@ -75,3 +79,26 @@ export function formatBlockExplorerTransactionUrl(
 ): string {
   return urls.transaction.replace('{txId}', txId);
 }
+
+
+/**
+ * Gets EVM (and eventually non-EVM) Network Configurations keyed by CaipChainId.
+ *
+ * @returns network configurations keyed by CaipChainId.
+ */
+export const getNetworkConfigurationsByCaipChainId = (): Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> => {
+    const networkConfigurationsByChainId: Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> = {
+    };
+
+    const evmNetworkConfigurationsByChainId = Engine.context.NetworkController.state.networkConfigurationsByChainId;
+
+    Object.entries(evmNetworkConfigurationsByChainId).forEach(([chainId, networkConfiguration]) => {
+      const caipChainId: CaipChainId = `eip155:${parseInt(chainId, 16)}`;
+      networkConfigurationsByChainId[caipChainId] = {
+        ...networkConfiguration,
+        caipChainId
+      };
+    });
+
+    return networkConfigurationsByChainId;
+};
