@@ -1,13 +1,16 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
-import { type NetworkConfiguration, RpcEndpointType } from '@metamask/network-controller';
+import {
+  type NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
 import {
   ChainId,
   BuiltInNetworkName,
   NetworkNickname,
   BUILT_IN_CUSTOM_NETWORKS_RPC,
   NetworksTicker,
-  BlockExplorerUrl
+  BlockExplorerUrl,
 } from '@metamask/controller-utils';
 
 import { ensureValidState } from './util';
@@ -43,22 +46,22 @@ const migration = (state: unknown): unknown => {
       const networkClientId = BuiltInNetworkName.MonadTestnet;
       const chainId = ChainId[networkClientId];
       const monadTestnetConfiguration: NetworkConfiguration = {
-          blockExplorerUrls: [BlockExplorerUrl[networkClientId]],
-          chainId,
-          defaultRpcEndpointIndex: 0,
-          defaultBlockExplorerUrlIndex: 0,
-          name: NetworkNickname[networkClientId],
-          nativeCurrency: NetworksTicker[networkClientId],
-          rpcEndpoints: [
-            {
-              failoverUrls: [],
-              networkClientId,
-              type: RpcEndpointType.Custom,
-              url: BUILT_IN_CUSTOM_NETWORKS_RPC['monad-testnet'],
-            },
-          ],
+        blockExplorerUrls: [BlockExplorerUrl[networkClientId]],
+        chainId,
+        defaultRpcEndpointIndex: 0,
+        defaultBlockExplorerUrlIndex: 0,
+        name: NetworkNickname[networkClientId],
+        nativeCurrency: NetworksTicker[networkClientId],
+        rpcEndpoints: [
+          {
+            failoverUrls: [],
+            networkClientId,
+            type: RpcEndpointType.Custom,
+            url: BUILT_IN_CUSTOM_NETWORKS_RPC['monad-testnet'],
+          },
+        ],
       };
-      
+
       // Regardless if the network already exists, we will overwrite it with the default configuration.
       state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
         chainId
