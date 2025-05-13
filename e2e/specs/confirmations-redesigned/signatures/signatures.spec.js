@@ -16,6 +16,7 @@ import {
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 import { buildPermissions } from '../../../fixtures/utils.js';
+import RowComponents from '../../../pages/Browser/Confirmations/RowComponents.js';
 
 const SIGNATURE_LIST = [
   {
@@ -70,7 +71,9 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
           dapp: true,
           fixture: new FixtureBuilder()
             .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(['0x539']),
+            )
             .build(),
           restartDevice: true,
           ganacheOptions: defaultGanacheOptions,
@@ -92,9 +95,9 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
           await Assertions.checkIfVisible(requestType);
 
           // check different sections are visible
-          await Assertions.checkIfVisible(PageSections.AccountNetworkSection);
-          await Assertions.checkIfVisible(PageSections.OriginInfoSection);
-          await Assertions.checkIfVisible(PageSections.MessageSection);
+          await Assertions.checkIfVisible(RowComponents.AdvancedDetailsRow);
+          await Assertions.checkIfVisible(RowComponents.FromTo);
+          await Assertions.checkIfVisible(RowComponents.SimulationDetails);
 
           // any signature specific additional assertions
           if (additionAssertions) {

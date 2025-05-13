@@ -18,7 +18,21 @@ export const ConfirmationTopSheetSelectorsText = {
 export const ConfirmationRequestTypeIDs = {
   PERSONAL_SIGN_REQUEST: ApprovalType.PersonalSign,
   TYPED_SIGN_REQUEST: ApprovalType.EthSignTypedData,
+  TRANSACTION_REQUEST: ApprovalType.Transaction,
 };
+
+export const ConfirmationUIType = {
+  MODAL: 'modal-confirmation-container',
+  FLAT: 'flat-confirmation-container',
+}
+
+export const ConfirmationRowComponentIDs = {
+  TOKEN_HERO: 'token-hero',
+  FROM_TO: 'from-to',
+  SIMULATION_DETAILS: 'simulation-details',
+  GAS_FEES_DETAILS: 'gas-fees-details',
+  ADVANCED_DETAILS: 'advanced-details',
+}
 
 export const ConfirmationFooterSelectorIDs = {
   CANCEL_BUTTON: 'cancel-button',
