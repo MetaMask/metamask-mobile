@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
-import { TransactionMeta } from '@metamask/transaction-controller';
 import { add0x, Hex } from '@metamask/utils';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 
