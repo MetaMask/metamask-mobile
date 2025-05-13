@@ -251,6 +251,47 @@ describe('AccountConnect', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('renders correctly with request including only chains', () => {
+    const { toJSON } = renderWithProvider(
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'mockOrigin',
+              },
+              permissions: {
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [{
+                    type: Caip25CaveatType,
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {
+                        'eip155:1': {
+                          accounts: []
+                        }
+                      },
+                      isMultichainOrigin: false,
+                      sessionProperties: {},
+                    }
+                  }]
+                } as PermissionConstraint,
+              }
+            },
+            permissionRequestId: 'test',
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    // Create a new snapshot since the component UI has changed
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   describe('Renders different screens based on SDK URL status', () => {
     it('should render SingleConnect screen when isSdkUrlUnknown is true', () => {
       const mockPropsForUnknownUrl = {
