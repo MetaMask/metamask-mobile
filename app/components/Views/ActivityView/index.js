@@ -62,6 +62,7 @@ const createStyles = (params) => {
       marginLeft: 5,
       marginRight: 5,
       maxWidth: '60%',
+      borderRadius: 20,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
@@ -72,6 +73,7 @@ const createStyles = (params) => {
       marginRight: 5,
       maxWidth: '60%',
       opacity: 0.5,
+      borderRadius: 20,
     },
     header: {
       backgroundColor: colors.background.default,
