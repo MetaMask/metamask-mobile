@@ -169,7 +169,7 @@ const mockInitialState: DeepPartial<RootState> = {
 };
 
 describe('AccountConnect', () => {
-  it('renders correctly', () => {
+  it('renders correctly with base request', () => {
     const { toJSON } = renderWithProvider(
       <AccountConnect
         route={{
@@ -190,6 +190,47 @@ describe('AccountConnect', () => {
                       optionalScopes: {
                         'wallet:eip155': {
                           accounts: []
+                        }
+                      },
+                      isMultichainOrigin: false,
+                      sessionProperties: {},
+                    }
+                  }]
+                } as PermissionConstraint,
+              }
+            },
+            permissionRequestId: 'test',
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    // Create a new snapshot since the component UI has changed
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with request including chains and accounts', () => {
+    const { toJSON } = renderWithProvider(
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'mockOrigin',
+              },
+              permissions: {
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [{
+                    type: Caip25CaveatType,
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {
+                        'eip155:1': {
+                          accounts: [`eip155:1:${mockAddress1}`]
                         }
                       },
                       isMultichainOrigin: false,
