@@ -9,6 +9,7 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
+import { MMM_ORIGIN } from '../../../constants/confirmations';
 import FromTo from '../../rows/transactions/from-to';
 import GasFeesDetails from '../../rows/transactions/gas-fee-details';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
@@ -20,6 +21,7 @@ const Transfer = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
   const { trackPageViewedEvent } = useConfirmationMetricEvents();
+  const isDappInitiatedTransfer = transactionMetadata?.origin === MMM_ORIGIN;
 
   useClearConfirmationOnBackSwipe();
   useNavbar(strings('confirm.review'));
@@ -31,13 +33,15 @@ const Transfer = () => {
       <TokenHero />
       <FromTo />
       <NetworkRow />
-      <View style={styles.simulationsDetailsContainer}>
-        <SimulationDetails
-          transaction={transactionMetadata as TransactionMeta}
-          enableMetrics
-          isTransactionsRedesign
-        />
-      </View>
+      {!isDappInitiatedTransfer && (
+        <View style={styles.simulationsDetailsContainer}>
+          <SimulationDetails
+            transaction={transactionMetadata as TransactionMeta}
+            enableMetrics
+            isTransactionsRedesign
+          />
+        </View>
+      )}
       <GasFeesDetails />
       <AdvancedDetailsRow />
     </View>

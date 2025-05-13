@@ -203,6 +203,16 @@ class Browser {
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
     await waitForTestDappToLoad();
   }
+
+  async navigateToTestDAppTransaction({ transactionParams }) {
+    // Intentionally open the test dapp first to avoid flakiness
+    await this.navigateToTestDApp();
+    await this.tapUrlInputBox();
+    const encodedParams = encodeURIComponent(transactionParams);
+    await this.navigateToURL(
+      `${TEST_DAPP_LOCAL_URL}/request?method=eth_sendTransaction&params=${encodedParams}`,
+    );
+  }
 }
 
 export default new Browser();

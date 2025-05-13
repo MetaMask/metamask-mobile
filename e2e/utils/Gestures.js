@@ -1,4 +1,4 @@
-import { waitFor } from 'detox';
+import { waitFor, device } from 'detox';
 
 /**
  * Class for handling user actions (Gestures)
@@ -124,7 +124,8 @@ class Gestures {
     const element = await elementID;
     await this.clearField(elementID);
 
-    await element.typeText(text + '\n');
+    await element.typeText(text);
+    await element.tapReturnKey();
   }
 
   /**
