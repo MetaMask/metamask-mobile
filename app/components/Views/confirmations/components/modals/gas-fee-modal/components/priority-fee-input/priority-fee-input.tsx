@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { add0x, Hex } from '@metamask/utils';
@@ -21,27 +21,40 @@ import {
 import { limitToMaximumDecimalPlaces } from '../../../../../../../../util/number';
 import styleSheet from './priority-fee-input.styles';
 
+const InfoLabel = ({ children }: { children: React.ReactNode }) => {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <Text variant={TextVariant.BodySM} style={styles.infoLabel}>
+      {children}
+    </Text>
+  );
+};
+
 export const PriorityFeeInput = ({
   onChange,
 }: {
   onChange: (value: Hex) => void;
 }) => {
-  const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const { gasFeeEstimates } = useGasFeeEstimates(
-    transactionMeta.networkClientId,
-  );
-
+  const transactionMeta = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
   const initialPriorityFee = hexWEIToDecGWEI(
-    transactionMeta.txParams.maxPriorityFeePerGas,
+    transactionMeta?.txParams?.maxPriorityFeePerGas,
   ).toString();
   const [value, setValue] = useState(initialPriorityFee);
 
-  const handleChange = (text: string) => {
-    setValue(text);
-    const hexWEI = decGWEIToHexWEI(text);
-    onChange(add0x(hexWEI as Hex));
-  };
+  const { gasFeeEstimates } = useGasFeeEstimates(
+    transactionMeta?.networkClientId || '',
+  );
+
+  const handleChange = useCallback(
+    (text: string) => {
+      setValue(text);
+      const updatedPriorityFee = add0x(decGWEIToHexWEI(text) as Hex);
+      onChange(updatedPriorityFee);
+    },
+    [onChange],
+  );
 
   const { latestPriorityFeeRange, historicalPriorityFeeRange } =
     (gasFeeEstimates as GasFeeEstimates) || {};
@@ -64,7 +77,7 @@ export const PriorityFeeInput = ({
       />
       {feeRangesExists && (
         <View style={styles.infoContainer} testID="info-container">
-          <Text variant={TextVariant.BodySM} style={styles.infoLabel}>
+          <InfoLabel>
             {strings('transactions.gas_modal.current_priority_fee', {
               min: limitToMaximumDecimalPlaces(
                 parseFloat(latestPriorityFeeRange?.[0]),
@@ -75,8 +88,8 @@ export const PriorityFeeInput = ({
                 2,
               ),
             })}
-          </Text>
-          <Text variant={TextVariant.BodySM} style={styles.infoLabel}>
+          </InfoLabel>
+          <InfoLabel>
             {strings('transactions.gas_modal.historical_priority_fee', {
               min: limitToMaximumDecimalPlaces(
                 parseFloat(historicalPriorityFeeRange?.[0]),
@@ -87,7 +100,7 @@ export const PriorityFeeInput = ({
                 2,
               ),
             })}
-          </Text>
+          </InfoLabel>
         </View>
       )}
     </View>

@@ -1,25 +1,26 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { noop } from 'lodash';
 
+import renderWithProvider from '../../../../../../../../util/test/renderWithProvider';
+import { transferTransactionStateMock } from '../../../../../mock-data/transfer-transaction-mock';
 import { GasPriceInput } from './gas-price-input';
 
-jest.mock(
-  '../../../../../hooks/transactions/useTransactionMetadataRequest',
-  () => {
-    const { simpleSendTransaction } = jest.requireActual(
-      '../../../../../mock-data/transaction-controller-mock',
-    );
-    return {
-      useTransactionMetadataRequest: jest.fn(() => simpleSendTransaction),
-    };
+jest.mock('../../../../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
   },
-);
+}));
 
 describe('GasPriceInput', () => {
   it('renders the gas price title and input', () => {
-    const { getByText, getByTestId } = render(
+    const { getByText, getByTestId } = renderWithProvider(
       <GasPriceInput onChange={noop} />,
+      {
+        state: transferTransactionStateMock,
+      },
     );
 
     expect(getByText('Gas price (GWEI)')).toBeOnTheScreen();
@@ -29,7 +30,12 @@ describe('GasPriceInput', () => {
 
   it('calls onChange when input value changes', () => {
     const mockOnChange = jest.fn();
-    const { getByTestId } = render(<GasPriceInput onChange={mockOnChange} />);
+    const { getByTestId } = renderWithProvider(
+      <GasPriceInput onChange={mockOnChange} />,
+      {
+        state: transferTransactionStateMock,
+      },
+    );
 
     const input = getByTestId('gas-price-input');
     fireEvent.changeText(input, '30000');

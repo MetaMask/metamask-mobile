@@ -11,17 +11,18 @@ import { type GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useGasFeeEstimates } from '../../../../hooks/gas/useGasFeeEstimates';
-import { determineEstimatedTime } from '../../../../utils/time';
+import { toHumanEstimatedTimeRange } from '../../../../utils/time';
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
 import { updateTransactionGasFees } from '../../../../../../../util/transaction-controller';
 import { type GasOption } from '../types';
+import { GasOptionIcon } from '../constants';
 
 const HEX_ZERO = '0x0';
 
 const GasEstimateFeeLevelEmojis = {
-  [GasFeeEstimateLevel.Low]: '🐢',
-  [GasFeeEstimateLevel.Medium]: '🦊',
-  [GasFeeEstimateLevel.High]: '🦍',
+  [GasFeeEstimateLevel.Low]: GasOptionIcon.LOW,
+  [GasFeeEstimateLevel.Medium]: GasOptionIcon.MEDIUM,
+  [GasFeeEstimateLevel.High]: GasOptionIcon.HIGH,
 };
 
 export const useGasFeeEstimateLevelOptions = ({
@@ -119,7 +120,7 @@ export const useGasFeeEstimateLevelOptions = ({
 
   if (shouldIncludeGasFeeEstimateLevelOptions) {
     Object.values(GasFeeEstimateLevel).forEach((level) => {
-      const estimatedTime = determineEstimatedTime(
+      const estimatedTime = toHumanEstimatedTimeRange(
         networkGasFeeEstimates[level].minWaitTimeEstimate,
         networkGasFeeEstimates[level].maxWaitTimeEstimate,
       );

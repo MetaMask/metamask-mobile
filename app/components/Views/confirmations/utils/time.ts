@@ -21,7 +21,7 @@ const withoutUnitHumanizer = humanizeDuration.humanizer({
   },
 });
 
-export const determineEstimatedTime = (min: number, max: number) => {
+export const toHumanEstimatedTimeRange = (min: number, max: number) => {
   if (!min || !max) {
     return undefined;
   }

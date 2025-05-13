@@ -1,25 +1,26 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { noop } from 'lodash';
 
+import renderWithProvider from '../../../../../../../../util/test/renderWithProvider';
+import { transferTransactionStateMock } from '../../../../../mock-data/transfer-transaction-mock';
 import { GasLimitInput } from './gas-limit-input';
 
-jest.mock(
-  '../../../../../hooks/transactions/useTransactionMetadataRequest',
-  () => {
-    const { simpleSendTransaction } = jest.requireActual(
-      '../../../../../mock-data/transaction-controller-mock',
-    );
-    return {
-      useTransactionMetadataRequest: jest.fn(() => simpleSendTransaction),
-    };
+jest.mock('../../../../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
   },
-);
+}));
 
 describe('GasLimitInput', () => {
   it('renders the gas limit title and input', () => {
-    const { getByText, getByTestId } = render(
+    const { getByTestId, getByText } = renderWithProvider(
       <GasLimitInput onChange={noop} />,
+      {
+        state: transferTransactionStateMock,
+      },
     );
 
     expect(getByText('Gas limit')).toBeOnTheScreen();
@@ -29,7 +30,12 @@ describe('GasLimitInput', () => {
 
   it('calls onChange when input value changes', () => {
     const mockOnChange = jest.fn();
-    const { getByTestId } = render(<GasLimitInput onChange={mockOnChange} />);
+    const { getByTestId } = renderWithProvider(
+      <GasLimitInput onChange={mockOnChange} />,
+      {
+        state: transferTransactionStateMock,
+      },
+    );
 
     const input = getByTestId('gas-limit-input');
     fireEvent.changeText(input, '30000');

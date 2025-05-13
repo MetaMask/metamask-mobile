@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
+import { pickBy } from 'lodash';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 import { useStyles } from '../../../../../../../../component-library/hooks';
@@ -11,7 +12,7 @@ import Button, {
 import { strings } from '../../../../../../../../../locales/i18n';
 import BottomModal from '../../../../UI/bottom-modal';
 import { GasModalHeader } from '../../components/gas-modal-header';
-import { MODALS } from '../../constants';
+import { GasModalType } from '../../constants';
 import { GasLimitInput } from '../../components/gas-limit-input';
 import styleSheet from './advanced-gas-price-modal.styles';
 import { updateTransactionGasFees } from '../../../../../../../../util/transaction-controller';
@@ -22,7 +23,7 @@ export const AdvancedGasPriceModal = ({
   setActiveModal,
   handleCloseModals,
 }: {
-  setActiveModal: (modal: string) => void;
+  setActiveModal: (modal: GasModalType) => void;
   handleCloseModals: () => void;
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -36,11 +37,10 @@ export const AdvancedGasPriceModal = ({
     gasPrice: null,
   });
 
-  const onSaveClick = useCallback(() => {
+  const handleSaveClick = useCallback(() => {
     updateTransactionGasFees(transactionMeta.id, {
       userFeeLevel: 'custom',
-      gas: gasParams.gas as string,
-      gasPrice: gasParams.gasPrice as string,
+      ...pickBy(gasParams, Boolean),
     });
     handleCloseModals();
   }, [transactionMeta.id, gasParams, handleCloseModals]);
@@ -60,7 +60,7 @@ export const AdvancedGasPriceModal = ({
   };
 
   const navigateToEstimatesModal = useCallback(() => {
-    setActiveModal(MODALS.ESTIMATES);
+    setActiveModal(GasModalType.ESTIMATES);
   }, [setActiveModal]);
 
   return (
@@ -81,7 +81,7 @@ export const AdvancedGasPriceModal = ({
         </View>
         <Button
           style={styles.button}
-          onPress={onSaveClick}
+          onPress={handleSaveClick}
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           label={strings('transactions.gas_modal.save')}

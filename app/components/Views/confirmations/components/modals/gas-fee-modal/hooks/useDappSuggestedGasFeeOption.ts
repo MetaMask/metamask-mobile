@@ -7,6 +7,7 @@ import { MMM_ORIGIN } from '../../../../constants/confirmations';
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
 import { updateTransactionGasFees } from '../../../../../../../util/transaction-controller';
 import { type GasOption } from '../types';
+import { GasOptionIcon } from '../constants';
 
 const HEX_ZERO = '0x0';
 
@@ -68,13 +69,13 @@ export const useDappSuggestedGasFeeOption = ({
       });
 
     options.push({
-      emoji: '🌐',
+      emoji: GasOptionIcon.SITE_SUGGESTED,
       estimatedTime: undefined,
       isSelected: isDappSuggestedGasFeeSelected,
       key: 'site_suggested',
       name: strings('transactions.gas_modal.site_suggested'),
       onSelect: onDappSuggestedGasFeeClick,
-      value: preciseNativeCurrencyFee || '--',
+      value: preciseNativeCurrencyFee || '',
       valueInFiat: currentCurrencyFee || '',
     });
   }

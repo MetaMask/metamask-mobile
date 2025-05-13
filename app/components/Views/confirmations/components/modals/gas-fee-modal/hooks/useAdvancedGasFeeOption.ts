@@ -4,19 +4,21 @@ import {
   GasFeeEstimateLevel,
   TransactionEnvelopeType,
   type TransactionMeta,
+  UserFeeLevel as UserFeeLevelType,
 } from '@metamask/transaction-controller';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
-import { MODALS } from '../constants';
+import { GasModalType, GasOptionIcon } from '../constants';
 import { type GasOption } from '../types';
 
 const HEX_ZERO = '0x0';
+const EMPTY_VALUE = '--';
 
 export const useAdvancedGasFeeOption = ({
   setActiveModal,
 }: {
-  setActiveModal: (modal: string) => void;
+  setActiveModal: (modal: GasModalType) => void;
 }): GasOption[] => {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const {
@@ -35,45 +37,54 @@ export const useAdvancedGasFeeOption = ({
   const { calculateGasEstimate } = useFeeCalculations(transactionMeta);
 
   const onAdvancedGasFeeClick = useCallback(() => {
-    if (transactionEnvelopeType === TransactionEnvelopeType.legacy) {
-      setActiveModal(MODALS.ADVANCED_GAS_PRICE);
-    } else {
-      setActiveModal(MODALS.ADVANCED_EIP1559);
-    }
+    const newModalType =
+      transactionEnvelopeType === TransactionEnvelopeType.legacy
+        ? GasModalType.ADVANCED_GAS_PRICE
+        : GasModalType.ADVANCED_EIP1559;
+
+    setActiveModal(newModalType);
   }, [transactionEnvelopeType, setActiveModal]);
 
-  const isCustomUserFeeLevelSelected = userFeeLevel === 'custom';
+  const isCustomUserFeeLevelSelected = userFeeLevel === UserFeeLevelType.CUSTOM;
 
-  const isDappSuggestedGasFeeSelected = useMemo(() => !!(
-      userFeeLevel === 'dappSuggested' ||
-      // TODO: This is a temporary fix to handle the case where the user fee level is undefined but the dapp suggested gas fees exist
-      // Task will be to create a new issue to handle this
-      (userFeeLevel === undefined && dappSuggestedGasFees)
-    ), [userFeeLevel, dappSuggestedGasFees]);
+  const isDappSuggestedGasFeeSelected = !!(
+    userFeeLevel === UserFeeLevelType.DAPP_SUGGESTED ||
+    // TODO: This is a temporary fix to handle the case where the user fee level is undefined but the dapp suggested gas fees exist
+    // Task will be to create a new issue to handle this
+    (userFeeLevel === undefined && dappSuggestedGasFees)
+  );
 
-  const isAnyGasFeeEstimateLevelSelected = useMemo(() => Object.values(GasFeeEstimateLevel).some(
-      (level) => userFeeLevel === level,
-    ), [userFeeLevel]);
+  const isAnyGasFeeEstimateLevelSelected = useMemo(
+    () =>
+      Object.values(GasFeeEstimateLevel).some(
+        (level) => userFeeLevel === level,
+      ),
+    [userFeeLevel],
+  );
 
-  const isGasPriceEstimateSelected = useMemo(() => (
+  const isGasPriceEstimateSelected = useMemo(
+    () =>
       userFeeLevel === 'medium' &&
-      transactionGasFeeEstimates?.type === GasFeeEstimateType.GasPrice
-    ), [userFeeLevel, transactionGasFeeEstimates]);
+      transactionGasFeeEstimates?.type === GasFeeEstimateType.GasPrice,
+    [userFeeLevel, transactionGasFeeEstimates],
+  );
 
-  const isAdvancedGasFeeSelected = useMemo(() => (
+  const isAdvancedGasFeeSelected = useMemo(
+    () =>
       (!isDappSuggestedGasFeeSelected &&
         !isAnyGasFeeEstimateLevelSelected &&
         !isGasPriceEstimateSelected) ||
-      isCustomUserFeeLevelSelected
-    ), [
-    isDappSuggestedGasFeeSelected,
-    isAnyGasFeeEstimateLevelSelected,
-    isGasPriceEstimateSelected,
-    isCustomUserFeeLevelSelected,
-  ]);
+      isCustomUserFeeLevelSelected,
+    [
+      isDappSuggestedGasFeeSelected,
+      isAnyGasFeeEstimateLevelSelected,
+      isGasPriceEstimateSelected,
+      isCustomUserFeeLevelSelected,
+    ],
+  );
 
-  let value = '';
-  let valueInFiat = '--';
+  let value = EMPTY_VALUE;
+  let valueInFiat = '';
 
   if (isAdvancedGasFeeSelected) {
     const feePerGas = maxFeePerGas || HEX_ZERO;
@@ -97,20 +108,25 @@ export const useAdvancedGasFeeOption = ({
         gasPrice,
       });
 
-    value = preciseNativeCurrencyFee || '--';
+    value = preciseNativeCurrencyFee || EMPTY_VALUE;
     valueInFiat = currentCurrencyFee || '';
   }
 
-  return [
-    {
-      emoji: '⚙️',
-      estimatedTime: '',
-      isSelected: isAdvancedGasFeeSelected,
-      key: 'advanced',
-      name: strings('transactions.gas_modal.advanced'),
-      onSelect: onAdvancedGasFeeClick,
-      value,
-      valueInFiat,
-    },
-  ];
+  const memoizedGasOption = useMemo(
+    () => [
+      {
+        emoji: GasOptionIcon.ADVANCED,
+        estimatedTime: '',
+        isSelected: isAdvancedGasFeeSelected,
+        key: 'advanced',
+        name: strings('transactions.gas_modal.advanced'),
+        onSelect: onAdvancedGasFeeClick,
+        value,
+        valueInFiat,
+      },
+    ],
+    [isAdvancedGasFeeSelected, onAdvancedGasFeeClick, value, valueInFiat],
+  );
+
+  return memoizedGasOption;
 };

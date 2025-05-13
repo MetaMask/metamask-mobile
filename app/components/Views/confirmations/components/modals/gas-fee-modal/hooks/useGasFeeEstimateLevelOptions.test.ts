@@ -18,7 +18,7 @@ jest.mock('../../../../hooks/gas/useFeeCalculations');
 jest.mock('../../../../hooks/gas/useGasFeeEstimates');
 jest.mock('../../../../../../../util/transaction-controller');
 jest.mock('../../../../utils/time', () => ({
-  determineEstimatedTime: jest.fn().mockReturnValue('~1 min'),
+  toHumanEstimatedTimeRange: jest.fn().mockReturnValue('~1 min'),
 }));
 
 describe('useGasFeeEstimateLevelOptions', () => {

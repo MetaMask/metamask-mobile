@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { pickBy } from 'lodash';
 
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import Button, {
@@ -13,7 +14,7 @@ import { updateTransactionGasFees } from '../../../../../../../../util/transacti
 import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
 import BottomModal from '../../../../UI/bottom-modal';
 import { GasModalHeader } from '../../components/gas-modal-header';
-import { MODALS } from '../../constants';
+import { GasModalType } from '../../constants';
 import { GasLimitInput } from '../../components/gas-limit-input';
 import { MaxBaseFeeInput } from '../../components/max-base-fee-input';
 import { PriorityFeeInput } from '../../components/priority-fee-input';
@@ -23,7 +24,7 @@ export const AdvancedEIP1559Modal = ({
   setActiveModal,
   handleCloseModals,
 }: {
-  setActiveModal: (modal: string) => void;
+  setActiveModal: (modal: GasModalType) => void;
   handleCloseModals: () => void;
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -39,12 +40,10 @@ export const AdvancedEIP1559Modal = ({
     maxPriorityFeePerGas: null,
   });
 
-  const onSaveClick = useCallback(() => {
+  const handleSaveClick = useCallback(() => {
     updateTransactionGasFees(transactionMeta.id, {
       userFeeLevel: 'custom',
-      gas: gasParams.gas as string,
-      maxFeePerGas: gasParams.maxFeePerGas as string,
-      maxPriorityFeePerGas: gasParams.maxPriorityFeePerGas as string,
+      ...pickBy(gasParams, Boolean),
     });
     handleCloseModals();
   }, [transactionMeta.id, gasParams, handleCloseModals]);
@@ -71,7 +70,7 @@ export const AdvancedEIP1559Modal = ({
   };
 
   const navigateToEstimatesModal = useCallback(() => {
-    setActiveModal(MODALS.ESTIMATES);
+    setActiveModal(GasModalType.ESTIMATES);
   }, [setActiveModal]);
 
   return (
@@ -93,7 +92,7 @@ export const AdvancedEIP1559Modal = ({
         </View>
         <Button
           style={styles.button}
-          onPress={onSaveClick}
+          onPress={handleSaveClick}
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           label={strings('transactions.gas_modal.save')}

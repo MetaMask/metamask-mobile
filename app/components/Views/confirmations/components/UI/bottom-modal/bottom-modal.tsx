@@ -10,13 +10,13 @@ const OPAQUE_GRAY = '#414141';
 interface BottomModalProps {
   avoidKeyboard?: boolean;
   children: ReactChild;
-  onClose?: () => void;
   hideBackground?: boolean;
-  testID?: string;
-  visible?: boolean;
   onBackButtonPress?: () => void;
   onBackdropPress?: () => void;
+  onClose?: () => void;
   onSwipeComplete?: () => void;
+  testID?: string;
+  visible?: boolean;
 }
 
 /**
