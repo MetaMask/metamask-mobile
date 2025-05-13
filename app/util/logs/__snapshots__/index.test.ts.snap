@@ -224,6 +224,24 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
               },
             ],
           },
+          "0x279f": {
+            "blockExplorerUrls": [
+              "https://testnet.monadexplorer.com",
+            ],
+            "chainId": "0x279f",
+            "defaultBlockExplorerUrlIndex": 0,
+            "defaultRpcEndpointIndex": 0,
+            "name": "Monad Testnet",
+            "nativeCurrency": "MON",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "monad-testnet",
+                "type": "custom",
+                "url": "https://testnet-rpc.monad.xyz",
+              },
+            ],
+          },
           "0xaa36a7": {
             "blockExplorerUrls": [],
             "chainId": "0xaa36a7",
