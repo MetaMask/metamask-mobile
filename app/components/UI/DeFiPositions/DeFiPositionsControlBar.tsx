@@ -45,9 +45,7 @@ const DeFiPositionsControlBar: React.FC = () => {
         label={
           <Text numberOfLines={1}>
             {isAllNetworks && isPopularNetwork
-              ? `${strings('app_settings.popular')} ${strings(
-                  'app_settings.networks',
-                )}`
+              ? strings('wallet.popular_networks')
               : networkName ?? strings('wallet.current_network')}
           </Text>
         }
