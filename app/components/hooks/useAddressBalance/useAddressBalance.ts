@@ -17,6 +17,7 @@ import { selectContractBalances } from '../../../selectors/tokenBalancesControll
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
 import { RootState } from '../../../reducers';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 
 const useAddressBalance = (
   asset?: Asset,
@@ -37,7 +38,7 @@ const useAddressBalance = (
     selectSelectedInternalAccountFormattedAddress,
   );
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
-  if (chainId) {
+  if (isPerDappSelectedNetworkEnabled() && chainId) {
     // If chainId is provided, use the accounts and ticker for that chain
     accounts = accountsByChainId[chainId];
     ticker = networkConfigurationByChainId?.nativeCurrency;
