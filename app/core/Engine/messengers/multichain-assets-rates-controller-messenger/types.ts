@@ -3,10 +3,10 @@ import {
   KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
 import {
-  MultichainAssetsControllerStateChangeEvent,
   CurrencyRateStateChange,
   GetCurrencyRateState,
   MultichainAssetsControllerGetStateAction,
+  MultichainAssetsControllerAccountAssetListUpdatedEvent,
 } from '@metamask/assets-controllers';
 import {
   AccountsControllerAccountAddedEvent,
@@ -25,4 +25,4 @@ export type MultichainAssetsRatesControllerMessengerEvents =
   | KeyringControllerUnlockEvent
   | AccountsControllerAccountAddedEvent
   | CurrencyRateStateChange
-  | MultichainAssetsControllerStateChangeEvent;
+  | MultichainAssetsControllerAccountAssetListUpdatedEvent;
