@@ -188,7 +188,6 @@ const ProtectYourWallet = () => {
     },
     bottomContainer: {
       paddingHorizontal: 24,
-      // marginTop: -16,
     },
     srpContainer: {
       flexDirection: 'column',

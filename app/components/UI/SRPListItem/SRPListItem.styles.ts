@@ -19,7 +19,6 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 16,
-      // marginBottom: 16,
       rowGap: 16,
       borderRadius: 8,
       backgroundColor: colors.background.alternative,
