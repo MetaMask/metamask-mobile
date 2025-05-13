@@ -5,9 +5,26 @@ set -e
 echo "Installing Foundry..."
 curl -L https://foundry.paradigm.xyz | bash
 
-source ~/.bashrc 2>/dev/null || source ~/.zshrc 2>/dev/null || source ~/.bash_profile 2>/dev/null || true
+export PATH="$PATH:$HOME/.foundry/bin"
+
+if [ -f "$HOME/.bashrc" ]; then
+    source "$HOME/.bashrc"
+elif [ -f "$HOME/.zshrc" ]; then
+    source "$HOME/.zshrc"
+elif [ -f "$HOME/.bash_profile" ]; then
+    source "$HOME/.bash_profile"
+fi
 
 echo "Running foundryup to install the latest version..."
-foundryup
+$HOME/.foundry/bin/foundryup
+
+# Verify installation
+if command -v forge &> /dev/null; then
+    echo "Foundry installation completed successfully!"
+    forge --version
+else
+    echo "Error: Foundry installation may have failed. Please check the output above."
+    exit 1
+fi
 
 gh attestation verify --owner foundry-rs $(which forge)
