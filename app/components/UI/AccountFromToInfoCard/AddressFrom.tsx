@@ -10,6 +10,10 @@ import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import {
+  selectEvmNetworkImageSource,
+  selectEvmNetworkName,
+} from '../../../selectors/networkInfos';
+import {
   getLabelTextByAddress,
   renderAccountName,
 } from '../../../util/address';
@@ -17,6 +21,7 @@ import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 
 interface Asset {
   isETH?: boolean;
@@ -51,7 +56,7 @@ const AddressFrom = ({
     asset,
     from,
     dontWatchAsset,
-    chainId,
+    isPerDappSelectedNetworkEnabled() ? chainId : undefined,
   );
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -59,7 +64,9 @@ const AddressFrom = ({
   const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress = toChecksumAddress(from);
 
-  const { networkName, networkImageSource } = useNetworkInfo(origin);
+  const networkName = useSelector(selectEvmNetworkName);
+  const networkImage = useSelector(selectEvmNetworkImageSource);
+  const perDappNetworkInfo = useNetworkInfo(origin);
 
   const useBlockieIcon = useSelector(
     // TODO: Replace "any" with type
@@ -78,7 +85,13 @@ const AddressFrom = ({
     }
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  // const networkImage = useSelector(selectNetworkImageSource);
+  const displayNetworkName = isPerDappSelectedNetworkEnabled() 
+    ? perDappNetworkInfo.networkName 
+    : networkName;
+  
+  const displayNetworkImage = isPerDappSelectedNetworkEnabled() 
+    ? perDappNetworkInfo.networkImageSource 
+    : networkImage;
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
@@ -95,11 +108,11 @@ const AddressFrom = ({
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
         accountTypeLabel={accountTypeLabel as string}
-        accountNetwork={networkName}
+        accountNetwork={displayNetworkName}
         badgeProps={{
           variant: BadgeVariant.Network,
-          name: networkName,
-          imageSource: networkImageSource,
+          name: displayNetworkName,
+          imageSource: displayNetworkImage,
         }}
         useBlockieIcon={useBlockieIcon}
       />
