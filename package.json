@@ -214,7 +214,7 @@
     "@metamask/rpc-errors": "^7.0.2",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "0.29.0-wallet",
-    "@metamask/seedless-onboarding-controller": "https://github.com/Web3Auth/core/raw/765bfcc8929b797e0a3e0f9526b97d1c9afbdbb2/packages/seedless-onboarding-controller/seedless-onboarding-controller.tgz",
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@0.0.0-preview-8a04e037",
     "@metamask/selected-network-controller": "^22.0.0",
     "@metamask/signature-controller": "^27.1.0",
     "@metamask/slip44": "^4.1.0",
