@@ -1,7 +1,9 @@
-
 import { captureException } from '@sentry/react-native';
 import { cloneDeep } from 'lodash';
-import { NetworkConfiguration, RpcEndpointType } from '@metamask/network-controller';
+import {
+  NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 
 import { ensureValidState } from './util';
@@ -103,25 +105,25 @@ const createTestState = () => ({
           },
         },
       },
-    }
-  }
+    },
+  },
 });
 
 const createMonadTestnetConfiguration = (): NetworkConfiguration => ({
-    chainId: '0x279f',
-    rpcEndpoints: [
-      {
-        networkClientId: 'monad-testnet',
-        url: 'https://testnet-rpc.monad.xyz',
-        type: RpcEndpointType.Custom,
-        failoverUrls: [],
-      },
-    ],
-    defaultRpcEndpointIndex: 0,
-    blockExplorerUrls: ['https://testnet.monadexplorer.com'],
-    defaultBlockExplorerUrlIndex: 0,
-    name: 'Monad Testnet',
-    nativeCurrency: 'MON',
+  chainId: '0x279f',
+  rpcEndpoints: [
+    {
+      networkClientId: 'monad-testnet',
+      url: 'https://testnet-rpc.monad.xyz',
+      type: RpcEndpointType.Custom,
+      failoverUrls: [],
+    },
+  ],
+  defaultRpcEndpointIndex: 0,
+  blockExplorerUrls: ['https://testnet.monadexplorer.com'],
+  defaultBlockExplorerUrlIndex: 0,
+  name: 'Monad Testnet',
+  nativeCurrency: 'MON',
 });
 
 describe('Migration 77: Add `Monad Testnet`', () => {
@@ -150,12 +152,13 @@ describe('Migration 77: Add `Monad Testnet`', () => {
           NetworkController: {
             ...oldState.engine.backgroundState.NetworkController,
             networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId,
-              [monadTestnetConfiguration.chainId]: monadTestnetConfiguration
+              ...oldState.engine.backgroundState.NetworkController
+                .networkConfigurationsByChainId,
+              [monadTestnetConfiguration.chainId]: monadTestnetConfiguration,
             },
           },
-        }
-      }
+        },
+      },
     };
 
     const migratedState = migrate(oldState);
@@ -167,7 +170,11 @@ describe('Migration 77: Add `Monad Testnet`', () => {
   it('replaces `Monad Testnet` NetworkConfiguration if there is one', () => {
     const monadTestnetConfiguration = createMonadTestnetConfiguration();
     const oldState = createTestState();
-    const networkConfigurationsByChainId = oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId as Record<Hex, NetworkConfiguration>;
+    const networkConfigurationsByChainId = oldState.engine.backgroundState
+      .NetworkController.networkConfigurationsByChainId as Record<
+      Hex,
+      NetworkConfiguration
+    >;
     networkConfigurationsByChainId[monadTestnetConfiguration.chainId] = {
       ...monadTestnetConfiguration,
       rpcEndpoints: [
@@ -186,12 +193,13 @@ describe('Migration 77: Add `Monad Testnet`', () => {
           NetworkController: {
             ...oldState.engine.backgroundState.NetworkController,
             networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId,
-              [monadTestnetConfiguration.chainId]: monadTestnetConfiguration
+              ...oldState.engine.backgroundState.NetworkController
+                .networkConfigurationsByChainId,
+              [monadTestnetConfiguration.chainId]: monadTestnetConfiguration,
             },
           },
-        }
-      }
+        },
+      },
     };
 
     const migratedState = migrate(oldState);
@@ -200,39 +208,43 @@ describe('Migration 77: Add `Monad Testnet`', () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it.each([{
-    state: {
-      engine: {}
-    },
-    test: 'empty engine state',
-  }, {
-    state: {
-      engine: {
-        backgroundState: {}
-      }
-    },
-    test: 'empty backgroundState',
-  }, {
-    state: {
-      engine: {
-        backgroundState: {
-          NetworkController: 'invalid'
-        }
+  it.each([
+    {
+      state: {
+        engine: {},
       },
+      test: 'empty engine state',
     },
-    test: 'invalid NetworkController state'
-  }, {
-    state: {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: 'invalid'
-          }
-        }
+    {
+      state: {
+        engine: {
+          backgroundState: {},
+        },
       },
+      test: 'empty backgroundState',
     },
-    test: 'invalid networkConfigurationsByChainId state'
-  }
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: 'invalid',
+          },
+        },
+      },
+      test: 'invalid NetworkController state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: 'invalid',
+            },
+          },
+        },
+      },
+      test: 'invalid networkConfigurationsByChainId state',
+    },
   ])('does not modify state if the state is invalid - $test', ({ state }) => {
     const orgState = cloneDeep(state);
     mockedEnsureValidState.mockReturnValue(true);
@@ -242,7 +254,9 @@ describe('Migration 77: Add `Monad Testnet`', () => {
     // State should be unchanged
     expect(migratedState).toStrictEqual(orgState);
     expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error('Migration 77: NetworkController or networkConfigurationsByChainId not found in state'),
+      new Error(
+        'Migration 77: NetworkController or networkConfigurationsByChainId not found in state',
+      ),
     );
   });
 });
