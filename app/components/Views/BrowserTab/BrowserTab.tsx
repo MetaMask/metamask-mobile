@@ -12,7 +12,6 @@ import {
   ImageSourcePropType,
   KeyboardAvoidingView,
   Platform,
-  Text,
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
