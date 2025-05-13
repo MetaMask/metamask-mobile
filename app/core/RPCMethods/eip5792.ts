@@ -248,7 +248,7 @@ export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
       const status = isSupported
         ? AtomicCapabilityStatus.Supported
         : AtomicCapabilityStatus.Ready;
-      acc[chainId as Hex] = {
+      acc[chainId] = {
         atomic: {
           status,
         },
