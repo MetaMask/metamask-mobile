@@ -11,7 +11,7 @@ import Engine, { EngineContext } from '../core/Engine';
 import { getPersistentState } from '@metamask/base-controller';
 
 const TIMEOUT = 40000;
-const STORAGE_DEBOUNCE_DELAY = 200;
+const STORAGE_THROTTLE_DELAY = 200;
 
 const MigratedStorage = {
   async getItem(key: string) {
@@ -131,7 +131,7 @@ const persistConfig = {
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),
   timeout: TIMEOUT,
-  throttle: STORAGE_DEBOUNCE_DELAY,
+  throttle: STORAGE_THROTTLE_DELAY,
   writeFailHandler: (error: Error) =>
     Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
 };
