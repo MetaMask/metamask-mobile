@@ -12,6 +12,7 @@ import { updatePermittedChains, addPermittedAccounts, removePermittedAccounts } 
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import { Hex } from '@metamask/utils';
 
 const MOCK_ACCOUNTS = [      {
   name: 'Account 1',
@@ -120,7 +121,7 @@ jest.mock('../../hooks/useAccounts', () => {
   };
 });
 
-const mockInitialState: DeepPartial<RootState> = {
+const mockInitialState = (accounts: Hex[] = ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272']): DeepPartial<RootState> => ({
   settings: {},
   engine: {
     backgroundState: {
@@ -136,7 +137,7 @@ const mockInitialState: DeepPartial<RootState> = {
                     requiredScopes: {},
                     optionalScopes: {
                       'eip155:1': {
-                        accounts: ['eip155:1:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272']
+                        accounts: accounts.map(account => `eip155:1:${account}`)
                       }
                     }
                   }
@@ -150,9 +151,15 @@ const mockInitialState: DeepPartial<RootState> = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
   },
-};
+});
 
 describe('AccountPermissions', () => {
+  beforeEach(() => {
+    mockUpdatePermittedChains.mockReset();
+    mockAddPermittedAccounts.mockReset();
+    mockRemovePermittedAccounts.mockReset();
+  });
+
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(
       <AccountPermissions
@@ -162,7 +169,7 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
     );
 
     expect(toJSON()).toMatchSnapshot();
@@ -177,7 +184,7 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
     );
 
     const managePermissionsButton = getByTestId(
@@ -198,7 +205,7 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
     );
 
     expect(getByText('Connect more accounts')).toBeDefined();
@@ -214,7 +221,7 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
     );
 
     // Select a network
@@ -243,7 +250,7 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
     );
 
     // Unselect existing permitted chain
@@ -259,7 +266,35 @@ describe('AccountPermissions', () => {
     expect(mockedNavigate).toHaveBeenCalled();
   });
 
-  it('handles update permissions when accounts are selected', async () => {
+  it('handles update permissions when accounts are selected from connect more view', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <AccountPermissions
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            initialScreen: AccountPermissionsScreens.ConnectMoreAccounts,
+          },
+        }}
+      />,
+      { state: mockInitialState() },
+    );
+
+    // Select a new account
+    const newAccount = getByText('Account 2');
+    fireEvent.press(newAccount);
+
+    // Press update button
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
+    fireEvent.press(updateButton);
+
+    expect(mockAddPermittedAccounts).toHaveBeenCalledWith('test', [
+      'eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7'
+    ]);
+  });
+
+  it('handles update permissions when accounts are added from edit view', async () => {
     const { getByText, getByTestId } = renderWithProvider(
       <AccountPermissions
         route={{
@@ -269,7 +304,65 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
+    );
+
+    // Select a new account
+    const newAccount = getByText('Account 2');
+    fireEvent.press(newAccount);
+
+    // Press update button
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
+    fireEvent.press(updateButton);
+
+    expect(mockAddPermittedAccounts).toHaveBeenCalledWith('test', [
+      'eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7'
+    ]);
+    expect(mockRemovePermittedAccounts).not.toHaveBeenCalled();
+  });
+
+  it('handles update permissions when accounts are removed from edit view', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <AccountPermissions
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            initialScreen: AccountPermissionsScreens.EditAccountsPermissions,
+          },
+        }}
+      />,
+      { state: mockInitialState(['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272', '0xd018538C87232FF95acbCe4870629b75640a78E7'])},
+    );
+
+    // Unselect exsting permitted account
+    const existingAccount = getByText('Account 1');
+    fireEvent.press(existingAccount);
+
+    // Press update button
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
+    fireEvent.press(updateButton);
+
+    expect(mockAddPermittedAccounts).not.toHaveBeenCalled();
+    expect(mockRemovePermittedAccounts).toHaveBeenCalledWith('test', [
+      '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'
+    ]);
+  });
+
+  it('handles update permissions when accounts are added and removed from edit view', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <AccountPermissions
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            initialScreen: AccountPermissionsScreens.EditAccountsPermissions,
+          },
+        }}
+      />,
+      { state: mockInitialState() },
     );
 
     // Unselect exsting permitted account
@@ -304,7 +397,7 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
     );
 
     // Unselect existing permitted account
