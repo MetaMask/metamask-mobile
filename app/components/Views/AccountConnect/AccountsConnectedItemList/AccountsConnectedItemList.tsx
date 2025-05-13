@@ -72,7 +72,7 @@ const AccountsConnectedItemList = ({
       return (
         <View
           style={styles.balancesContainer}
-          testID={`temp-test-id-${address}`}
+          testID={`account-connected-item-${address}`}
         >
           <SensitiveText
             length={SensitiveTextLength.Long}

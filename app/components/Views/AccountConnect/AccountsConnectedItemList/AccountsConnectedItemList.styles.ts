@@ -31,6 +31,7 @@ const styleSheet = (params: {
     accountListItem: {
       borderWidth: 0,
       height: ITEM_HEIGHT,
+      justifyContent: 'center',
     },
     accountsConnectedContainer: {
       marginTop: 8,
