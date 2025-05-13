@@ -85,6 +85,27 @@ const AccountNetworkRow = ({
     prevHasPendingRequests.current = hasPendingRequests;
   }, [addressSupportSmartAccount, hasPendingRequests, prevHasPendingRequests]);
 
+  const onSwitch = useCallback(async () => {
+    navigation.navigate(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
+    if (isSupported) {
+      await downgradeAccount(address);
+    } else if (upgradeContractAddress) {
+      await upgradeAccount(address, upgradeContractAddress);
+    }
+  }, [
+    address,
+    downgradeAccount,
+    isSupported,
+    navigation,
+    upgradeAccount,
+    upgradeContractAddress,
+  ]);
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.left_section}>
