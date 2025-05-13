@@ -1327,10 +1327,10 @@ workflows:
             - destination: $KEYSTORE_PATH
           run_if: '{{and (not (enveq "IS_DEV_BUILD" "true")) ((enveq "METAMASK_BUILD_TYPE" "main"))}}'
       - file-downloader@1:
-          inputs:
-            - source: $BITRISEIO_ANDROID_KEYSTORE_URL
-            - destination: $KEYSTORE_PATH
-          run_if: '{{(enveq "METAMASK_BUILD_TYPE" "flask")}}'
+           inputs:
+             - source: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
+             - destination: android/keystores/flaskRelease.keystore
+          run_if: '{{and (not (enveq "IS_DEV_BUILD" "true")) ((enveq "METAMASK_BUILD_TYPE" "flask"))}}'
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
