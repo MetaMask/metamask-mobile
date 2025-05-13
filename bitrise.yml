@@ -664,6 +664,14 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/download-android-qa-app.sh
                 # APK_PATH is already set by the download script using envman
+  test-foundry-install:
+    steps:
+      - script@1:
+          title: installing foundry
+          inputs:
+            - content: |
+                #!/usr/bin/env bash
+                ./scripts/foundry-install.sh
   build_flask_e2e_android:
     meta:
       bitrise.io:
@@ -2344,3 +2352,5 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'v*.*.*'
     pipeline: create_qa_builds_pipeline
+  - push_branch: MMQA-547-Flip-switch-to-make-all-tests-use-anvil-by-default
+    workflow: test-foundry-install
