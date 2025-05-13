@@ -111,6 +111,7 @@ export class OAuthService {
       return {
         type: OAuthLoginResultType.SUCCESS,
         existingUser: !result.isNewUser,
+        accountName,
       };
     } catch (error) {
       Logger.log(error as Error, {
