@@ -5,7 +5,7 @@ import { GasFeeModal } from './gas-fee-modal';
 import { EstimatesModal } from './modals/estimates-modal';
 import { AdvancedEIP1559Modal } from './modals/advanced-eip1559-modal';
 import { AdvancedGasPriceModal } from './modals/advanced-gas-price-modal';
-import { MODALS } from './constants';
+import { GasModalType } from './constants';
 
 jest.mock('./modals/advanced-gas-price-modal', () => ({
   AdvancedGasPriceModal: jest.fn(() => null),
@@ -42,7 +42,7 @@ describe('GasFeeModal', () => {
 
   it('renders EstimatesModal initially', () => {
     (React.useState as jest.Mock).mockReturnValue([
-      MODALS.ESTIMATES,
+      GasModalType.ESTIMATES,
       mockSetState,
     ]);
 
@@ -60,7 +60,7 @@ describe('GasFeeModal', () => {
 
   it('renders AdvancedEIP1559Modal when activeModal is ADVANCED_EIP1559', () => {
     (React.useState as jest.Mock).mockReturnValue([
-      MODALS.ADVANCED_EIP1559,
+      GasModalType.ADVANCED_EIP1559,
       mockSetState,
     ]);
 
@@ -78,7 +78,7 @@ describe('GasFeeModal', () => {
 
   it('renders AdvancedGasPriceModal when activeModal is ADVANCED_GAS_PRICE', () => {
     (React.useState as jest.Mock).mockReturnValue([
-      MODALS.ADVANCED_GAS_PRICE,
+      GasModalType.ADVANCED_GAS_PRICE,
       mockSetState,
     ]);
 
@@ -96,7 +96,7 @@ describe('GasFeeModal', () => {
 
   it('closes modals when handleCloseModals is called', () => {
     (React.useState as jest.Mock).mockReturnValue([
-      MODALS.ESTIMATES,
+      GasModalType.ESTIMATES,
       mockSetState,
     ]);
 
