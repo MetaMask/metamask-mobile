@@ -14,7 +14,7 @@ exports[`ButtonPrimary render matches latest snapshot 1`] = `
       "alignItems": "center",
       "alignSelf": "flex-start",
       "backgroundColor": "#4459ff",
-      "borderRadius": 20,
+      "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
