@@ -5,7 +5,7 @@ interface AnimatedPulseProps extends ViewProps {
   children: React.ReactNode;
   isPulsing?: boolean;
   minCycles?: number;
-  preventPulse: boolean;
+  preventPulse?: boolean;
 }
 
 const DURATION = {
