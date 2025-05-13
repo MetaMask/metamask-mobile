@@ -1,5 +1,11 @@
 import PropTypes from 'prop-types';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
@@ -28,11 +34,22 @@ import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { appendURLParams, isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
-import { THUMB_WIDTH, THUMB_HEIGHT, IDLE_TIME_CALC_INTERVAL, IDLE_TIME_MAX } from './constants';
+import {
+  THUMB_WIDTH,
+  THUMB_HEIGHT,
+  IDLE_TIME_CALC_INTERVAL,
+  IDLE_TIME_MAX,
+} from './constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { isSolanaAccount } from '../../../core/Multichain/utils';
+import { useFocusEffect } from '@react-navigation/native';
+///: END:ONLY_INCLUDE_IF
 
 const MAX_BROWSER_TABS = 5;
 
@@ -71,11 +88,16 @@ export const Browser = (props) => {
     (state) => state.security.dataCollectionForMarketing,
   );
 
-  const homePageUrl = useCallback(() =>
-    appendURLParams(AppConstants.HOMEPAGE_URL, {
-      metricsEnabled: isEnabled(),
-      marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-    }).href,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const currentSelectedAccount = useSelector(selectSelectedInternalAccount);
+  ///: END:ONLY_INCLUDE_IF
+
+  const homePageUrl = useCallback(
+    () =>
+      appendURLParams(AppConstants.HOMEPAGE_URL, {
+        metricsEnabled: isEnabled(),
+        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+      }).href,
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
@@ -91,9 +113,39 @@ export const Browser = (props) => {
     }
   }, [tabs, navigation, createNewTab, homePageUrl]);
 
-  const updateTabInfo = useCallback((tabID, info) => {
-    updateTab(tabID, info);
-  }, [updateTab]);
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  // TODO remove after we release Solana dapp connectivity
+  useFocusEffect(
+    useCallback(() => {
+      if (isSolanaAccount(currentSelectedAccount)) {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Network,
+          networkImageSource: require('../../../images/solana-logo.png'),
+          labelOptions: [
+            {
+              label: `${strings(
+                'browser.toast.solana_dapp_connection_coming_soon.title',
+              )} \n`,
+              isBold: true,
+            },
+            {
+              label: `${strings(
+                'browser.toast.solana_dapp_connection_coming_soon.message',
+              )}`,
+            },
+          ],
+        });
+      }
+    }, [toastRef, currentSelectedAccount]),
+  );
+  ///: END:ONLY_INCLUDE_IF
+
+  const updateTabInfo = useCallback(
+    (tabID, info) => {
+      updateTab(tabID, info);
+    },
+    [updateTab],
+  );
 
   const hideTabsAndUpdateUrl = (url) => {
     navigation.setParams({
@@ -127,7 +179,8 @@ export const Browser = (props) => {
           // if it isn't the active tab
           if (tab.id !== activeTabId) {
             // add idle time for each non-active tab
-            newIdleTimes[tab.id] = (newIdleTimes[tab.id] || 0) + IDLE_TIME_CALC_INTERVAL;
+            newIdleTimes[tab.id] =
+              (newIdleTimes[tab.id] || 0) + IDLE_TIME_CALC_INTERVAL;
             // if the tab has surpassed the maximum
             if (newIdleTimes[tab.id] > IDLE_TIME_MAX) {
               // then "archive" it
@@ -259,27 +312,28 @@ export const Browser = (props) => {
     ],
   );
 
-  const takeScreenshot = useCallback((url, tabID) =>
-    new Promise((resolve, reject) => {
-      captureScreen({
-        format: 'jpg',
-        quality: 0.2,
-        THUMB_WIDTH,
-        THUMB_HEIGHT,
-      }).then(
-        (uri) => {
-          updateTab(tabID, {
-            url,
-            image: uri,
-          });
-          resolve(true);
-        },
-        (error) => {
-          Logger.error(error, `Error saving tab ${url}`);
-          reject(error);
-        },
-      );
-    }),
+  const takeScreenshot = useCallback(
+    (url, tabID) =>
+      new Promise((resolve, reject) => {
+        captureScreen({
+          format: 'jpg',
+          quality: 0.2,
+          THUMB_WIDTH,
+          THUMB_HEIGHT,
+        }).then(
+          (uri) => {
+            updateTab(tabID, {
+              url,
+              image: uri,
+            });
+            resolve(true);
+          },
+          (error) => {
+            Logger.error(error, `Error saving tab ${url}`);
+            reject(error);
+          },
+        );
+      }),
     [updateTab],
   );
 
@@ -364,19 +418,32 @@ export const Browser = (props) => {
     return null;
   };
 
-  const renderBrowserTabWindows = useCallback(() => tabs.filter((tab) => !tab.isArchived).map((tab) => (
-    <BrowserTab
-      id={tab.id}
-      key={`tab_${tab.id}`}
-      initialUrl={tab.url}
-      linkType={tab.linkType}
-      updateTabInfo={updateTabInfo}
-      showTabs={showTabs}
-      newTab={newTab}
-      isInTabsView={route.params?.showTabs}
-      homePageUrl={homePageUrl()}
-    />
-  )), [tabs, route.params?.showTabs, newTab, homePageUrl, updateTabInfo, showTabs]);
+  const renderBrowserTabWindows = useCallback(
+    () =>
+      tabs
+        .filter((tab) => !tab.isArchived)
+        .map((tab) => (
+          <BrowserTab
+            id={tab.id}
+            key={`tab_${tab.id}`}
+            initialUrl={tab.url}
+            linkType={tab.linkType}
+            updateTabInfo={updateTabInfo}
+            showTabs={showTabs}
+            newTab={newTab}
+            isInTabsView={route.params?.showTabs}
+            homePageUrl={homePageUrl()}
+          />
+        )),
+    [
+      tabs,
+      route.params?.showTabs,
+      newTab,
+      homePageUrl,
+      updateTabInfo,
+      showTabs,
+    ],
+  );
 
   return (
     <View

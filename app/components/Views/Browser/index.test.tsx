@@ -15,6 +15,15 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { act } from '@testing-library/react';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+
+jest.mock('../../hooks/useAccounts', () => ({
+  useAccounts: jest.fn().mockReturnValue({
+    evmAccounts: [],
+    accounts: [],
+    ensByAccountAddress: {},
+  }),
+}));
 
 const mockTabs = [
   { id: 1, url: 'about:blank', image: '', isArchived: false },
@@ -29,6 +38,7 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       BrowserController: { tabs: mockTabs },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
   security: {},
@@ -43,20 +53,25 @@ const mockInitialState = {
   browser: {
     tabs: mockTabs,
     activeTab: 1,
-  }
+  },
 };
 
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    PhishingController: {
-      maybeUpdateState: jest.fn(),
-      test: jest.fn((url: string) => {
-        if (url === 'phishing.com') return { result: true };
-        return { result: false };
-      }),
+jest.mock('../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    context: {
+      PhishingController: {
+        maybeUpdateState: jest.fn(),
+        test: jest.fn((url: string) => {
+          if (url === 'phishing.com') return { result: true };
+          return { result: false };
+        }),
+      },
+      AccountsController: mockAccountsControllerState,
     },
-  },
-}));
+  };
+});
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
@@ -115,7 +130,8 @@ describe('Browser', () => {
             </Stack.Navigator>
           </NavigationContainer>
         </ThemeContext.Provider>
-      </Provider>, { state: { ...mockInitialState } },
+      </Provider>,
+      { state: { ...mockInitialState } },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -224,7 +240,9 @@ describe('Browser', () => {
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
                 <Browser
-                  route={{ params: { newTabUrl: 'about:blank', timestamp: '987' } }}
+                  route={{
+                    params: { newTabUrl: 'about:blank', timestamp: '987' },
+                  }}
                   tabs={mockTabs}
                   activeTab={1}
                   navigation={mockNavigation}
@@ -238,15 +256,16 @@ describe('Browser', () => {
             </Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>
-      </Provider>
+      </Provider>,
     );
     // Check if myFunction was called
-    expect(navigationSpy).toHaveBeenCalledWith(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+    expect(navigationSpy).toHaveBeenCalledWith(
+      Routes.MODAL.MAX_BROWSER_TABS_MODAL,
+    );
 
     // Clean up the spy
     navigationSpy.mockRestore();
   });
-
 
   it('should mark a tab as archived if it has been idle for too long', async () => {
     const mockTabsForIdling = [
@@ -278,7 +297,7 @@ describe('Browser', () => {
             </Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>
-      </Provider>
+      </Provider>,
     );
 
     // Wrap the timer advancement in act

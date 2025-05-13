@@ -139,6 +139,7 @@ exports[`AccountPermissions renders correctly 1`] = `
         >
           <SvgMock
             color="#121314"
+            fill="currentColor"
             height={20}
             name="Global"
             style={
@@ -625,6 +626,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                 >
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={16}
                     name="MoreVertical"
                     style={
@@ -662,7 +664,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
@@ -702,7 +704,7 @@ exports[`AccountPermissions renders correctly 1`] = `
             "alignSelf": "stretch",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 48,
