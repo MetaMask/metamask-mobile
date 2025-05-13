@@ -6,9 +6,12 @@ import { merge, cloneDeep } from 'lodash';
 import { isHardwareAccount } from '../../../../util/address';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
+  downgradeAccountConfirmation,
+  getAppStateForConfirmation,
   personalSignatureConfirmationState,
   stakingDepositConfirmationState,
   transferConfirmationState,
+  upgradeAccountConfirmation,
 } from '../../../../util/test/confirm-data-helpers';
 import { useConfirmationRedesignEnabled } from './useConfirmationRedesignEnabled';
 import { selectConfirmationRedesignFlags } from '../../../../selectors/featureFlagController/confirmations';
@@ -251,6 +254,30 @@ describe('useConfirmationRedesignEnabled', () => {
         );
 
         expect(result.current.isRedesignedEnabled).toBe(false);
+      });
+    });
+
+    describe('7702 - upgrade / downgrade confirmations', () => {
+      it('returns true for smart account upgrade confirmation', async () => {
+        const { result } = renderHookWithProvider(
+          useConfirmationRedesignEnabled,
+          {
+            state: getAppStateForConfirmation(upgradeAccountConfirmation),
+          },
+        );
+
+        expect(result.current.isRedesignedEnabled).toBe(true);
+      });
+
+      it('returns true for smart account downgrade confirmation', async () => {
+        const { result } = renderHookWithProvider(
+          useConfirmationRedesignEnabled,
+          {
+            state: getAppStateForConfirmation(downgradeAccountConfirmation),
+          },
+        );
+
+        expect(result.current.isRedesignedEnabled).toBe(true);
       });
     });
   });

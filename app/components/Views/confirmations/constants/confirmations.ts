@@ -16,6 +16,8 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.simpleSend,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
+  TransactionType.batch,
+  TransactionType.revokeDelegation,
 ];
 
 export const REDESIGNED_TRANSFER_TYPES = [
@@ -23,7 +25,6 @@ export const REDESIGNED_TRANSFER_TYPES = [
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
 ];
-
 
 // Confirmation UI types
 export const FLAT_TRANSACTION_CONFIRMATIONS = [

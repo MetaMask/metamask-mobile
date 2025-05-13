@@ -1,26 +1,23 @@
 import React from 'react';
-import {
-  StyleSheet,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
-import { Footer } from '../footer';
-import Info from '../info-root';
+import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
+import { AlertsContextProvider } from '../../context/alert-system-context';
 import { LedgerContextProvider } from '../../context/ledger-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
-import Title from '../title';
-import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../../hooks/useConfirmationRedesignEnabled';
 import { useFlatConfirmation } from '../../hooks/ui/useFlatConfirmation';
-import styleSheet from './confirm-component.styles';
-import { AlertsContextProvider } from '../../context/alert-system-context';
-import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import GeneralAlertBanner from '../general-alert-banner';
+import Info from '../info-root';
+import Title from '../title';
+import { Footer } from '../footer';
+import styleSheet from './confirm-component.styles';
 
 const ConfirmWrapped = ({
   styles,
