@@ -665,6 +665,8 @@ workflows:
                 ./scripts/download-android-qa-app.sh
                 # APK_PATH is already set by the download script using envman
   test-foundry-install:
+    before_run:
+      - code_setup
     steps:
       - script@1:
           title: installing foundry
