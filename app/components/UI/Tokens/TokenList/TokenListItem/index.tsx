@@ -436,11 +436,13 @@ export const TokenListItem = React.memo(
               {asset.name || asset.symbol}
             </Text>
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
+          </View>
+          <View style={styles.percentageChange}>
+            {!isTestNet(chainId) && showPercentageChange ? (
+              <PercentageChange value={getPricePercentChange1d()} />
+            ) : null}
             {renderEarnCta()}
           </View>
-          {!isTestNet(chainId) && showPercentageChange ? (
-            <PercentageChange value={getPricePercentChange1d()} />
-          ) : null}
         </View>
         <ScamWarningIcon
           asset={asset}
