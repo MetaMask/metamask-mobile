@@ -494,7 +494,8 @@
     "import": "Import",
     "sort_by": "Sort by",
     "filter_by": "Filter by",
-    "current_network": "Current Network",
+    "current_network": "Current network",
+    "popular_networks": "Popular networks",
     "all_networks": "All Networks",
     "declining_balance": "Declining balance ({{currency}} high-low)",
     "alphabetically": "Alphabetically (A-Z)",
@@ -1738,7 +1739,13 @@
       "generic": "This website has been blocked from automatically opening an external application"
     },
     "ipfs_gateway_off_title": "IPFS gateway is off",
-    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
+    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings.",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Solana dapp connection coming soon",
+        "message": "You can connect to Solana dapps in the extension or trade Solana tokens in-app."
+      }
+    }
   },
   "backup_alert": {
     "title": "Protect your wallet",
@@ -1838,6 +1845,8 @@
     "sign_description_2": "tap on Get Signature",
     "sign_get_signature": "Get Signature",
     "transaction_id": "Transaction ID",
+    "network": "Network",
+    "request_from": "Request from",
     "network_fee": "Network Fee",
     "network_fee_tooltip": "Amount paid to process the transaction on network."
   },
