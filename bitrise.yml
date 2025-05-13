@@ -327,6 +327,13 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "Hi testing"
+                # ./scripts/foundry-install.sh
+          title: install foundry
   prep_environment:
     steps:
       - restore-cache@2:
