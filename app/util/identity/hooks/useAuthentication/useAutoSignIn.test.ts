@@ -34,7 +34,7 @@ const arrangeMockState = (
         isSignedIn: stateOverrides.isSignedIn,
       },
       UserStorageController: {
-        isProfileSyncingEnabled: stateOverrides.isBackupAndSyncEnabled,
+        isBackupAndSyncEnabled: stateOverrides.isBackupAndSyncEnabled,
       },
       NotificationServicesController: {
         isNotificationServicesEnabled:

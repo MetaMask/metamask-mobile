@@ -30,7 +30,7 @@ const initialState = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       UserStorageController: {
-        isProfileSyncingEnabled: false,
+        isBackupAndSyncEnabled: false,
       },
     },
   },
