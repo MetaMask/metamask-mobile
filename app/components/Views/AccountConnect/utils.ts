@@ -126,7 +126,7 @@ export function getCaip25PermissionsResponse(
 export function sortSelectedInternalAccounts(internalAccounts: InternalAccountWithCaipAccountId[]) {
   // This logic comes from the `AccountsController`:
   // TODO: Expose a free function from this controller and use it here
-  return internalAccounts.sort((accountA, accountB) =>
+  return [...internalAccounts].sort((accountA, accountB) =>
     // Sort by `.lastSelected` in descending order
      (
       (accountB.metadata.lastSelected ?? 0) -

@@ -16,7 +16,7 @@ import {
   selectProviderConfig,
   ProviderConfig,
   selectEvmChainId,
-  selectNetworkConfigurationsByCaipChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../../selectors/networkController';
 import {
   IconColor,
@@ -66,7 +66,7 @@ const NetworkPermissionsConnected = ({
   const evmCaipChainId = `eip155:${parseInt(evmChainId, 16)}`;
 
   const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
+    selectEvmNetworkConfigurationsByChainId,
   );
 
   // Get permitted chain IDs
@@ -94,9 +94,9 @@ const NetworkPermissionsConnected = ({
       name: network.name,
       isSelected: false,
       imageSource: getNetworkImageSource({
-        chainId: network.caipChainId,
+        chainId: network.chainId,
       }),
-      caipChainId: network.caipChainId
+      caipChainId: `eip155:${parseInt(network.chainId, 16)}` as const
     }));
 
   return (
@@ -137,6 +137,9 @@ const NetworkPermissionsConnected = ({
             }
 
             const { reference } =  parseCaipChainId(onSelectChainId);
+
+            // This helper needs to work with caipChainIds so that this component
+            // can be updated to work with non-evm networks
             const theNetworkName = handleNetworkSwitch(reference);
 
             if (theNetworkName) {
