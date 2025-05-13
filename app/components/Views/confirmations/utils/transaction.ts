@@ -5,6 +5,15 @@ import {
   abiERC1155,
   abiFiatTokenV2,
 } from '@metamask/metamask-eth-abis';
+import {
+  TransactionMeta,
+  TransactionParams,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+
+import Engine from '../../../../core/Engine';
+import ppomUtil from '../../../../lib/ppom/ppom-util';
 
 const erc20Interface = new Interface(abiERC20);
 const erc721Interface = new Interface(abiERC721);
@@ -41,4 +50,31 @@ export function parseStandardTokenTransactionData(data?: string) {
   }
 
   return undefined;
+}
+
+export async function addTransaction(
+  txParams: TransactionParams,
+  options: {
+    networkClientId: string;
+    type?: TransactionType;
+  },
+): Promise<TransactionMeta> {
+  const { transactionMeta } =
+    await Engine.context.TransactionController.addTransaction(txParams, {
+      ...options,
+      origin: ORIGIN_METAMASK,
+    });
+
+  const id = transactionMeta.id;
+  const reqObject = {
+    id,
+    jsonrpc: '2.0',
+    method: 'eth_sendTransaction',
+    origin: ORIGIN_METAMASK,
+    params: [txParams],
+  };
+
+  ppomUtil.validateRequest(reqObject, id);
+
+  return transactionMeta;
 }
