@@ -12,7 +12,7 @@ const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const UntypedEngine = Engine as any;
+const Engine = ImportedEngine as any;
 
 /**
  * Checks that all accounts referenced have a matching InternalAccount. Sends
@@ -214,35 +214,6 @@ export const getCaip25Caveat = (origin: string) => {
     }
   }
   return caip25Caveat;
-};
-
-/**
-  * Gets the caveat of the specified type, if any, for the permission of
-  * the subject corresponding to the given origin.
-  *
-  * @param origin - The origin of the subject.
-  * @param target - The target name of the permission.
-  * @param caveatType - The type of the caveat to get.
-  * @returns The caveat, or `undefined` if no such caveat exists.
-  */
-
-export const getCaveat = (
-  origin: string,
-  target: string,
-  caveatType: string
-) => {
-  const { PermissionController } = Engine.context;
-  try {
-    return PermissionController.getCaveat(origin, target, caveatType);
-  } catch (error) {
-    if (error instanceof PermissionDoesNotExistError) {
-      // suppress expected error in case that the origin
-      // does not have the target permission yet
-    } else {
-      throw error;
-    }
-  }
-  return undefined;
 };
 
 export const addPermittedAccounts = (
