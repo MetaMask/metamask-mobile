@@ -11,6 +11,7 @@ import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { KeyringControllerGetKeyringsByTypeAction } from '@metamask/keyring-controller';
 import { store } from '../../../../store';
+import { MetaMetrics } from '../../../Analytics';
 
 jest.mock('@metamask/snaps-controllers');
 
@@ -68,6 +69,7 @@ describe('SnapControllerInit', () => {
       getMnemonicSeed: expect.any(Function),
       maxIdleTime: expect.any(Number),
       preinstalledSnaps: expect.any(Array),
+      trackEvent: expect.any(Function),
     });
   });
 
@@ -136,6 +138,35 @@ describe('SnapControllerInit', () => {
       expect(getFeatureFlags()).toEqual({
         disableSnaps: false,
       });
+    });
+  });
+
+  describe('trackEvent', () => {
+    it('calls the MetaMetrics `trackEvent` function', () => {
+      snapControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(SnapController);
+      const trackEvent = controllerMock.mock.calls[0][0].trackEvent;
+
+      const instance = MetaMetrics.getInstance();
+      const spy = jest.spyOn(instance, 'trackEvent');
+
+      trackEvent({
+        event: 'test-event',
+        category: 'test-category',
+        properties: {
+          testProperty: 'test-value',
+        },
+      });
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'test-event',
+          properties: {
+            testProperty: 'test-value',
+          },
+        }),
+      );
     });
   });
 });
