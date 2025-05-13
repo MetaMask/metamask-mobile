@@ -10,9 +10,12 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
+import { diffMap, getChangedAuthorizations, getRemovedAuthorizations } from './differs';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../../core/RPCMethods/RPCMethodMiddleware';
 ///: END:ONLY_INCLUDE_IF
+
+export { diffMap, getChangedAuthorizations, getRemovedAuthorizations };
 
 const approvalLog = createProjectLogger('approval-utils');
 

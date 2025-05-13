@@ -206,7 +206,7 @@ export class BackgroundBridge extends EventEmitter {
       this.onUnlock.bind(this),
     );
 
-    if (AppConstants.MULTICHAIN_API) {
+    if (AppConstants.MULTICHAIN_API && !this.isMMSDK && !this.isWalletConnect) {
       this.multichainSubscriptionManager = new MultichainSubscriptionManager({
         getNetworkClientById:
           Engine.context.NetworkController.getNetworkClientById.bind(
