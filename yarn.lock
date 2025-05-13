@@ -5681,14 +5681,12 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@npm:@metamask-previews/seedless-onboarding-controller@0.0.0-preview-8a04e037":
-  version "0.0.0-preview-8a04e037"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/seedless-onboarding-controller/-/seedless-onboarding-controller-0.0.0-preview-8a04e037.tgz#0fedafc06c47f52e4ac6f87ec9b32ab3f4626f8a"
-  integrity sha512-y4h/b0scOZCg2N93K21hDuBH4zddNG2j09B7tfb9jFb17dBnbKdOSs7wIkbOzSdreD0q48WANx4XG/ZKZq92Pw==
+"@metamask/seedless-onboarding-controller@https://github.com/Web3Auth/core/raw/da85dbdc66c7fe0c7588c2fa2597e714896530ca/packages/seedless-onboarding-controller/seedless-onboarding-controller.tgz":
+  version "0.0.0"
+  resolved "https://github.com/Web3Auth/core/raw/da85dbdc66c7fe0c7588c2fa2597e714896530ca/packages/seedless-onboarding-controller/seedless-onboarding-controller.tgz#5ddc9cde11a2ed416adad874705f9eff6d5550c4"
   dependencies:
     "@metamask/auth-network-utils" "^0.1.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/browser-passworder" "^4.3.0"
     "@metamask/toprf-secure-backup" "^0.1.0"
     "@metamask/utils" "^11.2.0"
     async-mutex "^0.5.0"
