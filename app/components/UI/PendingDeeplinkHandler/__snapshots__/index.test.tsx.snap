@@ -1,3 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`PendingDeeplinkHandler should render an empty View 1`] = `<View />`;
