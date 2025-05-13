@@ -5,11 +5,13 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import BrowserTab from './BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
+import UrlAutocomplete, { AutocompleteSearchResult, UrlAutocompleteCategory } from '../../UI/UrlAutocomplete';
 import { screen, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { omit } from 'lodash';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockNavigation = {
   goBack: jest.fn(),
@@ -17,6 +19,7 @@ const mockNavigation = {
   canGoBack: true,
   canGoForward: true,
   addListener: jest.fn(),
+  navigate: jest.fn(),
 };
 
 jest.mock('../../UI/BrowserBottomBar', () => ({
@@ -149,5 +152,38 @@ describe('BrowserTab', () => {
     );
     expect(screen.getByText('Token Discovery placeholder')).toBeOnTheScreen();
     jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(false);
+  });
+
+  it.only('should navigate to the asset loader when selecting a token from the autocomplete', () => {
+    let onSelectProp: (item: AutocompleteSearchResult) => void = jest.fn();
+    jest.mocked(UrlAutocomplete).mockImplementation(({ onSelect }) => {
+      onSelectProp = onSelect;
+      return 'UrlAutocomplete';
+    });
+    renderWithProvider(
+      <NavigationContainer independent>
+        <Stack.Navigator>
+          <Stack.Screen name="Browser">
+            {() => <BrowserTab {...mockProps} />}
+          </Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>,
+      { state: mockInitialState }
+    );
+    onSelectProp?.({
+      category: UrlAutocompleteCategory.Tokens,
+      address: '0x123',
+      chainId: '0x1',
+      name: 'Test Token',
+      symbol: 'TEST',
+      decimals: 18,
+      price: 100,
+      percentChange: 100,
+      isFromSearch: true,
+    });
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.BROWSER.ASSET_LOADER, {
+      chainId: '0x1',
+      address: '0x123',
+    });
   });
 });
