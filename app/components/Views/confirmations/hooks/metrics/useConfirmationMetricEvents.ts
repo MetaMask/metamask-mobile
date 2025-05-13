@@ -67,6 +67,28 @@ export function useConfirmationMetricEvents() {
       trackEvent(event);
     };
 
+    const trackBlockaidAlertLinkClickedEvent = () => {
+      const signatureType = signatureRequest?.type;
+      const signatureFromAddress = signatureRequest?.messageParams?.from;
+      const transactionType = transactionMeta?.type;
+      const transactionFromAddress = transactionMeta?.txParams?.from;
+
+      const type = transactionType ?? signatureType;
+      const fromAddress = transactionFromAddress ?? signatureFromAddress;
+
+      const event = generateEvent({
+        createEventBuilder,
+        metametricsEvent: CONFIRMATION_EVENTS.BLOCKAID_ALERT_LINK_CLICKED,
+        properties: {
+          external_link_clicked: 'security_alert_support_link',
+          from_address: fromAddress,
+          location,
+          type,
+        },
+      });
+      trackEvent(event);
+    };
+
     const setConfirmationMetric = (metricParams: ConfirmationMetrics) => {
       if (!transactionMeta && !signatureRequest) {
         return;
@@ -81,6 +103,7 @@ export function useConfirmationMetricEvents() {
 
     return {
       trackAdvancedDetailsToggledEvent,
+      trackBlockaidAlertLinkClickedEvent,
       trackTooltipClickedEvent,
       trackPageViewedEvent,
       setConfirmationMetric,

@@ -102,7 +102,6 @@ import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingG
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
-import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
@@ -135,7 +134,9 @@ import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPh
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
+import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccount from '../../Views/AddNewAccount';
+import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -397,8 +398,8 @@ const RootModalFlow = (
       component={BasicFunctionalityModal}
     />
     <Stack.Screen
-      name={Routes.SHEET.PROFILE_SYNCING}
-      component={ProfileSyncingModal}
+      name={Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC}
+      component={ConfirmTurnOnBackupAndSyncModal}
     />
     <Stack.Screen
       name={Routes.SHEET.RESET_NOTIFICATIONS}
@@ -569,6 +570,21 @@ const ModalConfirmationRequest = () => (
   </Stack.Navigator>
 );
 
+const ModalSwitchAccountType = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+    mode={'modal'}
+  >
+    <Stack.Screen
+      name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
+      component={SwitchAccountTypeModal}
+    />
+  </Stack.Navigator>
+);
+
 const AppFlow = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
 
@@ -703,6 +719,12 @@ const AppFlow = () => {
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         component={ModalConfirmationRequest}
       />
+      {process.env.MM_SMART_ACCOUNT_UI_ENABLED && (
+        <Stack.Screen
+          name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
+          component={ModalSwitchAccountType}
+        />
+      )}
     </Stack.Navigator>
   );
 };

@@ -1,5 +1,5 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { Hex } from './smart-publish-hook';
+import { Hex } from '@metamask/utils';
 import TransactionTypes from '../../core/TransactionTypes';
 import {
   getIsSwapApproveTransaction,
