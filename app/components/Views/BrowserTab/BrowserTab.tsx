@@ -113,11 +113,8 @@ import UrlAutocomplete, {
   UrlAutocompleteRef,
 } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-<<<<<<< HEAD
 import { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
-=======
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
->>>>>>> origin/main
 import {
   getPhishingTestResult,
   getPhishingTestResultAsync,
