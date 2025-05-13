@@ -92,6 +92,7 @@ exports[`NotificationsList renders empty state 1`] = `
       >
         <SvgMock
           color="#121314"
+          fill="currentColor"
           height={32}
           name="Notification"
           style={

@@ -29,7 +29,8 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
-  MEGAETH_TESTNET
+  MEGAETH_TESTNET,
+  MONAD_TESTNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
@@ -117,7 +118,12 @@ describe('network-utils', () => {
     const allNetworks = getAllNetworks();
     it('should get all networks', () => {
       expect(allNetworks).toStrictEqual([
-        MAINNET,LINEA_MAINNET, SEPOLIA, LINEA_SEPOLIA, MEGAETH_TESTNET
+        MAINNET,
+        LINEA_MAINNET,
+        SEPOLIA,
+        LINEA_SEPOLIA,
+        MEGAETH_TESTNET,
+        MONAD_TESTNET,
       ]);
     });
 
@@ -763,6 +769,10 @@ describe('network-utils', () => {
         {
           chainId: ChainId['megaeth-testnet'],
           expectedImage: networksWithImages?.['MEGAETH-TESTNET'],
+        },
+        {
+          chainId: ChainId['monad-testnet'],
+          expectedImage: networksWithImages?.['MONAD-TESTNET'],
         }
       ]
     )('returns corresponding image for the testnet - $.chainId', ({
@@ -793,6 +803,11 @@ describe('network-utils', () => {
       chainId: ChainId['megaeth-testnet'],
       name: 'MegaETH Testnet',
       nickname: WHILELIST_NETWORK_NAME[ChainId['megaeth-testnet']],
+    },
+    {
+      chainId: ChainId['monad-testnet'],
+      name: 'Monad Testnet',
+      nickname: WHILELIST_NETWORK_NAME[ChainId['monad-testnet']],
     },
     ])('returns true if the chainId is %.chainId and network nickname is the same with the whilelisted name', ({
       chainId, name, nickname

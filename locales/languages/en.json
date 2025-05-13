@@ -494,7 +494,8 @@
     "import": "Import",
     "sort_by": "Sort by",
     "filter_by": "Filter by",
-    "current_network": "Current Network",
+    "current_network": "Current network",
+    "popular_networks": "Popular networks",
     "all_networks": "All Networks",
     "declining_balance": "Declining balance ({{currency}} high-low)",
     "alphabetically": "Alphabetically (A-Z)",
@@ -1738,7 +1739,13 @@
       "generic": "This website has been blocked from automatically opening an external application"
     },
     "ipfs_gateway_off_title": "IPFS gateway is off",
-    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
+    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings.",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Solana dapp connection coming soon",
+        "message": "You can connect to Solana dapps in the extension or trade Solana tokens in-app."
+      }
+    }
   },
   "backup_alert": {
     "title": "Protect your wallet",
@@ -3720,7 +3727,8 @@
     "basic_functionality": "Basic functionality",
     "manage_networks": "Choose your network",
     "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
-    "manage_networks_body2": " to learn more about how Infura handles data.",
+    "manage_networks_body2": " to learn more about how Infura handles data for EVM accounts, for Solana accounts ",
+    "manage_networks_body3": "click here.",
     "functionality_body": "MetaMask offers basic features like token details and gas settings through internet services. When you use internet services, your IP address is shared, in this case with MetaMask. This is just like when you visit any website. MetaMask uses this data temporarily and never sells your data. You can use a VPN or turn off these services, but it may affect your MetaMask experience. Read our ",
     "functionality_body2": " to learn more.",
     "sheet": {
@@ -3968,6 +3976,11 @@
     "manageWhatYouSync": {
       "title": "Manage what you sync",
       "description": "Turn on what’s synced between your devices."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Select an asset"
     }
   }
 }
