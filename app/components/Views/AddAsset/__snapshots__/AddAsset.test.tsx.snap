@@ -229,6 +229,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                   >
                     <SvgMock
                       color="#121314"
+                      fill="currentColor"
                       height={16}
                       name="ArrowDown"
                       style={
