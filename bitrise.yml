@@ -665,6 +665,10 @@ workflows:
                 ./scripts/download-android-qa-app.sh
                 # APK_PATH is already set by the download script using envman
   test-foundry-install:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
     before_run:
       - code_setup
     steps:
