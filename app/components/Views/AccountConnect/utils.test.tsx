@@ -7,7 +7,9 @@ import {
 import {
   getRequestedCaip25CaveatValue,
   getCaip25PermissionsResponse,
+  getDefaultAccounts,
 } from './utils';
+import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
 
 describe('getRequestedCaip25CaveatValue', () => {
   const defaultCaveatValue = {
@@ -338,5 +340,70 @@ describe('getCaip25PermissionsResponse', () => {
         ],
       },
     });
+  });
+});
+
+describe('getDefaultAccounts', () => {
+
+  const allAccounts: InternalAccountWithCaipAccountId[] = [
+    {
+    caipAccountId: 'eip155:0:0x123',
+    // @ts-expect-error incomplete metadata object
+    metadata: {
+      lastSelected: 1
+    }
+  },
+    {
+    caipAccountId: 'eip155:0:0x456',
+    // @ts-expect-error incomplete metadata object
+    metadata: {
+      lastSelected: 2
+    }
+  },
+  {
+    caipAccountId: 'eip155:0:0x789',
+    // @ts-expect-error incomplete metadata object
+    metadata: {
+      lastSelected: 3
+    }
+  },
+    {
+    caipAccountId: 'other:0:0xdead',
+    // @ts-expect-error incomplete metadata object
+    metadata: {
+      lastSelected: 1
+    }
+  },
+  {
+    caipAccountId: 'other:0:0xbeef',
+    // @ts-expect-error incomplete metadata object
+    metadata: {
+      lastSelected: 2
+    }
+  },
+];
+
+  it('returns all supported accounts that were requested that match the requested namespace', () => {
+    expect(getDefaultAccounts(
+      ['eip155'],
+      [allAccounts[1], allAccounts[2]],
+      allAccounts
+    )).toStrictEqual([allAccounts[1], allAccounts[2]]);
+  });
+
+  it('returns most recent account matching requested namespace if no accounts matching that namespace were requested', () => {
+    expect(getDefaultAccounts(
+      ['eip155'],
+      [],
+      allAccounts
+    )).toStrictEqual([allAccounts[2]]);
+  });
+
+  it('handles multiple requested namespaces', () => {
+    expect(getDefaultAccounts(
+      ['eip155', 'other'],
+      [],
+      allAccounts
+    )).toStrictEqual([allAccounts[2], allAccounts[4]]);
   });
 });
