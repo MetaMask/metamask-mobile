@@ -27,9 +27,10 @@ import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
+  selectChainId,
   selectNetworkConfigurations,
+  selectEvmTicker,
   selectProviderConfig,
-  selectTicker,
   selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
@@ -62,6 +63,7 @@ import {
   SEPOLIA_BLOCK_EXPLORER,
 } from '../../../../constants/urls';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { isPerDappSelectedNetworkEnabled } from '../../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -118,10 +120,15 @@ const createStyles = (colors) =>
  */
 class TransactionDetails extends PureComponent {
   static propTypes = {
+    
     /**
     /* navigation object required to push new views
     */
     navigation: PropTypes.object,
+    /**
+     * Chain ID string
+     */
+       chainId: PropTypes.string,
     /**
      * Object corresponding to a transaction, containing transaction object, networkId and transaction hash string
      */
@@ -153,17 +160,13 @@ class TransactionDetails extends PureComponent {
     swapsTransactions: PropTypes.object,
     swapsTokens: PropTypes.array,
     primaryCurrency: PropTypes.string,
-    /**
-     * Chain ID string
-     */
-    chainId: PropTypes.string,
+ 
     /**
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
   };
 
-  // temp comment
   state = {
     rpcBlockExplorer: undefined,
     renderTxActions: true,
@@ -226,7 +229,8 @@ class TransactionDetails extends PureComponent {
       swapsTokens,
       transactions,
     } = this.props;
-    const { chainId } = transactionObject;
+
+    const chainId = isPerDappSelectedNetworkEnabled() ? transactionObject.chainId : this.props.chainId;
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
     const transactionHash = transactionDetails?.hash;
     if (
@@ -362,9 +366,10 @@ class TransactionDetails extends PureComponent {
 
   render = () => {
     const {
-      transactionObject: { status, time, txParams, chainId },
+      transactionObject: { status, time, txParams, chainId: txChainId },
       shouldUseSmartTransaction,
     } = this.props;
+    const chainId = isPerDappSelectedNetworkEnabled() ? txChainId : this.props.chainId;
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
 
@@ -510,11 +515,12 @@ class TransactionDetails extends PureComponent {
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  providerConfig: selectProviderConfig(state),
+  chainId: selectChainId(state),
+  providerConfig: isPerDappSelectedNetworkEnabled() ? selectProviderConfig(state) : undefined,
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),
-  ticker: selectTickerByChainId(state, ownProps.transactionObject.chainId),
+  ticker: isPerDappSelectedNetworkEnabled() ? selectTickerByChainId(state, ownProps.transactionObject.chainId) : selectEvmTicker(state),
   tokens: selectTokensByAddress(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
