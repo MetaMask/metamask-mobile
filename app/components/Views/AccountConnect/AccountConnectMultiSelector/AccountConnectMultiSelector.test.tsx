@@ -1,5 +1,4 @@
 import React from 'react';
-import { ImageSourcePropType } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
@@ -7,14 +6,11 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 const mockNavigate = jest.fn();
-const mockOnSelectAddress = jest.fn();
-const mockOnUserAction = jest.fn();
+const mockOnSubmit = jest.fn();
 const mockOnBack = jest.fn();
-const mockOnPrimaryActionButtonPress = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -23,51 +19,33 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../../core/Engine', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
-  return {
-    context: {
-      PermissionController: {
-        revokeAllPermissions: jest.fn(),
-      },
-      AccountsController: {
-        state: {
-          internalAccounts: {
-            accounts: {
-              '0x1234': {
-                address: '0x1234',
-                name: 'Account 1',
-                type: 'simple',
-              },
-              '0x5678': {
-                address: '0x5678',
-                name: 'Account 2',
-                type: 'simple',
-              },
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      }
+    },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {
+            '0x1234': {
+              address: '0x1234',
+              name: 'Account 1',
+              type: 'simple',
+            },
+            '0x5678': {
+              address: '0x5678',
+              name: 'Account 2',
+              type: 'simple',
             },
           },
         },
       },
-      KeyringController: {
-        state: {
-          keyrings: [
-            {
-              type: KeyringTypes.hd,
-              accounts: ['0x1234', '0x5678'],
-            },
-          ],
-          keyringsMetadata: [
-            {
-              id: '01JNG71B7GTWH0J1TSJY9891S0',
-              name: '',
-            },
-          ],
-        },
-      },
     },
-  };
-});
+  },
+}));
 
 const mockAccounts = [
   {
@@ -96,17 +74,13 @@ const mockEnsByAccountAddress = {
 const defaultProps = {
   accounts: mockAccounts,
   ensByAccountAddress: mockEnsByAccountAddress,
-  selectedAddresses: ['0x1234'],
-  onSelectAddress: mockOnSelectAddress,
+  defaultSelectedAddresses: ['0x1234'],
+  onSubmit: mockOnSubmit,
   isLoading: false,
-  onUserAction: mockOnUserAction,
-  urlWithProtocol: 'https://test.com',
   hostname: 'test.com',
   onBack: mockOnBack,
   isRenderedAsBottomSheet: true,
   showDisconnectAllButton: true,
-  favicon: { uri: 'https://test.com/favicon.ico' } as ImageSourcePropType,
-  secureIcon: 'LockIcon' as IconName,
 };
 
 describe('AccountConnectMultiSelector', () => {
@@ -133,24 +107,82 @@ describe('AccountConnectMultiSelector', () => {
     ).toBeDefined();
   });
 
-  it('shows update button when accounts are selected', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} />,
+  it('disables the select all button when loading', () => {
+    const { getByTestId, getAllByTestId } = renderWithProvider(
+      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234']} isLoading />,
+    );
+
+    const selectAllbutton = getAllByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON);
+    fireEvent.press(selectAllbutton[0]);
+
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
+    fireEvent.press(updateButton);
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1234']);
+  });
+
+  it('handles the select all button when not loading', () => {
+    const { getByTestId, getAllByTestId } = renderWithProvider(
+      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234', '0x5678']} />,
+    );
+
+    const selectAllbutton = getAllByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON);
+    fireEvent.press(selectAllbutton[0]);
+    fireEvent.press(selectAllbutton[0]);
+
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
+    fireEvent.press(updateButton);
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1234', '0x5678']);
+  });
+
+  it('handles account selection correctly', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234']} />,
       { state: { engine: { backgroundState } } },
     );
 
-    expect(
-      getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON),
-    ).toBeDefined();
+    const newAccount = getByText('test2.eth');
+    fireEvent.press(newAccount);
+
+    // tests removal of an already selected account
+    const exstingAccount = getByText('test1.eth');
+    fireEvent.press(exstingAccount);
+
+    const updateButton = getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
+    fireEvent.press(updateButton);
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x5678']);
+  });
+
+  it('shows update button when accounts are selected', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234']} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    const updateButton = getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
+    expect(updateButton).toBeTruthy();
+    fireEvent.press(updateButton);
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1234']);
   });
 
   it('shows disconnect button when no accounts are selected', () => {
     const { getByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} selectedAddresses={[]} />,
+      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={[]} />,
       { state: { engine: { backgroundState } } },
     );
 
-    expect(getByTestId(ConnectedAccountsSelectorsIDs.DISCONNECT)).toBeDefined();
+    const disconnectButton = getByTestId(ConnectedAccountsSelectorsIDs.DISCONNECT);
+    expect(disconnectButton).toBeTruthy();
+    fireEvent.press(disconnectButton);
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith([]);
   });
 
   it('handles add account button press', () => {
@@ -166,36 +198,5 @@ describe('AccountConnectMultiSelector', () => {
 
     // Verify that the screen changes to AddAccountActions
     expect(mockNavigate).not.toHaveBeenCalled(); // Since this is handled internally
-  });
-
-  it('handles primary action button press when provided', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector
-        {...defaultProps}
-        onPrimaryActionButtonPress={mockOnPrimaryActionButtonPress}
-      />,
-      { state: { engine: { backgroundState } } },
-    );
-
-    const updateButton = getByTestId(
-      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
-    );
-    fireEvent.press(updateButton);
-
-    expect(mockOnPrimaryActionButtonPress).toHaveBeenCalled();
-    expect(mockOnUserAction).not.toHaveBeenCalled();
-  });
-
-  it('disables update button when no changes are made', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} />,
-      { state: { engine: { backgroundState } } },
-    );
-
-    const updateButton = getByTestId(
-      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
-    );
-
-    expect(updateButton.props.disabled).toBe(true);
   });
 });
