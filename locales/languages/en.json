@@ -981,7 +981,7 @@
     "clear_browser_cookies_desc": "Clear browser cookies",
     "clear": "CLEAR",
     "protect_cta": "Protect",
-    "protect_title": "Protect your wallet",
+    "protect_title": "Wallet Recovery",
     "video_failed": "Video Failed to Load.",
     "protect_desc": "Back up your Secret Recovery Phrase and link your wallet to an Apple or Google account. Be sure to store your Secret Recovery Phrase in a safe place that only you can access and won’t forget.",
     "protect_desc_no_backup": "This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.",
@@ -4067,15 +4067,15 @@
     "error_matches_password": "You cannot use your password as a hint"
   },
   "protect_your_wallet": {
-    "title": "Protect your wallet",
+    "title": "Wallet Recovery",
     "login_with_social": "Log in with Social Accounts",
     "setup": "Set Up",
     "secret_recovery_phrase": "Secret recovery phrase {{num}}",
     "back_up": "Back up",
     "reveal": "Reveal",
-    "social_recovery_title": "GOOGLE OR APPLE RECOVERY",
+    "social_recovery_title": "{{authConnection}} RECOVERY",
     "social_recovery_enable": "Enabled",
-    "social_login_description": "This email and your MetaMask password will help you recover your account and recovery phrases.",
+    "social_login_description": "Use your {{authConnection}} login and MetaMask password to recover your account and secret recovery phrases.",
     "srps_title": "SECRET RECOVERY PHRASES",
     "srps_description": "Your wallet is most protected when both recovery methods are set up. If one fail, the other helps you recover your wallet."
   },

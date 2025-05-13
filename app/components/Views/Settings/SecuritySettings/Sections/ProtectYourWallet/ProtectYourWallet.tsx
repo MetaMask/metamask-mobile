@@ -99,7 +99,7 @@ const ProtectYourWallet = ({
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   oauthFlow = !!authConnection;
   const onProtectYourWalletPressed = () => {
-    navigation.navigate('ProtectYourWallet');
+    navigation.navigate('WalletRecovery');
   };
 
   ///: END:ONLY_INCLUDE_IF(multi-srp)

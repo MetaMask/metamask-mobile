@@ -15,10 +15,6 @@ import {
   selectSeedlessOnboardingUserEmail,
   selectSeedlessOnboardingUserId,
 } from '../../../selectors/seedlessOnboardingController';
-import Banner, {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../component-library/components/Banners/Banner';
 import Icon, {
   IconName,
   IconSize,
@@ -130,6 +126,8 @@ const ProtectYourWallet = () => {
     root: {
       flex: 1,
       flexDirection: 'column',
+      rowGap: 24,
+      paddingVertical: 24,
     },
     socialBox: {
       padding: 16,
@@ -153,8 +151,10 @@ const ProtectYourWallet = () => {
     },
     socialContainer: {
       paddingHorizontal: 24,
-      paddingTop: 16,
-      marginBottom: -8,
+    },
+    authContainer: {
+      flexDirection: 'column',
+      rowGap: 8,
     },
     socialDetailsBox: {
       flexDirection: 'column',
@@ -179,13 +179,25 @@ const ProtectYourWallet = () => {
       columnGap: 8,
     },
     lineBreak: {
-      marginVertical: 24,
       height: 1,
       backgroundColor: colors.border.muted,
     },
     bottomContainer: {
       paddingHorizontal: 24,
-      // marginTop: -16,
+    },
+    lineBreakContainer: {
+      paddingHorizontal: 24,
+    },
+    srpContainer: {
+      flexDirection: 'column',
+      rowGap: 8,
+    },
+    srpTitle: {
+      paddingHorizontal: 24,
+    },
+    srpListContainer: {
+      paddingVertical: 0,
+      margin: 0,
     },
   });
 
@@ -213,14 +225,15 @@ const ProtectYourWallet = () => {
 
   return (
     <View style={styles.root}>
-      <View style={styles.socialContainer}>
-        {authConnection && (
-          <>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {strings('protect_your_wallet.social_recovery_title')}
+      {authConnection && (
+        <View style={styles.socialContainer}>
+          <View style={styles.authContainer}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('protect_your_wallet.social_recovery_title', {
+                authConnection: authConnection
+                  ? authConnection.toUpperCase()
+                  : 'GOOGLE OR APPLE',
+              })}
             </Text>
             {authConnection && seedlessOnboardingUserId ? (
               <SocialLinked
@@ -231,21 +244,39 @@ const ProtectYourWallet = () => {
               <SocialNotLinked />
             )}
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {strings('protect_your_wallet.social_login_description')}
+              {strings('protect_your_wallet.social_login_description', {
+                authConnection: authConnection || 'Google',
+              })}
             </Text>
+          </View>
+        </View>
+      )}
 
-            <View style={styles.lineBreak} />
-          </>
-        )}
+      {authConnection && (
+        <View style={styles.lineBreakContainer}>
+          <View style={styles.lineBreak} />
+        </View>
+      )}
 
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+      <View style={styles.srpContainer}>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.srpTitle}
+        >
           {strings('protect_your_wallet.srps_title')}
         </Text>
+        <SelectSRP
+          containerStyle={styles.srpListContainer}
+          showArrowName={strings('protect_your_wallet.reveal')}
+        />
       </View>
 
-      <SelectSRP />
-      <View style={styles.bottomContainer}>
+      <View style={styles.lineBreakContainer}>
         <View style={styles.lineBreak} />
+      </View>
+
+      <View style={styles.bottomContainer}>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {strings('protect_your_wallet.srps_description')}
         </Text>

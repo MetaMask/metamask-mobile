@@ -396,7 +396,7 @@ const SettingsFlow = () => (
       options={PasswordHint.navigationOptions}
     />
     <Stack.Screen
-      name="ProtectYourWallet"
+      name="WalletRecovery"
       component={ProtectYourWallet}
       options={ProtectYourWallet.navigationOptions}
     />
