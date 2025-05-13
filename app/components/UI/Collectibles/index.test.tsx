@@ -42,19 +42,21 @@ describe('refreshMetadata', () => {
       },
     };
 
-    refreshMetadata(mockCollectible, mockConfig);
+    refreshMetadata(mockCollectible, mockConfig, '0xdef456');
 
-    expect(mockAddNft).toHaveBeenCalledWith(
-      '0xabc123',
-      '789',
-      'specific-network-id',
-    );
+    expect(mockAddNft).toHaveBeenCalledWith('0xabc123', '789', {
+      networkClientId: 'specific-network-id',
+      userAddress: '0xdef456',
+    });
   });
 
   it('should handle missing network configuration gracefully', () => {
     refreshMetadata(mockCollectible, {});
 
-    expect(mockAddNft).toHaveBeenCalledWith('0xabc123', '789', undefined);
+    expect(mockAddNft).toHaveBeenCalledWith('0xabc123', '789', {
+      networkClientId: undefined,
+      userAddress: undefined,
+    });
   });
 
   it('should handle missing RPC endpoint gracefully', () => {
@@ -68,7 +70,10 @@ describe('refreshMetadata', () => {
 
     refreshMetadata(mockCollectible, mockConfigWithoutRpc);
 
-    expect(mockAddNft).toHaveBeenCalledWith('0xabc123', '789', undefined);
+    expect(mockAddNft).toHaveBeenCalledWith('0xabc123', '789', {
+      networkClientId: undefined,
+      userAddress: undefined,
+    });
   });
 
   it('should handle missing defaultRpcEndpointIndex gracefully', () => {
@@ -85,7 +90,10 @@ describe('refreshMetadata', () => {
 
     refreshMetadata(mockCollectible, mockConfigWithoutDefaultIndex);
 
-    expect(mockAddNft).toHaveBeenCalledWith('0xabc123', '789', undefined);
+    expect(mockAddNft).toHaveBeenCalledWith('0xabc123', '789', {
+      networkClientId: undefined,
+      userAddress: undefined,
+    });
   });
 });
 

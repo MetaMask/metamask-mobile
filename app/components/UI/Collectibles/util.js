@@ -39,7 +39,7 @@ export const removeNft = (
 
   NftController.removeAndIgnoreNft(collectible.address, collectible.tokenId, {
     networkClientId: nftNetworkClientId,
-    userAddress: selectedAddress.toLowercase(),
+    userAddress: selectedAddress.toLowerCase(),
   });
   Alert.alert(
     strings('wallet.collectible_removed_title'),
