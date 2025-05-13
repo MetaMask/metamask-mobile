@@ -1061,6 +1061,14 @@ export class BackgroundBridge extends EventEmitter {
       return end();
     });
 
+    // user-facing RPC methods
+    engine.push(
+      this.createMiddleware({
+        hostname: this.hostname,
+        getProviderState: this.getProviderState.bind(this),
+      }),
+    );
+
     return engine;
   }
 
