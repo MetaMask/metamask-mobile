@@ -34,7 +34,6 @@ class PortfolioHomePage {
   }
 
   async tapConnectMetaMask() {
-    await TestHelpers.delay(1000);
     await Gestures.tapWebElement(this.connectWalletButton);
   }
 
