@@ -73,42 +73,40 @@ const SRPListItem = ({
               onPress={() => setShowAccounts(!showAccounts)}
             />
           </View>
-
-          <Icon name={IconName.ArrowRight} style={styles.srpItemIcon} />
+          {showAccounts && (
+            <>
+              <View style={styles.horizontalLine} />
+              <View style={styles.accountsList}>
+                <FlatList
+                  testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_ACCOUNTS_LIST}-${keyring.metadata.id}`}
+                  contentContainerStyle={styles.accountsListContentContainer}
+                  data={accountsToBeShown}
+                  keyExtractor={(item) => `address-${item?.address}`}
+                  renderItem={({ item }) => {
+                    if (!item) {
+                      return null;
+                    }
+                    return (
+                      <View style={styles.accountItem}>
+                        <Jazzicon size={20} seed={parseInt(item.address, 16)} />
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Default}
+                        >
+                          {item.metadata.name}
+                        </Text>
+                      </View>
+                    );
+                  }}
+                  removeClippedSubviews={false}
+                  scrollEnabled
+                  nestedScrollEnabled
+                  alwaysBounceVertical
+                />
+              </View>
+            </>
+          )}
         </View>
-        {showAccounts && (
-          <>
-            <View style={styles.horizontalLine} />
-            <View style={styles.accountsList}>
-              <FlatList
-                testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_ACCOUNTS_LIST}-${keyring.metadata.id}`}
-                contentContainerStyle={styles.accountsListContentContainer}
-                data={accountsToBeShown}
-                keyExtractor={(item) => `address-${item?.address}`}
-                renderItem={({ item }) => {
-                  if (!item) {
-                    return null;
-                  }
-                  return (
-                    <View style={styles.accountItem}>
-                      <Jazzicon size={20} seed={parseInt(item.address, 16)} />
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Default}
-                      >
-                        {item.metadata.name}
-                      </Text>
-                    </View>
-                  );
-                }}
-                removeClippedSubviews={false}
-                scrollEnabled
-                nestedScrollEnabled
-                alwaysBounceVertical
-              />
-            </View>
-          </>
-        )}
       </View>
     </TouchableWithoutFeedback>
   );

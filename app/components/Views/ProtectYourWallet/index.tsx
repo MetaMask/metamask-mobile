@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import Text, {
   TextVariant,
@@ -181,12 +181,14 @@ const ProtectYourWallet = () => {
     lineBreak: {
       height: 1,
       backgroundColor: colors.border.muted,
-    },
-    bottomContainer: {
       paddingHorizontal: 24,
     },
     lineBreakContainer: {
       paddingHorizontal: 24,
+    },
+    bottomContainer: {
+      paddingHorizontal: 24,
+      // marginTop: -16,
     },
     srpContainer: {
       flexDirection: 'column',
@@ -224,64 +226,66 @@ const ProtectYourWallet = () => {
   }, [userEmail]);
 
   return (
-    <View style={styles.root}>
-      {authConnection && (
-        <View style={styles.socialContainer}>
-          <View style={styles.authContainer}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('protect_your_wallet.social_recovery_title', {
-                authConnection: authConnection
-                  ? authConnection.toUpperCase()
-                  : 'GOOGLE OR APPLE',
-              })}
-            </Text>
-            {authConnection && seedlessOnboardingUserId ? (
-              <SocialLinked
-                email={finalUserEmail}
-                authConnection={authConnection}
-              />
-            ) : (
-              <SocialNotLinked />
-            )}
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {strings('protect_your_wallet.social_login_description', {
-                authConnection: authConnection || 'Google',
-              })}
-            </Text>
+    <ScrollView>
+      <View style={styles.root}>
+        {authConnection && (
+          <View style={styles.socialContainer}>
+            <View style={styles.authContainer}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('protect_your_wallet.social_recovery_title', {
+                  authConnection: authConnection
+                    ? authConnection.toUpperCase()
+                    : 'GOOGLE OR APPLE',
+                })}
+              </Text>
+              {authConnection && seedlessOnboardingUserId ? (
+                <SocialLinked
+                  email={finalUserEmail}
+                  authConnection={authConnection}
+                />
+              ) : (
+                <SocialNotLinked />
+              )}
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {strings('protect_your_wallet.social_login_description', {
+                  authConnection: authConnection || 'Google',
+                })}
+              </Text>
+            </View>
           </View>
-        </View>
-      )}
+        )}
 
-      {authConnection && (
+        {authConnection && (
+          <View style={styles.lineBreakContainer}>
+            <View style={styles.lineBreak} />
+          </View>
+        )}
+
+        <View style={styles.srpContainer}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.srpTitle}
+          >
+            {strings('protect_your_wallet.srps_title')}
+          </Text>
+          <SelectSRP
+            containerStyle={styles.srpListContainer}
+            showArrowName={strings('protect_your_wallet.reveal')}
+          />
+        </View>
+
         <View style={styles.lineBreakContainer}>
           <View style={styles.lineBreak} />
         </View>
-      )}
 
-      <View style={styles.srpContainer}>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.srpTitle}
-        >
-          {strings('protect_your_wallet.srps_title')}
-        </Text>
-        <SelectSRP
-          containerStyle={styles.srpListContainer}
-          showArrowName={strings('protect_your_wallet.reveal')}
-        />
+        <View style={styles.bottomContainer}>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {strings('protect_your_wallet.srps_description')}
+          </Text>
+        </View>
       </View>
-
-      <View style={styles.lineBreakContainer}>
-        <View style={styles.lineBreak} />
-      </View>
-
-      <View style={styles.bottomContainer}>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {strings('protect_your_wallet.srps_description')}
-        </Text>
-      </View>
-    </View>
+    </ScrollView>
   );
 };
 
