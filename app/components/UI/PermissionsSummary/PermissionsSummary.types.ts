@@ -30,4 +30,6 @@ export interface PermissionsSummaryProps {
   isNonDappNetworkSwitch?: boolean;
   onChooseFromPermittedNetworks?: () => void;
   ensByAccountAddress?: EnsByAccountAddress;
+  setTabIndex?: (tabIndex: number) => void;
+  tabIndex?: number;
 }

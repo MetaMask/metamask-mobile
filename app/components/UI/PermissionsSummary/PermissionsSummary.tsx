@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   TouchableOpacity,
   View,
-  Dimensions,
 } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -54,12 +53,16 @@ import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
-import Logger from '../../../util/Logger';
 import AccountsConnectedItemList from '../../Views/AccountConnect/AccountsConnectedItemList';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { parseCaipAccountId } from '@metamask/utils';
-
-const ITEM_HEIGHT = 75;
+import {
+  BASE_HEIGHT,
+  ITEM_HEIGHT,
+  MAX_VISIBLE_ITEMS,
+  OVERFLOW_MULTIPLIER,
+  SCALE_FACTOR,
+} from './PermissionSummary.constants';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -82,6 +85,8 @@ const PermissionsSummary = ({
   ensByAccountAddress = {},
   onAddNetwork = () => undefined,
   onChooseFromPermittedNetworks = () => undefined,
+  setTabIndex = () => undefined,
+  tabIndex = 0,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {
@@ -420,21 +425,26 @@ const PermissionsSummary = ({
     );
   }
 
-  const getElementHeight = useMemo(() => {
-    const listHeight = ITEM_HEIGHT * accountAddresses.length;
-    const baseHeight = Dimensions.get('window').height / 2.75;
-    return baseHeight + listHeight;
+  const calculateBottomSheetHeight = useMemo(() => {
+    if (accountAddresses.length === 2) {
+      return BASE_HEIGHT;
+    }
+
+    const visibleItems =
+      accountAddresses.length >= MAX_VISIBLE_ITEMS
+        ? OVERFLOW_MULTIPLIER
+        : accountAddresses.length;
+
+    const listHeight = BASE_HEIGHT + ITEM_HEIGHT * visibleItems;
+    return listHeight * SCALE_FACTOR;
   }, [accountAddresses.length]);
 
   const onChangeTab = useCallback(
     (tabInfo: { i: number; ref: unknown }) => {
-      if (tabInfo.i === 0) {
-        setBottomSheetHeight(getElementHeight);
-      } else {
-        setBottomSheetHeight(460);
-      }
+      setTabIndex?.(tabInfo.i);
+      setBottomSheetHeight(calculateBottomSheetHeight);
     },
-    [getElementHeight],
+    [setTabIndex, calculateBottomSheetHeight],
   );
 
   const accountsConnectedTabProps = useMemo(
@@ -476,7 +486,11 @@ const PermissionsSummary = ({
   );
 
   const renderTabsContent = () => (
-    <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
+    <ScrollableTabView
+      initialPage={tabIndex}
+      renderTabBar={renderTabBar}
+      onChangeTab={onChangeTab}
+    >
       <AccountsConnectedItemList
         selectedAddresses={accountAddresses}
         ensByAccountAddress={ensByAccountAddress}
@@ -495,7 +509,7 @@ const PermissionsSummary = ({
       </View>
     </ScrollableTabView>
   );
-
+  console.log('BOTTOM SHEET HEIGHT:', bottomSheetHeight);
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={[styles.mainContainer, { minHeight: bottomSheetHeight }]}>

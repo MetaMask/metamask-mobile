@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
@@ -34,6 +34,7 @@ const styleSheet = (params: {
     },
     connectOrUpdateButtonContainer: {
       flexDirection: 'row',
+      marginBottom: Platform.OS === 'android' ? 8 : 0,
     },
     button: {
       flex: 1,

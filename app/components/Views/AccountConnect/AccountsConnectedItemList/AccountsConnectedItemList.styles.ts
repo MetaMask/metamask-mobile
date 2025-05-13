@@ -1,11 +1,12 @@
 // Third party dependencies.
-import { StyleSheet, Dimensions } from 'react-native';
-
-const { height } = Dimensions.get('window');
-const DEVICE_HEIGHT = height;
+import { StyleSheet } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
+import {
+  ITEM_HEIGHT,
+  OVERFLOW_MULTIPLIER,
+} from '../../../UI/PermissionsSummary/PermissionSummary.constants';
 
 interface AccountConnectSummaryStyleSheetVars {
   itemHeight: number;
@@ -25,11 +26,11 @@ const styleSheet = (params: {
   return StyleSheet.create({
     // Account List Item
     container: {
-      maxHeight: DEVICE_HEIGHT / 3.4,
+      maxHeight: ITEM_HEIGHT * OVERFLOW_MULTIPLIER,
     },
     accountListItem: {
       borderWidth: 0,
-      height: 75,
+      height: ITEM_HEIGHT,
     },
     accountsConnectedContainer: {
       marginTop: 8,

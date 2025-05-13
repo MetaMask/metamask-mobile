@@ -1,4 +1,4 @@
-import { StyleSheet, TextStyle } from 'react-native';
+import { StyleSheet, TextStyle, Platform } from 'react-native';
 import {
   getFontFamily,
   TextVariant,
@@ -45,6 +45,7 @@ const createStyles = (params: {
       flexDirection: 'row',
       marginTop: 8,
       paddingHorizontal: 16,
+      marginBottom: Platform.OS === 'android' ? 16 : 0,
     },
     buttonPositioning: {
       flex: 1,

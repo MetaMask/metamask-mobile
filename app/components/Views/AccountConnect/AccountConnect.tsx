@@ -111,6 +111,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
+  const [tabIndex, setTabIndex] = useState(0);
   const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
@@ -775,6 +776,8 @@ const AccountConnect = (props: AccountConnectProps) => {
       ensByAccountAddress,
       accounts,
       networkAvatars: selectedNetworkAvatars,
+      setTabIndex,
+      tabIndex,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [
@@ -784,6 +787,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     selectedNetworkAvatars,
     accounts,
     ensByAccountAddress,
+    tabIndex,
+    setTabIndex,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
@@ -910,7 +915,10 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   return (
     <BottomSheet
-      style={styles.bottomSheetBackground}
+      style={
+        screen === AccountConnectScreens.SingleConnect &&
+        styles.bottomSheetBackground
+      }
       onClose={handleSheetDismiss}
       ref={sheetRef}
     >
