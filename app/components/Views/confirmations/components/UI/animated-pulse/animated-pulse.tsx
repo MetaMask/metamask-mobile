@@ -1,28 +1,30 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Animated, ViewProps } from 'react-native';
+import { Animated, View, ViewProps } from 'react-native';
 
 interface AnimatedPulseProps extends ViewProps {
   children: React.ReactNode;
   isPulsing?: boolean;
   minCycles?: number;
+  preventPulse: boolean;
 }
 
 const DURATION = {
   fadeIn: 750,
   fadeOut: 750,
-  fadeInFinal: 300,
+  fadeInFinal: 750,
 } as const;
 
 const AnimatedPulse = ({
   children,
   isPulsing = true,
   minCycles = 2, // Default to 2 cycles minimum for a better visual effect
+  preventPulse = false,
   ...props
 }: AnimatedPulseProps) => {
   const opacity = useRef(new Animated.Value(0.3)).current;
   const currentAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
   const isCurrentlyPulsingRef = useRef(isPulsing);
-  const cyclesNeededRef = useRef(0);
+  const cyclesNeededRef = useRef(isPulsing ? minCycles : 0);
   const cyclesCompletedRef = useRef(0);
 
   const cleanup = useCallback(() => {
@@ -118,6 +120,10 @@ const AnimatedPulse = ({
     // Cleanup
     return cleanup;
   }, [cleanup, isPulsing, opacity, runSinglePulseCycle]);
+
+  if (preventPulse) {
+    return <View>{children}</View>;
+  }
 
   return (
     <Animated.View style={{ opacity }} {...props}>

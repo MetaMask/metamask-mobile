@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
 import Badge, {
   BadgeVariant,
@@ -12,6 +13,7 @@ import Text, {
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import images from '../../../../../../../images/image-icons';
+import { selectTransactionState } from '../../../../../../../reducers/transaction';
 import TokenIcon from '../../../../../../UI/Swaps/components/TokenIcon';
 import { useConfirmationContext } from '../../../../context/confirmation-context';
 import { useTokenValues } from '../../../../hooks/useTokenValues';
@@ -80,6 +82,7 @@ const AssetFiatConversion = ({
 const TokenHero = ({ amountWei }: { amountWei?: string }) => {
   const { isTransactionValueUpdating } = useConfirmationContext();
   const { isFlatConfirmation } = useFlatConfirmation();
+  const { maxValueMode } = useSelector(selectTransactionState);
   const { styles } = useStyles(styleSheet, {
     isFlatConfirmation,
   });
@@ -93,7 +96,10 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
   const tokenSymbol = 'ETH';
 
   return (
-    <AnimatedPulse isPulsing={isTransactionValueUpdating}>
+    <AnimatedPulse
+      isPulsing={isTransactionValueUpdating}
+      preventPulse={!maxValueMode}
+    >
       <View style={styles.container}>
         <NetworkAndTokenImage tokenSymbol={tokenSymbol} styles={styles} />
         <AssetAmount
