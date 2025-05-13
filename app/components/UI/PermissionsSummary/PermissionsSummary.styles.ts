@@ -14,6 +14,7 @@ const createStyles = (params: {
   const { theme, vars } = params;
   const { colors, typography } = theme;
   const { isRenderedAsBottomSheet } = vars;
+
   return StyleSheet.create({
     safeArea: {
       backgroundColor: theme.colors.background.alternative,

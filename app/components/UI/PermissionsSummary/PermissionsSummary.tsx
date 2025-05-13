@@ -55,7 +55,7 @@ import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import Logger from '../../../util/Logger';
-import AccountsConnectedItemList from '../../Views/AccountConnect/AccountsConnectedItemList/AccountsConnectedItemList';
+import AccountsConnectedItemList from '../../Views/AccountConnect/AccountsConnectedItemList';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 
 const ITEM_HEIGHT = 75;

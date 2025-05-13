@@ -1,5 +1,8 @@
 // Third party dependencies.
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { height } = Dimensions.get('window');
+const DEVICE_HEIGHT = height;
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
@@ -21,7 +24,9 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     // Account List Item
-    container: {},
+    container: {
+      maxHeight: DEVICE_HEIGHT / 3.4,
+    },
     accountListItem: {
       borderWidth: 0,
       height: 75,

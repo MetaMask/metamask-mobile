@@ -153,6 +153,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       privacyMode,
       disablePrivacyMode,
       handleAddAccount,
+      styles.sheet,
     ],
   );
 
