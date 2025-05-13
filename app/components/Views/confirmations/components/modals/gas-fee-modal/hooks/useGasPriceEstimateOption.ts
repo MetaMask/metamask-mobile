@@ -12,6 +12,7 @@ import { useTransactionMetadataRequest } from '../../../../hooks/transactions/us
 import { useGasFeeEstimates } from '../../../../hooks/gas/useGasFeeEstimates';
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
 import { type GasOption } from '../types';
+import { GasOptionIcon } from '../constants';
 
 const HEX_ZERO = '0x0';
 
@@ -78,43 +79,46 @@ export const useGasPriceEstimateOption = ({
     handleCloseModals,
   ]);
 
+  if (!shouldIncludeGasPriceEstimateOption) {
+    return [];
+  }
+
   const options: GasOption[] = [];
 
-  if (shouldIncludeGasPriceEstimateOption) {
-    let feePerGas = HEX_ZERO;
-    let gasPrice = HEX_ZERO;
-    const gas = transactionMeta.gasLimitNoBuffer || HEX_ZERO;
-    let shouldUseEIP1559FeeLogic = false;
-    let priorityFeePerGas = HEX_ZERO;
+  let feePerGas = HEX_ZERO;
+  let gasPrice = HEX_ZERO;
+  const gas = transactionMeta.gasLimitNoBuffer || HEX_ZERO;
+  let shouldUseEIP1559FeeLogic = false;
+  let priorityFeePerGas = HEX_ZERO;
 
-    if (transactionEnvelopeType === TransactionEnvelopeType.legacy) {
-      gasPrice = transactionGasFeeEstimates?.gasPrice;
-    } else {
-      feePerGas = transactionGasFeeEstimates?.gasPrice;
-      priorityFeePerGas = transactionGasFeeEstimates?.gasPrice;
-      shouldUseEIP1559FeeLogic = true;
-    }
-
-    const { currentCurrencyFee, preciseNativeCurrencyFee } =
-      calculateGasEstimate({
-        feePerGas,
-        priorityFeePerGas,
-        gas,
-        shouldUseEIP1559FeeLogic,
-        gasPrice,
-      });
-
-    options.push({
-      emoji: '⛽️',
-      estimatedTime: undefined,
-      isSelected: isGasPriceEstimateSelected,
-      key: 'gasPrice',
-      name: strings(`transactions.gas_modal.gas_price_estimate`),
-      onSelect: () => onGasPriceEstimateLevelClick(),
-      value: preciseNativeCurrencyFee || '--',
-      valueInFiat: currentCurrencyFee || '',
-    });
+  if (transactionEnvelopeType === TransactionEnvelopeType.legacy) {
+    gasPrice = transactionGasFeeEstimates?.gasPrice;
+  } else {
+    feePerGas = transactionGasFeeEstimates?.gasPrice;
+    priorityFeePerGas = transactionGasFeeEstimates?.gasPrice;
+    shouldUseEIP1559FeeLogic = true;
   }
+
+  const { currentCurrencyFee, preciseNativeCurrencyFee } = calculateGasEstimate(
+    {
+      feePerGas,
+      priorityFeePerGas,
+      gas,
+      shouldUseEIP1559FeeLogic,
+      gasPrice,
+    },
+  );
+
+  options.push({
+    emoji: GasOptionIcon.GAS_PRICE,
+    estimatedTime: undefined,
+    isSelected: isGasPriceEstimateSelected,
+    key: 'gasPrice',
+    name: strings(`transactions.gas_modal.gas_price_estimate`),
+    onSelect: () => onGasPriceEstimateLevelClick(),
+    value: preciseNativeCurrencyFee || '--',
+    valueInFiat: currentCurrencyFee || '',
+  });
 
   return options;
 };

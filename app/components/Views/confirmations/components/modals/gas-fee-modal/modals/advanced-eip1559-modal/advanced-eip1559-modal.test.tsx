@@ -4,7 +4,7 @@ import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 
 import { updateTransactionGasFees } from '../../../../../../../../util/transaction-controller';
 import { simpleSendTransaction } from '../../../../../mock-data/transaction-controller-mock';
-import { MODALS } from '../../constants';
+import { GasModalType } from '../../constants';
 import { AdvancedEIP1559Modal } from './advanced-eip1559-modal';
 
 jest.mock('../../../../../../../../util/transaction-controller');
@@ -126,6 +126,6 @@ describe('AdvancedEIP1559Modal', () => {
     const backButton = getByTestId('back-button');
     fireEvent.press(backButton);
 
-    expect(mockSetActiveModal).toHaveBeenCalledWith(MODALS.ESTIMATES);
+    expect(mockSetActiveModal).toHaveBeenCalledWith(GasModalType.ESTIMATES);
   });
 });

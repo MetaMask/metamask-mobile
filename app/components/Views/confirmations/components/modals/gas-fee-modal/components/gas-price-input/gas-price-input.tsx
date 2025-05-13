@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { add0x, Hex } from '@metamask/utils';
@@ -23,18 +23,21 @@ export const GasPriceInput = ({
 }: {
   onChange: (value: Hex) => void;
 }) => {
-  const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const transactionMeta = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
   const initialGasPrice = hexWEIToDecGWEI(
-    transactionMeta.txParams.gasPrice,
+    transactionMeta?.txParams?.gasPrice,
   ).toString();
   const [value, setValue] = useState(initialGasPrice);
 
-  const handleChange = (text: string) => {
-    setValue(text);
-    const hexWEI = decGWEIToHexWEI(text);
-    onChange(add0x(hexWEI as Hex));
-  };
+  const handleChange = useCallback(
+    (text: string) => {
+      setValue(text);
+      const updatedGasPrice = add0x(decGWEIToHexWEI(text) as Hex);
+      onChange(updatedGasPrice);
+    },
+    [onChange],
+  );
 
   return (
     <View style={styles.container}>

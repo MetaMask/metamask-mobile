@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 
 import { updateTransactionGasFees } from '../../../../../../../../util/transaction-controller';
 import { simpleSendTransaction } from '../../../../../mock-data/transaction-controller-mock';
-import { MODALS } from '../../constants';
+import { GasModalType } from '../../constants';
 import { AdvancedGasPriceModal } from './advanced-gas-price-modal';
 
 jest.mock('../../../../../../../../util/transaction-controller');
@@ -109,6 +109,6 @@ describe('AdvancedGasPriceModal', () => {
     const backButton = getByTestId('back-button');
     fireEvent.press(backButton);
 
-    expect(mockSetActiveModal).toHaveBeenCalledWith(MODALS.ESTIMATES);
+    expect(mockSetActiveModal).toHaveBeenCalledWith(GasModalType.ESTIMATES);
   });
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { add0x, Hex } from '@metamask/utils';
@@ -21,27 +21,40 @@ import { limitToMaximumDecimalPlaces } from '../../../../../../../../util/number
 import { useGasFeeEstimates } from '../../../../../hooks/gas/useGasFeeEstimates';
 import styleSheet from './max-base-fee-input.styles';
 
+const InfoLabel = ({ children }: { children: React.ReactNode }) => {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <Text variant={TextVariant.BodySM} style={styles.infoLabel}>
+      {children}
+    </Text>
+  );
+};
+
 export const MaxBaseFeeInput = ({
   onChange,
 }: {
   onChange: (value: Hex) => void;
 }) => {
-  const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const transactionMeta = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
   const initialMaxBaseFee = hexWEIToDecGWEI(
-    transactionMeta.txParams.maxFeePerGas,
+    transactionMeta?.txParams?.maxFeePerGas,
   ).toString();
   const [value, setValue] = useState(initialMaxBaseFee);
 
   const { gasFeeEstimates } = useGasFeeEstimates(
-    transactionMeta.networkClientId,
+    transactionMeta?.networkClientId || '',
   );
 
-  const handleChange = (text: string) => {
-    setValue(text);
-    const hexWEI = decGWEIToHexWEI(text);
-    onChange(add0x(hexWEI as Hex));
-  };
+  const handleChange = useCallback(
+    (text: string) => {
+      setValue(text);
+      const updatedMaxBaseFee = add0x(decGWEIToHexWEI(text) as Hex);
+      onChange(updatedMaxBaseFee);
+    },
+    [onChange],
+  );
 
   const { estimatedBaseFee, historicalBaseFeeRange } =
     (gasFeeEstimates as GasFeeEstimates) || {};
@@ -64,15 +77,15 @@ export const MaxBaseFeeInput = ({
       />
       {feeRangesExists && (
         <View style={styles.infoContainer} testID="info-container">
-          <Text variant={TextVariant.BodySM} style={styles.infoLabel}>
+          <InfoLabel>
             {strings('transactions.gas_modal.estimated_base_fee', {
               value: limitToMaximumDecimalPlaces(
                 parseFloat(estimatedBaseFee),
                 2,
               ),
             })}
-          </Text>
-          <Text variant={TextVariant.BodySM} style={styles.infoLabel}>
+          </InfoLabel>
+          <InfoLabel>
             {strings('transactions.gas_modal.historical_priority_fee', {
               min: limitToMaximumDecimalPlaces(
                 parseFloat(historicalBaseFeeRange?.[0]),
@@ -83,7 +96,7 @@ export const MaxBaseFeeInput = ({
                 2,
               ),
             })}
-          </Text>
+          </InfoLabel>
         </View>
       )}
     </View>

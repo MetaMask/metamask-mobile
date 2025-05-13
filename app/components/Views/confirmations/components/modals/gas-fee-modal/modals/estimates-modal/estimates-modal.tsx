@@ -7,13 +7,14 @@ import BottomModal from '../../../../UI/bottom-modal';
 import { GasOption } from '../../components/gas-option';
 import { useGasOptions } from '../../hooks/useGasOptions';
 import { GasModalHeader } from '../../components/gas-modal-header';
+import { GasModalType } from '../../constants';
 import styleSheet from './estimates-modal.styles';
 
 export const EstimatesModal = ({
   setActiveModal,
   handleCloseModals,
 }: {
-  setActiveModal: (modal: string) => void;
+  setActiveModal: (modal: GasModalType) => void;
   handleCloseModals: () => void;
 }) => {
   const { styles } = useStyles(styleSheet, {});

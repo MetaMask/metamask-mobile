@@ -1,4 +1,8 @@
-export const simpleSendTransaction = {
+import { merge } from 'lodash';
+
+const transactionIdMock = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
+
+const baseTransactionMock = {
   actionId: undefined,
   batchId: undefined,
   chainId: '0x1',
@@ -45,10 +49,42 @@ export const simpleSendTransaction = {
     maxPriorityFeePerGas: '0x012345',
     to: '0x97cb1fdd071da9960d38306c07f146bc98b2d317',
     type: '0x2',
-    value: '0x0',
   },
   type: 'simpleSend',
   userEditedGasLimit: false,
   userFeeLevel: 'dappSuggested',
   verifiedOnBlockchain: false,
 };
+
+const baseTransactionControllerMock = {
+  engine: {
+    backgroundState: {
+      TransactionController: {
+        transactions: [],
+        methodData: {},
+        lastFetchedBlockNumbers: {},
+        submitHistory: [],
+      },
+    },
+  },
+};
+
+export const simpleSendTransaction = merge(baseTransactionMock, {
+  id: transactionIdMock,
+  txParams: {
+    value: '0x0',
+  },
+});
+
+export const simpleSendTransactionControllerMock = merge(
+  baseTransactionControllerMock,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [simpleSendTransaction],
+        },
+      },
+    },
+  },
+);

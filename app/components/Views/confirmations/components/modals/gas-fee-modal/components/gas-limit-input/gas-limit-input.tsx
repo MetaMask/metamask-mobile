@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { add0x, Hex } from '@metamask/utils';
@@ -23,15 +23,21 @@ export const GasLimitInput = ({
 }: {
   onChange: (value: Hex) => void;
 }) => {
-  const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const transactionMeta = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
-  const initialGasLimit = hexToDecimal(transactionMeta.txParams.gas).toString();
+  const initialGasLimit = hexToDecimal(
+    transactionMeta?.txParams?.gas,
+  ).toString();
   const [value, setValue] = useState(initialGasLimit);
 
-  const handleChange = (text: string) => {
-    setValue(text);
-    onChange(add0x(decimalToHex(text) as Hex));
-  };
+  const handleChange = useCallback(
+    (text: string) => {
+      setValue(text);
+      const updatedGasLimitHex = add0x(decimalToHex(text) as Hex);
+      onChange(updatedGasLimitHex);
+    },
+    [onChange],
+  );
 
   return (
     <View style={styles.container}>
