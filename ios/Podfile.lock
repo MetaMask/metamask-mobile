@@ -320,9 +320,9 @@ PODS:
   - lottie-react-native (5.1.6):
     - lottie-ios (~> 3.4.0)
     - React-Core
-  - MMKV (2.2.1):
-    - MMKVCore (~> 2.2.1)
-  - MMKVCore (2.2.1)
+  - MMKV (2.2.2):
+    - MMKVCore (~> 2.2.2)
+  - MMKVCore (2.2.2)
   - MultiplatformBleAdapter (0.2.0)
   - nanopb (2.30910.0):
     - nanopb/decode (= 2.30910.0)
@@ -2830,8 +2830,8 @@ SPEC CHECKSUMS:
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   lottie-ios: 016449b5d8be0c3dcbcfa0a9988469999cd04c5d
   lottie-react-native: 5d89c05930d4180a1e39b1757d46e6c0eec90255
-  MMKV: 383ccfa10ae23ff2a9c0f6130b7136b37b55ac10
-  MMKVCore: b0e4c420da85636d7adaa535a53dfade59a22f5c
+  MMKV: b4802ebd5a7c68fc0c4a5ccb4926fbdfb62d68e0
+  MMKVCore: a255341a3746955f50da2ad9121b18cb2b346e61
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
