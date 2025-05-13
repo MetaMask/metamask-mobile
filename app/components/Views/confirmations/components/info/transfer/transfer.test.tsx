@@ -93,6 +93,7 @@ describe('Transfer', () => {
     expect(mockUseClearConfirmationOnBackSwipe).toHaveBeenCalled();
     expect(getByText('0xDc477...0c164')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network')).toBeDefined();
     expect(getNavbar).toHaveBeenCalled();
     expect(getNavbar).toHaveBeenCalledWith({
       title: 'Review',

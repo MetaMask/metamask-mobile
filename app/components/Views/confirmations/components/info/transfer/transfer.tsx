@@ -12,6 +12,7 @@ import FromTo from '../../rows/transactions/from-to';
 import GasFeesDetails from '../../rows/transactions/gas-fee-details';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
 import TokenHero from '../../rows/transactions/token-hero';
+import NetworkRow from '../../rows/transactions/network-row';
 import styleSheet from './transfer.styles';
 
 const Transfer = () => {
@@ -28,6 +29,7 @@ const Transfer = () => {
     <View>
       <TokenHero />
       <FromTo />
+      <NetworkRow />
       <View style={styles.simulationsDetailsContainer}>
         <SimulationDetails
           transaction={transactionMetadata as TransactionMeta}
