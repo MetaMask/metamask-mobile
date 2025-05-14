@@ -682,10 +682,14 @@ export function getOnboardingNavbarOptions(
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle
  */
-export function getTransparentOnboardingNavbarOptions(themeColors) {
+export function getTransparentOnboardingNavbarOptions(
+  themeColors,
+  showLogo = true,
+  color,
+) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
+      backgroundColor: color || themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
@@ -696,15 +700,16 @@ export function getTransparentOnboardingNavbarOptions(themeColors) {
     },
   });
   return {
-    headerTitle: () => (
-      <View style={styles.metamaskNameTransparentWrapper}>
-        <Image
-          source={metamask_name}
-          style={innerStyles.metamaskName}
-          resizeMethod={'auto'}
-        />
-      </View>
-    ),
+    headerTitle: () =>
+      showLogo ? (
+        <View style={styles.metamaskNameTransparentWrapper}>
+          <Image
+            source={metamask_name}
+            style={innerStyles.metamaskName}
+            resizeMethod={'auto'}
+          />
+        </View>
+      ) : null,
     headerLeft: () => <View />,
     headerRight: () => <View />,
     headerStyle: innerStyles.headerStyle,
@@ -755,10 +760,10 @@ export function getOnboardingCarouselNavbarOptions(
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and a back button
  */
-export function getTransparentBackOnboardingNavbarOptions(themeColors) {
+export function getTransparentBackOnboardingNavbarOptions(themeColors, color) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
+      backgroundColor: color || themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
@@ -778,8 +783,9 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
         />
       </View>
     ),
-    headerBackTitle: strings('navigation.back'),
     headerRight: () => <View />,
+    headerBackTitle: strings('navigation.back'),
+    headerLeft: () => <View />,
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
   };
