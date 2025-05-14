@@ -57,7 +57,6 @@ const createStyles = () =>
       borderWidth: 0,
       lineHeight: 50,
       height: 50,
-      textAlign: 'left',
     },
   });
 
