@@ -3,15 +3,15 @@ import { IsAtomicBatchSupportedResult } from '@metamask/transaction-controller';
 import { View } from 'react-native';
 import { waitFor } from '@testing-library/react-native';
 
-import Text from '../../../../component-library/components/Texts/Text';
+import Text from '../../../../../component-library/components/Texts/Text';
 import renderWithProvider, {
   renderHookWithProvider,
-} from '../../../../util/test/renderWithProvider';
+} from '../../../../../util/test/renderWithProvider';
 import {
   MOCK_MULTICHAIN_NETWORK_CONTROLLER_STATE,
   MOCK_NETWORK_CONTROLLER_STATE,
-} from '../../../../util/test/confirm-data-helpers';
-import { RootState } from '../../../../reducers';
+} from '../../../../../util/test/confirm-data-helpers';
+import { RootState } from '../../../../../reducers';
 import { useEIP7702Networks } from './useEIP7702Networks';
 
 const mockNetworkBatchSupport = [
@@ -23,7 +23,7 @@ const mockNetworkBatchSupport = [
   },
 ] as IsAtomicBatchSupportedResult;
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionController: {
       isAtomicBatchSupported: () => Promise.resolve(mockNetworkBatchSupport),
