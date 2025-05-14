@@ -76,7 +76,10 @@ import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSumma
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
@@ -163,7 +166,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     (newSelectedChainIds: CaipChainId[]) => {
       _setSelectedChainIds(newSelectedChainIds);
 
-      const newNetworkAvatars = newSelectedChainIds.map(
+      const newNetworkAvatars: NetworkAvatarProps[] = newSelectedChainIds.map(
         (newSelectedChainId) => {
           const parsedCaipChainId = parseCaipChainId(newSelectedChainId);
           const chainId = toHex(parsedCaipChainId.reference);
@@ -171,6 +174,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             size: AvatarSize.Xs,
             name: networkConfigurations[newSelectedChainId]?.name || '',
             imageSource: getNetworkImageSource({ chainId }),
+            variant: AvatarVariant.Network,
           };
         },
       );
@@ -310,6 +314,7 @@ const AccountConnect = (props: AccountConnectProps) => {
           imageSource: getNetworkImageSource({
             chainId,
           }),
+          variant: AvatarVariant.Network,
         };
       },
     );

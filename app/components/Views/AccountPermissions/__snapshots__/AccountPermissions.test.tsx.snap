@@ -205,6 +205,10 @@ exports[`AccountPermissions renders correctly 1`] = `
               "balanceError": undefined,
               "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
               "isSelected": true,
+              "metadata": {
+                "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+                "name": "Account 1",
+              },
               "name": "Account 1",
               "type": "HD Key Tree",
               "yOffset": 0,

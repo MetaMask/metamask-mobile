@@ -509,7 +509,7 @@ const PermissionsSummary = ({
       </View>
     </ScrollableTabView>
   );
-  console.log('BOTTOM SHEET HEIGHT:', bottomSheetHeight);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={[styles.mainContainer, { minHeight: bottomSheetHeight }]}>
@@ -579,7 +579,10 @@ const PermissionsSummary = ({
               <StyledButton
                 type={'confirm'}
                 onPress={confirm}
-                disabled={!isNetworkSwitch && (accountAddresses.length === 0 || networkAvatars.length === 0)}
+                disabled={
+                  !isNetworkSwitch &&
+                  (accountAddresses.length === 0 || networkAvatars.length === 0)
+                }
                 containerStyle={[
                   styles.buttonPositioning,
                   styles.confirmButton,

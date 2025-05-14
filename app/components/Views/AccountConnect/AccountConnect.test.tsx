@@ -13,7 +13,10 @@ import {
   MOCK_ADDRESS_1 as mockAddress1,
   MOCK_ADDRESS_2 as mockAddress2,
 } from '../../../util/test/accountsControllerTestUtils';
-import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 import { PermissionConstraint } from '@metamask/permission-controller';
 
 const mockedNavigate = jest.fn();
@@ -35,6 +38,14 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('react-native-scrollable-tab-view', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -87,6 +98,7 @@ jest.mock('../../../core/Engine', () => {
       },
       AccountsController: {
         state: mockAccountsState,
+        getAccountByAddress: jest.fn(),
       },
       KeyringController: {
         state: {
@@ -130,12 +142,12 @@ jest.mock('../../hooks/useAccounts', () => ({
       {
         address: mockAddress1,
         name: 'Account 1',
-        caipAccountId: `eip155:0:${mockAddress1}`
+        caipAccountId: `eip155:0:${mockAddress1}`,
       },
       {
         address: mockAddress2,
         name: 'Account 2',
-        caipAccountId: `eip155:0:${mockAddress2}`
+        caipAccountId: `eip155:0:${mockAddress2}`,
       },
     ],
     ensByAccountAddress: {},
@@ -183,21 +195,23 @@ describe('AccountConnect', () => {
                 // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [{
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'wallet:eip155': {
-                          accounts: []
-                        }
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'wallet:eip155': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
                       },
-                      isMultichainOrigin: false,
-                      sessionProperties: {},
-                    }
-                  }]
+                    },
+                  ],
                 } as PermissionConstraint,
-              }
+              },
             },
             permissionRequestId: 'test',
           },
@@ -224,21 +238,23 @@ describe('AccountConnect', () => {
                 // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [{
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'eip155:1': {
-                          accounts: [`eip155:1:${mockAddress1}`]
-                        }
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'eip155:1': {
+                            accounts: [`eip155:1:${mockAddress1}`],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
                       },
-                      isMultichainOrigin: false,
-                      sessionProperties: {},
-                    }
-                  }]
+                    },
+                  ],
                 } as PermissionConstraint,
-              }
+              },
             },
             permissionRequestId: 'test',
           },
@@ -265,21 +281,23 @@ describe('AccountConnect', () => {
                 // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [{
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'eip155:1': {
-                          accounts: []
-                        }
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'eip155:1': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
                       },
-                      isMultichainOrigin: false,
-                      sessionProperties: {},
-                    }
-                  }]
+                    },
+                  ],
                 } as PermissionConstraint,
-              }
+              },
             },
             permissionRequestId: 'test',
           },
@@ -307,21 +325,23 @@ describe('AccountConnect', () => {
                 // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [{
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'wallet:eip155': {
-                          accounts: []
-                        }
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'wallet:eip155': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
                       },
-                      isMultichainOrigin: false,
-                      sessionProperties: {},
-                    }
-                  }]
+                    },
+                  ],
                 } as PermissionConstraint,
-              }
+              },
             },
             permissionRequestId: 'test',
           },
@@ -350,19 +370,21 @@ describe('AccountConnect', () => {
                 // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [{
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'wallet:eip155': {
-                          accounts: []
-                        }
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'wallet:eip155': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
                       },
-                      isMultichainOrigin: false,
-                      sessionProperties: {},
-                    }
-                  }]
+                    },
+                  ],
                 } as PermissionConstraint,
               },
             },
@@ -398,19 +420,21 @@ describe('AccountConnect', () => {
                     // @ts-expect-error partial object
                     [Caip25EndowmentPermissionName]: {
                       parentCapability: Caip25EndowmentPermissionName,
-                      caveats: [{
-                        type: Caip25CaveatType,
-                        value: {
-                          requiredScopes: {},
-                          optionalScopes: {
-                            'wallet:eip155': {
-                              accounts: []
-                            }
+                      caveats: [
+                        {
+                          type: Caip25CaveatType,
+                          value: {
+                            requiredScopes: {},
+                            optionalScopes: {
+                              'wallet:eip155': {
+                                accounts: [],
+                              },
+                            },
+                            isMultichainOrigin: false,
+                            sessionProperties: {},
                           },
-                          isMultichainOrigin: false,
-                          sessionProperties: {},
-                        }
-                      }]
+                        },
+                      ],
                     } as PermissionConstraint,
                   },
                 },
@@ -452,19 +476,21 @@ describe('AccountConnect', () => {
                 // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [{
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'wallet:eip155': {
-                          accounts: []
-                        }
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'wallet:eip155': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
                       },
-                      isMultichainOrigin: false,
-                      sessionProperties: {},
-                    }
-                  }]
+                    },
+                  ],
                 } as PermissionConstraint,
               },
             },

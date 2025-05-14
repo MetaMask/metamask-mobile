@@ -17,6 +17,14 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('react-native-scrollable-tab-view', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
+
 const mockInitialState = {
   wizard: {
     step: 1,
@@ -67,8 +75,8 @@ describe('PermissionsSummary', () => {
             },
             caipAccountId: 'eip155:0:0x2',
             yOffset: 0,
-            type: KeyringTypes.simple
-          }
+            type: KeyringTypes.simple,
+          },
         ]}
         accountAddresses={['eip155:0:0x2']}
       />,
