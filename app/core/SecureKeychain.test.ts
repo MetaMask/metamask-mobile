@@ -12,6 +12,10 @@ import {
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 
+jest.mock('react-native-device-info', () => ({
+  getSystemName: jest.fn(() => Promise.resolve('Android')),
+}));
+
 jest.mock('../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
