@@ -6,7 +6,7 @@ export const styleSheet = (params: {
 }) => {
   const { theme } = params;
   return StyleSheet.create({
-    avatarNetwork: {
+    avatarToken: {
       backgroundColor: theme.colors.background.default,
       borderRadius: 99,
     },

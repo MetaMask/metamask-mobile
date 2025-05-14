@@ -1,9 +1,9 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 
+import NetworkAssetLogo from '../../../../../../../UI/NetworkAssetLogo';
 import { AvatarSize } from '../../../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import AvatarNetwork from '../../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
 import AvatarToken from '../../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken';
 import Badge, {
   BadgeVariant,
@@ -12,63 +12,48 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../../../component-library/components/Badges/BadgeWrapper';
 import { useStyles } from '../../../../../../../../component-library/hooks';
-import { NameType } from '../../../../../../../UI/Name/Name.types';
-import { useDisplayName } from '../../../../../../../hooks/DisplayName/useDisplayName';
-import { RootState } from '../../../../../../../../reducers';
-import { selectNetworkConfigurationByChainId } from '../../../../../../../../selectors/networkController';
-import { getNetworkImageSource } from '../../../../../../../../util/networks';
+import { CHAINLIST_CURRENCY_SYMBOLS_MAP, NETWORKS_CHAIN_ID } from '../../../../../../../../constants/network';
 import useNetworkInfo from '../../../../../hooks/useNetworkInfo';
+import { useTokenAssetByType } from '../../../../../hooks/useTokenAssetByType';
 import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
-import { isNativeToken } from '../../../../../utils/token';
 import { styleSheet } from './avatar-token-with-network-badge.styles';
 
-const AvatarTokenNetwork = () => {
+const AvatarTokenNetwork = ({ chainId }: { chainId: Hex }) => {
   const { styles } = useStyles(styleSheet, {});
-
-  const transactionMeta =
-    useTransactionMetadataRequest() ?? ({} as TransactionMeta);
-  const { chainId } = transactionMeta;
-
-  const { nativeCurrency } = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, chainId),
-  );
-  const isNative = isNativeToken(transactionMeta);
-  const networkImage = getNetworkImageSource({ chainId });
-
-  const { image, name: symbol } = useDisplayName({
-    preferContractSymbol: true,
-    type: NameType.EthereumAddress,
-    value: transactionMeta?.txParams?.to ?? '',
-    variation: chainId ?? '',
-  });
+  const { asset: { image, isNative, name, ticker } } = useTokenAssetByType();
 
   return isNative ? (
-    <AvatarNetwork
-      name={nativeCurrency ?? ''}
-      imageSource={networkImage}
-      size={AvatarSize.Xl}
-      style={styles.avatarNetwork}
+    <NetworkAssetLogo
+      chainId={chainId}
+      ticker={ticker ?? ''}
+      big
+      biggest={false}
+      style={styles.avatarToken}
+      testID={name ?? ''}
     />
   ) : (
     <AvatarToken
       imageSource={image ? { uri: image } : undefined}
-      name={symbol ?? ''}
+      name={name ?? ''}
       size={AvatarSize.Xl}
+      style={styles.avatarToken}
     />
   );
 };
 
 export const AvatarTokenWithNetworkBadge = () => {
-  const transactionMeta = useTransactionMetadataRequest() ?? ({} as TransactionMeta);
-  const { networkName, networkImage } = useNetworkInfo(
-    transactionMeta?.chainId,
-  );
-  const isNative = isNativeToken(transactionMeta);
+  const { chainId } = useTransactionMetadataRequest() ?? ({} as TransactionMeta);
+  const { networkName, networkImage } = useNetworkInfo(chainId);
+  const { asset: { ticker } } = useTokenAssetByType();
+
+  const isEthOnMainnet = chainId === NETWORKS_CHAIN_ID.MAINNET 
+    && ticker === CHAINLIST_CURRENCY_SYMBOLS_MAP.MAINNET;
+  const showBadge = networkImage && !isEthOnMainnet;
 
   return (
     <BadgeWrapper
       badgePosition={BadgePosition.BottomRight}
-      badgeElement={!isNative && networkImage ? (
+      badgeElement={showBadge ? (
         <Badge
           imageSource={networkImage}
           variant={BadgeVariant.Network}
@@ -76,7 +61,7 @@ export const AvatarTokenWithNetworkBadge = () => {
         />
       ) : null}
     >
-      <AvatarTokenNetwork />
+      <AvatarTokenNetwork chainId={chainId} />
     </BadgeWrapper>
   );
 };
