@@ -92,11 +92,6 @@ pipelines:
     stages:
       - create_build_qa_and_expo: {}
       - app_launch_times_test_stage: {}
-  #App launch times pipeline. Runs on browserstack
-  app_launch_times_and_expo_pipeline:
-    stages:
-      - create_build_qa_and_expo: {}
-      - app_launch_times_test_stage: {}
   #Main expo pipeline
   expo_main_pipeline:
     stages:
