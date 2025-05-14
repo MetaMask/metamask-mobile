@@ -56,6 +56,7 @@ const createStyles = () =>
       borderWidth: 0,
       lineHeight: 50,
       height: 50,
+      textAlign: 'left',
     },
   });
 
@@ -222,6 +223,7 @@ export const TokenInputArea = forwardRef<
                   onBlur={() => {
                     onBlur?.();
                   }}
+                  selection={{ start: 0, end: 0 }}
                 />
               )}
             </Box>
