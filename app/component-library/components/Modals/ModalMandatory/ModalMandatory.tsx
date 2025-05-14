@@ -136,7 +136,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         {headerTitle}
       </Text>
       <ButtonIcon
-        testID={TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON}
+        testID={TermsOfUseModalSelectorsIDs.CLOSE_BUTTON}
         onPress={onClose}
         iconName={IconName.Close}
         hitSlop={12}
