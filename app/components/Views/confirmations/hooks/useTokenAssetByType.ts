@@ -75,9 +75,6 @@ export const useTokenAssetByType = () => {
     case TransactionType.simpleSend: {
       // Native
       asset = nativeEvmAsset ?? {} as TokenI;
-      tokenName = asset?.name;
-      tokenImage = asset?.image || asset?.logo;
-      tokenSymbol = asset?.ticker;
       break;
     }
     case TransactionType.tokenMethodTransferFrom: {
