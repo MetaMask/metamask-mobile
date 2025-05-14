@@ -58,53 +58,8 @@ export const useGasFeeEstimateLevelOptions = ({
 
   const onGasFeeEstimateLevelClick = useCallback(
     (level: GasFeeEstimateLevel) => {
-      let gasPropertiesToUpdate;
-
-      if (transactionEnvelopeType === TransactionEnvelopeType.legacy) {
-        let gasPrice;
-
-        switch (transactionGasFeeEstimates?.type) {
-          case GasFeeEstimateType.FeeMarket:
-            gasPrice = transactionGasFeeEstimates?.[level]?.maxFeePerGas;
-            break;
-          case GasFeeEstimateType.Legacy:
-            gasPrice = transactionGasFeeEstimates?.[level];
-            break;
-          default:
-            gasPrice = transactionGasFeeEstimates?.gasPrice;
-            break;
-        }
-        gasPropertiesToUpdate = {
-          gasPrice,
-        };
-      } else {
-        let maxFeePerGas;
-        let maxPriorityFeePerGas;
-
-        switch (transactionGasFeeEstimates?.type) {
-          case GasFeeEstimateType.FeeMarket:
-            maxFeePerGas = transactionGasFeeEstimates?.[level]?.maxFeePerGas;
-            maxPriorityFeePerGas =
-              transactionGasFeeEstimates?.[level]?.maxPriorityFeePerGas;
-            break;
-          case GasFeeEstimateType.Legacy:
-            maxFeePerGas = transactionGasFeeEstimates?.[level];
-            maxPriorityFeePerGas = transactionGasFeeEstimates?.[level];
-            break;
-          default:
-            maxFeePerGas = transactionGasFeeEstimates?.gasPrice;
-            maxPriorityFeePerGas = transactionGasFeeEstimates?.gasPrice;
-            break;
-        }
-        gasPropertiesToUpdate = {
-          maxFeePerGas,
-          maxPriorityFeePerGas,
-        };
-      }
-
       updateTransactionGasFees(id, {
         userFeeLevel: level,
-        ...gasPropertiesToUpdate,
       });
       handleCloseModals();
     },

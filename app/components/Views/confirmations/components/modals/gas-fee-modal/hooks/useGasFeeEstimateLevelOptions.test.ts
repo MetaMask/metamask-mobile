@@ -422,7 +422,6 @@ describe('useGasFeeEstimateLevelOptions', () => {
 
     expect(mockUpdateTransactionGasFees).toHaveBeenCalledWith('test-id', {
       userFeeLevel: 'low',
-      gasPrice: '0x1',
     });
     expect(mockHandleCloseModals).toHaveBeenCalled();
   });
@@ -497,8 +496,6 @@ describe('useGasFeeEstimateLevelOptions', () => {
 
     expect(mockUpdateTransactionGasFees).toHaveBeenCalledWith('test-id', {
       userFeeLevel: 'high',
-      maxFeePerGas: '0x3',
-      maxPriorityFeePerGas: '0x3',
     });
     expect(mockHandleCloseModals).toHaveBeenCalled();
   });
