@@ -224,7 +224,7 @@ class SendFlow extends PureComponent {
     const { toAccount } = this.state;
     const { addressBook, globalChainId, internalAccounts } = this.props;
     const networkAddressBook = addressBook[globalChainId] || {};
-    const checksummedAddress = toChecksumAddress(toAccount);
+    const checksummedAddress = this.safeChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] ||
       internalAccounts.find((account) =>
@@ -376,12 +376,13 @@ class SendFlow extends PureComponent {
   };
 
   getAddressNameFromBookOrInternalAccounts = (toAccount) => {
+    console.log('OGP - getAddressNameFromBookOrInternalAccounts: ', toAccount);
     const { addressBook, internalAccounts, globalChainId } = this.props;
     if (!toAccount) return;
 
     const networkAddressBook = addressBook[globalChainId] || {};
 
-    const checksummedAddress = toChecksumAddress(toAccount);
+    const checksummedAddress = this.safeChecksumAddress(toAccount);
     const matchingAccount = internalAccounts.find((account) =>
       toLowerCaseEquals(account.address, checksummedAddress),
     );
@@ -426,6 +427,7 @@ class SendFlow extends PureComponent {
   };
 
   onToSelectedAddressChange = (toAccount) => {
+    console.log('OGP - onToSelectedAddressChange: ', toAccount);
     const currentChain =
       this.props.ambiguousAddressEntries &&
       this.props.ambiguousAddressEntries[this.props.globalChainId];
@@ -481,6 +483,14 @@ class SendFlow extends PureComponent {
     this.setState({ showAmbiguousAcountWarning: false });
   };
 
+  safeChecksumAddress = (address) => {
+    try {
+      return toChecksumAddress(address);
+    } catch (error) {
+      return address;
+    }
+  };
+
   render = () => {
     const { ticker, addressBook, globalChainId } = this.props;
     const {
@@ -499,7 +509,7 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const checksummedAddress = toAccount && toChecksumAddress(toAccount);
+    const checksummedAddress = this.safeChecksumAddress(toAccount);
     const existingAddressName = this.getAddressNameFromBookOrInternalAccounts(
       toEnsAddressResolved || toAccount,
     );
