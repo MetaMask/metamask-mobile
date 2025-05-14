@@ -1,46 +1,46 @@
 #!/bin/bash
-set -ex
+
+set -e
 
 echo "Installing Foundry..."
 curl -L https://foundry.paradigm.xyz | bash
 
-# Run foundryup to install latest version
+# Add Foundry binaries to PATH for *this step*
+export PATH="$HOME/.foundry/bin:$PATH"
+
+echo "Running foundryup to install the latest version..."
 $HOME/.foundry/bin/foundryup
 
-# Add to PATH for this step and future steps
-echo 'export PATH="$HOME/.foundry/bin:$PATH"' >> $BASH_ENV
-export PATH="$HOME/.foundry/bin:$PATH"
-source $BASH_ENV
+# Save path to Bitrise environment for use in future steps
+envman add --key FOUNDRY_BIN_PATH --value "$HOME/.foundry/bin"
 
 # Verify installation
 if command -v forge &>/dev/null; then
-    echo "Foundry installed successfully!"
+    echo "Foundry installation completed successfully!"
     forge --version
 else
-    echo "Error: Foundry install failed"
+    echo "Error: Foundry installation may have failed. Please check the output above."
     exit 1
 fi
 
-# Check anvil
-if command -v anvil &>/dev/null; then
-    anvil --version
+anvil --version
+
+# GitHub attestation (optional)
+if [ -n "$GITHUB_ACCESS_TOKEN" ]; then
+    echo "Using GITHUB_ACCESS_TOKEN as GH_TOKEN for GitHub CLI authentication..."
+    export GH_TOKEN="$GITHUB_ACCESS_TOKEN"
+    gh attestation verify --owner foundry-rs $(which forge)
 else
-    echo "anvil not found in PATH"
-    exit 1
+    echo "Warning: GITHUB_ACCESS_TOKEN environment variable not set."
 fi
 
-if command -v gh &>/dev/null; then
-    if [ -n "$GITHUB_ACCESS_TOKEN" ]; then
-        echo "Setting GH_TOKEN..."
-        export GH_TOKEN="$GITHUB_ACCESS_TOKEN"
-    fi
-
-    echo "Verifying forge binary..."
-    if ! gh attestation verify --owner foundry-rs "$(which forge)"; then
-        echo "Verification failed, continuing..."
-    fi
+echo "Verifying forge binary using GitHub attestation..."
+if gh attestation verify --owner foundry-rs $(which forge); then
+    echo "Verification successful! The forge binary is authentic."
 else
-    echo "GitHub CLI not installed, skipping attestation"
+    VERIFICATION_STATUS=$?
+    echo "Verification failed with exit code: $VERIFICATION_STATUS"
+    echo "Since this is running in CI, we'll continue despite verification failure."
 fi
 
-echo "Script completed. Foundry and anvil are ready."
+echo "Script completed successfully. Foundry is ready to use."

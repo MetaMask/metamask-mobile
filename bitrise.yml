@@ -699,21 +699,20 @@ workflows:
           inputs:
             - content: |
                 #!/usr/bin/env bash
-                #!/bin/bash
-                set -ex
+                set -ex 
 
-                echo "Installing Foundry..."
-                curl -L https://foundry.paradigm.xyz | bash
+                ./scripts/foundry-install.sh
+                export PATH="$FOUNDRY_BIN_PATH:$PATH"
 
-                $HOME/.foundry/bin/foundryup
+                # echo "Installing Foundry..."
+                # curl -L https://foundry.paradigm.xyz | bash
 
-                BASH_ENV="${BASH_ENV:-$HOME/.bash_env}"
-                echo 'export PATH="$HOME/.foundry/bin:$PATH"' >> "$BASH_ENV"
-                export PATH="$HOME/.foundry/bin:$PATH"
-                source "$BASH_ENV"
+                # $HOME/.foundry/bin/foundryup
+                # export PATH="$HOME/.foundry/bin:$PATH"
+                # source "$BASH_ENV"
 
-                command -v forge && forge --version
-                command -v anvil && anvil --version
+                # command -v forge && forge --version
+                # command -v anvil && anvil --version
 
   build_flask_e2e_android:
     meta:
@@ -1051,9 +1050,11 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-       
+                export PATH="$FOUNDRY_BIN_PATH:$PATH"
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                echo "TESTING ANVIL VERSION"
+                anvil --version
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                   IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/
                 else
