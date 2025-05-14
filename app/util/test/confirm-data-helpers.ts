@@ -889,7 +889,7 @@ const mockApprovalRequest = {
   expectsResult: true,
 } as unknown as ApprovalRequest<TransactionMeta>;
 
-const mockTransaction = {
+export const mockTransaction = {
   id: mockTxId,
   type: TransactionType.contractInteraction,
   txParams: {
@@ -1065,6 +1065,15 @@ export const upgradeAccountConfirmation = {
       isDecrease: true,
     },
     tokenBalanceChanges: [],
+  },
+} as unknown as TransactionMeta;
+
+export const upgradeOnlyAccountConfirmation = {
+  ...upgradeAccountConfirmation,
+  nestedTransactions: [],
+  txParams: {
+    ...upgradeAccountConfirmation.txParams,
+    data: '0x',
   },
 } as unknown as TransactionMeta;
 
