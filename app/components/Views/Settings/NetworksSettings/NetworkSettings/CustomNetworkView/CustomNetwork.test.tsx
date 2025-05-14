@@ -18,7 +18,9 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('CustomNetwork component', () => {
-  const getMockCustomNetworkProps = () => {
+  const getMockCustomNetworkProps = (
+    overrides?: Partial<CustomNetworkProps>,
+  ) => {
     const mockCloseNetworkModal = jest.fn();
     const mockShowNetworkModal = jest.fn();
     const mockCustomNetworkProps: CustomNetworkProps = {
@@ -36,15 +38,16 @@ describe('CustomNetwork component', () => {
       },
       showNetworkModal: mockShowNetworkModal,
       shouldNetworkSwitchPopToWallet: false,
+      ...overrides,
     };
     return mockCustomNetworkProps;
   };
 
-  it('filters out CAIP-2 networks', () => {
-    const props = getMockCustomNetworkProps();
+  it('filters out CAIP-2 networks when showing all networks (included added networks)', () => {
+    const props = getMockCustomNetworkProps({ showAddedNetworks: true });
     const mockState = getMockState();
     const { getByText, queryByText } = renderWithProvider(
-      <CustomNetwork {...props} showAddedNetworks />,
+      <CustomNetwork {...props} />,
       {
         state: mockState,
       },
