@@ -157,6 +157,7 @@ stages:
       - build_android_devbuild: {}
       - build_android_qa: {}
       - build_ios_devbuild: {}
+      - build_ios_simbuild: {}
       - build_ios_qa: {}
   create_build_qa_flask:
     workflows:
