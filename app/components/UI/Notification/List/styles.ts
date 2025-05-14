@@ -1,6 +1,10 @@
 /* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 export type NotificationListStyles = ReturnType<typeof createStyles>;
 
@@ -76,7 +80,8 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderColor: colors.background.default,
     },
     textStyle: {
-      ...typography.sBodyMD,
+      ...typography.sBodyMDMedium,
+      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
       fontWeight: '500',
     },
     loader: {

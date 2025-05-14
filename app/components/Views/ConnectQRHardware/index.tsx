@@ -118,7 +118,7 @@ async function initiateQRHardwareConnection(
   const qrInteractions = await KeyringController.withKeyring(
     { type: KeyringTypes.qr },
     // @ts-expect-error The QR Keyring type is not compatible with our keyring type yet
-    async (keyring: QRKeyring) => ({
+    async ({ keyring }: QRKeyring) => ({
       cancelSync: keyring.cancelSync.bind(keyring),
       submitCryptoAccount: keyring.submitCryptoAccount.bind(keyring),
       submitCryptoHDKey: keyring.submitCryptoHDKey.bind(keyring),
@@ -160,6 +160,14 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
 
+  const qrInteractionsRef =
+    useRef<
+      Pick<
+        QRKeyring,
+        'cancelSync' | 'submitCryptoAccount' | 'submitCryptoHDKey'
+      >
+    >();
+
   const showScanner = useCallback(() => {
     setScannerVisible(true);
   }, []);
@@ -167,6 +175,11 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const hideScanner = useCallback(() => {
     setScannerVisible(false);
   }, []);
+
+  const hideModal = useCallback(() => {
+    qrInteractionsRef.current?.cancelSync();
+    hideScanner();
+  }, [hideScanner]);
 
   useEffect(() => {
     KeyringController.getAccounts().then((value: string[]) => {
@@ -205,14 +218,6 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       hideScanner();
     }
   }, [QRState.sync, hideScanner, showScanner]);
-
-  const qrInteractionsRef =
-    useRef<
-      Pick<
-        QRKeyring,
-        'cancelSync' | 'submitCryptoAccount' | 'submitCryptoHDKey'
-      >
-    >();
 
   const onConnectHardware = useCallback(async () => {
     trackEvent(
@@ -379,7 +384,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
         purpose={'sync'}
         onScanSuccess={onScanSuccess}
         onScanError={onScanError}
-        hideModal={hideScanner}
+        hideModal={hideModal}
       />
       <BlockingActionModal modalVisible={blockingModalVisible} isLoadingAction>
         <Text style={styles.text}>{strings('common.please_wait')}</Text>

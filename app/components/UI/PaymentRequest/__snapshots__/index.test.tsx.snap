@@ -57,8 +57,8 @@ exports[`PaymentRequest renders correctly 1`] = `
           <Text
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
                 "fontWeight": "400",
               }
@@ -71,7 +71,7 @@ exports[`PaymentRequest renders correctly 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 1,
               "flexDirection": "row",
@@ -81,10 +81,11 @@ exports[`PaymentRequest renders correctly 1`] = `
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {
-                  "color": "#9fa6ae",
+                  "color": "#9ca1af",
                   "fontSize": 18,
                 },
                 {
@@ -101,7 +102,7 @@ exports[`PaymentRequest renders correctly 1`] = `
               ]
             }
           >
-            
+            
           </Text>
           <TextInput
             autoCapitalize="none"
@@ -111,14 +112,14 @@ exports[`PaymentRequest renders correctly 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Search assets"
-            placeholderTextColor="#9fa6ae"
+            placeholderTextColor="#9ca1af"
             returnKeyType="go"
             style={
               [
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "flex": 1,
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "height": 40,
@@ -145,8 +146,8 @@ exports[`PaymentRequest renders correctly 1`] = `
           <Text
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "marginBottom": 8,
@@ -173,11 +174,11 @@ exports[`PaymentRequest renders correctly 1`] = `
                     },
                     {
                       "backgroundColor": "#ffffff",
-                      "borderColor": "#0376c9",
+                      "borderColor": "#4459ff",
                       "borderWidth": 1,
                     },
                     {
-                      "borderColor": "#848c96",
+                      "borderColor": "#b7bbc8",
                       "borderRadius": 8,
                       "borderWidth": 1,
                       "marginBottom": 8,
@@ -283,8 +284,8 @@ exports[`PaymentRequest renders correctly 1`] = `
                   <Text
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "paddingBottom": 4,
@@ -296,8 +297,8 @@ exports[`PaymentRequest renders correctly 1`] = `
                   <Text
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontWeight": "400",
                       }
                     }
@@ -322,11 +323,11 @@ exports[`PaymentRequest renders correctly 1`] = `
                     },
                     {
                       "backgroundColor": "#ffffff",
-                      "borderColor": "#0376c9",
+                      "borderColor": "#4459ff",
                       "borderWidth": 1,
                     },
                     {
-                      "borderColor": "#848c96",
+                      "borderColor": "#b7bbc8",
                       "borderRadius": 8,
                       "borderWidth": 1,
                       "marginBottom": 8,
@@ -358,7 +359,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                   <View
                     placeholderStyle={
                       {
-                        "backgroundColor": "#f2f4f6",
+                        "backgroundColor": "#f3f5f9",
                       }
                     }
                     useNativeDriver={true}
@@ -406,7 +407,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                               "backgroundColor": "#eee",
                             },
                             {
-                              "backgroundColor": "#f2f4f6",
+                              "backgroundColor": "#f3f5f9",
                             },
                           ]
                         }
@@ -427,8 +428,8 @@ exports[`PaymentRequest renders correctly 1`] = `
                   <Text
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "paddingBottom": 4,
@@ -440,8 +441,8 @@ exports[`PaymentRequest renders correctly 1`] = `
                   <Text
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontWeight": "400",
                       }
                     }

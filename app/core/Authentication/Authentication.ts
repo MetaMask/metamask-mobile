@@ -31,6 +31,12 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
+///: BEGIN:ONLY_INCLUDE_IF(beta)
+import {
+  MultichainWalletSnapFactory,
+  WalletClientType,
+} from '../SnapKeyring/MultichainWalletSnapClient';
+///: END:ONLY_INCLUDE_IF(beta)
 
 /**
  * Holds auth data used to determine auth configuration
@@ -85,6 +91,17 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     if (clearEngine) await Engine.resetState();
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    const primaryHdKeyringId =
+      Engine.context.KeyringController.state.keyringsMetadata[0].id;
+    const client = MultichainWalletSnapFactory.createClient(
+      WalletClientType.Solana,
+      {
+        setSelectedAccount: false,
+      },
+    );
+    await client.addDiscoveredAccounts(primaryHdKeyringId);
+    ///: END:ONLY_INCLUDE_IF(beta)
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
@@ -101,6 +118,18 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
+
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    const primaryHdKeyringId =
+      Engine.context.KeyringController.state.keyringsMetadata[0].id;
+    const client = MultichainWalletSnapFactory.createClient(
+      WalletClientType.Solana,
+      {
+        setSelectedAccount: false,
+      },
+    );
+    await client.addDiscoveredAccounts(primaryHdKeyringId);
+    ///: END:ONLY_INCLUDE_IF(beta)
     password = this.wipeSensitiveData();
   };
 
@@ -381,7 +410,6 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp({ reset: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_TO_LOGIN,

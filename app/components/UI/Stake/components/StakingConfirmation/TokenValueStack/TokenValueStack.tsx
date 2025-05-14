@@ -4,7 +4,9 @@ import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
   TextVariant,
   TextColor,
@@ -31,6 +33,7 @@ const TokenValueStack = ({
     <View style={[styles.tokenValueStackContainer, style]}>
       <BadgeWrapper
         style={styles.badgeWrapper}
+        badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}

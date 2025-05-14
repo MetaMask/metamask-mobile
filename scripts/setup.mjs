@@ -207,7 +207,9 @@ const buildInpageBridgeTask = {
     if (IS_NODE) {
       return task.skip('Skipping building inpage bridge.');
     }
-    await $`./scripts/build-inpage-bridge.sh`;
+    // Ensure the build type is passed to the script
+    const buildType = process.env.METAMASK_BUILD_TYPE || '';
+    await $({ env: { METAMASK_BUILD_TYPE: buildType } })`./scripts/build-inpage-bridge.sh`;
   },
 };
 
@@ -239,6 +241,26 @@ const patchPackageTask = {
   title: 'Patch npm packages',
   task: async () => {
     await $`yarn patch-package --error-on-fail`;
+  },
+};
+
+const expoBuildLinks = {
+  title: 'Try EXPO!',
+  task: async () => {
+    function hyperlink(label, url) {
+      return `\x1b]8;;${url}\x1b\\${label}\x1b]8;;\x1b\\`;
+    }
+
+    console.log(`
+     Setup complete! Consider getting started with EXPO on MetaMask. Here are the 3 easy steps to get up and running. 
+
+     Step 1: Install EXPO Executable
+      📱 ${hyperlink('iOS .ipa (physical devices) Note: it requires Apple Registration with MetaMask', 'https://app.runway.team/bucket/MV2BJmn6D5_O7nqGw8jHpATpEA4jkPrBB4EcWXC6wV7z8jgwIbAsDhE5Ncl7KwF32qRQQD9YrahAIaxdFVvLT4v3UvBcViMtT3zJdMMfkXDPjSdqVGw=')}     
+      🤖 ${hyperlink('iOS .app (iOS simulator unzip the file and drag in simulator)', 'https://app.runway.team/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=')}
+      🤖 ${hyperlink('Android .apk (physical devices & emulators)', 'https://app.runway.team/bucket/hykQxdZCEGgoyyZ9sBtkhli8wupv9PiTA6uRJf3Lh65FTECF1oy8vzkeXdmuJKhm7xGLeV35GzIT1Un7J5XkBADm5OhknlBXzA0CzqB767V36gi1F3yg3Uss')}
+     Step 2: 👀 yarn watch or yarn watch:clean
+     Step 3: 🚀 launch app on emulator or scan QR code in terminal
+      `);
   },
 };
 
@@ -327,6 +349,7 @@ const prepareDependenciesTask = {
         jetifyTask,
         runLavamoatAllowScriptsTask,
         patchPackageTask,
+        expoBuildLinks,
       ],
       {
         exitOnError: true,

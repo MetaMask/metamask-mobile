@@ -6,7 +6,7 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 const AuthMocks = AuthenticationController.Mocks;
 
 /**
- * E2E mock setup for identity APIs (Auth, UserStorage, Profile syncing)
+ * E2E mock setup for identity APIs (Auth, UserStorage, Backup and sync)
  *
  * @param server - server obj used to mock our endpoints
  * @param userStorageMockttpController - optional controller to mock user storage endpoints
@@ -65,3 +65,38 @@ function mockAPICall(server, response) {
       json: response.response,
     }));
 }
+
+const MOCK_ETH_BALANCE = '0xde0b6b3a7640000';
+const INFURA_URL = 'https://mainnet.infura.io/v3/';
+
+/**
+ * Sets up mock responses for Infura balance checks and account syncing
+ * @param {Object} mockServer - The server object to set up the mock responses on
+ * @param {Array<String>} accounts - List of account addresses to mock balances for
+ */
+export const setupAccountMockedBalances = async (mockServer, accounts) => {
+  if (!accounts.length) {
+    return;
+  }
+
+  for (const account of accounts) {
+    await mockServer
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = getDecodedProxiedURL(request.url);
+        return url.includes(INFURA_URL);
+      })
+      .withJsonBodyIncluding({
+        method: 'eth_getBalance',
+        params: [account.toLowerCase()],
+      })
+      .thenCallback(() => ({
+        statusCode: 200,
+        json: {
+          jsonrpc: '2.0',
+          id: '1111111111111111',
+          result: MOCK_ETH_BALANCE,
+        },
+      }));
+  }
+};

@@ -12,6 +12,7 @@ import OrderDetail from '../../components/OrderDetails';
 import Row from '../../components/Row';
 import StyledButton from '../../../StyledButton';
 import {
+  FiatOrder,
   getOrderById,
   updateFiatOrder,
 } from '../../../../../reducers/fiatOrders';
@@ -131,7 +132,7 @@ const OrderDetails = () => {
   }, [trackEvent]);
 
   const dispatchUpdateFiatOrder = useCallback(
-    (updatedOrder) => {
+    (updatedOrder: FiatOrder) => {
       dispatch(updateFiatOrder(updatedOrder));
     },
     [dispatch],
@@ -189,13 +190,16 @@ const OrderDetails = () => {
     () => {
       handleOnRefresh({ fromInterval: true });
     },
-    !isLoading &&
-      !isRefreshingInterval &&
-      order &&
-      order.state === FIAT_ORDER_STATES.CREATED &&
-      order.sellTxHash
-      ? AppConstants.FIAT_ORDERS.POLLING_FREQUENCY
-      : null,
+    {
+      delay:
+        !isLoading &&
+        !isRefreshingInterval &&
+        order &&
+        order.state === FIAT_ORDER_STATES.CREATED &&
+        order.sellTxHash
+          ? AppConstants.FIAT_ORDERS.POLLING_FREQUENCY
+          : null,
+    },
   );
 
   if (!order) {

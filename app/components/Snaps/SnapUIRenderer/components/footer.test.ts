@@ -1,7 +1,7 @@
 import { ButtonElement, FooterElement } from '@metamask/snaps-sdk/jsx';
 import { footer, DEFAULT_FOOTER } from './footer';
-import { ButtonVariant } from '@metamask/snaps-sdk';
 import { mockTheme } from '../../../../util/theme';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 
 describe('footer', () => {
   const mockT = (value: string) => `translated_${value}`;
@@ -59,16 +59,21 @@ describe('footer', () => {
             loading: false,
             name: undefined,
             onCancel: undefined,
-            textVariant: 'sBodyMDMedium',
             type: undefined,
-            variant: 'primary',
+            variant: 'Primary',
           },
           children: [
             {
               key: '57fd48ba929aa415dc4c3996c826a75f8686418c77765eb14fad2658efa73d87_1',
-              element: 'RNText',
+              element: 'Text',
               children: 'Button',
-              props: { color: 'inherit' },
+              props: {
+                color: 'inherit',
+                style: {
+                  fontWeight: undefined,
+                  textAlign: undefined,
+                },
+              },
             },
           ],
         },
@@ -97,7 +102,7 @@ describe('footer', () => {
       props: {
         isSnapAction: false,
         onCancel: mockOnCancel,
-        variant: 'secondary',
+        variant: 'Secondary',
       },
       children: 'translated_template_confirmation.cancel',
     });
@@ -119,11 +124,11 @@ describe('footer', () => {
     expect(Array.isArray(result.children)).toBe(true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.children as any[])[0].props.variant).toBe(
-      ButtonVariant.Secondary,
+      ButtonVariants.Secondary,
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.children as any[])[1].props.variant).toBe(
-      ButtonVariant.Primary,
+      ButtonVariants.Primary,
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.children as any[])[0].props.isSnapAction).toBe(true);

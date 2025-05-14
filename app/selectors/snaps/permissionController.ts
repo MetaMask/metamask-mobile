@@ -1,9 +1,18 @@
 import { RootState } from '../../reducers';
 import { memoize } from 'lodash';
-import { SubjectType } from '@metamask/permission-controller';
+import { GenericPermissionController, SubjectType } from '@metamask/permission-controller';
+import { createDeepEqualSelector } from '../util';
 
 export const selectPermissionControllerState = (state: RootState) =>
-  state.engine.backgroundState.PermissionController;
+  state.engine.backgroundState.PermissionController as GenericPermissionController['state'];
+
+const selectOrigin = (_state: RootState, origin?: string) =>
+  origin;
+
+export const getPermissions = createDeepEqualSelector(
+  [selectPermissionControllerState, selectOrigin],
+  (state, origin) => origin ? state.subjects[origin]?.permissions : undefined,
+);
 
 export const selectSubjectMetadataControllerState = (state: RootState) =>
   state.engine.backgroundState.SubjectMetadataController;

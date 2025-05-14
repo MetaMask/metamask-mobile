@@ -33,6 +33,7 @@ import { AdvancedViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/
 import Text, {
   TextVariant,
   TextColor,
+  getFontFamily,
 } from '../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
@@ -126,6 +127,7 @@ const createStyles = (colors) =>
     },
     warningText: {
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.text.default,
       flex: 1,
       marginStart: 8,
@@ -347,6 +349,7 @@ class AdvancedSettings extends PureComponent {
                 </Text>
                 <View style={styles.toggle}>
                   <Switch
+                    testID={AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH}
                     value={smartTransactionsOptInStatus}
                     onValueChange={this.toggleSmartTransactionsOptInStatus}
                     trackColor={{
@@ -368,7 +371,9 @@ class AdvancedSettings extends PureComponent {
                 color={TextColor.Alternative}
                 style={styles.desc}
               >
-                {strings('app_settings.smart_transactions_opt_in_desc')}{' '}
+                {strings(
+                  'app_settings.smart_transactions_opt_in_desc_supported_networks',
+                )}{' '}
                 <Text
                   color={TextColor.Primary}
                   link
@@ -510,7 +515,10 @@ const mapStateToProps = (state) => ({
   isTokenDetectionEnabled: selectUseTokenDetection(state),
   chainId: selectChainId(state),
   smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
-  smartTransactionsEnabled: selectSmartTransactionsEnabled(state),
+  smartTransactionsEnabled: selectSmartTransactionsEnabled(
+    state,
+    selectChainId(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

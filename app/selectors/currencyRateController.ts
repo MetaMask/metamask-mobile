@@ -4,9 +4,10 @@ import { RootState } from '../reducers';
 import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
-  selectTicker,
+  selectEvmTicker,
 } from './networkController';
 import { isTestNet } from '../../app/util/networks';
+import { createDeepEqualSelector } from './util';
 
 const selectCurrencyRateControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.CurrencyRateController;
@@ -14,7 +15,7 @@ const selectCurrencyRateControllerState = (state: RootState) =>
 export const selectConversionRate = createSelector(
   selectCurrencyRateControllerState,
   selectEvmChainId,
-  selectTicker,
+  selectEvmTicker,
   (state: RootState) => state.settings.showFiatOnTestnets,
   (
     currencyRateControllerState: CurrencyRateState,
@@ -37,7 +38,7 @@ export const selectCurrencyRates = createSelector(
     currencyRateControllerState?.currencyRates,
 );
 
-export const selectCurrentCurrency = createSelector(
+export const selectCurrentCurrency = createDeepEqualSelector(
   selectCurrencyRateControllerState,
   (currencyRateControllerState: CurrencyRateState) =>
     currencyRateControllerState?.currentCurrency,
@@ -76,4 +77,10 @@ export const selectConversionRateByChainId = createSelector(
 
     return currencyRates?.[nativeCurrency]?.conversionRate;
   },
+);
+
+export const selectUsdConversionRate = createSelector(
+  selectCurrencyRates,
+  selectCurrentCurrency,
+  (currencyRates, currentCurrency) => currencyRates?.[currentCurrency]?.usdConversionRate,
 );

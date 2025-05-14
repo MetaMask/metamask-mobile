@@ -1,7 +1,6 @@
+import { fireEvent } from '@testing-library/react-native';
 import { shallow } from 'enzyme';
-// Third party dependencies.
 import React from 'react';
-
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CustomSpendCap from './CustomSpendCap';
 import {
@@ -11,18 +10,20 @@ import {
   INPUT_VALUE_CHANGED,
   TICKER,
 } from './CustomSpendCap.constants';
-// Internal dependencies.
 import { CustomSpendCapProps } from './CustomSpendCap.types';
 
 function RenderCustomSpendCap(
   tokenSpendValue = '',
   isInputValid: () => boolean = () => true,
   dappProposedValue: string = DAPP_PROPOSED_VALUE,
+  accountBalance: string = ACCOUNT_BALANCE,
+  unroundedAccountBalance: string = ACCOUNT_BALANCE,
 ) {
   return (
     <CustomSpendCap
       ticker={TICKER}
-      accountBalance={ACCOUNT_BALANCE}
+      accountBalance={accountBalance}
+      unroundedAccountBalance={unroundedAccountBalance}
       dappProposedValue={dappProposedValue}
       onInputChanged={INPUT_VALUE_CHANGED}
       isEditDisabled={false}
@@ -119,5 +120,49 @@ describe('CustomSpendCap', () => {
     );
 
     expect(await findByText(`${inputtedSpendValue} ${TICKER}`)).toBeDefined();
+  });
+
+  it('should render account balance when clicking max if unrounded account balance is empty string', async () => {
+    const inputtedSpendValue = '100';
+
+    const roundedAccountBalance = '3.14';
+    const unroundedAccountBalance = '';
+
+    const { findByTestId, findByText } = renderWithProvider(
+      RenderCustomSpendCap(
+        inputtedSpendValue,
+        isInputValid,
+        DAPP_PROPOSED_VALUE,
+        roundedAccountBalance,
+        unroundedAccountBalance,
+      ),
+    );
+
+    fireEvent.press(await findByText('Max'));
+
+    const input = await findByTestId(`${'custom-spend-cap-input-input-id'}`);
+    expect(input.props.value).toEqual(roundedAccountBalance);
+  });
+
+  it('should render unrounded account balance when clicking max if unrounded account balance is not empty string', async () => {
+    const inputtedSpendValue = '100';
+
+    const roundedAccountBalance = '3.14';
+    const unroundedAccountBalance = '3.141592654';
+
+    const { findByTestId,findByText } = renderWithProvider(
+      RenderCustomSpendCap(
+        inputtedSpendValue,
+        isInputValid,
+        DAPP_PROPOSED_VALUE,
+        roundedAccountBalance,
+        unroundedAccountBalance,
+      ),
+    );
+
+    fireEvent.press(await findByText('Max'));
+
+    const input = await findByTestId(`${'custom-spend-cap-input-input-id'}`);
+    expect(input.props.value).toEqual(unroundedAccountBalance);
   });
 });

@@ -137,7 +137,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#141618"
+                  color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -168,7 +169,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -178,8 +179,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -214,7 +215,13 @@ exports[`AddActivationKey renders correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -222,6 +229,7 @@ exports[`AddActivationKey renders correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -409,9 +417,9 @@ exports[`AddActivationKey renders correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 16,
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 18,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -436,12 +444,12 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                                 testID="label"
@@ -453,7 +461,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
-                                    "borderColor": "#0376c9",
+                                    "borderColor": "#4459ff",
                                     "borderRadius": 8,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -487,9 +495,9 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "backgroundColor": "#ffffff",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 14,
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
                                         "letterSpacing": 0,
@@ -519,12 +527,12 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                                 testID="label"
@@ -536,7 +544,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
-                                    "borderColor": "#0376c9",
+                                    "borderColor": "#4459ff",
                                     "borderRadius": 8,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -572,9 +580,9 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "backgroundColor": "#ffffff",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 14,
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
                                         "letterSpacing": 0,
@@ -615,8 +623,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "transparent",
-                                    "borderColor": "#0376c9",
-                                    "borderRadius": 24,
+                                    "borderColor": "#4459ff",
+                                    "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flex": 1,
                                     "flexDirection": "row",
@@ -630,12 +638,12 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#0376c9",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
+                                      "color": "#4459ff",
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
@@ -654,8 +662,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#0376c9",
-                                    "borderRadius": 24,
+                                    "backgroundColor": "#4459ff",
+                                    "borderRadius": 12,
                                     "flex": 1,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -670,11 +678,11 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >

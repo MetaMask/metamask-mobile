@@ -65,6 +65,7 @@ import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain
 
 ///: END:ONLY_INCLUDE_IF
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
+import { BridgeViewMode } from '../Bridge/types';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -102,9 +103,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Device.isAndroid() ? 22 : 18,
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
-  notificationButton: {
-    marginHorizontal: 4,
-  },
   disabled: {
     opacity: 0.3,
   },
@@ -129,9 +127,6 @@ const styles = StyleSheet.create({
   leftElementContainer: {
     marginLeft: 16,
   },
-  notificationsWrapper: {
-    marginHorizontal: 4,
-  },
   notificationsBadge: {
     width: 8,
     height: 8,
@@ -139,7 +134,7 @@ const styles = StyleSheet.create({
 
     position: 'absolute',
     top: 2,
-    right: 10,
+    right: 4,
   },
   headerLeftButton: {
     marginHorizontal: 16,
@@ -149,6 +144,9 @@ const styles = StyleSheet.create({
   },
   addressCopyWrapper: {
     marginHorizontal: 4,
+  },
+  iconButton: {
+    marginHorizontal: 24,
   },
 });
 
@@ -313,7 +311,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
         testID={CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON}
       >
         <IonicIcon
-          name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
+          name={'arrow-back'}
           size={Device.isAndroid() ? 24 : 28}
           style={innerStyles.headerIcon}
         />
@@ -383,7 +381,7 @@ export function getPaymentRequestOptionsTitle(
           testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
         >
           <IonicIcon
-            name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
+            name={'arrow-back'}
             size={Device.isAndroid() ? 24 : 28}
             style={innerStyles.headerIcon}
           />
@@ -398,7 +396,7 @@ export function getPaymentRequestOptionsTitle(
         style={styles.closeButton}
       >
         <IonicIcon
-          name={'ios-close'}
+          name={'close'}
           size={38}
           style={[innerStyles.headerIcon, styles.backIconIOS]}
         />
@@ -442,7 +440,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
         )}
       >
         <IonicIcon
-          name="ios-close"
+          name="close"
           size={38}
           style={[innerStyles.headerIcon, styles.backIconIOS]}
         />
@@ -840,7 +838,7 @@ export function getClosableNavigationOptions(
           {...generateTestId(Platform, NAV_ANDROID_BACK_BUTTON)}
         >
           <IonicIcon
-            name={'md-arrow-back'}
+            name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />
@@ -876,7 +874,7 @@ export function getOfflineModalNavbar() {
  * @param {Object} navigation - The navigation object
  * @param {Object} themeColors - The theme colors object
  * @param {boolean} isNotificationEnabled - Whether notifications are enabled
- * @param {boolean | null} isProfileSyncingEnabled - Whether profile syncing is enabled
+ * @param {boolean | null} isBackupAndSyncEnabled - Whether backup and sync is enabled
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
  * @param {boolean} isNonEvmSelected - Whether a non evm network is selected
@@ -893,7 +891,7 @@ export function getWalletNavbarOptions(
   navigation,
   themeColors,
   isNotificationEnabled,
-  isProfileSyncingEnabled,
+  isBackupAndSyncEnabled,
   unreadNotificationCount,
   readNotificationCount,
 ) {
@@ -997,7 +995,7 @@ export function getWalletNavbarOptions(
         )
           .addProperties({
             action_type: 'started',
-            is_profile_syncing_enabled: isProfileSyncingEnabled,
+            is_profile_syncing_enabled: isBackupAndSyncEnabled,
           })
           .build(),
       );
@@ -1047,30 +1045,33 @@ export function getWalletNavbarOptions(
         >
           <AddressCopy />
         </View>
-        <View style={styles.notificationsWrapper}>
-          {isNotificationsFeatureEnabled() && (
+        {isNotificationsFeatureEnabled() && (
+          <View>
+            {/* Icon */}
             <ButtonIcon
-              iconColor={IconColor.Primary}
+              iconColor={IconColor.Default}
               onPress={handleNotificationOnPress}
               iconName={IconName.Notification}
               size={IconSize.Xl}
               testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
               style={styles.notificationButton}
             />
-          )}
-          {isNotificationEnabled && (
-            <View
-              style={[
-                styles.notificationsBadge,
-                {
-                  backgroundColor: unreadNotificationCount
-                    ? themeColors.error.default
-                    : themeColors.background.transparent,
-                },
-              ]}
-            />
-          )}
-        </View>
+
+            {/* Badge Dot */}
+            {isNotificationEnabled && (
+              <View
+                style={[
+                  styles.notificationsBadge,
+                  {
+                    backgroundColor: unreadNotificationCount
+                      ? themeColors.error.default
+                      : themeColors.background.transparent,
+                  },
+                ]}
+              />
+            )}
+          </View>
+        )}
 
         <ButtonIcon
           iconColor={IconColor.Default}
@@ -1370,7 +1371,7 @@ export function getWebviewNavbar(navigation, route, themeColors) {
           {...generateTestId(Platform, BACK_BUTTON_SIMPLE_WEBVIEW)}
         >
           <IonicIcon
-            name={'md-arrow-back'}
+            name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />
@@ -1382,7 +1383,7 @@ export function getWebviewNavbar(navigation, route, themeColors) {
           style={styles.backButton}
         >
           <IonicIcon
-            name="ios-close"
+            name="close"
             size={38}
             style={[innerStyles.headerIcon, styles.backIconIOS]}
           />
@@ -1505,7 +1506,7 @@ export function getPaymentMethodApplePayNavbar(
           style={styles.backButton}
         >
           <IonicIcon
-            name={'md-arrow-back'}
+            name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />
@@ -1560,7 +1561,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
           style={styles.backButton}
         >
           <IonicIcon
-            name={'md-arrow-back'}
+            name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />
@@ -1575,7 +1576,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
           style={styles.backButton}
         >
           <IonicIcon
-            name="ios-close"
+            name="close"
             size={38}
             style={[innerStyles.headerIcon, styles.backIconIOS]}
           />
@@ -1700,7 +1701,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
         // eslint-disable-next-line react/jsx-no-bind
         <TouchableOpacity onPress={leftAction} style={styles.backButton}>
           <IonicIcon
-            name={'md-arrow-back'}
+            name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />
@@ -1723,9 +1724,81 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
   };
 }
 
+export function getBridgeNavbar(navigation, route, themeColors) {
+  const innerStyles = StyleSheet.create({
+    headerButtonText: {
+      color: themeColors.primary.default,
+      fontSize: 14,
+      ...fontStyles.normal,
+    },
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+  });
+
+  let title = `${strings('swaps.title')}/${strings('bridge.title')}`;
+  if (route.params?.bridgeViewMode === BridgeViewMode.Bridge) {
+    title = strings('bridge.title');
+  } else if (route.params?.bridgeViewMode === BridgeViewMode.Swap) {
+    title = strings('swaps.title');
+  }
+
+  const leftAction = () => navigation.pop();
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Icon name={IconName.ArrowLeft} />
+      </TouchableOpacity>
+    ),
+    headerRight: () => (
+      // eslint-disable-next-line react/jsx-no-bind
+      <TouchableOpacity
+        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        style={styles.closeButton}
+      >
+        <Text style={innerStyles.headerButtonText}>
+          {strings('navigation.cancel')}
+        </Text>
+      </TouchableOpacity>
+    ),
+    headerStyle: innerStyles.headerStyle,
+  };
+}
+
+export function getBridgeTransactionDetailsNavbar(navigation) {
+  const leftAction = () => navigation.pop();
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        title={strings('bridge_transaction_details.transaction_details')}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Icon name={IconName.ArrowLeft} />
+      </TouchableOpacity>
+    ),
+  };
+}
+
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title, showBack = true, showCancel = true } = {},
+  { title = 'Buy', showBack = true, showCancel = true } = {},
   themeColors,
   onCancel,
 ) {
@@ -1747,7 +1820,6 @@ export function getFiatOnRampAggNavbar(
       ...(!showBack && { textAlign: 'center' }),
     },
   });
-  const headerTitle = title ?? 'Buy';
 
   const leftActionText = strings('navigation.back');
 
@@ -1757,7 +1829,7 @@ export function getFiatOnRampAggNavbar(
 
   return {
     headerTitle: () => (
-      <NavbarTitle title={headerTitle} disableNetwork translate={false} />
+      <NavbarTitle title={title} disableNetwork translate={false} />
     ),
     headerLeft: () => {
       if (!showBack) return <View />;
@@ -1770,7 +1842,7 @@ export function getFiatOnRampAggNavbar(
           accessible
         >
           <IonicIcon
-            name={'md-arrow-back'}
+            name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />
@@ -1858,8 +1930,8 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
  * @param {String} title - Navbar Title.
  * @param {NavigationProp<ParamListBase>} navigation Navigation object returned from useNavigation hook.
  * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
- * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [navBarOptions] - Optional navbar options.
- * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>} }} [metricsOptions] - Optional metrics options.
+ * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean, hasIconButton?: boolean, handleIconPress?: () => void }} [navBarOptions] - Optional navbar options.
+ * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>}, iconButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> } }} [metricsOptions] - Optional metrics options.
  * @returns Staking Navbar Component.
  */
 export function getStakingNavbar(
@@ -1869,7 +1941,12 @@ export function getStakingNavbar(
   navBarOptions,
   metricsOptions,
 ) {
-  const { hasBackButton = true, hasCancelButton = true } = navBarOptions ?? {};
+  const {
+    hasBackButton = true,
+    hasCancelButton = true,
+    hasIconButton = false,
+    handleIconPress,
+  } = navBarOptions ?? {};
 
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -1916,6 +1993,18 @@ export function getStakingNavbar(
     }
   }
 
+  function handleIconPressWrapper() {
+    if (!handleIconPress) return;
+    if (metricsOptions?.iconButtonEvent) {
+      withMetaMetrics(handleIconPress, {
+        event: metricsOptions.iconButtonEvent.event,
+        properties: metricsOptions.iconButtonEvent.properties,
+      })();
+    } else {
+      handleIconPress();
+    }
+  }
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -1943,6 +2032,13 @@ export function getStakingNavbar(
           <Text style={innerStyles.headerButtonText}>
             {strings('navigation.cancel')}
           </Text>
+        </TouchableOpacity>
+      ) : hasIconButton ? (
+        <TouchableOpacity
+          onPress={handleIconPressWrapper}
+          style={styles.iconButton}
+        >
+          <Icon name={IconName.Question} />
         </TouchableOpacity>
       ) : (
         <></>

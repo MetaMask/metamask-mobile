@@ -4,12 +4,12 @@ import { Linking } from 'react-native';
 import AppConstants from '../../../../core/AppConstants';
 import {
   MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID,
-  MAIN_NOTIFICATION_TOGGLE_SWITCH_TEST_ID,
   MAIN_NOTIFICATION_TOGGLE_TEST_ID,
   MainNotificationToggle,
 } from './MainNotificationToggle';
 // eslint-disable-next-line import/no-namespace
 import * as MainNotificationToggleHookModule from './MainNotificationToggle.hooks';
+import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
 
 const arrangeToggleHook = () => {
   const mockOnToggle = jest.fn();
@@ -47,7 +47,9 @@ describe('MainNotificationToggle', () => {
   it('toggles notifications', async () => {
     const mocks = arrangeMocks();
     const { getByTestId } = render(<MainNotificationToggle />);
-    const toggleSwitch = getByTestId(MAIN_NOTIFICATION_TOGGLE_SWITCH_TEST_ID);
+    const toggleSwitch = getByTestId(
+      NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE,
+    );
 
     fireEvent(toggleSwitch, 'onChange', { nativeEvent: { value: false } });
 

@@ -1,7 +1,5 @@
 import Engine from '../Engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
-import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
-import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import { selectEvmNetworkConfigurationsByChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import {
@@ -9,18 +7,29 @@ import {
   findExistingNetwork,
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
+import { MESSAGE_TYPE } from '../createTracingMiddleware';
 
-const wallet_switchEthereumChain = async ({
+/**
+ * Switch chain implementation to be used in JsonRpcEngine middleware.
+ *
+ * @param params.req - The JsonRpcEngine request.
+ * @param params.res - The JsonRpcEngine result object.
+ * @param params.requestUserApproval - The callback to trigger user approval flow.
+ * @param params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
+ * @param params.hooks - Method hooks passed to the method implementation.
+ * @returns {void}.
+ */
+export const wallet_switchEthereumChain = async ({
   req,
   res,
   requestUserApproval,
   analytics,
+  hooks,
 }) => {
   const {
     CurrencyRateController,
     NetworkController,
     MultichainNetworkController,
-    PermissionController,
     SelectedNetworkController,
   } = Engine.context;
   const params = req.params?.[0];
@@ -62,26 +71,34 @@ const wallet_switchEthereumChain = async ({
       res.result = null;
       return;
     }
-    const analyticsParams = await switchToNetwork({
+
+    const currentChainIdForOrigin = hooks.getCurrentChainIdForDomain(origin);
+
+    const fromNetworkConfiguration = hooks.getNetworkConfigurationByChainId(
+      currentChainIdForOrigin,
+    );
+
+    const toNetworkConfiguration =
+      hooks.getNetworkConfigurationByChainId(chainId);
+
+    await switchToNetwork({
       network: existingNetwork,
       chainId: _chainId,
       controllers: {
         CurrencyRateController,
         MultichainNetworkController,
-        PermissionController,
         SelectedNetworkController,
       },
       requestUserApproval,
       analytics,
       origin,
       isAddNetworkFlow: false,
+      hooks: {
+        toNetworkConfiguration,
+        fromNetworkConfiguration,
+        ...hooks,
+      },
     });
-
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
-        .addProperties(analyticsParams)
-        .build(),
-    );
 
     res.result = null;
     return;
@@ -93,4 +110,18 @@ const wallet_switchEthereumChain = async ({
   });
 };
 
-export default wallet_switchEthereumChain;
+export const switchEthereumChainHandler = {
+  methodNames: [MESSAGE_TYPE.SWITCH_ETHEREUM_CHAIN],
+  implementation: wallet_switchEthereumChain,
+  hookNames: {
+    getNetworkConfigurationByChainId: true,
+    setActiveNetwork: true,
+    requestUserApproval: true,
+    getCaveat: true,
+    getCurrentChainIdForDomain: true,
+    requestPermittedChainsPermissionIncrementalForOrigin: true,
+    setTokenNetworkFilter: true,
+    hasApprovalRequestsForOrigin: true,
+    rejectApprovalRequestsForOrigin: true,
+  },
+};

@@ -1,23 +1,23 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
-
-import EthereumAddress from '../../EthereumAddress';
-import JSIdenticon from '../../Identicon';
-import Text from '../../../Base/Text';
-import JSSelectorButton from '../../../Base/SelectorButton';
 import { useNavigation } from '@react-navigation/native';
-import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 
-// TODO: Convert into typescript and correctly type
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SelectorButton = JSSelectorButton as any;
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Identicon = JSIdenticon as any;
+import SelectorButton from '../../../Base/SelectorButton';
+import Avatar, {
+  AvatarAccountType,
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
+
+import { useAccountName } from '../../../hooks/useAccountName';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { formatAddress } from '../../../../util/address';
+import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
+import { type RootState } from '../../../../reducers';
 
 const styles = StyleSheet.create({
   selector: {
@@ -32,37 +32,61 @@ const styles = StyleSheet.create({
 
 const AccountSelector = () => {
   const navigation = useNavigation();
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const accountName = useAccountName();
 
-  const openAccountSelector = () =>
-    navigation.navigate(
-      ...createAccountSelectorNavDetails({
-        disablePrivacyMode: true,
-      }),
-    );
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
+
+  const selectedFormattedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+
+  const openAccountSelector = useCallback(
+    () =>
+      navigation.navigate(
+        ...createAccountSelectorNavDetails({
+          disablePrivacyMode: true,
+        }),
+      ),
+    [navigation],
+  );
+
+  const shortenedAddress = formatAddress(
+    selectedFormattedAddress || '',
+    'short',
+  );
+
+  const displayedAddress = accountName
+    ? `(${shortenedAddress})`
+    : shortenedAddress;
 
   return (
     <SelectorButton onPress={openAccountSelector} style={styles.selector}>
-      {selectedInternalAccount ? (
+      {selectedAddress && selectedFormattedAddress ? (
         <>
-          <Identicon
-            diameter={15}
-            address={toChecksumHexAddress(selectedInternalAccount.address)}
+          <Avatar
+            variant={AvatarVariant.Account}
+            type={accountAvatarType}
+            accountAddress={selectedAddress}
+            size={AvatarSize.Xs}
           />
-          <Text style={styles.accountText} primary centered numberOfLines={1}>
-            {selectedInternalAccount.metadata.name.length > 13
-              ? `${selectedInternalAccount.metadata.name.substr(0, 13)}...`
-              : selectedInternalAccount.metadata.name}{' '}
-            (
-            <EthereumAddress
-              address={toChecksumHexAddress(selectedInternalAccount.address)}
-              type={'short'}
-            />
-            )
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            style={styles.accountText}
+            numberOfLines={1}
+            ellipsizeMode="middle"
+          >
+            {accountName} {displayedAddress}
           </Text>
         </>
       ) : (
-        <Text style={styles.accountText}>Account is loading...</Text>
+        <Text variant={TextVariant.BodyMD}>Account is loading...</Text>
       )}
     </SelectorButton>
   );

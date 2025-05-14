@@ -150,7 +150,13 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -317,7 +324,7 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000099",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -405,8 +412,8 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 32,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
@@ -422,12 +429,12 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                   "textAlign": "center",
                                 }
                               }
@@ -455,8 +462,8 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#0376c9",
-                                "borderRadius": 20,
+                                "backgroundColor": "#4459ff",
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": undefined,
                                 "justifyContent": "center",
@@ -471,11 +478,11 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -494,7 +501,7 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 20,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
@@ -507,12 +514,12 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#0376c9",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "color": "#4459ff",
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >

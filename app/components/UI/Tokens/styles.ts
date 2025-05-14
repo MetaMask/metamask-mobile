@@ -2,6 +2,10 @@ import { StyleSheet, TextStyle } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { Colors } from 'app/util/theme/models';
 import { typography } from '@metamask/design-tokens';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -31,7 +35,7 @@ const createStyles = (colors: Colors) =>
       marginTop: 130,
     },
     emptyTokensViewText: {
-      fontFamily: 'EuclidCircularB-Medium',
+      fontFamily: 'CentraNo1-Medium',
     },
     text: {
       fontSize: 20,
@@ -108,9 +112,21 @@ const createStyles = (colors: Colors) =>
     assetName: {
       flexDirection: 'row',
     },
-    stakeButton: {
+    percentageChange: {
       flexDirection: 'row',
       alignItems: 'center',
+      alignContent: 'center',
+    },
+    stakeButton: {
+      flexDirection: 'row',
+    },
+    dot: {
+      marginLeft: 2,
+      marginRight: 2,
+    },
+    sprout: {
+      marginTop: 3,
+      marginLeft: 2,
     },
     portfolioBalance: {
       flexDirection: 'row',
@@ -143,7 +159,8 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
     },
     textMoadlHeader: {
-      ...typography.lBodyMDBold,
+      ...typography.sBodyMDBold,
+      fontFamily: getFontFamily(TextVariant.BodyMDBold),
       fontSize: 18,
     } as TextStyle,
     editNetworkButton: {
@@ -181,6 +198,7 @@ const createStyles = (colors: Colors) =>
       marginLeft: 5,
       marginRight: 5,
       maxWidth: '60%',
+      borderRadius: 20,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
@@ -191,6 +209,7 @@ const createStyles = (colors: Colors) =>
       marginRight: 5,
       maxWidth: '60%',
       opacity: 0.5,
+      borderRadius: 20,
     },
     controlButtonText: {
       color: colors.text.default,
@@ -206,6 +225,18 @@ const createStyles = (colors: Colors) =>
       width: 50,
       height: 40,
     },
+    controlIconButtonDisabled: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      borderRadius: 50,
+      width: 50,
+      height: 40,
+      opacity: 0.5,
+    },
     balanceContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -213,8 +244,15 @@ const createStyles = (colors: Colors) =>
     privacyIcon: {
       marginLeft: 8,
     },
+    loaderWrapper: {
+      paddingLeft: 40,
+    },
     portfolioButtonContainer: {
       alignItems: 'center',
+    },
+    networkImageContainer: {
+      position: 'absolute',
+      right: 0,
     },
   });
 

@@ -48,6 +48,7 @@ export interface QRTabSwitcherParams {
   initialScreen?: QRTabSwitcherScreens;
   disableTabber?: boolean;
   origin?: string;
+  networkName?: string;
 }
 
 export const createQRScannerNavDetails =
@@ -62,6 +63,7 @@ const QRTabSwitcher = () => {
     initialScreen,
     origin,
     disableTabber,
+    networkName,
   } = route.params as QRTabSwitcherParams;
 
   const [selectedIndex, setSelectedIndex] = useState(
@@ -120,6 +122,7 @@ const QRTabSwitcher = () => {
 
       <View style={styles.overlay}>
         <HeaderBase
+          style={styles.header}
           endAccessory={
             <ButtonIcon
               iconName={IconName.Close}
@@ -129,6 +132,7 @@ const QRTabSwitcher = () => {
           }
         >
           {selectedIndex === QRTabSwitcherScreens.Receive ? (
+            // @ts-expect-error proptypes components requires ts-expect-error
             <NavbarTitle
               // @ts-expect-error proptypes components requires ts-expect-error
               title={strings(`receive.title`)}
@@ -136,6 +140,8 @@ const QRTabSwitcher = () => {
               translate={false}
               // @ts-expect-error proptypes components requires ts-expect-error
               disableNetwork
+              // @ts-expect-error proptypes components requires ts-expect-error
+              networkName={networkName}
             />
           ) : null}
         </HeaderBase>

@@ -150,7 +150,13 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -347,6 +354,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -354,7 +362,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                                       "fontSize": 15,
                                     },
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontSize": 28,
                                     },
                                     {
@@ -379,10 +387,11 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
-                                      "color": "#1c8234",
+                                      "color": "#1c7e33",
                                       "fontSize": 12,
                                     },
                                     {
@@ -400,13 +409,13 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 32,
                                     "fontWeight": "400",
                                     "justifyContent": "center",
@@ -428,8 +437,8 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "lineHeight": 23,

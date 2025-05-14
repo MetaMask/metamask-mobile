@@ -1,8 +1,8 @@
+/* eslint-disable */
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   StyleSheet,
-  Text,
   View,
   TextInput,
   SafeAreaView,
@@ -22,6 +22,7 @@ import Networks, {
   getAllNetworks,
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
+  isValidNetworkName,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
@@ -59,7 +60,6 @@ import {
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import {
-  NetworksTicker,
   isSafeChainId,
   toHex,
 } from '@metamask/controller-utils';
@@ -84,7 +84,6 @@ import Cell, {
   CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import ButtonPrimary from '../../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import { RpcEndpointType } from '@metamask/network-controller';
@@ -92,6 +91,10 @@ import { AvatarVariant } from '../../../../../component-library/components/Avata
 import ReusableModal from '../../../../../components/UI/ReusableModal';
 import Device from '../../../../../util/device';
 import { ScrollView } from 'react-native-gesture-handler';
+import Text, {
+  getFontFamily,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -175,11 +178,6 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.default,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
-      height: Device.getDeviceHeight() * 0.7,
-    },
-    sheetContent: {
-      flex: 1,
-      flexShrink: 1,
     },
     notch: {
       width: 48,
@@ -236,6 +234,7 @@ const createStyles = (colors) =>
     },
     inputWithError: {
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       borderColor: colors.error.default,
       borderRadius: 5,
       borderWidth: 1,
@@ -246,6 +245,7 @@ const createStyles = (colors) =>
     },
     inputWithFocus: {
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       borderColor: colors.primary.default,
       borderRadius: 5,
       borderWidth: 2,
@@ -300,6 +300,7 @@ const createStyles = (colors) =>
       fontSize: 14,
       color: colors.warning.default,
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
     },
     suggestionButton: {
       color: colors.text.default,
@@ -312,11 +313,13 @@ const createStyles = (colors) =>
       fontSize: 14,
       color: colors.text.default,
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
     },
     inlineWarningMessage: {
       paddingVertical: 2,
       color: colors.warning.default,
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
     },
     buttonsWrapper: {
       marginVertical: 12,
@@ -783,7 +786,7 @@ export class NetworkSettings extends PureComponent {
     const checkCustomNetworks = Object.values(
       this.props.networkConfigurations,
     ).filter((item) =>
-      item.rpcEndpoints.some((endpoint) => endpoint.url === rpcUrl),
+      item.rpcEndpoints?.some((endpoint) => endpoint.url === rpcUrl),
     );
 
     if (checkCustomNetworks.length > 0) {
@@ -1188,10 +1191,7 @@ export class NetworkSettings extends PureComponent {
   validateName = (chainToMatch = null) => {
     const { nickname, networkList, chainId } = this.state;
     const { useSafeChainsListValidation } = this.props;
-    const { MAINNET, LINEA_MAINNET } = CHAIN_IDS;
-    const MAINNET_NAME = 'Mainnet';
-    const LINEA_NAME = 'Linea Mainnet';
-
+  
     if (!useSafeChainsListValidation) {
       return;
     }
@@ -1199,23 +1199,8 @@ export class NetworkSettings extends PureComponent {
     // Get the name either from chainToMatch or networkList
     const name = chainToMatch?.name || networkList?.name || null;
 
-    let nameToUse;
-
     // Determine nameToUse based on chainId and nickname comparison
-    if (chainId === MAINNET) {
-      // Allow 'Mainnet' or nickname for Ethereum Mainnet
-      nameToUse =
-        // eslint-disable-next-line eqeqeq
-        name === nickname || nickname == MAINNET_NAME ? undefined : name;
-    } else if (chainId === LINEA_MAINNET) {
-      // Allow 'Linea Mainnet' or nickname for Linea Mainnet
-      nameToUse =
-        // eslint-disable-next-line eqeqeq
-        name === nickname || nickname == LINEA_NAME ? undefined : name;
-    } else {
-      // For other chains, check if name matches the nickname
-      nameToUse = name === nickname ? undefined : name;
-    }
+    const nameToUse = isValidNetworkName(chainId, name, nickname) ? undefined : name;
 
     // Update state with warningName
     this.setState({
@@ -1576,7 +1561,7 @@ export class NetworkSettings extends PureComponent {
     await MultichainNetworkController.setActiveNetwork(networkClientId);
 
     setTimeout(async () => {
-      await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
+      await updateIncomingTransactions();
     }, 1000);
   };
 
@@ -2169,7 +2154,6 @@ export class NetworkSettings extends PureComponent {
               </Text>
             </BottomSheetHeader>
             <KeyboardAwareScrollView
-              style={styles.sheetContent}
               enableOnAndroid
               keyboardShouldPersistTaps="handled"
             >
@@ -2248,7 +2232,6 @@ export class NetworkSettings extends PureComponent {
               </Text>
             </BottomSheetHeader>
             <KeyboardAwareScrollView
-              style={styles.sheetContent}
               enableOnAndroid
               keyboardShouldPersistTaps="handled"
             >

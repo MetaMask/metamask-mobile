@@ -6,25 +6,11 @@ import {
 import usePooledStakes from './usePooledStakes';
 import useBalance from './useBalance';
 import BigNumber from 'bignumber.js';
-import useVaultApyAverages from './useVaultApyAverages';
-import {
-  formatPercent,
-  CommonPercentageInputUnits,
-  PercentageOutputFormat,
-} from '../utils/value';
+import useVaultMetadata from './useVaultMetadata';
 
 const useStakingEarnings = () => {
-  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
-
-  const annualRewardRatePercent = formatPercent(vaultApyAverages.oneWeek, {
-    inputFormat: CommonPercentageInputUnits.PERCENTAGE,
-    outputFormat: PercentageOutputFormat.PERCENT_SIGN,
-    fixed: 1,
-  });
-
-  const annualRewardRateDecimal = new BigNumber(vaultApyAverages.oneWeek)
-    .dividedBy(100)
-    .toNumber();
+  const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultMetadata } =
+    useVaultMetadata();
 
   const { currentCurrency, conversionRate } = useBalance();
 
@@ -57,10 +43,10 @@ const useStakingEarnings = () => {
   );
 
   const isLoadingEarningsData =
-    isLoadingVaultApyAverages || isLoadingPooledStakesData;
+    isLoadingVaultMetadata || isLoadingPooledStakesData;
 
   return {
-    annualRewardRate: annualRewardRatePercent,
+    annualRewardRate,
     lifetimeRewardsETH,
     lifetimeRewardsFiat,
     estimatedAnnualEarningsETH,

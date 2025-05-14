@@ -8,8 +8,9 @@ import { Asset } from './useAddressBalance.types';
 import useAddressBalance from './useAddressBalance';
 import backgroundState from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-import { BN } from 'ethereumjs-util';
 import { SolScope } from '@metamask/keyring-api';
+import type BN5 from 'bnjs5';
+import { mockNetworkState } from '../../../util/test/network';
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
 
@@ -25,12 +26,14 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS_1]: {
-            balance: '0x4a7036655fab2ca3',
-          },
-          [MOCK_ADDRESS_2]: {
-            balance: '0x5',
+        accountsByChainId: {
+          '0x1': {
+            [MOCK_ADDRESS_1]: {
+              balance: '0x4a7036655fab2ca3',
+            },
+            [MOCK_ADDRESS_2]: {
+              balance: '0x5',
+            },
           },
         },
       },
@@ -52,6 +55,15 @@ const mockInitialState = {
         selectedMultichainNetworkChainId: SolScope.Mainnet,
 
         multichainNetworkConfigurationsByChainId: {},
+      },
+      NetworkController: {
+        ...mockNetworkState({
+          chainId: '0x1',
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          blockExplorerUrl: 'https://goerli.lineascan.build',
+        }),
       },
     },
   },
@@ -76,7 +88,7 @@ describe('useAddressBalance', () => {
     address: string,
     selectedAddress: string,
     networkClientId?: string | undefined,
-  ) => Promise<BN>;
+  ) => Promise<BN5>;
   beforeEach(() => {
     mockGetERC20BalanceOf = jest
       .fn()

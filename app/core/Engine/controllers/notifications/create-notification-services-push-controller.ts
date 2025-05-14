@@ -11,7 +11,6 @@ import {
   deleteRegToken,
   isPushNotificationsEnabled,
 } from './push-utils';
-import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 
 export const createNotificationServicesPushController = (props: {
   messenger: NotificationServicesPushControllerMessenger;
@@ -23,7 +22,7 @@ export const createNotificationServicesPushController = (props: {
       state: { ...defaultState, ...props.initialState },
       config: {
         platform: 'mobile',
-        isPushFeatureEnabled: isNotificationsFeatureEnabled(),
+        isPushFeatureEnabled: true,
         pushService: {
           createRegToken,
           deleteRegToken,

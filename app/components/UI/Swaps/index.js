@@ -47,6 +47,7 @@ import {
   setQuotesNavigationsParams,
   isSwapsNativeAsset,
   isDynamicToken,
+  shouldShowMaxBalanceLink,
 } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
@@ -84,7 +85,8 @@ import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
-
+import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
 const createStyles = (colors) =>
   StyleSheet.create({
     container: { backgroundColor: colors.background.default },
@@ -193,6 +195,7 @@ function SwapsAmountView({
   tokenExchangeRates,
   currentCurrency,
   setLiveness,
+  shouldUseSmartTransaction,
 }) {
   const accounts = accountsByChainId[chainId];
   const navigation = useNavigation();
@@ -230,6 +233,14 @@ function SwapsAmountView({
       toLowerCaseEquals(token.address, initialDestination),
     ),
   );
+
+  useStablecoinsDefaultSlippage({
+    sourceTokenAddress: sourceToken?.address,
+    destTokenAddress: destinationToken?.address,
+    chainId,
+    setSlippage,
+  });
+
   const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
   const [contractBalance, setContractBalance] = useState(null);
   const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(
@@ -541,7 +552,13 @@ function SwapsAmountView({
     ) {
       const { TokensController } = Engine.context;
       const { address, symbol, decimals, name } = sourceToken;
-      await TokensController.addToken({ address, symbol, decimals, name });
+      await TokensController.addToken({
+        address,
+        symbol,
+        decimals,
+        name,
+        networkClientId: selectedNetworkClientId,
+      });
     }
     return navigation.navigate(
       'SwapsQuotesView',
@@ -562,6 +579,7 @@ function SwapsAmountView({
     slippage,
     sourceToken,
     isBalanceZero,
+    selectedNetworkClientId,
   ]);
 
   /* Keypad Handlers */
@@ -584,9 +602,11 @@ function SwapsAmountView({
         destinationTokenAddress,
       );
       if (enableDirectWrapping && !isDirectWrapping) {
+        // ETH <> WETH, set slippage to 0
         setSlippage(0);
         setIsDirectWrapping(true);
       } else if (isDirectWrapping && !enableDirectWrapping) {
+        // Coming out of ETH <> WETH to a non (ETH <> WETH) pair, reset slippage
         setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
         setIsDirectWrapping(false);
       }
@@ -659,6 +679,12 @@ function SwapsAmountView({
   const disabledView =
     !destinationTokenHasEnoughOcurrances && !hasDismissedTokenAlert;
 
+  const showMaxBalanceLink = shouldShowMaxBalanceLink({
+    sourceToken,
+    shouldUseSmartTransaction,
+    hasBalance,
+  });
+
   return (
     <ScreenView
       style={styles.container}
@@ -728,7 +754,7 @@ function SwapsAmountView({
                   strings('swaps.available_to_swap', {
                     asset: `${balance} ${sourceToken.symbol}`,
                   })}
-                {!isSwapsNativeAsset(sourceToken) && hasBalance && (
+                {showMaxBalanceLink && (
                   <Text style={styles.linkText} onPress={handleUseMax}>
                     {' '}
                     {strings('swaps.use_max')}
@@ -749,7 +775,7 @@ function SwapsAmountView({
         >
           <View style={styles.horizontalRule} />
           <TouchableOpacity onPress={handleFlipTokens}>
-            <IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+            <IonicIcon style={styles.arrowDown} name="arrow-down" />
           </TouchableOpacity>
           <View style={styles.horizontalRule} />
         </View>
@@ -1001,6 +1027,10 @@ SwapsAmountView.propTypes = {
    * Function to set liveness
    */
   setLiveness: PropTypes.func,
+  /**
+   * Whether to use smart transactions
+   */
+  shouldUseSmartTransaction: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -1017,6 +1047,10 @@ const mapStateToProps = (state) => ({
   selectedNetworkClientId: selectSelectedNetworkClientId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
+    state,
+    selectEvmChainId(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

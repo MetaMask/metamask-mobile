@@ -4,13 +4,13 @@ import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 import { formatEther } from 'ethers/lib/utils';
 import Engine from '../../../../core/Engine';
 import { hexToBN } from '../../../../util/number';
 
 interface StakingGasFee {
-  estimatedGasFeeWei: BN;
+  estimatedGasFeeWei: BN4;
   isLoadingStakingGasFee: boolean;
   isStakingGasFeeError: boolean;
   refreshGasValues: () => void;
@@ -28,7 +28,7 @@ const useStakingGasFee = (depositValueWei: string): StakingGasFee => {
     useState<boolean>(true);
   const [isStakingGasFeeError, setIsStakingGasFeeError] =
     useState<boolean>(false);
-  const [estimatedGasFeeWei, setEstimatedGasFeeWei] = useState<BN>(new BN(0));
+  const [estimatedGasFeeWei, setEstimatedGasFeeWei] = useState<BN4>(new BN4(0));
 
   const fetchDepositGasValues = useCallback(async () => {
     const { GasFeeController } = Engine.context;

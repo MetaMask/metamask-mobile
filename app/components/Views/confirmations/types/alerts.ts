@@ -8,32 +8,34 @@ export enum Severity {
 
 export type AlertSeverity = Severity.Danger | Severity.Warning | Severity.Info;
 
-type MessageOrContent = {
-  /**
-   * Alert summary components can be used as an alternative to a message.
-   */
-  content: ReactElement;
+type MessageOrContent =
+  | {
+      /**
+       * Alert summary components can be used as an alternative to a message.
+       */
+      content: ReactElement;
 
-  /**
-   * The message is a summary of the alert details.
-   */
-  message?: string;
-} | {
-  /**
-   * Alert summary components can be used as an alternative to a message.
-   */
-  content?: ReactElement;
+      /**
+       * The message is a summary of the alert details.
+       */
+      message?: string;
+    }
+  | {
+      /**
+       * Alert summary components can be used as an alternative to a message.
+       */
+      content?: ReactElement;
 
-  /**
-   * The message is a summary of the alert details.
-   */
-  message: string;
-};
+      /**
+       * The message is a summary of the alert details.
+       */
+      message: string;
+    };
 
 /**
  * A confirmable alert to be displayed in the UI.
  */
-export type Alert  = {
+export type Alert = {
   /**
    * Additional details about the alert.
    */
@@ -64,6 +66,11 @@ export type Alert  = {
    * The severity of the alert.
    */
   severity: AlertSeverity;
+
+  /**
+   * Whether the alert should be skipped confirmation.
+   */
+  skipConfirmation?: boolean;
 
   /**
    * The title of the alert.

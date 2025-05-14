@@ -50,7 +50,8 @@ const SnapAccountCustomNameApproval = () => {
     internalAccounts.some((account) => account.metadata.name === name);
 
   useEffect(() => {
-    const suggestedName = approvalRequest?.requestData.snapSuggestedAccountName;
+    const suggestedName =
+      approvalRequest?.requestData?.snapSuggestedAccountName;
     const initialName = suggestedName
       ? getUniqueAccountName(internalAccounts, suggestedName)
       : Engine.context.AccountsController.getNextAvailableAccountName(
@@ -87,6 +88,7 @@ const SnapAccountCustomNameApproval = () => {
         approvalRequest?.type ===
         SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount
       }
+      avoidKeyboard
       onCancel={onReject}
     >
       <View testID={SNAP_ACCOUNT_CUSTOM_NAME_APPROVAL} style={styles.root}>

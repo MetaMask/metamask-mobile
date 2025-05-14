@@ -10,6 +10,7 @@ import SimpleWebview from '../../Views/SimpleWebview';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
+import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
@@ -25,8 +26,8 @@ import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
-import Send from '../../Views/confirmations/Send';
-import SendTo from '../../Views/confirmations/SendFlow/SendTo';
+import Send from '../../Views/confirmations/legacy/Send';
+import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -41,8 +42,9 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import Amount from '../../Views/confirmations/SendFlow/Amount';
-import Confirm from '../../Views/confirmations/SendFlow/Confirm';
+import Amount from '../../Views/confirmations/legacy/SendFlow/Amount';
+import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
+import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
@@ -89,7 +91,10 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
-import BridgeView from '../../UI/Bridge';
+import { AssetLoader } from '../../Views/AssetLoader';
+import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
+import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
+import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -195,16 +200,25 @@ const WalletTabModalFlow = () => (
 
 const TransactionsHome = () => (
   <Stack.Navigator>
-    <Stack.Screen name={Routes.TRANSACTIONS_VIEW} component={ActivityView} />
+    <Stack.Screen
+      name={Routes.TRANSACTIONS_VIEW}
+      component={ActivityView}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
     <Stack.Screen
       name={Routes.RAMP.SEND_TRANSACTION}
       component={SendTransaction}
     />
+    <Stack.Screen
+      name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
+      component={BridgeTransactionDetails}
+    />
   </Stack.Navigator>
 );
 
-const BrowserFlow = () => (
+/* eslint-disable react/prop-types */
+const BrowserFlow = (props) => (
   <Stack.Navigator
     initialRouteName={Routes.BROWSER.VIEW}
     mode={'modal'}
@@ -216,6 +230,26 @@ const BrowserFlow = () => (
       name={Routes.BROWSER.VIEW}
       component={Browser}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.BROWSER.ASSET_LOADER}
+      component={AssetLoader}
+      options={{ headerShown: false, animationEnabled: false }}
+    />
+    <Stack.Screen
+      name={Routes.BROWSER.ASSET_VIEW}
+      component={Asset}
+      initialParams={props.route.params}
+    />
+    <Stack.Screen
+      name="SwapsAmountView"
+      component={SwapsAmountView}
+      options={SwapsAmountView.navigationOptions}
+    />
+    <Stack.Screen
+      name="SwapsQuotesView"
+      component={SwapsQuotesView}
+      options={SwapsQuotesView.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -383,6 +417,11 @@ const SettingsFlow = () => (
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
       options={NotificationsSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.BACKUP_AND_SYNC}
+      component={BackupAndSyncSettings}
+      options={BackupAndSyncSettings.navigationOptions}
     />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
@@ -629,6 +668,10 @@ const SendFlowView = () => (
       component={Confirm}
       options={Confirm.navigationOptions}
     />
+    <Stack.Screen
+      name={Routes.STANDALONE_CONFIRMATIONS.TRANSFER}
+      component={RedesignedConfirm}
+    />
   </Stack.Navigator>
 );
 
@@ -710,16 +753,6 @@ const Swaps = () => (
       name="SwapsQuotesView"
       component={SwapsQuotesView}
       options={SwapsQuotesView.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
-const Bridge = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="BridgeView"
-      component={BridgeView}
-      options={BridgeView.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -828,7 +861,12 @@ const MainNavigator = () => (
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
-    <Stack.Screen name="Bridge" component={Bridge} />
+    <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
+    <Stack.Screen
+      name={Routes.BRIDGE.MODALS.ROOT}
+      component={BridgeModalStack}
+      options={clearStackNavigatorOptions}
+    />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
     <Stack.Screen
       name="StakeModals"
@@ -848,10 +886,24 @@ const MainNavigator = () => (
       // eslint-disable-next-line react-native/no-inline-styles
       headerStyle={{ borderBottomWidth: 0 }}
     />
+    {/* TODO: This is added to support slide 4 in the carousel - once changed this can be safely removed*/}
+    <Stack.Screen
+      name="GeneralSettings"
+      component={GeneralSettings}
+      options={{
+        headerShown: true,
+        ...GeneralSettings.navigationOptions,
+      }}
+    />
     <Stack.Screen
       name={Routes.NOTIFICATIONS.OPT_IN_STACK}
       component={NotificationsOptInStack}
       options={NotificationsOptInStack.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.IDENTITY.TURN_ON_BACKUP_AND_SYNC}
+      component={TurnOnBackupAndSync}
+      options={TurnOnBackupAndSync.navigationOptions}
     />
   </Stack.Navigator>
 );

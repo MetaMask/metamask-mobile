@@ -3,6 +3,7 @@ import { getJsxChildren } from '@metamask/snaps-utils';
 import { mapToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 import { DEFAULT_FOOTER } from './footer';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 
 export const container: UIComponentFactory<BoxElement> = ({
   element: e,
@@ -39,6 +40,7 @@ export const container: UIComponentFactory<BoxElement> = ({
         key: 'default-button',
         props: {
           onCancel,
+          variant: ButtonVariants.Secondary,
           isSnapAction: false,
         },
         children: t('navigation.close'),
@@ -49,13 +51,26 @@ export const container: UIComponentFactory<BoxElement> = ({
   const content = templateChildren[0];
   const footer = templateChildren[1];
 
+  // The first element inside the container has larger margins and gap.
+  const styledContent = {
+    ...content,
+    props: {
+      ...content.props,
+      style: {
+        ...(content.props?.style ?? {}),
+        gap: 16,
+        margin: 16,
+      },
+    },
+  };
+
   return {
     element: 'Box',
     children: [
       {
         element: 'ScrollView',
         key: 'default-scrollview',
-        children: content,
+        children: styledContent,
         props: {
           style: {
             marginBottom: useFooter && footer ? 80 : 0,
@@ -66,7 +81,7 @@ export const container: UIComponentFactory<BoxElement> = ({
     ],
     props: {
       style: {
-        flex: 1,
+        flexGrow: 1,
         flexDirection: 'column',
       },
     },

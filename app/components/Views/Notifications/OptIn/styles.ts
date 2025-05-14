@@ -29,8 +29,6 @@ export const createStyles = ({ colors }: Theme) =>
       width: Device.getDeviceWidth() - 32,
     },
     btnContainer: {
-      bottom: 0,
-      position: 'absolute',
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignSelf: 'center',

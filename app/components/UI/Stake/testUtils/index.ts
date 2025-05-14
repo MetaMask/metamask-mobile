@@ -3,6 +3,21 @@ import {
   CreateMockTokenOptions,
   TOKENS_WITH_DEFAULT_OPTIONS,
 } from './testUtils.types';
+import { PooledStakingState } from '@metamask/earn-controller';
+import {
+  VaultData,
+  VaultApyAverages,
+  VaultDailyApy,
+} from '@metamask/stake-sdk';
+import {
+  MOCK_POOLED_STAKES_DATA,
+  MOCK_VAULT_DATA,
+  MOCK_EXCHANGE_RATE,
+} from '../__mocks__/earnControllerMockData';
+import {
+  MOCK_VAULT_APY_AVERAGES,
+  MOCK_VAULT_DAILY_APYS,
+} from '../components/PoolStakingLearnMoreModal/mockVaultRewards';
 
 export const HOLESKY_CHAIN_ID = '0x4268';
 
@@ -11,10 +26,11 @@ export const createMockToken = (options: CreateMockTokenOptions) => {
     chainId,
     name,
     symbol,
-    address = '0xabc',
+    address = '0xaBc',
     decimals = 0,
     isStaked = false,
     ticker = '',
+    balanceFiat = '',
   } = options;
 
   const isETH = symbol === 'ETH' || symbol === 'Ethereum';
@@ -30,7 +46,7 @@ export const createMockToken = (options: CreateMockTokenOptions) => {
     address,
     aggregators: [],
     balance: '',
-    balanceFiat: '',
+    balanceFiat,
     chainId,
     decimals: decimals ?? 0,
     image: '',
@@ -108,3 +124,36 @@ export const getCreateMockTokenOptions = (
     ...tokenOptions[token],
   };
 };
+
+export const mockEarnControllerRootState = ({
+  isEligible = true,
+  pooledStakes = MOCK_POOLED_STAKES_DATA,
+  vaultMetadata = MOCK_VAULT_DATA,
+  exchangeRate = MOCK_EXCHANGE_RATE,
+  vaultApyAverages = MOCK_VAULT_APY_AVERAGES,
+  vaultDailyApys = MOCK_VAULT_DAILY_APYS,
+}: {
+  isEligible?: boolean;
+  pooledStakes?: PooledStakingState['pooledStakes'];
+  vaultMetadata?: VaultData;
+  exchangeRate?: string;
+  vaultApyAverages?: VaultApyAverages;
+  vaultDailyApys?: VaultDailyApy[];
+} = {}) => ({
+  engine: {
+    backgroundState: {
+      EarnController: {
+        lastUpdated: 0,
+        pooled_staking: {
+          isEligible,
+          pooledStakes,
+          vaultMetadata,
+          exchangeRate,
+          vaultApyAverages,
+          vaultDailyApys,
+        },
+        stablecoin_lending: {},
+      },
+    },
+  },
+});

@@ -14,8 +14,9 @@ import { selectEvmChainId } from '../../../../../../selectors/networkController'
 import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
 import Engine from '../../../../../../core/Engine';
-import { STAKE_INPUT_VIEW_ACTIONS } from '../../../Views/StakeInputView/StakeInputView.types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { TokenI } from '../../../../Tokens/types';
+import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
@@ -30,10 +31,16 @@ const StakingButtons = ({
   hasEthToUnstake,
 }: StakingButtonsProps) => {
   const { navigate } = useNavigation();
+
   const { styles } = useStyles(styleSheet, {});
+
   const { trackEvent, createEventBuilder } = useMetrics();
+
   const chainId = useSelector(selectEvmChainId);
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+
   const { isStakingSupportedChain } = useStakingChain();
+
   const { MultichainNetworkController } = Engine.context;
 
   const handleIsStakingSupportedChain = async () => {
@@ -46,6 +53,9 @@ const StakingButtons = ({
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
+      params: {
+        token: asset,
+      },
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_WITHDRAW_BUTTON_CLICKED)
@@ -65,7 +75,7 @@ const StakingButtons = ({
       screen: Routes.STAKING.STAKE,
       params: {
         token: asset,
-        action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
       },
     });
     trackEvent(
@@ -91,17 +101,19 @@ const StakingButtons = ({
           onPress={onUnstakePress}
         />
       )}
-      <Button
-        testID={'stake-more-button'}
-        style={styles.balanceActionButton}
-        variant={ButtonVariants.Secondary}
-        label={
-          hasStakedPositions
-            ? strings('stake.stake_more')
-            : strings('stake.stake')
-        }
-        onPress={onStakePress}
-      />
+      {isPooledStakingEnabled && (
+        <Button
+          testID={'stake-more-button'}
+          style={styles.balanceActionButton}
+          variant={ButtonVariants.Secondary}
+          label={
+            hasStakedPositions
+              ? strings('stake.stake_more')
+              : strings('stake.stake')
+          }
+          onPress={onStakePress}
+        />
+      )}
     </View>
   );
 };

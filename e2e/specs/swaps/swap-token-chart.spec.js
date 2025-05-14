@@ -6,6 +6,7 @@ import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
+import SettingsView from '../../pages/Settings/SettingsView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -26,6 +27,7 @@ import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Tenderly from '../../tenderly';
+import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 
 const fixtureServer = new FixtureServer();
 
@@ -60,6 +62,13 @@ describe(Regression('Swap from Token view'), () => {
     jest.setTimeout(150000);
   });
 
+  it('should turn off stx', async () => {
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapAdvancedTitle();
+    await AdvancedSettingsView.tapSmartTransactionSwitch();
+    await TabBarComponent.tapWallet();
+  });
+
   it('should be able to import account', async () => {
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
@@ -88,7 +97,7 @@ describe(Regression('Swap from Token view'), () => {
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken(destTokenSymbol);
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(3000);
     await QuoteView.selectToken(destTokenSymbol);
     await QuoteView.tapOnGetQuotes();
     await Assertions.checkIfVisible(SwapView.fetchingQuotes);

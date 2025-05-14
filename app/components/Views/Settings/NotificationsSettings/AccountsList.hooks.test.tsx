@@ -6,6 +6,7 @@ import * as UseSwitchNotificationsModule from '../../../../util/notifications/ho
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import { useAccounts } from '../../../hooks/useAccounts';
+import { getValidNotificationAccounts } from '../../../../selectors/notifications';
 import {
   useAccountProps,
   useNotificationAccountListProps,
@@ -17,6 +18,9 @@ type MockVar = any;
 jest.mock('../../../hooks/useAccounts', () => ({
   useAccounts: jest.fn(),
 }));
+jest.mock('../../../../selectors/notifications', () => ({
+  getValidNotificationAccounts: jest.fn(),
+}));
 
 const arrangeMockUseAccounts = () => {
   const createAccounts = (addresses: string[]) =>
@@ -24,10 +28,14 @@ const arrangeMockUseAccounts = () => {
   const mockUseAccounts = jest.mocked(useAccounts).mockReturnValue({
     accounts: createAccounts(['0x123', '0x456']),
   } as MockVar);
+  const mockGetNotificationAccounts = jest
+    .mocked(getValidNotificationAccounts)
+    .mockReturnValue(['0x123', '0x456']);
 
   return {
     createAccounts,
     mockUseAccounts,
+    mockGetNotificationAccounts,
   };
 };
 

@@ -1,12 +1,15 @@
 import {
   startSpan as sentryStartSpan,
   startSpanManual,
-  withScope,
   setMeasurement,
   Scope,
 } from '@sentry/react-native';
+import {
+  type StartSpanOptions,
+  type Span,
+  withIsolationScope,
+} from '@sentry/core';
 import performance from 'react-native-performance';
-import type { Span, StartSpanOptions, MeasurementUnit } from '@sentry/types';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
@@ -39,6 +42,16 @@ export enum TraceName {
   AccountList = 'Account List',
   StoreInit = 'Store Initialization',
   Tokens = 'Tokens List',
+  CreateSnapAccount = 'Create Snap Account',
+  AddSnapAccount = 'Add Snap Account',
+  SelectAccount = 'Select Account',
+  AddNetwork = 'Add Network',
+  UpdateNetwork = 'Update Network',
+  AssetDetails = 'Asset Details',
+  ImportNfts = 'Import Nfts',
+  ImportTokens = 'Import Tokens',
+  RampQuoteLoading = 'Ramp Quote Loading',
+  LoadRampExperience = 'Load Ramp Experience',
 }
 
 export enum TraceOperation {
@@ -56,6 +69,8 @@ export enum TraceOperation {
   AccountList = 'account.list',
   StoreInit = 'store.initialization',
   Login = 'login',
+  CreateSnapAccount = 'create.snap.account',
+  AddSnapAccount = 'add.snap.account',
 }
 
 const ID_DEFAULT = 'default';
@@ -271,14 +286,12 @@ function startSpan<T>(
     attributes,
     name,
     op: op || OP_DEFAULT,
-    // This needs to be parentSpan once we have the withIsolatedScope implementation in place in the Sentry SDK for React Native
-    // Reference PR that updates @sentry/react-native: https://github.com/getsentry/sentry-react-native/pull/3895
-    parentSpanId: parentSpan?.spanId,
+    parentSpan,
     startTime,
   };
 
-  return withScope((scope) => {
-    initScope(scope, request);
+  return withIsolationScope((scope) => {
+    setScopeTags(scope, request);
 
     return callback(spanOptions);
   }) as T;
@@ -302,7 +315,7 @@ function getTraceKey(request: TraceRequest) {
  * @param scope - The Sentry scope to initialise.
  * @param request - The trace request.
  */
-function initScope(scope: Scope, request: TraceRequest) {
+function setScopeTags(scope: Scope, request: TraceRequest) {
   const tags = request.tags ?? {};
 
   for (const [key, value] of Object.entries(tags)) {
@@ -324,7 +337,7 @@ function initSpan(_span: Span, request: TraceRequest) {
 
   for (const [key, value] of Object.entries(tags)) {
     if (typeof value === 'number') {
-      sentrySetMeasurement(key, value, 'none');
+      setMeasurement(key, value, 'none');
     }
   }
 }
@@ -360,12 +373,4 @@ function tryCatchMaybePromise<T>(
   }
 
   return undefined;
-}
-
-function sentrySetMeasurement(
-  key: string,
-  value: number,
-  unit: MeasurementUnit,
-) {
-  setMeasurement(key, value, unit);
 }

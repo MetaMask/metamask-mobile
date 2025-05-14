@@ -1,5 +1,5 @@
 ('use strict');
-import { SmokeAssets } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -14,10 +14,11 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import Assertions from '../../utils/Assertions';
 import AssetWatchBottomSheet from '../../pages/Transactions/AssetWatchBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
+import { buildPermissions } from '../../fixtures/utils';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 
-describe(SmokeAssets('Asset Watch:'), () => {
+describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
@@ -29,7 +30,7 @@ describe(SmokeAssets('Asset Watch:'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,

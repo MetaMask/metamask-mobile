@@ -1,6 +1,7 @@
 import { EVENT_NAME, MetaMetrics } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { InteractionManager } from 'react-native';
+import { shouldTrackExpectedErrors } from '../shouldTrackExpectedErrors/shouldTrackExpectedErrors';
 
 /**
  * This functions logs errors to Metametrics instead of Sentry log service.
@@ -11,11 +12,15 @@ import { InteractionManager } from 'react-native';
  * @param errorMessage the error message for the original event
  * @param otherInfo other info to be logged
  */
-const trackErrorAsAnalytics = (
+const trackErrorAsAnalytics = async (
   type: string,
   errorMessage: string,
   otherInfo?: string,
 ) => {
+  const instance = MetaMetrics.getInstance();
+  const shouldTrack = await shouldTrackExpectedErrors(instance);
+  if (!shouldTrack) return;
+
   InteractionManager.runAfterInteractions(async () => {
     MetaMetrics.getInstance().trackEvent(
       MetricsEventBuilder.createEventBuilder({ category: EVENT_NAME.ERROR })

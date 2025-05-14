@@ -38,8 +38,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             <TouchableOpacity>
               <Icon
                 allowFontScaling={false}
-                color="#141618"
-                name="ios-arrow-back"
+                color="#121314"
+                name="arrow-back"
                 size={24}
               />
             </TouchableOpacity>
@@ -52,7 +52,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             <Icon
               allowFontScaling={false}
               color="#ffffff"
-              name="ios-arrow-back"
+              name="arrow-back"
               size={24}
             />
           </View>
@@ -209,7 +209,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 >
                   <Icon
                     allowFontScaling={false}
-                    name="ios-arrow-up"
+                    name="arrow-up"
                     size={12}
                   />
                 </Text>
@@ -264,7 +264,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               {
-                                "color": "#9fa6ae",
+                                "color": "#9ca1af",
                               }
                             }
                           />
@@ -320,7 +320,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               {
-                                "color": "#9fa6ae",
+                                "color": "#9ca1af",
                               }
                             }
                           />
@@ -397,7 +397,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               {
-                                "color": "#9fa6ae",
+                                "color": "#9ca1af",
                               }
                             }
                           />

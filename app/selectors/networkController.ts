@@ -19,6 +19,7 @@ import {
   selectNonEvmNetworkConfigurationsByChainId,
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
+  selectSelectedNonEvmNetworkSymbol,
 } from './multichainNetworkController';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 
@@ -128,9 +129,17 @@ export const selectProviderConfig = createDeepEqualSelector(
   },
 );
 
-export const selectTicker = createSelector(
+export const selectEvmTicker = createDeepEqualSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig?.ticker,
+);
+
+export const selectTicker = createSelector(
+  selectEvmTicker,
+  selectSelectedNonEvmNetworkSymbol,
+  selectIsEvmNetworkSelected,
+  (evmTicker, nonEvmTicker, isEvmSelected) =>
+    isEvmSelected ? evmTicker : nonEvmTicker,
 );
 
 export const selectEvmChainId = createSelector(
@@ -138,7 +147,7 @@ export const selectEvmChainId = createSelector(
   (providerConfig) => providerConfig.chainId,
 );
 
-export const selectChainId = createSelector(
+export const selectChainId = createDeepEqualSelector(
   selectSelectedNonEvmNetworkChainId,
   selectEvmChainId,
   selectIsEvmNetworkSelected,
@@ -173,7 +182,7 @@ export const selectEvmNetworkConfigurationsByChainId = createSelector(
     networkControllerState?.networkConfigurationsByChainId,
 );
 
-export const selectNetworkConfigurations = createSelector(
+export const selectNetworkConfigurations = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   selectNonEvmNetworkConfigurationsByChainId,
   (
@@ -185,6 +194,20 @@ export const selectNetworkConfigurations = createSelector(
       ...nonEvmNetworkConfigurationsByChainId,
     };
     return networkConfigurationsByChainId;
+  },
+);
+
+export const selectNativeNetworkCurrencies = createDeepEqualSelector(
+  selectNetworkConfigurations,
+  (networkConfigurationsByChainId) => {
+    const nativeCurrencies = [
+      ...new Set(
+        Object.values(networkConfigurationsByChainId).map(
+          (n) => n.nativeCurrency,
+        ),
+      ),
+    ];
+    return nativeCurrencies;
   },
 );
 

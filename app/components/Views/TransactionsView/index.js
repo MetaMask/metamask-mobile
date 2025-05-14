@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, InteractionManager } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { withNavigation } from '@react-navigation/compat';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
@@ -21,19 +21,21 @@ import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import {
   selectChainId,
+  selectIsPopularNetwork,
   selectProviderType,
+  selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAllTokensFlat, selectTokens } from '../../../selectors/tokensController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { store } from '../../../store';
-import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
-import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
-import { selectNonReplacedTransactions } from '../../../selectors/transactionController';
+import { selectSortedTransactions } from '../../../selectors/transactionController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { PopularList } from '../../../util/networks/customNetworks';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -50,20 +52,22 @@ const TransactionsView = ({
   transactions,
   chainId,
   tokens,
+  tokenNetworkFilter,
 }) => {
   const [allTransactions, setAllTransactions] = useState([]);
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,
   );
 
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+
   const filterTransactions = useCallback(
     (networkId) => {
-      if (networkId === NETWORK_ID_LOADING) return;
-
       let accountAddedTimeInsertPointFound = false;
       const addedAccountTime = selectedInternalAccount?.metadata.importTime;
 
@@ -83,6 +87,7 @@ const TransactionsView = ({
           selectedAddress,
           networkId,
           chainId,
+          tokenNetworkFilter,
         );
 
         if (!filter) return false;
@@ -109,6 +114,15 @@ const TransactionsView = ({
         return filter;
       });
 
+      const allTransactionsFiltered = isPopularNetwork
+        ? allTransactions.filter(
+            (tx) =>
+              tx.chainId === CHAIN_IDS.MAINNET ||
+              tx.chainId === CHAIN_IDS.LINEA_MAINNET ||
+              PopularList.some((network) => network.chainId === tx.chainId),
+          )
+        : allTransactions.filter((tx) => tx.chainId === chainId);
+
       const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
         const { from, nonce } = txParams;
         if (!toLowerCaseEquals(from, selectedAddress)) {
@@ -129,36 +143,40 @@ const TransactionsView = ({
         return !alreadySubmitted;
       });
 
-      //if the account added insertpoint is not found add it to the last transaction
+      // If the account added insert point is not found, add it to the last transaction
       if (
         !accountAddedTimeInsertPointFound &&
-        allTransactions &&
-        allTransactions.length
+        allTransactionsFiltered &&
+        allTransactionsFiltered.length
       ) {
-        allTransactions[allTransactions.length - 1].insertImportTime = true;
+        allTransactionsFiltered[
+          allTransactionsFiltered.length - 1
+        ].insertImportTime = true;
       }
 
-      setAllTransactions(allTransactions);
+      setAllTransactions(allTransactionsFiltered);
       setSubmittedTxs(submittedTxsFiltered);
       setConfirmedTxs(confirmedTxs);
       setLoading(false);
     },
-    [transactions, selectedInternalAccount, selectedAddress, tokens, chainId],
+    [
+      transactions,
+      selectedInternalAccount,
+      selectedAddress,
+      tokens,
+      chainId,
+      tokenNetworkFilter,
+      isPopularNetwork,
+    ],
   );
 
   useEffect(() => {
     setLoading(true);
-    /*
-    Since this screen is always mounted and computations happen on this screen everytime the user changes network
-    using the InteractionManager will help by giving enough time for any animations/screen transactions before it starts
-    computing the transactions which will make the app feel more responsive. Also this takes usually less than 1 seconds
-    so the effect will not be noticeable if the user is in this screen.
-    */
-    InteractionManager.runAfterInteractions(() => {
-      const { networkId } = store.getState().inpageProvider;
-      filterTransactions(networkId);
-    });
-  }, [filterTransactions]);
+
+    if (selectedNetworkClientId) {
+      filterTransactions(selectedNetworkClientId);
+    }
+  }, [filterTransactions, selectedNetworkClientId]);
 
   return (
     <View style={styles.wrapper}>
@@ -187,12 +205,12 @@ TransactionsView.propTypes = {
    */
   currentCurrency: PropTypes.string,
   /**
-  /* InternalAccount object required to get account name, address and import time
-  */
+   * InternalAccount object required to get account name, address and import time
+   */
   selectedInternalAccount: PropTypes.object,
   /**
-  /* navigation object required to push new views
-  */
+   * navigation object required to push new views
+   */
   navigation: PropTypes.object,
   /**
    * An array that represents the user transactions
@@ -210,29 +228,24 @@ TransactionsView.propTypes = {
    * Current chainId
    */
   chainId: PropTypes.string,
+  /**
+   * Array of network tokens filter
+   */
+  tokenNetworkFilter: PropTypes.object,
 };
 
 const mapStateToProps = (state) => {
   const chainId = selectChainId(state);
-
-  // Remove duplicate confirmed STX
-  // for replaced txs, only hide the ones that are confirmed
-  const nonReplacedTransactions = selectNonReplacedTransactions(state);
-
-  const pendingSmartTransactions =
-    selectPendingSmartTransactionsBySender(state);
 
   return {
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
     tokens: selectTokens(state),
     selectedInternalAccount: selectSelectedInternalAccount(state),
-    transactions: [
-      ...nonReplacedTransactions,
-      ...pendingSmartTransactions,
-    ].sort((a, b) => b.time - a.time),
+    transactions: selectSortedTransactions(state),
     networkType: selectProviderType(state),
     chainId,
+    tokenNetworkFilter: selectTokenNetworkFilter(state),
   };
 };
 

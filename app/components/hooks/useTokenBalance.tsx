@@ -1,6 +1,6 @@
 import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Engine from '../../core/Engine';
-import { BN } from 'ethereumjs-util';
+import type BN4 from 'bnjs4';
 
 /**
  * Hook to handle the balance of ERC20 tokens
@@ -12,12 +12,12 @@ import { BN } from 'ethereumjs-util';
 const useTokenBalance = (
   requestedTokenAddress: string,
   userCurrentAddress: string,
-): [BN | null, boolean, boolean] => {
+): [BN4 | null, boolean, boolean] => {
   // This hook should be only used with ERC20 tokens
   const [tokenBalance, setTokenBalance]: [
-    BN | null,
-    Dispatch<SetStateAction<BN | null>>,
-  ] = useState<BN | null>(null);
+    BN4 | null,
+    Dispatch<SetStateAction<BN4 | null>>,
+  ] = useState<BN4 | null>(null);
   const [loading, setLoading]: [boolean, Dispatch<SetStateAction<boolean>>] =
     useState<boolean>(true);
   const [error, setError]: [boolean, Dispatch<SetStateAction<boolean>>] =
@@ -31,7 +31,7 @@ const useTokenBalance = (
     userAddress: string,
   ): Promise<void> => {
     AssetsContractController.getERC20BalanceOf(tokenAddress, userAddress)
-      .then((balance: BN) => setTokenBalance(balance))
+      .then((balance: BN4) => setTokenBalance(balance))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   };

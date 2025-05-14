@@ -1,50 +1,25 @@
-import { useCallback, useEffect, useState } from 'react';
-import { hexToNumber } from '@metamask/utils';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectEvmChainId } from '../../../../selectors/networkController';
-import {
-  selectVaultApys,
-  setVaultApys,
-} from '../../../../core/redux/slices/staking';
-import { stakingApiService } from '../sdk/stakeSdkProvider';
+import { useState } from 'react';
+import { useSelector } from 'react-redux';
+import Engine from '../../../../core/Engine';
+import { pooledStakingSelectors } from '../../../../selectors/earnController';
 
 const useVaultApys = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const dispatch = useDispatch();
-
-  const { vaultApys } = useSelector(selectVaultApys);
-
-  const chainId = useSelector(selectEvmChainId);
-
-  const fetchVaultApys = useCallback(async () => {
+  const vaultApys = useSelector(pooledStakingSelectors.selectVaultDailyApys);
+  const fetchVaultApys = async () => {
     setIsLoading(true);
-    dispatch(setVaultApys([]));
     setError(null);
 
     try {
-      const numericChainId = hexToNumber(chainId);
-
-      const vaultApysResponse = await stakingApiService.getVaultDailyApys(
-        numericChainId,
-        365,
-        'desc',
-      );
-
-      const reversedVaultApys = [...vaultApysResponse]?.reverse();
-
-      dispatch(setVaultApys(reversedVaultApys));
+      await Engine.context.EarnController.refreshPooledStakingVaultDailyApys();
     } catch (err) {
-      setError('Failed to fetch vault APYs');
+      setError('Failed to fetch pooled staking vault APYs');
     } finally {
       setIsLoading(false);
     }
-  }, [chainId, dispatch]);
-
-  useEffect(() => {
-    fetchVaultApys();
-  }, [fetchVaultApys]);
+  };
 
   return {
     vaultApys,

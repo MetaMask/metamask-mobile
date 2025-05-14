@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-commonjs
 module.exports = {
-  ignore: [/\/ses\.cjs/],
+  ignore: [/\/ses\.cjs$/, /\/ses-hermes\.cjs$/],
   presets: ['babel-preset-expo'],
   plugins: [
     'transform-inline-environment-variables',
@@ -17,6 +17,10 @@ module.exports = {
     },
     {
       test: './node_modules/@metamask/notification-services-controller',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
+      test: './node_modules/@metamask/bridge-controller',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
     {
@@ -38,6 +42,10 @@ module.exports = {
     },
     {
       test: './app/core/Engine/Engine.ts',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
+      test: './app/core/NavigationService/NavigationService.ts',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
   ],

@@ -7,7 +7,7 @@ exports[`BadgeNotifications should render badge notifications correctly 1`] = `
     {
       "alignItems": "center",
       "aspectRatio": 1,
-      "backgroundColor": "#0376c9",
+      "backgroundColor": "#4459ff",
       "borderColor": "#ffffff",
       "borderRadius": 9,
       "borderWidth": 1,
@@ -21,8 +21,9 @@ exports[`BadgeNotifications should render badge notifications correctly 1`] = `
 >
   <SvgMock
     color="#ffffff"
+    fill="currentColor"
     height={10}
-    name="Send2"
+    name="Send"
     style={
       {
         "height": 10,

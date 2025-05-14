@@ -34,13 +34,14 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.default,
       ...fontStyles.bold,
       fontSize: 16,
-      fontWeight: '700',
+      marginTop: 8,
     },
     modalContent: {
       width: '100%',
       backgroundColor: theme.colors.background.default,
       marginTop: 16,
       paddingVertical: 20,
+      paddingHorizontal: 20,
       borderRadius: 8,
       display: 'flex',
       alignItems: 'center',
@@ -49,9 +50,9 @@ const styleSheet = (params: { theme: Theme }) => {
     modalContentValue: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
     },
   });
 };
 
+export type TooltipStylesType = ReturnType<typeof styleSheet>;
 export default styleSheet;

@@ -33,6 +33,11 @@ export const selectIsMetaMaskPushNotificationsEnabled = createSelector(
   (state: NotificationServicesPushControllerState) =>
     Boolean(state.isPushEnabled),
 );
+export const selectIsMetaMaskPushNotificationsLoading = createSelector(
+  selectNotificationServicesPushControllerState,
+  (state: NotificationServicesPushControllerState) => state.isUpdatingFCMToken,
+);
+
 export const selectIsMetamaskNotificationsFeatureSeen = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
@@ -98,4 +103,9 @@ export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
         !notification.isRead &&
         notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
     ).length,
+);
+export const getValidNotificationAccounts = createSelector(
+  [selectNotificationServicesControllerState],
+  (notificationServicesControllerState: NotificationServicesState) =>
+    notificationServicesControllerState.subscriptionAccountsSeen,
 );

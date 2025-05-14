@@ -1,7 +1,7 @@
 import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import { BN } from 'ethereumjs-util';
+import type BN4 from 'bnjs4';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
 import useRegions from '../../hooks/useRegions';
@@ -25,6 +25,7 @@ import { toTokenMinimalUnit } from '../../../../../util/number';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
+import { trace, endTrace, TraceName } from '../../../../../util/trace';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -191,7 +192,7 @@ jest.mock('../../../../hooks/useAddressBalance/useAddressBalance', () =>
 
 const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
   balanceFiat: '$27.02',
-  balanceBN: toTokenMinimalUnit('5.36385', 18) as BN,
+  balanceBN: toTokenMinimalUnit('5.36385', 18) as BN4,
 };
 
 let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
@@ -213,10 +214,12 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedAsset: mockSetSelectedAsset,
   selectedFiatCurrencyId: mockFiatCurrenciesData[0].id,
   setSelectedFiatCurrencyId: mockSetSelectedFiatCurrencyId,
+  selectedAddress: '0x2990079bcdee240329a520d2444386fc119da21a',
   selectedChainId: '1',
   selectedNetworkName: 'Ethereum',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
+  rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
 };
@@ -242,7 +245,7 @@ const mockUseGasPriceEstimationInitialValue: ReturnType<
   estimatedGasFee: toTokenMinimalUnit(
     '0.01',
     mockUseRampSDKInitialValues.selectedAsset?.decimals || 18,
-  ) as BN,
+  ) as BN4,
 };
 
 let mockUseGasPriceEstimationValue: ReturnType<typeof useGasPriceEstimation> =
@@ -261,6 +264,15 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+jest.mock('../../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    RampQuoteLoading: 'Ramp Quote Loading',
+    LoadRampExperience: 'Load Ramp Experience',
+  },
+}));
+
 describe('BuildQuote View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
@@ -270,6 +282,7 @@ describe('BuildQuote View', () => {
     mockPop.mockClear();
     mockTrackEvent.mockClear();
     (mockUseRampSDKInitialValues.setSelectedRegion as jest.Mock).mockClear();
+    jest.clearAllMocks();
   });
 
   beforeEach(() => {
@@ -358,14 +371,14 @@ describe('BuildQuote View', () => {
 
   it('calls setOptions when rendering', async () => {
     render(BuildQuote);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalled();
 
     mockSetOptions.mockReset();
 
     mockUseRampSDKValues.isBuy = false;
     mockUseRampSDKValues.isSell = true;
     render(BuildQuote);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalled();
   });
 
   it('navigates and tracks event on cancel button press', async () => {
@@ -390,6 +403,33 @@ describe('BuildQuote View', () => {
       chain_id_source: '1',
       location: 'Amount to Sell Screen',
     });
+  });
+
+  it('calls endTrace when the conditions are met', () => {
+    render(BuildQuote);
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.LoadRampExperience,
+    });
+  });
+
+  it('does not call endTrace if conditions are not met', () => {
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      sdkError: new Error('sdkError'),
+    };
+    render(BuildQuote);
+    expect(endTrace).not.toHaveBeenCalled();
+  });
+
+  it('only calls endTrace once', () => {
+    render(BuildQuote);
+    act(() => {
+      mockUseRegionsValues = {
+        ...mockUseRegionsInitialValues,
+        isFetching: true,
+      };
+    });
+    expect(endTrace).toHaveBeenCalledTimes(1);
   });
 
   describe('Regions data', () => {
@@ -494,6 +534,15 @@ describe('BuildQuote View', () => {
       mockUsePaymentMethodsValues = {
         ...mockUsePaymentMethodsInitialValues,
         isFetching: true,
+      };
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('renders no icons if there are no payment methods', async () => {
+      mockUsePaymentMethodsValues = {
+        ...mockUsePaymentMethodsInitialValues,
+        data: null,
       };
       render(BuildQuote);
       expect(screen.toJSON()).toMatchSnapshot();
@@ -669,7 +718,7 @@ describe('BuildQuote View', () => {
       mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
         '5',
         mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN;
+      ) as BN4;
       render(BuildQuote);
       const initialAmount = '0';
       const overBalanceAmout = '6';
@@ -688,7 +737,7 @@ describe('BuildQuote View', () => {
       mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
         '1',
         mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN;
+      ) as BN4;
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton('25%'));
@@ -719,13 +768,13 @@ describe('BuildQuote View', () => {
         balanceBN: toTokenMinimalUnit(
           '1',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN,
+        ) as BN4,
       };
       mockUseGasPriceEstimationValue = {
         estimatedGasFee: toTokenMinimalUnit(
           '0.27',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN,
+        ) as BN4,
       };
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
@@ -752,13 +801,13 @@ describe('BuildQuote View', () => {
         balanceBN: toTokenMinimalUnit(
           '1',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN,
+        ) as BN4,
       };
       mockUseGasPriceEstimationValue = {
         estimatedGasFee: toTokenMinimalUnit(
           '0.27',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN,
+        ) as BN4,
       };
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
@@ -806,9 +855,17 @@ describe('BuildQuote View', () => {
       chain_id_destination: '1',
       location: 'Amount to Buy Screen',
     });
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.RampQuoteLoading,
+      tags: {
+        rampType: RampType.BUY,
+      },
+    });
   });
 
   it('Directs the user to the sell quotes page with correct parameters', () => {
+    mockUseRampSDKValues.rampType = RampType.SELL;
     mockUseRampSDKValues.isBuy = false;
     mockUseRampSDKValues.isSell = true;
     render(BuildQuote);
@@ -841,6 +898,13 @@ describe('BuildQuote View', () => {
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
       chain_id_source: '1',
       location: 'Amount to Sell Screen',
+    });
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.RampQuoteLoading,
+      tags: {
+        rampType: RampType.SELL,
+      },
     });
   });
 });

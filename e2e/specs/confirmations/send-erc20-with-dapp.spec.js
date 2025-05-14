@@ -16,6 +16,8 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import Assertions from '../../utils/Assertions';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { buildPermissions } from '../../fixtures/utils';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -26,16 +28,23 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
   });
 
   it('send an ERC20 token from a dapp', async () => {
+    const testSpecificMock  = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
+    };
+
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: HST_CONTRACT,
+        testSpecificMock,
       },
       async ({ contractRegistry }) => {
         const hstAddress = await contractRegistry.getContractAddress(
