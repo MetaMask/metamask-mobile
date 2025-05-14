@@ -1,48 +1,46 @@
 #!/bin/bash
-
-set -e
+set -ex
 
 echo "Installing Foundry..."
 curl -L https://foundry.paradigm.xyz | bash
 
-export PATH="$PATH:$HOME/.foundry/bin"
-
-if [ -f "$HOME/.bashrc" ]; then
-    source "$HOME/.bashrc"
-elif [ -f "$HOME/.zshrc" ]; then
-    source "$HOME/.zshrc"
-elif [ -f "$HOME/.bash_profile" ]; then
-    source "$HOME/.bash_profile"
-fi
-
-echo "Running foundryup to install the latest version..."
+# Run foundryup to install latest version
 $HOME/.foundry/bin/foundryup
+
+# Add to PATH for this step and future steps
+echo 'export PATH="$HOME/.foundry/bin:$PATH"' >> $BASH_ENV
+export PATH="$HOME/.foundry/bin:$PATH"
+source $BASH_ENV
 
 # Verify installation
 if command -v forge &>/dev/null; then
-    echo "Foundry installation completed successfully!"
+    echo "Foundry installed successfully!"
     forge --version
 else
-    echo "Error: Foundry installation may have failed. Please check the output above."
+    echo "Error: Foundry install failed"
     exit 1
 fi
-anvil --version
-if [ -n "$GITHUB_ACCESS_TOKEN" ]; then
-    echo "Using GITHUB_ACCESS_TOKEN as GH_TOKEN for GitHub CLI authentication..."
-    export GH_TOKEN="$GITHUB_ACCESS_TOKEN"
-    gh attestation verify --owner foundry-rs $(which forge)
 
+# Check anvil
+if command -v anvil &>/dev/null; then
+    anvil --version
 else
-    echo "Warning: GITHUB_ACCESS_TOKEN environment variable not set."
+    echo "anvil not found in PATH"
+    exit 1
 fi
 
-echo "Verifying forge binary using GitHub attestation..."
-if gh attestation verify --owner foundry-rs $(which forge); then
-    echo "Verification successful! The forge binary is authentic."
+if command -v gh &>/dev/null; then
+    if [ -n "$GITHUB_ACCESS_TOKEN" ]; then
+        echo "Setting GH_TOKEN..."
+        export GH_TOKEN="$GITHUB_ACCESS_TOKEN"
+    fi
+
+    echo "Verifying forge binary..."
+    if ! gh attestation verify --owner foundry-rs "$(which forge)"; then
+        echo "Verification failed, continuing..."
+    fi
 else
-    VERIFICATION_STATUS=$?
-    echo "Verification failed with exit code: $VERIFICATION_STATUS"
-    echo "Since this is running in CI, we'll continue despite verification failure."
+    echo "GitHub CLI not installed, skipping attestation"
 fi
 
-echo "Script completed successfully. Foundry is ready to use."
+echo "Script completed. Foundry and anvil are ready."
