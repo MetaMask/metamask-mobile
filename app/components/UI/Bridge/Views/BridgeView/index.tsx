@@ -156,6 +156,7 @@ const BridgeView = () => {
   const hasValidBridgeInputs =
     isValidSourceAmount && !!sourceToken && !!destToken;
 
+  // quoteRequest.insufficientBal is undefined for Solana quotes, so we need to manually check if the source amount is greater than the balance
   const hasInsufficientBalance =
     quoteRequest?.insufficientBal ||
     (isValidSourceAmount &&
