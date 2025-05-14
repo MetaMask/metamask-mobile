@@ -14,7 +14,7 @@ import { fetchTokenFiatRates } from '../../../../util/tokens';
 import { toBigNumber } from '../../../../util/number';
 import { calcTokenAmount } from '../../../../util/transactions';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
-import { isNativeToken } from '../utils/token';
+import { fetchErc20Decimals, isNativeToken } from '../utils/token';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
@@ -53,10 +53,10 @@ export const useTokenValues = ({ amountWei }: TokenValuesProps = {}) => {
   const transactionData = parseStandardTokenTransactionData(txParams?.data);
   const tokenAddress = isNative ? NATIVE_TOKEN_ADDRESS : safeToChecksumAddress(txParams?.to) || '0x';
 
-  const value: string | undefined = amountWei ?
+  const value = amountWei ?
     toBigNumber.dec(amountWei) :
-    transactionData?.args?._value || txParams?.value;
-  const valueBN = value ? new BigNumber(value.toString()) : new BigNumber(0);
+    transactionData?.args?._value || txParams?.value || '0';
+  const valueBN = new BigNumber(value.toString());
 
   const { value: decimals, pending } = useTokenDecimals(tokenAddress, networkClientId);
   const tokenAmount = calcTokenAmount(valueBN, decimals ?? 1);
