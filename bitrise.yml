@@ -683,6 +683,7 @@ workflows:
 
                  ./scripts/foundry-install.sh
                  export PATH="$FOUNDRY_BIN_PATH:$PATH"
+                 echo "HERE IS FOUND BUILD PATH:" $FOUNDRY_BIN_PATH
   foundry-install:
     steps:
       - script@1:
