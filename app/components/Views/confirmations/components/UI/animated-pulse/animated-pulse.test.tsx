@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 
-import Text from '../../../../../../../../../component-library/components/Texts/Text';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import AnimatedPulse from './animated-pulse';
 
 describe('AnimatedPulse', () => {
