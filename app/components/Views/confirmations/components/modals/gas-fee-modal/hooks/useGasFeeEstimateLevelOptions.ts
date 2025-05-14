@@ -38,12 +38,7 @@ export const useGasFeeEstimateLevelOptions = ({
     gasFeeEstimates: GasFeeEstimates;
   };
 
-  const {
-    gasFeeEstimates,
-    id,
-    userFeeLevel,
-    txParams: { type: transactionEnvelopeType },
-  } = transactionMeta;
+  const { gasFeeEstimates, id, userFeeLevel } = transactionMeta;
 
   const transactionGasFeeEstimates =
     gasFeeEstimates as TransactionGasFeeEstimates;
@@ -63,12 +58,7 @@ export const useGasFeeEstimateLevelOptions = ({
       });
       handleCloseModals();
     },
-    [
-      id,
-      transactionGasFeeEstimates,
-      transactionEnvelopeType,
-      handleCloseModals,
-    ],
+    [id, handleCloseModals],
   );
 
   const options: GasOption[] = [];
