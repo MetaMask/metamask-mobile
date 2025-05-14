@@ -27,6 +27,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../hooks/useStyles';
 
 export const DEFI_POSITIONS_CONTAINER = 'defi_positions_container';
 
@@ -35,7 +36,7 @@ export interface DeFiPositionsListProps {
 }
 
 const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
-  const styles = styleSheet();
+  const { styles } = useStyles(styleSheet, {});
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const currentChainId = useSelector(selectChainId) as Hex;

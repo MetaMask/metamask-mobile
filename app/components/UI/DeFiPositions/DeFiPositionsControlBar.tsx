@@ -13,17 +13,16 @@ import {
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { isTestNet } from '../../../util/networks';
 import styleSheet from './DeFiPositionsControlBar.styles';
-import { useTheme } from '../../../util/theme';
 import { useNavigation } from '@react-navigation/native';
 import {
   createTokenBottomSheetFilterNavDetails,
   createTokensBottomSheetNavDetails,
 } from '../Tokens/TokensBottomSheet';
 import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../hooks/useStyles';
 
 const DeFiPositionsControlBar: React.FC = () => {
-  const theme = useTheme();
-  const styles = styleSheet({ theme });
+  const { styles } = useStyles(styleSheet, {});
 
   const navigation = useNavigation();
   const isAllNetworks = useSelector(selectIsAllNetworks);

@@ -12,6 +12,7 @@ import SensitiveText, {
 import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import styleSheet from './DeFiProtocolPositionGroupTokens.styles';
 import { PositionType } from './position-types';
+import { useStyles } from '../../hooks/useStyles';
 
 interface DeFiProtocolPositionGroupTokensProps {
   positionType: PositionType;
@@ -35,7 +36,7 @@ const DeFiProtocolPositionGroupTokens: React.FC<
   networkIconAvatar,
   privacyMode,
 }: DeFiProtocolPositionGroupTokensProps) => {
-  const styles = styleSheet();
+  const { styles } = useStyles(styleSheet, {});
 
   if (tokens.length === 0) {
     return null;

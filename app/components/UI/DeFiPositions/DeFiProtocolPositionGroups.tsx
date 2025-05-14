@@ -5,6 +5,7 @@ import styleSheet from './DeFiProtocolPositionGroups.styles';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import DeFiProtocolPositionGroupTokens from './DeFiProtocolPositionGroupTokens';
 import Summary from '../../Base/Summary';
+import { useStyles } from '../../hooks/useStyles';
 
 interface DeFiProtocolPositionGroupsParams {
   protocolAggregate: GroupedDeFiPositions['protocols'][number];
@@ -19,7 +20,7 @@ const DeFiProtocolPositionGroups: React.FC<
   networkIconAvatar,
   privacyMode,
 }: DeFiProtocolPositionGroupsParams) => {
-  const styles = styleSheet();
+  const { styles } = useStyles(styleSheet, {});
 
   const positionGroups = useMemo(
     () =>

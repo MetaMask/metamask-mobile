@@ -19,6 +19,7 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import DeFiProtocolPositionGroups from './DeFiProtocolPositionGroups';
+import { useStyles } from '../../hooks/useStyles';
 
 export const DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID =
   'defi_protocol_position_details_balance';
@@ -29,7 +30,7 @@ interface DeFiProtocolPositionDetailsParams {
 }
 
 const DeFiProtocolPositionDetails: React.FC = () => {
-  const styles = styleSheet();
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
 
   const { protocolAggregate, networkIconAvatar } =

@@ -21,6 +21,7 @@ import { AvatarProps } from '../../../component-library/components/Avatars/Avata
 import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import styleSheet from './DeFiPositionsListItem.styles';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
+import { useStyles } from '../../hooks/useStyles';
 
 interface DeFiPositionsListItemProps {
   chainId: Hex;
@@ -33,7 +34,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
   protocolAggregate,
   privacyMode = false,
 }: DeFiPositionsListItemProps) => {
-  const styles = styleSheet();
+  const { styles } = useStyles(styleSheet, {});
 
   const navigation = useNavigation();
 
