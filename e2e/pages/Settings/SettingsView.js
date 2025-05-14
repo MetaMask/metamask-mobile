@@ -87,6 +87,13 @@ class SettingsView {
     );
   }
 
+  async scrollToNetworks() {
+    await Gestures.scrollToElement(
+      this.networksButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
   async tapGeneralSettings() {
     await Gestures.waitAndTap(this.generalSettingsButton);
   }
@@ -104,6 +111,7 @@ class SettingsView {
   }
 
   async tapNetworks() {
+    await this.scrollToNetworks();
     await Gestures.waitAndTap(this.networksButton);
   }
 
