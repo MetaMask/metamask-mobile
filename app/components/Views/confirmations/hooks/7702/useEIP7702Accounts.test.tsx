@@ -1,8 +1,8 @@
 import { NetworkConfiguration } from '@metamask/network-controller';
 
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
-import * as TransactionUtil from '../utils/transaction';
+import * as TransactionUtil from '../../utils/transaction';
 import { EIP7702NetworkConfiguration } from './useEIP7702Networks';
 import { useEIP7702Accounts } from './useEIP7702Accounts';
 import { TransactionMeta } from '@metamask/transaction-controller';
@@ -44,7 +44,7 @@ describe('useEIP7702Accounts', () => {
 
   it('invokes addTransaction when upgradeAccount is called', () => {
     const mockAddTransaction = jest
-      .spyOn(TransactionUtil, 'addTransaction')
+      .spyOn(TransactionUtil, 'addMMOriginatedTransaction')
       .mockImplementation(() =>
         Promise.resolve({ id: '123' } as unknown as TransactionMeta),
       );
@@ -55,7 +55,7 @@ describe('useEIP7702Accounts', () => {
 
   it('invokes addTransaction when downgradeAccount is called', () => {
     const mockAddTransaction = jest
-      .spyOn(TransactionUtil, 'addTransaction')
+      .spyOn(TransactionUtil, 'addMMOriginatedTransaction')
       .mockImplementation(() =>
         Promise.resolve({ id: '123' } as unknown as TransactionMeta),
       );

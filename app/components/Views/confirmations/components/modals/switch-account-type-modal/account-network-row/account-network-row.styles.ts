@@ -16,6 +16,11 @@ const styleSheet = () =>
       flexDirection: 'column',
       marginLeft: 16,
     },
+    button_section: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      width: 50,
+    },
   });
 
 export default styleSheet;

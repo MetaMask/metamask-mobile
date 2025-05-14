@@ -6,7 +6,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useCallback } from 'react';
 
-import { addTransaction } from '../utils/transaction';
+import { addMMOriginatedTransaction } from '../../utils/transaction';
 
 export const EIP_7702_REVOKE_ADDRESS =
   '0x0000000000000000000000000000000000000000';
@@ -20,7 +20,7 @@ export function useEIP7702Accounts(networkConfiguration: NetworkConfiguration) {
 
   const downgradeAccount = useCallback(
     async (address: Hex) => {
-      await addTransaction(
+      await addMMOriginatedTransaction(
         {
           authorizationList: [
             {
@@ -42,7 +42,7 @@ export function useEIP7702Accounts(networkConfiguration: NetworkConfiguration) {
 
   const upgradeAccount = useCallback(
     async (address: Hex, upgradeContractAddress: Hex) => {
-      await addTransaction(
+      await addMMOriginatedTransaction(
         {
           authorizationList: [
             {

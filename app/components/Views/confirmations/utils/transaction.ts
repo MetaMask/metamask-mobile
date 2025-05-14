@@ -12,8 +12,8 @@ import {
 } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
-import Engine from '../../../../core/Engine';
 import ppomUtil from '../../../../lib/ppom/ppom-util';
+import { addTransaction } from '../../../../util/transaction-controller';
 
 const erc20Interface = new Interface(abiERC20);
 const erc721Interface = new Interface(abiERC721);
@@ -52,18 +52,17 @@ export function parseStandardTokenTransactionData(data?: string) {
   return undefined;
 }
 
-export async function addTransaction(
+export async function addMMOriginatedTransaction(
   txParams: TransactionParams,
   options: {
     networkClientId: string;
     type?: TransactionType;
   },
 ): Promise<TransactionMeta> {
-  const { transactionMeta } =
-    await Engine.context.TransactionController.addTransaction(txParams, {
-      ...options,
-      origin: ORIGIN_METAMASK,
-    });
+  const { transactionMeta } = await addTransaction(txParams, {
+    ...options,
+    origin: ORIGIN_METAMASK,
+  });
 
   const id = transactionMeta.id;
   const reqObject = {

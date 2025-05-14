@@ -15,7 +15,7 @@ import Text, {
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import Spinner from '../../../../../UI/AnimatedSpinner';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { useEIP7702Networks } from '../../../hooks/useEIP7702Networks';
+import { useEIP7702Networks } from '../../../hooks/7702/useEIP7702Networks';
 import AccountNetworkRow from './account-network-row';
 import styleSheet from './switch-account-type-modal.styles';
 
