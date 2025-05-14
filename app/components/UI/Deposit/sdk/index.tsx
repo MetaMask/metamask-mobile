@@ -37,7 +37,7 @@ export const DepositSDKProvider = ({
   );
 
   return (
-    <DepositSDKContext.Provider value={value || contextValue} {...props} />
+    <DepositSDKContext.Provider value={value ?? contextValue} {...props} />
   );
 };
 

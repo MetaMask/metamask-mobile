@@ -13,7 +13,7 @@ export const selectDepositConfig = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const depositConfig = remoteFeatureFlags?.depositConfig;
-    return (depositConfig || {}) as DepositConfig;
+    return (depositConfig ?? {}) as DepositConfig;
   },
 );
 
