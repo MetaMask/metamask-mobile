@@ -14,7 +14,7 @@ import { getSignatureDecodingEventProps } from '../../utils/signature-metrics';
 import { useSignatureRequest } from './useSignatureRequest';
 import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';
 import { useTypedSignSimulationEnabled } from './useTypedSignSimulationEnabled';
-import { parseTypedDataMessageFromSignatureRequest } from '../../utils/signature';
+import { parseAndNormalizeSignTypedDataFromSignatureRequest } from '../../utils/signature';
 import { useSelector } from 'react-redux';
 import { selectConfirmationMetricsById } from '../../../../../core/redux/slices/confirmationMetrics';
 import { RootState } from '../../../../../reducers';
@@ -38,6 +38,7 @@ const getAnalyticsParams = (
   confirmationMetrics: Record<string, unknown>,
 ) => {
   const { meta = {}, from, version } = messageParams;
+  const { ui_customizations = [], ...blockaidProperties } = securityAlertResponse ? getBlockaidMetricsParams(securityAlertResponse) : {};
 
   return {
     account_type: getAddressAccountType(from as string),
@@ -45,17 +46,15 @@ const getAnalyticsParams = (
     signature_type: type,
     version: version || 'N/A',
     chain_id: chainId ? getDecimalChainId(chainId) : '',
-    ui_customizations: ['redesigned_confirmation'],
+    ui_customizations: ['redesigned_confirmation', ...ui_customizations as string[]],
     ...(primaryType ? { eip712_primary_type: primaryType } : {}),
     ...(meta.analytics as Record<string, string>),
-    ...(securityAlertResponse
-      ? getBlockaidMetricsParams(securityAlertResponse)
-      : {}),
     ...getSignatureDecodingEventProps(
       decodingData,
       decodingLoading,
       isSimulationEnabled,
     ),
+    ...blockaidProperties,
     ...confirmationMetrics,
   };
 };
@@ -67,7 +66,7 @@ export const useSignatureMetrics = () => {
 
   const { chainId, decodingData, decodingLoading, messageParams, type, id } =
     signatureRequest ?? {};
-  const { primaryType } = parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
+  const { primaryType } = parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
 
   const confirmationMetrics = useSelector((state: RootState) =>
     selectConfirmationMetricsById(state, id ?? '')

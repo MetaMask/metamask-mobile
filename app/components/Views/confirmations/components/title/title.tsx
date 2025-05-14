@@ -1,8 +1,12 @@
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { SignatureRequest } from '@metamask/signature-controller';
-import { TransactionMeta, TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import React from 'react';
 import { View } from 'react-native';
+import { ApprovalType } from '@metamask/controller-utils';
 
 import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../../component-library/components/Texts/Text';
@@ -11,14 +15,22 @@ import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { useSignatureRequest } from '../../hooks/signatures/useSignatureRequest';
 import { useStandaloneConfirmation } from '../../hooks/ui/useStandaloneConfirmation';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import { isPermitDaiRevoke, isRecognizedPermit, isSIWESignatureRequest, parseTypedDataMessageFromSignatureRequest } from '../../utils/signature';
+import {
+  isPermitDaiRevoke,
+  isRecognizedPermit,
+  isSIWESignatureRequest,
+  parseAndNormalizeSignTypedDataFromSignatureRequest,
+} from '../../utils/signature';
+import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
 import styleSheet from './title.styles';
-import { ApprovalType } from '@metamask/controller-utils';
+import { useSmartAccountSwitchType } from '../../hooks/7702/useSmartAccountSwitchType';
 
 const getTitleAndSubTitle = (
   approvalRequest?: ApprovalRequest<{ data: string }>,
   signatureRequest?: SignatureRequest,
   transactionMetadata?: TransactionMeta,
+  isDowngrade: boolean = false,
+  isUpgradeOnly: boolean = false,
 ) => {
   const type = approvalRequest?.type;
 
@@ -39,9 +51,10 @@ const getTitleAndSubTitle = (
       const isPermit = isRecognizedPermit(signatureRequest);
 
       if (isPermit) {
-        const parsedMessage = parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
-        const { allowed, tokenId, value } = parsedMessage?.message ?? {};
-        const { verifyingContract } = parsedMessage?.domain ?? {};
+        const parsedData =
+          parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
+        const { allowed, tokenId, value } = parsedData.message ?? {};
+        const { verifyingContract } = parsedData.domain ?? {};
 
         const isERC721Permit = tokenId !== undefined;
         if (isERC721Permit) {
@@ -51,7 +64,11 @@ const getTitleAndSubTitle = (
           };
         }
 
-        const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
+        const isDaiRevoke = isPermitDaiRevoke(
+          verifyingContract,
+          allowed,
+          value,
+        );
         const isRevoke = isDaiRevoke || value === '0';
 
         if (isRevoke) {
@@ -72,10 +89,27 @@ const getTitleAndSubTitle = (
       };
     }
     case ApprovalType.Transaction: {
+      if (isDowngrade || isUpgradeOnly) {
+        return {
+          title: strings('confirm.title.switch_account_type'),
+          subTitle: isDowngrade
+            ? strings('confirm.sub_title.switch_to_standard_account')
+            : strings('confirm.sub_title.switch_to_smart_account'),
+        };
+      }
       if (transactionMetadata?.type === TransactionType.contractInteraction) {
         return {
           title: strings('confirm.title.contract_interaction'),
           subTitle: strings('confirm.sub_title.contract_interaction'),
+        };
+      }
+      if (
+        REDESIGNED_TRANSFER_TYPES.includes(
+          transactionMetadata?.type as TransactionType,
+        )
+      ) {
+        return {
+          title: strings('confirm.title.transfer'),
         };
       }
       return {};
@@ -91,6 +125,7 @@ const Title = () => {
   const { styles } = useStyles(styleSheet, {});
   const { isStandaloneConfirmation } = useStandaloneConfirmation();
   const transactionMetadata = useTransactionMetadataRequest();
+  const { isDowngrade, isUpgradeOnly } = useSmartAccountSwitchType();
 
   if (isStandaloneConfirmation) {
     return null;
@@ -100,6 +135,8 @@ const Title = () => {
     approvalRequest,
     signatureRequest,
     transactionMetadata,
+    isDowngrade,
+    isUpgradeOnly,
   );
 
   return (

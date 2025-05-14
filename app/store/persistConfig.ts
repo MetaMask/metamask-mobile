@@ -7,17 +7,11 @@ import { version, migrations } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
-import { debounce } from 'lodash';
+import Engine, { EngineContext } from '../core/Engine';
+import { getPersistentState } from '@metamask/base-controller';
 
 const TIMEOUT = 40000;
-const STORAGE_DEBOUNCE_DELAY = 200;
-
-const debouncedSetItem = debounce(
-  async (key: string, value: string) =>
-    await FilesystemStorage.setItem(key, value, Device.isIos()),
-  STORAGE_DEBOUNCE_DELAY,
-  { leading: false, trailing: true },
-);
+const STORAGE_THROTTLE_DELAY = 200;
 
 const MigratedStorage = {
   async getItem(key: string) {
@@ -47,7 +41,7 @@ const MigratedStorage = {
   },
   async setItem(key: string, value: string) {
     try {
-      return await debouncedSetItem(key, value);
+      return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to set item for ${key}`,
@@ -70,6 +64,7 @@ const MigratedStorage = {
  */
 const persistTransform = createTransform(
   (inboundState: RootState['engine']) => {
+    // Do not transform data in Fresh Installs
     if (
       !inboundState ||
       Object.keys(inboundState.backgroundState).length === 0
@@ -77,26 +72,39 @@ const persistTransform = createTransform(
       return inboundState;
     }
 
-    const { SwapsController, ...controllers } =
-      inboundState.backgroundState || {};
+    const controllers = inboundState.backgroundState || {};
 
-    const {
-      aggregatorMetadata,
-      aggregatorMetadataLastFetched,
-      chainCache,
-      tokens,
-      tokensLastFetched,
-      topAssets,
-      ...persistedSwapsController
-    } = SwapsController;
+    try {
+      // Check if Engine is initialized by trying to access context
+      if (Engine.context) {
+        // This is just to trigger the error if engine does not exist
+      }
+    } catch (error) {
+      // Engine not initialized, skipping transform
+      return inboundState;
+    }
 
+    const persistableControllersState: Record<
+      string,
+      Record<string, unknown>
+    > = {};
+    for (const [key, value] of Object.entries(controllers)) {
+      if (!value || typeof value !== 'object') continue;
+
+      const persistedState = getPersistentState(
+        value,
+        // @ts-expect-error - EngineContext have stateless controllers, so metadata is not available
+        Engine.context[key as keyof EngineContext]?.metadata,
+      );
+      persistableControllersState[key] = persistedState;
+    }
     // Reconstruct data to persist
     const newState = {
       backgroundState: {
-        ...controllers,
-        SwapsController: persistedSwapsController,
+        ...persistableControllersState,
       },
     };
+
     return newState;
   },
   null,
@@ -123,6 +131,7 @@ const persistConfig = {
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),
   timeout: TIMEOUT,
+  throttle: STORAGE_THROTTLE_DELAY,
   writeFailHandler: (error: Error) =>
     Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
 };

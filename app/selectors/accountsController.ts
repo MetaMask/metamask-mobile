@@ -20,6 +20,7 @@ import {
   isBtcTestnetAddress,
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
+import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 
 /**
  *
@@ -58,7 +59,9 @@ export const selectInternalAccounts = createDeepEqualSelector(
  */
 export const selectSelectedInternalAccount = createDeepEqualSelector(
   selectAccountsControllerState,
-  (accountsControllerState: AccountsControllerState) => {
+  (
+    accountsControllerState: AccountsControllerState,
+  ): InternalAccount | undefined => {
     const accountId = accountsControllerState.internalAccounts.selectedAccount;
     const account =
       accountsControllerState.internalAccounts.accounts[accountId];
@@ -93,6 +96,13 @@ export const selectOrderedInternalAccountsByLastSelected = createSelector(
   },
 );
 
+export const getMemoizedInternalAccountByAddress = createDeepEqualSelector(
+  [selectInternalAccounts, (_state, address) => address],
+  (internalAccounts, address) => internalAccounts.find((account) =>
+      isEqualCaseInsensitive(account.address, address),
+    ),
+);
+
 /**
  * A memoized selector that returns the last selected EVM account
  */
@@ -106,7 +116,8 @@ export const selectLastSelectedEvmAccount = createSelector(
  */
 export const selectLastSelectedSolanaAccount = createSelector(
   selectOrderedInternalAccountsByLastSelected,
-  (accounts) => accounts.find((account) => account.type === 'solana:data-account'),
+  (accounts) =>
+    accounts.find((account) => account.type === 'solana:data-account'),
 );
 
 /**
