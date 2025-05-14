@@ -13,6 +13,7 @@ import {
   getBlockExplorerTxUrl,
   findBlockExplorerForNonEvmChainId,
   isLineaMainnetChainId,
+  isPerDappSelectedNetworkEnabled,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
@@ -63,7 +64,6 @@ import {
   SEPOLIA_BLOCK_EXPLORER,
 } from '../../../../constants/urls';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { isPerDappSelectedNetworkEnabled } from '../../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
