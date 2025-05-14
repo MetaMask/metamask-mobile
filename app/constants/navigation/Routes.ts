@@ -63,9 +63,12 @@ const Routes = {
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
     MANUAL_BACKUP: {
+      STEP_1: 'ManualBackupStep1',
+      STEP_2: 'ManualBackupStep2',
       STEP_3: 'ManualBackupStep3',
     },
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
+    CHOOSE_PASSWORD: 'ChoosePassword',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -120,6 +123,8 @@ const Routes = {
     SELECT_SRP: 'SelectSRP',
     ///: END:ONLY_INCLUDE_IF
     SEEDPHRASE_MODAL: 'SeedphraseModal',
+    SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
+    SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -206,6 +211,7 @@ const Routes = {
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
   SEEDPHRASE_MODAL: 'SeedphraseModal',
+  SET_PASSWORD_FLOW: 'SetPasswordFlow',
   EDIT_ACCOUNT_NAME: 'EditAccountName',
 };
 
