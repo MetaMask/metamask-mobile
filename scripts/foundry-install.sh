@@ -118,3 +118,5 @@ echo "Created helper script at $HOME/use_foundry.sh to ensure correct PATH"
 echo "Use it like: $HOME/use_foundry.sh your-command"
 
 echo "✅ Script completed successfully. Foundry tools should be ready to use."
+
+anvil --fork-url https://eth.merkle.io
