@@ -18,10 +18,10 @@ describe('useAccountTypeUpgrade', () => {
     const { result } = renderHookWithProvider(() => useAccountTypeUpgrade(), {
       state: getAppStateForConfirmation(upgradeAccountConfirmation),
     });
-    const alert = result.current[0];
-    delete alert.content;
+    const currentAlert = result.current[0];
+    delete currentAlert.content;
 
-    expect(alert).toEqual({
+    expect(currentAlert).toEqual({
       field: 'accountTypeUpgrade',
       key: 'accountTypeUpgrade',
       severity: 'info',

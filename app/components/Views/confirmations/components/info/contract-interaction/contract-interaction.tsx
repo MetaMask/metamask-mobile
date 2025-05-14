@@ -20,7 +20,7 @@ const ContractInteraction = () => {
 
   const { trackPageViewedEvent } = useConfirmationMetricEvents();
   const { isBatchedUpgrade } = use7702TransactionType();
-  console.log('============================', isBatchedUpgrade);
+
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (

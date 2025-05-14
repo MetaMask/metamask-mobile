@@ -1,5 +1,5 @@
+import React, { useMemo } from 'react';
 import { Linking } from 'react-native';
-import { useMemo } from 'react';
 
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
