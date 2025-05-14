@@ -42,6 +42,7 @@ export enum TraceName {
   AccountList = 'Account List',
   StoreInit = 'Store Initialization',
   Tokens = 'Tokens List',
+  CreateHdAccount = 'Create HD Account',
   CreateSnapAccount = 'Create Snap Account',
   AddSnapAccount = 'Add Snap Account',
   SelectAccount = 'Select Account',
@@ -69,6 +70,7 @@ export enum TraceOperation {
   AccountList = 'account.list',
   StoreInit = 'store.initialization',
   Login = 'login',
+  CreateAccount = 'create.account',
   CreateSnapAccount = 'create.snap.account',
   AddSnapAccount = 'add.snap.account',
 }
