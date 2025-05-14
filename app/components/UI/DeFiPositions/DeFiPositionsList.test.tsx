@@ -246,7 +246,7 @@ describe('DeFiPositionsList', () => {
     expect(await findByText('Loading DeFi positions...')).toBeOnTheScreen();
   });
 
-  it('renders the no positions message when the positions are null for that address', async () => {
+  it('renders the error message when the positions are null for that address', async () => {
     const { findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
@@ -267,9 +267,8 @@ describe('DeFiPositionsList', () => {
       },
     );
 
-    expect(
-      await findByText(`An error occurred fetching DeFi positions`),
-    ).toBeOnTheScreen();
+    expect(await findByText(`We could not load this page.`)).toBeOnTheScreen();
+    expect(await findByText(`Try visiting again later.`)).toBeOnTheScreen();
   });
 
   it('renders the no positions message when there are no positions for that chain', async () => {

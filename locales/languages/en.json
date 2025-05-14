@@ -3989,7 +3989,8 @@
   "defi_positions": {
     "loading_positions": "Loading DeFi positions...",
     "no_positions": "No positions yet",
-    "error_fetching_positions": "An error occurred fetching DeFi positions",
+    "error_cannot_load_page": "We could not load this page.",
+    "error_visit_again": "Try visiting again later.",
     "single_token": "{{symbol}} only",
     "two_tokens": "{{symbol}} +1 other",
     "multiple_tokens": "{{symbol}} +{{count}} others",

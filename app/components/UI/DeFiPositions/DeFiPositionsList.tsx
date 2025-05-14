@@ -22,6 +22,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 
 export const DEFI_POSITIONS_CONTAINER = 'defi_positions_container';
 
@@ -81,19 +86,42 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
   }, [defiPositions, isAllNetworks, currentChainId, tokenSortConfig]);
 
   if (!formattedDeFiPositions || formattedDeFiPositions.length === 0) {
-    return (
-      <View style={styles.emptyView}>
+    let emptyContent;
+
+    if (formattedDeFiPositions === undefined) {
+      // Position data is still loading
+      emptyContent = (
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings(
-            formattedDeFiPositions === undefined
-              ? 'defi_positions.loading_positions'
-              : formattedDeFiPositions === null
-              ? 'defi_positions.error_fetching_positions'
-              : 'defi_positions.no_positions',
-          )}
+          {strings('defi_positions.loading_positions')}
         </Text>
-      </View>
-    );
+      );
+    } else if (formattedDeFiPositions === null) {
+      // Error fetching position data
+      emptyContent = (
+        <>
+          <Icon
+            name={IconName.Danger}
+            color={IconColor.Alternative}
+            size={IconSize.Md}
+          />
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('defi_positions.error_cannot_load_page')}
+          </Text>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('defi_positions.error_visit_again')}
+          </Text>
+        </>
+      );
+    } else {
+      // No positions found for the current account
+      emptyContent = (
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          {strings('defi_positions.no_positions')}
+        </Text>
+      );
+    }
+
+    return <View style={styles.emptyView}>{emptyContent}</View>;
   }
 
   return (
