@@ -626,10 +626,7 @@ export const WHILELIST_NETWORK_NAME = {
   [ChainId.mainnet]: 'Mainnet',
   [ChainId['linea-mainnet']]: 'Linea Mainnet',
   [ChainId['megaeth-testnet']]: 'Mega Testnet',
-<<<<<<< HEAD
-=======
   [ChainId['monad-testnet']]: 'Monad Testnet',
->>>>>>> main
 };
 
 /**
