@@ -188,6 +188,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
           {showValueButtonPill && (
             <AnimatedPulse
               isPulsing={isPendingTokenDetails}
+              minCycles={0}
               testID="simulation-value-display-loader"
             >
               <ButtonPill
