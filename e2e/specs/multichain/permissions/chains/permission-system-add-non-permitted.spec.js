@@ -222,7 +222,8 @@ describe(
           // Select Linea Sepolia from network selector and update permissions
           await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
           await NetworkConnectMultiSelector.tapUpdateButton();
-          // await NetworkEducationModal.tapGotItButton(); // commeting this line for now, for some reason the e2e recordings dont currently show a got it modal here
+          // Note: This line has shown inconsistent behavior in e2e tests - previously the modal wasn't showing up, but now it appears to be present and required
+          await NetworkEducationModal.tapGotItButton();
           await TestHelpers.delay(3000); // Wait for the toast to disappear
 
           // Select Linea Sepolia from permitted networks
