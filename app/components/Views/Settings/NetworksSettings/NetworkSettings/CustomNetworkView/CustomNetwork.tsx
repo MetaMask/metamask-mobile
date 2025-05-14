@@ -51,7 +51,8 @@ const CustomNetwork = ({
         ) => {
           if (
             isNonEvmChainId(networkConfiguration.chainId) ||
-            isNonEvmChainId(savedNetwork.chainId)
+            isNonEvmChainId(savedNetwork.chainId) ||
+            ('isEvm' in savedNetwork && savedNetwork.isEvm === false)
           ) {
             return false;
           }
