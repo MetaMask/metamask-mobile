@@ -20,7 +20,7 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style, isActive } = vars;
+  const { style, isActive, size } = vars;
   const colorObj = colors.primary;
 
   return StyleSheet.create({
@@ -29,6 +29,7 @@ const styleSheet = (params: {
         backgroundColor: isActive ? colorObj.muted : 'transparent',
         borderWidth: 1,
         borderColor: isActive ? colorObj.default : colors.border.default,
+        borderRadius: Number(size) / 2,
       } as ViewStyle,
       style,
     ) as ViewStyle,
