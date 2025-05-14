@@ -88,6 +88,7 @@ import { TextFieldSize } from '../../../component-library/components/Form/TextFi
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import { TraceName } from '../../../util/trace';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -570,7 +571,10 @@ const ImportFromSecretRecoveryPhrase = ({
               routes: [
                 {
                   name: Routes.ONBOARDING.SUCCESS_FLOW,
-                  params: { showPasswordHint: false },
+                  params: {
+                    showPasswordHint: false,
+                    traceNameToEnd: TraceName.OnboardingExistingSrpImport,
+                  },
                 },
               ],
             });

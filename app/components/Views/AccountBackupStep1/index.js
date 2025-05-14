@@ -40,6 +40,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -170,6 +171,7 @@ const AccountBackupStep1 = (props) => {
       onContinue: () => {
         props.navigation.navigate('OnboardingSuccess', {
           showPasswordHint: false,
+          traceNameToEnd: TraceName.OnboardingNewSrpCreateWallet
         });
       },
     });

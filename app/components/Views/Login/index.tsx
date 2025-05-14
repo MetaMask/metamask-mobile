@@ -331,6 +331,9 @@ const Login: React.FC = () => {
 
       ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       if (oauthLoginSuccess) {
+        endTrace({ name: TraceName.OnboardingExistingSocialLogin });
+        endTrace({ name: TraceName.OnboardingJourneyOverall });
+
         if (onboardingWizard) {
           setOnboardingWizardStep(1);
         }

@@ -39,6 +39,7 @@ import { ToastVariants } from '../../../component-library/components/Toast/Toast
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
+import { endTrace, TraceName } from '../../../util/trace';
 
 const wallet_ready_image = require('../../../images/wallet-ready.png'); // eslint-disable-line
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
@@ -71,8 +72,9 @@ const OnboardingSuccess = ({
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const { showPasswordHint } = (useRoute()?.params as {
+  const { showPasswordHint, traceNameToEnd } = (useRoute()?.params as {
     showPasswordHint?: boolean;
+    traceNameToEnd?: TraceName;
   }) || { showPasswordHint: false };
 
   const headerLeft = useCallback(
@@ -178,6 +180,13 @@ const OnboardingSuccess = ({
   useEffect(() => {
     fetchHintFromStorage();
   }, [showHint]);
+
+  useEffect(() => {
+    if (traceNameToEnd) {
+      endTrace({ name: traceNameToEnd });
+    }
+    endTrace({ name: TraceName.OnboardingJourneyOverall });
+  }, [traceNameToEnd]);
 
   const renderContent = () => {
     if (backedUpSRP && !showPasswordHint) {

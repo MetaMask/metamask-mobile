@@ -52,6 +52,14 @@ export enum TraceName {
   ImportTokens = 'Import Tokens',
   RampQuoteLoading = 'Ramp Quote Loading',
   LoadRampExperience = 'Load Ramp Experience',
+  OnboardingNewSocialAccountExists = 'Onboarding - New Social Account Exists',
+  OnboardingNewSocialCreateWallet = 'Onboarding - New Social Create Wallet',
+  OnboardingNewSrpCreateWallet = 'Onboarding - New SRP Create Wallet',
+  OnboardingExistingSocialLogin = 'Onboarding - Existing Social Login',
+  OnboardingExistingSocialAccountNotFound = 'Onboarding - Existing Social Account Not Found',
+  OnboardingExistingSrpImport = 'Onboarding - Existing SRP Import',
+  OnboardingJourneyOverall = 'Onboarding - Overall Journey',
+  OnboardingSocialLoginAttempt = 'Onboarding - Social Login Attempt',
 }
 
 export enum TraceOperation {
@@ -71,6 +79,8 @@ export enum TraceOperation {
   Login = 'login',
   CreateSnapAccount = 'create.snap.account',
   AddSnapAccount = 'add.snap.account',
+  OnboardingUserJourney = 'onboarding.user_journey',
+  OnboardingSocialLogin = 'onboarding.social_login',
 }
 
 const ID_DEFAULT = 'default';

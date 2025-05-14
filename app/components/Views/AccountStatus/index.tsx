@@ -28,6 +28,9 @@ import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
+import { endTrace, trace, TraceName, TraceOperation } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 
 import AccountStatusImg from '../../../images/already_exist.png';
 
@@ -50,6 +53,11 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
     ?.oauthLoginSuccess;
 
   useLayoutEffect(() => {
+    const traceToEnd = type === 'found'
+      ? TraceName.OnboardingNewSocialAccountExists
+      : TraceName.OnboardingExistingSocialAccountNotFound;
+    endTrace({ name: traceToEnd });
+
     const marginLeft = 16;
     const headerLeft = () => (
       <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -75,7 +83,7 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
         false,
       ),
     );
-  }, [navigation, colors, route]);
+  }, [navigation, colors, route, type]);
 
   const track = (event: IMetaMetricsEvent) => {
     trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
@@ -86,6 +94,18 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
     previousScreen: string,
     metricEvent: string,
   ) => {
+    const nextScenarioTraceName = type === 'found'
+      ? TraceName.OnboardingExistingSocialLogin
+      : TraceName.OnboardingNewSocialCreateWallet;
+    trace({
+      name: nextScenarioTraceName,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: {
+        ...getTraceTags(store.getState()),
+        source: 'account_status_redirect',
+      },
+    });
+
     navigation.dispatch(
       StackActions.replace(targetRoute, {
         [PREVIOUS_SCREEN]: previousScreen,
