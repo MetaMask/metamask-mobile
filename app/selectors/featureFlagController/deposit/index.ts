@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 
-interface DepositConfig {
+export interface DepositConfig {
   providerApiKey?: string | null;
   providerFrontendAuth?: string | null;
   entrypoints?: {
