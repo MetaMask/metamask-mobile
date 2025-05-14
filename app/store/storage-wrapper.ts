@@ -184,7 +184,7 @@ class StorageWrapper {
 
             if (existingUser) {
               // This is a fresh install but we have an existing user flag. This indicates restored data from a backup
-              await clearAll();
+              await StorageWrapper.getInstance().clearAll();
             }
           }
 
@@ -200,7 +200,13 @@ class StorageWrapper {
   };
 }
 
-export default StorageWrapper.getInstance();
-function clearAll() {
-  throw new Error('Function not implemented.');
-}
+// Get the singleton instance
+const storageWrapperInstance = StorageWrapper.getInstance();
+
+// Create an enhanced instance with both the instance methods and the static method
+const enhancedInstance = {
+  ...storageWrapperInstance,
+  handleFreshInstallWithRestoredData: StorageWrapper.handleFreshInstallWithRestoredData
+};
+
+export default enhancedInstance;
