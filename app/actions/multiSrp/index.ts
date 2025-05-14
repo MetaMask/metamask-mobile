@@ -3,7 +3,16 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
-import { endPerformanceTrace, startPerformanceTrace } from '../../core/redux/slices/performance';
+///: BEGIN:ONLY_INCLUDE_IF(beta)
+import {
+  MultichainWalletSnapFactory,
+  WalletClientType,
+} from '../../core/SnapKeyring/MultichainWalletSnapClient';
+///: END:ONLY_INCLUDE_IF
+import {
+  endPerformanceTrace,
+  startPerformanceTrace,
+} from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
 import { store } from '../../store';
 
@@ -54,6 +63,14 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     },
     async ({ keyring }) => keyring.getAccounts(),
   );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(beta)
+  const multichainClient = MultichainWalletSnapFactory.createClient(
+    WalletClientType.Solana,
+  );
+
+  await multichainClient.addDiscoveredAccounts(newKeyring.id);
+  ///: END:ONLY_INCLUDE_IF
 
   return Engine.setSelectedAddress(newAccountAddress);
 }
