@@ -7,6 +7,8 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { useTheme } from '../../../util/theme';
+import styleSheet from './NftGrid.styles';
 
 interface NftGridNavigationParamList {
   AddAsset: { assetType: string };
@@ -18,14 +20,11 @@ interface NftGridFooterProps {
 }
 
 function NftGridFooter({ navigation }: NftGridFooterProps) {
+  const { colors } = useTheme();
+  const styles = styleSheet(colors);
+
   return (
-    <View
-      // eslint-disable-next-line react-native/no-inline-styles
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-      }}
-    >
+    <View style={styles.footer}>
       <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
         {strings('wallet.no_collectibles')}
       </Text>

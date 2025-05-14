@@ -45,7 +45,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { TokenListControlBar } from '../Tokens/TokenListControlBar';
 import { toHex } from '@metamask/controller-utils';
-
+import { MasonryFlashList } from '@shopify/flash-list';
 export const RefreshTestId = 'refreshControl';
 export const SpinnerTestId = 'spinner';
 
@@ -248,7 +248,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   ]);
 
   return (
-    <View testID="collectible-contracts">
+    <View testID="collectible-contracts" style={styles.container}>
       <TokenListControlBar />
       {!isNftDetectionEnabled && <CollectibleDetectionModal />}
       {/* fetching state */}
@@ -268,9 +268,12 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
       )}
       {/* nft grid */}
       {!isNftFetchingProgress && flatMultichainCollectibles.length > 0 && (
-        <FlatList
-          numColumns={3}
+        <MasonryFlashList
           data={flatMultichainCollectibles}
+          numColumns={3}
+          estimatedItemSize={200}
+          keyExtractor={(_, index) => index.toString()}
+          testID={RefreshTestId}
           renderItem={({ item }: { item: Nft }) => (
             <NftGridItem
               nft={item}
@@ -280,8 +283,6 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
               longPressedCollectible={longPressedCollectible}
             />
           )}
-          keyExtractor={(_, index) => index.toString()}
-          testID={RefreshTestId}
           refreshControl={
             <RefreshControl
               testID={RefreshTestId}

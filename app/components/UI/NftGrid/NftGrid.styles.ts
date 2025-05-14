@@ -3,6 +3,9 @@ import { Colors } from '../../../util/theme/models';
 
 const styleSheet = (colors: Colors) =>
   StyleSheet.create({
+    container: {
+      flex: 1,
+    },
     collectibleIcon: {
       width: '100%',
       aspectRatio: 1,
@@ -15,7 +18,9 @@ const styleSheet = (colors: Colors) =>
       alignItems: 'center',
     },
     footer: {
+      display: 'flex',
       alignItems: 'center',
+      marginBottom: 20,
     },
     spinner: {
       marginBottom: 8,
