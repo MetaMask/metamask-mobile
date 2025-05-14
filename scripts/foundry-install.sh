@@ -30,8 +30,8 @@ fi
 if [ -n "$GITHUB_ACCESS_TOKEN" ]; then
     echo "Using GITHUB_ACCESS_TOKEN as GH_TOKEN for GitHub CLI authentication..."
     export GH_TOKEN="$GITHUB_ACCESS_TOKEN"
+    gh attestation verify --owner foundry-rs $(which forge)
+
 else
     echo "Warning: GITHUB_ACCESS_TOKEN environment variable not set."
 fi
-
-gh attestation verify --owner foundry-rs $(which forge)
