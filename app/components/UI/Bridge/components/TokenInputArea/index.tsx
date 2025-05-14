@@ -223,6 +223,8 @@ export const TokenInputArea = forwardRef<
                   onBlur={() => {
                     onBlur?.();
                   }}
+                  // Android only issue, for long numbers, the input field will focus on the right hand side
+                  // Force it to focus on the left hand side
                   selection={{ start: 0, end: 0 }}
                 />
               )}
