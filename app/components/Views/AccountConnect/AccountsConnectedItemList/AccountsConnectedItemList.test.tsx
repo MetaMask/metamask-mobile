@@ -9,7 +9,10 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 // external dependencies
 import { Account, EnsByAccountAddress } from '../../../hooks/useAccounts';
 import { NetworkAvatarProps } from '../AccountConnect.types';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
 
 // Internal dependencies.
 import AccountsConnectedItemList from './AccountsConnectedItemList';
@@ -47,6 +50,7 @@ const mockNetworkAvatars: NetworkAvatarProps[] = [
     name: 'Ethereum',
     size: AvatarSize.Xs,
     imageSource: { uri: 'https://reactnative.dev/img/tiny_logo.png' },
+    variant: AvatarVariant.Network,
   },
 ];
 
