@@ -65,7 +65,24 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
 
         // Verify permission cleanup
         await Assertions.checkIfNotVisible(ToastModal.container, 3000);
-        await TabBarComponent.tapBrowser();
+        
+        let retryCount = 0;
+        const maxRetries = 3;
+        const retryDelay = 1000;
+
+        while (retryCount < maxRetries) {
+          try {
+            await TabBarComponent.tapBrowser();
+            break; // If successful, exit the loop
+          } catch (error) {
+            retryCount++;
+            if (retryCount === maxRetries) {
+              throw error; // If we've exhausted all retries, throw the error
+            }
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+          }
+        }
+
         await Assertions.checkIfVisible(
           PermissionSummaryBottomSheet.addNetworkPermissionContainer,
         );
