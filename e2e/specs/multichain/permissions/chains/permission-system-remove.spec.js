@@ -3,6 +3,7 @@ import TestHelpers from '../../../../helpers';
 import { SmokeNetworkAbstractions } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
+import Logger from '../../../../../app/util/Logger';
 
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
@@ -60,7 +61,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         try {
           await NetworkEducationModal.tapGotItButton();
         } catch (error) {
-          console.log('NetworkEducationModal not found');
+          Logger.error('NetworkEducationModal not found');
         }
 
         // Verify permission cleanup
