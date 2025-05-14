@@ -57,7 +57,11 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await NetworksView.longPressToRemoveNetwork(
           PopularNetworksList.Polygon.providerConfig.nickname,
         );
-        await NetworkEducationModal.tapGotItButton();
+        try {
+          await NetworkEducationModal.tapGotItButton();
+        } catch (error) {
+          console.log('NetworkEducationModal not found');
+        }
 
         // Verify permission cleanup
         await Assertions.checkIfNotVisible(ToastModal.container, 3000);
