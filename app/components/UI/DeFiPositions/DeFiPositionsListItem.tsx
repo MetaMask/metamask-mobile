@@ -34,7 +34,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
   protocolAggregate,
   privacyMode = false,
 }: DeFiPositionsListItemProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, undefined);
 
   const navigation = useNavigation();
 

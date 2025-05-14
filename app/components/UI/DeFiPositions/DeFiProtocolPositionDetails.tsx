@@ -30,7 +30,7 @@ interface DeFiProtocolPositionDetailsParams {
 }
 
 const DeFiProtocolPositionDetails: React.FC = () => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, undefined);
   const navigation = useNavigation();
 
   const { protocolAggregate, networkIconAvatar } =

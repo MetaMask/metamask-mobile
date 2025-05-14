@@ -36,7 +36,7 @@ export interface DeFiPositionsListProps {
 }
 
 const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, undefined);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const currentChainId = useSelector(selectChainId) as Hex;

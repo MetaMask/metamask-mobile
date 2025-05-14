@@ -36,7 +36,7 @@ const DeFiProtocolPositionGroupTokens: React.FC<
   networkIconAvatar,
   privacyMode,
 }: DeFiProtocolPositionGroupTokensProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, undefined);
 
   if (tokens.length === 0) {
     return null;

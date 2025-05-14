@@ -22,7 +22,7 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../hooks/useStyles';
 
 const DeFiPositionsControlBar: React.FC = () => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, undefined);
 
   const navigation = useNavigation();
   const isAllNetworks = useSelector(selectIsAllNetworks);

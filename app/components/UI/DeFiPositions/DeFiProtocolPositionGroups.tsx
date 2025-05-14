@@ -20,7 +20,7 @@ const DeFiProtocolPositionGroups: React.FC<
   networkIconAvatar,
   privacyMode,
 }: DeFiProtocolPositionGroupsParams) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, undefined);
 
   const positionGroups = useMemo(
     () =>
