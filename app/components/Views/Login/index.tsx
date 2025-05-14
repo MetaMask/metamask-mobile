@@ -188,10 +188,6 @@ const Login: React.FC = () => {
   }, []);
 
   const handleVaultCorruption = async () => {
-    // This is so we can log vault corruption error in sentry
-    const vaultCorruptionError = new Error('Vault Corruption Error');
-    Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
-
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
     if (!passwordRequirementsMet(password)) {
