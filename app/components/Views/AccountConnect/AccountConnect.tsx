@@ -289,7 +289,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         },
       });
     }
-  }, [selectedChainIds, chainId, urlWithProtocol]);
+  }, [selectedChainIds, chainId, hostnameFromUrlObj]);
 
   const isAllowedOrigin = useCallback((origin: string) => {
     const phishingResult = getPhishingTestResult(origin);
@@ -334,7 +334,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       protocolFromUrlObj === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
-    [urlWithProtocol],
+    [protocolFromUrlObj],
   );
 
   const eventSource = useOriginSource({ origin: channelIdOrHostname });
@@ -357,7 +357,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [internalAccounts, selectedAddresses]);
 
   const cancelPermissionRequest = useCallback(
-    (requestId) => {
+    (requestId: string) => {
       DevLogger.log(
         `AccountConnect::cancelPermissionRequest requestId=${requestId} channelIdOrHostname=${channelIdOrHostname} accountsLength=${accountsLength}`,
       );
@@ -432,7 +432,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     (numberOfConnectedAccounts: number) =>
       // Track dapp viewed event
       trackDappViewedEvent({ hostname: hostnameFromUrlObj, numberOfConnectedAccounts }),
-    [urlWithProtocol],
+    [hostnameFromUrlObj],
   );
 
   const handleConnect = useCallback(async () => {
@@ -764,6 +764,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       secureIcon,
       urlWithProtocol,
       sdkConnection,
+      hostnameFromUrlObj,
     ],
   );
 
@@ -788,6 +789,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       chainId,
       handleNetworksSelected,
       selectedNetworkIds,
+      hostnameFromUrlObj,
     ],
   );
 
