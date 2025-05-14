@@ -439,7 +439,8 @@ export class BackgroundBridge extends EventEmitter {
             authorization,
           ] of removedAuthorizations.entries()) {
             const sessionScopes = getSessionScopes(authorization, {
-              getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+              getNonEvmSupportedMethods:
+                this.getNonEvmSupportedMethods.bind(this),
             });
             // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
             // then remove middleware and unsubscribe
@@ -462,7 +463,8 @@ export class BackgroundBridge extends EventEmitter {
             authorization,
           ] of changedAuthorizations.entries()) {
             const sessionScopes = getSessionScopes(authorization, {
-              getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+              getNonEvmSupportedMethods:
+                this.getNonEvmSupportedMethods.bind(this),
             });
 
             // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
@@ -965,47 +967,8 @@ export class BackgroundBridge extends EventEmitter {
 
     engine.push(
       createMultichainMethodMiddleware({
-        // wallet_watchAsset handler related
-        hostname: origin,
-        checkActiveTab: () => {
-          if (!this.tabId) return true;
-          const { browser } = store.getState();
-          if (this.tabId !== browser.activeTab)
-            throw providerErrors.userRejectedRequest();
-        },
         // getProviderState handler related
         getProviderState: this.getProviderState.bind(this),
-        // wallet_addEthereumChain handler related
-        requestUserApproval:
-          ApprovalController.addAndShowApprovalRequest.bind(ApprovalController),
-        getCaveat: ({ target, caveatType }) => {
-          try {
-            return PermissionController.getCaveat(origin, target, caveatType);
-          } catch (e) {
-            if (e instanceof PermissionDoesNotExistError) {
-              // suppress expected error in case that the origin
-              // does not have the target permission yet
-            } else {
-              throw e;
-            }
-          }
-        },
-        hasApprovalRequestsForOrigin: () => ApprovalController.has({ origin }),
-        toNetworkConfiguration: Engine.controllerMessenger.call.bind(
-          Engine.controllerMessenger,
-          'NetworkController:getNetworkConfigurationByChainId',
-        ),
-        getNetworkConfigurationByChainId:
-          NetworkController.getNetworkConfigurationByChainId.bind(
-            NetworkController,
-          ),
-        requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
-          requestPermittedChainsPermissionIncremental({
-            ...options,
-            origin,
-          }),
-        rejectApprovalRequestsForOrigin: () =>
-          rejectOriginPendingApprovals(origin),
       }),
     );
 
