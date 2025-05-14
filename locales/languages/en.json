@@ -1846,6 +1846,8 @@
     "sign_description_2": "tap on Get Signature",
     "sign_get_signature": "Get Signature",
     "transaction_id": "Transaction ID",
+    "network": "Network",
+    "request_from": "Request from",
     "network_fee": "Network Fee",
     "network_fee_tooltip": "Amount paid to process the transaction on network."
   },
