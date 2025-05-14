@@ -671,12 +671,16 @@ workflows:
                 ./scripts/download-android-qa-app.sh
                 # APK_PATH is already set by the download script using envman
   test-foundry-install:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
     before_run:
       - code_setup
+    steps:
+      - script@1:
+          title: installing foundry
+          inputs:
+            - content: |
+                #!/usr/bin/env bash
+                ./scripts/foundry-install.sh
+  foundry-install:
     steps:
       - script@1:
           title: installing foundry
@@ -979,6 +983,7 @@ workflows:
     before_run:
       - setup
       - prep_environment
+      - foundry-install
     after_run:
       - notify_failure
     steps:
@@ -1217,6 +1222,7 @@ workflows:
       - setup
       - install_applesimutils
       - prep_environment
+      - foundry-install
     after_run:
       - notify_failure
     steps:

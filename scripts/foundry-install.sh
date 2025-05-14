@@ -26,7 +26,7 @@ else
     echo "Error: Foundry installation may have failed. Please check the output above."
     exit 1
 fi
-
+anvil --version
 if [ -n "$GITHUB_ACCESS_TOKEN" ]; then
     echo "Using GITHUB_ACCESS_TOKEN as GH_TOKEN for GitHub CLI authentication..."
     export GH_TOKEN="$GITHUB_ACCESS_TOKEN"
