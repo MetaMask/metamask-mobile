@@ -13,6 +13,7 @@ import {
   VAULT_BACKUP_TEMP_KEY,
   TEMP_VAULT_BACKUP_FAILED,
 } from './constants';
+import Logger from '../../util/Logger';
 
 const options: Options = {
   accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
