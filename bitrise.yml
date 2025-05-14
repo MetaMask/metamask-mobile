@@ -167,11 +167,6 @@ stages:
       - build_android_devbuild: {}
       - build_ios_devbuild: {}
       - build_ios_simbuild: {}
-  create_build_flask_expo:
-    workflows:
-      - build_android_flask_devbuild: {}
-      - build_ios_flask_devbuild: {}
-      - build_ios_flask_simbuild: {}
   create_build_qa_flask:
     workflows:
       - build_android_qa_flask: {}
