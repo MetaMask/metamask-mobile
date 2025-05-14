@@ -45,7 +45,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+// import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -91,6 +91,8 @@ import ReduxService from '../../../core/redux';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
+import OAuthService from '../../../core/OAuthService/OAuthService';
+import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
@@ -132,7 +134,13 @@ const Login: React.FC = () => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const {
+    trackEvent,
+    createEventBuilder,
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+    isEnabled: isMetricsEnabled,
+    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+  } = useMetrics();
   const dispatch = useDispatch();
   const setOnboardingWizardStep = (step: number) =>
     dispatch(setOnboardingWizardStepUtil(step));
@@ -143,6 +151,8 @@ const Login: React.FC = () => {
     Authentication.lockApp();
     return false;
   };
+
+  const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
   const getHint = async () => {
     const hint = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
@@ -191,6 +201,7 @@ const Login: React.FC = () => {
         setRememberMe(true);
         setAllowLoginWithRememberMe(true);
       } else if (authData.availableBiometryType) {
+        Logger.log('authData', authData);
         setBiometryType(authData.availableBiometryType);
         setHasBiometricCredentials(
           authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC &&
@@ -267,6 +278,14 @@ const Login: React.FC = () => {
     setBiometryChoice(newBiometryChoice);
   };
 
+  const handleUseOtherMethod = () => {
+    navigation.navigate('OnboardingRootNav', {
+      screen: 'OnboardingNav',
+      params: { screen: 'Onboarding' },
+    });
+    OAuthService.resetOauthState();
+  };
+
   const onLogin = async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
@@ -285,26 +304,70 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
-      await trace(
-        {
-          name: TraceName.AuthenticateUser,
-          op: TraceOperation.Login,
-          parentContext: parentSpanRef.current,
-        },
-        async () => {
-          await Authentication.userEntryAuth(password, authType);
-        },
-      );
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+      if (oauthLoginSuccess) {
+        await Authentication.rehydrateSeedPhrase(password, authType);
+      } else {
+        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+        await trace(
+          {
+            name: TraceName.AuthenticateUser,
+            op: TraceOperation.Login,
+            parentContext: parentSpanRef.current,
+          },
+          async () => {
+            await Authentication.userEntryAuth(password, authType);
+          },
+        );
+
+        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+      }
+      ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+
       Keyboard.dismiss();
 
       // Get onboarding wizard state
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-      if (onboardingWizard) {
-        navigation.replace(Routes.ONBOARDING.HOME_NAV);
+
+      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+      if (oauthLoginSuccess) {
+        if (onboardingWizard) {
+          setOnboardingWizardStep(1);
+        }
+        if (isMetricsEnabled()) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
+        } else {
+          navigation.navigate('OnboardingRootNav', {
+            screen: 'OnboardingNav',
+            params: {
+              screen: 'OptinMetrics',
+              params: {
+                onContinue: () => {
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+                  });
+                },
+              },
+            },
+          });
+        }
       } else {
-        setOnboardingWizardStep(1);
-        navigation.replace(Routes.ONBOARDING.HOME_NAV);
+        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+        // eslint-disable-next-line no-lonely-if
+        if (onboardingWizard) {
+          navigation.replace(Routes.ONBOARDING.HOME_NAV);
+        } else {
+          setOnboardingWizardStep(1);
+          navigation.replace(Routes.ONBOARDING.HOME_NAV);
+        }
+        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       }
+      ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setPassword('');
       setLoading(false);
@@ -395,13 +458,13 @@ const Login: React.FC = () => {
     });
   };
 
+  const shouldRenderBiometricLogin =
+    biometryType && !biometryPreviouslyDisabled ? biometryType : null;
+
   const renderSwitch = () => {
     const handleUpdateRememberMe = (rememberMeChoice: boolean) => {
       setRememberMe(rememberMeChoice);
     };
-
-    const shouldRenderBiometricLogin =
-      biometryType && !biometryPreviouslyDisabled ? biometryType : null;
 
     return (
       <LoginOptionsSwitch
@@ -423,6 +486,7 @@ const Login: React.FC = () => {
   };
 
   const shouldHideBiometricAccessoryButton = !(
+    !oauthLoginSuccess &&
     biometryChoice &&
     biometryType &&
     hasBiometricCredentials
@@ -557,14 +621,28 @@ const Login: React.FC = () => {
                 isDisabled={password.length === 0}
               />
 
-              <Button
-                style={styles.goBack}
-                variant={ButtonVariants.Link}
-                onPress={toggleWarningModal}
-                testID={LoginViewSelectors.RESET_WALLET}
-                label={strings('login.reset_wallet')}
-              />
+              {!oauthLoginSuccess && (
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={toggleWarningModal}
+                  testID={LoginViewSelectors.RESET_WALLET}
+                  label={strings('login.reset_wallet')}
+                />
+              )}
             </View>
+
+            {oauthLoginSuccess && (
+              <View style={styles.footer}>
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={handleUseOtherMethod}
+                  testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+                  label={strings('login.other_methods')}
+                />
+              </View>
+            )}
           </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />

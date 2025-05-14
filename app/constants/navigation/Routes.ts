@@ -123,6 +123,7 @@ const Routes = {
     ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
     SELECT_SRP: 'SelectSRP',
     ///: END:ONLY_INCLUDE_IF
+    ONBOARDING_SHEET: 'OnboardingSheet',
     SEEDPHRASE_MODAL: 'SeedphraseModal',
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
