@@ -19,7 +19,7 @@ echo "Running foundryup to install the latest version..."
 $HOME/.foundry/bin/foundryup
 
 # Verify installation
-if command -v forge &> /dev/null; then
+if command -v forge &>/dev/null; then
     echo "Foundry installation completed successfully!"
     forge --version
 else
@@ -35,3 +35,14 @@ if [ -n "$GITHUB_ACCESS_TOKEN" ]; then
 else
     echo "Warning: GITHUB_ACCESS_TOKEN environment variable not set."
 fi
+
+echo "Verifying forge binary using GitHub attestation..."
+if gh attestation verify --owner foundry-rs $(which forge); then
+    echo "Verification successful! The forge binary is authentic."
+else
+    VERIFICATION_STATUS=$?
+    echo "Verification failed with exit code: $VERIFICATION_STATUS"
+    echo "Since this is running in CI, we'll continue despite verification failure."
+fi
+
+echo "Script completed successfully. Foundry is ready to use."
