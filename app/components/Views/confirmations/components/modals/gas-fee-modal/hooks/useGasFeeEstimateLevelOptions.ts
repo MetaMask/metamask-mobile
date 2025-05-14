@@ -2,7 +2,6 @@ import { useCallback, useMemo } from 'react';
 import {
   GasFeeEstimateType,
   GasFeeEstimateLevel,
-  TransactionEnvelopeType,
   type TransactionMeta,
   type GasFeeEstimates as TransactionGasFeeEstimates,
 } from '@metamask/transaction-controller';
