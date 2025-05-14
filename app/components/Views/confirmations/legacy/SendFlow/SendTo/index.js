@@ -376,7 +376,6 @@ class SendFlow extends PureComponent {
   };
 
   getAddressNameFromBookOrInternalAccounts = (toAccount) => {
-    console.log('OGP - getAddressNameFromBookOrInternalAccounts: ', toAccount);
     const { addressBook, internalAccounts, globalChainId } = this.props;
     if (!toAccount) return;
 
@@ -427,7 +426,6 @@ class SendFlow extends PureComponent {
   };
 
   onToSelectedAddressChange = (toAccount) => {
-    console.log('OGP - onToSelectedAddressChange: ', toAccount);
     const currentChain =
       this.props.ambiguousAddressEntries &&
       this.props.ambiguousAddressEntries[this.props.globalChainId];
