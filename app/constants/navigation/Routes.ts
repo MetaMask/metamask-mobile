@@ -119,6 +119,7 @@ const Routes = {
     ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
     SELECT_SRP: 'SelectSRP',
     ///: END:ONLY_INCLUDE_IF
+    SEEDPHRASE_MODAL: 'SeedphraseModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -204,6 +205,7 @@ const Routes = {
   },
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
+  SEEDPHRASE_MODAL: 'SeedphraseModal',
   EDIT_ACCOUNT_NAME: 'EditAccountName',
 };
 
