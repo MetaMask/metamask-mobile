@@ -3,7 +3,12 @@ import { JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 import { JsonRpcParams } from '@metamask/eth-query';
 import { Json } from '@metamask/utils';
 
-import { getAccounts, processSendCalls, getCallsStatus } from './eip5792';
+import {
+  getAccounts,
+  getCapabilities,
+  getCallsStatus,
+  processSendCalls,
+} from './eip5792';
 
 export const createAsyncWalletMiddleware = (): JsonRpcMiddleware<
   JsonRpcParams,
@@ -13,4 +18,5 @@ export const createAsyncWalletMiddleware = (): JsonRpcMiddleware<
     getAccounts,
     processSendCalls,
     getCallsStatus,
+    getCapabilities,
   }) as JsonRpcMiddleware<JsonRpcParams, Json>;

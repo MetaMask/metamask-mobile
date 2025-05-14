@@ -1,4 +1,10 @@
-import { getAccounts, getCallsStatus, processSendCalls } from './eip5792';
+import {
+  AtomicCapabilityStatus,
+  getAccounts,
+  getCallsStatus,
+  getCapabilities,
+  processSendCalls,
+} from './eip5792';
 import Engine from '../Engine';
 import {
   GetCallsStatusCode,
@@ -341,6 +347,68 @@ describe('processSendCalls', () => {
       expect(async () => {
         await getCallsStatus(BATCH_ID_MOCK);
       }).rejects.toThrow(`No matching bundle found`);
+    });
+  });
+
+  describe('getCapabilities', () => {
+    const CHAIN_ID_MOCK = '0x123';
+    const FROM_MOCK = '0xabc123';
+    const DELEGATION_ADDRESS_MOCK =
+      '0x1234567890abcdef1234567890abcdef12345678';
+
+    it('includes atomic capability if already upgraded', async () => {
+      Engine.context.TransactionController.isAtomicBatchSupported = jest
+        .fn()
+        .mockResolvedValueOnce([
+          {
+            chainId: CHAIN_ID_MOCK,
+            delegationAddress: DELEGATION_ADDRESS_MOCK,
+            isSupported: true,
+          },
+        ]);
+
+      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
+
+      expect(capabilities).toStrictEqual({
+        [CHAIN_ID_MOCK]: {
+          atomic: {
+            status: AtomicCapabilityStatus.Supported,
+          },
+        },
+      });
+    });
+
+    it('includes atomic capability if not yet upgraded', async () => {
+      Engine.context.TransactionController.isAtomicBatchSupported = jest
+        .fn()
+        .mockResolvedValueOnce([
+          {
+            chainId: CHAIN_ID_MOCK,
+            delegationAddress: undefined,
+            isSupported: false,
+            upgradeContractAddress: DELEGATION_ADDRESS_MOCK,
+          },
+        ]);
+
+      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
+
+      expect(capabilities).toStrictEqual({
+        [CHAIN_ID_MOCK]: {
+          atomic: {
+            status: AtomicCapabilityStatus.Ready,
+          },
+        },
+      });
+    });
+
+    it('does not include atomic capability if chain not supported', async () => {
+      Engine.context.TransactionController.isAtomicBatchSupported = jest
+        .fn()
+        .mockResolvedValueOnce([]);
+
+      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
+
+      expect(capabilities).toStrictEqual({});
     });
   });
 });

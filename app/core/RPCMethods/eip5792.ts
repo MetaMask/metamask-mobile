@@ -2,6 +2,7 @@ import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-c
 import {
   GetCallsStatusCode,
   GetCallsStatusResult,
+  GetCapabilitiesResult,
   SendCalls,
   SendCallsResult,
 } from '@metamask/eth-json-rpc-middleware';
@@ -221,4 +222,42 @@ export async function getCallsStatus(id: Hex): Promise<GetCallsStatusResult> {
     status,
     receipts,
   };
+}
+
+export enum AtomicCapabilityStatus {
+  Supported = 'supported',
+  Ready = 'ready',
+  Unsupported = 'unsupported',
+}
+
+export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
+  const { TransactionController } = Engine.context;
+  const batchSupport = await TransactionController.isAtomicBatchSupported({
+    address,
+    chainIds,
+  });
+  return batchSupport.reduce<GetCapabilitiesResult>(
+    (acc, chainBatchSupport) => {
+      const {
+        chainId,
+        delegationAddress,
+        isSupported,
+        upgradeContractAddress,
+      } = chainBatchSupport;
+      const canUpgrade = upgradeContractAddress && !delegationAddress;
+      if (!isSupported && !canUpgrade) {
+        return acc;
+      }
+      const status = isSupported
+        ? AtomicCapabilityStatus.Supported
+        : AtomicCapabilityStatus.Ready;
+      acc[chainId] = {
+        atomic: {
+          status,
+        },
+      };
+      return acc;
+    },
+    {},
+  );
 }
