@@ -5514,10 +5514,10 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
 
-"@metamask/profile-sync-controller@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-13.0.0.tgz#8d9c8678d5a2b21e1a41886c8d505f3e138176c3"
-  integrity sha512-GvhoVvTk2eqo1EEv8HTaUaRj07Sob0sn5s6PVJwmgGSfL0a4wueapzj53iz5YnfUpotP2r4zX4a1uIC/agPtdg==
+"@metamask/profile-sync-controller@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-14.0.0.tgz#f006ff2f3fea33318d613c9c87f9e9545041994a"
+  integrity sha512-cjgibCaf2h297yN84ceUxL2uqapi/dyTWlK5O6ZDwDDDisvOUmDMN/h4ZaJA8fhQwf4lAeBSqyp4K/x9FLjHHw==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/keyring-api" "^17.4.0"
@@ -5685,10 +5685,10 @@
     fast-json-patch "^3.1.0"
     lodash "^4.17.21"
 
-"@metamask/snaps-controllers@^12.0.0":
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-12.0.0.tgz#aff6da4800662e53e2b3150a10e0ee51e914cf47"
-  integrity sha512-5edP8xp25tZthI9AJN1R2efCuK9c3XCj3o8q9fQFzfjvnj143q2ivBiqMCVIP6xV3ppwmJNf/cKgIJMm5Oc/vw==
+"@metamask/snaps-controllers@^12.0.1":
+  version "12.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-12.0.1.tgz#d62af5489ab9010233d66903f56c61f43a1820ed"
+  integrity sha512-gEJwRgimqXyPzvfACM5ZDBK1YBY2Gyt9i8VIzQ/OQ458O7B8cO4/0x8NdfNw2Ux2DTEgMiZKr2boeqGx2ubSkg==
   dependencies:
     "@metamask/approval-controller" "^7.1.3"
     "@metamask/base-controller" "^8.0.1"
