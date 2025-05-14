@@ -8,6 +8,7 @@ import SendTo from './index';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import { validateAddressOrENS } from '../../../../../../util/address';
+import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -54,7 +55,7 @@ describe('SendTo Component', () => {
     );
   });
 
-  it('should render', () => {
+  it('render matches snapshot', () => {
     const wrapper = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
@@ -65,7 +66,7 @@ describe('SendTo Component', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should navigate to Amount screen', () => {
+  it('navigates to Amount screen', () => {
     const MOCK_TARGET_ADDRESS = '0x0000000000000000000000000000000000000000';
     const { navigate } = navigationPropMock;
     const routeProps = {
@@ -85,5 +86,24 @@ describe('SendTo Component', () => {
     );
     fireEvent.press(screen.getByText('Next'));
     expect(navigate).toHaveBeenCalledWith('Amount');
+  });
+
+  it('shows the warning message when the target address is invalid', () => {
+    const { getByText, getByTestId } = render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <SendTo navigation={navigationPropMock} route={routeMock} />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+
+    const toInput = getByTestId(SendViewSelectorsIDs.ADDRESS_INPUT);
+    fireEvent.changeText(toInput, 'invalid address');
+
+    const expectedWarningMessage = getByText(
+      'No address has been set for this name.',
+    );
+
+    expect(expectedWarningMessage).toBeOnTheScreen();
   });
 });
