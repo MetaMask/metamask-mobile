@@ -37,6 +37,7 @@ import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { parseUnits } from 'ethers/lib/utils';
+import parseAmount from '../../../Ramp/utils/parseAmount';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -207,7 +208,7 @@ export const TokenInputArea = forwardRef<
               ) : (
                 <Input
                   ref={inputRef}
-                  value={amount}
+                  value={amount ? parseAmount(amount, 7) : amount}
                   style={styles.input}
                   isDisabled={false}
                   isReadonly={tokenType === TokenInputAreaType.Destination}
