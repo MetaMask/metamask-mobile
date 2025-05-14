@@ -16,12 +16,14 @@ export interface DepositSDK {
   providerFrontendAuth: string | null;
 }
 
-const DepositSDKContext = createContext<DepositSDK | undefined>(undefined);
+export const DepositSDKContext = createContext<DepositSDK | undefined>(
+  undefined,
+);
 
 export const DepositSDKProvider = ({
   value,
   ...props
-}: ProviderProps<DepositSDK>) => {
+}: Partial<ProviderProps<DepositSDK>>) => {
   const providerApiKey = useSelector(selectDepositProviderApiKey);
   const providerFrontendAuth = useSelector(selectDepositProviderFrontendAuth);
 
