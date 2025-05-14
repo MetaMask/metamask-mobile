@@ -393,6 +393,7 @@ describe('AccountConnect', () => {
     // check if this wrap component includes the original URL
     expect(permissionsRequestOriginWrap).toBeDefined();
     // get inner text of permissionsRequestOriginWrap and check for original URL
+    // @ts-expect-error - This is a valid way to access the children of the permissionsRequestOriginWrap component
     const permissionsRequestOriginText = permissionsRequestOriginWrap.children[0].children[0].props.children;
     expect(permissionsRequestOriginText).toContain(parsedOriginalURL.hostname);
 
