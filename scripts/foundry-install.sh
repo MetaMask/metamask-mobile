@@ -44,3 +44,5 @@ else
 fi
 
 echo "Script completed successfully. Foundry is ready to use."
+
+anvil --version

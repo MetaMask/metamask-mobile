@@ -681,10 +681,18 @@ workflows:
                 #!/bin/bash
                 set -ex
 
-                 ./scripts/foundry-install.sh
-                 export PATH="$FOUNDRY_BIN_PATH:$PATH"
-                 echo "HERE IS FOUND BUILD PATH:" $FOUNDRY_BIN_PATH
+                echo "Installing Foundry..."
+                curl -L https://foundry.paradigm.xyz | bash
+
+                $HOME/.foundry/bin/foundryup
+                export PATH="$HOME/.foundry/bin:$PATH"
+                source "$BASH_ENV"
+
+                command -v forge && forge --version
+                command -v anvil && anvil --version
   foundry-install:
+    envs:
+      - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
     steps:
       - script@1:
           title: installing foundry
@@ -692,19 +700,20 @@ workflows:
             - content: |
                 #!/usr/bin/env bash
                 set -ex 
+                # ./scripts/foundry-install.sh
+                # export PATH="$FOUNDRY_BIN_PATH:$PATH"
 
-                ./scripts/foundry-install.sh
-                export PATH="$FOUNDRY_BIN_PATH:$PATH"
+                echo "Installing Foundry..."
+                curl -L https://foundry.paradigm.xyz | bash
 
-                # echo "Installing Foundry..."
-                # curl -L https://foundry.paradigm.xyz | bash
+                export FOUNDRY_BIN_PATH="$HOME/.foundry/bin"
+                envman add --key FOUNDRY_BIN_PATH --value "$FOUNDRY_BIN_PATH"
+                envman add --key PATH --value "$FOUNDRY_BIN_PATH:$PATH"
 
-                # $HOME/.foundry/bin/foundryup
-                # export PATH="$HOME/.foundry/bin:$PATH"
-                # source "$BASH_ENV"
+                command -v forge && forge --version
+                command -v anvil && anvil --version
 
-                # command -v forge && forge --version
-                # command -v anvil && anvil --version
+                echo "Foundry Bin: " $FOUNDRY_BIN_PATH
 
   build_flask_e2e_android:
     meta:
@@ -1299,6 +1308,9 @@ workflows:
                 #!/usr/bin/env bash
 
                 node -v
+                echo "here is foundry bin"
+                ls ~/.foundry/bin
+                export PATH="$FOUNDRY_BIN_PATH:$PATH"
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
