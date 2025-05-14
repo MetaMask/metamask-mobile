@@ -19,6 +19,7 @@ import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
 import { useStandaloneConfirmation } from '../../hooks/ui/useStandaloneConfirmation';
+import { useConfirmationContext } from '../../context/confirmation-context';
 import { useQRHardwareContext } from '../../context/qr-hardware-context/qr-hardware-context';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -45,6 +46,7 @@ export const Footer = () => {
   const isStakingConfirmationBool = isStakingConfirmation(
     transactionMetadata?.type as string,
   );
+  const { isTransactionValueUpdating } = useConfirmationContext();
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
@@ -121,7 +123,10 @@ export const Footer = () => {
       isDanger:
         securityAlertResponse?.result_type === ResultType.Malicious ||
         hasDangerAlerts,
-      isDisabled: needsCameraPermission || hasBlockingAlerts,
+      isDisabled:
+        needsCameraPermission ||
+        hasBlockingAlerts ||
+        isTransactionValueUpdating,
       label: confirmButtonLabel(),
       size: ButtonSize.Lg,
       onPress: onSignConfirm,
