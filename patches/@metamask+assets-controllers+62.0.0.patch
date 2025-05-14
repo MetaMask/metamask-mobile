@@ -161,3 +161,140 @@ index 4384784..e35e71c 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenListController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenListController.cjs
+index fb56af8..14585e6 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenListController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenListController.cjs
+@@ -4,7 +4,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _TokenListController_instances, _TokenListController_onNetworkControllerStateChange, _TokenListController_startDeprecatedPolling, _TokenListController_fetchFromCache;
++var _TokenListController_instances, _TokenListController_onNetworkControllerStateChange, _TokenListController_startDeprecatedPolling;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TokenListController = exports.getDefaultTokenListState = void 0;
+ const controller_utils_1 = require("@metamask/controller-utils");
+@@ -141,54 +141,58 @@ class TokenListController extends (0, polling_controller_1.StaticIntervalPolling
+     async fetchTokenList(chainId) {
+         const releaseLock = await this.mutex.acquire();
+         try {
+-            const { tokensChainsCache } = this.state;
+-            let tokenList = {};
+-            // Attempt to fetch cached tokens
+-            const cachedTokens = await (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _TokenListController_instances, "m", _TokenListController_fetchFromCache).call(this, chainId));
+-            if (cachedTokens) {
+-                // Use non-expired cached tokens
+-                tokenList = { ...cachedTokens };
++            if (this.isCacheValid(chainId)) {
++                return;
+             }
+-            else {
+-                // Fetch fresh token list from the API
+-                const tokensFromAPI = await (0, controller_utils_1.safelyExecute)(() => (0, token_service_1.fetchTokenListByChainId)(chainId, this.abortController.signal));
+-                if (tokensFromAPI) {
+-                    // Format tokens from API (HTTP) and update tokenList
+-                    tokenList = {};
+-                    for (const token of tokensFromAPI) {
+-                        tokenList[token.address] = {
+-                            ...token,
+-                            aggregators: (0, assetsUtil_1.formatAggregatorNames)(token.aggregators),
+-                            iconUrl: (0, assetsUtil_1.formatIconUrlWithProxy)({
+-                                chainId,
+-                                tokenAddress: token.address,
+-                            }),
+-                        };
+-                    }
+-                }
+-                else {
+-                    // Fallback to expired cached tokens
+-                    tokenList = { ...(tokensChainsCache[chainId]?.data || {}) };
++            // Fetch fresh token list from the API
++            const tokensFromAPI = await (0, controller_utils_1.safelyExecute)(() => (0, token_service_1.fetchTokenListByChainId)(chainId, this.abortController.signal));
++            // Have response - process and update list
++            if (tokensFromAPI) {
++                // Format tokens from API (HTTP) and update tokenList
++                const tokenList = {};
++                for (const token of tokensFromAPI) {
++                    tokenList[token.address] = {
++                        ...token,
++                        aggregators: (0, assetsUtil_1.formatAggregatorNames)(token.aggregators),
++                        iconUrl: (0, assetsUtil_1.formatIconUrlWithProxy)({
++                            chainId,
++                            tokenAddress: token.address,
++                        }),
++                    };
+                 }
++                this.update((state) => {
++                    var _a;
++                    (_a = state.tokensChainsCache)[chainId] ?? (_a[chainId] = {
++                        data: {},
++                        timestamp: Date.now(),
++                    });
++                    state.tokensChainsCache[chainId].data = tokenList;
++                    state.tokensChainsCache[chainId].timestamp = Date.now();
++                });
++                return;
++            }
++            // No response - fallback to previous state, or initialise empty
++            if (!tokensFromAPI) {
++                this.update((state) => {
++                    var _a;
++                    (_a = state.tokensChainsCache)[chainId] ?? (_a[chainId] = {
++                        data: {},
++                        timestamp: Date.now(),
++                    });
++                    state.tokensChainsCache[chainId].timestamp = Date.now();
++                });
+             }
+-            // Update the state with a single update for both tokenList and tokenChainsCache
+-            this.update(() => {
+-                return {
+-                    ...this.state,
+-                    tokensChainsCache: {
+-                        ...tokensChainsCache,
+-                        [chainId]: {
+-                            timestamp: Date.now(),
+-                            data: tokenList,
+-                        },
+-                    },
+-                };
+-            });
+         }
+         finally {
+             releaseLock();
+         }
+     }
++    isCacheValid(chainId) {
++        const { tokensChainsCache } = this.state;
++        const timestamp = tokensChainsCache[chainId]?.timestamp;
++        const now = Date.now();
++        return (timestamp !== undefined && now - timestamp < this.cacheRefreshThreshold);
++    }
+     /**
+      * Clearing tokenList and tokensChainsCache explicitly.
+      */
+@@ -247,23 +251,6 @@ async function _TokenListController_startDeprecatedPolling() {
+     this.intervalId = setInterval(async () => {
+         await (0, controller_utils_1.safelyExecute)(() => this.fetchTokenList(this.chainId));
+     }, this.intervalDelay);
+-}, _TokenListController_fetchFromCache = 
+-/**
+- * Checks if the Cache timestamp is valid,
+- * if yes data in cache will be returned
+- * otherwise null will be returned.
+- * @param chainId - The chain ID of the network for which to fetch the cache.
+- * @returns The cached data, or `null` if the cache was expired.
+- */
+-async function _TokenListController_fetchFromCache(chainId) {
+-    const { tokensChainsCache } = this.state;
+-    const dataCache = tokensChainsCache[chainId];
+-    const now = Date.now();
+-    if (dataCache?.data &&
+-        now - dataCache?.timestamp < this.cacheRefreshThreshold) {
+-        return dataCache.data;
+-    }
+-    return null;
+ };
+ exports.default = TokenListController;
+ //# sourceMappingURL=TokenListController.cjs.map
+\ No newline at end of file
