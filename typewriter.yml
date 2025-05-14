@@ -1,0 +1,14 @@
+#Segment Typewriter Configuration (https://segment.com/docs/protocols/typewriter)
+#Just run `npx typewriter@next` to re-generate a client with the latest versions of these events.
+
+client:
+  #You can find more documentation on configuring this client in the Segment docs
+  #See: https://segment.com/docs/protocols/typewriter
+  language: typescript
+  sdk: analytics-react-native
+  languageOptions: {}
+trackingPlans:
+  #Tracking Plan: MetaMask Mobile
+  #https://api.segmentapis.com/tracking-plans/tp_2iOKYXh3y11VP5nMhQJAfB5McDH
+  - id: tp_2iOKYXh3y11VP5nMhQJAfB5McDH
+    path: app/core/Analytics/typewriter

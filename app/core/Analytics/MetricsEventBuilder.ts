@@ -142,4 +142,20 @@ class MetricsEventBuilder {
   }
 }
 
-export { MetricsEventBuilder };
+// Enhanced MetricsEventBuilder with typewriter validation
+class EnhancedMetricsEventBuilder extends MetricsEventBuilder {
+  // Add validation methods that use typewriter's types
+  validateForEvent(eventName: string): boolean {
+    // Use typewriter's type definitions to validate properties
+    // Return true if valid, false otherwise
+    return true;
+  }
+
+  // Add helper methods that suggest required properties based on event type
+  getRequiredPropertiesFor(eventName: string): string[] {
+    // Return list of required properties based on typewriter's types
+    return [];
+  }
+}
+
+export { MetricsEventBuilder, EnhancedMetricsEventBuilder };

@@ -34,6 +34,8 @@ import {
   saveOnboardingEvent as SaveEvent,
   OnboardingActionTypes,
 } from '../../../actions/onboarding';
+// import { useAnalytics } from '../../../core/Analytics/typewriter/segment';
+import { useEnhancedMetrics } from '../../../core/Analytics/MetaMetricsTypewriterAdapter';
 
 const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -154,6 +156,8 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   const [appStartTime, setAppStartTime] = useState<string | undefined>(
     undefined,
   );
+  // const { welcomeMessageViewed } = useAnalytics();
+  const { typewriter } = useEnhancedMetrics();
   const themeContext = useContext(ThemeContext);
   const colors = themeContext.colors || mockTheme.colors;
   const styles = createStyles(colors);
@@ -197,14 +201,29 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
 
   const initialize = useCallback(async () => {
     updateNavBar();
-    track(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED,
-      ).build(),
-    );
+    // Reference for the original code implementation for tracking events
+    // track(
+    //   MetricsEventBuilder.createEventBuilder(
+    //     MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED,
+    //   ).build(),
+    // );
+    try {
+      // await welcomeMessageViewed({
+      //   properties: {
+      //     $country_code: 'US',
+      //   },
+      // });
+      await typewriter.welcomeMessageViewed({
+        properties: {
+          $country_code: 'US',
+        },
+      });
+    } catch (error) {
+      console.error('Error tracking welcome message viewed', error);
+    }
     const newAppStartTime = await StorageWrapper.getItem('appStartTime');
     setAppStartTime(newAppStartTime);
-  }, [updateNavBar, track]);
+  }, [updateNavBar, typewriter]);
 
   useEffect(() => {
     initialize();
