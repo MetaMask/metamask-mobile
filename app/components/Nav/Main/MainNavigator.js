@@ -94,6 +94,7 @@ import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
+import PasswordHint from '../../Views/PasswordHint';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 
 const Stack = createStackNavigator();
@@ -387,6 +388,11 @@ const SettingsFlow = () => (
       name="ResetPassword"
       component={ResetPassword}
       options={ResetPassword.navigationOptions}
+    />
+    <Stack.Screen
+      name="PasswordHint"
+      component={PasswordHint}
+      options={PasswordHint.navigationOptions}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
