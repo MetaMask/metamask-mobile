@@ -86,19 +86,30 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
 
   const [refreshing, setRefreshing] = useState(false);
 
-  const flatMultichainCollectibles = useMemo(
+  // Memoize the hex chain IDs to avoid repeated conversions during flatMultichainCollectibles loop
+  const hexChainIds = useMemo(
     () =>
-      Object.values(multichainCollectibles)
-        .flat()
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        .filter((nft: Nft) => {
-          const isNftInTokenNetworkFilter =
-            tokenNetworkFilter[toHex(nft.chainId as number)];
-          return isNftInTokenNetworkFilter;
-        }) as Nft[],
-    [multichainCollectibles, tokenNetworkFilter],
+      Object.keys(tokenNetworkFilter).reduce((acc, chainIdHex) => {
+        acc[chainIdHex] = true;
+        return acc;
+      }, {} as Record<string, boolean>),
+    [tokenNetworkFilter],
   );
+
+  const flatMultichainCollectibles = useMemo(() => {
+    const collectibles: Nft[] = [];
+    (Object.values(multichainCollectibles) as Nft[][]).forEach(
+      (chainCollectibles) => {
+        chainCollectibles.forEach((nft) => {
+          const hexChainId = toHex(nft.chainId as number);
+          if (hexChainIds[hexChainId]) {
+            collectibles.push(nft);
+          }
+        });
+      },
+    );
+    return collectibles;
+  }, [multichainCollectibles, hexChainIds]);
 
   const onRefresh = useCallback(async () => {
     requestAnimationFrame(async () => {
@@ -176,21 +187,24 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
 
   const isCollectibleIgnored = useCallback(
     (collectible: Nft) => {
-      const found = flatMultichainCollectibles.find(
+      const chainCollectibles =
+        multichainCollectibles[toHex(collectible.chainId as number)] || [];
+      return !chainCollectibles.some(
         (elm: Nft) =>
           elm.address === collectible.address &&
           elm.tokenId === collectible.tokenId,
       );
-      if (found) return false;
-      return true;
     },
-    [flatMultichainCollectibles],
+    [multichainCollectibles],
   );
 
-  const shouldUpdateCollectibleMetadata = (collectible: Nft) =>
-    typeof collectible.tokenId === 'number' ||
-    (typeof collectible.tokenId === 'string' &&
-      !Number.isNaN(Number(collectible.tokenId)));
+  const shouldUpdateCollectibleMetadata = useCallback(
+    (collectible: Nft) =>
+      typeof collectible.tokenId === 'number' ||
+      (typeof collectible.tokenId === 'string' &&
+        !Number.isNaN(Number(collectible.tokenId))),
+    [],
+  );
 
   const updateAllCollectibleMetadata = useCallback(
     async (collectiblesArr: Nft[]) => {
@@ -222,19 +236,22 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [isCollectibleIgnored, chainId, selectedAddress],
   );
 
+  // Memoize the updatable collectibles to avoid recalculating on every render
+  const updatableCollectibles = useMemo(
+    () =>
+      flatMultichainCollectibles?.filter(shouldUpdateCollectibleMetadata) || [],
+    [flatMultichainCollectibles, shouldUpdateCollectibleMetadata],
+  );
+
   useEffect(() => {
     if (!isIpfsGatewayEnabled && !displayNftMedia) {
       return;
     }
-    // TO DO: Move this fix to the controllers layer
-    const updatableCollectibles = flatMultichainCollectibles?.filter(
-      (single: Nft) => shouldUpdateCollectibleMetadata(single),
-    );
     if (updatableCollectibles.length !== 0 && !useNftDetection) {
       updateAllCollectibleMetadata(updatableCollectibles);
     }
   }, [
-    flatMultichainCollectibles,
+    updatableCollectibles,
     updateAllCollectibleMetadata,
     isIpfsGatewayEnabled,
     displayNftMedia,
@@ -243,7 +260,11 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
 
   return (
     <View testID="collectible-contracts" style={styles.container}>
-      <TokenListControlBar />
+      <TokenListControlBar
+        goToAddToken={() =>
+          navigation.navigate('AddAsset', { assetType: 'NFT' })
+        }
+      />
       {!isNftDetectionEnabled && <CollectibleDetectionModal />}
       {/* fetching state */}
       {isNftFetchingProgress && (
