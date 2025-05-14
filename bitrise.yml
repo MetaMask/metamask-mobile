@@ -699,7 +699,7 @@ workflows:
           inputs:
             - content: |
                 #!/usr/bin/env bash
-                                #!/bin/bash
+                #!/bin/bash
                 set -ex
 
                 echo "Installing Foundry..."
@@ -707,9 +707,10 @@ workflows:
 
                 $HOME/.foundry/bin/foundryup
 
-                echo 'export PATH="$HOME/.foundry/bin:$PATH"' >> $BASH_ENV
+                BASH_ENV="${BASH_ENV:-$HOME/.bash_env}"
+                echo 'export PATH="$HOME/.foundry/bin:$PATH"' >> "$BASH_ENV"
                 export PATH="$HOME/.foundry/bin:$PATH"
-                source $BASH_ENV
+                source "$BASH_ENV"
 
                 command -v forge && forge --version
                 command -v anvil && anvil --version
