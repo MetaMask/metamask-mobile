@@ -5,13 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  View,
-  Alert,
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-} from 'react-native';
+import { View, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
