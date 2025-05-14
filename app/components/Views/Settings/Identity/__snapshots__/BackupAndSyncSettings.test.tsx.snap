@@ -62,6 +62,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
               },
             ]
           }
+          testID="toggle-backupAndSync"
           thumbTintColor="#ffffff"
           tintColor="#b7bbc866"
           value={true}
@@ -168,6 +169,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
         >
           <SvgMock
             color="#121314"
+            fill="currentColor"
             height={20}
             name="UserCircle"
             style={

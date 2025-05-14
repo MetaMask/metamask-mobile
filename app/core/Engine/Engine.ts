@@ -112,8 +112,6 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
 import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
-import { captureException } from '@sentry/react-native';
-import { lowerCase } from 'lodash';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
@@ -124,7 +122,14 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
-import { ApprovalType, ChainId, handleFetch } from '@metamask/controller-utils';
+import {
+  ApprovalType,
+  ChainId,
+  handleFetch,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  toHex,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
@@ -314,7 +319,7 @@ export class Engine {
         fetch,
         btoa,
       }),
-      additionalDefaultNetworks: [ChainId['megaeth-testnet']],
+      additionalDefaultNetworks: [ChainId['megaeth-testnet'], ChainId['monad-testnet']],
     };
     const networkController = new NetworkController(networkControllerOpts);
 
@@ -436,6 +441,7 @@ export class Engine {
         'AccountsController:setSelectedAccount',
         'AccountsController:getAccountByAddress',
         'AccountsController:setAccountName',
+        'AccountsController:setAccountNameAndSelectAccount',
         'AccountsController:listMultichainAccounts',
         'SnapController:handleRequest',
         SnapControllerGetSnapAction,
@@ -443,15 +449,13 @@ export class Engine {
       allowedEvents: [],
     });
 
-    // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
-    const persistAndUpdateAccounts = async () => {
-      await this.keyringController.persistAllKeyrings();
-      await this.accountsController.updateAccounts();
-    };
-
     additionalKeyrings.push(
       snapKeyringBuilder(snapKeyringBuildMessenger, {
-        persistKeyringHelper: () => persistAndUpdateAccounts(),
+        persistKeyringHelper: async () => {
+          // Necessary to only persist the keyrings, the `AccountsController` will
+          // automatically react to `KeyringController:stateChange`.
+          await this.keyringController.persistAllKeyrings();
+        },
         removeAccountHelper: (address) => this.removeAccount(address),
       }),
     );
@@ -744,49 +748,15 @@ export class Engine {
       }),
       state: initialState.PermissionController,
       caveatSpecifications: getCaveatSpecifications({
-        getInternalAccounts: (...args) =>
+        listAccounts: (...args) =>
           this.accountsController.listAccounts(...args),
         findNetworkClientIdByChainId:
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
           ),
       }),
-      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
-        ...getPermissionSpecifications({
-          getAllAccounts: () => this.keyringController.getAccounts(),
-          getInternalAccounts: (...args) =>
-            this.accountsController.listAccounts(...args),
-          captureKeyringTypesWithMissingIdentities: (
-            internalAccounts = [],
-            accounts = [],
-          ) => {
-            const accountsMissingIdentities = accounts.filter((address) => {
-              const lowerCaseAddress = lowerCase(address);
-              return !internalAccounts.some(
-                (account) => account.address.toLowerCase() === lowerCaseAddress,
-              );
-            });
-            const keyringTypesWithMissingIdentities =
-              accountsMissingIdentities.map((address) =>
-                this.keyringController.getAccountKeyringType(address),
-              );
-
-            const internalAccountCount = internalAccounts.length;
-
-            const accountTrackerCount = Object.keys(
-              accountTrackerController.state.accountsByChainId[
-                currentChainId
-              ] || {},
-            ).length;
-
-            captureException(
-              new Error(
-                `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
-              ),
-            );
-          },
-        }),
+        ...getPermissionSpecifications(),
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ...getSnapPermissionSpecifications(),
         ///: END:ONLY_INCLUDE_IF
@@ -1804,10 +1774,11 @@ export class Engine {
    * @param {string} address - A hex address
    */
   removeAccount = async (address: string) => {
+    const addressHex = toHex(address);
     // Remove all associated permissions
-    await removeAccountsFromPermissions([address]);
+    await removeAccountsFromPermissions([addressHex]);
     // Remove account from the keyring
-    await this.keyringController.removeAccount(address as Hex);
+    await this.keyringController.removeAccount(addressHex);
   };
   ///: END:ONLY_INCLUDE_IF
 
@@ -1867,7 +1838,7 @@ export class Engine {
     // Remove all permissions.
     PermissionController?.clearState?.();
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    SnapController.clearState();
+    await SnapController.clearState();
     ///: END:ONLY_INCLUDE_IF
 
     // Clear selected network
