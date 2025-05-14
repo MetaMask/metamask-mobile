@@ -51,7 +51,6 @@ import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
-import Drawer from '../../UI/Drawer';
 
 import RampRoutes from '../../UI/Ramp/routes';
 import { RampType } from '../../UI/Ramp/types';
@@ -254,8 +253,6 @@ const BrowserFlow = (props) => (
   </Stack.Navigator>
 );
 
-export const DrawerContext = React.createContext({ drawerRef: null });
-
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
@@ -439,7 +436,6 @@ const SettingsFlow = () => (
 
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
@@ -566,41 +562,34 @@ const HomeTabs = () => {
   };
 
   return (
-    <DrawerContext.Provider value={{ drawerRef }}>
-      <Drawer ref={drawerRef}>
-        <Tab.Navigator
-          initialRouteName={Routes.WALLET.HOME}
-          tabBar={renderTabBar}
-        >
-          <Tab.Screen
-            name={Routes.WALLET.HOME}
-            options={options.home}
-            component={WalletTabModalFlow}
-          />
-          <Tab.Screen
-            name={Routes.TRANSACTIONS_VIEW}
-            options={options.activity}
-            component={TransactionsHome}
-          />
-          <Tab.Screen
-            name={Routes.MODAL.WALLET_ACTIONS}
-            options={options.actions}
-            component={WalletTabModalFlow}
-          />
-          <Tab.Screen
-            name={Routes.BROWSER.HOME}
-            options={options.browser}
-            component={BrowserFlow}
-          />
+    <Tab.Navigator initialRouteName={Routes.WALLET.HOME} tabBar={renderTabBar}>
+      <Tab.Screen
+        name={Routes.WALLET.HOME}
+        options={options.home}
+        component={WalletTabModalFlow}
+      />
+      <Tab.Screen
+        name={Routes.TRANSACTIONS_VIEW}
+        options={options.activity}
+        component={TransactionsHome}
+      />
+      <Tab.Screen
+        name={Routes.MODAL.WALLET_ACTIONS}
+        options={options.actions}
+        component={WalletTabModalFlow}
+      />
+      <Tab.Screen
+        name={Routes.BROWSER.HOME}
+        options={options.browser}
+        component={BrowserFlow}
+      />
 
-          <Tab.Screen
-            name={Routes.SETTINGS_VIEW}
-            options={options.settings}
-            component={SettingsFlow}
-          />
-        </Tab.Navigator>
-      </Drawer>
-    </DrawerContext.Provider>
+      <Tab.Screen
+        name={Routes.SETTINGS_VIEW}
+        options={options.settings}
+        component={SettingsFlow}
+      />
+    </Tab.Navigator>
   );
 };
 
