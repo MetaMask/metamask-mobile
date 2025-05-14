@@ -22,7 +22,7 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
-import { isTestNet } from '../../../util/networks';
+import { isTestNet, isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
   WalletDevice,
@@ -61,7 +61,6 @@ import {
   isSolanaChainId,
 } from '@metamask/bridge-controller';
 import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -194,6 +193,8 @@ class TransactionElement extends PureComponent {
      /**
      * Network configurations by chain id
      */
+     // adding a disable rule since this prop is part of a prop spread <TransactionElement {...props} but ts lint cant see that
+     // eslint-disable-next-line react/no-unused-prop-types
      networkConfigurationsByChainId: PropTypes.object,
     /**
      * Navigation object for routing
