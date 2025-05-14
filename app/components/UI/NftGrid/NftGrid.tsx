@@ -181,7 +181,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   };
 
   const isCollectibleIgnored = useCallback(
-    (collectible) => {
+    (collectible: Nft) => {
       const found = flatMultichainCollectibles.find(
         (elm: Nft) =>
           elm.address === collectible.address &&

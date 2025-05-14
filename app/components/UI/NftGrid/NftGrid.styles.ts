@@ -23,12 +23,11 @@ const styleSheet = (colors: Colors) =>
     emptyContainer: {
       flex: 1,
       alignItems: 'center',
-      outline: 'solid red 2px',
     },
     emptyImageContainer: {
       width: 30,
       height: 30,
-      tintColor: colors.background,
+      tintColor: colors.background.default,
     },
     headingMd: {
       marginTop: 10,

@@ -39,7 +39,7 @@ function NftGridItem({
   const styles = styleSheet(colors);
 
   const onLongPressCollectible = useCallback(
-    (collectible) => {
+    (collectible: Nft) => {
       actionSheetRef?.current?.show();
       longPressedCollectible.current = collectible;
     },
@@ -47,7 +47,7 @@ function NftGridItem({
   );
 
   const onItemPress = useCallback(
-    (nftItem) => {
+    (nftItem: Nft) => {
       debouncedNavigation(navigation, nftItem);
     },
     [navigation],
