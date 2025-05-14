@@ -1,44 +1,65 @@
-import { TransactionStatus, TransactionType } from '@metamask/transaction-controller';
+import { TransactionMeta, TransactionStatus, TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
 import { generateContractInteractionState } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+// eslint-disable-next-line import/no-namespace
+import * as EditNonceHook from '../../../../../../components/hooks/useEditNonce';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionMetadataRequestHook from '../../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from './contract-interaction';
 
-jest.mock('../../../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
-  context: {
-    NetworkController: {
-      getNetworkConfigurationByNetworkClientId: jest.fn(),
-    },
-    GasFeeController: {
-      startPolling: jest.fn(),
-      stopPollingByPollingToken: jest.fn(),
-    },
-    AccountsController: {
-      state: {
-        internalAccounts: {
-          accounts: {
-            '0x0000000000000000000000000000000000000000': {
-              address: '0x0000000000000000000000000000000000000000',
+jest.mock('../../../../../../core/Engine', () => {
+  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
+  return {
+    context: {
+      getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+      NetworkController: {
+        getNetworkConfigurationByNetworkClientId: jest.fn(),
+      },
+      GasFeeController: {
+        startPolling: jest.fn(),
+        stopPollingByPollingToken: jest.fn(),
+      },
+      AccountsController: {
+        state: {
+          internalAccounts: {
+            accounts: {
+              '0x0000000000000000000000000000000000000000': {
+                address: '0x0000000000000000000000000000000000000000',
+              },
             },
           },
         },
       },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              type: KeyringTypes.hd,
+              accounts: ['0x0000000000000000000000000000000000000000'],
+            },
+          ],
+          keyringsMetadata: [
+            {
+              id: '01JNG71B7GTWH0J1TSJY9891S0',
+              name: '',
+            },
+          ],
+        },
+      },
     },
-  },
-  getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
-    ethFiat: 0,
-    ethFiat1dAgo: 0,
-    tokenFiat: 0,
-    tokenFiat1dAgo: 0,
-    totalNativeTokenBalance: '0',
-    ticker: 'ETH',
-  }),
-}));
+    getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
+      ethFiat: 0,
+      ethFiat1dAgo: 0,
+      tokenFiat: 0,
+      tokenFiat1dAgo: 0,
+      totalNativeTokenBalance: '0',
+      ticker: 'ETH',
+    }),
+  };
+});
 
 jest.mock('../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
@@ -81,7 +102,16 @@ describe('ContractInteraction', () => {
       status: TransactionStatus.unapproved,
       time: Date.now(),
       origin: 'https://metamask.github.io',
-    });
+    } as unknown as TransactionMeta);
+
+    jest.spyOn(EditNonceHook, 'useEditNonce')
+      .mockReturnValue({
+        setShowNonceModal: jest.fn(),
+        setUserSelectedNonce: jest.fn(),
+        showNonceModal: false,
+        proposedNonce: 10,
+        userSelectedNonce: 10,
+      });
   });
 
   it('renders "estimate changes" and "network fee" sections', () => {

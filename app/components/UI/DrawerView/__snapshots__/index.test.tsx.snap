@@ -189,6 +189,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
               />
               <Text
                 allowFontScaling={false}
+                selectable={false}
                 style={
                   [
                     {
@@ -240,7 +241,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 }
               }
             >
-              0xC496...a756
+              0xC4966...4a756
             </Text>
           </TouchableOpacity>
         </View>
@@ -307,6 +308,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -325,7 +327,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 ]
               }
             >
-              
+              󰁜
             </Text>
             <Text
               style={
@@ -392,6 +394,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -419,7 +422,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 ]
               }
             >
-              
+              󰌒
             </Text>
             <Text
               style={
@@ -470,6 +473,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -486,7 +490,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 ]
               }
             >
-              
+              󰒗
             </Text>
             <Text
               numberOfLines={1}
@@ -525,6 +529,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -593,6 +598,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -648,6 +654,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -664,7 +671,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 ]
               }
             >
-              
+              
             </Text>
             <Text
               numberOfLines={1}
@@ -703,6 +710,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -719,7 +727,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 ]
               }
             >
-              
+              
             </Text>
             <Text
               numberOfLines={1}
@@ -747,61 +755,5 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
       </View>
     </View>
   </RCTScrollView>
-  <Modal
-    animationType="none"
-    deviceHeight={null}
-    deviceWidth={null}
-    hardwareAccelerated={false}
-    hideModalContentWhileAnimating={false}
-    onBackdropPress={[Function]}
-    onModalHide={[Function]}
-    onModalWillHide={[Function]}
-    onModalWillShow={[Function]}
-    onRequestClose={[Function]}
-    onSwipeComplete={[Function]}
-    panResponderThreshold={4}
-    scrollHorizontal={false}
-    scrollOffset={0}
-    scrollOffsetMax={0}
-    scrollTo={null}
-    statusBarTranslucent={false}
-    supportedOrientations={
-      [
-        "portrait",
-        "landscape",
-      ]
-    }
-    swipeDirection="down"
-    swipeThreshold={100}
-    transparent={true}
-    visible={false}
-  />
-  <Modal
-    animationType="none"
-    deviceHeight={null}
-    deviceWidth={null}
-    hardwareAccelerated={false}
-    hideModalContentWhileAnimating={false}
-    onBackdropPress={[Function]}
-    onModalHide={[Function]}
-    onModalWillHide={[Function]}
-    onModalWillShow={[Function]}
-    onRequestClose={[Function]}
-    panResponderThreshold={4}
-    scrollHorizontal={false}
-    scrollOffset={0}
-    scrollOffsetMax={0}
-    scrollTo={null}
-    statusBarTranslucent={false}
-    supportedOrientations={
-      [
-        "portrait",
-        "landscape",
-      ]
-    }
-    swipeThreshold={100}
-    transparent={true}
-    visible={false}
-  />
 </View>
 `;

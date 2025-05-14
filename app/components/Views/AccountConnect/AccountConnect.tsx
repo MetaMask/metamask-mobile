@@ -72,16 +72,22 @@ import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSumma
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { getPhishingTestResult } from '../../../util/phishingDetection';
+import {
+  getCaip25PermissionsResponse,
+  getRequestedCaip25CaveatValue,
+} from './utils';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import {
+  getPhishingTestResultAsync,
+  isProductSafetyDappScanningEnabled,
+} from '../../../util/phishingDetection';
+import { toHex } from '@metamask/controller-utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -120,8 +126,6 @@ const AccountConnect = (props: AccountConnectProps) => {
             : '',
         ],
   );
-  const [confirmedAddresses, setConfirmedAddresses] =
-    useState<string[]>(selectedAddresses);
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
@@ -134,6 +138,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const internalAccounts = useSelector(selectInternalAccounts);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
+  const isMountedRef = useRef(true);
 
   const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
     {
@@ -185,7 +190,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         channelIdOrHostname.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
       ).origin;
     } else if (isOriginWalletConnect) {
-      title = getUrlObj(channelIdOrHostname).origin;
+      title = channelIdOrHostname;
       dappHostname = title;
     } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
       title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
@@ -224,21 +229,12 @@ const AccountConnect = (props: AccountConnectProps) => {
     return enabledChainIds;
   });
 
-  const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>(() => {
-    // Initialize with all enabled network chain IDs
-    const enabledChainIds = Object.values(networkConfigurations).map(
-      (network) => network.chainId,
-    );
-    return enabledChainIds;
-  });
-
   useEffect(() => {
     // Create network avatars for all enabled networks
     const networkAvatars = Object.values(networkConfigurations).map(
       (network) => ({
         size: AvatarSize.Xs,
         name: network.name || '',
-        // @ts-expect-error getNetworkImageSource not yet typed
         imageSource: getNetworkImageSource({ chainId: network.chainId }),
       }),
     );
@@ -248,63 +244,24 @@ const AccountConnect = (props: AccountConnectProps) => {
     // No need to update selectedChainIds here since it's already initialized with all networks
   }, [networkConfigurations]);
 
-  const handleUpdateNetworkPermissions = useCallback(async () => {
-    let hasPermittedChains = false;
-    let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
-    if (chainId && chainsToPermit.length === 0) {
-      chainsToPermit = [chainId];
-    }
-
-    try {
-      hasPermittedChains = Engine.context.PermissionController.hasCaveat(
-        hostnameFromUrlObj,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-      );
-    } catch {
-      // noop
-    }
-
-    if (hasPermittedChains) {
-      Engine.context.PermissionController.updateCaveat(
-        hostnameFromUrlObj,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-        chainsToPermit,
-      );
-    } else {
-      Engine.context.PermissionController.grantPermissionsIncremental({
-        subject: {
-          origin: hostnameFromUrlObj,
-        },
-        approvedPermissions: {
-          [PermissionKeys.permittedChains]: {
-            caveats: [
-              {
-                type: CaveatTypes.restrictNetworkSwitching,
-                value: chainsToPermit,
-              },
-            ],
-          },
-        },
-      });
-    }
-  }, [selectedChainIds, chainId, hostnameFromUrlObj]);
-
-  const isAllowedOrigin = useCallback((origin: string) => {
-    const phishingResult = getPhishingTestResult(origin);
-    return !phishingResult?.result;
-  }, []);
-
   useEffect(() => {
-    const url = dappUrl || channelIdOrHostname || '';
-    const isAllowed = isAllowedOrigin(url);
+    let url = dappUrl || channelIdOrHostname || '';
 
-    if (!isAllowed) {
-      setBlockedUrl(dappUrl);
-      setShowPhishingModal(true);
-    }
-  }, [isAllowedOrigin, dappUrl, channelIdOrHostname]);
+    const checkOrigin = async () => {
+      if (isProductSafetyDappScanningEnabled()) {
+        url = prefixUrlWithProtocol(url);
+      }
+      const scanResult = await getPhishingTestResultAsync(url);
+      if (scanResult.result && isMountedRef.current) {
+        setBlockedUrl(dappUrl);
+        setShowPhishingModal(true);
+      }
+    };
+    checkOrigin();
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
     channelIdOrHostname || (!isChannelId ? channelIdOrHostname : ''),
@@ -436,13 +393,35 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleConnect = useCallback(async () => {
+    const requestedCaip25CaveatValue = getRequestedCaip25CaveatValue(
+      hostInfo.permissions,
+    );
+
+    /**
+     * TODO: This should be removed as part of later UI connection refactor work for Multichain API implementation.
+     * This logic should be removed and the UI should ensure it cannot continue if no chains are selected.
+     * {@link https://github.com/MetaMask/metamask-mobile/pull/13970/files#r2042345624}
+     */
+    const chainsToPermit = chainId && selectedChainIds.length === 0 ? [chainId] : selectedChainIds;
+    const hexSelectedAddresses = selectedAddresses.map((account) =>
+      toHex(account),
+    );
+    const hexChainsToPermit = chainsToPermit.map((chain) => toHex(chain));
+
     const request: PermissionsRequest = {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
         origin: channelIdOrHostname,
       },
-      approvedAccounts: selectedAddresses,
+      permissions: {
+        ...hostInfo.permissions,
+        ...getCaip25PermissionsResponse(
+          requestedCaip25CaveatValue,
+          hexSelectedAddresses,
+          hexChainsToPermit,
+        ),
+      },
     };
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
@@ -498,6 +477,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     trackEvent,
     faviconSource,
     createEventBuilder,
+    selectedChainIds,
+    chainId,
   ]);
 
   const handleCreateAccount = useCallback(
@@ -526,22 +507,27 @@ const AccountConnect = (props: AccountConnectProps) => {
     [trackEvent, createEventBuilder],
   );
 
+  const handleAccountsSelected = useCallback(
+    (newSelectedAccountAddresses: string[]) => {
+      setSelectedAddresses(newSelectedAccountAddresses);
+      setScreen(AccountConnectScreens.SingleConnect);
+    },
+    [setSelectedAddresses, setScreen],
+  );
+
   const handleNetworksSelected = useCallback(
     (newSelectedChainIds: string[]) => {
       setSelectedChainIds(newSelectedChainIds);
-      setSelectedNetworkIds(newSelectedChainIds);
 
       const newNetworkAvatars = newSelectedChainIds.map(
         (newSelectedChainId) => ({
           size: AvatarSize.Xs,
           // @ts-expect-error - networkConfigurations is not typed
           name: networkConfigurations[newSelectedChainId]?.name || '',
-          // @ts-expect-error - getNetworkImageSource is not typed
           imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
         }),
       );
       setSelectedNetworkAvatars(newNetworkAvatars);
-
       setScreen(AccountConnectScreens.SingleConnect);
     },
     [networkConfigurations, setScreen],
@@ -566,7 +552,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       switch (action) {
         case USER_INTENT.Confirm: {
           handleConnect();
-          handleUpdateNetworkPermissions();
           hideSheet();
           break;
         }
@@ -624,7 +609,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     handleCreateAccount,
     handleConnect,
     trackEvent,
-    handleUpdateNetworkPermissions,
     createEventBuilder,
   ]);
 
@@ -692,7 +676,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
-      accountAddresses: confirmedAddresses,
+      accountAddresses: selectedAddresses,
       accounts,
       // @ts-expect-error imageSource not yet typed
       networkAvatars: selectedNetworkAvatars,
@@ -701,7 +685,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [
     faviconSource,
     urlWithProtocol,
-    confirmedAddresses,
+    selectedAddresses,
     selectedNetworkAvatars,
     accounts,
   ]);
@@ -734,23 +718,14 @@ const AccountConnect = (props: AccountConnectProps) => {
       <AccountConnectMultiSelector
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={selectedAddresses}
-        onSelectAddress={setSelectedAddresses}
+        defaultSelectedAddresses={selectedAddresses}
+        onSubmit={handleAccountsSelected}
         isLoading={isLoading}
-        favicon={faviconSource}
-        secureIcon={secureIcon}
-        urlWithProtocol={urlWithProtocol}
-        onUserAction={setUserIntent}
         onBack={() => {
-          setSelectedAddresses(confirmedAddresses);
           setScreen(AccountConnectScreens.SingleConnect);
         }}
         connection={sdkConnection}
         hostname={hostnameFromUrlObj}
-        onPrimaryActionButtonPress={() => {
-          setConfirmedAddresses(selectedAddresses);
-          setScreen(AccountConnectScreens.SingleConnect);
-        }}
         screenTitle={strings('accounts.edit_accounts_title')}
       />
     ),
@@ -758,38 +733,29 @@ const AccountConnect = (props: AccountConnectProps) => {
       accounts,
       ensByAccountAddress,
       selectedAddresses,
-      confirmedAddresses,
       isLoading,
-      faviconSource,
-      secureIcon,
-      urlWithProtocol,
       sdkConnection,
       hostnameFromUrlObj,
+      handleAccountsSelected
     ],
   );
 
   const renderMultiConnectNetworkSelectorScreen = useCallback(
     () => (
       <NetworkConnectMultiSelector
-        onSelectNetworkIds={setSelectedAddresses}
+        onSubmit={handleNetworksSelected}
         isLoading={isLoading}
-        onUserAction={setUserIntent}
-        urlWithProtocol={urlWithProtocol}
         hostname={hostnameFromUrlObj}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
-        onNetworksSelected={handleNetworksSelected}
-        initialChainId={chainId}
-        selectedChainIds={selectedNetworkIds}
-        isInitializedWithPermittedChains={false}
+        defaultSelectedChainIds={selectedChainIds}
       />
     ),
     [
       isLoading,
       urlWithProtocol,
-      chainId,
       handleNetworksSelected,
-      selectedNetworkIds,
       hostnameFromUrlObj,
+      selectedChainIds,
     ],
   );
 

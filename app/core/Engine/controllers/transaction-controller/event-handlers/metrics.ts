@@ -59,7 +59,7 @@ export async function handleTransactionFinalizedEventForMetrics(
 
   let stxMetricsProperties = {};
 
-  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(getState());
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(getState(), transactionMeta.chainId);
   if (shouldUseSmartTransaction) {
     stxMetricsProperties = await getSmartTransactionMetricsProperties(
       smartTransactionsController,

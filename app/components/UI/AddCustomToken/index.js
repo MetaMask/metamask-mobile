@@ -50,6 +50,7 @@ import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -232,6 +233,8 @@ class AddCustomToken extends PureComponent {
     const { address, symbol, decimals, name } = this.state;
     const { chainId } = this.props;
     const networkClientId = this.props.networkClientId;
+
+    trace({ name: TraceName.ImportTokens });
     await TokensController.addToken({
       address,
       symbol,
@@ -240,6 +243,7 @@ class AddCustomToken extends PureComponent {
       chainId,
       networkClientId,
     });
+    endTrace({ name: TraceName.ImportTokens });
 
     const analyticsParams = this.getTokenAddedAnalyticsParams();
 

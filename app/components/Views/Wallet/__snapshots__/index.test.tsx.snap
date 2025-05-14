@@ -189,6 +189,7 @@ exports[`Wallet should render correctly 1`] = `
                   </View>
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={12}
                     name="ArrowDown"
                     style={
@@ -222,7 +223,8 @@ exports[`Wallet should render correctly 1`] = `
                   }
                 }
               >
-                <View
+                <TouchableOpacity
+                  onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -432,6 +434,7 @@ exports[`Wallet should render correctly 1`] = `
                     </View>
                     <SvgMock
                       color="#121314"
+                      fill="currentColor"
                       height={12}
                       name="ArrowDown"
                       style={
@@ -458,9 +461,9 @@ exports[`Wallet should render correctly 1`] = `
                       }
                     }
                   >
-                    0xC496...a756
+                    0xC4966...4a756
                   </Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
             <View
@@ -524,6 +527,7 @@ exports[`Wallet should render correctly 1`] = `
                       >
                         <SvgMock
                           color="#121314"
+                          fill="currentColor"
                           height={24}
                           name="Copy"
                           style={
@@ -537,6 +541,41 @@ exports[`Wallet should render correctly 1`] = `
                       </View>
                     </RNGestureHandlerButton>
                   </View>
+                </View>
+                <View>
+                  <TouchableOpacity
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      }
+                    }
+                    testID="wallet-notifications-button"
+                  >
+                    <SvgMock
+                      color="#121314"
+                      fill="currentColor"
+                      height={24}
+                      name="Notification"
+                      style={
+                        {
+                          "height": 24,
+                          "width": 24,
+                        }
+                      }
+                      width={24}
+                    />
+                  </TouchableOpacity>
                 </View>
                 <TouchableOpacity
                   accessible={true}
@@ -559,6 +598,7 @@ exports[`Wallet should render correctly 1`] = `
                 >
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={24}
                     name="ScanBarcode"
                     style={
@@ -595,7 +635,13 @@ exports[`Wallet should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -603,6 +649,7 @@ exports[`Wallet should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -822,6 +869,7 @@ exports[`Wallet should render correctly 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={24}
                               name="Info"
                               style={
@@ -880,6 +928,7 @@ exports[`Wallet should render correctly 1`] = `
                           >
                             <SvgMock
                               color="#9a6300"
+                              fill="currentColor"
                               height={24}
                               name="Danger"
                               style={
@@ -976,6 +1025,7 @@ exports[`Wallet should render correctly 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -1127,12 +1177,6 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             </Text>
                           </TouchableOpacity>
                         </View>
-                        <Modal
-                          animationType="slide"
-                          hardwareAccelerated={false}
-                          onRequestClose={[Function]}
-                          visible={false}
-                        />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -1336,6 +1380,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                   </View>
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={12}
                     name="ArrowDown"
                     style={
@@ -1369,7 +1414,8 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                   }
                 }
               >
-                <View
+                <TouchableOpacity
+                  onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -1579,6 +1625,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                     </View>
                     <SvgMock
                       color="#121314"
+                      fill="currentColor"
                       height={12}
                       name="ArrowDown"
                       style={
@@ -1605,9 +1652,9 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                       }
                     }
                   >
-                    0xC496...a756
+                    0xC4966...4a756
                   </Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
             <View
@@ -1671,6 +1718,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                       >
                         <SvgMock
                           color="#121314"
+                          fill="currentColor"
                           height={24}
                           name="Copy"
                           style={
@@ -1684,6 +1732,41 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                       </View>
                     </RNGestureHandlerButton>
                   </View>
+                </View>
+                <View>
+                  <TouchableOpacity
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      }
+                    }
+                    testID="wallet-notifications-button"
+                  >
+                    <SvgMock
+                      color="#121314"
+                      fill="currentColor"
+                      height={24}
+                      name="Notification"
+                      style={
+                        {
+                          "height": 24,
+                          "width": 24,
+                        }
+                      }
+                      width={24}
+                    />
+                  </TouchableOpacity>
                 </View>
                 <TouchableOpacity
                   accessible={true}
@@ -1706,6 +1789,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                 >
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={24}
                     name="ScanBarcode"
                     style={
@@ -1742,7 +1826,13 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1750,6 +1840,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1969,6 +2060,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={24}
                               name="Info"
                               style={
@@ -2027,6 +2119,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           >
                             <SvgMock
                               color="#9a6300"
+                              fill="currentColor"
                               height={24}
                               name="Danger"
                               style={
@@ -2123,6 +2216,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -2274,12 +2368,6 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             </Text>
                           </TouchableOpacity>
                         </View>
-                        <Modal
-                          animationType="slide"
-                          hardwareAccelerated={false}
-                          onRequestClose={[Function]}
-                          visible={false}
-                        />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -2483,6 +2571,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                   </View>
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={12}
                     name="ArrowDown"
                     style={
@@ -2516,7 +2605,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                   }
                 }
               >
-                <View
+                <TouchableOpacity
+                  onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -2726,6 +2816,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     </View>
                     <SvgMock
                       color="#121314"
+                      fill="currentColor"
                       height={12}
                       name="ArrowDown"
                       style={
@@ -2752,9 +2843,9 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                       }
                     }
                   >
-                    0xC496...a756
+                    0xC4966...4a756
                   </Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
             <View
@@ -2818,6 +2909,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                       >
                         <SvgMock
                           color="#121314"
+                          fill="currentColor"
                           height={24}
                           name="Copy"
                           style={
@@ -2831,6 +2923,41 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                       </View>
                     </RNGestureHandlerButton>
                   </View>
+                </View>
+                <View>
+                  <TouchableOpacity
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      }
+                    }
+                    testID="wallet-notifications-button"
+                  >
+                    <SvgMock
+                      color="#121314"
+                      fill="currentColor"
+                      height={24}
+                      name="Notification"
+                      style={
+                        {
+                          "height": 24,
+                          "width": 24,
+                        }
+                      }
+                      width={24}
+                    />
+                  </TouchableOpacity>
                 </View>
                 <TouchableOpacity
                   accessible={true}
@@ -2853,6 +2980,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                 >
                   <SvgMock
                     color="#121314"
+                    fill="currentColor"
                     height={24}
                     name="ScanBarcode"
                     style={
@@ -2889,7 +3017,13 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2897,6 +3031,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -3116,6 +3251,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={24}
                               name="Info"
                               style={
@@ -3174,6 +3310,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           >
                             <SvgMock
                               color="#9a6300"
+                              fill="currentColor"
                               height={24}
                               name="Danger"
                               style={
@@ -3270,6 +3407,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -3421,12 +3559,6 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             </Text>
                           </TouchableOpacity>
                         </View>
-                        <Modal
-                          animationType="slide"
-                          hardwareAccelerated={false}
-                          onRequestClose={[Function]}
-                          visible={false}
-                        />
                       </View>
                     </RNCSafeAreaView>
                   </View>

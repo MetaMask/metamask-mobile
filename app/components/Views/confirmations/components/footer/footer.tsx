@@ -16,9 +16,10 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useAlerts } from '../../context/alert-system-context';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
-import { useLedgerContext } from '../../context/ledger-context/ledger-context';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
+import { useStandaloneConfirmation } from '../../hooks/ui/useStandaloneConfirmation';
+import { useConfirmationContext } from '../../context/confirmation-context';
 import { useQRHardwareContext } from '../../context/qr-hardware-context/qr-hardware-context';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -38,14 +39,14 @@ export const Footer = () => {
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
-  const { isLedgerAccount } = useLedgerContext();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
-
+  const { isStandaloneConfirmation } = useStandaloneConfirmation();
   const isStakingConfirmationBool = isStakingConfirmation(
     transactionMetadata?.type as string,
   );
+  const { isTransactionValueUpdating } = useConfirmationContext();
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
@@ -83,13 +84,11 @@ export const Footer = () => {
   const { styles } = useStyles(styleSheet, {
     confirmDisabled,
     isStakingConfirmationBool,
+    isStandaloneConfirmation,
   });
   const confirmButtonLabel = () => {
     if (isQRSigningInProgress) {
       return strings('confirm.qr_get_sign');
-    }
-    if (isLedgerAccount) {
-      return strings('confirm.sign_with_ledger');
     }
     if (hasUnconfirmedDangerAlerts) {
       return fieldAlerts.length > 1
@@ -124,7 +123,10 @@ export const Footer = () => {
       isDanger:
         securityAlertResponse?.result_type === ResultType.Malicious ||
         hasDangerAlerts,
-      isDisabled: needsCameraPermission || hasBlockingAlerts,
+      isDisabled:
+        needsCameraPermission ||
+        hasBlockingAlerts ||
+        isTransactionValueUpdating,
       label: confirmButtonLabel(),
       size: ButtonSize.Lg,
       onPress: onSignConfirm,

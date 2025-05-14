@@ -8,10 +8,16 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
-  MEGAETH_TESTNET
+  MEGAETH_TESTNET,
+  MONAD_TESTNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { BlockExplorerUrl, ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import {
+  BlockExplorerUrl,
+  ChainId,
+  NetworkType,
+  toHex,
+} from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
@@ -23,6 +29,7 @@ const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
 const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 const megaEthTestnetLogo = require('../../images/megaeth-testnet-logo.png');
+const monadTestnetLogo = require('../../images/monad-testnet-logo.png');
 
 /* eslint-enable */
 import {
@@ -128,6 +135,19 @@ export const NetworkList = {
     networkType: 'megaeth-testnet',
     imageSource: megaEthTestnetLogo,
     blockExplorerUrl: BlockExplorerUrl['megaeth-testnet'],
+  },
+  [MONAD_TESTNET]: {
+    name: 'Monad Testnet',
+    shortName: 'Monad Testnet',
+    networkId: 10143,
+    chainId: toHex('10143'),
+    ticker: 'MON',
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+    color: '#61dfff',
+    networkType: 'monad-testnet',
+    imageSource: monadTestnetLogo,
+    blockExplorerUrl: BlockExplorerUrl['monad-testnet'],
   },
   [RPC]: {
     name: 'Private Network',
@@ -241,6 +261,9 @@ export const getTestNetImageByChainId = (chainId) => {
   if (NETWORKS_CHAIN_ID.MEGAETH_TESTNET === chainId) {
     return networksWithImages?.['MEGAETH-TESTNET'];
   }
+  if (NETWORKS_CHAIN_ID.MONAD_TESTNET === chainId) {
+    return networksWithImages?.['MONAD-TESTNET'];
+  }
 };
 
 /**
@@ -252,6 +275,7 @@ export const TESTNET_CHAIN_IDS = [
   ChainId[NetworkType['linea-goerli']],
   ChainId[NetworkType['linea-sepolia']],
   ChainId[NetworkType['megaeth-testnet']],
+  ChainId[NetworkType['monad-testnet']],
 ];
 
 /**
@@ -488,7 +512,7 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
  * Gets the image source given both the network type and the chain ID.
  *
  * @param {object} params - Params that contains information about the network.
- * @param {string} params.networkType - Type of network from the provider.
+ * @param {string=} params.networkType - Type of network from the provider.
  * @param {string} params.chainId - ChainID of the network.
  * @returns {Object} - Image source of the network.
  */
@@ -598,11 +622,12 @@ export const isPortfolioViewEnabled = () =>
 export const isMultichainV1Enabled = () => process.env.MULTICHAIN_V1 === 'true';
 
 // The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
-export const WHILELIST_NETWORK_NAME  = {
-  [ChainId.mainnet] : 'Mainnet',
-  [ChainId['linea-mainnet']] : 'Linea Mainnet',
-  [ChainId['megaeth-testnet']] : 'Mega Testnet',
-}
+export const WHILELIST_NETWORK_NAME = {
+  [ChainId.mainnet]: 'Mainnet',
+  [ChainId['linea-mainnet']]: 'Linea Mainnet',
+  [ChainId['megaeth-testnet']]: 'Mega Testnet',
+  [ChainId['monad-testnet']]: 'Monad Testnet',
+};
 
 /**
  * Checks if the network name is valid for the given chain ID.
@@ -615,10 +640,5 @@ export const WHILELIST_NETWORK_NAME  = {
  * @param {string} nickname - The nickname of the network.
  * @returns A boolean indicating whether the network name is valid for the given chain ID.
  */
-export const isValidNetworkName = (
-  chainId,
-  networkName,
-  nickname,
-) =>
-  networkName === nickname ||
-  WHILELIST_NETWORK_NAME[chainId] === nickname;
+export const isValidNetworkName = (chainId, networkName, nickname) =>
+  networkName === nickname || WHILELIST_NETWORK_NAME[chainId] === nickname;

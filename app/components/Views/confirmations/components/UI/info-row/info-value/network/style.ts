@@ -13,7 +13,6 @@ const createStyles = (colors: Colors) =>
     value: {
       color: colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
       marginTop: 8,
     },
     warningContainer: {

@@ -1,7 +1,5 @@
-import { BN } from 'ethereumjs-util';
-import type { TransactionMeta } from '@metamask/transaction-controller';
 import { remove0x, add0x } from '@metamask/utils';
-import { toWei } from '../../../../../../util/number';
+import { hexToBN } from '@metamask/controller-utils';
 import { updateEditableParams } from '../../../../../../util/transaction-controller';
 
 export const updateTransactionToMaxValue = async ({
@@ -15,29 +13,34 @@ export const updateTransactionToMaxValue = async ({
   transactionId: string;
   isEIP1559Transaction: boolean;
   EIP1559GasTransaction: {
-    gasFeeMaxNative: string;
+    gasFeeMaxHex: string;
   };
   legacyGasTransaction: {
-    gasFeeMaxNative: string;
+    gasFeeMaxHex: string;
   };
   accountBalance: string;
   setTransactionValue: (value: string) => void;
 }) => {
-  const { gasFeeMaxNative } = isEIP1559Transaction
+  const { gasFeeMaxHex } = isEIP1559Transaction
     ? EIP1559GasTransaction
     : legacyGasTransaction;
 
-  const accountBalanceBN = new BN(remove0x(accountBalance), 16);
-  const gasFeeInWei = toWei(gasFeeMaxNative, 'ether').toString();
-  const transactionFeeMax = new BN(gasFeeInWei);
+  const accountBalanceBN = hexToBN(remove0x(accountBalance));
+  const transactionFeeMax = hexToBN(gasFeeMaxHex);
 
   const maxTransactionValueBN = accountBalanceBN.sub(transactionFeeMax);
 
+  if (maxTransactionValueBN.lt(hexToBN('0x0'))) {
+    return;
+  }
+
   const maxTransactionValueHex = add0x(maxTransactionValueBN.toString(16));
 
-  const txMeta = (await updateEditableParams(transactionId, {
-    value: maxTransactionValueHex,
-  })) as TransactionMeta;
+  if (transactionId) {
+    await updateEditableParams(transactionId, {
+      value: maxTransactionValueHex,
+    });
+  }
 
-  setTransactionValue(txMeta.txParams.value as string);
+  setTransactionValue(maxTransactionValueHex);
 };
