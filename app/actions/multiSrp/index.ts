@@ -3,6 +3,9 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import ReduxService from '../../core/redux';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
@@ -51,6 +54,24 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     },
     async ({ keyring }) => keyring.getAccounts(),
   );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  const { SeedlessOnboardingController } = Engine.context;
+
+  // TODO: to use loginCompleted
+  if (
+    ReduxService.store.getState().engine.backgroundState
+      .SeedlessOnboardingController.authConnection
+  ) {
+    // on Error, wallet should notify user that the newly added seed phrase is not synced properly
+    // user can try manual sync again (phase 2)
+    const seed = new Uint8Array(inputCodePoints.buffer);
+    await SeedlessOnboardingController.addNewSeedPhraseBackup(
+      seed,
+      newKeyring.id,
+    );
+  }
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
   return Engine.setSelectedAddress(newAccountAddress);
 }

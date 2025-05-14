@@ -19,7 +19,7 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 16,
-      marginBottom: 16,
+
       borderRadius: 8,
       backgroundColor: colors.background.alternative,
     },
@@ -40,8 +40,8 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
       borderBottomWidth: 1,
       borderColor: colors.border.muted,
-      marginTop: 8,
-      marginBottom: 8,
+      marginTop: 16,
+      marginBottom: 16,
     },
     accountItem: {
       flexDirection: 'row',
@@ -55,6 +55,19 @@ const styleSheet = (params: { theme: Theme }) => {
     accountsListContentContainer: {
       display: 'flex',
       paddingVertical: 4,
+    },
+    srpItemIconContainer: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%',
+    },
+    srpIconContainer: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
   });
 };
