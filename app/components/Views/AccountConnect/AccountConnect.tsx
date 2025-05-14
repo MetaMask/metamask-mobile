@@ -752,7 +752,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     ),
     [
       isLoading,
-      urlWithProtocol,
       handleNetworksSelected,
       hostnameFromUrlObj,
       selectedChainIds,
