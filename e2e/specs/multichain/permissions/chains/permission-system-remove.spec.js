@@ -20,6 +20,7 @@ import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSu
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
+import ToastModal from '../../../../pages/wallet/ToastModal';
 
 describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
@@ -59,6 +60,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await NetworkEducationModal.tapGotItButton();
 
         // Verify permission cleanup
+        await Assertions.checkIfNotVisible(ToastModal.container, 3000);
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(
           PermissionSummaryBottomSheet.addNetworkPermissionContainer,
