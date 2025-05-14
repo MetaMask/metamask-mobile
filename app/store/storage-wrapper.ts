@@ -182,13 +182,18 @@ class StorageWrapper {
               EXISTING_USER,
             );
 
-            if (existingUser) {
-              // This is a fresh install but we have an existing user flag. This indicates restored data from a backup
-              await StorageWrapper.getInstance().clearAll();
+            // On fresh install, clear storage if there's existing data
+            // This ensures a clean state for both new installs and restored data cases
+            await StorageWrapper.getInstance().clearAll();
+            
+            // If this was not a restored backup (no existing user), 
+            // ensure the EXISTING_USER flag is cleared
+            if (!existingUser) {
+              await StorageWrapper.getInstance().removeItem(EXISTING_USER);
             }
           }
 
-          await AsyncStorage.setItem('FRESH_INSTALL_CHECK_DONE', 'true');
+          await AsyncStorage.setItem(FRESH_INSTALL_CHECK_DONE, 'true');
         }
       } catch (error) {
         Logger.error(
