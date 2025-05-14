@@ -331,8 +331,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo "Hi testing"
-                # ./scripts/foundry-install.sh
+                ./scripts/foundry-install.sh
           title: install foundry
   prep_environment:
     steps:
