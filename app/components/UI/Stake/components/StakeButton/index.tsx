@@ -110,16 +110,17 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}
     >
-      <Text variant={TextVariant.BodyLGMedium}>
+      <Text variant={TextVariant.BodyMDMedium} style={styles.dot}>
         {' • '}
-        <Text color={TextColor.Primary} variant={TextVariant.BodyLGMedium}>
-          {`${strings('stake.earn')} `}
-        </Text>
+      </Text>
+      <Text color={TextColor.Primary} variant={TextVariant.BodyMDMedium}>
+        {`${strings('stake.earn')}`}
       </Text>
       <Icon
         name={IconName.Plant}
         size={IconSize.Sm}
         color={IconColor.Primary}
+        style={styles.sprout}
       />
     </Pressable>
   );
