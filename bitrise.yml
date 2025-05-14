@@ -101,10 +101,6 @@ pipelines:
   expo_main_pipeline:
     stages:
       - create_build_main_expo: {}
-  #Flask expo pipeline
-  expo_flask_pipeline:
-    stages:
-      - create_build_flask_expo: {}
   #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
