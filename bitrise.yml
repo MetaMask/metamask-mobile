@@ -684,9 +684,14 @@ workflows:
                 echo "Installing Foundry..."
                 curl -L https://foundry.paradigm.xyz | bash
 
-                $HOME/.foundry/bin/foundryup
-                export PATH="$HOME/.foundry/bin:$PATH"
-                source "$BASH_ENV"
+                export FOUNDRY_BIN_PATH="$HOME/.foundry/bin"
+                envman add --key FOUNDRY_BIN_PATH --value "$FOUNDRY_BIN_PATH"
+                envman add --key PATH --value "$FOUNDRY_BIN_PATH:$PATH"
+
+                command -v forge && forge --version
+                command -v anvil && anvil --version
+
+                echo "Foundry Bin: " $FOUNDRY_BIN_PATH
 
                 command -v forge && forge --version
                 command -v anvil && anvil --version
