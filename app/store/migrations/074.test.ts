@@ -63,7 +63,7 @@ describe('Migration 074: Reset PhishingController phishingLists', () => {
     );
   });
 
-  it('resets PhishingController phishingLists to empty array while preserving other fields', () => {
+  it('resets PhishingController phishingLists to empty array and stalelistLastFetched to 0 while preserving other fields', () => {
     interface TestState {
       engine: {
         backgroundState: {
@@ -104,14 +104,14 @@ describe('Migration 074: Reset PhishingController phishingLists', () => {
 
     const migratedState = migrate(state) as typeof state;
 
-    // Only phishingLists should be reset to empty array
+    // PhishingLists should be reset to empty array and stalelistLastFetched to 0
     expect(migratedState.engine.backgroundState.PhishingController.phishingLists).toEqual([]);
+    expect(migratedState.engine.backgroundState.PhishingController.stalelistLastFetched).toBe(0);
 
     // Other fields should remain unchanged
     expect(migratedState.engine.backgroundState.PhishingController.c2DomainBlocklistLastFetched).toBe(123456789);
     expect(migratedState.engine.backgroundState.PhishingController.whitelist).toEqual(['site1', 'site2']);
     expect(migratedState.engine.backgroundState.PhishingController.hotlistLastFetched).toBe(987654321);
-    expect(migratedState.engine.backgroundState.PhishingController.stalelistLastFetched).toBe(123123123);
     expect(migratedState.engine.backgroundState.PhishingController.extraProperty).toBe('should remain');
 
     // Other controllers should remain untouched

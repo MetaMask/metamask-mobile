@@ -48,6 +48,7 @@ const migration = (state: unknown): unknown => {
     // Only reset the phishingLists field to an empty array
     // while preserving all other fields
     state.engine.backgroundState.PhishingController.phishingLists = [];
+    state.engine.backgroundState.PhishingController.stalelistLastFetched = 0;
 
     return state;
   } catch (error) {
