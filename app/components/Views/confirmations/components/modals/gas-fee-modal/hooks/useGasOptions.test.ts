@@ -60,7 +60,7 @@ describe('useGasOptions', () => {
     estimatedTime: '',
     isSelected: false,
     key: 'gasPrice',
-    name: 'Gas Price Estimate',
+    name: 'Network proposed',
     onSelect: jest.fn(),
     value: '8',
     valueInFiat: '$8',
