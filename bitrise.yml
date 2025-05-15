@@ -39,7 +39,7 @@ pipelines:
       - deploy_build_release: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
-    stages:      
+    stages:
       - bump_version_stage: {}
       - create_ios_release: {}
       - deploy_ios_release: {}
@@ -157,6 +157,7 @@ stages:
       - build_android_devbuild: {}
       - build_android_qa: {}
       - build_ios_devbuild: {}
+      - build_ios_simbuild: {}
       - build_ios_qa: {}
   create_build_qa_flask:
     workflows:
@@ -587,16 +588,16 @@ workflows:
                 # Check completion status every 20 seconds
                 for i in {1..5}; do
                   echo "Checking workflow status (Attempt $i of 5)..."
-                  
+
                   RESPONSE=$(curl -L \
                     -H "Accept: application/vnd.github+json" \
                     -H "Authorization: Bearer $GITHUB_TRIGGER_ACTION_TOKEN" \
                     -H "X-GitHub-Api-Version: 2022-11-28" \
                     "https://api.github.com/repos/MetaMask/metamask-mobile/actions/workflows/125632963/runs?branch=main&status=in_progress")
-                  
+
                   # Store the total_count value
                   TOTAL_COUNT=$(echo "$RESPONSE" | jq -r '.total_count')
-                  
+
                   if [ "$TOTAL_COUNT" = "0" ]; then
                     echo "Workflow finished result: https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml"
                     exit 0
@@ -769,7 +770,7 @@ workflows:
           inputs:
             - content: |
                 envman add --key PRODUCTION_BUILD_STRING --value "MetaMask v${PRODUCTION_BUILD_NAME} (${PRODUCTION_BUILD_NUMBER})"
-                
+
                 BITRISE_GIT_BRANCH="qa-release"
                 VERSION_NAME="$PRODUCTION_BUILD_NAME" #  This value (PRODUCTION_BUILD_NAME) comes from the script to download the production build
                 VERSION_NUMBER="$PRODUCTION_BUILD_NUMBER" # This value (PRODUCTION_BUILD_NUMBER) comes from the script to download the production build
@@ -790,12 +791,12 @@ workflows:
 
                 # Set the environment variable
                 envman add --key PRODUCTION_APP_URL --value "$APP_URL"
-                
+
                 # Debug output
                 echo "Response: $RESPONSE"
                 echo "APP_URL: $APP_URL"
                 echo "PRODUCTION_APP_URL: $PRODUCTION_APP_URL"
-      
+
   build_ios_multichain_permissions_e2e:
     after_run:
       - ios_e2e_build
@@ -857,7 +858,7 @@ workflows:
       - TEST_SUITE_TAG: '.*NetworkExpansion.*'
     after_run:
       - android_e2e_test
-  
+
   run_wallet_platform_swimlane_ios_smoke:
     envs:
       - TEST_SUITE_TAG: '.*SmokeWalletPlatform.*'
@@ -1775,13 +1776,13 @@ workflows:
                 set -o pipefail
                 APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/qa/release"
                 ORIGINAL_APK="$APK_DIR/app-qa-release.apk"
-                
-                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"                
+
+                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
-                
+
                 mv "$ORIGINAL_APK" "$APK_DIR/$CUSTOM_ID.apk"
                 APK_PATH="$APK_DIR/$CUSTOM_ID.apk"
-                
+
                 # Upload to app-automate
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
                     -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
@@ -2180,10 +2181,10 @@ workflows:
 
                 IPA_DIR="ios/build/output"
                 ORIGINAL_IPA="$IPA_DIR/MetaMask-QA.ipa"
-                
+
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
-                
+
                 mv "$ORIGINAL_IPA" "$IPA_DIR/$CUSTOM_ID.ipa"
                 IPA_PATH="$IPA_DIR/$CUSTOM_ID.ipa"
 
@@ -2351,6 +2352,9 @@ app:
     - opts:
         is_expand: false
       MM_SECURITY_ALERTS_API_ENABLED: true
+    - opts:
+        is_expand: false
+      BRIDGE_USE_DEV_APIS: false
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
