@@ -42,7 +42,10 @@ const AvatarTokenNetwork = ({ asset, chainId }: { asset: TokenI, chainId: Hex })
   );
 };
 
-const AvatarTokenWithNetworkBadge = ({ asset, chainId }: { asset: TokenI, chainId: Hex }) => {
+export const AvatarTokenWithNetworkBadge = () => {
+  const { chainId } = useTransactionMetadataRequest() ?? ({} as TransactionMeta);
+  const { asset } = useTokenAssetByType();
+
   const { networkName, networkImage } = useNetworkInfo(chainId);
   const { ticker } = asset;
 
@@ -63,14 +66,5 @@ const AvatarTokenWithNetworkBadge = ({ asset, chainId }: { asset: TokenI, chainI
     >
       <AvatarTokenNetwork asset={asset} chainId={chainId} />
     </BadgeWrapper>
-  );
-};
-
-export const TransactionAvatarTokenWithNetworkBadge = () => {
-  const { chainId } = useTransactionMetadataRequest() ?? ({} as TransactionMeta);
-  const { asset } = useTokenAssetByType();
-
-  return (
-    <AvatarTokenWithNetworkBadge asset={asset} chainId={chainId} />
   );
 };
