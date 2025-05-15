@@ -127,8 +127,7 @@ class Gestures {
   static async typeTextAndHideKeyboard(element, text) {
     await this.clearField(element);
 
-    await element.typeText(text);
-    await element.tapReturnKey();
+    await element.typeText(text + '\n');
   }
 
   /**
