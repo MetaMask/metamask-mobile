@@ -86,6 +86,7 @@ describe('PermissionsSummary', () => {
         networkAvatars={[
           {
             name: 'Ethereum Mainnet',
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
             imageSource: require('../../../assets/images/network-avatar.png'),
             size: AvatarSize.Xs,
             variant: AvatarVariant.Network,
