@@ -22,13 +22,10 @@ export const createStyles = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: theme.colors.background.default,
+      paddingTop: 12,
     },
     button: {
       width: '100%',
-    },
-    bottomSection: {
-      flex: 1,
-      justifyContent: 'flex-end',
     },
     arrowContainer: {
       position: 'relative',
