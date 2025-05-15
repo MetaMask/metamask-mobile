@@ -426,8 +426,13 @@ const PermissionsSummary = ({
   }
 
   const calculateBottomSheetHeight = useMemo(() => {
+    let currentBaseHeight = BASE_HEIGHT;
+    if (isNonDappNetworkSwitch) {
+      currentBaseHeight += 150;
+    }
+
     if (accountAddresses.length === 2) {
-      return BASE_HEIGHT;
+      return currentBaseHeight;
     }
 
     const visibleItems =
@@ -435,9 +440,9 @@ const PermissionsSummary = ({
         ? OVERFLOW_MULTIPLIER
         : accountAddresses.length;
 
-    const listHeight = BASE_HEIGHT + ITEM_HEIGHT * visibleItems;
+    const listHeight = currentBaseHeight + ITEM_HEIGHT * visibleItems;
     return listHeight * SCALE_FACTOR;
-  }, [accountAddresses.length]);
+  }, [accountAddresses.length, isNonDappNetworkSwitch]);
 
   const onChangeTab = useCallback(
     (tabInfo: { i: number; ref: unknown }) => {

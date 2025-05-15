@@ -219,6 +219,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
                 "marginTop": 8,
               }
             }
+            testID="account-list-bottom-sheet"
           >
             <Text
               accessibilityRole="text"
