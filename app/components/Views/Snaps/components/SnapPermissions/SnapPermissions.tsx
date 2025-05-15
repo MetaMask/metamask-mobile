@@ -200,13 +200,11 @@ const SnapPermissions = ({
       const date = permissionsList[key].date;
       const requestedSnaps = permissionsList[key].caveats?.[0].value;
       const snapNames = Object.keys(requestedSnaps).reduce(
-        (acc, snapId, index, snapsToConnect) => {
-          return (
+        (acc, snapId, index, snapsToConnect) => (
             acc +
             stripSnapPrefix(snapId) +
             (index < snapsToConnect.length - 1 ? ', ' : '')
-          );
-        },
+          ),
         '',
       );
 
