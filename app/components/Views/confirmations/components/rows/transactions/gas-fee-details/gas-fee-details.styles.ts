@@ -13,7 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
     secondaryValue: {
       color: theme.colors.text.alternative,
       ...fontStyles.normal,
-      marginRight: 8,
+      marginRight: 4,
     },
     valueContainer: {
       display: 'flex',
