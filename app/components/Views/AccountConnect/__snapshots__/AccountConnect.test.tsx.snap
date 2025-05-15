@@ -693,10 +693,8 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                             }
                             testID="permission-summary-account-text"
                           >
-                            <Image
-                              onError={[Function]}
-                              resizeMode="contain"
-                              source={1}
+                            <Text
+                              accessibilityRole="text"
                               style={
                                 {
                                   "color": "#121314",
@@ -1963,10 +1961,8 @@ exports[`AccountConnect renders correctly with request including chains and acco
                             }
                             testID="permission-summary-account-text"
                           >
-                            <Image
-                              onError={[Function]}
-                              resizeMode="contain"
-                              source={1}
+                            <Text
+                              accessibilityRole="text"
                               style={
                                 {
                                   "color": "#121314",
@@ -3233,10 +3229,8 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                             }
                             testID="permission-summary-account-text"
                           >
-                            <Image
-                              onError={[Function]}
-                              resizeMode="contain"
-                              source={1}
+                            <Text
+                              accessibilityRole="text"
                               style={
                                 {
                                   "color": "#121314",
