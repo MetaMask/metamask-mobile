@@ -32,7 +32,7 @@ describe('copyable factory', () => {
     // Pass all required parameters to the factory function
     const result = copyable({
       ...baseParams,
-      e,
+      element: e,
     } as any);
 
     expect(result).toEqual({
@@ -56,7 +56,7 @@ describe('copyable factory', () => {
 
     const result = copyable({
       ...baseParams,
-      e,
+      element: e,
     } as any);
 
     expect(result).toEqual({
@@ -79,7 +79,7 @@ describe('copyable factory', () => {
 
     const result = copyable({
       ...baseParams,
-      e,
+      element: e,
     } as any);
 
     expect(result).toEqual({
