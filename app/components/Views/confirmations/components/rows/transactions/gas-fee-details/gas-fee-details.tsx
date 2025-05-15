@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
+import Icon, {
+  IconSize,
+  IconName,
+} from '../../../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../../../locales/i18n';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import { useStyles } from '../../../../../../../component-library/hooks';
@@ -17,7 +21,7 @@ import styleSheet from './gas-fee-details.styles';
 
 const GasFeesDetails = ({ isCompact = false }) => {
   const [gasModalVisible, setGasModalVisible] = useState(false);
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const feeCalculations = useFeeCalculations(
     transactionMetadata as TransactionMeta,
@@ -33,41 +37,83 @@ const GasFeesDetails = ({ isCompact = false }) => {
     });
   };
 
-  const detailsComponent = (
-    <InfoSection>
-      <AlertRow
-        alertField={RowAlertKey.EstimatedFee}
-        label={strings('transactions.network_fee')}
-        tooltip={strings('transactions.network_fee_tooltip')}
-        onTooltipPress={handleNetworkFeeTooltipClickedEvent}
-      >
-        <View style={styles.valueContainer}>
-          {!hideFiatForTestnet && feeCalculations.estimatedFeeFiat && (
-            <Text style={styles.secondaryValue}>
-              {feeCalculations.estimatedFeeFiat}
-            </Text>
-          )}
-          <Text style={styles.primaryValue}>
-            {feeCalculations.estimatedFeeNative}
-          </Text>
-        </View>
-      </AlertRow>
-    </InfoSection>
-  );
-
-  if (isCompact) {
-    return detailsComponent;
-  }
-
   return (
     <>
-      <TouchableOpacity onPress={() => setGasModalVisible(true)}>
-        {detailsComponent}
-      </TouchableOpacity>
+      <InfoSection>
+        <AlertRow
+          alertField={RowAlertKey.EstimatedFee}
+          label={strings('transactions.network_fee')}
+          tooltip={strings('transactions.network_fee_tooltip')}
+          onTooltipPress={handleNetworkFeeTooltipClickedEvent}
+        >
+          <View style={styles.valueContainer}>
+            {isCompact ? (
+              <EstimationInfo
+                hideFiatForTestnet={hideFiatForTestnet}
+                feeCalculations={feeCalculations}
+              />
+            ) : (
+              <ClickableEstimationInfo
+                onPress={() => setGasModalVisible(true)}
+                hideFiatForTestnet={hideFiatForTestnet}
+                feeCalculations={feeCalculations}
+              />
+            )}
+          </View>
+        </AlertRow>
+      </InfoSection>
       {gasModalVisible && (
         <GasFeeModal setGasModalVisible={setGasModalVisible} />
       )}
     </>
+  );
+};
+
+const ClickableEstimationInfo = ({
+  hideFiatForTestnet,
+  feeCalculations,
+  onPress,
+}: {
+  hideFiatForTestnet: boolean;
+  feeCalculations: ReturnType<typeof useFeeCalculations>;
+  onPress: () => void;
+}) => {
+  const { styles, theme } = useStyles(styleSheet, {});
+  return (
+    <TouchableOpacity onPress={onPress} style={styles.editButton}>
+      <Icon
+        name={IconName.Edit}
+        size={IconSize.Sm}
+        color={theme.colors.info.default}
+        style={styles.editIcon}
+      />
+      <EstimationInfo
+        hideFiatForTestnet={hideFiatForTestnet}
+        feeCalculations={feeCalculations}
+      />
+    </TouchableOpacity>
+  );
+};
+
+const EstimationInfo = ({
+  hideFiatForTestnet,
+  feeCalculations,
+}: {
+  hideFiatForTestnet: boolean;
+  feeCalculations: ReturnType<typeof useFeeCalculations>;
+}) => {
+  const { styles } = useStyles(styleSheet, {});
+  return (
+    <View style={styles.estimationContainer}>
+      {!hideFiatForTestnet && feeCalculations.estimatedFeeFiat && (
+        <Text style={styles.secondaryValue}>
+          {feeCalculations.estimatedFeeFiat}
+        </Text>
+      )}
+      <Text style={styles.primaryValue}>
+        {feeCalculations.estimatedFeeNative}
+      </Text>
+    </View>
   );
 };
 

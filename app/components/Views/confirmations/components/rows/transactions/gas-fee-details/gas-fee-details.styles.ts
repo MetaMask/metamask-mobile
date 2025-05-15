@@ -20,6 +20,21 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
+    editButton: {
+      backgroundColor: 'red',
+      flexDirection: 'row',
+      alignItems: 'center',
+      // Intentional padding to increase touchable area
+      padding: 6,
+      paddingRight: 0,
+    },
+    editIcon: {
+      marginRight: 4,
+    },
+    estimationContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
   });
 };
 
