@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { SnapUICopyable } from '../../../Snaps/SnapUICopyable/SnapUICopyable';
 import ClipboardManager from '../../../../core/ClipboardManager';
+import { Copyable } from '@metamask/snaps-sdk/jsx';
+import { renderInterface } from '../testUtils';
 import { copyable } from './copyable';
 
 // Mock the ClipboardManager
@@ -20,6 +19,18 @@ jest.mock('../../../../../locales/i18n', () => ({
     }
     return key;
   }),
+}));
+
+// Mock Engine
+jest.mock('../../../../core/Engine/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
+  context: {
+    SnapInterfaceController: {
+      updateInterfaceState: jest.fn(),
+    },
+  },
 }));
 
 describe('SnapUICopyable', () => {
@@ -121,16 +132,14 @@ describe('SnapUICopyable', () => {
     });
 
     it('renders regular text correctly', () => {
-      const { getByText } = renderWithProvider(
-        <SnapUICopyable text="Test text" />,
-      );
+      const { getByText } = renderInterface(Copyable({ value: 'Test text' }));
 
       expect(getByText('Test text')).toBeDefined();
     });
 
     it('renders sensitive content hidden by default', () => {
-      const { getByText, getByTestId, queryByText } = renderWithProvider(
-        <SnapUICopyable text="Secret data" sensitive />,
+      const { getByText, getByTestId, queryByText } = renderInterface(
+        Copyable({ value: 'Secret data', sensitive: true }),
       );
 
       // Check that reveal message is shown
@@ -144,8 +153,8 @@ describe('SnapUICopyable', () => {
     });
 
     it('reveals sensitive content when clicked', () => {
-      const { getByText, getByTestId, queryByText } = renderWithProvider(
-        <SnapUICopyable text="Secret data" sensitive />,
+      const { getByText, getByTestId, queryByText } = renderInterface(
+        Copyable({ value: 'Secret data', sensitive: true }),
       );
 
       // Initially hidden
@@ -163,8 +172,8 @@ describe('SnapUICopyable', () => {
     });
 
     it('toggles visibility of sensitive content', () => {
-      const { getByTestId, queryByText } = renderWithProvider(
-        <SnapUICopyable text="Secret data" sensitive />,
+      const { getByTestId, queryByText } = renderInterface(
+        Copyable({ value: 'Secret data', sensitive: true }),
       );
 
       // Initially hidden
@@ -184,8 +193,8 @@ describe('SnapUICopyable', () => {
     });
 
     it('calls ClipboardManager.setString when non-sensitive text is clicked', async () => {
-      const { getByText } = renderWithProvider(
-        <SnapUICopyable text="Copy this text" />,
+      const { getByText } = renderInterface(
+        Copyable({ value: 'Copy this text' }),
       );
 
       const textElement = getByText('Copy this text');
@@ -199,8 +208,8 @@ describe('SnapUICopyable', () => {
     });
 
     it('calls ClipboardManager.setString when revealed sensitive text is clicked', async () => {
-      const { getByTestId, getByText } = renderWithProvider(
-        <SnapUICopyable text="Secret to copy" sensitive />,
+      const { getByTestId, getByText } = renderInterface(
+        Copyable({ value: 'Secret to copy', sensitive: true }),
       );
 
       // Click to reveal
@@ -218,8 +227,8 @@ describe('SnapUICopyable', () => {
     });
 
     it('changes icon after copying text', async () => {
-      const { getByTestId } = renderWithProvider(
-        <SnapUICopyable text="Copy this text" />,
+      const { getByTestId } = renderInterface(
+        Copyable({ value: 'Copy this text' }),
       );
 
       // Initially should show copy icon
