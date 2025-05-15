@@ -1,5 +1,6 @@
 import { SafeChain } from '../components/UI/NetworkModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Engine from '../core/Engine';
 
 // Cache for known domains
 let knownDomainsSet: Set<string> | null = null;
@@ -134,3 +135,48 @@ export function extractRpcDomain(rpcUrl: string): string {
   }
 }
 
+/**
+ * Gets the RPC URL for a specific chain ID from the NetworkController
+ *
+ * @param chainId - The chain ID to get the RPC URL for
+ * @returns The RPC URL for the chain, or 'unknown' if not found
+ */
+export function getNetworkRpcUrl(chainId: string): string {
+  try {
+    const { NetworkController } = Engine.context;
+
+    // Find the network client ID for this chain ID
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId as `0x${string}`);
+
+    if (!networkClientId) {
+      return 'unknown';
+    }
+
+    // Get network configuration
+    const networkConfig = NetworkController.getNetworkConfigurationByNetworkClientId(networkClientId);
+
+    if (!networkConfig) {
+      return 'unknown';
+    }
+
+    // Check if there is a direct rpcUrl property (legacy format)
+    if ('rpcUrl' in networkConfig && networkConfig.rpcUrl) {
+      return typeof networkConfig.rpcUrl === 'string' ? networkConfig.rpcUrl : 'unknown';
+    }
+
+    // Or if it uses rpcEndpoints array
+    if (networkConfig.rpcEndpoints?.length > 0) {
+      const defaultEndpointIndex = networkConfig.defaultRpcEndpointIndex || 0;
+      return (
+        networkConfig.rpcEndpoints[defaultEndpointIndex]?.url ||
+        networkConfig.rpcEndpoints[0]?.url ||
+        'unknown'
+      );
+    }
+
+    return 'unknown';
+  } catch (error) {
+    console.error('Error getting RPC URL:', error);
+    return 'unknown';
+  }
+}

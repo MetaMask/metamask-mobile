@@ -2,7 +2,9 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import { merge } from 'lodash';
+import { TRANSACTION_EVENTS } from '../../../Analytics/events/confirmations';
+import { extractRpcDomain, getNetworkRpcUrl } from '../../../../util/rpc-domain-utils';
+
 import type { RootState } from '../../../../reducers';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import {
@@ -13,6 +15,7 @@ import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
 } from './types';
+import Logger from '../../../../util/Logger';
 
 export function getTransactionTypeValue(
   transactionType: TransactionType | undefined,
@@ -77,27 +80,102 @@ const getConfirmationMetricProperties = (
     {}) as unknown as TransactionMetrics;
 };
 
+interface TransactionMetricsProperties {
+  chain_id: string;
+  status: string;
+  source?: string;
+  transaction_type?: string;
+  gas_limit?: string;
+  gas_price?: string;
+  max_fee_per_gas?: string;
+  max_priority_fee_per_gas?: string;
+  nonce?: number;
+  transaction_envelope_type?: number;
+  rpc_domain?: string; // Add the rpc_domain property
+}
+
 export function generateDefaultTransactionMetrics(
-  metametricsEvent: IMetaMetricsEvent,
+  eventType: string,
   transactionMeta: TransactionMeta,
-  { getState }: TransactionEventHandlerRequest,
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
-  const { chainId, id, type, status } = transactionMeta;
+  // Optional logging to debug the structure
+  Logger.log('Event type:', eventType);
+  Logger.log('TRANSACTION_EVENTS.TRANSACTION_SUBMITTED:', TRANSACTION_EVENTS.TRANSACTION_SUBMITTED);
+  Logger.log('TransactionMeta:', JSON.stringify(transactionMeta, null, 2));
 
-  const mergedDefaultProperties = merge(
-    {
-      metametricsEvent,
-      properties: {
-        chain_id: chainId,
-        transaction_internal_id: id,
-        transaction_type: getTransactionTypeValue(type),
-        status,
-      },
+  const { chainId, status, origin, type } = transactionMeta;
+
+  // Define a type for transaction data
+  interface TransactionData {
+    gasLimit?: string | { toString: () => string };
+    gasPrice?: string | { toString: () => string };
+    maxFeePerGas?: string | { toString: () => string };
+    maxPriorityFeePerGas?: string | { toString: () => string };
+    nonce?: number;
+    type?: number;
+    value?: string | { toString: () => string };
+    to?: string;
+    from?: string;
+    [key: string]: any; // For any other properties
+  }
+
+  // Safely access transaction data with proper typing
+  const txData: TransactionData = 'transaction' in transactionMeta
+    ? (transactionMeta as unknown as { transaction: TransactionData }).transaction
+    : transactionMeta;
+
+  // Build the base properties object
+  const properties: TransactionMetricsProperties = {
+    chain_id: chainId,
+    status,
+    source: origin,
+    transaction_type: type,
+    gas_limit: txData.gasLimit?.toString(),
+    gas_price: txData.gasPrice?.toString(),
+    max_fee_per_gas: txData.maxFeePerGas?.toString(),
+    max_priority_fee_per_gas: txData.maxPriorityFeePerGas?.toString(),
+    nonce: txData.nonce,
+    transaction_envelope_type: txData.type,
+  };
+
+  // Add RPC domain for specific event types
+  // Check if we need to handle TRANSACTION_EVENTS differently
+  // First, log the event structure to see how to access the category
+  Logger.log('TRANSACTION_EVENTS.TRANSACTION_SUBMITTED structure:', TRANSACTION_EVENTS.TRANSACTION_SUBMITTED);
+
+  // Try different ways to compare event types
+  const isSubmittedOrFinalized =
+    eventType === TRANSACTION_EVENTS.TRANSACTION_SUBMITTED.category ||
+    eventType === TRANSACTION_EVENTS.TRANSACTION_FINALIZED.category ||
+    eventType === TRANSACTION_EVENTS.TRANSACTION_SUBMITTED ||
+    eventType === TRANSACTION_EVENTS.TRANSACTION_FINALIZED ||
+    eventType === 'transaction_submitted' ||
+    eventType === 'transaction_finalized';
+
+  if (isSubmittedOrFinalized) {
+    Logger.log('Getting RPC URL for chain ID:', chainId);
+    const rpcUrl = getNetworkRpcUrl(chainId);
+    Logger.log('RPC URL:', rpcUrl);
+    const rpc_domain = extractRpcDomain(rpcUrl);
+    Logger.log('Extracted RPC domain:', rpc_domain);
+
+    if (rpc_domain) {
+      properties.rpc_domain = rpc_domain;
+    }
+  }
+
+  // Create the metrics event
+  return {
+    name: eventType,
+    properties,
+    sensitiveProperties: {
+      value: txData.value?.toString(),
+      to_address: txData.to,
+      from_address: txData.from,
     },
-    getConfirmationMetricProperties(getState, id),
-  );
-
-  return mergedDefaultProperties;
+    saveDataRecording: true,
+  };
 }
 
 export function generateEvent({
