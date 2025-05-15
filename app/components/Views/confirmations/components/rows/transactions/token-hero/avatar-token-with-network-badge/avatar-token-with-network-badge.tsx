@@ -22,7 +22,7 @@ import { useTokenAssetByType } from '../../../../../hooks/useTokenAssetByType';
 import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
 import { styleSheet } from './avatar-token-with-network-badge.styles';
 
-const AvatarTokenNetwork = ({
+const AvatarTokenOrNetworkAssetLogo = ({
   asset,
   chainId,
 }: {
@@ -79,9 +79,9 @@ export const AvatarTokenWithNetworkBadge = ({
         />
       }
     >
-      <AvatarTokenNetwork asset={asset} chainId={chainId} />
+      <AvatarTokenOrNetworkAssetLogo asset={asset} chainId={chainId} />
     </BadgeWrapper>
   ) : (
-    <AvatarTokenNetwork asset={asset} chainId={chainId} />
+    <AvatarTokenOrNetworkAssetLogo asset={asset} chainId={chainId} />
   );
 };
