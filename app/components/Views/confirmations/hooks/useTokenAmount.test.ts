@@ -14,15 +14,15 @@ jest.mock('../../../../core/Engine', () => ({
 describe('useTokenAmount', () => {
   describe('staking deposit', () => {
     it('returns token and fiat values if from transaction metadata', async () => {
-      const { result } = renderHookWithProvider(() => useTokenAmount({ amountWei: undefined }), {
+      const { result } = renderHookWithProvider(() => useTokenAmount(), {
         state: stakingDepositConfirmationState,
       });
 
       await waitFor(async () => {
         expect(result.current).toEqual({
-          tokenAmountValue: '0.0001',
-          tokenAmountDisplayValue: '0.0001',
-          fiatDisplayValue: '$0.36',
+          amountDisplay: '0.0001',
+          amountPreciseDisplay: '0.0001',
+          fiatDisplay: '$0.36',
         });
       });
     });
@@ -34,9 +34,9 @@ describe('useTokenAmount', () => {
 
       await waitFor(() => {
         expect(result.current).toEqual({
-          tokenAmountValue: '0.001',
-          tokenAmountDisplayValue: '0.001',
-          fiatDisplayValue: '$3.60',
+          amountDisplay: '0.001',
+          amountPreciseDisplay: '0.001',
+          fiatDisplay: '$3.60',
         });
       });
     });
