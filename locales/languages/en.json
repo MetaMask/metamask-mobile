@@ -3821,7 +3821,9 @@
       "primary_type": "Primary type",
       "request_from": "Request from",
       "signing_in_with": "Signing in with",
-      "spender": "Spender"
+      "spender": "Spender",
+      "now": "Now",
+      "switching_to": "Switching To"
     },
     "title": {
       "signature": "Signature request",
@@ -3830,14 +3832,17 @@
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request",
       "contract_interaction": "Transaction request",
-      "transfer": "Transfer request"
+      "transfer": "Transfer request",
+      "switch_account_type": "Account update"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
       "permit_NFTs": "This site wants permission to withdraw your NFTs.",
       "signature": "Review request details before you confirm.",
       "signature_siwe": "A site wants you to sign in to prove you own this account.",
-      "contract_interaction": "Review request details before you confirm."
+      "contract_interaction": "Review request details before you confirm.",
+      "switch_to_smart_account": "You're switching to a smart account.",
+      "switch_to_standard_account": "You're switching back to a standard account (EOA)."
     },
     "request_from": "Request from",
     "staking_from": "Staking from",
@@ -3849,6 +3854,9 @@
     "qr_get_sign": "Get Signature",
     "qr_scan_text": "Scan with your hardware wallet",
     "sign_with_ledger": "Sign with Ledger",
+    "smart_account": "Smart Account",
+    "smart_contract": "Smart contract",
+    "standard_account": "Standard Account",
     "siwe_message": {
       "url": "URL",
       "network": "Network",

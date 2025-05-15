@@ -17,9 +17,11 @@ import {
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import CustomNonceModal from '../../../../legacy/SendFlow/components/CustomNonceModal';
+import { useSmartAccountSwitchType } from '../../../../hooks/7702/useSmartAccountSwitchType';
 import Expandable from '../../../UI/expandable';
 import InfoRow from '../../../UI/info-row';
 import InfoSection from '../../../UI/info-row/info-section';
+import SmartContractWithLogo from '../../../smart-contract-with-logo';
 import styleSheet from './advanced-details-row.styles';
 
 const AdvancedDetailsRow = () => {
@@ -32,6 +34,7 @@ const AdvancedDetailsRow = () => {
     proposedNonce,
     userSelectedNonce,
   } = useEditNonce();
+  const { isUpgradeOnly, isDowngrade } = useSmartAccountSwitchType();
 
   if (!transactionMetadata?.txParams?.to) {
     return null;
@@ -55,17 +58,26 @@ const AdvancedDetailsRow = () => {
         }
         expandedContent={
           <>
+            {!isDowngrade && (
+              <InfoSection>
+                <InfoRow label={strings('stake.interacting_with')}>
+                  {isUpgradeOnly ? (
+                    <SmartContractWithLogo />
+                  ) : (
+                    <Name
+                      value={transactionMetadata.txParams.to}
+                      type={NameType.EthereumAddress}
+                      variation={transactionMetadata.chainId}
+                    />
+                  )}
+                </InfoRow>
+              </InfoSection>
+            )}
             <InfoSection>
-              <InfoRow label={strings('stake.interacting_with')}>
-                <Name
-                  value={transactionMetadata.txParams.to}
-                  type={NameType.EthereumAddress}
-                  variation={transactionMetadata.chainId}
-                />
-              </InfoRow>
-            </InfoSection>
-            <InfoSection>
-            <InfoRow label={strings('transaction.custom_nonce')} tooltip={strings('transaction.custom_nonce_tooltip')}>
+              <InfoRow
+                label={strings('transaction.custom_nonce')}
+                tooltip={strings('transaction.custom_nonce_tooltip')}
+              >
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Primary}
@@ -76,15 +88,17 @@ const AdvancedDetailsRow = () => {
                 </Text>
               </InfoRow>
             </InfoSection>
-            <InfoSection>
-              <InfoRow
-                label={strings('transaction.data')}
-                copyText={transactionMetadata.txParams.data}
-                valueOnNewLine
-              >
-                {transactionMetadata.txParams.data}
-              </InfoRow>
-            </InfoSection>
+            {!(isUpgradeOnly || isDowngrade) && (
+              <InfoSection>
+                <InfoRow
+                  label={strings('transaction.data')}
+                  copyText={transactionMetadata.txParams.data}
+                  valueOnNewLine
+                >
+                  {transactionMetadata.txParams.data}
+                </InfoRow>
+              </InfoSection>
+            )}
             {showNonceModal && (
               <CustomNonceModal
                 proposedNonce={proposedNonce}
