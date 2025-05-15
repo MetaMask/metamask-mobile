@@ -355,4 +355,209 @@ describe('Migration 79', () => {
       },
     });
   });
+
+  it('removes tokens from allTokens state and tokenBalances from TokenBalancesController state if the account does not exist in AccountsController state on different chains', () => {
+    mockedEnsureValidState.mockReturnValue(true);
+    const testInternalAccountAddress1 = '0x123';
+    const testInternalAccountAddress2 = '0x456';
+    const removedInternalAccountAddress = '0x789';
+    const oldState = {
+      engine: {
+        backgroundState: {
+          TokenBalancesController: {
+            tokenBalances: {
+              [testInternalAccountAddress1]: {
+                '0x1': {
+                  '0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x5',
+                  },
+                },
+              },
+              [testInternalAccountAddress2]: {
+                '0x2': {
+                  '0x22222474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x4',
+                  },
+                },
+              },
+              [removedInternalAccountAddress]: {
+                '0x2': {
+                  '0x33333474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x4',
+                  },
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [testInternalAccountAddress1]: [
+                  {
+                    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+              },
+              '0x2': {
+                [testInternalAccountAddress2]: [
+                  {
+                    address: '0x22222474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+                [removedInternalAccountAddress]: [
+                  {
+                    address: '0x33333474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+              },
+            },
+            allDetectedTokens: {},
+            allIgnoredTokens: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'id-1',
+              accounts: {
+                'id-1': {
+                  id: 'id-1',
+                  type: 'eip155:eoa',
+                  address: testInternalAccountAddress1,
+                  options: {},
+                  metadata: {
+                    name: 'Unknown Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  scopes: [],
+                },
+                'id-2': {
+                  id: 'id-2',
+                  type: 'eip155:eoa',
+                  address: testInternalAccountAddress2,
+                  options: {},
+                  metadata: {
+                    name: 'Unknown Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  scopes: [],
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const newStorage = migrate(oldState);
+
+    expect(newStorage).toStrictEqual({
+      engine: {
+        backgroundState: {
+          TokenBalancesController: {
+            tokenBalances: {
+              [testInternalAccountAddress1]: {
+                '0x1': {
+                  '0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x5',
+                  },
+                },
+              },
+              [testInternalAccountAddress2]: {
+                '0x2': {
+                  '0x22222474E89094C44Da98b954EedeAC495271d0F': {
+                    balance: '0x4',
+                  },
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [testInternalAccountAddress1]: [
+                  {
+                    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+              },
+              '0x2': {
+                [testInternalAccountAddress2]: [
+                  {
+                    address: '0x22222474E89094C44Da98b954EedeAC495271d0F',
+                    aggregators: [],
+                    decimals: 18,
+                    image:
+                      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+                    name: 'Dai',
+                    symbol: 'DAI',
+                  },
+                ],
+              },
+            },
+            allDetectedTokens: {},
+            allIgnoredTokens: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'id-1',
+              accounts: {
+                'id-1': {
+                  id: 'id-1',
+                  type: 'eip155:eoa',
+                  address: testInternalAccountAddress1,
+                  options: {},
+                  metadata: {
+                    name: 'Unknown Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  scopes: [],
+                },
+                'id-2': {
+                  id: 'id-2',
+                  type: 'eip155:eoa',
+                  address: testInternalAccountAddress2,
+                  options: {},
+                  metadata: {
+                    name: 'Unknown Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  scopes: [],
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  });
 });
