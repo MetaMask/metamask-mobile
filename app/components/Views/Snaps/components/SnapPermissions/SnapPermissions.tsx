@@ -200,11 +200,10 @@ const SnapPermissions = ({
       const date = permissionsList[key].date;
       const requestedSnaps = permissionsList[key].caveats?.[0].value;
       const snapNames = Object.keys(requestedSnaps).reduce(
-        (acc, snapId, index, snapsToConnect) => (
-            acc +
-            stripSnapPrefix(snapId) +
-            (index < snapsToConnect.length - 1 ? ', ' : '')
-          ),
+        (acc, snapId, index, snapsToConnect) =>
+          acc +
+          stripSnapPrefix(snapId) +
+          (index < snapsToConnect.length - 1 ? ', ' : ''),
         '',
       );
 
@@ -286,6 +285,7 @@ const SnapPermissions = ({
       handleBip32PermissionTitles,
       handleBip44EntropyPermissionTitles,
       handleRPCPermissionTitles,
+      handleWalletSnapPermissionTitle,
     ],
   );
 
