@@ -1,4 +1,4 @@
-import { useTokenValues } from './useTokenValues';
+import { useTokenValuesByType } from './useTokenValuesByType';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../util/test/confirm-data-helpers';
 import { waitFor } from '@testing-library/react-native';
@@ -11,10 +11,10 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-describe('useTokenValues', () => {
+describe('useTokenValuesByType', () => {
   describe('staking deposit', () => {
     it('returns token and fiat values if from transaction metadata', async () => {
-      const { result } = renderHookWithProvider(() => useTokenValues({ amountWei: undefined }), {
+      const { result } = renderHookWithProvider(() => useTokenValuesByType({ amountWei: undefined }), {
         state: stakingDepositConfirmationState,
       });
 
@@ -28,7 +28,7 @@ describe('useTokenValues', () => {
     });
 
     it('returns token and fiat values if amountWei is defined', async () => {
-      const { result } = renderHookWithProvider(() => useTokenValues({ amountWei: '1000000000000000' }), {
+      const { result } = renderHookWithProvider(() => useTokenValuesByType({ amountWei: '1000000000000000' }), {
         state: stakingDepositConfirmationState,
       });
 
