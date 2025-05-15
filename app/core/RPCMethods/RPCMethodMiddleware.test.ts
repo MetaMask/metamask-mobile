@@ -350,8 +350,19 @@ const addressMock: Hex = '0x0000000000000000000000000000000000000001';
 const dataMock =
   '0x0000000000000000000000000000000000000000000000000000000000000000';
 const dataJsonMock = JSON.stringify({
-  test: 'data',
-  domain: { chainId: '0x1' },
+  types: {
+    EIP712Domain: [
+      { name: 'name', type: 'string' },
+      { name: 'version', type: 'string' },
+      { name: 'chainId', type: 'uint256' },
+    ],
+    Test: [
+      { name: 'test', type: 'string' },
+    ],
+  },
+  domain: { chainId: '0x1', name: 'Test', version: '1' },
+  message: { test: 'data' },
+  primaryType: 'Test',
 });
 const hostMock = 'example.metamask.io';
 const signatureMock = '0x1234567890';
