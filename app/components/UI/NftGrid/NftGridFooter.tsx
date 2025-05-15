@@ -30,7 +30,7 @@ function NftGridFooter({ navigation }: NftGridFooterProps) {
       </Text>
       <TouchableOpacity
         onPress={() =>
-          navigation.push('AddAsset', { assetType: 'collectible' })
+          navigation.navigate('AddAsset', { assetType: 'collectible' })
         }
         disabled={false}
         testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}

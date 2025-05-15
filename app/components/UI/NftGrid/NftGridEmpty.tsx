@@ -11,6 +11,8 @@ import AppConstants from '../../../core/AppConstants';
 
 import noNftPlaceholderSrc from '../../../images/no-nfts-placeholder.png';
 import { useTheme } from '../../../util/theme';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+
 interface NftGridNavigationParamList {
   AddAsset: { assetType: string };
   [key: string]: undefined | object;
@@ -35,6 +37,7 @@ function NftGridEmpty({ navigation }: NftGridProps) {
 
   return (
     <View
+      testID="nft-empty-container"
       // eslint-disable-next-line react-native/no-inline-styles
       style={{
         display: 'flex',
@@ -42,6 +45,7 @@ function NftGridEmpty({ navigation }: NftGridProps) {
       }}
     >
       <Image
+        testID="nft-empty-image"
         // eslint-disable-next-line react-native/no-color-literals, react-native/no-inline-styles
         style={{
           height: 90,
@@ -54,6 +58,7 @@ function NftGridEmpty({ navigation }: NftGridProps) {
         resizeMode="contain"
       />
       <Text
+        testID="nft-empty-text"
         style={styles.headingMd}
         variant={TextVariant.HeadingMD}
         color={TextColor.Alternative}
@@ -61,18 +66,10 @@ function NftGridEmpty({ navigation }: NftGridProps) {
         {strings('wallet.no_nfts_yet')}
       </Text>
       <TouchableOpacity
-        onPress={() =>
-          navigation.navigate('Webview', {
-            screen: 'SimpleWebview',
-            params: { url: AppConstants.URLS.NFT },
-          })
-        }
+        onPress={goToLearnMore}
+        testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
       >
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Info}
-          onPress={goToLearnMore}
-        >
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Info}>
           {strings('wallet.learn_more')}
         </Text>
       </TouchableOpacity>
