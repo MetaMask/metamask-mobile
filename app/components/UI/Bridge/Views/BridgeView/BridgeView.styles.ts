@@ -81,8 +81,5 @@ export const createStyles = (params: { theme: Theme }) => {
       paddingTop: 8,
       paddingBottom: 12,
     },
-    disclaimerText: {
-      textAlign: 'center',
-    },
   });
 };

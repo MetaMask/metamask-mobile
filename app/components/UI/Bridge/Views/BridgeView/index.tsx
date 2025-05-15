@@ -13,7 +13,6 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
-  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
@@ -421,13 +420,6 @@ const BridgeView = () => {
             {shouldDisplayQuoteDetails ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                  style={styles.disclaimerText}
-                >
-                  {strings('bridge.fee_disclaimer')}
-                </Text>
               </Box>
             ) : shouldDisplayKeypad ? (
               <Box
