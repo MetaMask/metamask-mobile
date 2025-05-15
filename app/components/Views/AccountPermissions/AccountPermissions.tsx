@@ -787,7 +787,22 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           return;
         }
 
-        updatePermittedChains(hostname, [currentChainId]);
+        const availableChainIds = Object.keys(networkConfigurations);
+        const permittedAvailableChainIds = currentlyPermittedChains.reduce(
+          (acc: Hex[], chainId) => {
+            if (availableChainIds.includes(chainId)) {
+              acc.push(toHex(chainId));
+            }
+            return acc;
+          },
+          [],
+        );
+
+        updatePermittedChains(
+          hostname,
+          [currentChainId, ...permittedAvailableChainIds],
+          true,
+        );
 
         const networkToastProps: ToastOptions = {
           variant: ToastVariants.Network,
@@ -824,6 +839,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [
+    networkConfigurations,
     faviconSource,
     urlWithProtocol,
     isRenderedAsBottomSheet,

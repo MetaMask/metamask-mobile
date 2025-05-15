@@ -9,6 +9,7 @@ import {
   LINEA_MAINNET,
   LINEA_SEPOLIA,
   MEGAETH_TESTNET,
+  MONAD_TESTNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import {
@@ -28,6 +29,7 @@ const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
 const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 const megaEthTestnetLogo = require('../../images/megaeth-testnet-logo.png');
+const monadTestnetLogo = require('../../images/monad-testnet-logo.png');
 
 /* eslint-enable */
 import {
@@ -133,6 +135,19 @@ export const NetworkList = {
     networkType: 'megaeth-testnet',
     imageSource: megaEthTestnetLogo,
     blockExplorerUrl: BlockExplorerUrl['megaeth-testnet'],
+  },
+  [MONAD_TESTNET]: {
+    name: 'Monad Testnet',
+    shortName: 'Monad Testnet',
+    networkId: 10143,
+    chainId: toHex('10143'),
+    ticker: 'MON',
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+    color: '#61dfff',
+    networkType: 'monad-testnet',
+    imageSource: monadTestnetLogo,
+    blockExplorerUrl: BlockExplorerUrl['monad-testnet'],
   },
   [RPC]: {
     name: 'Private Network',
@@ -246,6 +261,9 @@ export const getTestNetImageByChainId = (chainId) => {
   if (NETWORKS_CHAIN_ID.MEGAETH_TESTNET === chainId) {
     return networksWithImages?.['MEGAETH-TESTNET'];
   }
+  if (NETWORKS_CHAIN_ID.MONAD_TESTNET === chainId) {
+    return networksWithImages?.['MONAD-TESTNET'];
+  }
 };
 
 /**
@@ -257,6 +275,7 @@ export const TESTNET_CHAIN_IDS = [
   ChainId[NetworkType['linea-goerli']],
   ChainId[NetworkType['linea-sepolia']],
   ChainId[NetworkType['megaeth-testnet']],
+  ChainId[NetworkType['monad-testnet']],
 ];
 
 /**
@@ -610,6 +629,7 @@ export const WHILELIST_NETWORK_NAME = {
   [ChainId.mainnet]: 'Mainnet',
   [ChainId['linea-mainnet']]: 'Linea Mainnet',
   [ChainId['megaeth-testnet']]: 'Mega Testnet',
+  [ChainId['monad-testnet']]: 'Monad Testnet',
 };
 
 /**
