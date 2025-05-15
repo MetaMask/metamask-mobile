@@ -11,7 +11,10 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../../../component-library/components/Badges/BadgeWrapper';
 import { useStyles } from '../../../../../../../../component-library/hooks';
-import { CHAINLIST_CURRENCY_SYMBOLS_MAP, NETWORKS_CHAIN_ID } from '../../../../../../../../constants/network';
+import {
+  CHAINLIST_CURRENCY_SYMBOLS_MAP,
+  NETWORKS_CHAIN_ID,
+} from '../../../../../../../../constants/network';
 import NetworkAssetLogo from '../../../../../../../UI/NetworkAssetLogo';
 import { TokenI } from '../../../../../../../UI/Tokens/types';
 import useNetworkInfo from '../../../../../hooks/useNetworkInfo';
@@ -19,7 +22,13 @@ import { useTokenAssetByType } from '../../../../../hooks/useTokenAssetByType';
 import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
 import { styleSheet } from './avatar-token-with-network-badge.styles';
 
-const AvatarTokenNetwork = ({ asset, chainId }: { asset: TokenI, chainId: Hex }) => {
+const AvatarTokenNetwork = ({
+  asset,
+  chainId,
+}: {
+  asset: TokenI;
+  chainId: Hex;
+}) => {
   const { styles } = useStyles(styleSheet, {});
   const { image, isNative, name, ticker } = asset;
 
@@ -42,15 +51,21 @@ const AvatarTokenNetwork = ({ asset, chainId }: { asset: TokenI, chainId: Hex })
   );
 };
 
-export const AvatarTokenWithNetworkBadge = ({ canShowBadge = true }: { canShowBadge?: boolean }) => {
-  const { chainId } = useTransactionMetadataRequest() ?? ({} as TransactionMeta);
+export const AvatarTokenWithNetworkBadge = ({
+  canShowBadge = true,
+}: {
+  canShowBadge?: boolean;
+}) => {
+  const { chainId } =
+    useTransactionMetadataRequest() ?? ({} as TransactionMeta);
   const { asset } = useTokenAssetByType();
 
   const { networkName, networkImage } = useNetworkInfo(chainId);
   const { ticker } = asset;
 
-  const isEthOnMainnet = chainId === NETWORKS_CHAIN_ID.MAINNET
-    && ticker === CHAINLIST_CURRENCY_SYMBOLS_MAP.MAINNET;
+  const isEthOnMainnet =
+    chainId === NETWORKS_CHAIN_ID.MAINNET &&
+    ticker === CHAINLIST_CURRENCY_SYMBOLS_MAP.MAINNET;
   const showBadge = canShowBadge && networkImage && !isEthOnMainnet;
 
   return showBadge ? (
