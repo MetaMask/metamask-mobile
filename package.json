@@ -538,7 +538,6 @@
     "react-test-renderer": "18.3.1",
     "redux-saga-test-plan": "^4.0.6",
     "regenerator-runtime": "0.13.9",
-    "rn-nodeify": "10.3.0",
     "serve-handler": "^6.1.5",
     "simple-git": "^3.25.0",
     "ts-node": "^10.9.2",
@@ -561,36 +560,6 @@
       "pattern": "**/*.stories.@(js|tsx)",
       "outputFile": "./storybook/storyLoader.js"
     }
-  },
-  "react-native": {
-    "crypto": "react-native-crypto",
-    "_stream_transform": "readable-stream/transform",
-    "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
-    "_stream_duplex": "readable-stream/duplex",
-    "_stream_passthrough": "readable-stream/passthrough",
-    "stream": "stream-browserify",
-    "http": "@tradle/react-native-http",
-    "https": "https-browserify",
-    "vm": "vm-browserify",
-    "os": "react-native-os",
-    "net": "react-native-tcp",
-    "fs": "react-native-level-fs"
-  },
-  "browser": {
-    "crypto": "react-native-crypto",
-    "_stream_transform": "readable-stream/transform",
-    "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
-    "_stream_duplex": "readable-stream/duplex",
-    "_stream_passthrough": "readable-stream/passthrough",
-    "stream": "stream-browserify",
-    "http": "@tradle/react-native-http",
-    "https": "https-browserify",
-    "vm": "vm-browserify",
-    "os": "react-native-os",
-    "net": "react-native-tcp",
-    "fs": "react-native-level-fs"
   },
   "engines": {
     "node": "^20.18.0",

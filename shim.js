@@ -56,10 +56,6 @@ if (typeof localStorage !== 'undefined') {
   localStorage.debug = isDev ? '*' : '';
 }
 
-// If using the crypto shim, uncomment the following line to ensure
-// crypto is loaded first, so it can populate global.crypto
-// require('crypto')
-
 if (enableApiCallLogs || isTest) {
   (async () => {
     const raw = LaunchArguments.value();
