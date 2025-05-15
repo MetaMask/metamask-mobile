@@ -198,8 +198,8 @@ const SnapPermissions = ({
     ) => {
       const walletSnapPermissionData: SnapPermissionData[] = [];
       const date = permissionsList[key].date;
-      const snaps = permissionsList[key].caveats?.[0].value;
-      const snapIds = Object.keys(snaps).reduce(
+      const requestedSnaps = permissionsList[key].caveats?.[0].value;
+      const snapNames = Object.keys(requestedSnaps).reduce(
         (acc, snapId, index, snapsToConnect) => {
           return (
             acc +
@@ -212,7 +212,7 @@ const SnapPermissions = ({
 
       const title = strings(
         `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
-        { otherSnapName: snapIds },
+        { otherSnapName: snapNames },
       );
       walletSnapPermissionData.push({ label: title, date });
 
