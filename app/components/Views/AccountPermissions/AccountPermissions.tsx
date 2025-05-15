@@ -18,8 +18,11 @@ import BottomSheet, {
 import Engine from '../../../core/Engine';
 import {
   addPermittedAccounts,
+  updatePermittedChains,
+  getCaip25Caveat,
   getPermittedAccountsByHostname,
   removePermittedAccounts,
+  getPermittedChainIdsByHostname,
 } from '../../../core/Permissions';
 import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
@@ -38,7 +41,7 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
 // Internal dependencies.
 import {
@@ -51,23 +54,22 @@ import { USER_INTENT } from '../../../constants/permissions';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
 import { getNetworkImageSource } from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
+import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import NetworkPermissionsConnected from './NetworkPermissionsConnected';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import { Hex } from '@metamask/utils';
+import Routes from '../../../constants/navigation/Routes';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
-  const navigation = useNavigation();
+  const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const {
     hostInfo: {
@@ -84,6 +86,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const accountsLength = useSelector(selectAccountsLength);
+  const currentChainId = useSelector(selectEvmChainId);
 
   const nonTestnetNetworks = useSelector(
     (state: RootState) =>
@@ -107,14 +110,15 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
   const permittedAccountsList = useSelector(selectPermissionControllerState);
-  const permittedAccountsByHostname = getPermittedAccountsByHostname(
+  const permittedAccounts = getPermittedAccountsByHostname(
     permittedAccountsList,
     hostname,
   );
-  const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
-  const [networkAvatars, setNetworkAvatars] = useState<
-    ({ name: string; imageSource: string } | null)[]
-  >([]);
+  const permittedChainIds = getPermittedChainIdsByHostname(
+    permittedAccountsList,
+    hostname,
+  );
+
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -130,68 +134,38 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     isLoading,
   });
   const previousPermittedAccounts = useRef<string[]>();
-  const previousIdentitiesListSize = useRef<number>();
-  const internalAccounts = useSelector(selectInternalAccounts);
-  const activeAddress: string = permittedAccountsByHostname[0];
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
   const [networkSelectorUserIntent, setNetworkSelectorUserIntent] = useState(
     USER_INTENT.None,
   );
 
-  const { chainId } = useNetworkInfo(hostname);
-
-  useEffect(() => {
-    let currentlyPermittedChains: string[] = [];
-    try {
-      const caveat = Engine.context.PermissionController.getCaveat(
-        hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-      );
-      if (Array.isArray(caveat?.value)) {
-        currentlyPermittedChains = caveat.value.filter(
-          (item): item is string => typeof item === 'string',
-        );
-      }
-    } catch (e) {
-      Logger.error(e as Error, 'Error getting permitted chains caveat');
-    }
-
-    const networks = Object.entries(networkConfigurations)
-      .filter(([_, network]) => !isNonEvmChainId(network.chainId))
-      .map(([key, network]: [string, NetworkConfiguration]) => ({
-        id: key,
-        name: network.name,
-        rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
-        isSelected: false,
+  const networks = Object.entries(networkConfigurations)
+    .filter(([_, network]) => !isNonEvmChainId(network.chainId))
+    .map(([key, network]: [string, NetworkConfiguration]) => ({
+      id: key,
+      name: network.name,
+      rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
+      isSelected: false,
+      chainId: network?.chainId,
+      imageSource: getNetworkImageSource({
         chainId: network?.chainId,
-        imageSource: getNetworkImageSource({
-          chainId: network?.chainId,
-        }),
-      }));
+      }),
+    }));
 
-    const theNetworkAvatars: ({ name: string; imageSource: string } | null)[] =
-      currentlyPermittedChains.map((selectedId) => {
-        const network = networks.find(({ id }) => id === selectedId);
-        if (network) {
-          return {
-            name: network.name,
-            imageSource: network.imageSource as string,
-            variant: AvatarVariant.Network,
-          };
-        }
-        return null;
-      });
+  const networkAvatars: ({ name: string; imageSource: string } | null)[] =
+    permittedChainIds.map((selectedId) => {
+      const network = networks.find(({ id }) => id === selectedId);
+      if (network) {
+        return {
+          name: network.name,
+          imageSource: network.imageSource as string,
+          variant: AvatarVariant.Network,
+        };
+      }
+      return null;
+    });
 
-    if (
-      [USER_INTENT.None, USER_INTENT.Confirm].includes(
-        networkSelectorUserIntent,
-      )
-    ) {
-      setNetworkAvatars(theNetworkAvatars);
-    }
-  }, [hostname, networkConfigurations, networkSelectorUserIntent]);
 
   const hideSheet = useCallback(
     (callback?: () => void) =>
@@ -204,7 +178,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   useEffect(() => {
     if (
       previousPermittedAccounts.current === undefined &&
-      permittedAccountsByHostname.length === 0
+      permittedAccounts.length === 0
     ) {
       hideSheet();
 
@@ -223,33 +197,16 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       toastRef?.current?.showToast(networkToastProps);
 
-      previousPermittedAccounts.current = permittedAccountsByHostname.length;
+      previousPermittedAccounts.current = permittedAccounts;
     }
   }, [
-    permittedAccountsByHostname,
+    permittedAccounts,
     hideSheet,
     toastRef,
     hostname,
     faviconSource,
     isRenderedAsBottomSheet,
   ]);
-
-  // Refreshes selected addresses based on the addition and removal of accounts.
-  useEffect(() => {
-    // Extract the address list from the internalAccounts array
-    const accountsAddressList = internalAccounts.map((account) =>
-      account.address.toLowerCase(),
-    );
-
-    if (previousIdentitiesListSize.current !== accountsAddressList.length) {
-      // Clean up selected addresses that are no longer part of accounts.
-      const updatedSelectedAddresses = selectedAddresses.filter((address) =>
-        accountsAddressList.includes(address.toLowerCase()),
-      );
-      setSelectedAddresses(updatedSelectedAddresses);
-      previousIdentitiesListSize.current = accountsAddressList.length;
-    }
-  }, [internalAccounts, selectedAddresses]);
 
   const accountsFilteredByPermissions = useMemo(() => {
     const accountsByPermittedStatus: Record<
@@ -262,7 +219,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
     accounts.forEach((account) => {
       const lowercasedAccount = account.address.toLowerCase();
-      if (permittedAccountsByHostname.includes(lowercasedAccount)) {
+      if (permittedAccounts.includes(lowercasedAccount)) {
         accountsByPermittedStatus.permitted.push(account);
       } else {
         accountsByPermittedStatus.unpermitted.push(account);
@@ -270,7 +227,26 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     });
 
     return accountsByPermittedStatus;
-  }, [accounts, permittedAccountsByHostname]);
+  }, [accounts, permittedAccounts]);
+
+  const onRevokeAllHandler = useCallback(async () => {
+    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    navigate('PermissionsManager');
+  }, [hostname, navigate]);
+
+  const toggleRevokeAllPermissionsModal = useCallback(() => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
+      params: {
+        hostInfo: {
+          metadata: {
+            origin: urlWithProtocol && new URL(urlWithProtocol).hostname,
+          },
+        },
+        onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
+      },
+    });
+  }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
 
   const handleCreateAccount = useCallback(
     async () => {
@@ -301,8 +277,58 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [setIsLoading],
   );
 
-  const handleConnect = useCallback(() => {
+  const handleSelectChainIds = useCallback(async (chainIds: string[]) => {
+    if (chainIds.length === 0) {
+      toggleRevokeAllPermissionsModal();
+      return;
+    }
+
+      // Check if current network was originally permitted and is now being removed
+      const wasCurrentNetworkOriginallyPermitted =
+        permittedChainIds.includes(currentChainId);
+      const isCurrentNetworkStillPermitted =
+        chainIds.includes(currentChainId);
+
+      if (
+        wasCurrentNetworkOriginallyPermitted &&
+        !isCurrentNetworkStillPermitted
+      ) {
+        // Find the network configuration for the first permitted chain
+        const networkToSwitch = Object.entries(networkConfigurations).find(
+          ([, { chainId }]) => chainId === chainIds[0],
+        );
+
+        if (networkToSwitch) {
+          const [, config] = networkToSwitch;
+          const { rpcEndpoints, defaultRpcEndpointIndex } = config;
+          const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+
+          // Switch to the network using networkClientId
+          await Engine.context.MultichainNetworkController.setActiveNetwork(
+            networkClientId,
+          );
+        }
+      }
+
+      const hexSelectedChainIds = chainIds.map(toHex);
+      const removeExistingChainPermissions = true;
+      updatePermittedChains(hostname, hexSelectedChainIds, removeExistingChainPermissions);
+      setNetworkSelectorUserIntent(USER_INTENT.Confirm);
+  }, [
+    currentChainId,
+    hostname,
+    networkConfigurations,
+    permittedChainIds,
+    toggleRevokeAllPermissionsModal
+  ]);
+
+  const handleSelectAccountAddresses = useCallback((selectedAccounts: string[], newUserIntent: USER_INTENT) => {
     try {
+      if (selectedAccounts.length === 0) {
+        toggleRevokeAllPermissionsModal();
+        return;
+      }
+
       setIsLoading(true);
       let newActiveAddress;
       let connectedAccountLength = 0;
@@ -312,23 +338,20 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       const normalizeAddresses = (addresses: string[]) =>
         addresses.map((address) => toChecksumHexAddress(address));
 
-      // Retrieve the list of permitted accounts for the given hostname
-      const permittedAccounts = getPermittedAccountsByHostname(
-        permittedAccountsList,
-        hostname,
-      );
-
       // Normalize permitted accounts and selected addresses to checksummed format
       const normalizedPermittedAccounts = normalizeAddresses(permittedAccounts);
-      const normalizedSelectedAddresses = normalizeAddresses(selectedAddresses);
+      const normalizedSelectedAddresses = normalizeAddresses(selectedAccounts);
 
-      let accountsToRemove: string[] = [];
-      let accountsToAdd: string[] = [];
+      let accountsToRemove: Hex[] = [];
+      let accountsToAdd: Hex[] = [];
 
       // Identify accounts to be added
-      accountsToAdd = normalizedSelectedAddresses.filter(
-        (account) => !normalizedPermittedAccounts.includes(account),
-      );
+      accountsToAdd = normalizedSelectedAddresses.reduce((result: Hex[], account) => {
+        if (!normalizedPermittedAccounts.includes(account)) {
+          result.push(toHex(account));
+        }
+        return result;
+      }, []);
 
       // Add newly selected accounts
       if (accountsToAdd.length > 0) {
@@ -339,9 +362,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       }
 
       // Identify accounts to be removed
-      accountsToRemove = normalizedPermittedAccounts.filter(
-        (account) => !normalizedSelectedAddresses.includes(account),
-      );
+      accountsToRemove = normalizedPermittedAccounts
+        .filter((account) => !normalizedSelectedAddresses.includes(account))
+        .map(toHex);
       removedAccountCount = accountsToRemove.length;
 
       // Remove accounts that are no longer selected
@@ -392,14 +415,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           })
           .build(),
       );
+      setUserIntent(newUserIntent);
     } catch (e) {
       Logger.error(e as Error, 'Error while trying to connect to a dApp.');
     } finally {
       setIsLoading(false);
     }
   }, [
-    permittedAccountsList,
-    selectedAddresses,
+    permittedAccounts,
     accounts,
     setIsLoading,
     hostname,
@@ -410,7 +433,16 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     nonTestnetNetworks,
     trackEvent,
     createEventBuilder,
+    toggleRevokeAllPermissionsModal,
   ]);
+
+  const handleSelectAccountAddressesFromEditView = useCallback((selectedAccounts: string[]) => {
+    handleSelectAccountAddresses(selectedAccounts, USER_INTENT.EditMultiple);
+  }, [handleSelectAccountAddresses]);
+
+  const handleSelectAccountAddressesFromConnectMoreView = useCallback((selectedAccounts: string[]) => {
+    handleSelectAccountAddresses(selectedAccounts, USER_INTENT.Confirm);
+  }, [handleSelectAccountAddresses]);
 
   useEffect(() => {
     if (networkSelectorUserIntent === USER_INTENT.Confirm) {
@@ -441,6 +473,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     faviconSource,
     toastRef,
     isNonDappNetworkSwitch,
+    setNetworkSelectorUserIntent,
+    urlWithProtocol
   ]);
 
   useEffect(() => {
@@ -448,7 +482,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     const handleUserActions = (action: USER_INTENT) => {
       switch (action) {
         case USER_INTENT.Confirm: {
-          handleConnect();
           hideSheet(() => {
             trackEvent(
               createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
@@ -467,7 +500,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           break;
         }
         case USER_INTENT.EditMultiple: {
-          handleConnect();
           setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary);
           break;
         }
@@ -476,7 +508,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           break;
         }
         case USER_INTENT.Import: {
-          navigation.navigate('ImportPrivateKeyView');
+          navigate('ImportPrivateKeyView');
           // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
           trackEvent(
             createEventBuilder(
@@ -487,7 +519,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           break;
         }
         case USER_INTENT.ConnectHW: {
-          navigation.navigate('ConnectQRHardwareFlow');
+          navigate('ConnectQRHardwareFlow');
           // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
           trackEvent(
             createEventBuilder(
@@ -504,12 +536,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
     setUserIntent(USER_INTENT.None);
   }, [
-    navigation,
+    navigate,
     userIntent,
     sheetRef,
     hideSheet,
     handleCreateAccount,
-    handleConnect,
     accounts?.length,
     trackEvent,
     createEventBuilder,
@@ -519,12 +550,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     () => (
       <AccountPermissionsConnected
         isLoading={isLoading}
-        onSetSelectedAddresses={setSelectedAddresses}
         onSetPermissionsScreen={setPermissionsScreen}
         onDismissSheet={hideSheet}
         accounts={accountsFilteredByPermissions.permitted}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={[activeAddress]}
+        selectedAddresses={permittedAccounts}
         favicon={faviconSource}
         hostname={hostname}
         urlWithProtocol={urlWithProtocol}
@@ -534,10 +564,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ),
     [
       ensByAccountAddress,
-      activeAddress,
       isLoading,
       accountsFilteredByPermissions,
-      setSelectedAddresses,
       setPermissionsScreen,
       hideSheet,
       faviconSource,
@@ -545,11 +573,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       urlWithProtocol,
       secureIcon,
       accountAvatarType,
+      permittedAccounts,
     ],
   );
 
   const renderPermissionsSummaryScreen = useCallback(() => {
-    const checksummedPermittedAddresses = permittedAccountsByHostname.map(
+    const checksummedPermittedAddresses = permittedAccounts.map(
       toChecksumHexAddress<string>,
     );
 
@@ -561,7 +590,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       },
       onEdit: () => {
         setPermissionsScreen(AccountPermissionsScreens.EditAccountsPermissions);
-        setSelectedAddresses(checksummedPermittedAddresses);
       },
       onEditNetworks: () =>
         setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
@@ -570,7 +598,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       onBack: () =>
         isRenderedAsBottomSheet
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
-          : navigation.navigate('PermissionsManager'),
+          : navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
       accountAddresses: checksummedPermittedAddresses,
       accounts,
@@ -579,14 +607,13 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [
-    faviconSource,
-    urlWithProtocol,
     isRenderedAsBottomSheet,
-    navigation,
-    permittedAccountsByHostname,
-    setSelectedAddresses,
+    navigate,
+    permittedAccounts,
     networkAvatars,
     accounts,
+    faviconSource,
+    urlWithProtocol
   ]);
 
   const renderEditAccountsPermissionsScreen = useCallback(
@@ -594,22 +621,13 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       <AccountConnectMultiSelector
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={selectedAddresses}
-        onSelectAddress={(checkedAddresses) => {
-          setSelectedAddresses(checkedAddresses);
-        }}
+        defaultSelectedAddresses={permittedAccounts}
+        onSubmit={handleSelectAccountAddressesFromEditView}
         isLoading={isLoading}
-        onUserAction={setUserIntent}
-        favicon={faviconSource}
-        urlWithProtocol={urlWithProtocol}
         hostname={hostname}
-        secureIcon={secureIcon}
         isAutoScrollEnabled={false}
         onBack={() =>
           setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary)
-        }
-        onPrimaryActionButtonPress={() =>
-          setUserIntent(USER_INTENT.EditMultiple)
         }
         screenTitle={strings('accounts.edit_accounts_title')}
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
@@ -617,15 +635,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ),
     [
       ensByAccountAddress,
-      selectedAddresses,
+      permittedAccounts,
       isLoading,
-      setUserIntent,
-      faviconSource,
-      urlWithProtocol,
-      secureIcon,
       hostname,
       isRenderedAsBottomSheet,
       accounts,
+      handleSelectAccountAddressesFromEditView,
     ],
   );
 
@@ -634,19 +649,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       <AccountConnectMultiSelector
         accounts={accountsFilteredByPermissions.unpermitted}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={selectedAddresses}
-        onSelectAddress={(checkedAddresses) => {
-          setSelectedAddresses([
-            ...checkedAddresses,
-            ...permittedAccountsByHostname,
-          ]);
-        }}
+        defaultSelectedAddresses={permittedAccounts}
+        onSubmit={handleSelectAccountAddressesFromConnectMoreView}
         isLoading={isLoading}
-        onUserAction={setUserIntent}
-        favicon={faviconSource}
-        urlWithProtocol={urlWithProtocol}
         hostname={hostname}
-        secureIcon={secureIcon}
         isAutoScrollEnabled={false}
         onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
         screenTitle={strings('accounts.connect_more_accounts')}
@@ -655,25 +661,19 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ),
     [
       ensByAccountAddress,
-      selectedAddresses,
       isLoading,
       accountsFilteredByPermissions,
-      setUserIntent,
-      faviconSource,
-      urlWithProtocol,
-      secureIcon,
       hostname,
-      permittedAccountsByHostname,
+      permittedAccounts,
+      handleSelectAccountAddressesFromConnectMoreView,
     ],
   );
 
   const renderConnectNetworksScreen = useCallback(
     () => (
       <NetworkConnectMultiSelector
-        onSelectNetworkIds={setSelectedAddresses}
+        onSubmit={handleSelectChainIds}
         isLoading={isLoading}
-        onUserAction={setNetworkSelectorUserIntent}
-        urlWithProtocol={urlWithProtocol}
         hostname={hostname}
         onBack={() =>
           setPermissionsScreen(
@@ -683,15 +683,16 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           )
         }
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
+        defaultSelectedChainIds={permittedChainIds}
       />
     ),
     [
       isLoading,
-      setNetworkSelectorUserIntent,
-      urlWithProtocol,
       hostname,
       isRenderedAsBottomSheet,
       isNonDappNetworkSwitch,
+      handleSelectChainIds,
+      permittedChainIds
     ],
   );
 
@@ -701,7 +702,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accounts={accountsFilteredByPermissions.permitted}
         onSetPermissionsScreen={setPermissionsScreen}
         ensByAccountAddress={ensByAccountAddress}
-        permittedAddresses={permittedAccountsByHostname}
+        permittedAddresses={permittedAccounts}
         isLoading={isLoading}
         favicon={faviconSource}
         urlWithProtocol={urlWithProtocol}
@@ -713,7 +714,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [
       ensByAccountAddress,
       isLoading,
-      permittedAccountsByHostname,
+      permittedAccounts,
       accountsFilteredByPermissions,
       setPermissionsScreen,
       faviconSource,
@@ -727,33 +728,17 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const renderChooseFromPermittedNetworksScreen = useCallback(
     () => (
       <NetworkPermissionsConnected
-        isLoading={isLoading}
-        onSetSelectedAddresses={setSelectedAddresses}
         onSetPermissionsScreen={setPermissionsScreen}
         onDismissSheet={hideSheet}
-        accounts={accountsFilteredByPermissions.permitted}
-        ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={[activeAddress]}
         favicon={faviconSource}
         hostname={hostname}
-        urlWithProtocol={urlWithProtocol}
-        secureIcon={secureIcon}
-        accountAvatarType={accountAvatarType}
       />
     ),
     [
-      ensByAccountAddress,
-      activeAddress,
-      isLoading,
-      accountsFilteredByPermissions,
-      setSelectedAddresses,
       setPermissionsScreen,
       hideSheet,
       faviconSource,
       hostname,
-      urlWithProtocol,
-      secureIcon,
-      accountAvatarType,
     ],
   );
 
@@ -766,43 +751,30 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       },
       onEdit: () => {
         setPermissionsScreen(AccountPermissionsScreens.EditAccountsPermissions);
-        setSelectedAddresses(
-          permittedAccountsByHostname.map(toChecksumHexAddress),
-        );
       },
       onEditNetworks: () =>
         setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
       onUserAction: setUserIntent,
       onAddNetwork: () => {
+        if (!currentChainId) {
+          throw new Error('No chainId provided');
+        }
+
         let currentlyPermittedChains: string[] = [];
         try {
-          const caveat = Engine.context.PermissionController.getCaveat(
-            hostname,
-            PermissionKeys.permittedChains,
-            CaveatTypes.restrictNetworkSwitching,
-          );
-          if (Array.isArray(caveat?.value)) {
-            currentlyPermittedChains = caveat.value.filter(
-              (item): item is string => typeof item === 'string',
-            );
-          }
+          const caveat = getCaip25Caveat(hostname);
+          currentlyPermittedChains = caveat
+            ? getPermittedEthChainIds(caveat.value)
+            : [];
         } catch (e) {
           Logger.error(e as Error, 'Error getting permitted chains caveat');
         }
 
-        // Add current chainId if no chains are permitted yet
-        if (chainId) {
-          currentlyPermittedChains = [chainId, ...currentlyPermittedChains];
-        } else {
-          throw new Error('No chainId provided');
+        if (currentlyPermittedChains.includes(currentChainId)) {
+          return;
         }
 
-        Engine.context.PermissionController.updateCaveat(
-          hostname,
-          PermissionKeys.permittedChains,
-          CaveatTypes.restrictNetworkSwitching,
-          currentlyPermittedChains,
-        );
+        updatePermittedChains(hostname, [currentChainId]);
 
         const networkToastProps: ToastOptions = {
           variant: ToastVariants.Network,
@@ -821,9 +793,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       onBack: () =>
         isRenderedAsBottomSheet
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
-          : navigation.navigate('PermissionsManager'),
+          : navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
-      accountAddresses: permittedAccountsByHostname.map(toChecksumHexAddress),
+      accountAddresses: permittedAccounts.map(toChecksumHexAddress) as string[],
       accounts,
       networkAvatars,
       isNetworkSwitch: true,
@@ -842,12 +814,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     faviconSource,
     urlWithProtocol,
     isRenderedAsBottomSheet,
-    navigation,
-    permittedAccountsByHostname,
-    setSelectedAddresses,
+    navigate,
+    permittedAccounts,
     networkAvatars,
     accounts,
-    chainId,
+    currentChainId,
     hideSheet,
     hostname,
     toastRef,
