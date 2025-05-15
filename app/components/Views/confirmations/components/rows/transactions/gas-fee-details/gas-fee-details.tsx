@@ -19,56 +19,6 @@ import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import styleSheet from './gas-fee-details.styles';
 
-const GasFeesDetails = ({ disableUpdate = false }) => {
-  const [gasModalVisible, setGasModalVisible] = useState(false);
-  const { styles, theme } = useStyles(styleSheet, {});
-  const transactionMetadata = useTransactionMetadataRequest();
-  const feeCalculations = useFeeCalculations(
-    transactionMetadata as TransactionMeta,
-  );
-  const hideFiatForTestnet = useHideFiatForTestnet(
-    transactionMetadata?.chainId,
-  );
-  const { trackTooltipClickedEvent } = useConfirmationMetricEvents();
-
-  const handleNetworkFeeTooltipClickedEvent = () => {
-    trackTooltipClickedEvent({
-      tooltip: TOOLTIP_TYPES.NETWORK_FEE,
-    });
-  };
-
-  return (
-    <>
-      <InfoSection>
-        <AlertRow
-          alertField={RowAlertKey.EstimatedFee}
-          label={strings('transactions.network_fee')}
-          tooltip={strings('transactions.network_fee_tooltip')}
-          onTooltipPress={handleNetworkFeeTooltipClickedEvent}
-        >
-          <View style={styles.valueContainer}>
-            {disableUpdate ? (
-              <EstimationInfo
-                hideFiatForTestnet={hideFiatForTestnet}
-                feeCalculations={feeCalculations}
-              />
-            ) : (
-              <ClickableEstimationInfo
-                onPress={() => setGasModalVisible(true)}
-                hideFiatForTestnet={hideFiatForTestnet}
-                feeCalculations={feeCalculations}
-              />
-            )}
-          </View>
-        </AlertRow>
-      </InfoSection>
-      {gasModalVisible && (
-        <GasFeeModal setGasModalVisible={setGasModalVisible} />
-      )}
-    </>
-  );
-};
-
 const ClickableEstimationInfo = ({
   hideFiatForTestnet,
   feeCalculations,
@@ -114,6 +64,56 @@ const EstimationInfo = ({
         {feeCalculations.estimatedFeeNative}
       </Text>
     </View>
+  );
+};
+
+const GasFeesDetails = ({ disableUpdate = false }) => {
+  const [gasModalVisible, setGasModalVisible] = useState(false);
+  const { styles } = useStyles(styleSheet, {});
+  const transactionMetadata = useTransactionMetadataRequest();
+  const feeCalculations = useFeeCalculations(
+    transactionMetadata as TransactionMeta,
+  );
+  const hideFiatForTestnet = useHideFiatForTestnet(
+    transactionMetadata?.chainId,
+  );
+  const { trackTooltipClickedEvent } = useConfirmationMetricEvents();
+
+  const handleNetworkFeeTooltipClickedEvent = () => {
+    trackTooltipClickedEvent({
+      tooltip: TOOLTIP_TYPES.NETWORK_FEE,
+    });
+  };
+
+  return (
+    <>
+      <InfoSection>
+        <AlertRow
+          alertField={RowAlertKey.EstimatedFee}
+          label={strings('transactions.network_fee')}
+          tooltip={strings('transactions.network_fee_tooltip')}
+          onTooltipPress={handleNetworkFeeTooltipClickedEvent}
+        >
+          <View style={styles.valueContainer}>
+            {disableUpdate ? (
+              <EstimationInfo
+                hideFiatForTestnet={hideFiatForTestnet}
+                feeCalculations={feeCalculations}
+              />
+            ) : (
+              <ClickableEstimationInfo
+                onPress={() => setGasModalVisible(true)}
+                hideFiatForTestnet={hideFiatForTestnet}
+                feeCalculations={feeCalculations}
+              />
+            )}
+          </View>
+        </AlertRow>
+      </InfoSection>
+      {gasModalVisible && (
+        <GasFeeModal setGasModalVisible={setGasModalVisible} />
+      )}
+    </>
   );
 };
 
