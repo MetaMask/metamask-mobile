@@ -176,14 +176,14 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
           {
             "caipChainId": "eip155:1",
             "id": "eip155:1",
-            "imageSource": undefined,
+            "imageSource": 1,
             "isSelected": false,
             "name": "Ethereum Mainnet",
           },
           {
             "caipChainId": "eip155:137",
             "id": "eip155:137",
-            "imageSource": undefined,
+            "imageSource": 1,
             "isSelected": false,
             "name": "Polygon",
           },
@@ -318,9 +318,8 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "backgroundColor": "#f3f5f9",
-                          "borderRadius": 12,
-                          "borderWidth": 1,
+                          "backgroundColor": "#ffffff",
+                          "borderRadius": 8,
                           "height": 24,
                           "justifyContent": "center",
                           "marginRight": 16,
@@ -330,21 +329,18 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                       }
                       testID="cellbase-avatar"
                     >
-                      <Text
-                        accessibilityRole="text"
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
                         style={
                           {
-                            "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
-                            "fontSize": 16,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
+                            "height": 24,
+                            "width": 24,
                           }
                         }
-                      >
-                        E
-                      </Text>
+                        testID="network-avatar-image"
+                      />
                     </View>
                     <View
                       style={
@@ -480,9 +476,8 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "backgroundColor": "#f3f5f9",
-                          "borderRadius": 12,
-                          "borderWidth": 1,
+                          "backgroundColor": "#ffffff",
+                          "borderRadius": 8,
                           "height": 24,
                           "justifyContent": "center",
                           "marginRight": 16,
@@ -492,21 +487,18 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                       }
                       testID="cellbase-avatar"
                     >
-                      <Text
-                        accessibilityRole="text"
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
                         style={
                           {
-                            "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
-                            "fontSize": 16,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
+                            "height": 24,
+                            "width": 24,
                           }
                         }
-                      >
-                        P
-                      </Text>
+                        testID="network-avatar-image"
+                      />
                     </View>
                     <View
                       style={
