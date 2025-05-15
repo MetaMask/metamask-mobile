@@ -354,7 +354,49 @@ exports[`PermissionsSummary should render correctly 1`] = `
                                 "flexDirection": "row",
                               }
                             }
-                          />
+                          >
+                            <View
+                              style={
+                                {
+                                  "marginLeft": 0,
+                                }
+                              }
+                              testID="avatargroup-avatar-container-0"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#f3f5f9",
+                                    "borderColor": "#ffffff",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "height": 16,
+                                    "justifyContent": "center",
+                                    "overflow": "hidden",
+                                    "width": 16,
+                                  }
+                                }
+                                testID="avatargroup-avatar"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 10,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": undefined,
+                                    }
+                                  }
+                                >
+                                  E
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -823,7 +865,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           }
                         }
                       >
-                        0 networks connected 
+                        Ethereum Mainnet
                       </Text>
                     </Text>
                   </View>
@@ -843,7 +885,49 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           "flexDirection": "row",
                         }
                       }
-                    />
+                    >
+                      <View
+                        style={
+                          {
+                            "marginLeft": 0,
+                          }
+                        }
+                        testID="avatargroup-avatar-container-0"
+                      >
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "backgroundColor": "#f3f5f9",
+                              "borderColor": "#ffffff",
+                              "borderRadius": 8,
+                              "borderWidth": 1,
+                              "height": 16,
+                              "justifyContent": "center",
+                              "overflow": "hidden",
+                              "width": 16,
+                            }
+                          }
+                          testID="avatargroup-avatar"
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Book",
+                                "fontSize": 10,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": undefined,
+                              }
+                            }
+                          >
+                            E
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -1015,8 +1099,9 @@ exports[`PermissionsSummary should render correctly 1`] = `
         <TouchableOpacity
           accessibilityRole="button"
           accessible={true}
-          activeOpacity={1}
-          disabled={true}
+          activeOpacity={0.2}
+          disabled={false}
+          onPress={[Function]}
           style={
             [
               [
@@ -1038,9 +1123,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   },
                 ],
               ],
-              {
-                "opacity": 0.6,
-              },
+              null,
             ]
           }
           testID="connect-button"
@@ -1054,9 +1137,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   "fontWeight": "500",
                   "textAlign": "center",
                 },
-                {
-                  "color": "#dcdcdc",
-                },
+                null,
                 [
                   {
                     "fontFamily": "CentraNo1-Bold",
@@ -1069,9 +1150,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   },
                   undefined,
                 ],
-                {
-                  "opacity": 0.6,
-                },
+                null,
               ]
             }
           >
