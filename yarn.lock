@@ -4638,10 +4638,10 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/accounts-controller@^28.0.0":
-  version "28.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-28.0.0.tgz#408895c2e42a323bbaa6d2338059684dec9d4984"
-  integrity sha512-MSv2oPR2SlHnL31T/sLgb3RKmkORIH38/9c7xg/irw5/TvmdPXMnHvhTTuC0V84o+kH8NIji6qEggG3wCBz1mA==
+"@metamask/accounts-controller@^29.0.0":
+  version "29.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-29.0.0.tgz#e190acb5c5c925a0a9109b576272be47076013a4"
+  integrity sha512-GkyES657EeYASDFyqJaB1quTSiXhtu6C8c4mLOhUJXg26rQjXvZHvtDzq5Fj/45iK6RSjiM9jX/r9+KT0wfIQw==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/base-controller" "^8.0.1"
@@ -5183,10 +5183,10 @@
     "@metamask/utils" "^11.1.0"
     bech32 "^2.0.0"
 
-"@metamask/keyring-controller@^21.0.6":
-  version "21.0.6"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.6.tgz#66a885b995eb899290f2178807034cef8d6a5ea1"
-  integrity sha512-PrAK6whSJv2ImId/t2qfouPk+tE2JXVklixwRf5vxNSjORteQSZVDy10r8O0TOG+O1RsE+x04hEd+vvJ8ClHDQ==
+"@metamask/keyring-controller@^22.0.0":
+  version "22.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-22.0.0.tgz#17d779e098ecfa60ffae14bbae3416ca5a7c05f2"
+  integrity sha512-DsSCBJOHAZlSYfjVpUgW9+hyRqXrXum+Nnl1rq1S0pCCLGIIemG8Muq6I8U18/SOLU3CK4LTq1zN3U2KkkZ/tA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@keystonehq/metamask-airgapped-keyring" "^0.14.1"

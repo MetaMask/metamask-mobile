@@ -170,8 +170,8 @@ const snapMethodMiddlewareBuilder = (
         .map((keyring, index) => {
           if (keyring.type === KeyringTypes.hd) {
             return {
-              id: state.keyringsMetadata[index].id,
-              name: state.keyringsMetadata[index].name,
+              id: state.keyrings[index].metadata.id,
+              name: state.keyrings[index].metadata.name,
               type: 'mnemonic',
               primary: index === 0,
             };
