@@ -178,19 +178,10 @@ class StorageWrapper {
           const isFreshInstall = firstInstallTime === lastUpdateTime;
 
           if (isFreshInstall) {
-            const existingUser = await StorageWrapper.getInstance().getItem(
-              EXISTING_USER,
-            );
-
-            // On fresh install, clear storage if there's existing data
-            // This ensures a clean state for both new installs and restored data cases
+            // On fresh install, always clear storage to ensure a clean state
             await StorageWrapper.getInstance().clearAll();
-            
-            // If this was not a restored backup (no existing user), 
-            // ensure the EXISTING_USER flag is cleared
-            if (!existingUser) {
-              await StorageWrapper.getInstance().removeItem(EXISTING_USER);
-            }
+            await AsyncStorage.removeItem(EXISTING_USER);
+            await AsyncStorage.removeItem(FRESH_INSTALL_CHECK_DONE);
           }
 
           await AsyncStorage.setItem(FRESH_INSTALL_CHECK_DONE, 'true');
@@ -211,6 +202,10 @@ const storageWrapperInstance = StorageWrapper.getInstance();
 // Create an enhanced instance with both the instance methods and the static method
 const enhancedInstance = {
   ...storageWrapperInstance,
+  getItem: storageWrapperInstance.getItem.bind(storageWrapperInstance),
+  setItem: storageWrapperInstance.setItem.bind(storageWrapperInstance),
+  removeItem: storageWrapperInstance.removeItem.bind(storageWrapperInstance),
+  clearAll: storageWrapperInstance.clearAll.bind(storageWrapperInstance),
   handleFreshInstallWithRestoredData: StorageWrapper.handleFreshInstallWithRestoredData
 };
 
