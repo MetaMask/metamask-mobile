@@ -98,11 +98,3 @@ export const fetchErc20Decimals = async (
     return ERC20_DEFAULT_DECIMALS;
   }
 };
-
-export const isNativeToken = (transactionMeta: TransactionMeta): boolean => {
-  const { txParams } = transactionMeta;
-  const hasNoData = txParams?.data === '0x' || !txParams?.data;
-  const hasValue = txParams?.value !== undefined;
-
-  return hasNoData && hasValue;
-};
