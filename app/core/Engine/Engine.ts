@@ -665,10 +665,12 @@ export class Engine {
           useNftDetection,
           displayNftMedia,
           isMultiAccountBalancesEnabled,
+          showTestNetworks,
         } = this.getPreferences();
         const locale = I18n.locale;
         return {
           locale,
+          showTestnets: showTestNetworks,
           currency: this.context.CurrencyRateController.state.currentCurrency,
           hideBalances: privacyMode,
           useSecurityAlerts: securityAlertsEnabled,
@@ -1736,6 +1738,7 @@ export class Engine {
       useNftDetection,
       displayNftMedia,
       isMultiAccountBalancesEnabled,
+      showTestNetworks,
     } = this.context.PreferencesController.state;
 
     return {
@@ -1746,6 +1749,7 @@ export class Engine {
       useNftDetection,
       displayNftMedia,
       isMultiAccountBalancesEnabled,
+      showTestNetworks,
     };
   };
 
