@@ -1316,6 +1316,11 @@ workflows:
                 echo "here is foundry bin"
                 ls ~/.foundry/bin
                 export PATH="$FOUNDRY_BIN_PATH:$PATH"
+                echo "here is path"
+                echo $PATH
+                ls -l $FOUNDRY_BIN_PATH
+                which anvil
+                anvil --version
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
