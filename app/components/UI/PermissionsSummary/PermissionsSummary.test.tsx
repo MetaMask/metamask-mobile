@@ -4,6 +4,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 
 const mockedNavigate = jest.fn();
 
@@ -81,9 +83,12 @@ describe('PermissionsSummary', () => {
         accountAddresses={['eip155:0:0x2']}
         networkAvatars={[
           {
-          name: 'Ethereum Mainnet',
-          imageSource: ''
-        }]}
+            name: 'Ethereum Mainnet',
+            imageSource: require('../../../assets/images/network-avatar.png'),
+            size: AvatarSize.Xs,
+            variant: AvatarVariant.Network,
+          },
+        ]}
       />,
       { state: mockInitialState },
     );

@@ -367,10 +367,10 @@ exports[`PermissionsSummary should render correctly 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#f3f5f9",
+                                    "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
                                     "borderRadius": 8,
-                                    "borderWidth": 1,
+                                    "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",
                                     "overflow": "hidden",
@@ -379,21 +379,18 @@ exports[`PermissionsSummary should render correctly 1`] = `
                                 }
                                 testID="avatargroup-avatar"
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <Image
+                                  onError={[Function]}
+                                  resizeMode="contain"
+                                  source={1}
                                   style={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 10,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": undefined,
+                                      "height": 16,
+                                      "width": 16,
                                     }
                                   }
-                                >
-                                  E
-                                </Text>
+                                  testID="network-avatar-image"
+                                />
                               </View>
                             </View>
                           </View>
@@ -898,10 +895,10 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#f3f5f9",
+                              "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
                               "borderRadius": 8,
-                              "borderWidth": 1,
+                              "borderWidth": 1.5,
                               "height": 16,
                               "justifyContent": "center",
                               "overflow": "hidden",
@@ -910,21 +907,18 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           }
                           testID="avatargroup-avatar"
                         >
-                          <Text
-                            accessibilityRole="text"
+                          <Image
+                            onError={[Function]}
+                            resizeMode="contain"
+                            source={1}
                             style={
                               {
-                                "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
-                                "fontSize": 10,
-                                "fontWeight": "400",
-                                "letterSpacing": 0,
-                                "lineHeight": undefined,
+                                "height": 16,
+                                "width": 16,
                               }
                             }
-                          >
-                            E
-                          </Text>
+                            testID="network-avatar-image"
+                          />
                         </View>
                       </View>
                     </View>
