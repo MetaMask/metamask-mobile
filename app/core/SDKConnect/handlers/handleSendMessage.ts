@@ -28,10 +28,10 @@ export const handleSendMessage = async ({
 
     if (!IGNORE_ANALYTICS_RPCS.includes(method) && msgId && msgId !== 'undefined' && anonId) {
       if (msg?.data?.error) {
-        DevLogger.log(`[SDK Analytics] event=wallet_action_user_rejected anonId=${anonId}`);
+        DevLogger.log(`[MM SDK Analytics] event=wallet_action_user_rejected anonId=${anonId}`);
         analytics.track('wallet_action_user_rejected', { anon_id: anonId });
       } else {
-        DevLogger.log(`[SDK Analytics] event=wallet_action_user_approved anonId=${anonId}`);
+        DevLogger.log(`[MM SDK Analytics] event=wallet_action_user_approved anonId=${anonId}`);
         analytics.track('wallet_action_user_approved', { anon_id: anonId });
       }
     }
