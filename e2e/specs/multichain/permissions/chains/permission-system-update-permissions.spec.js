@@ -45,6 +45,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
 
         // Navigate to chain permissions
         await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
         // Uncheck Sepolia and check Linea Sepolia
@@ -55,6 +56,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await NetworkConnectMultiSelector.tapUpdateButton();
 
         // Verify changes were saved by checking chain permissions again
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
         await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
           NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
@@ -93,6 +95,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         // Open network permissions menu
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
         // Remove Ethereum Mainnet permission
@@ -105,6 +108,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await device.enableSynchronization();
         await TestHelpers.delay(3000);
         // await TestDApp.tapMMLogo();
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await PermissionSummaryBottomSheet.swipeToDismissModal();
         await TestHelpers.delay(3000);
 
