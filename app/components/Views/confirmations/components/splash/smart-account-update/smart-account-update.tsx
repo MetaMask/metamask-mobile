@@ -66,7 +66,7 @@ export const SmartAccountUpdate = () => {
     );
 
     onReject(serializedError as unknown as Error);
-  }, []);
+  }, [onReject]);
 
   if (!transactionMetadata || acknowledged) {
     return null;
