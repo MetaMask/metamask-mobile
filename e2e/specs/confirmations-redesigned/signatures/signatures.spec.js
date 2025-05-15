@@ -96,8 +96,8 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
 
           // check different sections are visible
           await Assertions.checkIfVisible(RowComponents.AdvancedDetailsRow);
-          await Assertions.checkIfVisible(RowComponents.FromTo);
-          await Assertions.checkIfVisible(RowComponents.SimulationDetails);
+          await Assertions.checkIfVisible(PageSections.OriginInfoSection);
+          await Assertions.checkIfVisible(PageSections.MessageSection);
 
           // any signature specific additional assertions
           if (additionAssertions) {
