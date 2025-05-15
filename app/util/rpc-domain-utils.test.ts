@@ -1,4 +1,18 @@
-import { extractRpcDomain, isKnownDomain, setKnownDomainsForTesting } from './rpc-domain-utils';
+import { extractRpcDomain, isKnownDomain, setKnownDomainsForTesting, getNetworkRpcUrl } from './rpc-domain-utils';
+
+jest.mock('../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      NetworkController: {
+        findNetworkClientIdByChainId: jest.fn(),
+        getNetworkConfigurationByNetworkClientId: jest.fn(),
+      },
+    },
+  },
+}));
+
+import Engine from '../core/Engine';
 
 describe('rpc-domain-utils', () => {
   describe('extractRpcDomain', () => {
@@ -59,6 +73,57 @@ describe('rpc-domain-utils', () => {
     it('should be case-insensitive', () => {
       expect(isKnownDomain('EXAMPLE.COM')).toBe(true);
       expect(isKnownDomain('Infura.Io')).toBe(true);
+    });
+  });
+
+  describe('getNetworkRpcUrl', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should return the RPC URL when network client and configuration are found', () => {
+      // Mock implementation
+      const mockNetworkClientId = 'mock-network-client-id';
+      (Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock).mockReturnValue(mockNetworkClientId);
+      (Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId as jest.Mock).mockReturnValue({
+        rpcEndpoints: [
+          { url: 'https://mainnet.infura.io/v3/123' },
+          { url: 'https://backup.example.com' },
+        ],
+        defaultRpcEndpointIndex: 0,
+      });
+
+      const result = getNetworkRpcUrl('0x1');
+
+      // Verify correct RPC URL is returned
+      expect(result).toBe('https://mainnet.infura.io/v3/123');
+      expect(Engine.context.NetworkController.findNetworkClientIdByChainId).toHaveBeenCalledWith('0x1');
+      expect(Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId).toHaveBeenCalledWith(mockNetworkClientId);
+    });
+
+    it('should handle legacy configuration with direct rpcUrl property', () => {
+      // Mock implementation for legacy format
+      const mockNetworkClientId = 'mock-network-client-id';
+      (Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock).mockReturnValue(mockNetworkClientId);
+      (Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId as jest.Mock).mockReturnValue({
+        rpcUrl: 'https://legacy.example.com',
+      });
+
+      const result = getNetworkRpcUrl('0x1');
+
+      // Verify correct RPC URL is returned
+      expect(result).toBe('https://legacy.example.com');
+    });
+
+    it('should return "unknown" when network client ID is not found', () => {
+      // Mock implementation for missing network client
+      (Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock).mockReturnValue(null);
+
+      const result = getNetworkRpcUrl('0x999');
+
+      // Verify "unknown" is returned
+      expect(result).toBe('unknown');
+      expect(Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId).not.toHaveBeenCalled();
     });
   });
 });
