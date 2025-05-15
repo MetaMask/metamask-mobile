@@ -194,6 +194,9 @@ class TypedSign extends PureComponent {
 
   renderTypedMessageV3 = (obj) => {
     const styles = this.getStyles();
+    if (!obj) {
+      return <View style={styles.message} />;
+    }
     return Object.keys(obj).map((key) => (
       <View style={styles.message} key={key}>
         {obj[key] && typeof obj[key] === 'object' ? (
@@ -217,7 +220,14 @@ class TypedSign extends PureComponent {
     const { messageParams } = this.props;
     const styles = this.getStyles();
 
+    if (!messageParams) {
+      return <View style={styles.message} />;
+    }
+
     if (messageParams.version === 'V1') {
+      if (!messageParams.data || !Array.isArray(messageParams.data)) {
+        return <View style={styles.message} />;
+      }
       return (
         <View style={styles.message}>
           {messageParams.data.map((obj, i) => (
@@ -234,8 +244,19 @@ class TypedSign extends PureComponent {
       );
     }
     if (messageParams.version === 'V3' || messageParams.version === 'V4') {
-      const { sanitizedMessage } = parseAndSanitizeSignTypedData(messageParams.data);
-      return this.renderTypedMessageV3(sanitizedMessage);
+      if (!messageParams.data) {
+        return <View style={styles.message} />;
+      }
+
+      try {
+        const { sanitizedMessage } = parseAndSanitizeSignTypedData(messageParams.data);
+        if (!sanitizedMessage) {
+          return <View style={styles.message} />;
+        }
+        return this.renderTypedMessageV3(sanitizedMessage);
+      } catch (error) {
+        return <View style={styles.message} />;
+      }
     }
   };
 
