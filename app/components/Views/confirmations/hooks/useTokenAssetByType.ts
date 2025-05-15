@@ -52,8 +52,8 @@ export const useTokenAssetByType = () => {
   }
 
   if (!asset.ticker) {
-    asset.name = strings('tokens.unknown');
-    asset.ticker = strings('tokens.unknown');
+    asset.name = strings('token.unknown');
+    asset.ticker = strings('token.unknown');
   }
 
   return {
