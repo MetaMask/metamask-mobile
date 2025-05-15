@@ -69,7 +69,6 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { parseUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
-import { theme } from '@storybook/react-native';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -405,8 +404,7 @@ const BridgeView = () => {
               token={destToken}
               networkImageSource={
                 destToken
-                  ? //@ts-expect-error - destToken is not typed
-                    getNetworkImageSource({ chainId: destToken?.chainId })
+                  ? getNetworkImageSource({ chainId: destToken?.chainId })
                   : undefined
               }
               testID="dest-token-area"
