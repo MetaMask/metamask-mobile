@@ -134,19 +134,7 @@ const PermissionsSummary = ({
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
 
-    if (!isAlreadyConnected && isPerDappSelectedNetworkEnabled()) {
-      return (
-        <WebsiteIcon
-          style={styles.domainLogoContainer}
-          viewStyle={styles.assetLogoContainer}
-          title={iconTitle}
-          url={currentEnsName || url}
-          icon={typeof icon === 'string' ? icon : icon?.uri}
-        />
-      );
-    }
-
-    return isPerDappSelectedNetworkEnabled() ? (
+    return isPerDappSelectedNetworkEnabled() && isAlreadyConnected ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
         <TouchableOpacity
           onPress={switchNetwork}
