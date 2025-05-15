@@ -31,6 +31,7 @@ import TextComponent, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 // internal dependencies
 import { NetworkAvatarProps } from '../AccountConnect.types';
@@ -157,6 +158,7 @@ const AccountsConnectedItemList = ({
       <TouchableOpacity
         style={styles.editAccountsContainer}
         onPress={handleEditAccountsButtonPress}
+        testID={ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET}
       >
         <TextComponent
           style={styles.editAccount}

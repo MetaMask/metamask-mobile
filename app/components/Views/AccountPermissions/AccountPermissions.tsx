@@ -27,6 +27,7 @@ import {
 import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import Logger from '../../../util/Logger';
+import { useStyles } from '../../../component-library/hooks';
 import {
   ToastContext,
   ToastVariants,
@@ -81,9 +82,11 @@ import Routes from '../../../constants/navigation/Routes';
 import { parseChainId } from '@walletconnect/utils';
 import { RpcEndpoint } from '@metamask/network-controller/dist/NetworkController.cjs';
 import { NetworkAvatarProps } from '../AccountConnect/AccountConnect.types';
+import styleSheet from './AccountPermissions.styles';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
+  const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const {
     hostInfo: {
@@ -789,7 +792,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
         const availableCaipChainIds = Object.keys(networkConfigurations);
         const permittedAvailableChainIds = currentlyPermittedChains.filter(
-          caipChainId => availableCaipChainIds.includes(caipChainId)
+          (caipChainId) => availableCaipChainIds.includes(caipChainId),
         );
 
         updatePermittedChains(
@@ -877,7 +880,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   ]);
 
   return isRenderedAsBottomSheet ? (
-    <BottomSheet ref={sheetRef} isInteractable={!isNonDappNetworkSwitch}>
+    <BottomSheet
+      style={
+        permissionsScreen === AccountPermissionsScreens.PermissionsSummary &&
+        styles.bottomSheetBackground
+      }
+      ref={sheetRef}
+      isInteractable={!isNonDappNetworkSwitch}
+    >
       {renderPermissionsScreens()}
     </BottomSheet>
   ) : (

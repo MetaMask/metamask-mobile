@@ -68,6 +68,12 @@ class ConnectedAccountsModal {
     );
   }
 
+  get accountListBottomSheet() {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+    );
+  }
+
   get title() {
     return Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE);
   }
@@ -117,6 +123,10 @@ class ConnectedAccountsModal {
   async tapAccountsSummaryTab() {
     await TestHelpers.delay(1000);
     await Gestures.waitAndTap(this.accountsSummaryTab);
+  }
+
+  async tapAccountListBottomSheet() {
+    await Gestures.waitAndTap(this.accountListBottomSheet);
   }
 
   async tapDisconnectButton() {

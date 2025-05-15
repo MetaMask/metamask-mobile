@@ -15,7 +15,13 @@ import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
-import TestDApp from '../../../../pages/Browser/TestDApp';
+import NetworkListModal from '../../../../pages/Network/NetworkListModal';
+import ToastModal from '../../../../pages/wallet/ToastModal';
+import AccountListBottomSheet from '../../../../pages/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../../../../pages/wallet/AddAccountBottomSheet';
+
+const AccountTwoText = 'Account 2';
+const AccountThreeText = 'Account 3';
 
 describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
@@ -107,7 +113,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await NetworkEducationModal.tapGotItButton();
         await device.enableSynchronization();
         await TestHelpers.delay(3000);
-        // await TestDApp.tapMMLogo();
+
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await PermissionSummaryBottomSheet.swipeToDismissModal();
         await TestHelpers.delay(3000);
@@ -117,6 +123,83 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await Assertions.checkIfVisible(WalletView.container);
         const networkPicker = await WalletView.getNavbarNetworkPicker();
         await Assertions.checkIfElementHasLabel(networkPicker, 'Sepolia');
+      },
+    );
+  });
+
+  it('should add permissions for multiple accounts and networks and then revoke all permissions', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
+        restartDevice: true,
+      },
+      async () => {
+        //should navigate to browser
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Assertions.checkIfVisible(Browser.browserScreenID);
+
+        await Browser.navigateToTestDApp();
+        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Assertions.checkIfVisible(ConnectedAccountsModal.title);
+        await TestHelpers.delay(2000);
+
+        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
+        await ConnectedAccountsModal.tapConnectMoreAccountsButton();
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapCreateAccount();
+        await Assertions.checkIfTextIsDisplayed(AccountTwoText);
+
+        await AccountListBottomSheet.tapAccountIndex(0);
+        await AccountListBottomSheet.tapConnectAccountsButton();
+
+        // should add accounts from an alternative path by clicking "Edit Accounts" in the bottom sheet
+        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapAccountListBottomSheet();
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapCreateAccount();
+        await Assertions.checkIfTextIsDisplayed(AccountThreeText);
+        await AccountListBottomSheet.tapAccountIndex(2);
+        await AccountListBottomSheet.tapConnectAccountsButton();
+
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
+        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+
+        // append Sepolia and Linea Sepolia to the list of networks
+        await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
+        await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
+
+        // Update permissions
+        await NetworkConnectMultiSelector.tapUpdateButton();
+
+        // Verify changes were saved by checking chain permissions again
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
+        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
+          NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
+        );
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
+          NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
+        );
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
+          NetworkNonPemittedBottomSheetSelectorsText.SEPOLIA_NETWORK_NAME,
+        );
+
+        // Navigate back because no changes were made
+        await NetworkConnectMultiSelector.tapBackButton();
+
+        await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
+        await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
+
+        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+        await NetworkListModal.swipeToDismissModal();
+        await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);
       },
     );
   });
