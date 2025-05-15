@@ -18,6 +18,7 @@ import GeneralAlertBanner from '../general-alert-banner';
 import Info from '../info-root';
 import Title from '../title';
 import { Footer } from '../footer';
+import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
 
 const ConfirmWrapped = ({
@@ -44,6 +45,7 @@ const ConfirmWrapped = ({
               </TouchableWithoutFeedback>
             </ScrollView>
             <Footer />
+            <Splash />
           </LedgerContextProvider>
         </QRHardwareContextProvider>
       </AlertsContextProvider>
@@ -77,7 +79,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
   return (
     <BottomSheet
-      onClose={onReject}
+      onClose={() => onReject()}
       shouldNavigateBack={false}
       style={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
