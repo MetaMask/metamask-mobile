@@ -161,6 +161,14 @@ const CaipAccountSelectorList = ({
                       return nextAddress as Hex;
                     },
                   );
+
+                  const nextAddressesSorted =
+                    sortAccountsByLastSelected(nextAddresses);
+                  const selectedAccountAddress = accounts.find(
+                    (acc) => acc.isSelected,
+                  )?.address;
+                  nextActiveAddress =
+                    nextAddressesSorted[0] || selectedAccountAddress || '';
                 }
 
                 // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
