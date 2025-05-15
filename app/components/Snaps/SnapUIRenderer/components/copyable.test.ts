@@ -1,4 +1,5 @@
-import { UIComponentParams } from './types';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { copyable } from './copyable';
 
 describe('copyable factory', () => {
@@ -19,7 +20,7 @@ describe('copyable factory', () => {
 
   it('should transform a CopyableElement to SnapUICopyable configuration', () => {
     // Create a mock element that matches what copyable expects
-    const element = {
+    const e = {
       type: 'Copyable',
       props: {
         value: 'Text to copy',
@@ -31,7 +32,7 @@ describe('copyable factory', () => {
     // Pass all required parameters to the factory function
     const result = copyable({
       ...baseParams,
-      element,
+      e,
     } as any);
 
     expect(result).toEqual({
@@ -44,7 +45,7 @@ describe('copyable factory', () => {
   });
 
   it('should handle sensitive flag', () => {
-    const element = {
+    const e = {
       type: 'Copyable',
       props: {
         value: 'Sensitive data',
@@ -55,7 +56,7 @@ describe('copyable factory', () => {
 
     const result = copyable({
       ...baseParams,
-      element,
+      e,
     } as any);
 
     expect(result).toEqual({
@@ -68,7 +69,7 @@ describe('copyable factory', () => {
   });
 
   it('should handle missing sensitive flag (defaults to undefined)', () => {
-    const element = {
+    const e = {
       type: 'Copyable',
       props: {
         value: 'Text to copy',
@@ -78,7 +79,7 @@ describe('copyable factory', () => {
 
     const result = copyable({
       ...baseParams,
-      element,
+      e,
     } as any);
 
     expect(result).toEqual({

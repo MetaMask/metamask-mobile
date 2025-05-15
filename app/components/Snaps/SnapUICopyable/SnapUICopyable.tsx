@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Text, TouchableOpacity } from 'react-native';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import Icon from '../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { strings } from '../../../../locales/i18n';
 

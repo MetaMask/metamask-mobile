@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -34,7 +35,7 @@ describe('SnapUICopyable', () => {
 
   it('renders sensitive content hidden by default', () => {
     const { getByText, getByTestId, queryByText } = renderWithProvider(
-      <SnapUICopyable text="Secret data" sensitive={true} />,
+      <SnapUICopyable text="Secret data" sensitive />,
     );
 
     // Check that reveal message is shown
@@ -49,7 +50,7 @@ describe('SnapUICopyable', () => {
 
   it('reveals sensitive content when clicked', () => {
     const { getByText, getByTestId, queryByText } = renderWithProvider(
-      <SnapUICopyable text="Secret data" sensitive={true} />,
+      <SnapUICopyable text="Secret data" sensitive />,
     );
 
     // Initially hidden
@@ -68,7 +69,7 @@ describe('SnapUICopyable', () => {
 
   it('toggles visibility of sensitive content', () => {
     const { getByTestId, queryByText } = renderWithProvider(
-      <SnapUICopyable text="Secret data" sensitive={true} />,
+      <SnapUICopyable text="Secret data" sensitive />,
     );
 
     // Initially hidden
@@ -102,7 +103,7 @@ describe('SnapUICopyable', () => {
 
   it('calls ClipboardManager.setString when revealed sensitive text is clicked', async () => {
     const { getByTestId, getByText } = renderWithProvider(
-      <SnapUICopyable text="Secret to copy" sensitive={true} />,
+      <SnapUICopyable text="Secret to copy" sensitive />,
     );
 
     // Click to reveal
