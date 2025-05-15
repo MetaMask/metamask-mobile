@@ -4770,10 +4770,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
   integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
-"@metamask/bridge-controller@^21.0.0":
-  version "21.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-21.0.0.tgz#165fd4e83ae534fb258452842a54a145062854ea"
-  integrity sha512-jNmmYFFpes8GVJtIkCxBoZlNEYMn0442GZLx4vqGxbHxkggLKhjR2XAkRBuqj9UPO2rGXYTJOIRmqsLd1k9p5Q==
+"@metamask/bridge-controller@^23.0.0":
+  version "23.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-23.0.0.tgz#22d98ae77a4968efeb963905c037d0ce8c49ea08"
+  integrity sha512-GX2o/bKHaIc+skvh29YLOXTBHwhe5qpLph/1zbXgHLh86jVsTGSaHOoCiyNBchwvHXJ31n9EAQFPHMgj2bcqwQ==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -4781,7 +4781,7 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.7.0"
+    "@metamask/controller-utils" "^11.8.0"
     "@metamask/gas-fee-controller" "^23.0.0"
     "@metamask/keyring-api" "^17.4.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
@@ -4791,13 +4791,13 @@
     bignumber.js "^9.1.2"
     reselect "^5.1.1"
 
-"@metamask/bridge-status-controller@^18.0.0":
-  version "18.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-18.0.0.tgz#db6482d885d86987ca8a2f2c2b43ad4b90eb2116"
-  integrity sha512-hIcShTasHgJaGGCELQ3cR+KYxk+yUXV9m8hHld4hdzjKTfCzewKXL642JPMZ+b1bsgRZKiq3lxQ4BEN0JUInAQ==
+"@metamask/bridge-status-controller@^20.0.0":
+  version "20.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-20.0.0.tgz#d6c4b1041cebeb328190924359d1f5a13b8b0fbd"
+  integrity sha512-GJaHJsynTe7nwI2Kv3cVSSWzvPGp5izp0GMVpzLkfiZOfDe15x3D+Ps54EYcRWq/h3LJ2RgbWHedy0aG/tJaEA==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.7.0"
+    "@metamask/controller-utils" "^11.8.0"
     "@metamask/keyring-api" "^17.4.0"
     "@metamask/polling-controller" "^13.0.0"
     "@metamask/superstruct" "^3.1.0"
