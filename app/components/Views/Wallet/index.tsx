@@ -125,6 +125,7 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -787,6 +788,10 @@ const Wallet = ({
     [styles],
   );
 
+  const isSeedlessOnboardingFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
+
   /**
    * Return current step of onboarding wizard if not step 5 nor 0
    */
@@ -806,7 +811,7 @@ const Wallet = ({
       <View style={baseStyles.flexGrow}>
         {selectedInternalAccount ? renderContent() : renderLoader()}
 
-        {renderOnboardingWizard()}
+        {!isSeedlessOnboardingFlow && renderOnboardingWizard()}
       </View>
     </ErrorBoundary>
   );

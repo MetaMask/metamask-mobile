@@ -9,6 +9,7 @@ import {
   InteractionManager,
   Animated,
   Easing,
+  Platform,
 } from 'react-native';
 import Text, {
   TextVariant,
