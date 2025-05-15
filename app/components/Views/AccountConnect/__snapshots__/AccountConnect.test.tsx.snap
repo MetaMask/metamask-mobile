@@ -559,6 +559,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                       "marginTop": 8,
                     }
                   }
+                  testID="account-list-bottom-sheet"
                 >
                   <Text
                     accessibilityRole="text"
@@ -1827,6 +1828,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       "marginTop": 8,
                     }
                   }
+                  testID="account-list-bottom-sheet"
                 >
                   <Text
                     accessibilityRole="text"
@@ -3095,6 +3097,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       "marginTop": 8,
                     }
                   }
+                  testID="account-list-bottom-sheet"
                 >
                   <Text
                     accessibilityRole="text"
