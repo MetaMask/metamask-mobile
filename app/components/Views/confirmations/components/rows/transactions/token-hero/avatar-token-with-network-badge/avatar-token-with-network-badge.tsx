@@ -18,7 +18,7 @@ import {
 import NetworkAssetLogo from '../../../../../../../UI/NetworkAssetLogo';
 import { TokenI } from '../../../../../../../UI/Tokens/types';
 import useNetworkInfo from '../../../../../hooks/useNetworkInfo';
-import { useTokenAssetByType } from '../../../../../hooks/useTokenAssetByType';
+import { useTokenAsset } from '../../../../../hooks/useTokenAsset';
 import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
 import { styleSheet } from './avatar-token-with-network-badge.styles';
 
@@ -59,7 +59,7 @@ export const AvatarTokenWithNetworkBadge = ({
 }) => {
   const { chainId } =
     useTransactionMetadataRequest() ?? ({} as TransactionMeta);
-  const { asset } = useTokenAssetByType();
+  const { asset } = useTokenAsset();
 
   const { networkName, networkImage } = useNetworkInfo(chainId);
   const { ticker } = asset;

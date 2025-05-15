@@ -12,7 +12,7 @@ import { useTransactionMetadataRequest } from './transactions/useTransactionMeta
 
 const selectEvmAsset = makeSelectAssetByAddressAndChainId();
 
-export const useTokenAssetByType = () => {
+export const useTokenAsset = () => {
   const { chainId, type: transactionType, txParams } = useTransactionMetadataRequest() ?? {};
 
   const tokenAddress = safeToChecksumAddress(txParams?.to)?.toLowerCase() || NATIVE_TOKEN_ADDRESS;
