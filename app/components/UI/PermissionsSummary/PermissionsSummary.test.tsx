@@ -71,6 +71,11 @@ describe('PermissionsSummary', () => {
           }
         ]}
         accountAddresses={['eip155:0:0x2']}
+        networkAvatars={[
+          {
+          name: 'Ethereum Mainnet',
+          imageSource: ''
+        }]}
       />,
       { state: mockInitialState },
     );

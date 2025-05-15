@@ -734,7 +734,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         const availableCaipChainIds = Object.keys(networkConfigurations);
         const permittedAvailableChainIds = currentlyPermittedChains.filter(
           caipChainId => availableCaipChainIds.includes(caipChainId)
-        )
+        );
 
         updatePermittedChains(
           hostname,
