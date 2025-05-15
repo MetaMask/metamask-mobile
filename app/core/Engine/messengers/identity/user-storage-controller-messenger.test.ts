@@ -28,6 +28,7 @@ describe('getUserStorageControllerMessenger', () => {
         'AuthenticationController:performSignIn',
         'AccountsController:listAccounts',
         'AccountsController:updateAccountMetadata',
+        'AccountsController:updateAccounts',
         'NetworkController:getState',
         'NetworkController:addNetwork',
         'NetworkController:removeNetwork',
