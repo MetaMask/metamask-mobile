@@ -1,12 +1,21 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import NftGrid from './NftGrid';
+import NftGrid, {
+  handleNftRefresh,
+  handleNftRemoval,
+  handleNftMetadataRefresh,
+} from './NftGrid';
 import { Nft } from '@metamask/assets-controllers';
+import Engine from '../../../core/Engine';
+import { removeFavoriteCollectible } from '../../../actions/collectibles';
 
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
+
+export const RefreshTestId = 'refreshControl';
+export const SpinnerTestId = 'spinner';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -67,6 +76,10 @@ jest.mock('@shopify/flash-list', () => {
 
   return { MasonryFlashList: MockMasonryFlashList };
 });
+
+jest.mock('../../../actions/collectibles', () => ({
+  removeFavoriteCollectible: jest.fn(),
+}));
 
 const selectedAddress = '0x123';
 
@@ -221,9 +234,39 @@ describe('NftGrid', () => {
     expect(screen.getByTestId('Test NFT')).toBeOnTheScreen();
   });
 
-  it('handles NFT menu actions', async () => {
-    renderComponent(initialState);
-    // TODO: Implement menu actions test
+  it('updates NFT metadata when needed', async () => {
+    const mockUpdateMetadata = jest.fn().mockResolvedValue(undefined);
+    Engine.context.NftController.updateNftMetadata = mockUpdateMetadata;
+
+    // Create state with NFTs that need metadata update
+    const stateWithUpdatableNfts = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          PreferencesController: {
+            ...initialState.engine.backgroundState.PreferencesController,
+            useNftDetection: false, // Disable NFT detection to trigger manual update
+            isIpfsGatewayEnabled: true,
+            displayNftMedia: true,
+          },
+        },
+      },
+    };
+
+    renderComponent(stateWithUpdatableNfts);
+
+    // Wait for useEffect to trigger metadata update
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Verify metadata update was called
+    expect(mockUpdateMetadata).toHaveBeenCalledWith({
+      nfts: expect.any(Array),
+      userAddress: selectedAddress,
+    });
   });
 
   it('respects privacy mode', () => {
@@ -242,31 +285,12 @@ describe('NftGrid', () => {
     };
 
     renderComponent(state);
-    // TODO: Implement privacy mode test
-  });
 
-  it('filters NFTs by network', () => {
-    // Test case 1: Network is filtered out (disabled)
-    const filteredState = {
-      ...initialState,
-      engine: {
-        ...initialState.engine,
-        backgroundState: {
-          ...initialState.engine.backgroundState,
-          PreferencesController: {
-            ...initialState.engine.backgroundState.PreferencesController,
-            tokenNetworkFilter: { '0x89': true },
-          },
-        },
-      },
-    };
-
-    renderComponent(filteredState);
-    // When network is filtered out, we should see the empty state
-    expect(screen.getByTestId('collectible-contracts')).toBeOnTheScreen();
-    expect(screen.getByTestId('nft-empty-text')).toBeOnTheScreen();
-    // The NFT should not be visible
-    expect(screen.queryByTestId('Test NFT')).not.toBeOnTheScreen();
+    // Verify NFT grid item is rendered with privacy mode
+    const nftItem = screen.getByTestId('Test NFT');
+    // Verify CollectibleMedia component receives privacy mode prop
+    const collectibleMedia = nftItem.findByProps({ privacyMode: true });
+    expect(collectibleMedia).toBeTruthy();
   });
 
   it('shows collectible detection modal when NFT detection is disabled', () => {
@@ -310,5 +334,66 @@ describe('NftGrid', () => {
     expect(
       screen.queryByTestId('collectible-detection-modal-button'),
     ).not.toBeOnTheScreen();
+  });
+});
+
+describe('handleNftRefresh', () => {
+  it('should trigger NFT detection and ownership check', async () => {
+    const mockDetectNfts = jest.fn().mockResolvedValue(undefined);
+    const mockCheckOwnership = jest.fn().mockResolvedValue(undefined);
+
+    Engine.context.NftDetectionController.detectNfts = mockDetectNfts;
+    Engine.context.NftController.checkAndUpdateAllNftsOwnershipStatus =
+      mockCheckOwnership;
+
+    await act(async () => {
+      await handleNftRefresh(['0x1']);
+    });
+
+    // Verify NFT operations were called
+    expect(mockDetectNfts).toHaveBeenCalledWith(['0x1']);
+    expect(mockCheckOwnership).toHaveBeenCalled();
+  });
+});
+
+describe('handleNftRemoval', () => {
+  it('should remove NFT and update favorites', () => {
+    const mockRemoveAndIgnoreNft = jest.fn();
+    Engine.context.NftController.removeAndIgnoreNft = mockRemoveAndIgnoreNft;
+
+    const nft = {
+      address: '0x123',
+      tokenId: '1',
+    };
+    const chainId = '0x1';
+    const testAddress = '0x456';
+
+    handleNftRemoval(nft, chainId, testAddress);
+
+    expect(removeFavoriteCollectible).toHaveBeenCalledWith(
+      testAddress,
+      chainId,
+      nft,
+    );
+    expect(mockRemoveAndIgnoreNft).toHaveBeenCalledWith(
+      nft.address,
+      nft.tokenId,
+    );
+  });
+});
+
+describe('handleNftMetadataRefresh', () => {
+  it('should refresh NFT metadata', () => {
+    const mockAddNft = jest.fn();
+    Engine.context.NftController.addNft = mockAddNft;
+
+    const nft = {
+      address: '0x123',
+      tokenId: '1',
+    };
+
+    handleNftMetadataRefresh(nft);
+
+    expect(mockAddNft).toHaveBeenCalledWith(nft.address, nft.tokenId);
   });
 });

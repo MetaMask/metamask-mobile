@@ -40,6 +40,7 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { TokenListControlBar } from '../Tokens/TokenListControlBar';
 import { toHex } from '@metamask/controller-utils';
 import { MasonryFlashList } from '@shopify/flash-list';
+
 export const RefreshTestId = 'refreshControl';
 export const SpinnerTestId = 'spinner';
 
@@ -61,6 +62,54 @@ interface NftGridProps {
   chainId: string;
   selectedAddress: string;
 }
+
+/**
+ * Handles the refresh functionality for NFTs
+ * @param chainIdsToDetectNftsFor - Array of chain IDs to detect NFTs for
+ * @returns Promise that resolves when refresh is complete
+ */
+export const handleNftRefresh = async (
+  chainIdsToDetectNftsFor: `0x${string}`[],
+) => {
+  const { NftDetectionController, NftController } = Engine.context;
+
+  const actions = [
+    NftDetectionController.detectNfts(chainIdsToDetectNftsFor),
+    NftController.checkAndUpdateAllNftsOwnershipStatus(),
+  ];
+  await Promise.allSettled(actions);
+};
+
+/**
+ * Handles the removal of an NFT
+ * @param nft - The NFT to remove
+ * @param chainId - The chain ID of the NFT
+ * @param selectedAddress - The user's selected address
+ * @returns void
+ */
+export const handleNftRemoval = (
+  nft: { address: string; tokenId: string },
+  chainId: string,
+  selectedAddress: string,
+) => {
+  const { NftController } = Engine.context;
+
+  removeFavoriteCollectible(selectedAddress, chainId, nft);
+  NftController.removeAndIgnoreNft(nft.address, nft.tokenId);
+};
+
+/**
+ * Handles refreshing the metadata for an NFT
+ * @param nft - The NFT to refresh metadata for
+ * @returns void
+ */
+export const handleNftMetadataRefresh = (nft: {
+  address: string;
+  tokenId: string;
+}) => {
+  const { NftController } = Engine.context;
+  NftController.addNft(nft.address, nft.tokenId);
+};
 
 function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   const navigation =
@@ -111,23 +160,15 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     return collectibles;
   }, [multichainCollectibles, hexChainIds]);
 
-  const onRefresh = useCallback(async () => {
+  const onRefresh = useCallback(() => {
     requestAnimationFrame(async () => {
       setRefreshing(true);
-      const { NftDetectionController, NftController } = Engine.context;
-
-      const actions = [
-        NftDetectionController.detectNfts(chainIdsToDetectNftsFor),
-        NftController.checkAndUpdateAllNftsOwnershipStatus(),
-      ];
-      await Promise.allSettled(actions);
+      await handleNftRefresh(chainIdsToDetectNftsFor);
       setRefreshing(false);
     });
   }, [chainIdsToDetectNftsFor]);
 
   const removeNft = () => {
-    const { NftController } = Engine.context;
-
     if (
       !longPressedCollectible?.current?.address &&
       !longPressedCollectible?.current?.tokenId
@@ -135,15 +176,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
       return null;
     }
 
-    removeFavoriteCollectible(
-      selectedAddress,
-      chainId,
-      longPressedCollectible.current,
-    );
-    NftController.removeAndIgnoreNft(
-      longPressedCollectible.current.address,
-      longPressedCollectible.current.tokenId,
-    );
+    handleNftRemoval(longPressedCollectible.current, chainId, selectedAddress);
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.COLLECTIBLE_REMOVED)
@@ -159,8 +192,6 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   };
 
   const refreshMetadata = () => {
-    const { NftController } = Engine.context;
-
     if (
       !longPressedCollectible?.current?.address &&
       !longPressedCollectible?.current?.tokenId
@@ -168,10 +199,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
       return null;
     }
 
-    NftController.addNft(
-      longPressedCollectible.current.address,
-      longPressedCollectible.current.tokenId,
-    );
+    handleNftMetadataRefresh(longPressedCollectible.current);
   };
 
   const FIRST_MENU_ACTION = 0;
