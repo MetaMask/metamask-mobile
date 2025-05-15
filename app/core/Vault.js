@@ -116,6 +116,7 @@ export const recreateVaultWithNewPassword = async (
     await SeedlessOnboardingController.changePassword(newPassword, password);
   }
   ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+
   if (serializedQrKeyring !== undefined) {
     await restoreQRKeyring(serializedQrKeyring);
   }
