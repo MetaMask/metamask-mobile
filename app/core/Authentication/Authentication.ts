@@ -577,13 +577,6 @@ class AuthenticationService {
       }
     } catch (error) {
       Logger.error(error as Error);
-      if (error instanceof Error) {
-        error.message = error.message.replace(
-          'SeedlessOnboardingController - ',
-          '',
-        );
-        throw error.message;
-      }
       throw error;
     }
   };

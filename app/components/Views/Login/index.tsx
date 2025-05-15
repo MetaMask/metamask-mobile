@@ -96,11 +96,15 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
 
 /**
  * View where returning users can authenticate
  */
 const Login: React.FC = () => {
+  const [disabledInput, setDisabledInput] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
   const fieldRef = useRef<TextInput>(null);
   const parentSpanRef = useRef(
     trace({
@@ -286,6 +290,43 @@ const Login: React.FC = () => {
     OAuthService.resetOauthState();
   };
 
+  const tooManyAttemptsError = (remainingTime: number) => {
+    if (remainingTime > 0) {
+      setError(strings('login.too_many_attempts', { remainingTime }));
+      timeoutRef.current = setTimeout(
+        () => tooManyAttemptsError(remainingTime - 1),
+        1000,
+      );
+      setDisabledInput(true);
+    } else {
+      setError('');
+      setDisabledInput(false);
+    }
+  };
+
+  useEffect(
+    () => () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  const handleSeedlessOnboardingControllerError = (
+    seedlessError: SeedlessOnboardingControllerRecoveryError,
+  ) => {
+    if (seedlessError.data?.remainingTime) {
+      tooManyAttemptsError(seedlessError.data?.remainingTime);
+    } else {
+      const errMessage = seedlessError.message.replace(
+        'SeedlessOnboardingController - ',
+        '',
+      );
+      setError(errMessage);
+    }
+  };
+
   const onLogin = async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
@@ -413,6 +454,13 @@ const Login: React.FC = () => {
       } else if (toLowerCaseEquals(loginError, DENY_PIN_ERROR_ANDROID)) {
         setLoading(false);
         updateBiometryChoice(false);
+      } else if (
+        loginErr instanceof SeedlessOnboardingControllerRecoveryError
+      ) {
+        setLoading(false);
+        handleSeedlessOnboardingControllerError(
+          loginError as SeedlessOnboardingControllerRecoveryError,
+        );
       } else {
         setLoading(false);
         setError(loginErrorMessage);
@@ -572,6 +620,7 @@ const Login: React.FC = () => {
                   />
                 }
                 keyboardAppearance={themeAppearance}
+                isDisabled={disabledInput}
               />
             </View>
 
@@ -618,7 +667,7 @@ const Login: React.FC = () => {
                     strings('login.unlock_button')
                   )
                 }
-                isDisabled={password.length === 0}
+                isDisabled={password.length === 0 || disabledInput}
               />
 
               {!oauthLoginSuccess && (
