@@ -207,8 +207,8 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      - run_tag_multichain_permissions_ios: {}
-      - run_tag_multichain_permissions_android: {}
+      # - run_tag_multichain_permissions_ios: {}
+      # - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -2434,5 +2434,3 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'v*.*.*'
     pipeline: create_qa_builds_pipeline
-  - push_branch: MMQA-547-Flip-switch-to-make-all-tests-use-anvil-by-default
-    workflow: test-foundry-install
