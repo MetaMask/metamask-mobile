@@ -15,7 +15,6 @@ import {
 } from '../../../selectors/networkController';
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
-import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -55,6 +54,7 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -329,7 +329,7 @@ const WalletActions = () => {
             disabled={!canSignTransactions || !swapsIsLive}
           />
         )}
-        {isBridgeAllowed(chainId) && (
+        {AppConstants.BRIDGE.ACTIVE && isBridgeAllowed(chainId) && (
           <WalletAction
             actionType={WalletActionType.Bridge}
             iconName={IconName.Bridge}
