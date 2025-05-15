@@ -26,12 +26,18 @@ interface TokenValuesProps {
   amountWei?: string;
 }
 
+interface TokenValues {
+  amountPreciseDisplay: string;
+  amountDisplay: string;
+  fiatDisplay: string;
+}
+
 const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) => useAsyncResult(
   async () => await fetchErc20Decimals(tokenAddress, networkClientId),
   [tokenAddress, networkClientId],
 );
 
-export const useTokenValuesByType = ({ amountWei }: TokenValuesProps = {}) => {
+export const useTokenValuesByType = ({ amountWei }: TokenValuesProps = {}): TokenValues | Record<string, never> => {
   const fiatFormatter = useFiatFormatter();
   const {
     chainId,
@@ -50,13 +56,17 @@ export const useTokenValuesByType = ({ amountWei }: TokenValuesProps = {}) => {
   );
 
   const tokenAddress = safeToChecksumAddress(txParams?.to) || NATIVE_TOKEN_ADDRESS;
-  const transactionData = parseStandardTokenTransactionData(txParams?.data);
+  const { value: decimals, pending } = useTokenDecimals(tokenAddress, networkClientId);
 
+  if (pending) {
+    return {};
+  }
+
+  const transactionData = parseStandardTokenTransactionData(txParams?.data);
   const value = amountWei ?
     toBigNumber.dec(amountWei) :
     transactionData?.args?._value || txParams?.value || '0';
 
-  const { value: decimals, pending } = useTokenDecimals(tokenAddress, networkClientId);
   const amount = calcTokenAmount(value ?? '0', Number(decimals ?? ERC20_DEFAULT_DECIMALS));
 
   let fiat;
@@ -74,8 +84,7 @@ export const useTokenValuesByType = ({ amountWei }: TokenValuesProps = {}) => {
     }
   }
 
-  return pending ? {
-  } : {
+  return {
     amountPreciseDisplay: formatAmountMaxPrecision(I18n.locale, amount),
     amountDisplay: formatAmount(I18n.locale, amount),
     fiatDisplay: fiatFormatter(fiat),

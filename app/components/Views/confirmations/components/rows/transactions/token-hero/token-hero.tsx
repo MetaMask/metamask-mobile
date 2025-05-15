@@ -11,6 +11,7 @@ import { useConfirmationContext } from '../../../../context/confirmation-context
 import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
 import { useTokenAssetByType } from '../../../../hooks/useTokenAssetByType';
 import { useTokenValuesByType } from '../../../../hooks/useTokenValuesByType';
+import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import AnimatedPulse from '../../../UI/animated-pulse';
 import { TooltipModal } from '../../../UI/Tooltip/Tooltip';
 import { AvatarTokenWithNetworkBadge } from './avatar-token-with-network-badge';
@@ -65,10 +66,15 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
     isFlatConfirmation,
   });
 
-  const { amountPreciseDisplay, amountDisplay, fiatDisplay } =
-    useTokenValuesByType({ amountWei });
-  const { tokenSymbol } = useTokenAssetByType();
+  const tokenValues = useTokenValuesByType({ amountWei });
+  const { tokenSymbol, asset } = useTokenAssetByType();
+  const { chainId } = useTransactionMetadataRequest() ?? {};
 
+  if (!tokenValues || !chainId) {
+    return null;
+  }
+
+  const { amountPreciseDisplay, amountDisplay, fiatDisplay } = tokenValues;
   const isRoundedAmount = amountPreciseDisplay !== amountDisplay;
 
   return (
@@ -78,7 +84,13 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
     >
       <View style={styles.container}>
         <View style={styles.containerAvatarTokenNetworkWithBadge}>
-          <AvatarTokenWithNetworkBadge />
+          <AvatarTokenWithNetworkBadge
+            asset={{
+              ...asset,
+              hasBalanceError: asset.hasBalanceError ?? false
+            }}
+            chainId={chainId}
+          />
         </View>
         <AssetAmount
           amountDisplay={amountDisplay}
@@ -86,7 +98,7 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
           styles={styles}
           setIsModalVisible={isRoundedAmount ? setIsModalVisible : null}
         />
-        <AssetFiatConversion fiatDisplay={fiatDisplay ?? ''} styles={styles} />
+        <AssetFiatConversion fiatDisplay={fiatDisplay} styles={styles} />
         {isRoundedAmount && (
           <TooltipModal
             open={isModalVisible}

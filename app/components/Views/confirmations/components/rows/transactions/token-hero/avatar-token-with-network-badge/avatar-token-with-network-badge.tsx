@@ -2,7 +2,6 @@ import React from 'react';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
-import NetworkAssetLogo from '../../../../../../../UI/NetworkAssetLogo';
 import { AvatarSize } from '../../../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import AvatarToken from '../../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken';
 import Badge, {
@@ -13,14 +12,16 @@ import BadgeWrapper, {
 } from '../../../../../../../../component-library/components/Badges/BadgeWrapper';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import { CHAINLIST_CURRENCY_SYMBOLS_MAP, NETWORKS_CHAIN_ID } from '../../../../../../../../constants/network';
+import NetworkAssetLogo from '../../../../../../../UI/NetworkAssetLogo';
+import { TokenI } from '../../../../../../../UI/Tokens/types';
 import useNetworkInfo from '../../../../../hooks/useNetworkInfo';
 import { useTokenAssetByType } from '../../../../../hooks/useTokenAssetByType';
 import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
 import { styleSheet } from './avatar-token-with-network-badge.styles';
 
-const AvatarTokenNetwork = ({ chainId }: { chainId: Hex }) => {
+const AvatarTokenNetwork = ({ asset, chainId }: { asset: TokenI, chainId: Hex }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { asset: { image, isNative, name, ticker } } = useTokenAssetByType();
+  const { image, isNative, name, ticker } = asset;
 
   return isNative ? (
     <NetworkAssetLogo
@@ -41,12 +42,11 @@ const AvatarTokenNetwork = ({ chainId }: { chainId: Hex }) => {
   );
 };
 
-export const AvatarTokenWithNetworkBadge = () => {
-  const { chainId } = useTransactionMetadataRequest() ?? ({} as TransactionMeta);
+const AvatarTokenWithNetworkBadge = ({ asset, chainId }: { asset: TokenI, chainId: Hex }) => {
   const { networkName, networkImage } = useNetworkInfo(chainId);
-  const { asset: { ticker } } = useTokenAssetByType();
+  const { ticker } = asset;
 
-  const isEthOnMainnet = chainId === NETWORKS_CHAIN_ID.MAINNET 
+  const isEthOnMainnet = chainId === NETWORKS_CHAIN_ID.MAINNET
     && ticker === CHAINLIST_CURRENCY_SYMBOLS_MAP.MAINNET;
   const showBadge = networkImage && !isEthOnMainnet;
 
@@ -61,7 +61,16 @@ export const AvatarTokenWithNetworkBadge = () => {
         />
       ) : null}
     >
-      <AvatarTokenNetwork chainId={chainId} />
+      <AvatarTokenNetwork asset={asset} chainId={chainId} />
     </BadgeWrapper>
+  );
+};
+
+export const TransactionAvatarTokenWithNetworkBadge = () => {
+  const { chainId } = useTransactionMetadataRequest() ?? ({} as TransactionMeta);
+  const { asset } = useTokenAssetByType();
+
+  return (
+    <AvatarTokenWithNetworkBadge asset={asset} chainId={chainId} />
   );
 };
