@@ -30,10 +30,7 @@ import { hasMultipleHDKeyrings } from '../../../../../../selectors/keyringContro
 
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-import {
-  selectSeedlessOnboardingUserId,
-  selectSeedlessOnboardingAuthConnection,
-} from '../../../../../../selectors/seedlessOnboardingController';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 interface IProtectYourWalletProps {
@@ -55,9 +52,6 @@ const ProtectYourWallet = ({
   const shouldShowSRPList = useSelector(hasMultipleHDKeyrings);
   ///: END:ONLY_INCLUDE_IF
 
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-  const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   const openSRPQuiz = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.SRP_REVEAL_QUIZ,
@@ -96,12 +90,11 @@ const ProtectYourWallet = ({
 
   let oauthFlow = false;
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-  oauthFlow = !!authConnection;
+  oauthFlow = !!useSelector(selectSeedlessOnboardingLoginFlow);
   const onProtectYourWalletPressed = () => {
     navigation.navigate('WalletRecovery');
   };
-
-  ///: END:ONLY_INCLUDE_IF(multi-srp)
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
   return (
     <View style={[styles.setting, styles.firstSetting]}>
