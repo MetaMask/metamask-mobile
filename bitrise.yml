@@ -1313,12 +1313,7 @@ workflows:
                 #!/usr/bin/env bash
 
                 node -v
-                echo "here is foundry bin"
-                ls ~/.foundry/bin
-                export PATH="$FOUNDRY_BIN_PATH:$PATH"
-                echo "here is path"
-                echo $PATH
-                ls -l $FOUNDRY_BIN_PATH
+                curl -L https://foundry.paradigm.xyz | bash
                 which anvil
                 anvil --version
                 export METAMASK_ENVIRONMENT='local'
