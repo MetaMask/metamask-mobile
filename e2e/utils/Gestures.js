@@ -124,8 +124,7 @@ class Gestures {
     const element = await elementID;
     await this.clearField(elementID);
 
-    await element.typeText(text);
-    await element.tapReturnKey();
+    await element.typeText(text + '\n');
   }
 
   /**
