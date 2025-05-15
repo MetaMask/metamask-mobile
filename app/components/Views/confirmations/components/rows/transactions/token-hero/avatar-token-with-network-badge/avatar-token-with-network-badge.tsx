@@ -39,7 +39,7 @@ const AvatarTokenOrNetworkAssetLogo = ({
       big
       biggest={false}
       style={styles.avatarToken}
-      testID={name ?? ''}
+      testID={`avatar-with-badge-network-asset-logo-${ticker}`}
     />
   ) : (
     <AvatarToken
@@ -47,6 +47,7 @@ const AvatarTokenOrNetworkAssetLogo = ({
       name={name ?? ''}
       size={AvatarSize.Xl}
       style={styles.avatarToken}
+      testID={`avatar-with-badge-avatar-token-${ticker}`}
     />
   );
 };

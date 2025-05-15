@@ -17,7 +17,7 @@ jest.mock('../../../../../../../core/Engine', () => ({
 }));
 
 describe('TokenHero', () => {
-  it('displays token and fiat values for a simple send transfer', async () => {
+  it('displays avatar, amount, and fiat values for a simple send transfer', async () => {
     const state: DeepPartial<RootState> = merge(
       {},
       transferConfirmationState,
@@ -33,7 +33,10 @@ describe('TokenHero', () => {
         },
       },
     );
-    const { getByText } = renderWithProvider(<TokenHero />, { state });
+    const { getByText, queryByTestId } = renderWithProvider(<TokenHero />, { state });
+
+    getByText('0.0556 ETH something');
+    expect(queryByTestId('avatar-with-badge-network-asset-logo-ETH')).toBeTruthy();
 
     await waitFor(async () => {
       expect(getByText('0.0556 ETH')).toBeDefined();
@@ -49,10 +52,12 @@ describe('TokenHero', () => {
     });
   });
 
-  it('displays token and fiat values for staking deposit', async () => {
-    const { getByText } = renderWithProvider(<TokenHero />, {
+  it('displays avatar, amount, and fiat values for staking deposit', async () => {
+    const { getByText, queryByTestId } = renderWithProvider(<TokenHero />, {
       state: stakingDepositConfirmationState,
     });
+
+    expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();
 
     await waitFor(async () => {
       expect(getByText('0.0001 ETH')).toBeDefined();
@@ -60,7 +65,7 @@ describe('TokenHero', () => {
     });
   });
 
-  it('displays rounded token and fiat values for staking deposit', async () => {
+  it('displays avatar, rounded amount, amount, and fiat values for staking deposit', async () => {
     const state: DeepPartial<RootState> = merge(
       {},
       stakingDepositConfirmationState,
@@ -77,10 +82,12 @@ describe('TokenHero', () => {
       },
     );
 
-    const { getByText } = renderWithProvider(
+    const { getByText, queryByTestId } = renderWithProvider(
       <TokenHero />,
       { state },
     );
+
+    expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();
 
     await waitFor(() => {
       expect(getByText('0.0123 ETH')).toBeDefined();
