@@ -1,6 +1,8 @@
 import React from 'react';
-import { waitFor } from '@testing-library/react-native';
+import { waitFor, screen, fireEvent } from '@testing-library/react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { act } from 'react-test-renderer';
+import Routes from '../../../constants/navigation/Routes';
 
 import CollectibleMedia from './CollectibleMedia';
 
@@ -9,6 +11,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
 // eslint-disable-next-line import/no-namespace
 import * as AssetControllers from '@metamask/assets-controllers';
+import { strings } from '../../../../locales/i18n';
 
 const mockInitialState = {
   engine: {
@@ -128,5 +131,53 @@ describe('CollectibleMedia', () => {
       const mocksImageParam = mockGetFormattedIpfsUrl.mock.lastCall?.[1];
       expect(mocksImageParam).toBe(images[0]);
     });
+  });
+
+  it('should render fallback image when image source is not available', () => {
+    const { getByTestId } = renderWithProvider(
+      <CollectibleMedia
+        collectible={{
+          name: 'NAME',
+          image: '',
+          imagePreview: '',
+          tokenId: '123',
+          address: '0x123',
+          backgroundColor: 'red',
+          tokenURI: '',
+          description: '123',
+          standard: 'ERC721',
+          chainId: 1,
+          error: undefined,
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(getByTestId('fallback-nft-with-token-id')).toBeTruthy();
+    expect(screen.getByText('#123')).toBeTruthy();
+  });
+
+  it('should format long token IDs correctly', () => {
+    const { getByTestId } = renderWithProvider(
+      <CollectibleMedia
+        collectible={{
+          name: 'NAME',
+          image: '',
+          imagePreview: '',
+          tokenId: '12345678901234567890',
+          address: '0x123',
+          backgroundColor: 'red',
+          tokenURI: '',
+          description: '123',
+          standard: 'ERC721',
+          chainId: 1,
+          error: undefined,
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(getByTestId('fallback-nft-with-token-id')).toBeTruthy();
+    expect(screen.getByText('#12...7000')).toBeTruthy();
   });
 });

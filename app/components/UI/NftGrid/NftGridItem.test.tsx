@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import NftGridItem from './NftGridItem';
 import { Nft } from '@metamask/assets-controllers';
@@ -87,22 +87,20 @@ describe('NftGridItem', () => {
   });
 
   it('renders correctly with NFT data', () => {
-    const { getByTestId, getByText } = renderComponent();
-    const collectionName = mockNft.collection?.name ?? '';
+    renderComponent();
 
-    expect(getByTestId(mockNft.name)).toBeTruthy();
-    expect(getByText(mockNft.name)).toBeTruthy();
-    if (collectionName) {
-      const collectionElement = getByText(collectionName);
-      expect(collectionElement).toBeTruthy();
-    }
+    // The component uses nft.name as testID
+    expect(screen.getByTestId(mockNft.name as string)).toBeOnTheScreen();
+    expect(screen.getByText(mockNft.name as string)).toBeOnTheScreen();
+    // The component renders collection name directly
+    expect(screen.getByText('Test Collection')).toBeOnTheScreen();
   });
 
   it('handles press event and navigates to NFT details', async () => {
-    const { getByTestId } = renderComponent();
+    renderComponent();
 
     await act(async () => {
-      fireEvent.press(getByTestId(mockNft.name));
+      fireEvent.press(screen.getByTestId(mockNft.name as string));
     });
 
     // Fast-forward debounce timer
@@ -114,9 +112,9 @@ describe('NftGridItem', () => {
   });
 
   it('handles long press event and shows action sheet', () => {
-    const { getByTestId } = renderComponent();
+    renderComponent();
 
-    fireEvent(getByTestId(mockNft.name), 'longPress');
+    fireEvent(screen.getByTestId(mockNft.name as string), 'longPress');
 
     expect(mockShow).toHaveBeenCalled();
     expect(mockLongPressedCollectible.current).toBe(mockNft);
@@ -131,27 +129,24 @@ describe('NftGridItem', () => {
 
   it('handles NFT without collection name', () => {
     const nftWithoutCollection = { ...mockNft, collection: undefined };
-    const { getByTestId, getByText, queryByText } = renderComponent({
+    renderComponent({
       nft: nftWithoutCollection,
     });
-    const collectionName = mockNft.collection?.name ?? '';
 
-    expect(getByTestId(mockNft.name)).toBeTruthy();
-    expect(getByText(mockNft.name)).toBeTruthy();
-    if (collectionName) {
-      const collectionElement = queryByText(collectionName);
-      expect(collectionElement).toBeNull();
-    }
+    expect(screen.getByTestId(mockNft.name as string)).toBeOnTheScreen();
+    expect(screen.getByText(mockNft.name as string)).toBeOnTheScreen();
+    // When collection is undefined, the text should not be present
+    expect(screen.queryByText('Test Collection')).toBeNull();
   });
 
   it('debounces navigation on rapid presses', async () => {
-    const { getByTestId } = renderComponent();
+    renderComponent();
 
     // Simulate rapid presses
     await act(async () => {
-      fireEvent.press(getByTestId(mockNft.name));
-      fireEvent.press(getByTestId(mockNft.name));
-      fireEvent.press(getByTestId(mockNft.name));
+      fireEvent.press(screen.getByTestId(mockNft.name as string));
+      fireEvent.press(screen.getByTestId(mockNft.name as string));
+      fireEvent.press(screen.getByTestId(mockNft.name as string));
     });
 
     // Fast-forward debounce timer
