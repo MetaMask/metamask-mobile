@@ -3992,10 +3992,10 @@
     "asset_selector": {
       "title": "Select an asset"
     },
-      "hideSentitiveInfo": {
+    "hideSentitiveInfo": {
         "message": "Hide sensitive information"
       },
-      "doNotShare": {
+    "doNotShare": {
         "message": "Do not share this with anyone"
     },
     "revealSensitiveContent": {

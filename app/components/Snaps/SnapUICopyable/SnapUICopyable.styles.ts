@@ -10,9 +10,15 @@ import { Theme } from '../../../util/theme/models';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const styleSheet = (params: { theme: Theme; vars: any }) => {
+interface StyleSheetParams {
+  theme: Theme;
+  vars: {
+    sensitive: boolean;
+    isVisible: boolean;
+  };
+}
+
+const styleSheet = (params: StyleSheetParams) => {
   const { theme, vars } = params;
   const { colors } = theme;
   const { sensitive, isVisible } = vars;

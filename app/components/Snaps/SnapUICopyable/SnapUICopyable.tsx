@@ -25,6 +25,10 @@ export const SnapUICopyable: React.FC<SnapUICopyableProps> = ({
     isVisible,
   });
 
+  const SECOND = 1000;
+  const startTimeout = () =>
+    setTimeout(() => setIsClicked(false), 3 * SECOND, false);
+
   const handleVisibilityClick = () => {
     setIsVisible((state) => !state);
   };
@@ -32,6 +36,7 @@ export const SnapUICopyable: React.FC<SnapUICopyableProps> = ({
   const handleCopyPress = async () => {
     await ClipboardManager.setString(text);
     setIsClicked(true);
+    startTimeout();
   };
 
   return (
