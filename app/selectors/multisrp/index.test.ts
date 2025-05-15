@@ -72,11 +72,6 @@ const mockSimpleKeyring2 = {
   },
 };
 
-const mockSnapKeyringMetadata = {
-  id: '01JREC70MCJJNQT13ENMNVYBKK',
-  name: '',
-};
-
 const mockSnapAccount = {
   ...createMockInternalAccount(
     MOCK_ADDRESS_1,
@@ -96,6 +91,10 @@ const mockSnapAccount = {
 const mockSnapKeyring = {
   accounts: [mockSnapAccount.address],
   type: KeyringTypes.snap,
+  metadata: {
+    id: '01JREC70MCJJNQT13ENMNVYBKK',
+    name: '',
+  },
 };
 
 const mockState = (selectedAccount: InternalAccount = mockAccount1) =>

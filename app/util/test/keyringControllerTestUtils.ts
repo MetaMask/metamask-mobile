@@ -1,8 +1,4 @@
-import {
-  KeyringMetadata,
-  KeyringObject,
-  KeyringTypes,
-} from '@metamask/keyring-controller';
+import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
 
 export const mockSimpleKeyringAddress =
   '0xd018538C87232FF95acbCe4870629b75640a78E7';
