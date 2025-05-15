@@ -19,6 +19,28 @@ import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import styleSheet from './gas-fee-details.styles';
 
+const EstimationInfo = ({
+  hideFiatForTestnet,
+  feeCalculations,
+}: {
+  hideFiatForTestnet: boolean;
+  feeCalculations: ReturnType<typeof useFeeCalculations>;
+}) => {
+  const { styles } = useStyles(styleSheet, {});
+  return (
+    <View style={styles.estimationContainer}>
+      {!hideFiatForTestnet && feeCalculations.estimatedFeeFiat && (
+        <Text style={styles.secondaryValue}>
+          {feeCalculations.estimatedFeeFiat}
+        </Text>
+      )}
+      <Text style={styles.primaryValue}>
+        {feeCalculations.estimatedFeeNative}
+      </Text>
+    </View>
+  );
+};
+
 const ClickableEstimationInfo = ({
   hideFiatForTestnet,
   feeCalculations,
@@ -42,28 +64,6 @@ const ClickableEstimationInfo = ({
         feeCalculations={feeCalculations}
       />
     </TouchableOpacity>
-  );
-};
-
-const EstimationInfo = ({
-  hideFiatForTestnet,
-  feeCalculations,
-}: {
-  hideFiatForTestnet: boolean;
-  feeCalculations: ReturnType<typeof useFeeCalculations>;
-}) => {
-  const { styles } = useStyles(styleSheet, {});
-  return (
-    <View style={styles.estimationContainer}>
-      {!hideFiatForTestnet && feeCalculations.estimatedFeeFiat && (
-        <Text style={styles.secondaryValue}>
-          {feeCalculations.estimatedFeeFiat}
-        </Text>
-      )}
-      <Text style={styles.primaryValue}>
-        {feeCalculations.estimatedFeeNative}
-      </Text>
-    </View>
   );
 };
 
