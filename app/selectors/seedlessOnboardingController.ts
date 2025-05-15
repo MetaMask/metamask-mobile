@@ -22,3 +22,9 @@ export const selectSeedlessOnboardingAuthConnection = createSelector(
   (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
     seedlessOnboardingControllerState?.authConnection || '',
 );
+
+export const selectSeedlessOnboardingLoginFlow = createSelector(
+  selectSeedlessOnboardingControllerState,
+  (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
+    !!seedlessOnboardingControllerState?.vault,
+);
