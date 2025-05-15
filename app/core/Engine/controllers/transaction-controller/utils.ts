@@ -97,7 +97,7 @@ interface TransactionMetricsProperties {
 export function generateDefaultTransactionMetrics(
   eventType: string,
   transactionMeta: TransactionMeta,
-  transactionEventHandlerRequest: TransactionEventHandlerRequest,
+  _transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
   // Optional logging to debug the structure
   Logger.log('Event type:', eventType);
@@ -117,13 +117,13 @@ export function generateDefaultTransactionMetrics(
     value?: string | { toString: () => string };
     to?: string;
     from?: string;
-    [key: string]: any; // For any other properties
+    [key: string]: unknown; // For any other properties
   }
 
   // Safely access transaction data with proper typing
   const txData: TransactionData = 'transaction' in transactionMeta
     ? (transactionMeta as unknown as { transaction: TransactionData }).transaction
-    : transactionMeta;
+    : (transactionMeta as unknown as TransactionData);
 
   // Build the base properties object
   const properties: TransactionMetricsProperties = {
