@@ -148,12 +148,12 @@ const CaipAccountSelectorList = ({
                 } else {
 
                   const nextCaipAccountIds = selectedAddresses.filter(selectedAddress => selectedAddress !== caipAccountId);
-                  const nextAddresses = nextCaipAccountIds.map(caipAccountId => {
-                    const { address } = parseAccountId(caipAccountId)
-                    return address as Hex;
-                  })
+                  const nextAddresses = nextCaipAccountIds.map(nextCaipAccountId => {
+                    const { address: nextAddress } = parseAccountId(nextCaipAccountId);
+                    return nextAddress as Hex;
+                  });
 
-                  const nextAddressesSorted = sortAccountsByLastSelected(nextAddresses)
+                  const nextAddressesSorted = sortAccountsByLastSelected(nextAddresses);
                   const selectedAccountAddress = accounts.find((acc) => acc.isSelected)?.address;
                   nextActiveAddress = nextAddressesSorted[0] || selectedAccountAddress || '';
                 }
