@@ -1,23 +1,21 @@
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
+import { selectTransactionState } from '../../../../../../../reducers/transaction';
+import { useConfirmationContext } from '../../../../context/confirmation-context';
 import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
-import { TooltipModal } from '../../../UI/Tooltip/Tooltip';
-import styleSheet from './token-hero.styles';
-import { AvatarTokenWithNetworkBadge } from './avatar-token-with-network-badge';
-import { useTokenValuesByType } from '../../../../hooks/useTokenValuesByType';
 import { useTokenAssetByType } from '../../../../hooks/useTokenAssetByType';
+import { useTokenValuesByType } from '../../../../hooks/useTokenValuesByType';
+import AnimatedPulse from '../../../UI/animated-pulse';
+import { TooltipModal } from '../../../UI/Tooltip/Tooltip';
+import { AvatarTokenWithNetworkBadge } from './avatar-token-with-network-badge';
+import styleSheet from './token-hero.styles';
 
-// todo:
-// - add conditional logic to fiat value. e.g. should hide if testnet
-// - tokenlist sometimes only has 0x0000000000000000000000000000000000000000
-// - style: confirm if we'd like to add the symbol in the modal precise token amount text
-// - style: confirm fallback avatar - non-bold + background color
 const AssetAmount = ({
   amountDisplay,
   tokenSymbol,
@@ -59,7 +57,9 @@ const AssetFiatConversion = ({
 const TokenHero = ({ amountWei }: { amountWei?: string }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  const { isTransactionValueUpdating } = useConfirmationContext();
   const { isFlatConfirmation } = useFlatConfirmation();
+  const { maxValueMode } = useSelector(selectTransactionState);
   const { styles } = useStyles(styleSheet, {
     isFlatConfirmation,
   });
@@ -70,6 +70,10 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
   const isRoundedAmount = amountPreciseDisplay !== amountDisplay;
 
   return (
+    <AnimatedPulse
+      isPulsing={isTransactionValueUpdating}
+      preventPulse={!maxValueMode}
+      >
     <View style={styles.container}>
       <View style={styles.containerAvatarTokenNetworkWithBadge}>
         <AvatarTokenWithNetworkBadge />
@@ -94,6 +98,7 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
         />
       )}
     </View>
+  </AnimatedPulse>
   );
 };
 
