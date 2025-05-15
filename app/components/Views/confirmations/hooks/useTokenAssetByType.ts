@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
+import { strings } from '../../../../../locales/i18n';
 import { TokenI } from '../../../UI/Tokens/types';
 import { RootState } from '../../../../reducers';
 import { makeSelectAssetByAddressAndChainId } from '../../../../selectors/multichain';
@@ -48,6 +49,11 @@ export const useTokenAssetByType = () => {
       asset = evmAsset ?? {} as TokenI;
       break;
     }
+  }
+
+  if (!asset.ticker) {
+    asset.name = strings('tokens.unknown');
+    asset.ticker = strings('tokens.unknown');
   }
 
   return {
