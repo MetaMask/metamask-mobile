@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, Dimensions, TextStyle } from 'react-native';
+import { StyleSheet, Dimensions, TextStyle, Platform } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 import { getFontFamily, TextVariant } from '../../Texts/Text';
 import { typography } from '@metamask/design-tokens';
@@ -87,6 +87,7 @@ const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.alternative,
       ...(typography.sBodySM as TextStyle),
       fontFamily: getFontFamily(TextVariant.BodySM),
+      marginBottom: Platform.OS === 'ios' ? 8 : 16,
     },
   });
 };
