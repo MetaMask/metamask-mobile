@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, act } from '@testing-library/react-native';
+import { screen, act, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import NftGrid, {
@@ -10,9 +10,47 @@ import NftGrid, {
 import { Nft } from '@metamask/assets-controllers';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
+import ActionSheet from '@metamask/react-native-actionsheet';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
+const mockTrackEvent = jest.fn();
+
+// Mock MetaMetrics module
+jest.mock('../../../core/Analytics/MetaMetrics', () => {
+  const events = {
+    COLLECTIBLE_REMOVED: {
+      name: 'Collectible Removed',
+      category: 'Wallet',
+    },
+    COLLECTIBLE_REFRESHED: {
+      name: 'Collectible Refreshed',
+      category: 'Wallet',
+    },
+  };
+
+  const legacyEvents = {};
+
+  return {
+    MetaMetricsEvents: { ...events, ...legacyEvents },
+  };
+});
+
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+  MetaMetricsEvents: {
+    COLLECTIBLE_REMOVED: {
+      name: 'Collectible Removed',
+      category: 'Wallet',
+    },
+    COLLECTIBLE_REFRESHED: {
+      name: 'Collectible Refreshed',
+      category: 'Wallet',
+    },
+  },
+}));
 
 export const RefreshTestId = 'refreshControl';
 export const SpinnerTestId = 'spinner';
@@ -27,16 +65,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn(),
-    })),
-  })),
-}));
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -80,6 +108,23 @@ jest.mock('@shopify/flash-list', () => {
 jest.mock('../../../actions/collectibles', () => ({
   removeFavoriteCollectible: jest.fn(),
 }));
+
+interface MockActionSheet {
+  __onPress?: (index: number) => void;
+}
+
+jest.mock('@metamask/react-native-actionsheet', () => {
+  const MockActionSheet = ({
+    onPress,
+  }: {
+    onPress: (index: number) => void;
+  }) => {
+    // Expose onPress for testing
+    (MockActionSheet as MockActionSheet).__onPress = onPress;
+    return null;
+  };
+  return MockActionSheet;
+});
 
 const selectedAddress = '0x123';
 
@@ -184,7 +229,20 @@ describe('NftGrid', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
     mockPush.mockClear();
-    jest.clearAllMocks();
+    mockTrackEvent.mockClear();
+    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      enable: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+      getDeleteRegulationId: jest.fn(),
+      isDataRecorded: jest.fn(),
+      isEnabled: jest.fn(),
+      getMetaMetricsId: jest.fn(),
+    });
   });
 
   it('renders loading state correctly', () => {
@@ -334,6 +392,117 @@ describe('NftGrid', () => {
     expect(
       screen.queryByTestId('collectible-detection-modal-button'),
     ).not.toBeOnTheScreen();
+  });
+
+  describe('ActionSheet menu actions', () => {
+    beforeEach(() => {
+      mockTrackEvent.mockClear();
+    });
+
+    it('should handle refresh metadata action', () => {
+      const mockAddNft = jest.fn();
+      Engine.context.NftController.addNft = mockAddNft;
+
+      const state = {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            NftController: {
+              ...initialState.engine.backgroundState.NftController,
+              allNfts: {
+                [selectedAddress]: {
+                  '0x1': [
+                    {
+                      ...mockNftData,
+                      address: '0x123',
+                      tokenId: '1',
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderComponent(state);
+
+      // Simulate long press to set the current collectible
+      const nftItem = getByTestId('Test NFT');
+      fireEvent(nftItem, 'onLongPress');
+
+      // Get the ActionSheet instance and trigger the refresh action
+      const mockActionSheet = ActionSheet as unknown as MockActionSheet;
+      act(() => {
+        mockActionSheet.__onPress?.(0); // Refresh metadata action
+      });
+
+      expect(mockAddNft).toHaveBeenCalledWith('0x123', '1');
+    });
+
+    it('should handle remove NFT action', () => {
+      const mockRemoveAndIgnoreNft = jest.fn();
+      Engine.context.NftController.removeAndIgnoreNft = mockRemoveAndIgnoreNft;
+
+      const state = {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            NftController: {
+              ...initialState.engine.backgroundState.NftController,
+              allNfts: {
+                [selectedAddress]: {
+                  '0x1': [
+                    {
+                      ...mockNftData,
+                      address: '0x123',
+                      tokenId: '1',
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderComponent(state);
+
+      // Simulate long press to set the current collectible
+      const nftItem = getByTestId('Test NFT');
+      fireEvent(nftItem, 'onLongPress');
+
+      // Get the ActionSheet instance and trigger the remove action
+      const mockActionSheet = ActionSheet as unknown as MockActionSheet;
+      act(() => {
+        mockActionSheet.__onPress?.(1); // Remove action
+      });
+
+      expect(mockRemoveAndIgnoreNft).toHaveBeenCalledWith('0x123', '1');
+      expect(removeFavoriteCollectible).toHaveBeenCalledWith(
+        selectedAddress,
+        '0x1',
+        expect.objectContaining({
+          address: '0x123',
+          tokenId: '1',
+        }),
+      );
+
+      const expectedEvent = {
+        name: 'Wallet',
+        properties: {
+          chain_id: '1',
+        },
+        saveDataRecording: true,
+        sensitiveProperties: {},
+      };
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
+    });
   });
 });
 
