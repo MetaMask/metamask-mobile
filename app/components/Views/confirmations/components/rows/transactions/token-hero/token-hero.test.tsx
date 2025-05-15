@@ -1,7 +1,7 @@
 import React from 'react';
 
 import renderWithProvider, { DeepPartial } from '../../../../../../../util/test/renderWithProvider';
-import { stakingDepositConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
+import { stakingDepositConfirmationState, transferConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import TokenHero from './token-hero';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { merge } from 'lodash';
@@ -17,6 +17,38 @@ jest.mock('../../../../../../../core/Engine', () => ({
 }));
 
 describe('TokenHero', () => {
+  it('displays token and fiat values for a simple send transfer', async () => {
+    const state: DeepPartial<RootState> = merge(
+      {},
+      transferConfirmationState,
+      {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                { txParams: { value: `0x${decGWEIToHexWEI(55555555)}` } },
+              ],
+            },
+          },
+        },
+      },
+    );
+    const { getByText } = renderWithProvider(<TokenHero />, { state });
+
+    await waitFor(async () => {
+      expect(getByText('0.0556 ETH')).toBeDefined();
+      expect(getByText('$199.79')).toBeDefined();
+    });
+
+    const tokenAmountText = getByText('0.0556 ETH');
+    fireEvent.press(tokenAmountText);
+
+    await waitFor(() => {
+      expect(getByText('Amount')).toBeDefined();
+      expect(getByText('0.055555555')).toBeDefined();
+    });
+  });
+
   it('displays token and fiat values for staking deposit', async () => {
     const { getByText } = renderWithProvider(<TokenHero />, {
       state: stakingDepositConfirmationState,
