@@ -787,7 +787,16 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           return;
         }
 
-        updatePermittedChains(hostname, [currentEvmCaipChainId]);
+        const availableCaipChainIds = Object.keys(networkConfigurations);
+        const permittedAvailableChainIds = currentlyPermittedChains.filter(
+          caipChainId => availableCaipChainIds.includes(caipChainId)
+        );
+
+        updatePermittedChains(
+          hostname,
+          [currentEvmCaipChainId, ...permittedAvailableChainIds],
+          true,
+        );
 
         const networkToastProps: ToastOptions = {
           variant: ToastVariants.Network,
@@ -824,6 +833,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [
+    networkConfigurations,
     faviconSource,
     urlWithProtocol,
     isRenderedAsBottomSheet,
