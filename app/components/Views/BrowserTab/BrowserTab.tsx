@@ -1390,7 +1390,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                       // Needed for Recaptcha
                       'about:srcdoc',
                     ]}
-                    decelerationRate={'normal'}
+                    decelerationRate={0.998}
                     ref={webviewRef}
                     renderError={() => (
                       <WebviewErrorComponent
