@@ -896,7 +896,24 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       },
                                     ]
                                   }
-                                />
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "textAlign": "center",
+                                      }
+                                    }
+                                  >
+                                    Includes 0.875% MM fee
+                                  </Text>
+                                </View>
                               </View>
                             </View>
                             <View
@@ -910,6 +927,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
+                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]
@@ -1843,7 +1861,24 @@ exports[`BridgeView renders 1`] = `
                                       },
                                     ]
                                   }
-                                />
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "textAlign": "center",
+                                      }
+                                    }
+                                  >
+                                    Includes 0.875% MM fee
+                                  </Text>
+                                </View>
                               </View>
                             </View>
                             <View
@@ -1857,6 +1892,7 @@ exports[`BridgeView renders 1`] = `
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
+                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]
