@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   statusContainer: {
@@ -8,7 +8,6 @@ const styles = StyleSheet.create({
     gap: 16,
     padding: 16,
     width: '100%',
-    marginBottom: Platform.OS === 'ios' ? 0 : 10,
   },
   statusButton: {
     flex: 1,
