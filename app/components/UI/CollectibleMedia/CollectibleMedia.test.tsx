@@ -1,5 +1,5 @@
 import React from 'react';
-import { waitFor, screen, fireEvent } from '@testing-library/react-native';
+import { waitFor, screen } from '@testing-library/react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 import CollectibleMedia from './CollectibleMedia';
@@ -178,56 +178,6 @@ describe('CollectibleMedia', () => {
     expect(screen.getByText('#12...7000')).toBeTruthy();
   });
 
-  it.skip('should render privacy mode correctly', () => {
-    const { getByTestId } = renderWithProvider(
-      <CollectibleMedia
-        collectible={{
-          name: 'NAME',
-          image: 'https://example.com/image.jpg',
-          imagePreview: 'https://example.com/preview.jpg',
-          tokenId: '123',
-          address: '0x123',
-          backgroundColor: 'red',
-          tokenURI: 'https://example.com/token',
-          description: '123',
-          standard: 'ERC721',
-          chainId: 1,
-        }}
-        privacyMode
-      />,
-      { state: mockInitialState },
-    );
-
-    const privacyView = getByTestId('privacy-mode-view');
-    expect(privacyView).toBeTruthy();
-  });
-
-  it.skip('should render animation when available', () => {
-    const { getByTestId } = renderWithProvider(
-      <CollectibleMedia
-        collectible={{
-          name: 'NAME',
-          image: 'https://example.com/image.jpg',
-          imagePreview: 'https://example.com/preview.jpg',
-          tokenId: '123',
-          address: '0x123',
-          backgroundColor: 'red',
-          tokenURI: 'https://example.com/token',
-          description: '123',
-          standard: 'ERC721',
-          chainId: 1,
-          animation: 'https://example.com/animation.mp4',
-        }}
-        renderAnimation
-      />,
-      { state: mockInitialState },
-    );
-
-    const mediaPlayer = getByTestId('media-player');
-    expect(mediaPlayer).toBeTruthy();
-    expect(mediaPlayer.props.uri).toBe('https://example.com/animation.mp4');
-  });
-
   it('should handle IPFS URIs correctly', async () => {
     const ipfsUri = 'ipfs://QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7';
     jest
@@ -309,60 +259,5 @@ describe('CollectibleMedia', () => {
       width: 260,
       height: 260,
     });
-  });
-
-  it.skip('should handle cover mode correctly', () => {
-    const onPressCollectible = jest.fn();
-    const { getByTestId } = renderWithProvider(
-      <CollectibleMedia
-        collectible={{
-          name: 'NAME',
-          image: 'https://example.com/image.jpg',
-          imagePreview: 'https://example.com/preview.jpg',
-          tokenId: '123',
-          address: '0x123',
-          backgroundColor: 'red',
-          tokenURI: 'https://example.com/token',
-          description: '123',
-          standard: 'ERC721',
-          chainId: 1,
-        }}
-        cover
-        onPressColectible={onPressCollectible}
-      />,
-      { state: mockInitialState },
-    );
-
-    const image = getByTestId('nft-image');
-    fireEvent.press(image);
-    expect(mockedNavigate).toHaveBeenCalledWith(
-      'Modal',
-      expect.objectContaining({
-        screen: 'ShowNftDisplayMedia',
-      }),
-    );
-  });
-
-  it.skip('should handle error state correctly', () => {
-    const { getByTestId } = renderWithProvider(
-      <CollectibleMedia
-        collectible={{
-          name: 'NAME',
-          image: 'https://example.com/image.jpg',
-          imagePreview: 'https://example.com/preview.jpg',
-          tokenId: '123',
-          address: '0x123',
-          backgroundColor: 'red',
-          tokenURI: 'https://example.com/token',
-          description: '123',
-          standard: 'ERC721',
-          chainId: 1,
-          error: 'Both IPFS gateway and NFT media display are disabled',
-        }}
-      />,
-      { state: mockInitialState },
-    );
-
-    expect(getByTestId('fallback-nft-with-token-id')).toBeTruthy();
   });
 });
