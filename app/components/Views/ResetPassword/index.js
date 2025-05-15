@@ -852,13 +852,7 @@ class ResetPassword extends PureComponent {
                 {!!error && <Text color={TextColor.Error}>{error}</Text>}
               </View>
 
-              {this.state.biometryType && (
-                <SecurityOptionToggle
-                  title={strings('import_from_seed.unlock_with_face_id')}
-                  value={this.state.biometryChoice}
-                  onOptionUpdated={this.updateBiometryChoice}
-                />
-              )}
+              {this.renderSwitch()}
 
               <View style={styles.ctaWrapper}>
                 <Button
