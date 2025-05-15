@@ -6,7 +6,7 @@ import {
 
 /**
  * Tests for permission difference utilities
- * 
+ *
  * These utilities help track changes between different permission states
  * and are critical for detecting when permissions need to be updated.
  */
