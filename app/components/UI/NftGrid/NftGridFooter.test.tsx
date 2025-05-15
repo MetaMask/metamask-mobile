@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, act, fireEvent } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import NftGridFooter from './NftGridFooter';
 import { StackNavigationProp } from '@react-navigation/stack';

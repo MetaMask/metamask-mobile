@@ -1,8 +1,6 @@
 import React from 'react';
-import { waitFor, screen, fireEvent } from '@testing-library/react-native';
+import { waitFor, screen } from '@testing-library/react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { act } from 'react-test-renderer';
-import Routes from '../../../constants/navigation/Routes';
 
 import CollectibleMedia from './CollectibleMedia';
 
@@ -11,7 +9,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
 // eslint-disable-next-line import/no-namespace
 import * as AssetControllers from '@metamask/assets-controllers';
-import { strings } from '../../../../locales/i18n';
 
 const mockInitialState = {
   engine: {
