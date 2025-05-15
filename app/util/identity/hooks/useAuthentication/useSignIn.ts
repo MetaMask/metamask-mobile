@@ -16,21 +16,26 @@ import { performSignIn } from '../../../../actions/identity';
  * - `signIn`: A function to initiate the sign-in process.
  */
 export function useSignIn(): {
-  signIn: () => Promise<void>;
+  signIn: (shouldSignInOverride?: boolean) => Promise<void>;
 } {
   const isSignedIn = useSelector(selectIsSignedIn);
 
-  const shouldSignIn = useMemo(() => !isSignedIn, [isSignedIn]);
+  const areBasePrerequisitesMet = useMemo(() => !isSignedIn, [isSignedIn]);
 
-  const signIn = useCallback(async () => {
-    if (shouldSignIn) {
-      try {
-        await performSignIn();
-      } catch (e) {
-        // If an error occurs during the sign-in process, silently fail
+  const signIn = useCallback(
+    async (shouldSignInOverride?: boolean) => {
+      const shouldSignIn = shouldSignInOverride ?? areBasePrerequisitesMet;
+
+      if (shouldSignIn) {
+        try {
+          await performSignIn();
+        } catch (e) {
+          // If an error occurs during the sign-in process, silently fail
+        }
       }
-    }
-  }, [shouldSignIn]);
+    },
+    [areBasePrerequisitesMet],
+  );
 
   return {
     signIn,

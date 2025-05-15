@@ -20,6 +20,7 @@ export function getUserStorageControllerMessenger(
       // Accounts Controller Requests
       'AccountsController:listAccounts',
       'AccountsController:updateAccountMetadata',
+      'AccountsController:updateAccounts',
       // Network Controller Requests
       'NetworkController:getState',
       'NetworkController:addNetwork',

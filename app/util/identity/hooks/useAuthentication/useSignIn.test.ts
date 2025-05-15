@@ -16,6 +16,9 @@ const arrangeMockState = (
       AuthenticationController: {
         isSignedIn: stateOverrides.isSignedIn,
       },
+      KeyringController: {
+        keyrings: [],
+      },
     },
   },
 });
