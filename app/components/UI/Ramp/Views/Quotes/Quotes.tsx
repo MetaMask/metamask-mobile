@@ -62,6 +62,7 @@ import { isBuyQuote } from '../../utils';
 import { getOrdersProviders } from './../../../../../reducers/fiatOrders';
 import { QuoteSelectors } from '../../../../../../e2e/selectors/Ramps/Quotes.selectors';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 export interface QuotesParams {
   amount: number | string;
@@ -162,7 +163,7 @@ function Quotes() {
   }, [quotesByPriceWithoutError.length, isBuy, selectedChainId, trackEvent]);
 
   const handleClosePress = useCallback(
-    (bottomSheetDialogRef) => {
+    (bottomSheetDialogRef: React.RefObject<BottomSheetRef>) => {
       handleCancelPress();
       if (bottomSheetDialogRef?.current) {
         bottomSheetDialogRef.current.onCloseBottomSheet();
@@ -271,7 +272,7 @@ function Quotes() {
   );
 
   const handleInfoPress = useCallback(
-    (quote) => {
+    (quote: { provider: Provider }) => {
       if (quote?.provider) {
         setSelectedProviderInfo(quote.provider);
         setShowProviderInfo(true);
@@ -387,7 +388,7 @@ function Quotes() {
   );
 
   const handleOnPressCTA = useCallback(
-    async (quote: QuoteResponse | SellQuoteResponse, index) => {
+    async (quote: QuoteResponse | SellQuoteResponse, index: number) => {
       try {
         setIsQuoteLoading(true);
 
@@ -659,6 +660,8 @@ function Quotes() {
             provider_offramp_best_price: providerBestPrice,
           });
         }
+
+        endTrace({ name: TraceName.RampQuoteLoading });
       }
 
       quotesWithError.forEach((quoteError) => {

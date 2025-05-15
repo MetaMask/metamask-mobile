@@ -1,12 +1,18 @@
-import { ETH_ACTIONS } from '../../../constants/deeplinks';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { ParseOutput, parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import DeeplinkManager from '../DeeplinkManager';
+import { ETH_ACTIONS } from '../../../constants/deeplinks';
 import formattedDeeplinkParsedValue from '../../../util/formattedDeeplinkParsedValue';
 import { NetworkSwitchErrorType } from '../../../constants/error';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getDecimalChainId } from '../../../util/networks';
+import { MAINNET } from '../../../constants/network';
+import Engine from '../../Engine';
+import DeeplinkManager from '../DeeplinkManager';
+import {
+  addTransactionForDeeplink,
+  isDeeplinkRedesignedConfirmationCompatible,
+} from '../../../components/Views/confirmations/utils/deeplink';
 
 async function handleEthereumUrl({
   deeplinkManager,
@@ -28,12 +34,25 @@ async function handleEthereumUrl({
   const txMeta = { ...ethUrl, source: url };
 
   try {
+    const { MultichainNetworkController } = Engine.context;
+
+    if (!MultichainNetworkController.state.isEvmSelected) {
+      await MultichainNetworkController.setActiveNetwork(MAINNET);
+    }
     // If the deeplink has a goerli chainId, show deprecation modal and return
     if (
       ethUrl.chain_id === getDecimalChainId(CHAIN_IDS.GOERLI) ||
       ethUrl.chain_id === CHAIN_IDS.GOERLI
     ) {
       deeplinkManager.navigation.navigate('DeprecatedNetworkDetails', {});
+      return;
+    }
+
+    if (isDeeplinkRedesignedConfirmationCompatible(ethUrl.function_name)) {
+      await addTransactionForDeeplink({
+        ...txMeta,
+        origin,
+      });
       return;
     }
 

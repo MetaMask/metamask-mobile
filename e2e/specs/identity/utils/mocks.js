@@ -6,7 +6,7 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 const AuthMocks = AuthenticationController.Mocks;
 
 /**
- * E2E mock setup for identity APIs (Auth, UserStorage, Profile syncing)
+ * E2E mock setup for identity APIs (Auth, UserStorage, Backup and sync)
  *
  * @param server - server obj used to mock our endpoints
  * @param userStorageMockttpController - optional controller to mock user storage endpoints
@@ -74,13 +74,13 @@ const INFURA_URL = 'https://mainnet.infura.io/v3/';
  * @param {Object} mockServer - The server object to set up the mock responses on
  * @param {Array<String>} accounts - List of account addresses to mock balances for
  */
-export const setupAccountMockedBalances = (mockServer, accounts) => {
+export const setupAccountMockedBalances = async (mockServer, accounts) => {
   if (!accounts.length) {
     return;
   }
 
-  accounts.forEach((account) => {
-    mockServer
+  for (const account of accounts) {
+    await mockServer
       .forPost('/proxy')
       .matching((request) => {
         const url = getDecodedProxiedURL(request.url);
@@ -98,5 +98,5 @@ export const setupAccountMockedBalances = (mockServer, accounts) => {
           result: MOCK_ETH_BALANCE,
         },
       }));
-  });
+  }
 };

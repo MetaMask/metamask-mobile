@@ -282,6 +282,7 @@ exports[`AccountConnect renders correctly 1`] = `
                 >
                   <SvgMock
                     color="#686e7d"
+                    fill="currentColor"
                     height={20}
                     name="Wallet"
                     style={
@@ -599,6 +600,7 @@ exports[`AccountConnect renders correctly 1`] = `
                 >
                   <SvgMock
                     color="#686e7d"
+                    fill="currentColor"
                     height={20}
                     name="Data"
                     style={
@@ -914,33 +916,6 @@ exports[`AccountConnect renders correctly 1`] = `
           </View>
         </View>
       </RCTSafeAreaView>
-      <Modal
-        animationType="none"
-        deviceHeight={null}
-        deviceWidth={null}
-        hardwareAccelerated={false}
-        hideModalContentWhileAnimating={false}
-        onBackdropPress={[Function]}
-        onModalHide={[Function]}
-        onModalWillHide={[Function]}
-        onModalWillShow={[Function]}
-        onRequestClose={[Function]}
-        panResponderThreshold={4}
-        scrollHorizontal={false}
-        scrollOffset={0}
-        scrollOffsetMax={0}
-        scrollTo={null}
-        statusBarTranslucent={false}
-        supportedOrientations={
-          [
-            "portrait",
-            "landscape",
-          ]
-        }
-        swipeThreshold={100}
-        transparent={true}
-        visible={false}
-      />
     </View>
   </View>
 </View>

@@ -186,7 +186,7 @@ export default class TransactionReviewDetailsCard extends Component {
             </Text>
             <View style={styles.viewDataArrow}>
               <IonicIcon
-                name={`ios-arrow-${displayViewData ? 'up' : 'down'}`}
+                name={`arrow-${displayViewData ? 'up' : 'down'}`}
                 size={16}
                 color={colors.icon.default}
               />

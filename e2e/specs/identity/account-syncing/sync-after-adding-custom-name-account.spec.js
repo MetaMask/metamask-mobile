@@ -17,29 +17,30 @@ import Assertions from '../../../utils/Assertions';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeIdentity } from '../../../tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
 describe(
-  SmokeIdentity(
+  SmokeWalletPlatform(
     'Account syncing - syncs and retrieves accounts after adding a custom name account',
   ),
   () => {
     const NEW_ACCOUNT_NAME = 'My third account';
+    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8000;
     let decryptedAccountNames = '';
     let mockServer;
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
 
-      mockServer = await startMockServer();
+      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
 
-      userStorageMockttpControllerInstance.setupPath(
+      await userStorageMockttpControllerInstance.setupPath(
         USER_STORAGE_FEATURE_NAMES.accounts,
         mockServer,
         {
@@ -60,17 +61,22 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
     });
 
     afterAll(async () => {
-      await stopMockServer(mockServer);
+      if (mockServer) {
+        await stopMockServer(mockServer);
+      }
     });
 
     it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
       await importWalletWithRecoveryPhrase(
-        IDENTITY_TEAM_SEED_PHRASE,
-        IDENTITY_TEAM_PASSWORD,
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        }
       );
 
       await WalletView.tapIdenticon();
@@ -98,11 +104,14 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
 
       await importWalletWithRecoveryPhrase(
-        IDENTITY_TEAM_SEED_PHRASE,
-        IDENTITY_TEAM_PASSWORD,
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        }
       );
 
       await WalletView.tapIdenticon();

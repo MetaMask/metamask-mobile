@@ -50,6 +50,7 @@ import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
 import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
+import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -66,6 +67,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
+
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
   const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
 
@@ -183,16 +186,18 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           />
         )}
 
-        {!hasStakedPositions && !isLoadingVaultApyAverages && (
-          <StakingCta
-            style={styles.stakingCta}
-            estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
-              inputFormat: CommonPercentageInputUnits.PERCENTAGE,
-              outputFormat: PercentageOutputFormat.PERCENT_SIGN,
-              fixed: 1,
-            })}
-          />
-        )}
+        {!hasStakedPositions &&
+          !isLoadingVaultApyAverages &&
+          isPooledStakingEnabled && (
+            <StakingCta
+              style={styles.stakingCta}
+              estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
+                inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+                outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+                fixed: 1,
+              })}
+            />
+          )}
 
         <StakingButtons
           asset={asset}

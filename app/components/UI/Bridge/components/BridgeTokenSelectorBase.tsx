@@ -1,5 +1,11 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import { StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+// Using FlatList from react-native-gesture-handler to fix scroll issues with the bottom sheet
+import { FlatList } from 'react-native-gesture-handler';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
@@ -8,9 +14,6 @@ import Text, {
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
 import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
@@ -21,14 +24,15 @@ import { useTokenSearch } from '../hooks/useTokenSearch';
 import TextFieldSearch from '../../../../component-library/components/Form/TextFieldSearch';
 import { BridgeToken } from '../types';
 import { Skeleton } from '../../../../component-library/components/Skeleton';
+import { useAssetMetadata } from '../hooks/useAssetMetadata';
+import { CaipChainId, Hex } from '@metamask/utils';
+// We use ReusableModal instead of BottomSheet to prevent the keyboard from pushing the search input off screen
+import ReusableModal, { ReusableModalRef } from '../../ReusableModal';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
-    content: {
-      flex: 1,
-      backgroundColor: theme.colors.background.default,
-    },
     headerTitle: {
       flex: 1,
       textAlign: 'center',
@@ -57,14 +61,39 @@ const createStyles = (params: { theme: Theme }) => {
     skeletonCircle: {
       borderRadius: 15,
     },
+    skeletonItemContainer: {
+      paddingLeft: 18,
+      paddingRight: 10,
+      paddingVertical: 12,
+    },
     // Need the flex 1 to make sure this doesn't disappear when FlexDirection.Row is used
-    skeletonItem: {
+    skeletonItemRows: {
       flex: 1,
-    }
+    },
+    // This section is so we can use ReusableModal styled like BottomSheet
+    content: {
+      flex: 1,
+      backgroundColor: theme.colors.background.default,
+    },
+    screen: { justifyContent: 'flex-end' },
+    sheet: {
+      backgroundColor: theme.colors.background.default,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+    },
+    notch: {
+      width: 48,
+      height: 5,
+      borderRadius: 4,
+      backgroundColor: theme.colors.border.default,
+      marginTop: 8,
+      alignSelf: 'center',
+    },
+    // End section
   });
 };
 
-const SkeletonItem = () => {
+export const SkeletonItem = () => {
   const { styles } = useStyles(createStyles, {});
 
   return (
@@ -72,27 +101,23 @@ const SkeletonItem = () => {
       gap={16}
       flexDirection={FlexDirection.Row}
       alignItems={AlignItems.center}
+      style={styles.skeletonItemContainer}
     >
       <Skeleton height={30} width={30} style={styles.skeletonCircle} />
 
-    <Box gap={4} style={styles.skeletonItem}>
-      <Skeleton height={24} width={'96%'} />
-      <Skeleton height={24} width={'37%'} />
+      <Box gap={4} style={styles.skeletonItemRows}>
+        <Skeleton height={24} width={'96%'} />
+        <Skeleton height={24} width={'37%'} />
+      </Box>
     </Box>
-
-    <Icon name={IconName.Info} />
-  </Box>
   );
 };
 
-const LoadingSkeleton = () => {
+export const LoadingSkeleton = () => {
   const { styles } = useStyles(createStyles, {});
 
   return (
     <Box style={styles.loadingSkeleton} gap={20}>
-      <SkeletonItem />
-      <SkeletonItem />
-      <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
@@ -106,25 +131,60 @@ const LoadingSkeleton = () => {
 
 interface BridgeTokenSelectorBaseProps {
   networksBar: React.ReactNode;
-  renderTokenItem: ({ item }: { item: BridgeToken }) => React.JSX.Element;
+  renderTokenItem: ({
+    item,
+  }: {
+    item: BridgeToken | null;
+  }) => React.JSX.Element;
   tokensList: BridgeToken[];
   pending?: boolean;
+  chainIdToFetchMetadata?: Hex | CaipChainId;
 }
 
 export const BridgeTokenSelectorBase: React.FC<
   BridgeTokenSelectorBaseProps
-> = ({ networksBar, renderTokenItem, tokensList, pending }) => {
+> = ({
+  networksBar,
+  renderTokenItem,
+  tokensList,
+  pending,
+  chainIdToFetchMetadata: chainId,
+}) => {
   const { styles, theme } = useStyles(createStyles, {});
-  const { searchString, setSearchString, searchResults } = useTokenSearch({
+  const safeAreaInsets = useSafeAreaInsets();
+  const {
+    searchString,
+    setSearchString,
+    searchResults,
+    debouncedSearchString,
+  } = useTokenSearch({
     tokens: tokensList || [],
   });
-  const tokensToRender = useMemo(
-    () => (searchString ? searchResults : tokensList),
-    [searchString, searchResults, tokensList],
+
+  const {
+    assetMetadata: unlistedAssetMetadata,
+    pending: unlistedAssetMetadataPending,
+  } = useAssetMetadata(
+    debouncedSearchString,
+    Boolean(debouncedSearchString && searchResults.length === 0),
+    chainId,
   );
 
+  const tokensToRender = useMemo(() => {
+    if (!searchString) {
+      return tokensList;
+    }
+
+    if (searchResults.length > 0) {
+      return searchResults;
+    }
+
+    return unlistedAssetMetadata ? [unlistedAssetMetadata] : [];
+  }, [searchString, searchResults, tokensList, unlistedAssetMetadata]);
+
   const keyExtractor = useCallback(
-    (token: BridgeToken) => `${token.chainId}-${token.address}`,
+    (token: BridgeToken | null, index: number) =>
+      token ? `${token.chainId}-${token.address}` : `skeleton-${index}`,
     [],
   );
 
@@ -139,21 +199,42 @@ export const BridgeTokenSelectorBase: React.FC<
     () => (
       <Box style={styles.emptyList}>
         <Text color={TextColor.Alternative}>
-          {strings('swaps.no_tokens_result', { searchString })}
+          {strings('swaps.no_tokens_result', {
+            searchString: debouncedSearchString,
+          })}
         </Text>
       </Box>
     ),
-    [searchString, styles],
+    [debouncedSearchString, styles],
   );
 
-  const modalRef = useRef<BottomSheetRef>(null);
+  const modalRef = useRef<ReusableModalRef>(null);
   const dismissModal = (): void => {
-    modalRef.current?.onCloseBottomSheet();
+    modalRef.current?.dismissModal();
   };
 
+  const shouldRenderOverallLoading = useMemo(
+    () => (pending && tokensList?.length === 0) || unlistedAssetMetadataPending,
+    [pending, unlistedAssetMetadataPending, tokensList],
+  );
+
+  // We show the tokens with balance immediately, but we need to wait for the top tokens to load
+  // So we show a few skeletons for the top tokens
+  const tokensToRenderWithSkeletons: (BridgeToken | null)[] = useMemo(() => {
+    if (pending && tokensToRender?.length > 0) {
+      return [...tokensToRender, ...Array(4).fill(null)];
+    }
+
+    return tokensToRender;
+  }, [pending, tokensToRender]);
+
   return (
-    <BottomSheet isFullscreen ref={modalRef}>
-      <Box style={styles.content}>
+    <ReusableModal
+      ref={modalRef}
+      style={[styles.screen, { marginTop: safeAreaInsets.top }]}
+    >
+      <Box style={[styles.content,styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
+        <Box style={styles.notch} />
         <Box gap={4}>
           <BottomSheetHeader>
             <Box
@@ -192,12 +273,20 @@ export const BridgeTokenSelectorBase: React.FC<
         </Box>
 
         <FlatList
-          data={pending ? [] : tokensToRender}
+          data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
           renderItem={renderTokenItem}
           keyExtractor={keyExtractor}
-          ListEmptyComponent={searchString ? renderEmptyList : LoadingSkeleton}
+          ListEmptyComponent={
+            debouncedSearchString && !shouldRenderOverallLoading
+              ? renderEmptyList
+              : LoadingSkeleton
+          }
+          showsVerticalScrollIndicator
+          showsHorizontalScrollIndicator={false}
+          bounces
+          scrollEnabled
         />
       </Box>
-    </BottomSheet>
+    </ReusableModal>
   );
 };

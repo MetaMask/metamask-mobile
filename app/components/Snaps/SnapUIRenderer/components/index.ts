@@ -21,6 +21,8 @@ import { skeleton } from './skeleton';
 import { address } from './address';
 import { avatar } from './avatar';
 import { tooltip } from './tooltip';
+import { addressInput } from './address-input';
+import { assetSelector } from './asset-selector';
 
 export const COMPONENT_MAPPING = {
   Box: box,
@@ -28,6 +30,7 @@ export const COMPONENT_MAPPING = {
   Row: row,
   Button: button,
   Banner: banner,
+  AddressInput: addressInput,
   Input: input,
   Bold: bold,
   Value: value,
@@ -46,4 +49,5 @@ export const COMPONENT_MAPPING = {
   Avatar: avatar,
   Address: address,
   Tooltip: tooltip,
+  AssetSelector: assetSelector,
 };
