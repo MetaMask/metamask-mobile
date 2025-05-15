@@ -79,7 +79,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
   return (
     <BottomSheet
-      onClose={onReject}
+      onClose={() => onReject()}
       shouldNavigateBack={false}
       style={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
