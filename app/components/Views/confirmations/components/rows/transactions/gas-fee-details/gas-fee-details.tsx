@@ -19,7 +19,7 @@ import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import styleSheet from './gas-fee-details.styles';
 
-const GasFeesDetails = ({ isCompact = false }) => {
+const GasFeesDetails = ({ disableUpdate = false }) => {
   const [gasModalVisible, setGasModalVisible] = useState(false);
   const { styles, theme } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
@@ -47,7 +47,7 @@ const GasFeesDetails = ({ isCompact = false }) => {
           onTooltipPress={handleNetworkFeeTooltipClickedEvent}
         >
           <View style={styles.valueContainer}>
-            {isCompact ? (
+            {disableUpdate ? (
               <EstimationInfo
                 hideFiatForTestnet={hideFiatForTestnet}
                 feeCalculations={feeCalculations}

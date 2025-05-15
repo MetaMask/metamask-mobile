@@ -55,7 +55,7 @@ const StakingClaim = ({
       <InfoSection>
         <StakingContractInteractionDetails />
       </InfoSection>
-      <GasFeesDetails isCompact />
+      <GasFeesDetails disableUpdate />
     </>
   );
 };

@@ -39,7 +39,7 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
       <InfoSection>
         <StakingContractInteractionDetails />
       </InfoSection>
-      <GasFeesDetails isCompact />
+      <GasFeesDetails disableUpdate />
     </>
   );
 };
