@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
@@ -11,24 +10,24 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
+const selectEvmAsset = makeSelectAssetByAddressAndChainId();
+
 export const useTokenAssetByType = () => {
   const { chainId, type: transactionType, txParams } = useTransactionMetadataRequest() ?? {};
 
   const tokenAddress = safeToChecksumAddress(txParams?.to)?.toLowerCase() || NATIVE_TOKEN_ADDRESS;
 
-  const selectEvmAsset = useMemo(makeSelectAssetByAddressAndChainId, []);
   const evmAsset = useSelector((state: RootState) =>
     selectEvmAsset(state, {
       address: tokenAddress,
       chainId: chainId as Hex,
-      isStaked: false,
     }),
   );
+
   const nativeEvmAsset = useSelector((state: RootState) =>
     selectEvmAsset(state, {
       address: NATIVE_TOKEN_ADDRESS,
       chainId: chainId as Hex,
-      isStaked: false,
     }),
   );
 
