@@ -1,0 +1,33 @@
+diff --git a/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java b/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java
+index d40793e..f0b483a 100644
+--- a/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java
++++ b/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java
+@@ -81,8 +81,7 @@ public class PerformanceModule extends ReactContextBaseJavaModule implements Tur
+                             break;
+ 
+                     }
+-                }
+-        );
++                });
+     }
+ 
+     private static void clearMarkBuffer() {
+@@ -136,8 +135,7 @@ public class PerformanceModule extends ReactContextBaseJavaModule implements Tur
+                             eventsBuffered = true;
+                             break;
+                     }
+-                }
+-        );
++                });
+     }
+ 
+     private void safelyEmitMark(PerformanceEntry entry) {
+@@ -219,4 +217,8 @@ public class PerformanceModule extends ReactContextBaseJavaModule implements Tur
+         super.onCatalystInstanceDestroy();
+         RNPerformance.getInstance().removeListener(this);
+     }
++
++    public void addListener(String eventName) {
++    }
++
+ }
