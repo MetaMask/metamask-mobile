@@ -211,7 +211,7 @@
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/react-native-payments": "^2.0.0",
     "@metamask/react-native-search-api": "1.0.1",
-    "@metamask/react-native-webview": "https://github.com/MetaMask/react-native-webview-mm#f66ca0dc060e5b8e15c43ac5550016d89b9d1b39",
+    "@metamask/react-native-webview": "https://github.com/MetaMask/react-native-webview-mm#50dde458ae125dcbbed1ffcf6161b4a8363f49a0",
     "@metamask/remote-feature-flag-controller": "^1.6.0",
     "@metamask/rpc-errors": "^7.0.2",
     "@metamask/scure-bip39": "^2.1.0",
