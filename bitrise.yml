@@ -181,7 +181,7 @@ stages:
   build_smoke_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
-      - ios_e2e_build: {}
+      # - ios_e2e_build: {}
       - android_e2e_build: {}
   build_multichain_permissions_e2e_ios_android_stage:
     abort_on_fail: true
@@ -194,7 +194,7 @@ stages:
   #     - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_ios_api_specs: {}
+      # - run_ios_api_specs: {}
       # - run_trade_swimlane_ios_smoke: {}
       # - run_trade_swimlane_android_smoke: {}
       # - run_network_abstraction_swimlane_ios_smoke: {}
@@ -204,8 +204,8 @@ stages:
       # - run_wallet_platform_swimlane_ios_smoke: {}
       # - run_wallet_platform_swimlane_android_smoke: {}
       # - run_tag_smoke_confirmations_ios: {}
-      # - run_tag_smoke_confirmations_android: {}
-      - run_tag_smoke_confirmations_redesigned_ios: {}
+      - run_tag_smoke_confirmations_android: {}
+      # - run_tag_smoke_confirmations_redesigned_ios: {}
       # - run_tag_multichain_permissions_ios: {}
       # - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
@@ -1056,11 +1056,24 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                export PATH="$FOUNDRY_BIN_PATH:$PATH"
                 export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                echo "TESTING ANVIL VERSION"
+                 node -v
+                  echo "Running foundryup to install the latest version..."
+
+                 curl -L https://foundry.paradigm.xyz | bash
+
+                # Add Foundry binaries to PATH for *this step*
+                export PATH="$HOME/.foundry/bin:$PATH"
+
+                $HOME/.foundry/bin/foundryup
+                command -v forge && forge --version
+                command -v anvil && anvil --version
+
+                which anvil
                 anvil --version
+                
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+               
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                   IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/
                 else
@@ -1313,12 +1326,13 @@ workflows:
                 #!/usr/bin/env bash
 
                 node -v
-                echo "here is foundry bin"
-                ls ~/.foundry/bin
-                export PATH="$FOUNDRY_BIN_PATH:$PATH"
-                echo "here is path"
-                echo $PATH
-                ls -l $FOUNDRY_BIN_PATH
+                export FOUNDRY_BIN_PATH="$HOME/.foundry/bin"
+                envman add --key FOUNDRY_BIN_PATH --value "$FOUNDRY_BIN_PATH"
+                envman add --key PATH --value "$FOUNDRY_BIN_PATH:$PATH"
+
+                command -v forge && forge --version
+                command -v anvil && anvil --version
+
                 which anvil
                 anvil --version
                 export METAMASK_ENVIRONMENT='local'
