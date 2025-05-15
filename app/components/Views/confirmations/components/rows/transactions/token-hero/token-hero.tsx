@@ -11,7 +11,6 @@ import { useConfirmationContext } from '../../../../context/confirmation-context
 import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
 import { useTokenAssetByType } from '../../../../hooks/useTokenAssetByType';
 import { useTokenValuesByType } from '../../../../hooks/useTokenValuesByType';
-import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import AnimatedPulse from '../../../UI/animated-pulse';
 import { TooltipModal } from '../../../UI/Tooltip/Tooltip';
 import { AvatarTokenWithNetworkBadge } from './avatar-token-with-network-badge';
@@ -66,15 +65,10 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
     isFlatConfirmation,
   });
 
-  const tokenValues = useTokenValuesByType({ amountWei });
-  const { tokenSymbol, asset } = useTokenAssetByType();
-  const { chainId } = useTransactionMetadataRequest() ?? {};
+  const { amountPreciseDisplay, amountDisplay, fiatDisplay } =
+    useTokenValuesByType({ amountWei });
+  const { asset: { ticker } } = useTokenAssetByType();
 
-  if (!tokenValues || !chainId) {
-    return null;
-  }
-
-  const { amountPreciseDisplay, amountDisplay, fiatDisplay } = tokenValues;
   const isRoundedAmount = amountPreciseDisplay !== amountDisplay;
 
   return (
@@ -84,17 +78,11 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
     >
       <View style={styles.container}>
         <View style={styles.containerAvatarTokenNetworkWithBadge}>
-          <AvatarTokenWithNetworkBadge
-            asset={{
-              ...asset,
-              hasBalanceError: asset.hasBalanceError ?? false
-            }}
-            chainId={chainId}
-          />
+          <AvatarTokenWithNetworkBadge />
         </View>
         <AssetAmount
           amountDisplay={amountDisplay}
-          tokenSymbol={tokenSymbol}
+          tokenSymbol={ticker}
           styles={styles}
           setIsModalVisible={isRoundedAmount ? setIsModalVisible : null}
         />
