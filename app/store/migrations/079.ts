@@ -21,7 +21,7 @@ interface AllIgnoredTokens {
  */
 
 const migration = (state: unknown): unknown => {
-  if (!ensureValidState(state, 78)) {
+  if (!ensureValidState(state, 79)) {
     return state;
   }
 
@@ -90,11 +90,12 @@ const migration = (state: unknown): unknown => {
 
   // Check and clean up tokens in allTokens that do not belong to any EVM account
   if (hasProperty(tokensControllerState, 'allTokens')) {
-    for (const chainId of Object.keys(tokensControllerState.allTokens)) {
-      const tokensByAccounts = tokensControllerState.allTokens[
-        chainId as Hex
-      ] as Record<`0x${string}`, Token[]>;
-      for (const account of Object.keys(tokensByAccounts)) {
+    for (const [chainId, accountsTokens] of Object.entries(
+      tokensControllerState.allTokens,
+    )) {
+      for (const account of Object.keys(
+        accountsTokens as Record<`0x${string}`, Token[]>,
+      )) {
         if (!evmAccountAddresses.includes(account)) {
           delete (tokensControllerState.allTokens as AllTokens)[chainId as Hex][
             account
@@ -106,14 +107,12 @@ const migration = (state: unknown): unknown => {
 
   // Check and clean up tokens in allDetectedTokens that do not belong to any EVM account
   if (hasProperty(tokensControllerState, 'allDetectedTokens')) {
-    for (const chainId of Object.keys(
+    for (const [chainId, accountsTokens] of Object.entries(
       tokensControllerState.allDetectedTokens,
     )) {
-      const tokensByAccounts = tokensControllerState.allDetectedTokens[
-        chainId as Hex
-      ] as Record<`0x${string}`, Token[]>;
-
-      for (const account of Object.keys(tokensByAccounts)) {
+      for (const account of Object.keys(
+        accountsTokens as Record<`0x${string}`, Token[]>,
+      )) {
         if (!evmAccountAddresses.includes(account)) {
           delete (tokensControllerState.allDetectedTokens as AllDetectedTokens)[
             chainId as Hex
@@ -125,14 +124,15 @@ const migration = (state: unknown): unknown => {
 
   // Check and clean up tokens in allIgnoredTokens that do not belong to any EVM account
   if (hasProperty(tokensControllerState, 'allIgnoredTokens')) {
-    for (const chainId of Object.keys(tokensControllerState.allIgnoredTokens)) {
-      const tokensByAccounts = tokensControllerState.allIgnoredTokens[
-        chainId as Hex
-      ] as Record<`0x${string}`, Token[]>;
-      for (const account of Object.keys(tokensByAccounts)) {
+    for (const [chainId, accountsTokens] of Object.entries(
+      tokensControllerState.allIgnoredTokens,
+    )) {
+      for (const account of Object.keys(
+        accountsTokens as Record<`0x${string}`, Token[]>,
+      )) {
         if (!evmAccountAddresses.includes(account)) {
           delete (tokensControllerState.allIgnoredTokens as AllIgnoredTokens)[
-            chainId as `0x${string}`
+            chainId as Hex
           ][account];
         }
       }
