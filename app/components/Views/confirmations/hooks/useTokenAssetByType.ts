@@ -1,49 +1,18 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Collection } from '@metamask/assets-controllers';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
 import { TokenI } from '../../../UI/Tokens/types';
-import { useAsyncResult } from '../../../hooks/useAsyncResult';
-import Engine from '../../../../core/Engine';
 import { RootState } from '../../../../reducers';
 import { makeSelectAssetByAddressAndChainId } from '../../../../selectors/multichain';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
-import { parseStandardTokenTransactionData } from '../utils/transaction';
-
-const useCollectionsMetadata = (tokenAddress: string, chainId: Hex) => {
-  const { NftController } = Engine.context;
-
-  const { value: collectionsMetadata } = useAsyncResult(async () => {
-    const collectionsResult = await NftController.getNFTContractInfo(
-      [tokenAddress],
-      chainId,
-    );
-
-    const collectionsData = collectionsResult.collections.reduce<
-      Record<string, Collection>
-    >((acc, collection) => {
-      acc[tokenAddress] = {
-        name: collection?.name,
-        image: collection?.image,
-        isSpam: collection?.isSpam,
-      };
-      return acc;
-    }, {});
-
-    return collectionsData;
-  }, []);
-
-  return collectionsMetadata;
-};
 
 export const useTokenAssetByType = () => {
   const { chainId, type: transactionType, txParams } = useTransactionMetadataRequest() ?? {};
 
-  const transferData = parseStandardTokenTransactionData(txParams?.data);
   const tokenAddress = safeToChecksumAddress(txParams?.to)?.toLowerCase() || NATIVE_TOKEN_ADDRESS;
 
   const selectEvmAsset = useMemo(makeSelectAssetByAddressAndChainId, []);
@@ -62,10 +31,7 @@ export const useTokenAssetByType = () => {
     }),
   );
 
-  const collectionsMetadata = useCollectionsMetadata(tokenAddress, chainId as Hex);
-
   let asset = {} as TokenI;
-  let tokenName, tokenId, tokenImage, tokenSymbol;
 
   switch (transactionType) {
     case TransactionType.contractInteraction:
@@ -77,13 +43,6 @@ export const useTokenAssetByType = () => {
       asset = nativeEvmAsset ?? {} as TokenI;
       break;
     }
-    case TransactionType.tokenMethodTransferFrom: {
-      // ERC721 - ERC1155
-      tokenId = transferData?.args[transferData?.args.length - 1].toString();
-      tokenImage = collectionsMetadata?.[tokenAddress]?.image;
-      tokenName = collectionsMetadata?.[tokenAddress]?.name;
-      break;
-    }
     default: {
       // ERC20
       asset = evmAsset ?? {} as TokenI;
@@ -93,9 +52,5 @@ export const useTokenAssetByType = () => {
 
   return {
     asset,
-    tokenName,
-    tokenId,
-    tokenImage,
-    tokenSymbol,
   };
 };
