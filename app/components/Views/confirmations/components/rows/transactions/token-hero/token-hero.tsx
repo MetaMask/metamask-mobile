@@ -55,7 +55,7 @@ const AssetFiatConversion = ({
     </Text>
   ) : null;
 
-const TokenHero = ({ amountWei }: { amountWei?: string }) => {
+const TokenHero = ({ amountWei, showNetworkBadge = true }: { amountWei?: string, showNetworkBadge?: boolean }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const { isTransactionValueUpdating } = useConfirmationContext();
@@ -78,7 +78,7 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
     >
       <View style={styles.container}>
         <View style={styles.containerAvatarTokenNetworkWithBadge}>
-          <AvatarTokenWithNetworkBadge />
+          <AvatarTokenWithNetworkBadge canShowBadge={showNetworkBadge} />
         </View>
         <AssetAmount
           amountDisplay={amountDisplay}

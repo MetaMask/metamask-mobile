@@ -28,7 +28,7 @@ const Transfer = () => {
 
   return (
     <View>
-      <TokenHero />
+      <TokenHero showNetworkBadge={false} />
       <FromTo />
       <NetworkRow />
       <View style={styles.simulationsDetailsContainer}>
