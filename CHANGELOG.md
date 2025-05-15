@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - fix(bridge): show "Auto" slippage for Solana swaps
+- fix(bridge): add insufficient balance check for Solana swaps
 
 ### Added
 
