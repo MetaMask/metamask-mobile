@@ -1,4 +1,4 @@
-import { waitFor, device } from 'detox';
+import { waitFor } from 'detox';
 
 /**
  * Class for handling user actions (Gestures)
