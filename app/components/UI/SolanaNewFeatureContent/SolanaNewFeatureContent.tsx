@@ -26,6 +26,7 @@ import Engine from '../../../core/Engine';
 import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
 
 const SolanaNewFeatureContent = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -132,6 +133,7 @@ const SolanaNewFeatureContent = () => {
           variant={ButtonVariants.Link}
           label={strings('solana_new_feature_content.learn_more')}
           onPress={onLearnMoreClicked}
+          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON}
         />
         <Button
           variant={ButtonVariants.Primary}
@@ -144,6 +146,7 @@ const SolanaNewFeatureContent = () => {
             hasExistingSolanaAccount ? viewSolanaAccount : createSolanaAccount
           }
           width={ButtonWidthTypes.Full}
+          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON}
         />
 
         <Button
