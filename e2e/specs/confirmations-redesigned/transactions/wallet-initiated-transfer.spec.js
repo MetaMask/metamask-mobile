@@ -63,7 +63,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
 
         // Check all expected elements are visible
         await Assertions.checkIfVisible(
-          ConfirmationUITypes.ModalConfirmationContainer,
+          ConfirmationUITypes.FlatConfirmationContainer,
         );
         await Assertions.checkIfVisible(RowComponents.TokenHero);
         // Check if the amount is displayed
@@ -82,6 +82,52 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await TabBarComponent.tapActivity();
         await Assertions.checkIfTextIsDisplayed('Sent ETH');
         await Assertions.checkIfTextIsDisplayed('1 ETH');
+        await Assertions.checkIfTextIsDisplayed('Confirmed');
+      },
+    );
+  });
+
+  it('sends max native asset', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
+          .build(),
+        restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
+        testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
+
+        await TabBarComponent.tapActions();
+        await TestHelpers.delay(2000);
+        await WalletActionsBottomSheet.tapSendButton();
+
+        await SendView.inputAddress(RECIPIENT);
+        await SendView.tapNextButton();
+
+        await AmountView.tapMaxButton();
+        await AmountView.tapNextButton();
+
+        // Check all expected elements are visible
+        await Assertions.checkIfVisible(
+          ConfirmationUITypes.FlatConfirmationContainer,
+        );
+        // Check if the amount is displayed
+        await Assertions.checkIfTextIsDisplayed('1.000 ETH');
+
+        // Accept confirmation
+        await FooterActions.tapConfirmButton();
+
+        // Check activity tab
+        await TabBarComponent.tapActivity();
+        await Assertions.checkIfTextIsDisplayed('Sent ETH');
+        await Assertions.checkIfTextIsDisplayed('999.99996 ETH');
         await Assertions.checkIfTextIsDisplayed('Confirmed');
       },
     );
