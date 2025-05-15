@@ -9,7 +9,7 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import { selectTransactionState } from '../../../../../../../reducers/transaction';
 import { useConfirmationContext } from '../../../../context/confirmation-context';
 import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
-import { useTokenAsset } from '../../../../hooks/useTokenAssetByType';
+import { useTokenAsset } from '../../../../hooks/useTokenAsset';
 import { useTokenAmount } from '../../../../hooks/useTokenAmount';
 import AnimatedPulse from '../../../UI/animated-pulse';
 import { TooltipModal } from '../../../UI/Tooltip/Tooltip';
