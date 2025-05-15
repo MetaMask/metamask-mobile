@@ -25,9 +25,9 @@ export const SnapUICopyable: React.FC<SnapUICopyableProps> = ({
     isVisible,
   });
 
-  const SECOND = 1000;
   const startTimeout = () =>
-    setTimeout(() => setIsClicked(false), 3 * SECOND, false);
+    // 3 seconds
+    setTimeout(() => setIsClicked(false), 3 * 1000, false);
 
   const handleVisibilityClick = () => {
     setIsVisible((state) => !state);
