@@ -87,6 +87,10 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { useChainRedirect } from './useChainRedirect';
+///: END:ONLY_INCLUDE_IF
+
 const createStyles = (colors) =>
   StyleSheet.create({
     container: { backgroundColor: colors.background.default },
@@ -205,6 +209,11 @@ function SwapsAmountView({
   const styles = createStyles(colors);
 
   const previousSelectedAddress = useRef();
+
+  // Use the new hook for chain redirection
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  useChainRedirect(selectedAddress);
+  ///: END:ONLY_INCLUDE_IF
 
   const explorer = useBlockExplorer(networkConfigurations);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
@@ -552,7 +561,13 @@ function SwapsAmountView({
     ) {
       const { TokensController } = Engine.context;
       const { address, symbol, decimals, name } = sourceToken;
-      await TokensController.addToken({ address, symbol, decimals, name });
+      await TokensController.addToken({
+        address,
+        symbol,
+        decimals,
+        name,
+        networkClientId: selectedNetworkClientId,
+      });
     }
     return navigation.navigate(
       'SwapsQuotesView',
@@ -573,6 +588,7 @@ function SwapsAmountView({
     slippage,
     sourceToken,
     isBalanceZero,
+    selectedNetworkClientId,
   ]);
 
   /* Keypad Handlers */

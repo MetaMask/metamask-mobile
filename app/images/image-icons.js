@@ -20,6 +20,11 @@ import BTC from './bitcoin-logo.png';
 import BASE from './base.png';
 import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
 import XRPLEVM_XRP_TOKEN from './xrp-logo.png';
+import MONAD_TESTNET from './monad-testnet-logo.png';
+import MATCHAIN from './matchain.png';
+import FLOW from './flow.png';
+import LENS from './lens.png';
+import PLUME from './plume.png';
 
 
 export default {
@@ -47,4 +52,9 @@ export default {
   BASE,
   'MEGAETH-TESTNET': MEGAETH_TESTNET,
   XRPLEVM_XRP_TOKEN,
+  'MONAD-TESTNET': MONAD_TESTNET,
+  MATCHAIN,
+  FLOW,
+  LENS,
+  PLUME,
 };

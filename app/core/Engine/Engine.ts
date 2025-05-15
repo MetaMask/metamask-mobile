@@ -112,8 +112,6 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
 import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
-import { captureException } from '@sentry/react-native';
-import { lowerCase } from 'lodash';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
@@ -124,7 +122,14 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
-import { ApprovalType, ChainId, handleFetch } from '@metamask/controller-utils';
+import {
+  ApprovalType,
+  ChainId,
+  handleFetch,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  toHex,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
@@ -182,11 +187,7 @@ import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import {
-  BRIDGE_DEV_API_BASE_URL,
-  BridgeClientId,
-  BridgeController,
-} from '@metamask/bridge-controller';
+import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
@@ -200,6 +201,7 @@ import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
+import { BRIDGE_API_BASE_URL } from '../../constants/bridge';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -314,7 +316,10 @@ export class Engine {
         fetch,
         btoa,
       }),
-      additionalDefaultNetworks: [ChainId['megaeth-testnet']],
+      additionalDefaultNetworks: [
+        ChainId['megaeth-testnet'],
+        ChainId['monad-testnet'],
+      ],
     };
     const networkController = new NetworkController(networkControllerOpts);
 
@@ -436,6 +441,7 @@ export class Engine {
         'AccountsController:setSelectedAccount',
         'AccountsController:getAccountByAddress',
         'AccountsController:setAccountName',
+        'AccountsController:setAccountNameAndSelectAccount',
         'AccountsController:listMultichainAccounts',
         'SnapController:handleRequest',
         SnapControllerGetSnapAction,
@@ -742,49 +748,15 @@ export class Engine {
       }),
       state: initialState.PermissionController,
       caveatSpecifications: getCaveatSpecifications({
-        getInternalAccounts: (...args) =>
+        listAccounts: (...args) =>
           this.accountsController.listAccounts(...args),
         findNetworkClientIdByChainId:
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
           ),
       }),
-      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
-        ...getPermissionSpecifications({
-          getAllAccounts: () => this.keyringController.getAccounts(),
-          getInternalAccounts: (...args) =>
-            this.accountsController.listAccounts(...args),
-          captureKeyringTypesWithMissingIdentities: (
-            internalAccounts = [],
-            accounts = [],
-          ) => {
-            const accountsMissingIdentities = accounts.filter((address) => {
-              const lowerCaseAddress = lowerCase(address);
-              return !internalAccounts.some(
-                (account) => account.address.toLowerCase() === lowerCaseAddress,
-              );
-            });
-            const keyringTypesWithMissingIdentities =
-              accountsMissingIdentities.map((address) =>
-                this.keyringController.getAccountKeyringType(address),
-              );
-
-            const internalAccountCount = internalAccounts.length;
-
-            const accountTrackerCount = Object.keys(
-              accountTrackerController.state.accountsByChainId[
-                currentChainId
-              ] || {},
-            ).length;
-
-            captureException(
-              new Error(
-                `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
-              ),
-            );
-          },
-        }),
+        ...getPermissionSpecifications(),
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ...getSnapPermissionSpecifications(),
         ///: END:ONLY_INCLUDE_IF
@@ -986,9 +958,10 @@ export class Engine {
           chainId,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }) as any,
+
       fetchFn: handleFetch,
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
       trackMetaMetricsFn: (event, properties) => {
         const metricsEvent = MetricsEventBuilder.createEventBuilder({
@@ -1035,7 +1008,7 @@ export class Engine {
           ...args,
         ),
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
     });
 
@@ -1798,10 +1771,11 @@ export class Engine {
    * @param {string} address - A hex address
    */
   removeAccount = async (address: string) => {
+    const addressHex = toHex(address);
     // Remove all associated permissions
-    await removeAccountsFromPermissions([address]);
+    await removeAccountsFromPermissions([addressHex]);
     // Remove account from the keyring
-    await this.keyringController.removeAccount(address as Hex);
+    await this.keyringController.removeAccount(addressHex);
   };
   ///: END:ONLY_INCLUDE_IF
 
@@ -1861,7 +1835,7 @@ export class Engine {
     // Remove all permissions.
     PermissionController?.clearState?.();
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    SnapController.clearState();
+    await SnapController.clearState();
     ///: END:ONLY_INCLUDE_IF
 
     // Clear selected network

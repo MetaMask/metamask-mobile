@@ -57,18 +57,23 @@ import DestinationAccountSelector from '../../components/DestinationAccountSelec
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
-import {
-  useInitialSourceToken,
-  type BridgeRouteParams,
-} from '../../hooks/useInitialSourceToken';
+import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import type { BridgeSourceTokenSelectorRouteParams } from '../../components/BridgeSourceTokenSelector';
 import type { BridgeDestTokenSelectorRouteParams } from '../../components/BridgeDestTokenSelector';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeViewMode } from '../../types';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
+import { parseUnits } from 'ethers/lib/utils';
+import { BigNumber } from 'ethers';
+
+export interface BridgeRouteParams {
+  token?: BridgeToken;
+  sourcePage: string;
+  bridgeViewMode: BridgeViewMode;
+}
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -123,8 +128,9 @@ const BridgeView = () => {
 
   const updateQuoteParams = useBridgeQuoteRequest();
 
-  useInitialSourceToken();
-  useInitialDestToken();
+  const initialSourceToken = route.params?.token;
+  useInitialSourceToken(initialSourceToken);
+  useInitialDestToken(initialSourceToken);
 
   // Set slippage to undefined for Solana swaps
   useEffect(() => {
@@ -150,7 +156,13 @@ const BridgeView = () => {
   const hasValidBridgeInputs =
     isValidSourceAmount && !!sourceToken && !!destToken;
 
-  const hasInsufficientBalance = quoteRequest?.insufficientBal;
+  // quoteRequest.insufficientBal is undefined for Solana quotes, so we need to manually check if the source amount is greater than the balance
+  const hasInsufficientBalance =
+    quoteRequest?.insufficientBal ||
+    (isValidSourceAmount &&
+      parseUnits(sourceAmount, sourceToken.decimals).gt(
+        latestSourceBalance?.atomicBalance ?? BigNumber.from(0),
+      ));
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad =
@@ -247,6 +259,7 @@ const BridgeView = () => {
       // Necessary because snaps prevents navigation after tx is submitted
       if (isSolanaSwap || isSolanaToEvm) {
         navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        dispatch(setIsSubmittingTx(false));
       }
       await submitBridgeTx({
         quoteResponse: activeQuote,

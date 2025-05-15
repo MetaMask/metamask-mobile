@@ -5,13 +5,7 @@ const styleSheet = () => StyleSheet.create({
         textDecorationLine: 'underline',
     },
     infoRowOverride: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      paddingBottom: 0,
-      paddingTop: 8,
+      paddingBottom: 4,
       paddingHorizontal: 8,
     },
   });

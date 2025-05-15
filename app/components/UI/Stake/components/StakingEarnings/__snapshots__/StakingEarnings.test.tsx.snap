@@ -49,6 +49,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
       >
         <SvgMock
           color="#9a6300"
+          fill="currentColor"
           height={24}
           name="Danger"
           style={
@@ -137,6 +138,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
         >
           <SvgMock
             color="#9ca1af"
+            fill="currentColor"
             height={16}
             name="Info"
             style={
@@ -323,7 +325,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
             "alignSelf": "stretch",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 20,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 40,
@@ -432,6 +434,7 @@ exports[`Staking Earnings should render correctly 1`] = `
         >
           <SvgMock
             color="#9ca1af"
+            fill="currentColor"
             height={16}
             name="Info"
             style={
@@ -618,7 +621,7 @@ exports[`Staking Earnings should render correctly 1`] = `
             "alignSelf": "stretch",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 20,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 40,
