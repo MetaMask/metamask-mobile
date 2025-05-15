@@ -2,7 +2,6 @@ import { memoize } from 'lodash';
 import { Hex } from '@metamask/utils';
 import { AssetsContractController } from '@metamask/assets-controllers';
 import { NetworkClientId } from '@metamask/network-controller';
-import { TransactionMeta } from '@metamask/transaction-controller';
 import { getTokenDetails } from '../../../../util/address';
 
 export type TokenDetailsERC20 = Awaited<
