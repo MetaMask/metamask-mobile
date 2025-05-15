@@ -5,7 +5,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
 import I18n from '../../../../../locales/i18n';
-import { formatAmount, formatAmountMaxPrecision } from '../../../../components/UI/SimulationDetails/formatAmount';
+import { formatAmount, formatAmountMaxPrecision } from '../../../UI/SimulationDetails/formatAmount';
 import { RootState } from '../../../../reducers';
 import { selectConversionRateByChainId } from '../../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
@@ -37,7 +37,7 @@ const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) 
   [tokenAddress, networkClientId],
 );
 
-export const useTokenValuesByType = ({ amountWei }: TokenValuesProps = {}): TokenValues | Record<string, never> => {
+export const useTokenAmount = ({ amountWei }: TokenValuesProps = {}): TokenValues | Record<string, never> => {
   const fiatFormatter = useFiatFormatter();
   const {
     chainId,

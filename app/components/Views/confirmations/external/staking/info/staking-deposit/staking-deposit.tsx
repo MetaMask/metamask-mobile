@@ -4,7 +4,7 @@ import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import useNavbar from '../../../../hooks/ui/useNavbar';
-import { useTokenValuesByType } from '../../../../hooks/useTokenValuesByType';
+import { useTokenAmount } from '../../../../hooks/useTokenAmount';
 import InfoSectionAccordion from '../../../../components/UI/info-section-accordion';
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
 import StakingDetails from '../../components/staking-details/staking-details';
@@ -20,7 +20,7 @@ const StakingDeposit = () => {
     trackPageViewedEvent,
     setConfirmationMetric,
   } = useConfirmationMetricEvents();
-  const { amountDisplay } = useTokenValuesByType();
+  const { amountDisplay } = useTokenAmount();
   useEffect(() => {
     setConfirmationMetric({
       properties: {

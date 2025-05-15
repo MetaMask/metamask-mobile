@@ -9,7 +9,7 @@ import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import useNavbar from '../../../../hooks/ui/useNavbar';
-import { useTokenValuesByType } from '../../../../hooks/useTokenValuesByType';
+import { useTokenAmount } from '../../../../hooks/useTokenAmount';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import InfoSection from '../../../../components/UI/info-row/info-section';
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
@@ -30,7 +30,7 @@ const StakingClaim = ({
   const { trackPageViewedEvent, setConfirmationMetric } =
     useConfirmationMetricEvents();
   const amountWei = route?.params?.amountWei;
-  const { amountDisplay } = useTokenValuesByType({ amountWei });
+  const { amountDisplay } = useTokenAmount({ amountWei });
   useEffect(() => {
     setConfirmationMetric({
       properties: {

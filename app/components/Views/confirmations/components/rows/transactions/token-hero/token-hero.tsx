@@ -10,7 +10,7 @@ import { selectTransactionState } from '../../../../../../../reducers/transactio
 import { useConfirmationContext } from '../../../../context/confirmation-context';
 import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
 import { useTokenAssetByType } from '../../../../hooks/useTokenAssetByType';
-import { useTokenValuesByType } from '../../../../hooks/useTokenValuesByType';
+import { useTokenAmount } from '../../../../hooks/useTokenAmount';
 import AnimatedPulse from '../../../UI/animated-pulse';
 import { TooltipModal } from '../../../UI/Tooltip/Tooltip';
 import { AvatarTokenWithNetworkBadge } from './avatar-token-with-network-badge';
@@ -72,7 +72,7 @@ const TokenHero = ({
   });
 
   const { amountPreciseDisplay, amountDisplay, fiatDisplay } =
-    useTokenValuesByType({ amountWei });
+    useTokenAmount({ amountWei });
   const {
     asset: { ticker },
   } = useTokenAssetByType();
