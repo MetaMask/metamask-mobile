@@ -283,9 +283,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       return;
     }
 
-    const { chainId: effectiveChainId } = isPerDappSelectedNetworkEnabled()
-    ? networkInfo
-    : { chainId: currentChainId };
+    const effectiveChainId = isPerDappSelectedNetworkEnabled()
+    ? networkInfo.chainId
+    : currentChainId;
 
       // Check if current network was originally permitted and is now being removed
       const wasCurrentNetworkOriginallyPermitted =
