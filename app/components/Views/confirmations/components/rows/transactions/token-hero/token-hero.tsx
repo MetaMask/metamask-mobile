@@ -48,7 +48,8 @@ const AssetFiatConversion = ({
 }: {
   fiatDisplay?: string;
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
-}) => fiatDisplay ? (
+}) =>
+  fiatDisplay ? (
     <Text style={styles.assetFiatConversionText} variant={TextVariant.BodyMD}>
       {fiatDisplay}
     </Text>
@@ -64,7 +65,8 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
     isFlatConfirmation,
   });
 
-  const { amountPreciseDisplay, amountDisplay, fiatDisplay } = useTokenValuesByType({ amountWei });
+  const { amountPreciseDisplay, amountDisplay, fiatDisplay } =
+    useTokenValuesByType({ amountWei });
   const { tokenSymbol } = useTokenAssetByType();
 
   const isRoundedAmount = amountPreciseDisplay !== amountDisplay;
@@ -73,32 +75,29 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
     <AnimatedPulse
       isPulsing={isTransactionValueUpdating}
       preventPulse={!maxValueMode}
-      >
-    <View style={styles.container}>
-      <View style={styles.containerAvatarTokenNetworkWithBadge}>
-        <AvatarTokenWithNetworkBadge />
-      </View>
-      <AssetAmount
-        amountDisplay={amountDisplay}
-        tokenSymbol={tokenSymbol}
-        styles={styles}
-        setIsModalVisible={isRoundedAmount ? setIsModalVisible : null}
-      />
-      <AssetFiatConversion
-        fiatDisplay={fiatDisplay ?? ''}
-        styles={styles}
-      />
-      {isRoundedAmount && (
-        <TooltipModal
-          open={isModalVisible}
-          setOpen={setIsModalVisible}
-          content={amountPreciseDisplay}
-          title={strings('send.amount')}
-          tooltipTestId="token-hero-amount"
+    >
+      <View style={styles.container}>
+        <View style={styles.containerAvatarTokenNetworkWithBadge}>
+          <AvatarTokenWithNetworkBadge />
+        </View>
+        <AssetAmount
+          amountDisplay={amountDisplay}
+          tokenSymbol={tokenSymbol}
+          styles={styles}
+          setIsModalVisible={isRoundedAmount ? setIsModalVisible : null}
         />
-      )}
-    </View>
-  </AnimatedPulse>
+        <AssetFiatConversion fiatDisplay={fiatDisplay ?? ''} styles={styles} />
+        {isRoundedAmount && (
+          <TooltipModal
+            open={isModalVisible}
+            setOpen={setIsModalVisible}
+            content={amountPreciseDisplay}
+            title={strings('send.amount')}
+            tooltipTestId="token-hero-amount"
+          />
+        )}
+      </View>
+    </AnimatedPulse>
   );
 };
 
