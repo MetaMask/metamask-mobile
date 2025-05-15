@@ -13,6 +13,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
@@ -68,6 +69,7 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { parseUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
+import { theme } from '@storybook/react-native';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -376,8 +378,7 @@ const BridgeView = () => {
               tokenBalance={latestSourceBalance?.displayBalance}
               networkImageSource={
                 sourceToken?.chainId
-                  ?
-                    getNetworkImageSource({
+                  ? getNetworkImageSource({
                       chainId: sourceToken?.chainId,
                     })
                   : undefined
@@ -404,7 +405,7 @@ const BridgeView = () => {
               token={destToken}
               networkImageSource={
                 destToken
-                  ?
+                  ? //@ts-expect-error - destToken is not typed
                     getNetworkImageSource({ chainId: destToken?.chainId })
                   : undefined
               }
@@ -422,6 +423,13 @@ const BridgeView = () => {
             {shouldDisplayQuoteDetails ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  style={styles.disclaimerText}
+                >
+                  {strings('bridge.fee_disclaimer')}
+                </Text>
               </Box>
             ) : shouldDisplayKeypad ? (
               <Box
