@@ -17,16 +17,18 @@ jest.mock('../../../../../../../core/Engine', () => ({
 }));
 
 describe('TokenHero', () => {
-  it('contains token and fiat values for staking deposit', async () => {
+  it('displays token and fiat values for staking deposit', async () => {
     const { getByText } = renderWithProvider(<TokenHero />, {
       state: stakingDepositConfirmationState,
     });
 
-    expect(getByText('0.0001 ETH')).toBeDefined();
-    expect(getByText('$0.36')).toBeDefined();
+    await waitFor(async () => {
+      expect(getByText('0.0001 ETH')).toBeDefined();
+      expect(getByText('$0.36')).toBeDefined();
+    });
   });
 
-  it('contains token and fiat values for staking deposit', async () => {
+  it('displays rounded token and fiat values for staking deposit', async () => {
     const state: DeepPartial<RootState> = merge(
       {},
       stakingDepositConfirmationState,
@@ -48,8 +50,10 @@ describe('TokenHero', () => {
       { state },
     );
 
-    expect(getByText('0.0123 ETH')).toBeDefined();
-    expect(getByText('$44.40')).toBeDefined();
+    await waitFor(() => {
+      expect(getByText('0.0123 ETH')).toBeDefined();
+      expect(getByText('$44.40')).toBeDefined();
+    });
 
     const tokenAmountText = getByText('0.0123 ETH');
     fireEvent.press(tokenAmountText);

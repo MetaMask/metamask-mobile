@@ -519,6 +519,16 @@ const stakingConfirmationBaseState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            '0x0000000000000000000000000000000000000000': {
+              address: '0x0000000000000000000000000000000000000000',
+            },
+          },
+          selectedAccount: '0x0000000000000000000000000000000000000000',
+        },
+      },
       ApprovalController: {
         pendingApprovals: {
           '699ca2f0-e459-11ef-b6f6-d182277cf5e1': {
@@ -548,6 +558,24 @@ const stakingConfirmationBaseState = {
             usdConversionRate: 3596.25,
           },
         },
+      },
+      TokensController: {
+        allTokens: {
+          '0x1': {
+            '0x0000000000000000000000000000000000000000': [{
+              address: '0x0000000000000000000000000000000000000000',
+              aggregators: [],
+              balance: '0xde0b6b3a7640000',
+              chainId: '0x1',
+              decimals: 18,
+              isETH: true,
+              isNative: true,
+              name: 'Ethereum',
+              symbol: 'ETH',
+              ticker: 'ETH',
+            }]
+          }
+        }
       },
       TransactionController: {
         transactions: [
@@ -608,39 +636,6 @@ const stakingConfirmationBaseState = {
       RemoteFeatureFlagController: {
         ...confirmationRedesignRemoteFlagsState,
       },
-      NetworkController: {
-        networksMetadata: {
-          mainnet: {
-            EIPS: { 1559: true },
-          },
-          sepolia: {
-            EIPS: { 1559: true },
-          },
-        },
-        networkConfigurationsByChainId: {
-          '0x1': {
-            nativeCurrency: 'ETH',
-            rpcEndpoints: [
-              {
-                networkClientId: 'mainnet',
-                url: 'https://mainnet.infura.io/v3/1234567890',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-          },
-          '0xaa36a7': {
-            nativeCurrency: 'ETH',
-            rpcEndpoints: [
-              {
-                networkClientId: 'sepolia',
-                url: 'https://sepolia.infura.io/v3/1234567890',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-          },
-        },
-        selectedNetworkClientId: 'mainnet',
-      },
       GasFeeController: {
         gasFeeEstimatesByChainId: {
           '0x1': {
@@ -689,7 +684,10 @@ export const stakingDepositConfirmationState = merge(
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [{ type: TransactionType.stakingDeposit }],
+          transactions: [{
+            chainId: '0x1',
+            type: TransactionType.stakingDeposit,
+          }],
         } as unknown as TransactionControllerState,
       },
     },
@@ -703,18 +701,11 @@ export const stakingWithdrawalConfirmationState = merge(
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [{ type: TransactionType.stakingUnstake }],
+          transactions: [{
+            chainId: '0x1',
+            type: TransactionType.stakingUnstake,
+          }],
         } as unknown as TransactionControllerState,
-        AccountsController: {
-          internalAccounts: {
-            accounts: {
-              '0x0000000000000000000000000000000000000000': {
-                address: '0x0000000000000000000000000000000000000000',
-              },
-            },
-            selectedAccount: '0x0000000000000000000000000000000000000000',
-          },
-        },
       },
     },
   },
@@ -727,18 +718,11 @@ export const stakingClaimConfirmationState = merge(
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [{ type: TransactionType.stakingClaim }],
+          transactions: [{
+            chainId: '0x1',
+            type: TransactionType.stakingClaim,
+          }],
         } as unknown as TransactionControllerState,
-        AccountsController: {
-          internalAccounts: {
-            accounts: {
-              '0x0000000000000000000000000000000000000000': {
-                address: '0x0000000000000000000000000000000000000000',
-              },
-            },
-            selectedAccount: '0x0000000000000000000000000000000000000000',
-          },
-        },
       },
     },
   },
