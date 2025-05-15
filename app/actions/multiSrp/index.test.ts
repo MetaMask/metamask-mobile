@@ -51,6 +51,10 @@ jest.mock('../../core/Engine', () => ({
     AccountsController: {
       getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
     },
+    UserStorageController: {
+      setHasAccountSyncingSyncedAtLeastOnce: jest.fn(),
+      setIsAccountSyncingReadyToBeDispatched: jest.fn(),
+    },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
   setAccountLabel: (address: string, label: string) =>
