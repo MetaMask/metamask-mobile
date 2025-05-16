@@ -28,7 +28,7 @@ export const BatchedTransactionTag = () => {
         <Icon name={IconName.Info} color={IconColor.Alternative} />
       }
     >
-      <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
+      <Text color={TextColor.Alternative} variant={TextVariant.BodySMMedium}>
         {`Includes ${transactionMetadata?.nestedTransactions?.length} transactions`}
       </Text>
     </TagBase>
