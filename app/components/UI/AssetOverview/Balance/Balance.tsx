@@ -108,13 +108,13 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
     );
   }, [asset, styles.ethLogo]);
 
-  const isDisabled = useMemo(() => {
-    return (
+  const isDisabled = useMemo(
+    () =>
       asset.isETH ||
       asset.isNative ||
-      isCaipChainId(asset.chainId as CaipAssetId)
-    );
-  }, [asset.chainId, asset.isETH, asset.isNative]);
+      isCaipChainId(asset.chainId as CaipAssetId),
+    [asset.chainId, asset.isETH, asset.isNative],
+  );
 
   const handlePress = useCallback(
     () =>
