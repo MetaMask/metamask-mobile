@@ -367,8 +367,7 @@ const BridgeView = () => {
               tokenBalance={latestSourceBalance?.displayBalance}
               networkImageSource={
                 sourceToken?.chainId
-                  ?
-                    getNetworkImageSource({
+                  ? getNetworkImageSource({
                       chainId: sourceToken?.chainId,
                     })
                   : undefined
@@ -395,8 +394,7 @@ const BridgeView = () => {
               token={destToken}
               networkImageSource={
                 destToken
-                  ?
-                    getNetworkImageSource({ chainId: destToken?.chainId })
+                  ? getNetworkImageSource({ chainId: destToken?.chainId })
                   : undefined
               }
               testID="dest-token-area"
