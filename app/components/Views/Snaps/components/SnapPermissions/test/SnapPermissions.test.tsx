@@ -51,7 +51,8 @@ describe('SnapPermissions', () => {
   const endowmentLifecycleHooksTitle = 'Use lifecycle hooks';
   const endowmentNameLookupTitle = 'Provide domain and address lookups';
   const endowmentPageHomeTitle = 'Display a custom screen';
-  const walletSnapTitle = 'Connect to @metamask/bip32-example-snap';
+  const walletSnapTitleOne = 'Connect to @metamask/bip32-example-snap';
+  const walletSnapTitleTwo = 'Connect to @metamask/bip44-example-snap';
 
   const mockCoinTypes = [
     { coinType: 0 }, // Bitcoin
@@ -461,12 +462,15 @@ describe('SnapPermissions', () => {
       wallet_snap: {
         id: 'MuqnOW-7BRg94sRDmVnDK',
         parentCapability: 'wallet_snap',
-        invoker: 'npm:@metamask/test-snap-bip44',
+        invoker: 'npm:@metamask/unknown-example-snap',
         caveats: [
           {
             type: 'snapIds',
             value: {
               'npm:@metamask/bip32-example-snap': {
+                version: '0.34.1-flask.1',
+              },
+              'npm:@metamask/bip44-example-snap': {
                 version: '0.34.1-flask.1',
               },
             },
@@ -484,7 +488,7 @@ describe('SnapPermissions', () => {
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
     const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
 
-    expect(permissionCells.length).toBe(29);
+    expect(permissionCells.length).toBe(30);
     expect(permissionCellTitles[0].props.children).toBe(longRunningTitle);
     expect(permissionCellDates[0].props.children).toBe(
       'Approved on May 24 at 5:35 pm',
@@ -628,9 +632,15 @@ describe('SnapPermissions', () => {
       'Approved on Jun 6 at 4:02 pm',
     );
     expect(permissionCellTitles[28].props.children).toBe(
-      walletSnapTitle,
+      walletSnapTitleOne,
     );
     expect(permissionCellDates[28].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[29].props.children).toBe(
+      walletSnapTitleTwo,
+    );
+    expect(permissionCellDates[29].props.children).toBe(
       'Approved on Jun 6 at 4:02 pm',
     );
   });
