@@ -17125,7 +17125,7 @@ expo-dev-menu@6.0.25:
   dependencies:
     expo-dev-menu-interface "1.9.3"
 
-expo-file-system@~18.0.7:
+expo-file-system@~18.0.12, expo-file-system@~18.0.7:
   version "18.0.12"
   resolved "https://registry.yarnpkg.com/expo-file-system/-/expo-file-system-18.0.12.tgz#6ceeeb0725f6c5faaf58112f18c073c2acfb3027"
   integrity sha512-HAkrd/mb8r+G3lJ9MzmGeuW2B+BxQR1joKfeCyY4deLl1zoZ48FrAWjgZjHK9aHUVhJ0ehzInu/NQtikKytaeg==
