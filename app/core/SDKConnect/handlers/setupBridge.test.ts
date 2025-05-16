@@ -54,11 +54,8 @@ describe('setupBridge', () => {
 
   it('should setup backgroundBridge with correct url and isRemoteConn', () => {
     connection.backgroundBridge = undefined;
-    const expectedUrl =
-      PROTOCOLS.METAMASK + '://' + originatorInfo.url ?? originatorInfo.title;
-
+    const expectedUrl = originatorInfo.url;
     setupBridge({ originatorInfo, connection });
-
     expect(BackgroundBridge).toHaveBeenCalledWith(
       expect.objectContaining({
         url: expectedUrl,
