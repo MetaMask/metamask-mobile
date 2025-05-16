@@ -6,7 +6,7 @@ import { getAppMetadataControllerMessenger } from './app-metadata-controller-mes
 import {
   getDeFiPositionsControllerInitMessenger,
   getDeFiPositionsControllerMessenger,
-} from './defi-positions-controller-messenger';
+} from './defi-positions-controller-messenger/defi-positions-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   getCronjobControllerMessenger,
