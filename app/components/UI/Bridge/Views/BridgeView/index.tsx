@@ -68,6 +68,7 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { parseUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -113,7 +114,7 @@ const BridgeView = () => {
     isExpired,
     willRefresh,
   } = useBridgeQuoteData();
-  const { quoteRequest, quotesLastFetched } = useSelector(
+  const { quotesLastFetched } = useSelector(
     selectBridgeControllerState,
   );
   const { handleSwitchTokens } = useSwitchTokens();
@@ -156,13 +157,10 @@ const BridgeView = () => {
   const hasValidBridgeInputs =
     isValidSourceAmount && !!sourceToken && !!destToken;
 
-  // quoteRequest.insufficientBal is undefined for Solana quotes, so we need to manually check if the source amount is greater than the balance
-  const hasInsufficientBalance =
-    quoteRequest?.insufficientBal ||
-    (isValidSourceAmount &&
-      parseUnits(sourceAmount, sourceToken.decimals).gt(
-        latestSourceBalance?.atomicBalance ?? BigNumber.from(0),
-      ));
+  const hasInsufficientBalance = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+  });
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad =
