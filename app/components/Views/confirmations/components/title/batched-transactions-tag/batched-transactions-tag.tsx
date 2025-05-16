@@ -1,5 +1,4 @@
 import React from 'react';
-import { FlexAlignType } from 'react-native';
 
 import Icon, {
   IconColor,
@@ -10,13 +9,12 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../hooks/useStyles';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-
-const styles = {
-  tagBaseStyle: { alignSelf: 'center' as FlexAlignType, marginTop: 16 },
-};
+import styleSheet from './batched-transactions-tag.styles';
 
 export const BatchedTransactionTag = () => {
+  const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
 
   if ((transactionMetadata?.nestedTransactions?.length ?? 0) <= 1) {
