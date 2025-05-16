@@ -80,9 +80,9 @@ import {
 } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { parseChainId } from '@walletconnect/utils';
-import { RpcEndpoint } from '@metamask/network-controller/dist/NetworkController.cjs';
-import { NetworkAvatarProps } from '../AccountConnect/AccountConnect.types';
+import { NetworkConfiguration } from '@metamask/network-controller';
 import styleSheet from './AccountPermissions.styles';
+import { NetworkAvatarProps } from '../AccountConnect/AccountConnect.types';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -360,10 +360,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           ) {
             return;
           }
-          const { rpcEndpoints, defaultRpcEndpointIndex } = config;
-          const { networkClientId } = (rpcEndpoints as RpcEndpoint[])[
-            defaultRpcEndpointIndex as number
-          ];
+
+          const { rpcEndpoints, defaultRpcEndpointIndex } =
+            config as NetworkConfiguration;
+          const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
           // Switch to the network using networkClientId
           await Engine.context.MultichainNetworkController.setActiveNetwork(

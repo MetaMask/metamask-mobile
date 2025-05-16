@@ -130,20 +130,21 @@ const AccountConnect = (props: AccountConnectProps) => {
     NetworkAvatarProps[]
   >([]);
 
-  const requestedCaip25CaveatValue = getRequestedCaip25CaveatValue(
+  const requestedCaip25CaveatValue = useMemo(() => getRequestedCaip25CaveatValue(
     hostInfo.permissions,
+  ), [hostInfo.permissions]
   );
 
-  const requestedCaipAccountIds = getCaipAccountIdsFromCaip25CaveatValue(
+  const requestedCaipAccountIds = useMemo(() => getCaipAccountIdsFromCaip25CaveatValue(
     requestedCaip25CaveatValue,
-  );
-  const requestedCaipChainIds = getAllScopesFromCaip25CaveatValue(
+  ), [requestedCaip25CaveatValue]);
+  const requestedCaipChainIds = useMemo(() => getAllScopesFromCaip25CaveatValue(
     requestedCaip25CaveatValue,
-  );
+  ), [requestedCaip25CaveatValue]);
 
-  const requestedNamespaces = getAllNamespacesFromCaip25CaveatValue(
+  const requestedNamespaces = useMemo(() => getAllNamespacesFromCaip25CaveatValue(
     requestedCaip25CaveatValue,
-  );
+  ), [requestedCaip25CaveatValue]);
 
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
