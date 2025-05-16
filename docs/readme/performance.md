@@ -2,16 +2,21 @@
 
 Performance optimization in React Native applications is a complex and multifaceted challenge. It encompasses various aspects such as rendering efficiency, memory management, network operations, and native module interactions. Poor performance can manifest in different ways - from sluggish UI responses and excessive battery drain to memory leaks and app crashes.
 
-This guide aims to help you navigate this complex landscape by providing best practices, common pitfalls to avoid, and the right tools to measure and improve performance. We'll focus on key areas that significantly impact app performance, including:
+This guide aims to help you navigate this complex landscape by providing best practices, common pitfalls to avoid, and the right tools to measure and improve performance. Some topics that we'll cover include:
 
 - [Re-renders and component optimization](#re-renders-and-component-optimization)
-- [Memory usage and management](#memory-usage-and-management)
-- [Network and data fetching strategies](#network-and-data-fetching-strategies)
-- [Animation and interaction smoothness](#animation-and-interaction-smoothness)
+- [Tool(s) for identifying re-renders](#tools-for-identifying-re-renders)
 
 By understanding these areas and applying the recommended practices, you can create a more efficient and responsive application that provides a better user experience.
 
 ## Re-renders and component optimization
+
+> **Note on Over-Optimization**: While memoization is powerful, it's important to use it in moderation. Not every function or computed value needs to be memoized. Consider memoization when:
+>
+> - The computation is expensive (e.g., complex calculations, large array transformations)
+> - The value is used in dependency arrays of other hooks
+>
+> Avoid premature optimization. Start without memoization and add it only when you observe performance issues.
 
 Re-renders are a common source of performance issues in React Native applications. While some re-renders are necessary for updating the UI, unnecessary re-renders can significantly impact performance. Here are some areas that we've seen that can cause performance issues:
 
@@ -122,14 +127,14 @@ useEffect(() => {
 }, [userId]); // Effect runs only when userId changes
 ```
 
-## Memory usage and management
+## Tools for identifying re-renders
 
-WIP
+We recommend using [React Native Dev Tools](https://reactnative.dev/docs/react-native-devtools) to identify re-renders in your React Native app.
 
-## Network and data fetching
+In the following tutorial, we will reference [Callstack](https://www.callstack.com/)'s recently released 2025 [guide](https://www.callstack.com/ebooks/the-ultimate-guide-to-react-native-optimization) to React Native performance optimization. In the guide, Callstack walks through how to use React Native Dev Tools Profiler to identify re-renders in your React Native app.
 
-WIP
-
-## Animation and interaction smoothness
-
-WIP
+![Callstack Profile Re-render P.14](../assets/callstack-rerender-profiling/profile-rerender-14.jpg)
+![Callstack Profile Re-render P.15](../assets/callstack-rerender-profiling/profile-rerender-15.jpg)
+![Callstack Profile Re-render P.16](../assets/callstack-rerender-profiling/profile-rerender-16.jpg)
+![Callstack Profile Re-render P.17](../assets/callstack-rerender-profiling/profile-rerender-17.jpg)
+![Callstack Profile Re-render P.18](../assets/callstack-rerender-profiling/profile-rerender-18.jpg)
