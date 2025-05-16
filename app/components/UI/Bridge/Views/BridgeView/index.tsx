@@ -66,6 +66,8 @@ import { selectSelectedNetworkClientId } from '../../../../../selectors/networkC
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
+import { parseUnits } from 'ethers/lib/utils';
+import { BigNumber } from 'ethers';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -154,7 +156,13 @@ const BridgeView = () => {
   const hasValidBridgeInputs =
     isValidSourceAmount && !!sourceToken && !!destToken;
 
-  const hasInsufficientBalance = quoteRequest?.insufficientBal;
+  // quoteRequest.insufficientBal is undefined for Solana quotes, so we need to manually check if the source amount is greater than the balance
+  const hasInsufficientBalance =
+    quoteRequest?.insufficientBal ||
+    (isValidSourceAmount &&
+      parseUnits(sourceAmount, sourceToken.decimals).gt(
+        latestSourceBalance?.atomicBalance ?? BigNumber.from(0),
+      ));
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad =
@@ -368,8 +376,7 @@ const BridgeView = () => {
               tokenBalance={latestSourceBalance?.displayBalance}
               networkImageSource={
                 sourceToken?.chainId
-                  ?
-                    getNetworkImageSource({
+                  ? getNetworkImageSource({
                       chainId: sourceToken?.chainId,
                     })
                   : undefined
@@ -396,8 +403,7 @@ const BridgeView = () => {
               token={destToken}
               networkImageSource={
                 destToken
-                  ?
-                    getNetworkImageSource({ chainId: destToken?.chainId })
+                  ? getNetworkImageSource({ chainId: destToken?.chainId })
                   : undefined
               }
               testID="dest-token-area"
