@@ -15,7 +15,7 @@ import {
 import { renderNumber } from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
@@ -26,7 +26,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
-  selectBridgeControllerState,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
@@ -35,8 +34,6 @@ import { selectMultichainAssetsRates } from '../../../../../selectors/multichain
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
-import { parseUnits } from 'ethers/lib/utils';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 
 const createStyles = () =>

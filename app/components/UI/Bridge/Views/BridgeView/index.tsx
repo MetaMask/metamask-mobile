@@ -66,8 +66,6 @@ import { selectSelectedNetworkClientId } from '../../../../../selectors/networkC
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
-import { parseUnits } from 'ethers/lib/utils';
-import { BigNumber } from 'ethers';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 
 export interface BridgeRouteParams {

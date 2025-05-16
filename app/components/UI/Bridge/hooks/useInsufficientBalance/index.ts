@@ -1,14 +1,14 @@
-import { useSelector } from "react-redux";
-import { selectBridgeControllerState } from "../../../../../selectors/bridgeController";
-import { useLatestBalance } from "../useLatestBalance";
-import { BigNumber } from "ethers";
-import { parseUnits } from "ethers/lib/utils";
-import { BridgeToken } from "../../types";
+import { useSelector } from 'react-redux';
+import { selectBridgeControllerState } from '../../../../../selectors/bridgeController';
+import { useLatestBalance } from '../useLatestBalance';
+import { BigNumber } from 'ethers';
+import { parseUnits } from 'ethers/lib/utils';
+import { BridgeToken } from '../../types';
 
-type UseIsInsufficientBalanceParams = {
+interface UseIsInsufficientBalanceParams {
   amount: string | undefined;
   token: BridgeToken | undefined;
-};
+}
 
 const useIsInsufficientBalance = ({ amount, token }: UseIsInsufficientBalanceParams): boolean => {
   const { quoteRequest } = useSelector(selectBridgeControllerState);
