@@ -458,6 +458,7 @@ class Onboarding extends PureComponent {
       params: {
         title: strings(`error_sheet.${errorMessage}_title`),
         description: strings(`error_sheet.${errorMessage}_description`),
+        descriptionAlign: 'center',
         buttonLabel: strings(`error_sheet.${errorMessage}_button`),
         type: 'error',
       },
