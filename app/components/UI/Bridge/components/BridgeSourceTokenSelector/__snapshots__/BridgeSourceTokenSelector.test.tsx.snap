@@ -241,6 +241,9 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -339,6 +342,9 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                       />
                       <View
                         collapsable={false}
+                        enabled={true}
+                        handlerTag={2}
+                        handlerType="PanGestureHandler"
                         onGestureHandlerEvent={[Function]}
                         onGestureHandlerStateChange={[Function]}
                         style={
@@ -853,6 +859,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                             }
                             getItem={[Function]}
                             getItemCount={[Function]}
+                            handlerTag={1}
+                            handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             onContentSizeChange={[Function]}
                             onGestureHandlerEvent={[Function]}

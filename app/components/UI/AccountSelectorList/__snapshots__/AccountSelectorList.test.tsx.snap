@@ -35,6 +35,8 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
@@ -884,6 +886,8 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
@@ -1645,6 +1649,8 @@ exports[`AccountSelectorList renders correctly 1`] = `
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}

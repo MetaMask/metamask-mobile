@@ -241,6 +241,9 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -339,6 +342,9 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                       />
                       <View
                         collapsable={false}
+                        enabled={true}
+                        handlerTag={-1}
+                        handlerType="PanGestureHandler"
                         onGestureHandlerEvent={[Function]}
                         onGestureHandlerStateChange={[Function]}
                         style={
@@ -392,6 +398,8 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                               "paddingHorizontal": 16,
                             }
                           }
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                         >

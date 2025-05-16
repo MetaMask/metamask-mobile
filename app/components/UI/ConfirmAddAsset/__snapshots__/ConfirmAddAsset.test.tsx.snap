@@ -27,6 +27,8 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
   </Text>
   <RCTScrollView
     collapsable={false}
+    handlerTag={-1}
+    handlerType="NativeViewGestureHandler"
     onGestureHandlerEvent={[Function]}
     onGestureHandlerStateChange={[Function]}
     style={

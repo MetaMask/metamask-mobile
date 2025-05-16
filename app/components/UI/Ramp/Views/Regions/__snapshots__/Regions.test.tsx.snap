@@ -335,6 +335,9 @@ exports[`Regions View renders correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={2}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1086,6 +1089,9 @@ exports[`Regions View renders correctly while loading 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={3}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1688,6 +1694,9 @@ exports[`Regions View renders correctly with error 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={16}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2329,6 +2338,9 @@ exports[`Regions View renders correctly with no data 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={4}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2931,6 +2943,9 @@ exports[`Regions View renders correctly with sdkError 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={14}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3572,6 +3587,9 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={5}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4321,6 +4339,9 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={12}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -5474,6 +5495,9 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={13}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6627,6 +6651,9 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={6}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={

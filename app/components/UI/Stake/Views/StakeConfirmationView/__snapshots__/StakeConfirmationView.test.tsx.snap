@@ -12,6 +12,8 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
       "paddingTop": 8,
     }
   }
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   onGestureHandlerEvent={[Function]}
   onGestureHandlerStateChange={[Function]}
 >
