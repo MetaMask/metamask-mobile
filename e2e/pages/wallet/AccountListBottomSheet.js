@@ -107,10 +107,6 @@ class AccountListBottomSheet {
   async longPressImportedAccount() {
     await Gestures.tapAndLongPress(this.getSelectElement(1));
   }
-  // Required because clicking on center of the account list sheet does not work
-  async tapAccountOffCenter(index, x = 0.5, y = 0.5) {
-    await Gestures.tapAtRelativePosition(this.getSelectWithMenuElementName(index), x, y);
-  }
 
   async swipeToDismissAccountsModal() {
     await Gestures.swipe(this.title, 'down', 'fast', 0.6);

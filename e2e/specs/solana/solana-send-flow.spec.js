@@ -24,8 +24,8 @@ const INVALID_ADDRESS = 'invalid address';
 const INVALID_ADDRESS_ERROR = 'Invalid Solana address';
 const RECIPIENT_ADDRESS = 'GxE7wWLyUEV4jMqQUMj8kT1XVpcfxq4iWBTVDTwCV77M';
 const TRANSFER_AMOUNT = '0.001';
-const EXPECTED_CONFIRMATION = '0.0009 SOL was successfully sent';
-const RECIPIENT_SHORT_ADDRESS = 'To GxE7wWL...CV77M';
+const EXPECTED_CONFIRMATION = '0.001 SOL was successfully sent';
+const RECIPIENT_SHORT_ADDRESS = 'GxE7wWL...CV77M';
 
 describe(
   SmokeNetworkExpansion('Solana Token Transfer Functionality'),
@@ -77,9 +77,7 @@ describe(
       // Snap UI components prove tricky for testID's require more time
       await SendView.tapSendSOLTransactionButton();
       // Assert transaction is sent
-      await Assertions.checkIfTextIsDisplayed(
-        Gestures.getElementByTextStartingWith(EXPECTED_CONFIRMATION)
-      );
+      await Assertions.checkIfTextIsDisplayed(EXPECTED_CONFIRMATION);
     });
 
     it('Should verify that transaction is sent successfully', async () => {

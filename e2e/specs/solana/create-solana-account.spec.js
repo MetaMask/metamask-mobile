@@ -100,14 +100,15 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     //Switch back to first solana account
     await WalletView.tapIdenticon();
     // Select first Solana
-    await AccountListBottomSheet.tapAccountOffCenter(1, 0.5, 0.5);
+    await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
     //Assert solana account 1 on main wallet view
     await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 0);
 
     //Switch to second solana account
     await WalletView.tapIdenticon();
     // Select second Solana
-    await AccountListBottomSheet.tapAccountOffCenter(2, 0.5, 0.5);
+    await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
+
     //Assert solana account 2 on main wallet view
     await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 0);
   });

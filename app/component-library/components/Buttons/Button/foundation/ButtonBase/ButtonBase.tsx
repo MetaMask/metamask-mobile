@@ -49,7 +49,6 @@ const ButtonBase = ({
       style={styles.base}
       accessibilityRole="button"
       accessible
-      testID={testID}
       {...props}
     >
       {startIconName && (
