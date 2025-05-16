@@ -1,5 +1,3 @@
-import { merge } from 'lodash';
-
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { transferTransactionStateMock } from '../../mock-data/transfer-transaction-mock';
 import { useGasFeeMetrics } from './useGasFeeMetrics';
@@ -17,20 +15,6 @@ jest.mock('../../../../../core/Engine', () => ({
 jest.mock('../../components/modals/gas-fee-modal/hooks/useGasOptions');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useConfirmationMetricEvents');
-
-const transactionWithGasEstimatesLoaded = merge(transferTransactionStateMock, {
-  engine: {
-    backgroundState: {
-      TransactionController: {
-        transactions: [
-          {
-            gasFeeEstimatesLoaded: true,
-          },
-        ],
-      },
-    },
-  },
-});
 
 describe('useGasFeeMetrics', () => {
   const mockSetConfirmationMetric = jest.fn();
@@ -57,7 +41,7 @@ describe('useGasFeeMetrics', () => {
 
   it('set metrics with available gas options', () => {
     renderHookWithProvider(() => useGasFeeMetrics(), {
-      state: transactionWithGasEstimatesLoaded,
+      state: transferTransactionStateMock,
     });
 
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
@@ -75,7 +59,7 @@ describe('useGasFeeMetrics', () => {
     });
 
     renderHookWithProvider(() => useGasFeeMetrics(), {
-      state: transactionWithGasEstimatesLoaded,
+      state: transferTransactionStateMock,
     });
 
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
@@ -97,7 +81,7 @@ describe('useGasFeeMetrics', () => {
     });
 
     renderHookWithProvider(() => useGasFeeMetrics(), {
-      state: transactionWithGasEstimatesLoaded,
+      state: transferTransactionStateMock,
     });
 
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
@@ -119,7 +103,7 @@ describe('useGasFeeMetrics', () => {
     });
 
     renderHookWithProvider(() => useGasFeeMetrics(), {
-      state: transactionWithGasEstimatesLoaded,
+      state: transferTransactionStateMock,
     });
 
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
@@ -137,7 +121,7 @@ describe('useGasFeeMetrics', () => {
     });
 
     renderHookWithProvider(() => useGasFeeMetrics(), {
-      state: transactionWithGasEstimatesLoaded,
+      state: transferTransactionStateMock,
     });
 
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
@@ -151,7 +135,7 @@ describe('useGasFeeMetrics', () => {
 
   it('update metrics when gas fee options change', () => {
     const { rerender } = renderHookWithProvider(() => useGasFeeMetrics(), {
-      state: transactionWithGasEstimatesLoaded,
+      state: transferTransactionStateMock,
     });
 
     expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
@@ -179,7 +163,7 @@ describe('useGasFeeMetrics', () => {
 
   it('calls useGasOptions with expected parameters', () => {
     renderHookWithProvider(() => useGasFeeMetrics(), {
-      state: transactionWithGasEstimatesLoaded,
+      state: transferTransactionStateMock,
     });
 
     expect(useGasOptions).toHaveBeenCalledWith({
@@ -198,7 +182,7 @@ describe('useGasFeeMetrics', () => {
     });
 
     renderHookWithProvider(() => useGasFeeMetrics(), {
-      state: transactionWithGasEstimatesLoaded,
+      state: transferTransactionStateMock,
     });
 
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
