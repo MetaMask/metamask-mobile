@@ -42,6 +42,13 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     await loadFixture(fixtureServer, {
       fixture: new FixtureBuilder()
       .withSolanaFixture()
+      .withAsyncState({
+        '@MetaMask:existingUser': 'true',
+        '@MetaMask:onboardingWizard': 'explored',
+        '@MetaMask:UserTermsAcceptedv1.0': 'true',
+        '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
+        '@MetaMask:solanaFeatureModalShown': 'false' // Ensure modal is NOT suppressed
+      })
       .build(),
     });
     await TestHelpers.launchApp({
@@ -71,7 +78,7 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
 
   it('should create Solana account directly from new feature announcement sheet', async () => {
     await SolanaNewFeatureSheet.tapCreateAccountButton();
-    await SolanaNewFeatureSheet.tapAddAccountButton();
+    await AddNewHdAccountComponent.tapConfirm();
     await WalletView.tapIdenticon();
     // Check if the Solana account is created
     await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 1);

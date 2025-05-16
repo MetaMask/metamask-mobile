@@ -109,7 +109,7 @@ class AccountListBottomSheet {
   }
   // Required because clicking on center of the account list sheet does not work
   async tapAccountOffCenter(index, x = 0.5, y = 0.5) {
-    await Gestures.tapAtRelativePosition(this.getSelectWithMenuElement(index), x, y);
+    await Gestures.tapAtRelativePosition(this.getSelectWithMenuElementName(index), x, y);
   }
 
   async swipeToDismissAccountsModal() {
