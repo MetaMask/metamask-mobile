@@ -1,5 +1,4 @@
 import { captureException } from '@sentry/react-native';
-import { hasProperty, isObject } from '@metamask/utils';
 
 import { ensureValidState } from './util';
 
@@ -10,7 +9,7 @@ import { ensureValidState } from './util';
  * as a default Seedless Onboarding State.
  */
 const migration = (state: unknown): unknown => {
-  const migrationVersion = 77;
+  const migrationVersion = 79;
 
   // Ensure the state is valid for migration
   if (!ensureValidState(state, migrationVersion)) {
@@ -18,21 +17,7 @@ const migration = (state: unknown): unknown => {
   }
 
   try {
-    if (
-      hasProperty(state, 'engine') &&
-      hasProperty(state.engine, 'backgroundState') &&
-      hasProperty(
-        state.engine.backgroundState,
-        'SeedlessOnboardingController',
-      ) &&
-      isObject(state.engine.backgroundState.SeedlessOnboardingController) &&
-      isObject(state.engine.backgroundState.SeedlessOnboardingController)
-    ) {
-      // migrate seedless onboarding state with default values
-      state.engine.backgroundState.SeedlessOnboardingController = {
-        socialBackupsMetadata: [],
-      };
-    }
+    // no state migration needed as new controller is introduced with default values
     return state;
   } catch (error) {
     captureException(

@@ -2,7 +2,7 @@ import { captureException } from '@sentry/react-native';
 import { cloneDeep } from 'lodash';
 
 import { ensureValidState } from './util';
-import migrate from './072';
+import migrate from './079';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -19,7 +19,12 @@ const createTestState = () => ({
   engine: {
     backgroundState: {
       SeedlessOnboardingController: {
+        authConnection: 'apple',
+        userId: '123',
         socialBackupsMetadata: [],
+        objectState: {
+          childState: [],
+        },
       },
     },
   },
@@ -49,7 +54,6 @@ describe('Migration 77: Add Seedless Onboarding default state', () => {
         backgroundState: {
           SeedlessOnboardingController: {
             ...oldState.engine.backgroundState.SeedlessOnboardingController,
-            socialBackupsMetadata: [],
           },
         },
       },
@@ -91,12 +95,12 @@ describe('Migration 77: Add Seedless Onboarding default state', () => {
         engine: {
           backgroundState: {
             SeedlessOnboardingController: {
-              socialBackupsMetadata: 'invalid',
+              socialBackupsMetadata: [],
             },
           },
         },
       },
-      test: 'invalid socialBackupsMetadata state',
+      test: 'Array [] socialBackupsMetadata state',
     },
   ])('does not modify state if the state is invalid - $test', ({ state }) => {
     const orgState = cloneDeep(state);
