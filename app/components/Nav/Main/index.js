@@ -91,6 +91,8 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import Routes from '../../../constants/navigation/Routes';
+import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
+import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
 
 const Stack = createStackNavigator();
 
@@ -453,7 +455,9 @@ const Main = (props) => {
           props.backUpSeedphraseVisible,
         )}
         <ProtectYourWalletModal navigation={props.navigation} />
+        <InfoNetworkModal />
         <RootRPCMethodsUI navigation={props.navigation} />
+        <ProtectWalletMandatoryModal />
       </View>
     </React.Fragment>
   );

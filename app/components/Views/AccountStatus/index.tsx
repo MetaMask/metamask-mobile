@@ -131,7 +131,7 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
         width={ButtonWidthTypes.Full}
         onPress={() => {
           if (type === 'found') {
-            navigateNextScreen('Login', 'Onboarding', 'import');
+            navigateNextScreen('Rehydrate', 'Onboarding', 'import');
           } else {
             navigateNextScreen('ChoosePassword', 'Onboarding', 'create');
           }

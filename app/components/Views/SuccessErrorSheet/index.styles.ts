@@ -15,9 +15,14 @@ const styles = StyleSheet.create({
   fullWidthButton: {
     width: '100%',
   },
-  description: {
+  descriptionLeft: {
     textAlign: 'left',
     alignSelf: 'flex-start',
+    width: '100%',
+  },
+  descriptionCenter: {
+    textAlign: 'center',
+    alignSelf: 'center',
     width: '100%',
   },
   title: {

@@ -247,6 +247,7 @@ const OnboardingNav = () => (
       component={AccountAlreadyExists}
     />
     <Stack.Screen name="AccountNotFound" component={AccountNotFound} />
+    <Stack.Screen name="Rehydrate" component={Login} />
   </Stack.Navigator>
 );
 
@@ -746,10 +747,12 @@ const AppFlow = () => {
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         component={ModalConfirmationRequest}
       />
-      <Stack.Screen
-        name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
-        component={ModalSwitchAccountType}
-      />
+      {process.env.MM_SMART_ACCOUNT_UI_ENABLED && (
+        <Stack.Screen
+          name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
+          component={ModalSwitchAccountType}
+        />
+      )}
     </Stack.Navigator>
   );
 };

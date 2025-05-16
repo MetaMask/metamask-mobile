@@ -606,13 +606,6 @@ const Settings: React.FC = () => {
           color={TextColor.Alternative}
           style={styles.subHeading}
         >
-          {strings('app_settings.security_check_subheading')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
-          style={styles.subHeading}
-        >
           {strings('app_settings.analytics_subheading')}
         </Text>
         <MetaMetricsAndDataCollectionSection />

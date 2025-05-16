@@ -355,7 +355,9 @@ class Onboarding extends PureComponent {
 
   onPressCreate = () => {
     this.setState({ bottomSheetVisible: false });
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
     OAuthLoginService.resetOauthState();
+    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
     const action = () => {
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -368,7 +370,9 @@ class Onboarding extends PureComponent {
 
   onPressImport = () => {
     this.setState({ bottomSheetVisible: false });
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
     OAuthLoginService.resetOauthState();
+    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
     const action = async () => {
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
@@ -388,7 +392,7 @@ class Onboarding extends PureComponent {
             oauthLoginSuccess: true,
           });
         } else {
-          this.props.navigation.push('ChoosePassword', {
+          this.props.navigation.navigate('ChoosePassword', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
           });
@@ -396,7 +400,7 @@ class Onboarding extends PureComponent {
         }
       } else if (!createWallet) {
         if (result.existingUser) {
-          this.props.navigation.push('Login', {
+          this.props.navigation.navigate('Rehydrate', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
           });
@@ -458,6 +462,7 @@ class Onboarding extends PureComponent {
       params: {
         title: strings(`error_sheet.${errorMessage}_title`),
         description: strings(`error_sheet.${errorMessage}_description`),
+        descriptionAlign: 'center',
         buttonLabel: strings(`error_sheet.${errorMessage}_button`),
         type: 'error',
       },
