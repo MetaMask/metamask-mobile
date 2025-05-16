@@ -52,6 +52,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
       (displayTokens) =>
         displayTokens.positions.flatMap((nestedToken) =>
           nestedToken.flatMap((token) =>
+            // Avoid duplicate avatars
             token.tokens.filter((underlying) => {
               if (seenAvatar.has(underlying.iconUrl)) {
                 return false;
