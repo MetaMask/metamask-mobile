@@ -82,7 +82,6 @@ export enum TraceOperation {
   CreateSnapAccount = 'create.snap.account',
   AddSnapAccount = 'add.snap.account',
   OnboardingUserJourney = 'onboarding.user_journey',
-  OnboardingSocialLogin = 'onboarding.social_login',
 }
 
 const ID_DEFAULT = 'default';

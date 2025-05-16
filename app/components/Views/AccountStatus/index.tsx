@@ -41,6 +41,7 @@ interface AccountStatusProps {
 interface AccountRouteParams {
   accountName?: string;
   oauthLoginSuccess?: boolean;
+  onboardingTraceCtx?: string;
 }
 
 const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
@@ -51,6 +52,8 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
   const accountName = (route.params as AccountRouteParams)?.accountName;
   const oauthLoginSuccess = (route.params as AccountRouteParams)
     ?.oauthLoginSuccess;
+  const onboardingTraceCtx = (route.params as AccountRouteParams)
+    ?.onboardingTraceCtx;
 
   useLayoutEffect(() => {
     const traceToEnd = type === 'found'
@@ -104,6 +107,7 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
         ...getTraceTags(store.getState()),
         source: 'account_status_redirect',
       },
+      parentContext: onboardingTraceCtx,
     });
 
     navigation.dispatch(

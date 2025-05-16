@@ -244,7 +244,7 @@ class Onboarding extends PureComponent {
   actionXAnimated = new Animated.Value(0);
   detailsAnimated = new Animated.Value(0);
 
-  overallTraceCtx = null;
+  onboardingTraceCtx = null;
   socialLoginTraceCtx = null;
 
   animatedTimingStart = (animatedRef, toValue) => {
@@ -309,7 +309,7 @@ class Onboarding extends PureComponent {
   };
 
   componentDidMount() {
-    this.overallTraceCtx = trace({
+    this.onboardingTraceCtx = trace({
       name: TraceName.OnboardingJourneyOverall,
       op: TraceOperation.OnboardingUserJourney,
       tags: getTraceTags(store.getState()),
@@ -377,7 +377,7 @@ class Onboarding extends PureComponent {
         name: TraceName.OnboardingNewSrpCreateWallet,
         op: TraceOperation.OnboardingUserJourney,
         tags: getTraceTags(store.getState()),
-        parentContext: this.overallTraceCtx,
+        parentContext: this.onboardingTraceCtx,
       });
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -396,7 +396,7 @@ class Onboarding extends PureComponent {
         name: TraceName.OnboardingExistingSrpImport,
         op: TraceOperation.OnboardingUserJourney,
         tags: getTraceTags(store.getState()),
-        parentContext: this.overallTraceCtx,
+        parentContext: this.onboardingTraceCtx,
       });
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
@@ -420,18 +420,19 @@ class Onboarding extends PureComponent {
             name: TraceName.OnboardingNewSocialAccountExists,
             op: TraceOperation.OnboardingUserJourney,
             tags: getTraceTags(store.getState()),
-            parentContext: this.overallTraceCtx,
+            parentContext: this.onboardingTraceCtx,
           });
           this.props.navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
+            onboardingTraceCtx: this.onboardingTraceCtx,
           });
         } else {
           trace({
             name: TraceName.OnboardingNewSocialCreateWallet,
             op: TraceOperation.OnboardingUserJourney,
             tags: getTraceTags(store.getState()),
-            parentContext: this.overallTraceCtx,
+            parentContext: this.onboardingTraceCtx,
           });
           this.props.navigation.push('ChoosePassword', {
             [PREVIOUS_SCREEN]: ONBOARDING,
@@ -445,7 +446,7 @@ class Onboarding extends PureComponent {
             name: TraceName.OnboardingExistingSocialLogin,
             op: TraceOperation.OnboardingUserJourney,
             tags: getTraceTags(store.getState()),
-            parentContext: this.overallTraceCtx,
+            parentContext: this.onboardingTraceCtx,
           });
           this.props.navigation.push('Login', {
             [PREVIOUS_SCREEN]: ONBOARDING,
@@ -457,11 +458,12 @@ class Onboarding extends PureComponent {
             name: TraceName.OnboardingExistingSocialAccountNotFound,
             op: TraceOperation.OnboardingUserJourney,
             tags: getTraceTags(store.getState()),
-            parentContext: this.overallTraceCtx,
+            parentContext: this.onboardingTraceCtx,
           });
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
+            onboardingTraceCtx: this.onboardingTraceCtx,
           });
         }
       }
@@ -474,9 +476,9 @@ class Onboarding extends PureComponent {
     this.props.navigation.navigate('Onboarding');
     this.socialLoginTraceCtx = trace({
       name: TraceName.OnboardingSocialLoginAttempt,
-      op: TraceOperation.OnboardingSocialLogin,
+      op: TraceOperation.OnboardingUserJourney,
       tags: { ...getTraceTags(store.getState()), provider: 'apple' },
-      parentContext: this.overallTraceCtx,
+      parentContext: this.onboardingTraceCtx,
     });
     const action = async () => {
       const result = await OAuthLoginService.handleOAuthLogin('apple').catch(
@@ -494,9 +496,9 @@ class Onboarding extends PureComponent {
     this.props.navigation.navigate('Onboarding');
     this.socialLoginTraceCtx = trace({
       name: TraceName.OnboardingSocialLoginAttempt,
-      op: TraceOperation.OnboardingSocialLogin,
+      op: TraceOperation.OnboardingUserJourney,
       tags: { ...getTraceTags(store.getState()), provider: 'google' },
-      parentContext: this.overallTraceCtx,
+      parentContext: this.onboardingTraceCtx,
     });
     const action = async () => {
       const result = await OAuthLoginService.handleOAuthLogin('google').catch(
