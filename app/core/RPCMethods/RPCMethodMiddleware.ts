@@ -806,11 +806,9 @@ export const getRpcMethodMiddleware = ({
         },
 
         eth_signTypedData_v4: async () => {
-          const data =
-            typeof req.params[1] === 'string'
-              ? JSON.parse(req.params[1])
-              : req.params[1];
+          const data = JSON.parse(req.params[1]);
           const chainId = data.domain.chainId;
+
           trace(
             { name: TraceName.PPOMValidation, parentContext: req.traceContext },
             () => PPOMUtil.validateRequest(req),
