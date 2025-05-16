@@ -37,18 +37,18 @@ jest.mock('react-native-quick-crypto', () => ({
       return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
     }),
     encrypt: jest.fn((algorithm, key, data) => {
-      return Promise.resolve(new Uint8Array([
-        123,  34, 116, 101, 115,
-        116,  34,  58,  34, 100,
-         97, 116,  97,  34, 125
-      ]));
+      return Promise.resolve(
+        new Uint8Array([
+          123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
+        ]),
+      );
     }),
     decrypt: jest.fn((algorithm, key, data) => {
-      return Promise.resolve(new Uint8Array([
-        123,  34, 116, 101, 115,
-        116,  34,  58,  34, 100,
-         97, 116,  97,  34, 125
-      ]));
+      return Promise.resolve(
+        new Uint8Array([
+          123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
+        ]),
+      );
     }),
   },
 }));
@@ -254,6 +254,8 @@ NativeModules.RNGestureHandlerModule = {
   dropGestureHandler: jest.fn(),
   updateGestureHandler: jest.fn(),
   forceTouchAvailable: jest.fn(),
+  install: jest.fn(),
+  flushOperations: jest.fn(),
   State: {},
   Directions: {},
 };
