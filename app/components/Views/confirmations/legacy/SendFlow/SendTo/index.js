@@ -483,7 +483,7 @@ class SendFlow extends PureComponent {
 
   safeChecksumAddress = (address) => {
     try {
-      return toChecksumAddress(address);
+      return safeToChecksumAddress(address);
     } catch (error) {
       return address;
     }
