@@ -75,7 +75,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
-import { TraceName } from '../../../util/trace';
+import { TraceName, endTrace } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -367,12 +367,15 @@ class ChoosePassword extends PureComponent {
 
       if (authType.oauth2Login) {
         if (this.props.metrics.isEnabled()) {
+          endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
+          endTrace({ name: TraceName.OnboardingJourneyOverall });
+
           this.props.navigation.reset({
             index: 0,
             routes: [
               {
                 name: Routes.ONBOARDING.SUCCESS,
-                params: { showPasswordHint: true, traceNameToEnd: TraceName.OnboardingNewSocialCreateWallet },
+                params: { showPasswordHint: true },
               },
             ],
           });
@@ -384,11 +387,15 @@ class ChoosePassword extends PureComponent {
                 routes: [
                   {
                     name: Routes.ONBOARDING.SUCCESS,
-                    params: { showPasswordHint: true, traceNameToEnd: TraceName.OnboardingNewSocialCreateWallet },
+                    params: { showPasswordHint: true },
                   },
                 ],
               });
             },
+            tracesToEnd: [
+              TraceName.OnboardingNewSocialCreateWallet,
+              TraceName.OnboardingJourneyOverall,
+            ],
           });
         }
       } else {

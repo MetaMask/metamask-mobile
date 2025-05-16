@@ -88,7 +88,8 @@ import { TextFieldSize } from '../../../component-library/components/Form/TextFi
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { TraceName } from '../../../util/trace';
+import { TraceName, endTrace } from '../../../util/trace';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -137,6 +138,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
   const [showWhatIsSeedPhraseModal, setWhatIsSeedPhraseModal] = useState(false);
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const inputPadding = 4;
   const numColumns = 3; // Number of columns
@@ -564,22 +566,41 @@ const ImportFromSecretRecoveryPhrase = ({
           new_wallet: false,
         });
         !onboardingWizard && setOnboardingWizardStep(1);
-        navigation.navigate('OptinMetrics', {
-          onContinue: () => {
-            navigation.reset({
-              index: 1,
-              routes: [
-                {
-                  name: Routes.ONBOARDING.SUCCESS_FLOW,
-                  params: {
-                    showPasswordHint: false,
-                    traceNameToEnd: TraceName.OnboardingExistingSrpImport,
+
+        if (isMetricsEnabled()) {
+          endTrace({ name: TraceName.OnboardingExistingSrpImport });
+          endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+          navigation.reset({
+            index: 1,
+            routes: [
+              {
+                name: Routes.ONBOARDING.SUCCESS_FLOW,
+                params: { showPasswordHint: false },
+              },
+            ],
+          });
+        } else {
+          navigation.navigate('OptinMetrics', {
+            onContinue: () => {
+              navigation.reset({
+                index: 1,
+                routes: [
+                  {
+                    name: Routes.ONBOARDING.SUCCESS_FLOW,
+                    params: {
+                      showPasswordHint: false,
+                    },
                   },
-                },
-              ],
-            });
-          },
-        });
+                ],
+              });
+            },
+            tracesToEnd: [
+              TraceName.OnboardingExistingSrpImport,
+              TraceName.OnboardingJourneyOverall,
+            ],
+          });
+        }
         // navigation.reset({
         //   index: 1,
         //   routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],

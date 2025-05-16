@@ -32,7 +32,8 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
-import { TraceName } from '../../../util/trace';
+import { TraceName, endTrace } from '../../../util/trace';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const words = route?.params?.words;
@@ -51,6 +52,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const [missingWords, setMissingWords] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [sortedSlots, setSortedSlots] = useState([]);
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -102,6 +104,13 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           });
         } else if (settingsBackup) {
           navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
+        } else if (isMetricsEnabled()) {
+          endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+          endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+          navigation.navigate('OnboardingSuccess', {
+            showPasswordHint: true,
+          });
         } else {
           navigation.navigate('OptinMetrics', {
             steps: route.params?.steps,
@@ -109,9 +118,12 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
             onContinue: () => {
               navigation.navigate('OnboardingSuccess', {
                 showPasswordHint: true,
-                traceNameToEnd: TraceName.OnboardingNewSrpCreateWallet,
               });
             },
+            tracesToEnd: [
+              TraceName.OnboardingNewSrpCreateWallet,
+              TraceName.OnboardingJourneyOverall,
+            ],
           });
         }
         trackOnboarding(
