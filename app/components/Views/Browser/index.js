@@ -30,7 +30,7 @@ import AppConstants from '../../../core/AppConstants';
 import { getPermittedAccounts } from '../../../core/Permissions';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
-import Tabs from '../../UI/Tabs';
+import Tabs from '../../UI/Tabs/indexFn';
 import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
