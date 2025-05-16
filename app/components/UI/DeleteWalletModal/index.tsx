@@ -64,11 +64,6 @@ const DeleteWalletModal = () => {
 
   const { signOut } = useSignOut();
 
-  // const showConfirmModal = () => {
-  //   setShowConfirm(true);
-  //   LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-  // };
-
   const isTextErase = (text: string) => tlc(text) === ERASE_KEYWORD;
 
   const checkErase = (text: string) => {

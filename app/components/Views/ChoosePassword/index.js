@@ -6,7 +6,6 @@ import {
   View,
   SafeAreaView,
   StyleSheet,
-  Image,
   TouchableOpacity,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -626,11 +625,6 @@ class ChoosePassword extends PureComponent {
         {loading ? (
           <View style={styles.loadingWrapper}>
             <View style={styles.foxWrapper}>
-              {/* <Image
-                source={require('../../../images/branding/fox.png')}
-                style={styles.image}
-                resizeMethod={'auto'}
-              /> */}
               <LottieView
                 style={styles.image}
                 autoPlay
@@ -640,7 +634,12 @@ class ChoosePassword extends PureComponent {
               />
             </View>
             <ActivityIndicator size="large" color={colors.text.default} />
-            <Text variant={TextVariant.HeadingLG} style={styles.title}>
+            <Text
+              variant={TextVariant.HeadingLG}
+              style={styles.title}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+            >
               {strings(
                 previousScreen === ONBOARDING
                   ? 'create_wallet.title'
@@ -656,7 +655,6 @@ class ChoosePassword extends PureComponent {
           </View>
         ) : (
           <View style={styles.wrapper}>
-            {/* <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} /> */}
             <KeyboardAwareScrollView
               style={styles.scrollableWrapper}
               contentContainerStyle={styles.keyboardScrollableWrapper}

@@ -139,6 +139,8 @@ export default {
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
+    ADD_SOLANA_ACCOUNT_PRIVACY_POLICY:
+      'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts',
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
@@ -232,7 +234,9 @@ export default {
   },
   SEEDLESS_ONBOARDING: {
     AUTH_SERVER_URL: process.env.AUTH_SERVER_URL,
-    IOS_APPLE_CLIENT_ID: getBundleId(),
+    IOS_APPLE_CLIENT_ID: getBundleId
+      ? getBundleId()
+      : process.env.IOS_APPLE_CLIENT_ID,
     IOS_GOOGLE_CLIENT_ID: process.env.IOS_GOOGLE_CLIENT_ID,
     IOS_GOOGLE_REDIRECT_URI: process.env.IOS_GOOGLE_REDIRECT_URI,
     ANDROID_WEB_GOOGLE_CLIENT_ID: process.env.ANDROID_WEB_GOOGLE_CLIENT_ID,

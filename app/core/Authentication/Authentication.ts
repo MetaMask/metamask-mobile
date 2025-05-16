@@ -31,6 +31,12 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
+///: BEGIN:ONLY_INCLUDE_IF(beta)
+import {
+  MultichainWalletSnapFactory,
+  WalletClientType,
+} from '../SnapKeyring/MultichainWalletSnapClient';
+///: END:ONLY_INCLUDE_IF(beta)
 
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
@@ -101,6 +107,17 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     if (clearEngine) await Engine.resetState();
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    const primaryHdKeyringId =
+      Engine.context.KeyringController.state.keyringsMetadata[0].id;
+    const client = MultichainWalletSnapFactory.createClient(
+      WalletClientType.Solana,
+      {
+        setSelectedAccount: false,
+      },
+    );
+    await client.addDiscoveredAccounts(primaryHdKeyringId);
+    ///: END:ONLY_INCLUDE_IF(beta)
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
@@ -117,6 +134,18 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
+
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    const primaryHdKeyringId =
+      Engine.context.KeyringController.state.keyringsMetadata[0].id;
+    const client = MultichainWalletSnapFactory.createClient(
+      WalletClientType.Solana,
+      {
+        setSelectedAccount: false,
+      },
+    );
+    await client.addDiscoveredAccounts(primaryHdKeyringId);
+    ///: END:ONLY_INCLUDE_IF(beta)
     password = this.wipeSensitiveData();
   };
 
@@ -577,13 +606,6 @@ class AuthenticationService {
       }
     } catch (error) {
       Logger.error(error as Error);
-      if (error instanceof Error) {
-        error.message = error.message.replace(
-          'SeedlessOnboardingController - ',
-          '',
-        );
-        throw error.message;
-      }
       throw error;
     }
   };

@@ -71,6 +71,8 @@ const styleSheet = (params: { theme: Theme }) => {
     srpListContentContainer: {
       display: 'flex',
       maxWidth: '100%',
+      paddingVertical: 4,
+      rowGap: 16,
     },
   });
 };

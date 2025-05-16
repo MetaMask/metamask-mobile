@@ -12,7 +12,6 @@ import {
   OAuthLoginResultType,
 } from './OAuthInterface';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
-import { createLoginHandler } from './OAuthLoginHandlers';
 import {
   AuthConnectionId,
   AuthServerUrl,
@@ -20,6 +19,7 @@ import {
   GroupedAuthConnectionId,
 } from './OAuthLoginHandlers/constants';
 import { OAuthError, OAuthErrorType } from './error';
+import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 
 export interface OAuthServiceConfig {
   authConnectionId: string;
@@ -122,7 +122,7 @@ export class OAuthService {
   };
 
   handleOAuthLogin = async (
-    authConnection: AuthConnection,
+    loginHandler: BaseLoginHandler,
   ): Promise<HandleOAuthLoginResult> => {
     const web3AuthNetwork = this.config.web3AuthNetwork;
 
@@ -135,8 +135,8 @@ export class OAuthService {
     this.#dispatchLogin();
 
     try {
-      const loginHandler = createLoginHandler(Platform.OS, authConnection);
       const result = await loginHandler.login();
+      const authConnection = loginHandler.authConnection;
 
       Logger.log('handleOAuthLogin: result', result);
       if (result) {

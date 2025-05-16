@@ -137,10 +137,9 @@ const ImportFromSecretRecoveryPhrase = ({
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [showWhatIsSeedPhraseModal, setWhatIsSeedPhraseModal] = useState(false);
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
-  const inputPadding = 4;
+  const inputPadding = Platform.OS === 'ios' ? 4 : 3;
   const numColumns = 3; // Number of columns
 
   const seedPhraseLength = seedPhrase.filter((item) => item !== '').length;
@@ -151,8 +150,6 @@ const ImportFromSecretRecoveryPhrase = ({
     seedPhraseLength !== 18 &&
     seedPhraseLength !== 21 &&
     seedPhraseLength !== 24;
-
-  // const hideWhatIsSeedPhrase = () => setWhatIsSeedPhraseModal(false);
 
   const handleLayout = (event) => {
     setContainerWidth(event.nativeEvent.layout.width);
@@ -254,10 +251,6 @@ const ImportFromSecretRecoveryPhrase = ({
     };
 
     setBiometricsOption();
-    // Workaround https://github.com/facebook/react-native/issues/9958
-    // setTimeout(() => {
-    //   setInputWidth({ width: '100%' });
-    // }, 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep]);
 
@@ -368,7 +361,9 @@ const ImportFromSecretRecoveryPhrase = ({
     if (text.includes(' ')) {
       setSeedPhrase((prev) => {
         // handle use pasting multiple words / whole seed phrase separated by spaces
-        const splitArray = text.trim().split(/\s+/); // split by any spaces
+        const splitArray = text.endsWith(' ')
+          ? [...text.trim().split(' '), '']
+          : text.trim().split(' ');
         return [
           ...prev.slice(0, index),
           ...splitArray,
@@ -506,8 +501,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const onPressImport = async () => {
     const vaultSeed = await parseVaultValue(password, seedPhrase.join(' '));
     const parsedSeed = parseSeedPhrase(vaultSeed || seedPhrase.join(' '));
-    // //Set the seed state with a valid parsed seed phrase (handle vault scenario)
-    // setSeed(parsedSeed);
 
     if (loading) return;
     track(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
@@ -601,11 +594,6 @@ const ImportFromSecretRecoveryPhrase = ({
             ],
           });
         }
-        // navigation.reset({
-        //   index: 1,
-        //   routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
-        // });
-        // await importAdditionalAccounts();
       } catch (error) {
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {

@@ -9,6 +9,7 @@ import {
   InteractionManager,
   Animated,
   Easing,
+  Platform,
 } from 'react-native';
 import Text, {
   TextVariant,
@@ -36,7 +37,6 @@ import {
 } from '../../../actions/user';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
-import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -57,13 +57,13 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import OAuthLoginService from '../../../core/OAuthService/OAuthService';
-import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
-
 import fox from '../../../animations/Searching_Fox.json';
 
-const pageBackgroundColor = '#EAC2FF';
-const brandColor = '#3D065F';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
+import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -103,7 +103,7 @@ const createStyles = (colors) =>
       textAlign: 'center',
       paddingHorizontal: 60,
       fontFamily: 'MMSans-Regular',
-      color: brandColor,
+      color: importedColors.gettingStartedTextColor,
     },
     ctas: {
       flex: 1,
@@ -299,11 +299,11 @@ class Onboarding extends PureComponent {
         ? getTransparentOnboardingNavbarOptions(
             colors,
             true,
-            pageBackgroundColor,
+            importedColors.gettingStartedPageBackgroundColor,
           )
         : getTransparentBackOnboardingNavbarOptions(
             colors,
-            pageBackgroundColor,
+            importedColors.gettingStartedPageBackgroundColor,
           ),
     );
   };
@@ -481,12 +481,13 @@ class Onboarding extends PureComponent {
       parentContext: this.onboardingTraceCtx,
     });
     const action = async () => {
-      const result = await OAuthLoginService.handleOAuthLogin('apple').catch(
-        (e) => {
-          this.handleLoginError(e);
-          return { type: 'error', error: e, existingUser: false };
-        },
-      );
+      const loginHandler = createLoginHandler(Platform.OS, 'apple');
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+      ).catch((e) => {
+        this.handleLoginError(e);
+        return { type: 'error', error: e, existingUser: false };
+      });
       this.handlePostSocialLogin(result, createWallet);
     };
     this.handleExistingUser(action);
@@ -501,12 +502,13 @@ class Onboarding extends PureComponent {
       parentContext: this.onboardingTraceCtx,
     });
     const action = async () => {
-      const result = await OAuthLoginService.handleOAuthLogin('google').catch(
-        (error) => {
-          this.handleLoginError(error);
-          return { type: 'error', error, existingUser: false };
-        },
-      );
+      const loginHandler = createLoginHandler(Platform.OS, 'google');
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+      ).catch((error) => {
+        this.handleLoginError(error);
+        return { type: 'error', error, existingUser: false };
+      });
       this.handlePostSocialLogin(result, createWallet);
     };
     this.handleExistingUser(action);
@@ -527,6 +529,7 @@ class Onboarding extends PureComponent {
       params: {
         title: strings(`error_sheet.${errorMessage}_title`),
         description: strings(`error_sheet.${errorMessage}_description`),
+        descriptionAlign: 'center',
         buttonLabel: strings(`error_sheet.${errorMessage}_button`),
         type: 'error',
       },
@@ -678,7 +681,10 @@ class Onboarding extends PureComponent {
 
     return (
       <View
-        style={[baseStyles.flexGrow, { backgroundColor: pageBackgroundColor }]}
+        style={[
+          baseStyles.flexGrow,
+          { backgroundColor: importedColors.gettingStartedPageBackgroundColor },
+        ]}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
         <ScrollView
@@ -716,120 +722,6 @@ class Onboarding extends PureComponent {
         <FadeOutOverlay />
 
         <View>{this.handleSimpleNotification()}</View>
-
-        {/* <WarningExistingUserModal
-          warningModalVisible={this.state.warningModalVisible}
-          onCancelPress={this.warningCallback}
-          onRequestClose={this.toggleWarningModal}
-          onConfirmPress={this.toggleWarningModal}
-        /> */}
-
-        {/* {this.state.bottomSheetVisible && (
-          <BottomSheet
-            shouldNavigateBack={false}
-            onClose={() =>
-              this.setState({
-                bottomSheetVisible: false,
-                existingWallet: false,
-                createWallet: false,
-              })
-            }
-          >
-            <View style={styles.bottomSheetContainer}>
-              <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-                {strings('onboarding.bottom_sheet_title')}
-              </Text>
-              <View style={styles.buttonWrapper}>
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  onPress={this.onPressContinueWithGoogle}
-                  testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-                  label={
-                    <View style={styles.buttonLabel}>
-                      <Icon
-                        name={IconName.Google}
-                        size={IconSize.Lg}
-                        color={TextColor.Default}
-                      />
-                      <Text
-                        variant={TextVariant.BodyMDMedium}
-                        color={TextColor.Default}
-                      >
-                        {this.state.createWallet
-                          ? strings('onboarding.continue_with_google')
-                          : strings('onboarding.sign_in_with_google')}
-                      </Text>
-                    </View>
-                  }
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                  style={styles.socialBtn}
-                />
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  onPress={this.onPressContinueWithApple}
-                  testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
-                  label={
-                    <View style={styles.buttonLabel}>
-                      <Icon
-                        name={IconName.Apple}
-                        size={IconSize.Lg}
-                        color={TextColor.Default}
-                      />
-                      <Text
-                        variant={TextVariant.BodyMDMedium}
-                        color={TextColor.Default}
-                      >
-                        {this.state.createWallet
-                          ? strings('onboarding.continue_with_apple')
-                          : strings('onboarding.sign_in_with_apple')}
-                      </Text>
-                    </View>
-                  }
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                  style={styles.socialBtn}
-                />
-              </View>
-              <View style={styles.divider}>
-                <View style={styles.dividerLine} />
-                <Text
-                  variant={TextVariant.BodyLGMedium}
-                  color={TextColor.Muted}
-                >
-                  {strings('onboarding.or')}
-                </Text>
-                <View style={styles.dividerLine} />
-              </View>
-              <View style={styles.buttonWrapper}>
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  onPress={
-                    this.state.createWallet
-                      ? this.onPressCreate
-                      : this.onPressImport
-                  }
-                  testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
-                  label={
-                    this.state.createWallet
-                      ? strings('onboarding.continue_with_srp')
-                      : strings('onboarding.import_srp')
-                  }
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                />
-              </View>
-            </View>
-          </BottomSheet>
-        )} */}
-
-        {/* <ErrorSheet
-          open={this.state.errorSheetVisible}
-          onClose={() => this.setState({ errorSheetVisible: false })}
-          onNext={() => this.setState({ errorSheetVisible: false })}
-          errorTitle={strings('error_sheet.still_there_title')}
-          errorDescription={strings('error_sheet.still_there_description')}
-        /> */}
       </View>
     );
   }

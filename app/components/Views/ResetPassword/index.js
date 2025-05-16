@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Alert,
   View,
-  TextInput,
   SafeAreaView,
   StyleSheet,
   ScrollView,
@@ -27,7 +26,6 @@ import Device from '../../../util/device';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-// import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
@@ -71,7 +69,7 @@ import Icon, {
 import Routes from '../../../constants/navigation/Routes';
 import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
 import NavigationService from '../../../core/NavigationService';
-import ReduxService from '../../../core/redux';
+import { RecoveryError as SeedlessOnboardingRecoveryError } from '@metamask/seedless-onboarding-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -357,7 +355,6 @@ class ResetPassword extends PureComponent {
     const { availableBiometryType } = await Authentication.getType();
     if (availableBiometryType) {
       const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
-      // if (biometryChoice !== '' && biometryChoice === availableBiometryType) {
       if (biometryChoice) {
         const credentials = await Authentication.getPassword();
         if (credentials) {
@@ -429,7 +426,6 @@ class ResetPassword extends PureComponent {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const canSubmit = passwordsMatch && isSelected;
 
-    // if (!canSubmit) return;
     if (loading) return;
     if (!passwordRequirementsMet(password)) {
       Alert.alert('Error', strings('choose_password.password_length_error'));
@@ -487,6 +483,11 @@ class ResetPassword extends PureComponent {
           strings('choose_password.security_alert_message'),
         );
         this.setState({ loading: false });
+      } else if (error instanceof SeedlessOnboardingRecoveryError) {
+        this.setState({
+          loading: false,
+          error: error.toString().replace('SeedlessOnboardingController -', ''),
+        });
       } else {
         this.setState({ loading: false, error: error.toString() });
       }
@@ -612,10 +613,6 @@ class ResetPassword extends PureComponent {
         >
           <View style={styles.confirmPasswordWrapper}>
             <View style={[styles.content, styles.passwordRequiredContent]}>
-              {/* <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
-                {strings('manual_backup_step_1.confirm_password')}
-              </Text> */}
-
               <Label
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Default}
@@ -752,19 +749,6 @@ class ResetPassword extends PureComponent {
                 testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
                 style={styles.changePasswordContainer}
               >
-                {/* <View style={styles.content}>
-                  <Text variant={TextVariant.HeadingLG} style={styles.title}>
-                    {strings('reset_password.title')}
-                  </Text>
-                  <View style={styles.text}>
-                    <Text
-                      variant={TextVariant.BodyLGMedium}
-                      style={styles.subtitle}
-                    >
-                      {strings('reset_password.subtitle')}
-                    </Text>
-                  </View>
-                </View> */}
                 <View style={styles.field}>
                   <Label
                     variant={TextVariant.BodyMDMedium}
@@ -871,51 +855,10 @@ class ResetPassword extends PureComponent {
                   )}
                 </View>
 
-                {/* <View>{this.renderSwitch()}</View> */}
-
-                {/* <View style={styles.checkboxContainer}>
-                  <CheckBox
-                    value={isSelected}
-                    onValueChange={this.setSelection}
-                    style={styles.checkbox}
-                    tintColors={{
-                      true: colors.primary.default,
-                      false: colors.border.default,
-                    }}
-                    boxType="square"
-                    testID={
-                      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
-                    }
-                  />
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    style={styles.label}
-                    onPress={this.setSelection}
-                    testID={
-                      ChoosePasswordSelectorsIDs.ANDROID_I_UNDERSTAND_BUTTON_ID
-                    }
-                  >
-                    {strings('reset_password.i_understand')}{' '}
-                    <Text
-                      color={TextColor.Info}
-                      onPress={this.learnMore}
-                      style={styles.learnMore}
-                    >
-                      {strings('reset_password.learn_more')}
-                    </Text>
-                  </Text>
-                </View> */}
-
                 {!!error && <Text color={TextColor.Error}>{error}</Text>}
               </View>
 
-              {this.state.biometryType && (
-                <SecurityOptionToggle
-                  title={strings('import_from_seed.unlock_with_face_id')}
-                  value={this.state.biometryChoice}
-                  onOptionUpdated={this.updateBiometryChoice}
-                />
-              )}
+              {this.renderSwitch()}
 
               <View style={styles.ctaWrapper}>
                 <Button

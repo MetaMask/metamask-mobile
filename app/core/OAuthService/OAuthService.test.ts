@@ -32,21 +32,19 @@ let mockGetAuthTokens: () => Promise<AuthResponse> = jest
     },
   }));
 
-jest.mock('./OAuthLoginHandlers', () => ({
-  createLoginHandler: () => ({
-    login: () => mockLoginHandlerResponse(),
-    getAuthTokens: mockGetAuthTokens,
-    decodeIdToken: () =>
-      JSON.stringify({
-        email: 'swnam909@gmail.com',
-        sub: 'swnam909@gmail.com',
-        iss: 'metamask',
-        aud: 'metamask',
-        iat: 1745207566,
-        eat: 1745207866,
-        exp: 1745207866,
-      }),
-  }),
+const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
+  login: () => mockLoginHandlerResponse(),
+  getAuthTokens: mockGetAuthTokens,
+  decodeIdToken: () =>
+    JSON.stringify({
+      email: 'swnam909@gmail.com',
+      sub: 'swnam909@gmail.com',
+      iss: 'metamask',
+      aud: 'metamask',
+      iat: 1745207566,
+      eat: 1745207866,
+      exp: 1745207866,
+    }),
 }));
 
 jest.mock('../Engine', () => ({
@@ -94,9 +92,11 @@ describe('OAuth login service', () => {
   });
 
   it('should return a type success', async () => {
-    const result = (await OAuthLoginService.handleOAuthLogin(
-      AuthConnection.Google,
-    )) as { type: string; existingUser: boolean };
+    const loginHandler = mockCreateLoginHandler();
+    const result = (await OAuthLoginService.handleOAuthLogin(loginHandler)) as {
+      type: string;
+      existingUser: boolean;
+    };
     expect(result).toBeDefined();
     expect(result.type).toBe('success');
     expect(result.existingUser).toBe(false);
@@ -107,6 +107,7 @@ describe('OAuth login service', () => {
   });
 
   it('should return a type success, existing user', async () => {
+    const loginHandler = mockCreateLoginHandler();
     mockAuthenticate = jest.fn().mockImplementation(() => ({
       nodeAuthTokens: [],
       isNewUser: false,
@@ -115,9 +116,7 @@ describe('OAuth login service', () => {
       .spyOn(Engine.context.SeedlessOnboardingController, 'authenticate')
       .mockImplementation(mockAuthenticate);
 
-    const result = await OAuthLoginService.handleOAuthLogin(
-      AuthConnection.Google,
-    );
+    const result = await OAuthLoginService.handleOAuthLogin(loginHandler);
     expect(result).toBeDefined();
 
     expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
@@ -126,6 +125,7 @@ describe('OAuth login service', () => {
   });
 
   it('should throw on SeedlessOnboardingController error', async () => {
+    const loginHandler = mockCreateLoginHandler();
     mockAuthenticate = jest.fn().mockImplementation(() => {
       throw new Error('Test error');
     });
@@ -134,7 +134,7 @@ describe('OAuth login service', () => {
       .mockImplementation(mockAuthenticate);
 
     await expectOAuthError(
-      OAuthLoginService.handleOAuthLogin(AuthConnection.Google),
+      OAuthLoginService.handleOAuthLogin(loginHandler),
       OAuthErrorType.LoginError,
     );
 
@@ -147,9 +147,10 @@ describe('OAuth login service', () => {
     mockGetAuthTokens = jest.fn().mockImplementation(() => {
       throw new OAuthError('Auth server error', OAuthErrorType.AuthServerError);
     });
+    const loginHandler = mockCreateLoginHandler();
 
     await expectOAuthError(
-      OAuthLoginService.handleOAuthLogin(AuthConnection.Google),
+      OAuthLoginService.handleOAuthLogin(loginHandler),
       OAuthErrorType.AuthServerError,
     );
 
@@ -159,6 +160,7 @@ describe('OAuth login service', () => {
   });
 
   it('should throw on dismiss', async () => {
+    const loginHandler = mockCreateLoginHandler();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       dispatch: jest.fn(),
@@ -169,7 +171,7 @@ describe('OAuth login service', () => {
     });
 
     await expectOAuthError(
-      OAuthLoginService.handleOAuthLogin(AuthConnection.Google),
+      OAuthLoginService.handleOAuthLogin(loginHandler),
       OAuthErrorType.UserDismissed,
     );
 
@@ -179,12 +181,13 @@ describe('OAuth login service', () => {
   });
 
   it('should throw on login error', async () => {
+    const loginHandler = mockCreateLoginHandler();
     mockLoginHandlerResponse = jest.fn().mockImplementation(() => {
       throw new OAuthError('Login error', OAuthErrorType.LoginError);
     });
 
     await expectOAuthError(
-      OAuthLoginService.handleOAuthLogin(AuthConnection.Google),
+      OAuthLoginService.handleOAuthLogin(loginHandler),
       OAuthErrorType.LoginError,
     );
 

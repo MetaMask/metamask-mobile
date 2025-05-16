@@ -12,7 +12,7 @@ process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
 
-process.env.Web3AuthNetwork = 'sapphire_devnet';
+process.env.WEB3AUTH_NETWORK = 'sapphire_devnet';
 process.env.AUTH_SERVER_URL = 'https://api-develop-torus-byoa.web3auth.io';
 
 process.env.IOS_GOOGLE_CLIENT_ID =

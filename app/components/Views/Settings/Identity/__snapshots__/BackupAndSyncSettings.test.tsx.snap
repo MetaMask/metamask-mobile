@@ -169,6 +169,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
         >
           <SvgMock
             color="#121314"
+            fill="currentColor"
             height={20}
             name="UserCircle"
             style={

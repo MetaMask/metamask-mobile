@@ -197,8 +197,7 @@ const ProtectYourWallet = () => {
       paddingHorizontal: 24,
     },
     srpListContainer: {
-      paddingVertical: 0,
-      margin: 0,
+      paddingVertical: 8,
     },
   });
 

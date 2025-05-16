@@ -4,7 +4,7 @@ import Logger from '../../../util/Logger';
 import { EXISTING_USER } from '../../../constants/storage';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { resetVaultBackup } from '../../../core/BackupVault/backupVault';
+import { clearAllVaultBackups } from '../../../core/BackupVault';
 import { useMetrics } from '../useMetrics';
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import Engine from '../../../core/Engine';
@@ -19,10 +19,10 @@ const useDeleteWallet = () => {
       });
 
       ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-      await Engine.context.SeedlessOnboardingController.reset();
+      Engine.context.SeedlessOnboardingController.clearState();
       ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
-      await resetVaultBackup();
+      await clearAllVaultBackups();
       await Authentication.lockApp();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

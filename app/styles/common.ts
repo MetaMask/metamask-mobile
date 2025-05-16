@@ -19,6 +19,9 @@ export const colors = {
   applePayBlack: '#000000',
   applePayWhite: '#FFFFFF',
   btnBlack: '#1C1E21',
+  modalScrollButton: '#ECEEFF',
+  gettingStartedPageBackgroundColor: '#EAC2FF',
+  gettingStartedTextColor: '#3D065F',
 };
 
 export const onboardingCarouselColors: Record<

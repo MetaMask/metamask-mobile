@@ -27,10 +27,6 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-// import Icon, {
-//   IconSize,
-//   IconName,
-// } from '../../../component-library/components/Icons/Icon';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { showAlert } from '../../../actions/alert';

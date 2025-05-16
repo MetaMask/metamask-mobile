@@ -40,9 +40,6 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const backupFlow = route?.params?.backupFlow;
   const settingsBackup = route?.params?.settingsBackup;
 
-  // eslint-disable-next-line no-console
-  console.log('settingsBackup', settingsBackup);
-
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -262,7 +259,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
                     isEmpty && styles.emptySlot,
                     isSelected && styles.selectedSlotBox,
                     {
-                      width: innerWidth / (Platform.OS === 'ios' ? 3.75 : 3.8),
+                      width: innerWidth / (Platform.OS === 'ios' ? 3.75 : 3.85),
                     },
                   ]}
                   onPress={() => handleSlotPress(index)}
@@ -292,8 +289,6 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       styles.gridItemText,
     ],
   );
-
-  // const allPlaced = missingWords.every((word) => gridWords.includes(word));
 
   const renderMissingWords = useCallback(
     () => (
