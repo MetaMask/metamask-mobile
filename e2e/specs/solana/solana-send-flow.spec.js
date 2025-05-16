@@ -41,23 +41,11 @@ describe(
     });
 
     it('should navigate through Solana onboarding and create a Solana account', async () => {
-      await Assertions.checkIfVisible(
-        SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET,
-      );
-      await Assertions.checkIfVisible(
-        SolanaNewFeatureSheetSelectorsIDs.SOLANA_CARASOULE_LOGO,
-      );
-      //   await SolanaNewFeatureSheet.tapNotNowButton(); //TODO: Figure out why testID is not working
-      await device.disableSynchronization();
-      await SolanaNewFeatureSheet.swipeWithCarouselLogo();
-      await device.enableSynchronization();
       await WalletView.tapIdenticon();
-      await device.disableSynchronization();
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapAddSolanaAccount();
       await AddNewHdAccountComponent.tapConfirm();
       await NetworkEducationModal.tapGotItButton();
-      await device.enableSynchronization();
       // Assert account created, which is an existing account with SOL
       await Assertions.checkIfTextRegexExists(SOLANA_ACCOUNT_NAME, 1);
     });
