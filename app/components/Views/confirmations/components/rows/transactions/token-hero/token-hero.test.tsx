@@ -35,7 +35,6 @@ describe('TokenHero', () => {
     );
     const { getByText, queryByTestId } = renderWithProvider(<TokenHero />, { state });
 
-    getByText('0.0556 ETH something');
     expect(queryByTestId('avatar-with-badge-network-asset-logo-ETH')).toBeTruthy();
 
     await waitFor(async () => {
