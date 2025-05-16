@@ -205,6 +205,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={16}
                   name="Close"
                   style={
@@ -289,7 +290,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                       "borderRadius": 16,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "height": 32,
+                      "height": 40,
                       "justifyContent": "center",
                       "paddingHorizontal": 16,
                     }
@@ -337,7 +338,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                       "borderRadius": 16,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "height": 32,
+                      "height": 40,
                       "justifyContent": "center",
                       "paddingHorizontal": 16,
                     }
@@ -385,7 +386,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                       "borderRadius": 16,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "height": 32,
+                      "height": 40,
                       "justifyContent": "center",
                       "paddingHorizontal": 16,
                     }
@@ -433,7 +434,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                       "borderRadius": 16,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "height": 32,
+                      "height": 40,
                       "justifyContent": "center",
                       "paddingHorizontal": 16,
                     }
@@ -483,7 +484,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
                   "borderColor": "#4459ff",
-                  "borderRadius": 24,
+                  "borderRadius": 12,
                   "borderWidth": 1,
                   "flex": 1,
                   "flexDirection": "row",
