@@ -12,7 +12,7 @@ export const getTokenDetails = (
     return {
       contractAddress: asset.address || null,
       tokenDecimal: asset.decimals || null,
-      tokenList: asset.aggregators.join(', ') || null,
+      tokenList: asset?.aggregators?.join(', ') || null,
     };
   }
 
