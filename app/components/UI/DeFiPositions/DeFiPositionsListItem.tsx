@@ -32,7 +32,7 @@ interface DeFiPositionsListItemProps {
 const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
   chainId,
   protocolAggregate,
-  privacyMode = false,
+  privacyMode,
 }: DeFiPositionsListItemProps) => {
   const { styles } = useStyles(styleSheet, undefined);
 
