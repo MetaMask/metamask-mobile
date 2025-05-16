@@ -119,6 +119,7 @@ export const useAdvancedGasFeeOption = ({
         estimatedTime: '',
         isSelected: isAdvancedGasFeeSelected,
         key: 'advanced',
+        metricKey: 'custom',
         name: strings('transactions.gas_modal.advanced'),
         onSelect: onAdvancedGasFeeClick,
         value,

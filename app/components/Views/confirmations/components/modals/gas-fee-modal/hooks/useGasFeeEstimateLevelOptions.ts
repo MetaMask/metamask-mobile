@@ -105,6 +105,7 @@ export const useGasFeeEstimateLevelOptions = ({
         estimatedTime,
         isSelected: userFeeLevel === level,
         key: level,
+        metricKey: level,
         name: strings(`transactions.gas_modal.${level}`),
         onSelect: () => onGasFeeEstimateLevelClick(level),
         value: preciseNativeCurrencyFee || '--',
