@@ -21,13 +21,13 @@ import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import { rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
+///: END:ONLY_INCLUDE_IF
 import {
   PermissionDoesNotExistError,
   SubjectType,
 } from '@metamask/permission-controller';
-///: END:ONLY_INCLUDE_IF
 
 import {
   multichainMethodCallValidatorMiddleware,
