@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "不審なサインイン要求",
       "message": "要求を行っているサイトはサインインしようとしているサイトではありません。これはログイン情報を盗む試みかもしれません。"
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "サイトまたはアドレスで検索",
+    "placeholder": "Search by token, site or address",
     "recents": "最近",
     "favorites": "お気に入り",
-    "sites": "サイト"
+    "sites": "サイト",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "戻る",
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "新しいアカウントの生成元となるシークレットリカバリーフレーズ",
     "accounts": "アカウント",
     "show_accounts": "表示",
-    "hide_accounts": "非表示"
+    "hide_accounts": "非表示",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
+      "bitcoin_account_name": "Bitcoin Account",
+      "solana_devnet_account_name": "Solana Devnet Account",
+      "solana_testnet_account_name": "Solana Testnet Account",
+      "solana_account_name": "Solana Account"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Failed to create {{clientType}} account"
+    }
   },
   "toast": {
     "connected_and_active": "接続済みかつ有効です。",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snap",
       "description": "Snapの概要と管理",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Snapの削除",
         "remove_snap_section_description": "この操作により、Snapとそのデータが削除され、与えられたアクセス許可が取り消されます。",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "低速",
     "hex_data": "16進データ",
     "custom_nonce": "ナンス",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "これは保留中のトランザクションをキャンセルまたは高速化する高度な機能です。",
     "current_suggested_nonce": "現在サポートされているナンス:",
     "edit_transaction_nonce": "トランザクションナンスを編集",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "利用できません",
     "smart_contract_interaction": "スマートコントラクトのインタラクション",
     "swaps_transaction": "スワップトランザクション",
+    "bridge_transaction": "Bridge",
     "approve": "承認",
     "increase_allowance": "許容額を増やす",
     "set_approval_for_all": "すべてを承認に設定",
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "トップの",
       "best_price": "流動性",
@@ -3780,19 +3804,22 @@
       "permit": "使用上限要求",
       "permit_revoke": "アクセス許可を取り消す",
       "permit_NFTs": "出金リクエスト",
-      "signature_siwe": "サインイン要求"
+      "signature_siwe": "サインイン要求",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
       "permit_NFTs": "このサイトがNFTの引き出し許可を求めています。",
       "signature": "確定する前にリクエストの詳細を確認してください。",
-      "signature_siwe": "このアカウントの所有者であることを証明するために、サイトがサインインを求めています。"
+      "signature_siwe": "このアカウントの所有者であることを証明するために、サイトがサインインを求めています。",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "要求元",
     "staking_from": "ステーキング元",
     "signing_in_with": "サインイン方法",
     "message": "メッセージ",
     "personal_sign_tooltip": "このサイトが署名を求めています",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "詳細",
     "qr_get_sign": "署名を取得",
     "qr_scan_text": "ハードウェアウォレットでスキャン",
@@ -3827,7 +3854,9 @@
       "unavailable": "利用不可"
     },
     "unlimited": "無制限",
-    "none": "なし"
+    "none": "なし",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with"
   },
   "change_in_simulation_modal": {
     "title": "結果が変更になりました",
@@ -3868,6 +3897,29 @@
     "time": "時間",
     "quote_info_content": "このクォートは、当社の検索で最も有利な条件を提供します。クォートはスワップレートに基づくもので、ブリッジ手数料と0.875%のMetaMask手数料が含まれていますが、ガス代は別になります。ガス代はネットワークのアクティビティとトランザクションの複雑さによって異なります。",
     "quote_info_title": "このクォートをお勧めする理由",
-    "see_other_quotes": "他のクォートを表示"
+    "see_other_quotes": "他のクォートを表示",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge",
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
   }
 }

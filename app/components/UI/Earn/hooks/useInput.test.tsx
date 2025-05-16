@@ -21,6 +21,7 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
 }));
 
 jest.mock('../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../selectors/networkController'),
   selectChainId: jest.fn(() => '0x1'),
   selectEvmChainId: jest.fn(() => '0x1'),
   selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({

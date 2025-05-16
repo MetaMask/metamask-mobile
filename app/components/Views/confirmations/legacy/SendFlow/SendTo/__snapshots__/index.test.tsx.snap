@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SendTo Component should render 1`] = `
+exports[`SendTo Component render matches snapshot 1`] = `
 <RNCSafeAreaView
   edges={
     [

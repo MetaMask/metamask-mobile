@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Şüpheli giriş talebi",
       "message": "Talepte bulunan site giriş yaptığınız site değil. Bu, oturum açma bilgilerinizi çalma teşebbüsü olabilir."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "saat"
   },
   "autocomplete": {
-    "placeholder": "Siteye veya adrese göre ara",
+    "placeholder": "Search by token, site or address",
     "recents": "Son Ziyaret Edilenler",
     "favorites": "Favoriler",
-    "sites": "Siteler"
+    "sites": "Siteler",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Geri",
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "Yeni hesabınızın oluşturulacağı Gizli Kurtarma İfadesi",
     "accounts": "hesap",
     "show_accounts": "Göster",
-    "hide_accounts": "Gizle"
+    "hide_accounts": "Gizle",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
+      "bitcoin_account_name": "Bitcoin Account",
+      "solana_devnet_account_name": "Solana Devnet Account",
+      "solana_testnet_account_name": "Solana Testnet Account",
+      "solana_account_name": "Solana Account"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Failed to create {{clientType}} account"
+    }
   },
   "toast": {
     "connected_and_active": "bağlandı ve aktif.",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snap'ler",
       "description": "Snap'leriniz için genel bakış ve yönetim",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Snap'i kaldır",
         "remove_snap_section_description": "Bu eylem snap'i, verilerini ve verilen izinlerini siler.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "YAVAŞ",
     "hex_data": "On Altılı Veriler",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "Bu, bekleyen işlemleri iptal etmek veya hızlandırmak için kullanılan gelişmiş bir özelliktir.",
     "current_suggested_nonce": "Geçerli önerilen nonce:",
     "edit_transaction_nonce": "İşlem nonce numarasını düzenle",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "Mevcut değil",
     "smart_contract_interaction": "Akıllı sözleşme etkileşimi",
     "swaps_transaction": "Swap işlemi",
+    "bridge_transaction": "Bridge",
     "approve": "Onayla",
     "increase_allowance": "Ödeneği Artır",
     "set_approval_for_all": "Tümüne Onay Ver",
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Tüm zamanların en iyi likidite",
       "best_price": "kaynaklarından",
@@ -3518,7 +3542,7 @@
     "feature_2_title": "Solana hesaplarını içe aktar",
     "feature_2_description": "Başka bir cüzdandan Solana hesabınızı taşımak için bir Gizli Kurtarma İfadesini içe aktarın.",
     "feature_3_title": "Daha fazla özellik çok yakında",
-    "feature_3_description": "Solana dapp'leri, NFT'ler, donanım cüzdanı desteği ve daha fazlası çok yakında."
+    "feature_3_description": "Solana merkeziyetsiz uygulamaları, NFT'ler, donanım cüzdanı desteği ve daha fazlası çok yakında."
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS ağ geçidi",
@@ -3780,19 +3804,22 @@
       "permit": "Harcama üst limiti",
       "permit_revoke": "İzni kaldır",
       "permit_NFTs": "Para çekme talebi",
-      "signature_siwe": "Giriş talebi"
+      "signature_siwe": "Giriş talebi",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",
       "permit_NFTs": "Bu site NFT'lerinizi çekmek için izin istiyor.",
       "signature": "Onaylamadan önce talep bilgilerini inceleyin.",
-      "signature_siwe": "Bir site, bu hesabın sahibinin siz olduğunuzu kanıtlamak için giriş yapmanızı istiyor."
+      "signature_siwe": "Bir site, bu hesabın sahibinin siz olduğunuzu kanıtlamak için giriş yapmanızı istiyor.",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "Talebi gönderen",
     "staking_from": "Stake edilecek yer",
     "signing_in_with": "Şununla giriş yapılıyor:",
     "message": "Mesaj",
     "personal_sign_tooltip": "Bu site imzanızı istiyor",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "Ayrıntılar",
     "qr_get_sign": "İmza Al",
     "qr_scan_text": "Donanım cüzdanınızla tarayın",
@@ -3827,7 +3854,9 @@
       "unavailable": "Mevcut değil"
     },
     "unlimited": "Sınırsız",
-    "none": "Hiçbiri"
+    "none": "Hiçbiri",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with"
   },
   "change_in_simulation_modal": {
     "title": "Sonuçlar değişti",
@@ -3868,6 +3897,29 @@
     "time": "Zaman",
     "quote_info_content": "Aramamıza göre bu teklif en iyi getiriyi sunmaktadır. Swap oranına dayanır ve köprüleme ücretleri ve %0,875 MetaMask ücreti dahildir ancak gaz ücretleri dahil değildir. Gaz ücretleri ağ faaliyetine ve işlemin karmaşıklığına göre değişiklik gösterebilir.",
     "quote_info_title": "Neden bu teklifi öneriyoruz",
-    "see_other_quotes": "Diğer teklifleri gör"
+    "see_other_quotes": "Diğer teklifleri gör",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge",
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
   }
 }

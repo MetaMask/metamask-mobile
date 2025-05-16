@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Подозрительный запрос на вход",
       "message": "Сайт, делающий запрос, не является тем сайтом, на который вы входите. Это может быть попыткой украсть ваши учетные данные для входа."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "в"
   },
   "autocomplete": {
-    "placeholder": "Поиск по сайту или адресу",
+    "placeholder": "Search by token, site or address",
     "recents": "Недавние",
     "favorites": "Избранное",
-    "sites": "Сайты"
+    "sites": "Сайты",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Назад",
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "Секретная фраза для восстановления, на основе которой будет сгенерирован ваш счет",
     "accounts": "счета",
     "show_accounts": "Показать",
-    "hide_accounts": "Скрыть"
+    "hide_accounts": "Скрыть",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
+      "bitcoin_account_name": "Bitcoin Account",
+      "solana_devnet_account_name": "Solana Devnet Account",
+      "solana_testnet_account_name": "Solana Testnet Account",
+      "solana_account_name": "Solana Account"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Failed to create {{clientType}} account"
+    }
   },
   "toast": {
     "connected_and_active": "подключен и активен.",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snaps",
       "description": "Обзор ваших snaps и управление ими",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Удалить snap",
         "remove_snap_section_description": "Это действие приведет к удалению snap, его данных и предоставленных ему разрешений.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "МЕДЛЕННО",
     "hex_data": "Шестнадцатеричные данные",
     "custom_nonce": "Одноразовый код",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "Это расширенная функция, используемая для отмены или ускорения любых ожидающих транзакций.",
     "current_suggested_nonce": "Текущий рекомендуемый одноразовый код:",
     "edit_transaction_nonce": "Изменить одноразовый номер транзакции",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "Недоступен",
     "smart_contract_interaction": "Взаимодействие со смарт-контрактом",
     "swaps_transaction": "Транзакция свопа",
+    "bridge_transaction": "Bridge",
     "approve": "Одобрить",
     "increase_allowance": "Увеличить квоту",
     "set_approval_for_all": "Одобрить все",
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Получите",
       "best_price": "лучшую цену",
@@ -3780,19 +3804,22 @@
       "permit": "Запрос на ограничение расходов",
       "permit_revoke": "Удалить разрешение",
       "permit_NFTs": "Запрос на вывод средств",
-      "signature_siwe": "Запрос на вход"
+      "signature_siwe": "Запрос на вход",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "Этот сайт запрашивает разрешение на трату ваших токенов.",
       "permit_NFTs": "Этот сайт запрашивает разрешение на вывод ваших NFT.",
       "signature": "Прежде чем подтвердить запрос, просмотрите детали запроса.",
-      "signature_siwe": "Сайт хочет, чтобы вы вошли в систему, чтобы доказать, что вы являетесь владельцем этого счета."
+      "signature_siwe": "Сайт хочет, чтобы вы вошли в систему, чтобы доказать, что вы являетесь владельцем этого счета.",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "Запрос от",
     "staking_from": "Стейкинг от",
     "signing_in_with": "Вход через",
     "message": "Сообщение",
     "personal_sign_tooltip": "Этот сайт запрашивает вашу подпись",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "Подробности",
     "qr_get_sign": "Получить подпись",
     "qr_scan_text": "Отсканируйте с помощью вашего аппаратного кошелька",
@@ -3827,7 +3854,9 @@
       "unavailable": "Недоступно"
     },
     "unlimited": "Неограничено",
-    "none": "Нет"
+    "none": "Нет",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with"
   },
   "change_in_simulation_modal": {
     "title": "Результаты изменились",
@@ -3868,6 +3897,29 @@
     "time": "Время",
     "quote_info_content": "Эта котировка самая выгодная из найденных нами вариантов. Она основана на ставке свопа, включая комиссию за создание моста и комиссию MetaMask в размере 0,875%, но не на плату за газ. Размер платы за газ зависят от активности сети и сложности транзакции.",
     "quote_info_title": "Почему мы рекомендуем эту котировку",
-    "see_other_quotes": "Смотреть другие котировки"
+    "see_other_quotes": "Смотреть другие котировки",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge",
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
   }
 }

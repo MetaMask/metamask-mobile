@@ -23,6 +23,8 @@ jest.mock('../../../util/address', () => {
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
+
   return {
     getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
       totalNativeTokenBalance: { amount: '1', unit: 'ETH' },
@@ -61,6 +63,13 @@ jest.mock('../../../core/Engine', () => {
           keyrings: [
             {
               accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+              type: KeyringTypes.hd,
+            },
+          ],
+          keyringsMetadata: [
+            {
+              id: '01JNG71B7GTWH0J1TSJY9891S0',
+              name: '',
             },
           ],
         },
@@ -108,6 +117,13 @@ const mockInitialState = {
       TokensController: {
         ...backgroundState.TokensController,
         detectedTokens: [{ address: '0x123' }],
+        allDetectedTokens: {
+          '0x1': {
+            '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': [
+              { address: '0x123' },
+            ],
+          },
+        },
       },
     },
   },

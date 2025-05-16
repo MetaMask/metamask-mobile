@@ -36,6 +36,7 @@ import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsM
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
+import MetaMetricsTestUtils from './MetaMetricsTestUtils';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -517,7 +518,21 @@ class MetaMetrics implements IMetaMetrics {
           )}`,
         );
 
-      const segmentClient = isE2E ? undefined : createClient(config);
+      /*
+      E2E tests hang when segment is enabled see: https://github.com/MetaMask/metamask-mobile/pull/9791
+      So we need to mock the Segment client when running E2E tests
+      */
+      const segmentClient = isE2E
+        ? {
+            track: () => Promise.resolve(),
+            identify: () => Promise.resolve(),
+            group: () => Promise.resolve(),
+            screen: () => Promise.resolve(),
+            flush: () => Promise.resolve(),
+            reset: () => Promise.resolve(),
+            add: () => Promise.resolve(),
+          }
+        : createClient(config);
 
       this.instance = new MetaMetrics(segmentClient as ISegmentClient);
     }
@@ -664,6 +679,11 @@ class MetaMetrics implements IMetaMetrics {
       return;
     }
 
+    if (isE2E) {
+      MetaMetricsTestUtils.getInstance().trackEvent(event);
+      return;
+    }
+
     // if event does not have properties, only send the non-anonymous empty event
     // and return to prevent any additional processing
     if (!event.hasProperties) {
@@ -689,8 +709,8 @@ class MetaMetrics implements IMetaMetrics {
         event.name,
         {
           anonymous: true,
-          ...event.properties,
-          ...event.sensitiveProperties,
+        ...event.properties,
+        ...event.sensitiveProperties,
         },
         saveDataRecording,
       );

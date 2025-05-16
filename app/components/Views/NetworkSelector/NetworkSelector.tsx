@@ -101,8 +101,6 @@ import {
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
-import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
-import { selectHasCreatedSolanaMainnetAccount } from '../../../selectors/accountsController';
 ///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
@@ -142,11 +140,6 @@ const NetworkSelector = () => {
   const showTestNetworks = useSelector(selectShowTestNetworks);
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const isSolanaAccountAlreadyCreated = useSelector(
-    selectHasCreatedSolanaMainnetAccount,
-  );
-  ///: END:ONLY_INCLUDE_IF
   const safeAreaInsets = useSafeAreaInsets();
 
   const networkConfigurations = useSelector(
@@ -351,7 +344,13 @@ const NetworkSelector = () => {
     return !isEvmSelected ? false : chainId === selectedChainId;
   };
 
-  const { onSetRpcTarget, onNetworkChange } = useSwitchNetworks({
+  const {
+    onSetRpcTarget,
+    onNetworkChange,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    onNonEvmNetworkChange,
+    ///: END:ONLY_INCLUDE_IF
+  } = useSwitchNetworks({
     domainIsConnectedDapp,
     origin,
     selectedChainId,
@@ -674,20 +673,7 @@ const NetworkSelector = () => {
       });
     });
   };
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const onNonEvmNetworkChange = async (chainId: CaipChainId) => {
-    if (!isSolanaAccountAlreadyCreated && chainId === SolScope.Mainnet) {
-      navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
-        navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
-      });
 
-      return;
-    }
-
-    await Engine.context.MultichainNetworkController.setActiveNetwork(chainId);
-    sheetRef.current?.dismissModal();
-  };
-  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const renderNonEvmNetworks = () =>
     Object.values(nonEvmNetworkConfigurations)

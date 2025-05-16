@@ -224,7 +224,7 @@ class SendFlow extends PureComponent {
     const { toAccount } = this.state;
     const { addressBook, globalChainId, internalAccounts } = this.props;
     const networkAddressBook = addressBook[globalChainId] || {};
-    const checksummedAddress = safeToChecksumAddress(toAccount);
+    const checksummedAddress = this.safeChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] ||
       internalAccounts.find((account) =>
@@ -381,7 +381,7 @@ class SendFlow extends PureComponent {
 
     const networkAddressBook = addressBook[globalChainId] || {};
 
-    const checksummedAddress = safeToChecksumAddress(toAccount);
+    const checksummedAddress = this.safeChecksumAddress(toAccount);
     const matchingAccount = internalAccounts.find((account) =>
       toLowerCaseEquals(account.address, checksummedAddress),
     );
@@ -481,6 +481,14 @@ class SendFlow extends PureComponent {
     this.setState({ showAmbiguousAcountWarning: false });
   };
 
+  safeChecksumAddress = (address) => {
+    try {
+      return safeToChecksumAddress(address);
+    } catch (error) {
+      return address;
+    }
+  };
+
   render = () => {
     const { ticker, addressBook, globalChainId } = this.props;
     const {
@@ -499,7 +507,7 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const checksummedAddress = toAccount && safeToChecksumAddress(toAccount);
+    const checksummedAddress = this.safeChecksumAddress(toAccount);
     const existingAddressName = this.getAddressNameFromBookOrInternalAccounts(
       toEnsAddressResolved || toAccount,
     );

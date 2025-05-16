@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Permintaan masuk yang mencurigakan",
       "message": "Situs yang mengajukan permintaan tersebut bukanlah situs yang Anda masuki. Ini mungkin merupakan upaya untuk mencuri kredensial masuk Anda."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -78,10 +83,11 @@
     "connector": "pada"
   },
   "autocomplete": {
-    "placeholder": "Cari berdasarkan situs atau alamat",
+    "placeholder": "Search by token, site or address",
     "recents": "Terbaru",
     "favorites": "Favorit",
-    "sites": "Situs"
+    "sites": "Situs",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Kembali",
@@ -785,7 +791,17 @@
     "add_new_hd_account_helper_text": "Frasa Pemulihan Rahasia akun baru Anda akan dibuat dari",
     "accounts": "akun",
     "show_accounts": "Tampilkan",
-    "hide_accounts": "Sembunyikan"
+    "hide_accounts": "Sembunyikan",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
+      "bitcoin_account_name": "Bitcoin Account",
+      "solana_devnet_account_name": "Solana Devnet Account",
+      "solana_testnet_account_name": "Solana Testnet Account",
+      "solana_account_name": "Solana Account"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Failed to create {{clientType}} account"
+    }
   },
   "toast": {
     "connected_and_active": "terhubung dan aktif.",
@@ -1117,6 +1133,11 @@
     "snaps": {
       "title": "Snap",
       "description": "Tinjau dan kelola Snap",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Hapus Snap",
         "remove_snap_section_description": "Tindakan ini akan menghapus Snap, datanya, serta izin yang diberikan.",
@@ -1487,6 +1508,7 @@
     "gas_fee_slow": "LAMBAT",
     "hex_data": "Data Hex",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "Ini merupakan fitur lanjutan yang digunakan untuk membatalkan atau mempercepat transaksi yang berstatus menunggu.",
     "current_suggested_nonce": "Nonce yang disarankan saat ini:",
     "edit_transaction_nonce": "Edit nonce transaksi",
@@ -1765,6 +1787,7 @@
     "tx_details_not_available": "Tidak tersedia",
     "smart_contract_interaction": "Interaksi kontrak cerdas",
     "swaps_transaction": "Transaksi swap",
+    "bridge_transaction": "Bridge",
     "approve": "Setujui",
     "increase_allowance": "Tingkatkan Persetujuan",
     "set_approval_for_all": "Atur Persetujuan Untuk Semua",
@@ -2839,6 +2862,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Dapatkan",
       "best_price": "harga terbaik",
@@ -3780,19 +3804,22 @@
       "permit": "Permintaan batas penggunaan",
       "permit_revoke": "Hapus izin",
       "permit_NFTs": "Permintaan penarikan",
-      "signature_siwe": "Permintaan masuk"
+      "signature_siwe": "Permintaan masuk",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",
       "permit_NFTs": "Situs ini meminta izin untuk menarik NFT Anda.",
       "signature": "Tinjau detail permintaan sebelum mengonfirmasi.",
-      "signature_siwe": "Sebuah situs ingin Anda masuk untuk membuktikan bahwa Anda merupakan pemilik akun ini."
+      "signature_siwe": "Sebuah situs ingin Anda masuk untuk membuktikan bahwa Anda merupakan pemilik akun ini.",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "Permintaan dari",
     "staking_from": "Stake dari",
     "signing_in_with": "Masuk dengan",
     "message": "Pesan",
     "personal_sign_tooltip": "Situs ini meminta tanda tangan Anda",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "Detail",
     "qr_get_sign": "Dapatkan Tanda Tangan",
     "qr_scan_text": "Pindai dengan dompet perangkat keras",
@@ -3827,7 +3854,9 @@
       "unavailable": "Tidak tersedia"
     },
     "unlimited": "Tak terbatas",
-    "none": "Kosong"
+    "none": "Kosong",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with"
   },
   "change_in_simulation_modal": {
     "title": "Hasil telah berubah",
@@ -3868,6 +3897,29 @@
     "time": "Waktu",
     "quote_info_content": "Kuotasi ini menawarkan hasil terbaik dari pencarian kami. Kuotasi ini didasarkan pada nilai tukar, termasuk biaya bridge dan biaya MetaMask 0,875%, tetapi tidak termasuk biaya gas. Biaya gas bervariasi tergantung aktivitas jaringan dan kompleksitas transaksi.",
     "quote_info_title": "Alasan kami merekomendasikan kuotasi ini",
-    "see_other_quotes": "Lihat kuotasi lainnya"
+    "see_other_quotes": "Lihat kuotasi lainnya",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge",
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
   }
 }

@@ -26,6 +26,7 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
   selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
+  ...jest.requireActual('../../selectors/settings'),
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
 jest.mock('../../util/phishingDetection', () => ({
@@ -311,9 +312,6 @@ describe('Engine', () => {
             [selectedAddress]: { balance: (ethBalance * 1e18).toString() },
           },
         },
-        accounts: {
-          [selectedAddress]: { balance: (ethBalance * 1e18).toString() },
-        },
       },
       NetworkController: mockNetworkState({
         chainId: '0x1',
@@ -403,14 +401,6 @@ describe('Engine', () => {
       engine = Engine.init({
         ...state,
         TokensController: {
-          tokens: tokens.map(({ address, balance, decimals, symbol }) => ({
-            address,
-            balance,
-            decimals,
-            symbol,
-          })),
-          ignoredTokens: [],
-          detectedTokens: [],
           allTokens: {
             [chainId]: {
               [selectedAddress]: tokens.map(
@@ -515,22 +505,8 @@ describe('Engine', () => {
               },
             },
           },
-          accounts: {
-            [selectedAddress]: {
-              balance: (ethBalance * 1e18).toString(),
-              stakedBalance: (stakedEthBalance * 1e18).toString(),
-            },
-          },
         },
         TokensController: {
-          tokens: tokens.map(({ address, balance, decimals, symbol }) => ({
-            address,
-            balance,
-            decimals,
-            symbol,
-          })),
-          ignoredTokens: [],
-          detectedTokens: [],
           allTokens: {
             [chainId]: {
               [selectedAddress]: tokens.map(
