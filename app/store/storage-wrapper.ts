@@ -199,14 +199,9 @@ class StorageWrapper {
 // Get the singleton instance
 const storageWrapperInstance = StorageWrapper.getInstance();
 
-// Create an enhanced instance with both the instance methods and the static method
-const enhancedInstance = {
-  ...storageWrapperInstance,
-  getItem: storageWrapperInstance.getItem.bind(storageWrapperInstance),
-  setItem: storageWrapperInstance.setItem.bind(storageWrapperInstance),
-  removeItem: storageWrapperInstance.removeItem.bind(storageWrapperInstance),
-  clearAll: storageWrapperInstance.clearAll.bind(storageWrapperInstance),
+// Create an enhanced instance that maintains the singleton pattern
+const enhancedInstance = Object.assign(storageWrapperInstance, {
   handleFreshInstallWithRestoredData: StorageWrapper.handleFreshInstallWithRestoredData
-};
+});
 
 export default enhancedInstance;
