@@ -475,11 +475,9 @@ export class BackgroundBridge extends EventEmitter {
                 scopeObject.notifications.includes('eth_subscription') &&
                 scopeObject.methods.includes('eth_subscribe')
               ) {
-                // for each tabId
                 this.addMultichainApiEthSubscriptionMiddleware({
                   scope,
                   origin,
-                  tabId,
                 });
               } else {
                 this.removeMultichainApiEthSubscriptionMiddleware({
