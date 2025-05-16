@@ -18,6 +18,7 @@ import { useAlerts } from '../../context/alert-system-context';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
+import { useStandaloneConfirmation } from '../../hooks/ui/useStandaloneConfirmation';
 import { useQRHardwareContext } from '../../context/qr-hardware-context/qr-hardware-context';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -40,7 +41,7 @@ export const Footer = () => {
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
-
+  const { isStandaloneConfirmation } = useStandaloneConfirmation();
   const isStakingConfirmationBool = isStakingConfirmation(
     transactionMetadata?.type as string,
   );
@@ -81,6 +82,7 @@ export const Footer = () => {
   const { styles } = useStyles(styleSheet, {
     confirmDisabled,
     isStakingConfirmationBool,
+    isStandaloneConfirmation,
   });
   const confirmButtonLabel = () => {
     if (isQRSigningInProgress) {

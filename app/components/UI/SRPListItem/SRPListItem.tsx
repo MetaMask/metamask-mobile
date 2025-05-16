@@ -12,11 +12,17 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import { getInternalAccountByAddress } from '../../../util/address';
-import Jazzicon from 'react-native-jazzicon';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import { SRPListItemSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPListItem.selectors';
+import Avatar, {
+  AvatarAccountType,
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../reducers';
 
 const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -27,6 +33,11 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
         getInternalAccountByAddress(accountAddress),
       ),
     [keyring],
+  );
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
   );
 
   return (
@@ -62,7 +73,12 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
                     }
                     return (
                       <View style={styles.accountItem}>
-                        <Jazzicon size={20} seed={parseInt(item.address, 16)} />
+                        <Avatar
+                          variant={AvatarVariant.Account}
+                          type={accountAvatarType}
+                          accountAddress={item.address}
+                          size={AvatarSize.Sm}
+                        />
                         <Text
                           variant={TextVariant.BodySM}
                           color={TextColor.Default}

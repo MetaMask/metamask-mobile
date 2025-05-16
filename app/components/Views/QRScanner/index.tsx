@@ -96,7 +96,7 @@ const QRScanner = ({
   );
 
   const onBarCodeRead = useCallback(
-    async (response) => {
+    async (response: { data: string }) => {
       let content = response.data;
       /**
        * Barcode read triggers multiple times
@@ -263,7 +263,7 @@ const QRScanner = ({
     );
 
   const onError = useCallback(
-    (error) => {
+    (error: Error) => {
       navigation.goBack();
       InteractionManager.runAfterInteractions(() => {
         if (onScanError && error) {
@@ -275,7 +275,7 @@ const QRScanner = ({
   );
 
   const onStatusChange = useCallback(
-    (event) => {
+    (event: { cameraStatus: string }) => {
       if (event.cameraStatus === 'NOT_AUTHORIZED') {
         showCameraNotAuthorizedAlert();
         navigation.goBack();

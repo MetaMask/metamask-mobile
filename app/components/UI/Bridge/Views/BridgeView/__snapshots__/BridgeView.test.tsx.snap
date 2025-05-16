@@ -150,7 +150,13 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -721,6 +728,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="Arrow2Down"
                                         style={
@@ -902,6 +910,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
+                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]
@@ -1089,7 +1098,13 @@ exports[`BridgeView renders 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1097,6 +1112,7 @@ exports[`BridgeView renders 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1660,6 +1676,7 @@ exports[`BridgeView renders 1`] = `
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="Arrow2Down"
                                         style={
@@ -1841,6 +1858,7 @@ exports[`BridgeView renders 1`] = `
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
+                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]

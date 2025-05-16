@@ -51,13 +51,26 @@ jest.mock('../../../actions/multiSrp', () => ({
 const mockCreateMultichainAccount = jest.fn().mockResolvedValue(null);
 const mockMultichainWalletSnapClient = {
   createAccount: mockCreateMultichainAccount,
+  getSnapId: jest.fn().mockReturnValue('mock-snap-id'),
+  getSnapName: jest.fn().mockReturnValue('mock-snap-name'),
+  getScopes: jest.fn().mockReturnValue([]),
+  getSnapSender: jest.fn().mockReturnValue({}),
+  withSnapKeyring: jest.fn().mockImplementation(async (callback) => {
+    await callback({ createAccount: mockCreateMultichainAccount });
+  }),
 };
 
 jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../../../core/SnapKeyring/MultichainWalletSnapClient'),
-  MultichainWalletSnapClient: jest
-    .fn()
-    .mockImplementation(() => mockMultichainWalletSnapClient),
+  WalletClientType: {
+    Bitcoin: 'bitcoin',
+    Solana: 'solana',
+  },
+  MultichainWalletSnapFactory: {
+    createClient: jest
+      .fn()
+      .mockImplementation(() => mockMultichainWalletSnapClient),
+  },
 }));
 
 jest.mock('../../../util/Logger', () => ({
@@ -371,5 +384,40 @@ describe('AddNewAccount', () => {
 
       expect(addButton.props.disabled).toBe(true);
     });
+
+    it.each([
+      {
+        scope: MultichainNetwork.Solana,
+        clientType: WalletClientType.Solana,
+        expectedHeader: 'account_actions.headers.solana',
+      },
+      {
+        scope: MultichainNetwork.Bitcoin,
+        clientType: WalletClientType.Bitcoin,
+        expectedHeader: 'account_actions.headers.bitcoin',
+      },
+    ])(
+      'shows the correct header for $clientType',
+      async ({ scope, clientType, expectedHeader }) => {
+        mockCreateMultichainAccount.mockRejectedValueOnce(
+          new Error(`Failed to create ${clientType} account`),
+        );
+
+        const { getByText } = render(initialState, {
+          params: {
+            scope,
+            clientType,
+          },
+        });
+
+        expect(
+          getByText(
+            strings('account_actions.add_multichain_account', {
+              networkName: strings(expectedHeader),
+            }),
+          ),
+        ).toBeDefined();
+      },
+    );
   });
 });

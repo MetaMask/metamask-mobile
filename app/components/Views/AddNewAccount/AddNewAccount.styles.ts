@@ -68,10 +68,9 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       paddingVertical: 16,
       gap: 16,
-
-      button: {
-        flex: 1,
-      },
+    },
+    button: {
+      flex: 1,
     },
   });
 };

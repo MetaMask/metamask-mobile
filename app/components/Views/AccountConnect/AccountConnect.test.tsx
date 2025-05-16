@@ -5,7 +5,7 @@ import renderWithProvider, {
 import AccountConnect from './AccountConnect';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-import { act, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 import Engine from '../../../core/Engine';
 import {
@@ -80,12 +80,10 @@ jest.mock('../../../core/Engine', () => {
           if (url === 'phishing.com') return { result: true };
           return { result: false };
         }),
-        scanUrl: jest.fn(async (url: string) => {
-          if (url === 'https://phishing.com') {
-            return { recommendedAction: 'BLOCK' };
-          }
-          return { recommendedAction: 'NONE' };
-        }),
+        scanUrl: jest.fn((domainName: string) => ({
+          domainName,
+          recommendedAction: 'NONE'
+        })),
       },
       PermissionController: {
         rejectPermissionsRequest: jest.fn(),
@@ -260,7 +258,7 @@ describe('AccountConnect', () => {
   });
 
   describe('AccountConnectMultiSelector handlers', () => {
-    it('invokes onPrimaryActionButtonPress property and renders permissions summary', async () => {
+    it('invokes onSubmit property and renders permissions summary', async () => {
       // Render the container component with necessary props
       const { getByTestId, UNSAFE_getByType, findByTestId } =
         renderWithProvider(
@@ -294,9 +292,8 @@ describe('AccountConnect', () => {
       const multiSelector = UNSAFE_getByType(AccountConnectMultiSelector);
 
       // Now we can access the component's props
-      await act(async () => {
-        multiSelector.props.onPrimaryActionButtonPress();
-      });
+      multiSelector.props.onSubmit([mockAddress2]);
+
       // Verify that the screen changed back to PermissionsSummary
       expect(
         await findByTestId('permission-summary-container'),

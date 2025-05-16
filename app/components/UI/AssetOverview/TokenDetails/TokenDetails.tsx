@@ -29,7 +29,7 @@ import {
 import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
 import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
 import { parseFloatSafe } from '../../Earn/utils';
-import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -66,6 +66,10 @@ interface EvmMarketData {
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
@@ -185,7 +189,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   return (
     <View style={styles.tokenDetailsContainer}>
       {asset.isETH && <StakingEarnings asset={asset} />}
-      {isStablecoinLendingFeatureEnabled() &&
+      {isStablecoinLendingEnabled &&
         isSupportedLendingTokenByChainId(asset.symbol, asset.chainId ?? '') &&
         hasAssetBalance && <EarnEmptyStateCta token={asset} />}
       {(asset.isETH || tokenMetadata || !isEvmNetworkSelected) && (

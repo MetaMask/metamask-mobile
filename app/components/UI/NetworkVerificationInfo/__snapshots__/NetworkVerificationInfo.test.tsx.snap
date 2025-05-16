@@ -169,6 +169,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         >
           <SvgMock
             color="#9a6300"
+            fill="currentColor"
             height={24}
             name="Danger"
             style={
@@ -231,6 +232,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="Close"
               style={
@@ -417,6 +419,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             >
               <SvgMock
                 color="#4459ff"
+                fill="currentColor"
                 height={16}
                 name="ArrowDown"
                 style={
@@ -807,6 +810,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
                 >
                   <SvgMock
                     color="#4459ff"
+                    fill="currentColor"
                     height={16}
                     name="Info"
                     style={
@@ -834,6 +838,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
                   </Text>
                   <SvgMock
                     color="#4459ff"
+                    fill="currentColor"
                     height={12}
                     name="ArrowRight"
                     style={
@@ -912,6 +917,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             >
               <SvgMock
                 color="#4459ff"
+                fill="currentColor"
                 height={16}
                 name="ArrowDown"
                 style={

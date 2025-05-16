@@ -11,6 +11,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
 >
   <SvgMock
     color="#ca3542"
+    fill="currentColor"
     height={32}
     name="Warning"
     style={

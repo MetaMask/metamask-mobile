@@ -2,14 +2,22 @@ import React from 'react';
 import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import Text from '../../../../../../../component-library/components/Texts/Text/Text';
-import { TextColor, TextVariant } from '../../../../../../../component-library/components/Texts/Text/Text.types';
+import {
+  TextColor,
+  TextVariant,
+} from '../../../../../../../component-library/components/Texts/Text/Text.types';
 import { useEditNonce } from '../../../../../../hooks/useEditNonce';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import Name from '../../../../../../UI/Name';
+import {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../../../component-library/components/Icons/Icon';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import CustomNonceModal from '../../../../legacy/SendFlow/components/CustomNonceModal';
-import ExpandableSection from '../../../UI/expandable-section';
+import Expandable from '../../../UI/expandable';
 import InfoRow from '../../../UI/info-row';
 import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './advanced-details-row.styles';
@@ -31,12 +39,17 @@ const AdvancedDetailsRow = () => {
 
   return (
     <>
-      <ExpandableSection
+      <Expandable
         collapsedContent={
           <InfoSection>
             <InfoRow
               label={strings('stake.advanced_details')}
               style={styles.infoRowOverride}
+              withIcon={{
+                color: IconColor.Muted,
+                size: IconSize.Sm,
+                name: IconName.ArrowRight,
+              }}
             />
           </InfoSection>
         }
@@ -52,7 +65,7 @@ const AdvancedDetailsRow = () => {
               </InfoRow>
             </InfoSection>
             <InfoSection>
-              <InfoRow label={strings('transaction.custom_nonce')} tooltip={strings('transaction.custom_nonce_tooltip')}>
+            <InfoRow label={strings('transaction.custom_nonce')} tooltip={strings('transaction.custom_nonce_tooltip')}>
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Primary}

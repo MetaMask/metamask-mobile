@@ -29,6 +29,7 @@ const mockSetSelectedAccount = jest.fn();
 const mockRemoveAccountHelper = jest.fn();
 const mockGetAccountByAddress = jest.fn();
 const mockSetAccountName = jest.fn();
+const mockSetAccountNameAndSelectAccount = jest.fn();
 const mockSnapControllerHandleRequest = jest.fn();
 const mockListMultichainAccounts = jest.fn();
 
@@ -84,6 +85,7 @@ const createControllerMessenger = ({
       'AccountsController:getAccountByAddress',
       'AccountsController:listMultichainAccounts',
       'AccountsController:setAccountName',
+      'AccountsController:setAccountNameAndSelectAccount',
     ],
     allowedEvents: [],
   });
@@ -108,6 +110,8 @@ const createControllerMessenger = ({
         return mockSetSelectedAccount(params);
       case 'AccountsController:setAccountName':
         return mockSetAccountName.mockReturnValue(null)(params);
+      case 'AccountsController:setAccountNameAndSelectAccount':
+        return mockSetAccountNameAndSelectAccount.mockReturnValue(null)(params);
       case 'AccountsController:listMultichainAccounts':
         return mockListMultichainAccounts.mockReturnValue([])();
       case 'SnapController:handleRequest':
@@ -217,7 +221,7 @@ describe('Snap Keyring Methods', () => {
       ]);
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
       expect(mockGetAccounts).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).not.toHaveBeenCalled();
+      expect(mockSetAccountNameAndSelectAccount).not.toHaveBeenCalled();
       expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
 
       // Wait for any pending promises (including the account finalization which tracks the event)
@@ -256,8 +260,8 @@ describe('Snap Keyring Methods', () => {
         true,
       ]);
       expect(mockGetAccounts).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
+      expect(mockSetAccountNameAndSelectAccount).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountNameAndSelectAccount).toHaveBeenCalledWith([
         mockAccount.id,
         mockNameSuggestion,
       ]);
@@ -398,8 +402,8 @@ describe('Snap Keyring Methods', () => {
 
       // Verify that the account was created and named
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
+      expect(mockSetAccountNameAndSelectAccount).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountNameAndSelectAccount).toHaveBeenCalledWith([
         mockAccount.id,
         mockNameSuggestion,
       ]);
@@ -433,8 +437,8 @@ describe('Snap Keyring Methods', () => {
 
       // Verify that the account was created and named
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
+      expect(mockSetAccountNameAndSelectAccount).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountNameAndSelectAccount).toHaveBeenCalledWith([
         mockAccount.id,
         mockNameSuggestion,
       ]);
@@ -480,8 +484,8 @@ describe('Snap Keyring Methods', () => {
 
       // Verify that the account was created and named
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
+      expect(mockSetAccountNameAndSelectAccount).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountNameAndSelectAccount).toHaveBeenCalledWith([
         mockAccount.id,
         mockNameSuggestion,
       ]);

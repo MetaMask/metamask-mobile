@@ -38,7 +38,6 @@ import {
   setIsSubmittingTx,
   selectIsSolanaToEvm,
 } from '../../../../../core/redux/slices/bridge';
-import { ethers } from 'ethers';
 import {
   useNavigation,
   useRoute,
@@ -58,18 +57,21 @@ import DestinationAccountSelector from '../../components/DestinationAccountSelec
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
-import {
-  useInitialSourceToken,
-  type BridgeRouteParams,
-} from '../../hooks/useInitialSourceToken';
+import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import type { BridgeSourceTokenSelectorRouteParams } from '../../components/BridgeSourceTokenSelector';
 import type { BridgeDestTokenSelectorRouteParams } from '../../components/BridgeDestTokenSelector';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeViewMode } from '../../types';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
+
+export interface BridgeRouteParams {
+  token?: BridgeToken;
+  sourcePage: string;
+  bridgeViewMode: BridgeViewMode;
+}
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -124,8 +126,9 @@ const BridgeView = () => {
 
   const updateQuoteParams = useBridgeQuoteRequest();
 
-  useInitialSourceToken();
-  useInitialDestToken();
+  const initialSourceToken = route.params?.token;
+  useInitialSourceToken(initialSourceToken);
+  useInitialDestToken(initialSourceToken);
 
   // Set slippage to undefined for Solana swaps
   useEffect(() => {
@@ -146,10 +149,7 @@ const BridgeView = () => {
   });
 
   const isValidSourceAmount =
-    !!sourceAmount &&
-    sourceAmount !== '.' &&
-    sourceToken?.decimals &&
-    !ethers.utils.parseUnits(sourceAmount, sourceToken.decimals).isZero();
+    sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
   const hasValidBridgeInputs =
     isValidSourceAmount && !!sourceToken && !!destToken;
@@ -157,7 +157,8 @@ const BridgeView = () => {
   const hasInsufficientBalance = quoteRequest?.insufficientBal;
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
-  const shouldDisplayKeypad = isInputFocused || !hasValidBridgeInputs;
+  const shouldDisplayKeypad =
+    isInputFocused || !hasValidBridgeInputs || !activeQuote;
   const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
 
   // Compute error state directly from dependencies
@@ -366,8 +367,7 @@ const BridgeView = () => {
               tokenBalance={latestSourceBalance?.displayBalance}
               networkImageSource={
                 sourceToken?.chainId
-                  ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-                    getNetworkImageSource({
+                  ? getNetworkImageSource({
                       chainId: sourceToken?.chainId,
                     })
                   : undefined
@@ -394,8 +394,7 @@ const BridgeView = () => {
               token={destToken}
               networkImageSource={
                 destToken
-                  ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-                    getNetworkImageSource({ chainId: destToken?.chainId })
+                  ? getNetworkImageSource({ chainId: destToken?.chainId })
                   : undefined
               }
               testID="dest-token-area"
@@ -428,7 +427,7 @@ const BridgeView = () => {
                   currency={sourceToken?.symbol || 'ETH'}
                   decimals={sourceToken?.decimals || 18}
                   deleteIcon={
-                    <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
+                    <Icon name={IconName.Arrow2Left} size={IconSize.Lg} />
                   }
                 />
               </Box>

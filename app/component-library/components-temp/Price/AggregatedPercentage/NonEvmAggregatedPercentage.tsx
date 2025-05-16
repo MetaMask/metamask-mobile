@@ -46,23 +46,13 @@ const NonEvmAggregatedPercentage = ({
   const nonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
 
   // refactor this to memoize
-  const nonEvmAccountBalance = useMemo(
-    () =>
-      getMultichainNetworkAggregatedBalance(
-        account as InternalAccount,
-        multichainBalances,
-        multichainAssets,
-        multichainAssetsRates,
-        nonEvmChainId,
-      ),
-    [
-      account,
+  const nonEvmAccountBalance = useMemo(() => getMultichainNetworkAggregatedBalance(
+      account as InternalAccount,
       multichainBalances,
       multichainAssets,
       multichainAssetsRates,
       nonEvmChainId,
-    ],
-  );
+    ), [account, multichainBalances, multichainAssets, multichainAssetsRates, nonEvmChainId]);
 
   const nonEvmFiatBalancesArray = useMemo(() => {
     if (!nonEvmAccountBalance?.fiatBalances) {
@@ -70,10 +60,9 @@ const NonEvmAggregatedPercentage = ({
     }
     return Object.entries(nonEvmAccountBalance.fiatBalances).map(
       ([id, amount]) => ({
-        id: id as CaipAssetType,
-        fiatAmount: Number(amount),
-      }),
-    );
+      id: id as CaipAssetType,
+      fiatAmount: Number(amount),
+    }));
   }, [nonEvmAccountBalance?.fiatBalances]);
 
   // memoize this
@@ -82,7 +71,7 @@ const NonEvmAggregatedPercentage = ({
       (total1dAgo: number, item: { id: CaipAssetType; fiatAmount: number }) => {
         const pricePercentChange1d =
           multichainAssetsRates?.[item.id]?.marketData?.pricePercentChange
-            .P1D ?? 0;
+            ?.P1D ?? 0;
         const splTokenFiat1dAgo = getCalculatedTokenAmount1dAgo(
           Number(item.fiatAmount),
           pricePercentChange1d,
@@ -103,10 +92,8 @@ const NonEvmAggregatedPercentage = ({
   const totalNonEvmBalance1dAgo = getNonEvmTotalFiat1dAgo();
   const amountChange = totalNonEvmBalance - totalNonEvmBalance1dAgo;
 
-  const percentageChange =
-    totalNonEvmBalance1dAgo === 0
-      ? 0
-      : (amountChange / totalNonEvmBalance1dAgo) * 100 || 0;
+  const percentageChange = totalNonEvmBalance1dAgo === 0 ? 0 : ((amountChange) / totalNonEvmBalance1dAgo) *
+      100 || 0;
 
   let percentageTextColor = TextColor.Default;
 

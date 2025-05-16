@@ -11,4 +11,5 @@ export enum CONFIRMATION_EVENT_LOCATIONS {
   STAKING_DEPOSIT = 'staking_deposit',
   STAKING_WITHDRAWAL = 'staking_withdrawal',
   STAKING_CLAIM = 'staking_claim',
+  TRANSFER = 'transfer',
 }

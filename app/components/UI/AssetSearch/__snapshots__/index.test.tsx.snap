@@ -30,6 +30,7 @@ exports[`AssetSearch should render correctly 1`] = `
   >
     <SvgMock
       color="#121314"
+      fill="currentColor"
       height={16}
       name="Search"
       style={
@@ -105,6 +106,7 @@ exports[`AssetSearch should render correctly 1`] = `
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={16}
         name="Close"
         style={

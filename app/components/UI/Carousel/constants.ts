@@ -11,11 +11,41 @@ import cardImage from '../../../images/banners/banner_image_card.png';
 import fundImage from '../../../images/banners/banner_image_fund.png';
 import cashoutImage from '../../../images/banners/banner_image_cashout.png';
 import aggregatedImage from '../../../images/banners/banner_image_aggregated.png';
+import backupAndSyncImage from '../../../images/banners/banner_image_backup_and_sync.png';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import multiSrpImage from '../../../images/banners/banner_image_multisrp.png';
 ///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(solana)
+import solanaImage from '../../../images/banners/banner_image_solana.png';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { SolScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 
 export const PREDEFINED_SLIDES: CarouselSlide[] = [
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  {
+    id: 'solana',
+    title: strings('banner.solana.title'),
+    description: strings('banner.solana.subtitle'),
+    undismissable: false,
+    navigation: {
+      type: 'function',
+      navigate: () => [
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SHEET.ADD_ACCOUNT,
+          params: {
+            clientType: WalletClientType.Solana,
+            scope: SolScope.Mainnet,
+          },
+        },
+      ],
+    },
+    testID: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE,
+    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE_TITLE,
+    testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE_CLOSE_BUTTON,
+  },
+  ///: END:ONLY_INCLUDE_IF
   {
     id: 'card',
     title: strings('banner.card.title'),
@@ -84,6 +114,20 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
     testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_FIFTH_SLIDE_CLOSE_BUTTON,
   },
   ///: END:ONLY_INCLUDE_IF
+  {
+    id: 'backupAndSync',
+    title: strings('banner.backupAndSync.title'),
+    description: strings('banner.backupAndSync.subtitle'),
+    undismissable: false,
+    navigation: {
+      type: 'route',
+      route: Routes.IDENTITY.TURN_ON_BACKUP_AND_SYNC,
+    },
+    testID: WalletViewSelectorsIDs.CAROUSEL_SEVENTH_SLIDE,
+    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_SEVENTH_SLIDE_TITLE,
+    testIDCloseButton:
+      WalletViewSelectorsIDs.CAROUSEL_SEVENTH_SLIDE_CLOSE_BUTTON,
+  },
 ];
 
 export const BANNER_IMAGES: Record<SlideId, ImageSourcePropType> = {
@@ -93,5 +137,9 @@ export const BANNER_IMAGES: Record<SlideId, ImageSourcePropType> = {
   aggregated: aggregatedImage,
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   multisrp: multiSrpImage,
+  ///: END:ONLY_INCLUDE_IF
+  backupAndSync: backupAndSyncImage,
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  solana: solanaImage,
   ///: END:ONLY_INCLUDE_IF
 };

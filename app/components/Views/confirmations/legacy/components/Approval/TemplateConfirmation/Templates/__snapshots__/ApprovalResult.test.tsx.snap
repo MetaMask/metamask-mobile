@@ -56,6 +56,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       >
         <SvgMock
           color="#ca3542"
+          fill="currentColor"
           height={24}
           name="Warning"
           style={
@@ -265,6 +266,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       >
         <SvgMock
           color="#1c7e33"
+          fill="currentColor"
           height={24}
           name="Confirmation"
           style={

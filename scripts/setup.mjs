@@ -207,7 +207,9 @@ const buildInpageBridgeTask = {
     if (IS_NODE) {
       return task.skip('Skipping building inpage bridge.');
     }
-    await $`./scripts/build-inpage-bridge.sh`;
+    // Ensure the build type is passed to the script
+    const buildType = process.env.METAMASK_BUILD_TYPE || '';
+    await $({ env: { METAMASK_BUILD_TYPE: buildType } })`./scripts/build-inpage-bridge.sh`;
   },
 };
 

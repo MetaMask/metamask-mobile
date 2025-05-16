@@ -43,7 +43,7 @@ const mockFetchTokenContractExchangeRates =
   fetchTokenContractExchangeRates as jest.Mock;
 
 const ETH_TO_FIAT_RATE = 3;
-
+const NETWORK_CLIENT_ID_MOCK = 'mainnet';
 const ERC20_TOKEN_ADDRESS_1_MOCK: Hex = '0x0erc20_1';
 const ERC20_TOKEN_ADDRESS_2_MOCK: Hex = '0x0erc20_2';
 const ERC20_TOKEN_ADDRESS_3_MOCK: Hex = '0x0erc20_3';
@@ -103,6 +103,7 @@ describe('useBalanceChanges', () => {
         useBalanceChanges({
           chainId: CHAIN_ID_MOCK,
           simulationData: undefined,
+          networkClientId: NETWORK_CLIENT_ID_MOCK,
         }),
       );
       expect(result.current).toEqual({ pending: true, value: [] });
@@ -127,6 +128,7 @@ describe('useBalanceChanges', () => {
         useBalanceChanges({
           chainId: CHAIN_ID_MOCK,
           simulationData,
+          networkClientId: NETWORK_CLIENT_ID_MOCK,
         }),
       );
 
@@ -154,6 +156,7 @@ describe('useBalanceChanges', () => {
         useBalanceChanges({
           chainId: CHAIN_ID_MOCK,
           simulationData,
+          networkClientId: NETWORK_CLIENT_ID_MOCK,
         }),
       );
 
@@ -174,6 +177,7 @@ describe('useBalanceChanges', () => {
         useBalanceChanges({
           chainId: CHAIN_ID_MOCK,
           simulationData,
+          networkClientId: NETWORK_CLIENT_ID_MOCK,
         }),
       );
     };
@@ -327,6 +331,7 @@ describe('useBalanceChanges', () => {
         useBalanceChanges({
           chainId: CHAIN_ID_MOCK,
           simulationData,
+          networkClientId: NETWORK_CLIENT_ID_MOCK,
         }),
       );
     };
@@ -394,6 +399,7 @@ describe('useBalanceChanges', () => {
       useBalanceChanges({
         chainId: CHAIN_ID_MOCK,
         simulationData,
+        networkClientId: NETWORK_CLIENT_ID_MOCK,
       }),
     );
 

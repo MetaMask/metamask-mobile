@@ -117,6 +117,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   return (
     <Box
       flexDirection={FlexDirection.Row}
+      alignItems={AlignItems.center}
       style={styles.container}
     >
       {isSelected && <View style={styles.selectedIndicator} />}

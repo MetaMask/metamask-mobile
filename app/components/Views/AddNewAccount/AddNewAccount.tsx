@@ -15,7 +15,6 @@ import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
 
 // Internal dependencies
 import { AddNewAccountProps } from './AddNewAccount.types';
@@ -36,19 +35,18 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import SRPList from '../../UI/SRPList';
 import Logger from '../../../util/Logger';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { getHdKeyringOfSelectedAccountOrPrimaryKeyring } from '../../../selectors/multisrp';
 import {
-  MultichainWalletSnapClient,
+  MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { getMultichainAccountName } from '../../../core/SnapKeyring/utils/getMultichainAccountName';
 
 const AddNewAccount = ({ route }: AddNewAccountProps) => {
   const { navigate } = useNavigation();
@@ -91,9 +89,8 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     setIsLoading(true);
     try {
       if (clientType && scope) {
-        const multichainWalletSnapClient = new MultichainWalletSnapClient(
-          clientType,
-        );
+        const multichainWalletSnapClient =
+          MultichainWalletSnapFactory.createClient(clientType);
         await multichainWalletSnapClient.createAccount({
           scope,
           accountNameSuggestion: accountName,
@@ -118,50 +115,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
   }, [clientType, scope, accountName, keyringId, navigate]);
 
   useEffect(() => {
-    const nextAvailableAccountName =
-      Engine.context.AccountsController.getNextAvailableAccountName(
-        clientType ? KeyringTypes.snap : KeyringTypes.hd,
-      );
-    const accountNumber = nextAvailableAccountName.split(' ').pop();
-
-    let accountNameToUse = nextAvailableAccountName;
-    switch (clientType) {
-      case WalletClientType.Bitcoin: {
-        if (scope === MultichainNetwork.BitcoinTestnet) {
-          accountNameToUse = `${strings(
-            'accounts.labels.bitcoin_testnet_account_name',
-          )} ${accountNumber}`;
-          break;
-        }
-        accountNameToUse = `${strings(
-          'accounts.labels.bitcoin_account_name',
-        )} ${accountNumber}`;
-        break;
-      }
-      case WalletClientType.Solana: {
-        switch (scope) {
-          case MultichainNetwork.SolanaDevnet:
-            accountNameToUse = `${strings(
-              'accounts.labels.solana_devnet_account_name',
-            )} ${accountNumber}`;
-            break;
-          case MultichainNetwork.SolanaTestnet:
-            accountNameToUse = `${strings(
-              'accounts.labels.solana_testnet_account_name',
-            )} ${accountNumber}`;
-            break;
-          default:
-            accountNameToUse = `${strings(
-              'accounts.labels.solana_account_name',
-            )} ${accountNumber}`;
-            break;
-        }
-        break;
-      }
-      default:
-        break;
-    }
-    setAccountName(accountNameToUse);
+    setAccountName(getMultichainAccountName(scope, clientType));
   }, [clientType, scope]);
 
   const hdKeyringIndex = useMemo(
@@ -174,6 +128,21 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     const keyring = hdKeyrings.find((kr) => kr.metadata.id === keyringId);
     return keyring ? keyring.accounts.length : 0;
   }, [hdKeyrings, keyringId]);
+
+  const addAccountTitle = useMemo(() => {
+    switch (clientType) {
+      case WalletClientType.Bitcoin:
+        return strings('account_actions.add_multichain_account', {
+          networkName: strings('account_actions.headers.bitcoin'),
+        });
+      case WalletClientType.Solana:
+        return strings('account_actions.add_multichain_account', {
+          networkName: strings('account_actions.headers.solana'),
+        });
+      default:
+        return strings('account_actions.add_account');
+    }
+  }, [clientType]);
 
   const onKeyringSelection = (id: string) => {
     setShowSRPList(false);
@@ -188,7 +157,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
             title={
               showSRPList
                 ? strings('accounts.select_secret_recovery_phrase')
-                : strings('account_actions.add_account')
+                : addAccountTitle
             }
             onBack={() => {
               if (showSRPList) {
@@ -258,7 +227,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                   <Button
                     testID={AddNewAccountIds.CANCEL}
                     loading={isLoading}
-                    style={styles.footerContainer.button}
+                    style={styles.button}
                     variant={ButtonVariants.Secondary}
                     onPress={onBack}
                     labelTextVariant={TextVariant.BodyMD}
@@ -268,7 +237,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                     testID={AddNewAccountIds.CONFIRM}
                     loading={isLoading}
                     isDisabled={isLoading || isDuplicateName}
-                    style={styles.footerContainer.button}
+                    style={styles.button}
                     variant={ButtonVariants.Primary}
                     onPress={onSubmit}
                     labelTextVariant={TextVariant.BodyMD}

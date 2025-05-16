@@ -8,7 +8,8 @@ import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import { syncInternalAccountsWithUserStorage } from '../../../../actions/identity';
 import {
   selectIsAccountSyncingReadyToBeDispatched,
-  selectIsProfileSyncingEnabled,
+  selectIsBackupAndSyncEnabled,
+  selectIsAccountSyncingEnabled,
   selectIsSignedIn,
 } from '../../../../selectors/identity';
 
@@ -22,7 +23,8 @@ export const useShouldDispatchAccountSyncing = () => {
   const isAccountSyncingReadyToBeDispatched = useSelector(
     selectIsAccountSyncingReadyToBeDispatched,
   );
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
+  const isAccountSyncingEnabled = useSelector(selectIsAccountSyncingEnabled);
   const basicFunctionality: boolean | undefined = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -30,16 +32,17 @@ export const useShouldDispatchAccountSyncing = () => {
   const isSignedIn = useSelector(selectIsSignedIn);
   const completedOnboarding = useSelector(selectCompletedOnboarding);
 
-  const shouldDispatchProfileSyncing: boolean = Boolean(
+  const shouldDispatchAccountSyncing: boolean = Boolean(
     basicFunctionality &&
-      isProfileSyncingEnabled &&
+      isBackupAndSyncEnabled &&
+      isAccountSyncingEnabled &&
       isUnlocked &&
       isSignedIn &&
       completedOnboarding &&
       isAccountSyncingReadyToBeDispatched,
   );
 
-  return shouldDispatchProfileSyncing;
+  return shouldDispatchAccountSyncing;
 };
 
 /**

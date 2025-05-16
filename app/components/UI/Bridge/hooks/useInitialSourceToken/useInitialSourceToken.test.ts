@@ -106,7 +106,7 @@ describe('useInitialSourceToken', () => {
       },
     });
 
-    renderHookWithProvider(() => useInitialSourceToken(), {
+    renderHookWithProvider(() => useInitialSourceToken(undefined), {
       state: initialState,
     });
 
@@ -133,12 +133,11 @@ describe('useInitialSourceToken', () => {
 
     (useRoute as jest.Mock).mockReturnValue({
       params: {
-        token: mockToken,
         bridgeViewMode: BridgeViewMode.Swap,
       },
     });
 
-    renderHookWithProvider(() => useInitialSourceToken(), {
+    renderHookWithProvider(() => useInitialSourceToken(mockToken), {
       state: initialState,
     });
 
@@ -156,20 +155,17 @@ describe('useInitialSourceToken', () => {
       chainId: mockChainId,
     };
 
-    // Mock useRoute to return the token
     (useRoute as jest.Mock).mockReturnValue({
       params: {
-        token: mockToken,
         bridgeViewMode: BridgeViewMode.Swap,
       },
     });
 
-    renderHookWithProvider(() => useInitialSourceToken(), {
+    renderHookWithProvider(() => useInitialSourceToken(mockToken), {
       state: initialState,
     });
 
     await waitFor(() => {
-      // Verify setSourceToken was called with the native token
       expect(setSourceToken).toHaveBeenCalledWith({
         address: mockNativeAsset.address,
         name: mockNativeAsset.name,
@@ -182,7 +178,6 @@ describe('useInitialSourceToken', () => {
   });
 
   it('should change network when initial token chainId differs from selected chainId', async () => {
-    // Mock a token with a different chainId
     const differentChainId = '0x2' as Hex;
     const mockToken: BridgeToken = {
       address: '0x0000000000000000000000000000000000000001',
@@ -192,7 +187,6 @@ describe('useInitialSourceToken', () => {
       chainId: differentChainId,
     };
 
-    // Mock network configurations to include the different chainId
     const updatedNetworkConfigurations = {
       ...mockNetworkConfigurations,
       [differentChainId]: {
@@ -204,29 +198,23 @@ describe('useInitialSourceToken', () => {
     };
     (selectEvmNetworkConfigurationsByChainId as unknown as jest.Mock).mockReturnValue(updatedNetworkConfigurations);
 
-    // Mock useRoute to return the token
     (useRoute as jest.Mock).mockReturnValue({
       params: {
-        token: mockToken,
         bridgeViewMode: BridgeViewMode.Swap,
       },
     });
 
-    renderHookWithProvider(() => useInitialSourceToken(), {
+    renderHookWithProvider(() => useInitialSourceToken(mockToken), {
       state: initialState,
     });
 
     await waitFor(() => {
-      // Verify setSourceToken was called with the provided token
       expect(setSourceToken).toHaveBeenCalledWith(mockToken);
-
-      // Verify onSetRpcTarget was called with the network configuration for the different chainId
       expect(mockSwitchNetworks.onSetRpcTarget).toHaveBeenCalledWith(updatedNetworkConfigurations[differentChainId]);
     });
   });
 
   it('should not change network when initial token chainId matches selected chainId', async () => {
-    // Mock a token with the same chainId
     const mockToken: BridgeToken = {
       address: '0x0000000000000000000000000000000000000001',
       symbol: 'TOKEN',
@@ -235,23 +223,18 @@ describe('useInitialSourceToken', () => {
       chainId: mockChainId,
     };
 
-    // Mock useRoute to return the token
     (useRoute as jest.Mock).mockReturnValue({
       params: {
-        token: mockToken,
         bridgeViewMode: BridgeViewMode.Swap,
       },
     });
 
-    renderHookWithProvider(() => useInitialSourceToken(), {
+    renderHookWithProvider(() => useInitialSourceToken(mockToken), {
       state: initialState,
     });
 
     await waitFor(() => {
-      // Verify setSourceToken was called with the provided token
       expect(setSourceToken).toHaveBeenCalledWith(mockToken);
-
-      // Verify onSetRpcTarget was not called
       expect(mockSwitchNetworks.onSetRpcTarget).not.toHaveBeenCalled();
     });
   });

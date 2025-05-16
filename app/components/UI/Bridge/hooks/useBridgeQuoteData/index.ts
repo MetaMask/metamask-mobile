@@ -109,8 +109,7 @@ export const useBridgeQuoteData = () => {
 
     const { quote, estimatedProcessingTimeInSeconds } = activeQuote;
 
-    //@ts-expect-error - priceImpact is not typed
-    const priceImpact = quote.bridgePriceData.priceImpact;
+    const priceImpact = quote.priceData?.priceImpact;
     const priceImpactPercentage = Number(priceImpact) * 100;
 
     const rate = quoteRate
