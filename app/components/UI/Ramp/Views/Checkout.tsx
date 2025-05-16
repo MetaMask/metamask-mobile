@@ -182,6 +182,7 @@ const CheckoutWebView = () => {
         <WebView
           key={key}
           source={{ uri }}
+          // @ts-expect-error - This is bc webview repo is lacking the type being exported - https://github.com/react-native-webview/react-native-webview/blob/1ddfe70521725c365cf8accf2a1bdf82eb4db80f/src/WebViewTypes.ts#L155C13-L155C34
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
             if (

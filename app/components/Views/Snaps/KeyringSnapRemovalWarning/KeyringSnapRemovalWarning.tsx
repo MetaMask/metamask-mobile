@@ -207,7 +207,6 @@ export default function KeyringSnapRemovalWarning({
                 'app_settings.snaps.snap_settings.remove_account_snap_warning.description',
               )}
             </Text>
-            {/* @ts-expect-error - NativeViewGestureHandler is not correctly typed and react-natige-gesture-handler is outdated */}
             <NativeViewGestureHandler disallowInterruption>
               <ScrollView style={styles.scrollView}>
                 {accountListItems}

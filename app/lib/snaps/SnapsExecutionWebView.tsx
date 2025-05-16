@@ -4,7 +4,7 @@ import { View, NativeSyntheticEvent } from 'react-native';
 import { WebViewMessageEvent, WebView } from '@metamask/react-native-webview';
 import { createStyles } from './styles';
 import { WebViewInterface } from '@metamask/snaps-controllers/react-native';
-import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
+import { WebViewError } from '@metamask/react-native-webview/src/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
 // @ts-expect-error Types are currently broken for this.
 import WebViewHTML from '@metamask/snaps-execution-environments/dist/webpack/webview/index.html';

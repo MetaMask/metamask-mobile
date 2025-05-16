@@ -97,7 +97,7 @@ import {
   WebViewError,
   WebViewProgressEvent,
   WebViewNavigation,
-} from '@metamask/react-native-webview/lib/WebViewTypes';
+} from '@metamask/react-native-webview/src/WebViewTypes';
 import PhishingModal from './components/PhishingModal';
 import BrowserUrlBar, {
   ConnectionType,
