@@ -519,16 +519,6 @@ const stakingConfirmationBaseState = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      AccountsController: {
-        internalAccounts: {
-          accounts: {
-            '0x0000000000000000000000000000000000000000': {
-              address: '0x0000000000000000000000000000000000000000',
-            },
-          },
-          selectedAccount: '0x0000000000000000000000000000000000000000',
-        },
-      },
       ApprovalController: {
         pendingApprovals: {
           '699ca2f0-e459-11ef-b6f6-d182277cf5e1': {
@@ -637,7 +627,6 @@ const stakingConfirmationBaseState = {
         ...confirmationRedesignRemoteFlagsState,
       },
       NetworkController: {
-        ...backgroundState.NetworkController,
         networksMetadata: {
           mainnet: {
             EIPS: { 1559: true },
@@ -659,6 +648,7 @@ const stakingConfirmationBaseState = {
             defaultRpcEndpointIndex: 0,
           },
         },
+        selectedNetworkClientId: 'mainnet',
       },
       GasFeeController: {
         gasFeeEstimatesByChainId: {
@@ -708,10 +698,7 @@ export const stakingDepositConfirmationState = merge(
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [{
-            chainId: '0x1',
-            type: TransactionType.stakingDeposit,
-          }],
+          transactions: [{ type: TransactionType.stakingDeposit }],
         } as unknown as TransactionControllerState,
       },
     },
@@ -725,11 +712,18 @@ export const stakingWithdrawalConfirmationState = merge(
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [{
-            chainId: '0x1',
-            type: TransactionType.stakingUnstake,
-          }],
+          transactions: [{ type: TransactionType.stakingUnstake }],
         } as unknown as TransactionControllerState,
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              '0x0000000000000000000000000000000000000000': {
+                address: '0x0000000000000000000000000000000000000000',
+              },
+            },
+            selectedAccount: '0x0000000000000000000000000000000000000000',
+          },
+        },
       },
     },
   },
@@ -742,11 +736,18 @@ export const stakingClaimConfirmationState = merge(
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [{
-            chainId: '0x1',
-            type: TransactionType.stakingClaim,
-          }],
+          transactions: [{ type: TransactionType.stakingClaim }],
         } as unknown as TransactionControllerState,
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              '0x0000000000000000000000000000000000000000': {
+                address: '0x0000000000000000000000000000000000000000',
+              },
+            },
+            selectedAccount: '0x0000000000000000000000000000000000000000',
+          },
+        },
       },
     },
   },
