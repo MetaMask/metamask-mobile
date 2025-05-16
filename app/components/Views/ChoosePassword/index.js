@@ -626,7 +626,12 @@ class ChoosePassword extends PureComponent {
               />
             </View>
             <ActivityIndicator size="large" color={colors.text.default} />
-            <Text variant={TextVariant.HeadingLG} style={styles.title}>
+            <Text
+              variant={TextVariant.HeadingLG}
+              style={styles.title}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+            >
               {strings(
                 previousScreen === ONBOARDING
                   ? 'create_wallet.title'

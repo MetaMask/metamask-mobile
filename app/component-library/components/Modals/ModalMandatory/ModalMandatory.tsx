@@ -15,9 +15,6 @@ import ButtonPrimary from '../../Buttons/Button/variants/ButtonPrimary';
 import Text, { TextVariant, TextColor } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
 import { useTheme } from '../../../../util/theme';
-import ReusableModal, {
-  ReusableModalRef,
-} from '../../../../components/UI/ReusableModal';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
@@ -33,12 +30,13 @@ import {
 } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
 import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
+import BottomSheet, { BottomSheetRef } from '../../BottomSheets/BottomSheet';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(stylesheet, {});
-  const modalRef = useRef<ReusableModalRef>(null);
   const webViewRef = useRef<WebView>(null);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const [isWebViewLoaded, setIsWebViewLoaded] = useState<boolean>(false);
   const [isScrollEnded, setIsScrollEnded] = useState<boolean>(false);
@@ -122,11 +120,11 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   }, []);
 
   const onPress = () => {
-    modalRef.current?.dismissModal(onAccept);
+    bottomSheetRef.current?.onCloseBottomSheet(onAccept);
   };
 
   const onClose = () => {
-    modalRef.current?.dismissModal();
+    bottomSheetRef.current?.onCloseBottomSheet();
   };
 
   const renderHeader = () => (
@@ -136,7 +134,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         {headerTitle}
       </Text>
       <ButtonIcon
-        testID={TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON}
+        testID={TermsOfUseModalSelectorsIDs.CLOSE_BUTTON}
         onPress={onClose}
         iconName={IconName.Close}
         hitSlop={12}
@@ -246,7 +244,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   };
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen} isInteractable={false}>
+    <BottomSheet ref={bottomSheetRef} shouldNavigateBack={false}>
       <View style={styles.modal} testID={containerTestId}>
         {renderHeader()}
         <View
@@ -291,7 +289,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
           </Text>
         ) : null}
       </View>
-    </ReusableModal>
+    </BottomSheet>
   );
 };
 

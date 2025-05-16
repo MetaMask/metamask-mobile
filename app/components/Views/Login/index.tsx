@@ -78,6 +78,7 @@ import {
   PASSCODE_NOT_SET_ERROR,
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
+  WRONG_PASSWORD_ERROR_ANDROID_2,
 } from './constants';
 import {
   ParamListBase,
@@ -96,11 +97,15 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
 
 /**
  * View where returning users can authenticate
  */
 const Login: React.FC = () => {
+  const [disabledInput, setDisabledInput] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
   const fieldRef = useRef<TextInput>(null);
   const parentSpanRef = useRef(
     trace({
@@ -223,10 +228,6 @@ const Login: React.FC = () => {
   }, []);
 
   const handleVaultCorruption = async () => {
-    // This is so we can log vault corruption error in sentry
-    const vaultCorruptionError = new Error('Vault Corruption Error');
-    Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
-
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
     if (!passwordRequirementsMet(password)) {
@@ -284,6 +285,43 @@ const Login: React.FC = () => {
       params: { screen: 'Onboarding' },
     });
     OAuthService.resetOauthState();
+  };
+
+  const tooManyAttemptsError = (remainingTime: number) => {
+    if (remainingTime > 0) {
+      setError(strings('login.too_many_attempts', { remainingTime }));
+      timeoutRef.current = setTimeout(
+        () => tooManyAttemptsError(remainingTime - 1),
+        1000,
+      );
+      setDisabledInput(true);
+    } else {
+      setError('');
+      setDisabledInput(false);
+    }
+  };
+
+  useEffect(
+    () => () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  const handleSeedlessOnboardingControllerError = (
+    seedlessError: SeedlessOnboardingControllerRecoveryError,
+  ) => {
+    if (seedlessError.data?.remainingTime) {
+      tooManyAttemptsError(seedlessError.data?.remainingTime);
+    } else {
+      const errMessage = seedlessError.message.replace(
+        'SeedlessOnboardingController - ',
+        '',
+      );
+      setError(errMessage);
+    }
   };
 
   const onLogin = async () => {
@@ -376,17 +414,15 @@ const Login: React.FC = () => {
     } catch (loginErr: unknown) {
       const loginError = loginErr as Error;
       const loginErrorMessage = loginError.toString();
-
       if (
-        toLowerCaseEquals(loginError, WRONG_PASSWORD_ERROR) ||
-        toLowerCaseEquals(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
+        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
+        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
+        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
         loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET)
       ) {
         setLoading(false);
         setError(strings('login.invalid_password'));
-
         trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
-
         return;
       } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
         Alert.alert(
@@ -413,6 +449,13 @@ const Login: React.FC = () => {
       } else if (toLowerCaseEquals(loginError, DENY_PIN_ERROR_ANDROID)) {
         setLoading(false);
         updateBiometryChoice(false);
+      } else if (
+        loginErr instanceof SeedlessOnboardingControllerRecoveryError
+      ) {
+        setLoading(false);
+        handleSeedlessOnboardingControllerError(
+          loginError as SeedlessOnboardingControllerRecoveryError,
+        );
       } else {
         setLoading(false);
         setError(loginErrorMessage);
@@ -572,6 +615,7 @@ const Login: React.FC = () => {
                   />
                 }
                 keyboardAppearance={themeAppearance}
+                isDisabled={disabledInput}
               />
             </View>
 
@@ -618,7 +662,7 @@ const Login: React.FC = () => {
                     strings('login.unlock_button')
                   )
                 }
-                isDisabled={password.length === 0}
+                isDisabled={password.length === 0 || disabledInput}
               />
 
               {!oauthLoginSuccess && (
