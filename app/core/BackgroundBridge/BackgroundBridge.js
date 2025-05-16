@@ -407,6 +407,7 @@ export class BackgroundBridge extends EventEmitter {
       async (currentValue, previousValue) => {
         const changedAccounts = diffMap(currentValue, previousValue);
 
+        // TODO: [ffmcgee] refactor this implementation for single origin instead of multiple
         for (const [origin, accounts] of changedAccounts.entries()) {
           this._notifyAccountsChange(origin, accounts);
         }
@@ -431,6 +432,7 @@ export class BackgroundBridge extends EventEmitter {
             previousValue,
           );
 
+          // TODO: [ffmcgee] refactor this implementation for single origin instead of multiple
           // remove any existing notification subscriptions for removed authorizations
           for (const [
             origin,
@@ -455,6 +457,7 @@ export class BackgroundBridge extends EventEmitter {
             });
           }
 
+          // TODO: [ffmcgee] refactor this implementation for single origin instead of multiple
           // add new notification subscriptions for added/changed authorizations
           for (const [
             origin,
@@ -485,8 +488,7 @@ export class BackgroundBridge extends EventEmitter {
                 });
               }
             });
-            // TODO: [ffmcgee] implement
-            // this._notifyAuthorizationChange(origin, authorization);
+            this._notifyCaipAuthorizationChange(authorization);
           }
         },
         getAuthorizedScopesByOrigin,
@@ -1157,6 +1159,7 @@ export class BackgroundBridge extends EventEmitter {
     );
   }
 
+  // TODO [ffmcgee]: refactor `getPermittedAccountsByOrigin` and method implementation itself for single origin instead of multiple
   async _onAccountChange(newAddress) {
     const permittedAccountsMap = getPermittedAccountsByOrigin(
       Engine.context.PermissionController.state,
@@ -1171,30 +1174,41 @@ export class BackgroundBridge extends EventEmitter {
     await Engine.context.TransactionController.updateIncomingTransactions();
   }
 
+  _notifyCaipAuthorizationChange(newAuthorization) {
+    this.multichainEngine.emit('notification', {
+      method: 'wallet_sessionChanged',
+      params: {
+        sessionScopes: getSessionScopes(newAuthorization, {
+          getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+        }),
+      },
+    });
+  }
+
   _notifyAccountsChange(origin, newAccounts) {
-    // TODO: [ffmcgee] implement
-    // this.notifyConnections(
-    //   origin,
-    //   {
-    //     method: NOTIFICATION_NAMES.accountsChanged,
-    //     // This should be the same as the return value of `eth_accounts`,
-    //     // namely an array of the current / most recently selected Ethereum
-    //     // account.
-    //     params:
-    //       newAccounts.length < 2
-    //         ? // If the length is 1 or 0, the accounts are sorted by definition.
-    //           newAccounts
-    //         : // If the length is 2 or greater, we have to execute
-    //           // `eth_accounts` vi this method.
-    //           this.getPermittedAccounts(origin),
-    //   },
-    //   API_TYPE.EIP1193,
-    // );
+    this._notifyConnection({
+      method: NOTIFICATION_NAMES.accountsChanged,
+      // This should be the same as the return value of `eth_accounts`,
+      // namely an array of the current / most recently selected Ethereum
+      // account.
+      params:
+        newAccounts.length < 2
+          ? // If the length is 1 or 0, the accounts are sorted by definition.
+            newAccounts
+          : // If the length is 2 or greater, we have to execute
+            // `eth_accounts` vi this method.
+            this.getPermittedAccounts(origin),
+    });
 
     Engine.context.PermissionLogController.updateAccountsHistory(
       origin,
       newAccounts,
     );
+  }
+
+  _notifyConnection(payload) {
+    this.engine.emit('notification', payload);
+    this.multichainEngine.emit('notification', payload);
   }
 
   /**

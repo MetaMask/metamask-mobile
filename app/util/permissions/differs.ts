@@ -4,6 +4,8 @@ import {
   InternalScopeString,
 } from '@metamask/chain-agnostic-permission';
 
+// TODO: [ffmcgee] refactor these functions implementation for single origin instead of multiple
+
 /**
  * Returns a map containing key/value pairs for those that have been
  * added, changed, or removed between two string:string[] maps
