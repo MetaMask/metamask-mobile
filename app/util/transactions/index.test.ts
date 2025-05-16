@@ -39,9 +39,12 @@ import {
   TOKEN_METHOD_APPROVE,
   getTransactionReviewActionKey,
   getTransactionById,
+  UPGRADE_SMART_ACCOUNT_ACTION_KEY,
+  DOWNGRADE_SMART_ACCOUNT_ACTION_KEY,
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
+import { EIP_7702_REVOKE_ADDRESS } from '../../components/Views/confirmations/hooks/7702/useEIP7702Accounts';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Provider } from '@metamask/network-controller';
 import BigNumber from 'bignumber.js';
@@ -1111,6 +1114,32 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     expect(actionKey).toBe(TOKEN_METHOD_INCREASE_ALLOWANCE);
   });
 
+  it('returns correct value for upgrade smart account transaction', async () => {
+    const transaction = {
+      txParams: {
+        authorizationList: [{ address: '0x1' }],
+        to: '0x1',
+      },
+    };
+    const chainId = '1';
+
+    const actionKey = await getTransactionActionKey(transaction, chainId);
+    expect(actionKey).toBe(UPGRADE_SMART_ACCOUNT_ACTION_KEY);
+  });
+
+  it('returns correct value for downgrade smart account transaction', async () => {
+    const transaction = {
+      txParams: {
+        authorizationList: [{ address: EIP_7702_REVOKE_ADDRESS }],
+        to: '0x1',
+      },
+    };
+    const chainId = '1';
+
+    const actionKey = await getTransactionActionKey(transaction, chainId);
+    expect(actionKey).toBe(DOWNGRADE_SMART_ACCOUNT_ACTION_KEY);
+  });
+
   it.each([
     TransactionType.stakingClaim,
     TransactionType.stakingDeposit,
@@ -1214,7 +1243,7 @@ describe('Transactions utils :: getTransactionById', () => {
       { id: 'tx2', value: '0x2' },
       { id: 'tx3', value: '0x3' },
     ];
-    
+
     const mockTransactionController = {
       state: {
         transactions: mockTransactions,
@@ -1222,7 +1251,7 @@ describe('Transactions utils :: getTransactionById', () => {
     };
 
     const result = getTransactionById('tx2', mockTransactionController);
-    
+
     expect(result).toEqual(mockTransactions[1]);
   });
 
@@ -1232,7 +1261,7 @@ describe('Transactions utils :: getTransactionById', () => {
       { id: 'tx2', value: '0x2' },
       { id: 'tx3', value: '0x3' },
     ];
-    
+
     const mockTransactionController = {
       state: {
         transactions: mockTransactions,
@@ -1240,7 +1269,7 @@ describe('Transactions utils :: getTransactionById', () => {
     };
 
     const result = getTransactionById('nonexistent', mockTransactionController);
-    
+
     expect(result).toBeUndefined();
   });
 
@@ -1252,7 +1281,7 @@ describe('Transactions utils :: getTransactionById', () => {
     };
 
     const result = getTransactionById('tx1', mockTransactionController);
-    
+
     expect(result).toBeUndefined();
   });
 });
