@@ -88,6 +88,7 @@ import { TextFieldSize } from '../../../component-library/components/Form/TextFi
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -110,6 +111,7 @@ const ImportFromSecretRecoveryPhrase = ({
 }) => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const seedPhraseInputRefs = useRef([]);
   const { toastRef } = useContext(ToastContext);
@@ -558,19 +560,32 @@ const ImportFromSecretRecoveryPhrase = ({
           new_wallet: false,
         });
         !onboardingWizard && setOnboardingWizardStep(1);
-        navigation.navigate('OptinMetrics', {
-          onContinue: () => {
-            navigation.reset({
-              index: 1,
-              routes: [
-                {
-                  name: Routes.ONBOARDING.SUCCESS_FLOW,
-                  params: { showPasswordHint: false },
-                },
-              ],
-            });
-          },
-        });
+
+        if (isMetricsEnabled()) {
+          navigation.reset({
+            index: 1,
+            routes: [
+              {
+                name: Routes.ONBOARDING.SUCCESS_FLOW,
+                params: { showPasswordHint: false },
+              },
+            ],
+          });
+        } else {
+          navigation.navigate('OptinMetrics', {
+            onContinue: () => {
+              navigation.reset({
+                index: 1,
+                routes: [
+                  {
+                    name: Routes.ONBOARDING.SUCCESS_FLOW,
+                    params: { showPasswordHint: false },
+                  },
+                ],
+              });
+            },
+          });
+        }
       } catch (error) {
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -836,7 +851,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   </Label>
                   <TextField
                     placeholder={strings(
-                      'import_from_seed.use_at_least_8_characters',
+                      'import_from_seed.enter_strong_password',
                     )}
                     size={TextFieldSize.Lg}
                     value={password}
