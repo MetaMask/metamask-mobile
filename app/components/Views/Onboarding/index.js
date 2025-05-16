@@ -355,7 +355,9 @@ class Onboarding extends PureComponent {
 
   onPressCreate = () => {
     this.setState({ bottomSheetVisible: false });
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
     OAuthLoginService.resetOauthState();
+    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
     const action = () => {
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -368,7 +370,9 @@ class Onboarding extends PureComponent {
 
   onPressImport = () => {
     this.setState({ bottomSheetVisible: false });
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
     OAuthLoginService.resetOauthState();
+    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
     const action = async () => {
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
