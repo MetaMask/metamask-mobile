@@ -1,18 +1,21 @@
-import {createAnvilClients} from './anvil-clients'
-import { createAnvil } from '@viem/anvil';
+import { AnvilManager,defaultOptions } from './anvil-manager';
 
-async function main(){
-    const server = createAnvil();
-    await server.start();
+type Hex = `0x${string}`;
 
-   const {walletClient} = createAnvilClients(1337, 8545);
+async function main(): Promise<void> {
+    const server = new AnvilManager();
+    await server.start(defaultOptions);
 
-   const accounts = await walletClient.getAddresses();
+    const accounts = await server.getAccounts();
+    const firstAccount = accounts[0] as Hex;
+    const balanceInWei = '10';
 
-   // eslint-disable-next-line no-console
-   console.log(accounts);
+    await server.setAccountBalance(balanceInWei,firstAccount);
 
-   await server.stop();
+    // eslint-disable-next-line no-console
+    console.log(accounts);
+
+    await server.quit();
 }
 
 main();
