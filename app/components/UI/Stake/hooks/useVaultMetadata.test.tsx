@@ -3,7 +3,7 @@ import useVaultMetadata from './useVaultMetadata';
 import {
   MOCK_GET_VAULT_RESPONSE,
   MOCK_SELECT_POOLED_STAKING_VAULT_APY,
-} from '../__mocks__/mockData';
+} from '../__mocks__/stakeMockData';
 import {
   DeepPartial,
   renderHookWithProvider,
