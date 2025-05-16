@@ -1318,7 +1318,10 @@ export function getNetworkNavbarOptions(
               iconName={IconName.MoreVertical}
               iconColor={IconColor.Default}
             />
-          ) : <></>
+          ) : (
+            // Empty View to maintain layout spacing without showing a button
+            <View style={styles.headerRightButton} />
+          )
         }
       >
         <NavbarTitle
