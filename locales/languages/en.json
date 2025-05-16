@@ -331,7 +331,7 @@
     "show": "Show",
     "hide": "Hide",
     "seed_phrase": "Secret Recovery Phrase",
-    "must_be_at_least": "Must be at least {{number}} characters",
+    "must_be_at_least": "Password must have at least {{number}} characters",
     "remember_me": "Remember me",
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
@@ -411,7 +411,8 @@
     "pass_flow": "Continue with Flow",
     "step": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match. Try again.",
-    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again."
+    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again.",
+    "enter_strong_password": "Enter a strong password"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
