@@ -1856,7 +1856,7 @@
       "low": "Low",
       "medium": "Market",
       "high": "Aggressive",
-      "network_proposed": "Network proposed",
+      "network_suggested": "Network suggested",
       "gas_limit": "Gas limit",
       "save": "Save",
       "max_base_fee": "Max Base Fee (GWEI)",

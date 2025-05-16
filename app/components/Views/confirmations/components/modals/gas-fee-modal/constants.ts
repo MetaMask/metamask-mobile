@@ -6,8 +6,7 @@ export enum GasModalType {
 
 export enum GasOptionIcon {
   ADVANCED = '⚙️',
-  ESTIMATES = '⏰',
-  GAS_PRICE = '⛽️',
+  GAS_PRICE = '⛓️',
   HIGH = '🦍',
   LOW = '🐢',
   MEDIUM = '🦊',

@@ -114,7 +114,7 @@ export const useGasPriceEstimateOption = ({
     estimatedTime: undefined,
     isSelected: isGasPriceEstimateSelected,
     key: 'gasPrice',
-    name: strings(`transactions.gas_modal.network_proposed`),
+    name: strings(`transactions.gas_modal.network_suggested`),
     onSelect: () => onGasPriceEstimateLevelClick(),
     value: preciseNativeCurrencyFee || '--',
     valueInFiat: currentCurrencyFee || '',
