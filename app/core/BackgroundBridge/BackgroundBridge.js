@@ -473,12 +473,10 @@ export class BackgroundBridge extends EventEmitter {
                 scopeObject.methods.includes('eth_subscribe')
               ) {
                 // for each tabId
-                Object.values(this.connections[origin]).forEach(({ tabId }) => {
-                  this.addMultichainApiEthSubscriptionMiddleware({
-                    scope,
-                    origin,
-                    tabId,
-                  });
+                this.addMultichainApiEthSubscriptionMiddleware({
+                  scope,
+                  origin,
+                  tabId,
                 });
               } else {
                 this.removeMultichainApiEthSubscriptionMiddleware({
@@ -487,7 +485,8 @@ export class BackgroundBridge extends EventEmitter {
                 });
               }
             });
-            this._notifyAuthorizationChange(origin, authorization);
+            // TODO: [ffmcgee] implement
+            // this._notifyAuthorizationChange(origin, authorization);
           }
         },
         getAuthorizedScopesByOrigin,
@@ -1173,23 +1172,24 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   _notifyAccountsChange(origin, newAccounts) {
-    this.notifyConnections(
-      origin,
-      {
-        method: NOTIFICATION_NAMES.accountsChanged,
-        // This should be the same as the return value of `eth_accounts`,
-        // namely an array of the current / most recently selected Ethereum
-        // account.
-        params:
-          newAccounts.length < 2
-            ? // If the length is 1 or 0, the accounts are sorted by definition.
-              newAccounts
-            : // If the length is 2 or greater, we have to execute
-              // `eth_accounts` vi this method.
-              this.getPermittedAccounts(origin),
-      },
-      API_TYPE.EIP1193,
-    );
+    // TODO: [ffmcgee] implement
+    // this.notifyConnections(
+    //   origin,
+    //   {
+    //     method: NOTIFICATION_NAMES.accountsChanged,
+    //     // This should be the same as the return value of `eth_accounts`,
+    //     // namely an array of the current / most recently selected Ethereum
+    //     // account.
+    //     params:
+    //       newAccounts.length < 2
+    //         ? // If the length is 1 or 0, the accounts are sorted by definition.
+    //           newAccounts
+    //         : // If the length is 2 or greater, we have to execute
+    //           // `eth_accounts` vi this method.
+    //           this.getPermittedAccounts(origin),
+    //   },
+    //   API_TYPE.EIP1193,
+    // );
 
     Engine.context.PermissionLogController.updateAccountsHistory(
       origin,
