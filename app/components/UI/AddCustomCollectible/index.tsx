@@ -4,6 +4,7 @@ import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
+import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
@@ -17,7 +18,6 @@ import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Logger from '../../../util/Logger';
 import { TraceName, endTrace, trace } from '../../../util/trace';
-import { isValidHexAddress } from '../../../util/address';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -117,7 +117,7 @@ const AddCustomCollectible = ({
 
   const validateCustomCollectibleAddress = async (): Promise<boolean> => {
     let validated = true;
-    const isValidEthAddress = isValidHexAddress(address);
+    const isValidEthAddress = isValidAddress(address);
     if (address.length === 0) {
       setWarningAddress(strings('collectible.address_cant_be_empty'));
       validated = false;

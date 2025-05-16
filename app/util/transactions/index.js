@@ -1,4 +1,4 @@
-import { addHexPrefix } from 'ethereumjs-util';
+import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
 import BN from 'bnjs4';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
@@ -380,12 +380,13 @@ export async function isSmartContractAddress(
 ) {
   if (!address) return false;
 
-  address = safeToChecksumAddress(address);
+  address = toChecksumAddress(address);
 
   // If in contract map we don't need to cache it
   if (
     isMainnetByChainId(chainId) &&
-    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]?.data?.[address]
+    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
+      ?.data?.[address]
   ) {
     return Promise.resolve(true);
   }
@@ -591,11 +592,11 @@ export function getTransactionToName({
   }
 
   const networkAddressBook = addressBook[chainId];
-  const checksummedToAddress = safeToChecksumAddress(toAddress);
+  const checksummedToAddress = toChecksumAddress(toAddress);
 
   // Convert internalAccounts array to a map for quick lookup
   const internalAccountsMap = internalAccounts.reduce((acc, account) => {
-    acc[safeToChecksumAddress(account.address)] = account;
+    acc[toChecksumAddress(account.address)] = account;
     return acc;
   }, {});
 
@@ -648,8 +649,8 @@ export const calculateAmountsEIP1559 = ({
   gasFeeMinNative,
   gasFeeMaxNative,
   gasFeeMaxConversion,
-  gasFeeMinHex,
   gasFeeMaxHex,
+  gasFeeMinHex,
 }) => {
   // amount numbers
   const amountConversion = getValueFromWeiHex({
@@ -1642,4 +1643,16 @@ export const getIsNativeTokenTransferred = (txParams) =>
  */
 export function isNFTTokenStandard(tokenStandard) {
   return [ERC721, ERC1155].includes(tokenStandard);
+}
+
+/**
+ * Get a transaction by its ID
+ * @param {string} transactionId - The ID of the transaction to get
+ * @param {TransactionController} transactionController - The transaction controller
+ * @returns {TransactionMeta} The transaction meta object
+ */
+export function getTransactionById(transactionId, transactionController) {
+  return transactionController.state.transactions.find(
+    (tx) => tx.id === transactionId,
+  );
 }

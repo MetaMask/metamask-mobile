@@ -319,11 +319,13 @@ export function getLabelTextByAddress(address: string) {
     }))
     .filter((keyring) => keyring.type === ExtendedKeyringTypes.hd);
   const keyring = internalAccount?.metadata?.keyring;
+  // We do show pills only if we have multiple SRPs (and thus, multiple HD keyrings).
+  const shouldShowSrpPill = hdKeyringsWithMetadata.length > 1;
 
   if (keyring) {
     switch (keyring.type) {
       case ExtendedKeyringTypes.hd:
-        if (hdKeyringsWithMetadata.length > 1) {
+        if (shouldShowSrpPill) {
           const hdKeyringIndex = hdKeyringsWithMetadata.findIndex(
             (kr: KeyringObject) =>
               kr.accounts.find((account) =>
@@ -344,14 +346,19 @@ export function getLabelTextByAddress(address: string) {
         return strings('accounts.imported');
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       case KeyringTypes.snap: {
-        const { entropySource } = internalAccount?.options || {};
-        if (entropySource) {
-          const hdKeyringIndex = hdKeyringsWithMetadata.findIndex(
-            (kr) => kr.metadata.id === entropySource,
-          );
-          // -1 means the address is not found in any of the hd keyrings
-          if (hdKeyringIndex !== -1) {
-            return strings('accounts.srp_index', { index: hdKeyringIndex + 1 });
+        // TODO: We should return multiple labels if one day we allow 3rd party Snaps (since they might have 2 pills:
+        // 1. For the SRP (if they provide `options.entropySource`)
+        // 2. For the "Snap tag" (`accounts.snap_account_tag`)
+        if (shouldShowSrpPill) {
+          const { entropySource } = internalAccount?.options || {};
+          if (entropySource) {
+            const hdKeyringIndex = hdKeyringsWithMetadata.findIndex(
+              (kr) => kr.metadata.id === entropySource,
+            );
+            // -1 means the address is not found in any of the hd keyrings
+            if (hdKeyringIndex !== -1) {
+              return strings('accounts.srp_index', { index: hdKeyringIndex + 1 });
+            }
           }
         }
 
@@ -435,22 +442,10 @@ export function isENS(name: string | undefined = undefined) {
 export function resemblesAddress(address: string) {
   return address && address.length === 2 + 20 * 2;
 }
-/**
- * Converts a hex address to a checksummed address if it is valid.
- * If the address is not a hex string, it returns the address as is.
- * If the address is empty or undefined, it returns undefined.
- * This function is a wrapper around ethereumjs-util.toChecksumAddress.
- * It is used to ensure that the address is in a valid format before
- * performing any operations on it.
- *
- * @returns {string} - Returns the checksummed address or undefined if input is invalid
- */
+
 export function safeToChecksumAddress(address: string) {
-  if (!address) return '';
-  if (isHexString(address)) {
-    return toChecksumHexAddress(address);
-  }
-  return address as string;
+  if (!address) return undefined;
+  return toChecksumAddress(address) as Hex;
 }
 
 /**

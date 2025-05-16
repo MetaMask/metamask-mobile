@@ -16,6 +16,10 @@ import { getTraceTags } from '../../util/sentry/tags';
 import { store } from '../../store';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSnapAccountEvent';
+import {
+  endPerformanceTrace,
+} from '../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../redux/slices/performance/constants';
 
 /**
  * Builder type for the Snap keyring.
@@ -159,6 +163,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           op: TraceOperation.AddSnapAccount,
           tags: getTraceTags(store.getState()),
         });
+
         // First, wait for the account to be fully saved.
         // NOTE: This might throw, so keep this in the `try` clause.
         const accountId = await onceSaved;
@@ -168,16 +173,16 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
         // (e.g. renaming the account, select the account, etc...)
 
         // Set the selected account to the new account
-        this.#messenger.call(
-          'AccountsController:setSelectedAccount',
-          accountId,
-        );
-
         if (accountName) {
           this.#messenger.call(
-            'AccountsController:setAccountName',
+            'AccountsController:setAccountNameAndSelectAccount',
             accountId,
             accountName,
+          );
+        } else {
+          this.#messenger.call(
+            'AccountsController:setSelectedAccount',
+            accountId,
           );
         }
 
@@ -187,6 +192,12 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           MetaMetricsEvents.ACCOUNT_ADDED,
           snapId,
           snapName,
+        );
+
+        store.dispatch(
+          endPerformanceTrace({
+            eventName: PerformanceEventNames.AddSnapAccount,
+          }),
         );
 
         endTrace({

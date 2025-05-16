@@ -116,7 +116,7 @@ export const fetchTokenExchangeRates = async (
 ) => {
   try {
 
-  
+
   let exchangeRates: Record<string, number | undefined> = {};
 
   // Solana

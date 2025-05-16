@@ -4,6 +4,7 @@
 'use strict';
 import { useNavigation } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
+import { isValidAddress } from 'ethereumjs-util';
 import React, { useCallback, useRef } from 'react';
 import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
 import Text, {
@@ -19,7 +20,7 @@ import AppConstants from '../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../../core/Engine';
 import { selectChainId } from '../../../selectors/networkController';
-import { isValidAddressInputViaQRCode, isValidHexAddress } from '../../../util/address';
+import { isValidAddressInputViaQRCode } from '../../../util/address';
 import { getURLProtocol } from '../../../util/general';
 import {
   failedSeedPhraseRequirements,
@@ -96,7 +97,7 @@ const QRScanner = ({
   );
 
   const onBarCodeRead = useCallback(
-    async (response) => {
+    async (response: { data: string }) => {
       let content = response.data;
       /**
        * Barcode read triggers multiple times
@@ -182,7 +183,7 @@ const QRScanner = ({
         if (
           (content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1 &&
             !parse(content).function_name) ||
-          (content.startsWith('0x') && isValidHexAddress(content))
+          (content.startsWith('0x') && isValidAddress(content))
         ) {
           const handledContent = content.startsWith('0x')
             ? `${PROTOCOLS.ETHEREUM}:${content}@${currentChainId}`
@@ -263,7 +264,7 @@ const QRScanner = ({
     );
 
   const onError = useCallback(
-    (error) => {
+    (error: Error) => {
       navigation.goBack();
       InteractionManager.runAfterInteractions(() => {
         if (onScanError && error) {
@@ -275,7 +276,7 @@ const QRScanner = ({
   );
 
   const onStatusChange = useCallback(
-    (event) => {
+    (event: { cameraStatus: string }) => {
       if (event.cameraStatus === 'NOT_AUTHORIZED') {
         showCameraNotAuthorizedAlert();
         navigation.goBack();

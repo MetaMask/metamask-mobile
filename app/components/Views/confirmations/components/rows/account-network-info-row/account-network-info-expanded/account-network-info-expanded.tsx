@@ -9,8 +9,8 @@ import Network from '../../../UI/info-row/info-value/network';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import { Hex } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../../../util/address';
-import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSelectedAccountMultichainBalances } from '../../../../../../hooks/useMultichainBalances';
+import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 
 const AccountNetworkInfoExpanded = () => {
   const signatureRequest = useSignatureRequest();

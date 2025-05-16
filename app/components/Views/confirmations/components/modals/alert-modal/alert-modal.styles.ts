@@ -3,12 +3,8 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 import Device from '../../../../../../util/device';
 
-const styleSheet = (params: {
-  theme: Theme;
-}) => {
-  const {
-    theme,
-  } = params;
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
 
   return StyleSheet.create({
     modalContainer: {
@@ -38,12 +34,11 @@ const styleSheet = (params: {
       paddingVertical: 16,
     },
     headerText: {
-      fontSize: 16,
       fontWeight: 'bold',
       textAlign: 'center',
       marginBottom: 16,
     },
-    message:{
+    message: {
       textAlign: 'left',
     },
     detailsText: {

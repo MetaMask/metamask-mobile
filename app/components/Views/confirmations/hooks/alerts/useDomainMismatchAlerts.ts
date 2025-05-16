@@ -14,14 +14,29 @@ export default function useDomainMismatchAlerts(): Alert[] {
   const signatureRequest = useSignatureRequest();
 
   const { requestData } = approvalRequest || {};
+  const { meta } = requestData;
   const isSIWE = isSIWESignatureRequest(signatureRequest);
 
-  const { meta } = requestData;
+  let originWithProtocol: string | undefined;
 
-  const originWithProtocol = regex.urlHttpToHttps.test(requestData.origin) || !isSIWE ? requestData.origin : new URL(meta?.url).origin;
+  try {
+    originWithProtocol =
+      regex.urlHttpToHttps.test(requestData.origin) || !isSIWE
+        ? requestData.origin
+        : new URL(meta?.url).origin;
+  } catch (error) {
+    console.warn('useDomainMismatchAlerts: error while parsing URL', {
+      error,
+      origin: requestData.origin,
+      metaUrl: meta?.url,
+    });
+
+    originWithProtocol = requestData.origin;
+  }
 
   const isInvalidSIWEDomain =
-    isSIWE && !isValidSIWEOrigin({ ...requestData, origin: originWithProtocol } as WrappedSIWERequest);
+    isSIWE &&
+    !isValidSIWEOrigin({ ...requestData, origin: originWithProtocol } as WrappedSIWERequest);
 
   const alerts = useMemo(() => {
     if (!isInvalidSIWEDomain) {

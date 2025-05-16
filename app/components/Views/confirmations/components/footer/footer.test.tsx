@@ -12,6 +12,7 @@ import {
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import { Footer } from './footer';
 import { useAlerts } from '../../context/alert-system-context';
+import { useConfirmationContext } from '../../context/confirmation-context';
 import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 import { Severity } from '../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
@@ -37,6 +38,10 @@ jest.mock('../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
 }));
 
+jest.mock('../../context/confirmation-context', () => ({
+  useConfirmationContext: jest.fn(),
+}));
+
 jest.mock('../../../../hooks/useAlertsConfirmed', () => ({
   useAlertsConfirmed: jest.fn(),
 }));
@@ -51,6 +56,14 @@ const mockTrackAlertMetrics = jest.fn();
   trackAlertMetrics: mockTrackAlertMetrics,
 });
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
+
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
 const ALERT_DETAILS_MOCK = ['Detail 1', 'Detail 2'];
 const mockAlerts = [
@@ -64,7 +77,13 @@ const mockAlerts = [
 ];
 
 describe('Footer', () => {
+  const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
   beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseConfirmationContext.mockReturnValue({
+      isTransactionValueUpdating: false,
+      setIsTransactionValueUpdating: jest.fn(),
+    });
     (useAlerts as jest.Mock).mockReturnValue({
       fieldAlerts: [],
       hasDangerAlerts: false,
@@ -72,7 +91,6 @@ describe('Footer', () => {
     (useAlertsConfirmed as jest.Mock).mockReturnValue({
       hasUnconfirmedDangerAlerts: false,
     });
-    jest.clearAllMocks();
   });
 
   it('should render correctly', () => {
@@ -151,6 +169,19 @@ describe('Footer', () => {
   it('disables confirm button if there is a blocker alert', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       hasBlockingAlerts: true,
+    });
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: personalSignatureConfirmationState,
+    });
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+    ).toBe(true);
+  });
+
+  it('disables confirm button if there is a blocker alert', () => {
+    mockUseConfirmationContext.mockReturnValue({
+      isTransactionValueUpdating: true,
+      setIsTransactionValueUpdating: jest.fn(),
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,

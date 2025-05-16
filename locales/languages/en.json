@@ -446,6 +446,18 @@
     "multisrp": {
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
+    },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
+    },
+    "solana": {
+      "title": "Solana is now supported",
+      "subtitle": "Create a Solana account to get started"
+    },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
     }
   },
   "wallet": {
@@ -482,7 +494,8 @@
     "import": "Import",
     "sort_by": "Sort by",
     "filter_by": "Filter by",
-    "current_network": "Current Network",
+    "current_network": "Current network",
+    "popular_networks": "Popular networks",
     "all_networks": "All Networks",
     "declining_balance": "Declining balance ({{currency}} high-low)",
     "alphabetically": "Alphabetically (A-Z)",
@@ -861,8 +874,6 @@
     "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
     "reset_notifications": "Reset notifications",
     "reset_notifications_success": "Notifications storage key deleted/recreated, and notifications history reset.",
-    "enabling_profile_sync": "Enabling profile syncing...",
-    "disabling_profile_sync": "Disabling profile syncing...",
     "notifications_dismiss_modal": "Dismiss",
     "select_rpc_url": "Select RPC URL",
     "title": "Settings",
@@ -1687,7 +1698,6 @@
     "share": "Share",
     "bookmark": "Bookmark",
     "add_to_favorites": "Add to Favorites",
-    "go_to_favorites": "Go to Favorites",
     "error": "Error",
     "cancel": "Cancel",
     "go_back": "Go back",
@@ -1729,7 +1739,13 @@
       "generic": "This website has been blocked from automatically opening an external application"
     },
     "ipfs_gateway_off_title": "IPFS gateway is off",
-    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
+    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings.",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Solana dapp connection coming soon",
+        "message": "You can connect to Solana dapps in the extension or trade Solana tokens in-app."
+      }
+    }
   },
   "backup_alert": {
     "title": "Protect your wallet",
@@ -1829,6 +1845,8 @@
     "sign_description_2": "tap on Get Signature",
     "sign_get_signature": "Get Signature",
     "transaction_id": "Transaction ID",
+    "network": "Network",
+    "request_from": "Request from",
     "network_fee": "Network Fee",
     "network_fee_tooltip": "Amount paid to process the transaction on network."
   },
@@ -2959,7 +2977,7 @@
     "max_gas_fee": "Max gas fee",
     "edit": "Edit",
     "quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
-    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",   
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Tap to Swap",
     "swipe_to_swap": "Swipe to swap",
     "swipe_to": "Swipe to",
@@ -3295,15 +3313,6 @@
     "enable_remember_me": "Turn on Remember me",
     "enable_remember_me_description": "When Remember me is on, anyone with access to your phone can access your MetaMask account."
   },
-  "profile_sync": {
-    "title": "Profile Sync",
-    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
-    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
-    "enable_description2": " to learn more.",
-    "enable_privacy_link": "Learn how we protect your privacy",
-    "bottomSheetTurnOn": "Turning on Profile Sync",
-    "bottomSheetTurnOff": "Turning off Profile Sync"
-  },
   "turn_off_remember_me": {
     "title": "Enter your password to turn off Remember me",
     "placeholder": "Password",
@@ -3506,6 +3515,7 @@
     "connect_hardware_wallet": "Connect an account",
     "import_wallet_or_account": "Import a wallet or account",
     "add_account": "Create a new account",
+    "add_multichain_account": "Create a new {{networkName}} account",
     "create_an_account": "Create a new account",
     "add_new_account": "Ethereum account",
     "import_srp":"Secret Recovery Phrase",
@@ -3513,7 +3523,12 @@
     "import_account": "Private key",
     "add_bitcoin_account_testnet": "Bitcoin testnet account",
     "add_bitcoin_account_mainnet": "Bitcoin account",
-    "add_solana_account": "Solana account"
+    "add_solana_account": "Solana account",
+    "switch_to_smart_account": "Switch to Smart account",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "Show NFT",
@@ -3536,13 +3551,14 @@
     "title": "Solana on MetaMask",
     "create_solana_account": "Create Solana account",
     "not_now": "Not now",
-    "got_it": "Got it",
+    "view_solana_account": "View Solana account",
     "feature_1_title": "Send, receive, and swap tokens",
     "feature_1_description": "Transfer and transact with tokens such as SOL, USDC, and more.",
     "feature_2_title": "Import Solana accounts",
     "feature_2_description": "Import a Secret Recovery Phrase to migrate your Solana account from an other wallet.",
     "feature_3_title": "More features coming soon",
-    "feature_3_description": "Solana dapps, NFTs, hardware wallet support, and more coming soon."
+    "feature_3_description": "Solana dapps, NFTs, hardware wallet support, and more coming soon.",
+    "learn_more": "Learn more about Solana accounts"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
@@ -3576,6 +3592,32 @@
       "body_prefix": "You could earn up to",
       "body_suffix": "per year by lending your {{tokenSymbol}}.",
       "start_earning": "Start earning"
+    },
+    "service_interruption_banner": {
+        "maintenance_message": "We're down for maintenance. We'll be back online soon!"
+    },
+    "deposit": "Deposit",
+    "approve": "Approve",
+    "approval": "Approval",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "transaction_submitted": "Transaction Submitted",
+    "every_minute": "Every minute",
+    "immediate": "Immediate",
+    "apr": "APR",
+    "protocol": "Protocol",
+    "receive_tooltip": "receive tooltip",
+    "button": "button",
+    "receive": "Receive",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "Expected yearly increase of the value of your deposit, based on the reward rate over the past week.",
+        "part_two": "Note: APR changes over time."
+      },
+      "protocol": "A lending protocol is a smart contract that lets you lend tokens to earn rewards. It also lets users borrow tokens by putting up other tokens as collateral, against a fee which is paid to lenders.",
+      "reward_frequency": "Frequency at which your rewards are accounted for.",
+      "withdrawal_time": "The time it takes to withdraw your token from the protocol and get it back in your wallet",
+      "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets."
     }
   },
   "stake": {
@@ -3710,12 +3752,17 @@
     "basic_functionality": "Basic functionality",
     "manage_networks": "Choose your network",
     "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
-    "manage_networks_body2": " to learn more about how Infura handles data.",
+    "manage_networks_body2": " to learn more about how Infura handles data for EVM accounts, for Solana accounts ",
+    "manage_networks_body3": "click here.",
     "functionality_body": "MetaMask offers basic features like token details and gas settings through internet services. When you use internet services, your IP address is shared, in this case with MetaMask. This is just like when you visit any website. MetaMask uses this data temporarily and never sells your data. You can use a VPN or turn off these services, but it may affect your MetaMask experience. Read our ",
     "functionality_body2": " to learn more.",
     "sheet": {
       "title_off": "Turn off basic functionality",
       "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
+      "description_off2": "Turning this off also disables all features within",
+      "description_off2_related_features1": "security and privacy, backup and sync",
+      "description_off2_related_features1_and": "and",
+      "description_off2_related_features2": "notifications.",
       "title_on": "Turn on basic functionality",
       "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "I understand and want to continue",
@@ -3797,7 +3844,9 @@
       "primary_type": "Primary type",
       "request_from": "Request from",
       "signing_in_with": "Signing in with",
-      "spender": "Spender"
+      "spender": "Spender",
+      "now": "Now",
+      "switching_to": "Switching To"
     },
     "title": {
       "signature": "Signature request",
@@ -3805,14 +3854,18 @@
       "permit_revoke": "Remove permission",
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request",
-      "contract_interaction": "Transaction request"
+      "contract_interaction": "Transaction request",
+      "transfer": "Transfer request",
+      "switch_account_type": "Account update"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
       "permit_NFTs": "This site wants permission to withdraw your NFTs.",
       "signature": "Review request details before you confirm.",
       "signature_siwe": "A site wants you to sign in to prove you own this account.",
-      "contract_interaction": "Review request details before you confirm."
+      "contract_interaction": "Review request details before you confirm.",
+      "switch_to_smart_account": "You're switching to a smart account.",
+      "switch_to_standard_account": "You're switching back to a standard account (EOA)."
     },
     "request_from": "Request from",
     "staking_from": "Staking from",
@@ -3824,6 +3877,9 @@
     "qr_get_sign": "Get Signature",
     "qr_scan_text": "Scan with your hardware wallet",
     "sign_with_ledger": "Sign with Ledger",
+    "smart_account": "Smart Account",
+    "smart_contract": "Smart contract",
+    "standard_account": "Standard Account",
     "siwe_message": {
       "url": "URL",
       "network": "Network",
@@ -3853,10 +3909,17 @@
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Smart Account",
+      "standardAccountLabel": "Standard Account",
+      "switch": "Switch"
+    },
     "unlimited": "Unlimited",
     "none": "None",
     "advanced_details": "Advanced details",
-    "interacting_with": "Interacting with"
+    "interacting_with": "Interacting with",
+    "review": "Review",
+    "transferRequest": "Transfer request"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -3905,11 +3968,12 @@
     "bridge_to": "Bridge to",
     "title": "Bridge",
     "submitting_transaction": "Submitting",
-    "fetching_quote": "Fetching quote"
+    "fetching_quote": "Fetching quote",
+    "fee_disclaimer": "Includes 0.875% MM fee"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "description": "Rates update every {{refreshRate}} seconds, so tap Get new quote when you're ready.",
     "get_new_quote": "Get new quote"
   },
   "bridge_transaction_details": {
@@ -3926,5 +3990,31 @@
     "transaction_details": "Transaction Details",
     "bridge_to_chain": "Bridge to {{chainName}}",
     "recipient": "Recipient"
+  },
+  "backupAndSync": {
+    "title": "Backup and sync",
+    "description": "Back up your accounts and sync settings.",
+    "enabling": "Enabling backup and sync",
+    "disabling": "Disabling backup and sync",
+    "enable": {
+      "title": "Turn on backup and sync",
+      "confirmation": "When you turn on backup and sync, you’re also turning on basic functionality. Do you want to continue?",
+      "description": "Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask.",
+      "updatePreferences": "You can update your preferences at any time in",
+      "settingsPath": "Settings > Backup and sync."
+    },
+    "privacyLink": "Learn how we protect your privacy",
+    "features": {
+      "accounts": "Accounts"
+    },
+    "manageWhatYouSync": {
+      "title": "Manage what you sync",
+      "description": "Turn on what’s synced between your devices."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Select an asset"
+    }
   }
 }

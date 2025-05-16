@@ -114,7 +114,7 @@ const AesCryptoTestForm = () => {
         {
           key: args[0],
           lib: ENCRYPTION_LIBRARY.original,
-          exportable: false,
+          exportable: true,
           keyMetadata: DERIVATION_OPTIONS_DEFAULT_OWASP2023,
         },
         args[1],

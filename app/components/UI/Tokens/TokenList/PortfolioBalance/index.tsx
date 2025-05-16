@@ -47,9 +47,9 @@ export const PortfolioBalance = React.memo(() => {
   const navigation = useNavigation();
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();
+    const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const onOpenPortfolio = useCallback(() => {
     const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>

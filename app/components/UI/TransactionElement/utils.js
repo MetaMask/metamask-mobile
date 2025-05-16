@@ -22,10 +22,12 @@ import { sumHexWEIs } from '../../../util/conversions';
 import {
   decodeTransferData,
   isCollectibleAddress,
+  getTicker,
   getActionKey,
   TRANSACTION_TYPES,
   calculateEIP1559GasFeeHexes,
 } from '../../../util/transactions';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
@@ -301,7 +303,7 @@ export function decodeIncomingTransfer(args) {
     : undefined;
   const exchangeRate =
     token && contractExchangeRates
-      ? contractExchangeRates[safeToChecksumAddress(token.address)]?.price
+      ? contractExchangeRates[toChecksumAddress(token.address)]?.price
       : undefined;
 
   let renderTokenFiatAmount, renderTokenFiatNumber;
