@@ -69,6 +69,7 @@ import Icon, {
 import Routes from '../../../constants/navigation/Routes';
 import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
 import NavigationService from '../../../core/NavigationService';
+import { RecoveryError as SeedlessOnboardingRecoveryError } from '@metamask/seedless-onboarding-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -470,6 +471,11 @@ class ResetPassword extends PureComponent {
           strings('choose_password.security_alert_message'),
         );
         this.setState({ loading: false });
+      } else if (error instanceof SeedlessOnboardingRecoveryError) {
+        this.setState({
+          loading: false,
+          error: error.toString().replace('SeedlessOnboardingController -', ''),
+        });
       } else {
         this.setState({ loading: false, error: error.toString() });
       }
