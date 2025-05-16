@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
 import Badge, {
   BadgeVariant,
@@ -12,9 +13,12 @@ import Text, {
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import images from '../../../../../../../images/image-icons';
+import { selectTransactionState } from '../../../../../../../reducers/transaction';
 import TokenIcon from '../../../../../../UI/Swaps/components/TokenIcon';
+import { useConfirmationContext } from '../../../../context/confirmation-context';
 import { useTokenValues } from '../../../../hooks/useTokenValues';
 import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
+import AnimatedPulse from '../../../UI/animated-pulse';
 import { TooltipModal } from '../../../UI/Tooltip/Tooltip';
 import styleSheet from './token-hero.styles';
 
@@ -76,7 +80,9 @@ const AssetFiatConversion = ({
 );
 
 const TokenHero = ({ amountWei }: { amountWei?: string }) => {
+  const { isTransactionValueUpdating } = useConfirmationContext();
   const { isFlatConfirmation } = useFlatConfirmation();
+  const { maxValueMode } = useSelector(selectTransactionState);
   const { styles } = useStyles(styleSheet, {
     isFlatConfirmation,
   });
@@ -90,30 +96,35 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
   const tokenSymbol = 'ETH';
 
   return (
-    <View style={styles.container}>
-      <NetworkAndTokenImage tokenSymbol={tokenSymbol} styles={styles} />
-      <AssetAmount
-        tokenAmountDisplayValue={tokenAmountDisplayValue}
-        tokenSymbol={tokenSymbol}
-        styles={styles}
-        setIsModalVisible={
-          displayTokenAmountIsRounded ? setIsModalVisible : null
-        }
-      />
-      <AssetFiatConversion
-        fiatDisplayValue={fiatDisplayValue}
-        styles={styles}
-      />
-      {displayTokenAmountIsRounded && (
-        <TooltipModal
-          open={isModalVisible}
-          setOpen={setIsModalVisible}
-          content={tokenAmountValue}
-          title={strings('send.amount')}
-          tooltipTestId="token-hero-amount"
+    <AnimatedPulse
+      isPulsing={isTransactionValueUpdating}
+      preventPulse={!maxValueMode}
+    >
+      <View style={styles.container}>
+        <NetworkAndTokenImage tokenSymbol={tokenSymbol} styles={styles} />
+        <AssetAmount
+          tokenAmountDisplayValue={tokenAmountDisplayValue}
+          tokenSymbol={tokenSymbol}
+          styles={styles}
+          setIsModalVisible={
+            displayTokenAmountIsRounded ? setIsModalVisible : null
+          }
         />
-      )}
-    </View>
+        <AssetFiatConversion
+          fiatDisplayValue={fiatDisplayValue}
+          styles={styles}
+        />
+        {displayTokenAmountIsRounded && (
+          <TooltipModal
+            open={isModalVisible}
+            setOpen={setIsModalVisible}
+            content={tokenAmountValue}
+            title={strings('send.amount')}
+            tooltipTestId="token-hero-amount"
+          />
+        )}
+      </View>
+    </AnimatedPulse>
   );
 };
 

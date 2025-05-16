@@ -1060,6 +1060,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   >
                     <SvgMock
                       color="#9ca1af"
+                      fill="currentColor"
                       height={16}
                       name="Question"
                       style={
@@ -1324,6 +1325,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   >
                     <SvgMock
                       color="#9ca1af"
+                      fill="currentColor"
                       height={16}
                       name="Question"
                       style={
@@ -1475,6 +1477,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   >
                     <SvgMock
                       color="#9ca1af"
+                      fill="currentColor"
                       height={16}
                       name="Question"
                       style={
@@ -1627,7 +1630,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               "alignSelf": "stretch",
               "backgroundColor": "transparent",
               "borderColor": "#4459ff",
-              "borderRadius": 24,
+              "borderRadius": 12,
               "borderWidth": 1,
               "flexBasis": 0,
               "flexDirection": "row",
@@ -1669,7 +1672,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               "alignItems": "center",
               "alignSelf": "stretch",
               "backgroundColor": "#4459ff",
-              "borderRadius": 24,
+              "borderRadius": 12,
               "flexBasis": 0,
               "flexDirection": "row",
               "flexGrow": 1,

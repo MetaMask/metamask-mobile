@@ -97,4 +97,54 @@ describe('useDomainMismatchAlerts', () => {
 
     expect(result.current).toEqual([ALERT_MOCK]);
   });
+
+  it('falls back to requestData.origin when new URL(meta?.url) throws an error', () => {
+    (isSIWESignatureRequest as jest.Mock).mockReturnValue(true);
+    const ORIGIN_MOCK = 'https://metamask.github.io';
+    const META_URL_MOCK = 'invalid-url';
+
+    const consoleWarnSpy = jest.spyOn(console, 'warn');
+
+    const { result } = renderHookWithProvider(() => useDomainMismatchAlerts(), {
+      state: {
+        ...siweSignatureConfirmationState,
+        engine: {
+          ...siweSignatureConfirmationState.engine,
+          backgroundState: {
+            ...siweSignatureConfirmationState.engine.backgroundState,
+            ApprovalController: {
+              ...siweSignatureConfirmationState.engine.backgroundState.ApprovalController,
+              pendingApprovals: {
+                ...siweSignatureConfirmationState.engine.backgroundState.ApprovalController.pendingApprovals,
+                '72424261-e22f-11ef-8e59-bf627a5d8354': {
+                  ...siweSignatureConfirmationState.engine.backgroundState.ApprovalController.pendingApprovals['72424261-e22f-11ef-8e59-bf627a5d8354'],
+                  origin: ORIGIN_MOCK,
+                  requestData: {
+                    ...siweSignatureConfirmationState.engine.backgroundState.ApprovalController.pendingApprovals['72424261-e22f-11ef-8e59-bf627a5d8354'].requestData,
+                    origin: ORIGIN_MOCK,
+                    meta: {
+                      url: META_URL_MOCK,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      'useDomainMismatchAlerts: error while parsing URL',
+      expect.objectContaining({
+        error: expect.any(Object),
+        origin: ORIGIN_MOCK,
+        metaUrl: META_URL_MOCK,
+      }),
+    );
+
+    expect(result.current).toEqual([ALERT_MOCK]);
+
+    consoleWarnSpy.mockRestore();
+  });
 });
