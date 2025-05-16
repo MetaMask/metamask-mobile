@@ -1,6 +1,6 @@
 import Engine from '../Engine';
 
-import { safeToChecksumAddress } from '../../util/address';
+import { isValidHexAddress, safeToChecksumAddress } from '../../util/address';
 import { store } from '../../store';
 
 import { getPermittedAccounts } from '../Permissions';
@@ -13,7 +13,6 @@ import {
   selectEvmChainId,
   selectNetworkClientId,
 } from '../../selectors/networkController';
-import { isValidAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
@@ -57,7 +56,7 @@ export const wallet_watchAsset = async ({
 
   checkTabActive();
 
-  const isValidTokenAddress = isValidAddress(address);
+  const isValidTokenAddress = isValidHexAddress(address);
 
   if (!isValidTokenAddress) {
     throw new Error(TOKEN_NOT_VALID);

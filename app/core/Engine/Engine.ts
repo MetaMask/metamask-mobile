@@ -951,7 +951,7 @@ export class Engine {
         chainId,
       }: {
         transactionParams: TransactionParams;
-        chainId: ChainId;
+        chainId: Hex;
       }) =>
         this.transactionController.getLayer1GasFee({
           transactionParams,

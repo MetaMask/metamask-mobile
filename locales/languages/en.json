@@ -2974,7 +2974,7 @@
     "max_gas_fee": "Max gas fee",
     "edit": "Edit",
     "quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
-    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",   
     "tap_to_swap": "Tap to Swap",
     "swipe_to_swap": "Swipe to swap",
     "swipe_to": "Swipe to",
@@ -3940,6 +3940,11 @@
   "quote_expired_modal": {
     "title": "New quotes are available",
     "description": "Rates update every {{refreshRate}} seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
     "get_new_quote": "Get new quote"
   },
   "bridge_transaction_details": {

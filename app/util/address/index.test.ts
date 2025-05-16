@@ -18,6 +18,7 @@ import {
   toFormattedAddress,
   isHDOrFirstPartySnapAccount,
   renderAccountName,
+  safeToChecksumAddress,
 } from '.';
 import {
   mockHDKeyringAddress,
@@ -597,5 +598,33 @@ describe('isHDOrFirstPartySnapAccount', () => {
         },
       }),
     ).toBe(false);
+  });
+});
+
+describe('safeToChecksumAddress', () => {
+  it('returns empty when address is empty or undefined', () => {
+    expect(safeToChecksumAddress('')).toBe('');
+    expect(safeToChecksumAddress(undefined as unknown as string)).toBe('');
+  });
+
+  it('returns checksummed address when valid hex string is provided', () => {
+    const lowerCaseAddress = '0x87187657b35f461d0ceec338d9b8e944a193afe2';
+    const checksummedAddress = '0x87187657b35F461D0Ceec338d9b8E944a193aFE2';
+    expect(safeToChecksumAddress(lowerCaseAddress)).toBe(checksummedAddress);
+  });
+
+  it('returns original address when non-hex string is provided', () => {
+    const nonHexAddress = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+    expect(safeToChecksumAddress(nonHexAddress)).toBe(nonHexAddress);
+  });
+
+  it('returns original address for ENS domains', () => {
+    const ensAddress = 'test.eth';
+    expect(safeToChecksumAddress(ensAddress)).toBe(ensAddress);
+  });
+
+  it('handles addresses with 0x prefix but invalid length', () => {
+    const invalidHexAddress = '0x123456'; // Too short to be a valid address
+    expect(safeToChecksumAddress(invalidHexAddress)).toBe(invalidHexAddress);
   });
 });

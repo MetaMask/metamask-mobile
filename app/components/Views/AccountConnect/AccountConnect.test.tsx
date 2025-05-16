@@ -34,6 +34,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+}));
+
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockedTrackEvent,
@@ -293,6 +298,74 @@ describe('AccountConnect', () => {
       expect(
         await findByTestId('permission-summary-container'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Phishing detection', () => {
+    describe('dapp scanning is enabled', () => {
+      it('should show phishing modal for phishing URLs', async () => {
+        const { findByText } = renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: 'phishing.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
+                  },
+                },
+                permissionRequestId: 'test',
+              },
+            }}
+          />,
+          { state: mockInitialState },
+        );
+
+        const warningText = await findByText(
+          `MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.`,
+        );
+        expect(warningText).toBeTruthy();
+        expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
+          'https://phishing.com',
+        );
+      });
+
+      it('should not show phishing modal for safe URLs', async () => {
+        const { queryByText } = renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: 'safe-site.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
+                  },
+                },
+                permissionRequestId: 'test',
+              },
+            }}
+          />,
+          { state: mockInitialState },
+        );
+
+        const warningText = queryByText(
+          `MetaMask flagged the site you're trying to visit as potentially deceptive.`,
+        );
+        expect(warningText).toBeNull();
+        expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
+          'https://safe-site.com',
+        );
+      });
     });
   });
 

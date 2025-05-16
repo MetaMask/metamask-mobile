@@ -83,10 +83,9 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
-
-import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 import { isNonEvmAddress } from '../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../util/trace';
+import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

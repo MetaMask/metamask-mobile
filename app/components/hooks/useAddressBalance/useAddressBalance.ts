@@ -18,6 +18,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
+import { Hex } from '@metamask/utils';
 
 const useAddressBalance = (
   asset?: Asset,
@@ -51,7 +52,7 @@ const useAddressBalance = (
         return;
       }
 
-      if (!contractBalances[contractAddress] && !dontWatchAsset) {
+      if (!contractBalances[contractAddress as Hex] && !dontWatchAsset) {
         TokensController.addToken({
           address: contractAddress,
           symbol,
@@ -99,10 +100,11 @@ const useAddressBalance = (
       if (!contractAddress) {
         return;
       }
-      if (selectedAddress === address && contractBalances[contractAddress]) {
+      const hexContractAddress = contractAddress as Hex;
+      if (selectedAddress === address && contractBalances[hexContractAddress]) {
         fromAccBalance = `${renderFromTokenMinimalUnit(
-          contractBalances[contractAddress]
-            ? contractBalances[contractAddress]
+          contractBalances[hexContractAddress]
+            ? contractBalances[hexContractAddress]
             : '0',
           decimals,
         )} ${symbol}`;
