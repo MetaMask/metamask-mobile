@@ -20,7 +20,10 @@ import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
 import StyledButton from '../../StyledButton';
 import StatusText from '../../../Base/StatusText';
-import Text from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
@@ -61,6 +64,8 @@ import {
   SEPOLIA_BLOCK_EXPLORER,
 } from '../../../../constants/urls';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import Tag from '../../../../component-library/components/Tags/Tag';
+import TagBase from '../../../../component-library/base-components/TagBase';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -362,9 +367,13 @@ class TransactionDetails extends PureComponent {
   render = () => {
     const {
       chainId,
+      transactionObject,
       transactionObject: { status, time, txParams },
       shouldUseSmartTransaction,
     } = this.props;
+    const hasNestedTransactions = Boolean(
+      transactionObject?.nestedTransactions?.length,
+    );
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
 
@@ -375,6 +384,20 @@ class TransactionDetails extends PureComponent {
 
     return updatedTransactionDetails ? (
       <DetailsModal.Body>
+        {hasNestedTransactions && (
+          <DetailsModal.Section>
+            <DetailsModal.Column>
+              <TagBase includesBorder>
+                <Text
+                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySMBold}
+                >
+                  {strings('transactions.batched_transactions')}
+                </Text>
+              </TagBase>
+            </DetailsModal.Column>
+          </DetailsModal.Section>
+        )}
         <DetailsModal.Section borderBottom>
           <DetailsModal.Column>
             <DetailsModal.SectionTitle>
