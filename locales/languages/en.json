@@ -3947,7 +3947,8 @@
     "bridge_to": "Bridge to",
     "title": "Bridge",
     "submitting_transaction": "Submitting",
-    "fetching_quote": "Fetching quote"
+    "fetching_quote": "Fetching quote",
+    "fee_disclaimer": "Includes 0.875% MM fee"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
