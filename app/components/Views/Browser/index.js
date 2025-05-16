@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useRef,
   useState,
+  useMemo,
 } from 'react';
 import { View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
@@ -147,13 +148,13 @@ export const Browser = (props) => {
     [updateTab],
   );
 
-  const hideTabsAndUpdateUrl = (url) => {
+  const hideTabsAndUpdateUrl = useCallback((url) => {
     navigation.setParams({
       ...route.params,
       showTabs: false,
       url,
     });
-  };
+  }, [navigation, route.params]);
 
   const switchToTab = (tab) => {
     trackEvent(
@@ -351,7 +352,25 @@ export const Browser = (props) => {
     });
   }, [tabs, activeTabId, route.params, navigation, takeScreenshot]);
 
-  const closeAllTabs = () => {
+  // 1. Memoize the tabs array using useMemo
+  const memoizedTabs = useMemo(() => tabs, [tabs]);
+  
+  // 2. Memoize handler functions with useCallback
+  const handleSwitchTab = useCallback((tab) => {
+    trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build());
+    setActiveTab(tab.id);
+    hideTabsAndUpdateUrl(tab.url);
+    updateTabInfo(tab.id, {
+      url: tab.url,
+      isArchived: false,
+    });
+  }, [trackEvent, createEventBuilder, setActiveTab, hideTabsAndUpdateUrl, updateTabInfo]);
+  
+  const handleCloseTab = useCallback((tab) => {
+    triggerCloseTab(tab.id);
+  }, [triggerCloseTab]);
+  
+  const handleCloseAllTabs = useCallback(() => {
     if (tabs.length) {
       triggerCloseAllTabs();
       navigation.setParams({
@@ -359,59 +378,38 @@ export const Browser = (props) => {
         url: null,
       });
     }
-  };
-
-  const closeTab = (tab) => {
-    // If the tab was selected we have to select
-    // the next one, and if there's no next one,
-    // we select the previous one.
-    if (tab.id === activeTabId) {
-      if (tabs.length > 1) {
-        tabs.forEach((t, i) => {
-          if (t.id === tab.id) {
-            let newTab = tabs[i - 1];
-            if (tabs[i + 1]) {
-              newTab = tabs[i + 1];
-            }
-            setActiveTab(newTab.id);
-            navigation.setParams({
-              ...route.params,
-              url: newTab.url,
-            });
-          }
-        });
-      } else {
-        navigation.setParams({
-          ...route.params,
-          url: null,
-        });
-      }
-    }
-
-    triggerCloseTab(tab.id);
-  };
-
-  const closeTabsView = () => {
+  }, [tabs.length, triggerCloseAllTabs, navigation, route.params]);
+  
+  const handleCloseTabsView = useCallback(() => {
     if (tabs.length) {
       navigation.setParams({
         ...route.params,
         showTabs: false,
       });
     }
-  };
+  }, [tabs.length, navigation, route.params]);
+  
+  const handleNewTab = useCallback((url, linkType) => {
+    if (tabs.length >= MAX_BROWSER_TABS) {
+      navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+    } else {
+      createNewTab(url || homePageUrl(), linkType);
+    }
+  }, [tabs.length, navigation, homePageUrl, createNewTab]);
 
+  // In your renderTabList function
   const renderTabList = () => {
     const showTabs = route.params?.showTabs;
     if (showTabs) {
       return (
         <Tabs
-          tabs={tabs}
+          tabs={memoizedTabs} // Use memoized tabs
           activeTab={activeTabId}
-          switchToTab={switchToTab}
-          newTab={newTab}
-          closeTab={closeTab}
-          closeTabsView={closeTabsView}
-          closeAllTabs={closeAllTabs}
+          switchToTab={handleSwitchTab} // Use memoized handlers
+          newTab={handleNewTab}
+          closeTab={handleCloseTab}
+          closeTabsView={handleCloseTabsView}
+          closeAllTabs={handleCloseAllTabs}
         />
       );
     }

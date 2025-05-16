@@ -174,7 +174,9 @@ class Tabs extends PureComponent {
 
   constructor(props) {
     super(props);
-    this.createTabsRef(props.tabs);
+    this.onSwitch = this.onSwitch.bind(this);
+    this.onNewTabPress = this.onNewTabPress.bind(this);
+    this.trackNewTabEvent = this.trackNewTabEvent.bind(this);
   }
 
   componentDidMount() {
@@ -201,19 +203,31 @@ class Tabs extends PureComponent {
     }
   }
 
-  createTabsRef(tabs) {
-    tabs.forEach((tab) => {
-      this.thumbnails[tab.id] = React.createRef();
-    });
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.tabs.length !== Object.keys(this.thumbnails).length) {
-      this.createTabsRef(this.props.tabs);
+  shouldComponentUpdate(nextProps) {
+    // Only update if tabs array changed in length or content
+    if (this.props.tabs.length !== nextProps.tabs.length) {
+      return true;
     }
-  }
+    
+    // Check if activeTab changed
+    if (this.props.activeTab !== nextProps.activeTab) {
+      return true;
+    }
+    
+    // Check if any tab's content changed
+    const hasTabChanged = this.props.tabs.some((tab, index) => {
+      const nextTab = nextProps.tabs[index];
+      return (
+        tab.id !== nextTab.id ||
+        tab.url !== nextTab.url ||
+        tab.image !== nextTab.image
+      );
+    });
+    
+    return hasTabChanged;
+  }  
 
-  onSwitch = async (tab) => {
+  onSwitch = (tab) => {
     this.props.switchToTab(tab);
   };
 
@@ -241,6 +255,17 @@ class Tabs extends PureComponent {
   renderTabs(tabs, activeTab) {
     const styles = this.getStyles();
 
+    // Add this mapping before rendering
+    tabs.forEach(tab => {
+      if (!tab._created) {
+        console.log(`NEW TAB OBJECT CREATED: ${tab.id}`);
+        Object.defineProperty(tab, '_created', {
+          value: Date.now(),
+          enumerable: false
+        });
+      }
+    });
+
     return (
       <ScrollView
         style={styles.tabs}
@@ -248,9 +273,7 @@ class Tabs extends PureComponent {
         ref={this.scrollview}
       >
         {tabs.map((tab) => (
-          // eslint-disable-next-line react/jsx-key
           <TabThumbnail
-            ref={this.thumbnails[tab.id]}
             key={tab.id}
             tab={tab}
             isActiveTab={activeTab === tab.id}
@@ -335,6 +358,17 @@ class Tabs extends PureComponent {
 
   render() {
     const { tabs, activeTab } = this.props;
+    
+    if (!tabs._tracked) {
+      console.log('NEW TABS ARRAY CREATED');
+      Object.defineProperty(tabs, '_tracked', {
+        value: Date.now(),
+        enumerable: false
+      });
+    } else {
+      console.log('REUSING TABS ARRAY', tabs._tracked);
+    }
+    
     const styles = this.getStyles();
 
     return (

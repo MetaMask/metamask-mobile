@@ -30,12 +30,10 @@ import { selectPermissionControllerState } from '../../../../selectors/snaps/per
 import { getPermittedAccountsByHostname } from '../../../../core/Permissions';
 import { useAccounts } from '../../../hooks/useAccounts';
 import { useFavicon } from '../../../hooks/useFavicon';
+import Logger from '../../../../util/Logger';
 
 
-const thumbnailRenders = {
-
-}
-console.log('TabThumbnail render', thumbnailRenders[tab.id] ? thumbnailRenders[tab.id]++ : 0);
+const thumbnailRenders = {}
 
 /**
  * View that renders a tab thumbnail to be displayed in the in-app browser.
@@ -66,7 +64,12 @@ const TabThumbnail = React.memo(({
   );
   const { networkName, networkImageSource } = useNetworkInfo(tabTitle);
   const faviconSource = useFavicon(tab.url);
-  console.log('TabThumbnail render', thumbnailRenders[tab.id] ? thumbnailRenders[tab.id]++ : 0);
+  if (thumbnailRenders[tab.id]) {
+    thumbnailRenders[tab.id]++;
+  } else {
+    thumbnailRenders[tab.id] = 1;
+  }
+  Logger.log('TabThumbnail renders', tab.id.toString().slice(-2), thumbnailRenders[tab.id]);
   return (
     <Container style={styles.checkWrapper} elevation={8}>
       <TouchableOpacity
@@ -139,11 +142,30 @@ const TabThumbnail = React.memo(({
       </TouchableOpacity>
     </Container>
   );
-}, (prevProps, nextProps) =>
-  prevProps.isActiveTab === nextProps.isActiveTab &&
-  prevProps.tab.id === nextProps.tab.id &&
-  prevProps.tab.url === nextProps.tab.url &&
-  prevProps.tab.image === nextProps.tab.image
+}, (prevProps, nextProps) => {
+  for (const key in nextProps) {
+    if (prevProps[key] !== nextProps[key]) {
+      if (key === 'tab') {
+        console.log('Tab object reference changed but content might be same');
+      } else {
+        console.log('Prop changed:', key);
+      }
+    }
+  }
+
+  const isActiveTabSame = prevProps.isActiveTab === nextProps.isActiveTab;
+  const isTabIdSame = prevProps.tab.id === nextProps.tab.id;
+  const isTabUrlSame = prevProps.tab.url === nextProps.tab.url;
+  const isTabImageSame = prevProps.tab.image === nextProps.tab.image;
+  const isSame = isActiveTabSame && isTabIdSame && isTabUrlSame && isTabImageSame;
+  if (!isSame) {
+    Logger.log('TabThumbnail is NOT SAME', nextProps.tab.id.toString().slice(-2));
+  } else {
+    Logger.log('TabThumbnail is SAME', nextProps.tab.id.toString().slice(-2))
+  }
+  return isSame;
+}
+
 );
 
 export default TabThumbnail;
