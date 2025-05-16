@@ -74,7 +74,7 @@ const TokenHero = ({
   const { amountPreciseDisplay, amountDisplay, fiatDisplay } =
     useTokenAmount({ amountWei });
   const {
-    asset: { ticker },
+    asset: { symbol, ticker },
   } = useTokenAsset();
 
   const isRoundedAmount = amountPreciseDisplay !== amountDisplay;
@@ -90,7 +90,7 @@ const TokenHero = ({
         </View>
         <AssetAmount
           amountDisplay={amountDisplay}
-          tokenSymbol={ticker}
+          tokenSymbol={ticker || symbol}
           styles={styles}
           setIsModalVisible={isRoundedAmount ? setIsModalVisible : null}
         />

@@ -30,16 +30,16 @@ const AvatarTokenOrNetworkAssetLogo = ({
   chainId: Hex;
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { image, isNative, name, ticker } = asset;
+  const { image, isNative, name, symbol, ticker } = asset;
 
   return isNative ? (
     <NetworkAssetLogo
       chainId={chainId}
-      ticker={ticker ?? ''}
+      ticker={ticker ?? symbol}
       big
       biggest={false}
       style={styles.avatarToken}
-      testID={`avatar-with-badge-network-asset-logo-${ticker}`}
+      testID={`avatar-with-badge-network-asset-logo-${ticker ?? symbol}`}
     />
   ) : (
     <AvatarToken
@@ -47,7 +47,7 @@ const AvatarTokenOrNetworkAssetLogo = ({
       name={name ?? ''}
       size={AvatarSize.Xl}
       style={styles.avatarToken}
-      testID={`avatar-with-badge-avatar-token-${ticker}`}
+      testID={`avatar-with-badge-avatar-token-${ticker ?? symbol}`}
     />
   );
 };
@@ -62,11 +62,11 @@ export const AvatarTokenWithNetworkBadge = ({
   const { asset } = useTokenAsset();
 
   const { networkName, networkImage } = useNetworkInfo(chainId);
-  const { ticker } = asset;
+  const { symbol } = asset;
 
   const isEthOnMainnet =
     chainId === NETWORKS_CHAIN_ID.MAINNET &&
-    ticker === CHAINLIST_CURRENCY_SYMBOLS_MAP.MAINNET;
+    symbol === CHAINLIST_CURRENCY_SYMBOLS_MAP.MAINNET;
   const showBadge = canShowBadge && networkImage && !isEthOnMainnet;
 
   return showBadge ? (

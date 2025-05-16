@@ -50,9 +50,9 @@ export const useTokenAsset = () => {
     }
   }
 
-  if (!asset.ticker) {
+  if (!asset.symbol) {
     asset.name = strings('token.unknown');
-    asset.ticker = strings('token.unknown');
+    asset.symbol = strings('token.unknown');
   }
 
   return {
