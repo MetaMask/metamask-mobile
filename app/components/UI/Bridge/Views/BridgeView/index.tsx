@@ -306,7 +306,7 @@ const BridgeView = () => {
   }, [isExpired, willRefresh, navigation]);
 
   const renderBottomContent = () => {
-    if (!hasValidBridgeInputs || isInputFocused) {
+    if (shouldDisplayKeypad && !isLoading && !isError) {
       return (
         <Box style={styles.buttonContainer}>
           <Text color={TextColor.Primary}>
