@@ -37,6 +37,9 @@ import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { parseUnits } from 'ethers/lib/utils';
+import parseAmount from '../../../Ramp/utils/parseAmount';
+
+const MAX_DECIMALS = 5;
 
 const createStyles = () =>
   StyleSheet.create({
@@ -206,7 +209,7 @@ export const TokenInputArea = forwardRef<
               ) : (
                 <Input
                   ref={inputRef}
-                  value={amount}
+                  value={amount ? parseAmount(amount, MAX_DECIMALS) : amount}
                   style={styles.input}
                   isDisabled={false}
                   isReadonly={tokenType === TokenInputAreaType.Destination}
@@ -222,6 +225,9 @@ export const TokenInputArea = forwardRef<
                   onBlur={() => {
                     onBlur?.();
                   }}
+                  // Android only issue, for long numbers, the input field will focus on the right hand side
+                  // Force it to focus on the left hand side
+                  selection={{ start: 0, end: 0 }}
                 />
               )}
             </Box>
