@@ -206,28 +206,11 @@ export const parseAndSanitizeSignTypedData = (messageParamsData: string) => {
 
   try {
     const { domain, message, primaryType, types } = JSON.parse(messageParamsData);
-    
-    // Let these specific validation errors propagate for backwards compatibility
-    if (!types) {
-      throw new Error(`Invalid types definition`);
-    }
-    
-    // Check if primaryType is missing entirely or if the type isn't defined in the types object
-    if (!primaryType || (types && !types[primaryType])) {
-      throw new Error(`Invalid primary type definition`);
-    }
-    
     const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
+    
     return { sanitizedMessage, primaryType, domain };
   } catch (error) {
-    // Check if this is one of our validation errors that should propagate
-    if (error instanceof Error && 
-        (error.message === 'Invalid types definition' || 
-         error.message === 'Invalid primary type definition')) {
-      throw error;
-    }
-    
-    // Keep original behavior - return empty object on other errors
+    // Keep original behavior - return empty object on error
     console.warn('Error parsing typed data:', error);
     return {};
   }
