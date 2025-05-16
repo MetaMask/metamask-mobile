@@ -68,6 +68,7 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { parseUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
+import { ScrollView } from 'react-native';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -367,51 +368,58 @@ const BridgeView = () => {
     // @ts-expect-error The type is incorrect, this will work
     <ScreenView contentContainerStyle={styles.screen}>
       <Box style={styles.content}>
-        <Box style={styles.mainContent}>
-          <Box style={styles.inputsContainer} gap={8}>
-            <TokenInputArea
-              ref={inputRef}
-              amount={sourceAmount}
-              token={sourceToken}
-              tokenBalance={latestSourceBalance?.displayBalance}
-              networkImageSource={
-                sourceToken?.chainId
-                  ? getNetworkImageSource({
-                      chainId: sourceToken?.chainId,
-                    })
-                  : undefined
-              }
-              testID="source-token-area"
-              tokenType={TokenInputAreaType.Source}
-              onTokenPress={handleSourceTokenPress}
-              onFocus={() => setIsInputFocused(true)}
-              onBlur={() => setIsInputFocused(false)}
-              onInputPress={() => setIsInputFocused(true)}
-            />
-            <Box style={styles.arrowContainer}>
-              <Box style={styles.arrowCircle}>
-                <ButtonIcon
-                  iconName={IconName.Arrow2Down}
-                  onPress={handleSwitchTokens}
-                  disabled={!destChainId || !destToken}
-                  testID="arrow-button"
-                />
-              </Box>
+        <Box style={styles.inputsContainer} gap={8}>
+          <TokenInputArea
+            ref={inputRef}
+            amount={sourceAmount}
+            token={sourceToken}
+            tokenBalance={latestSourceBalance?.displayBalance}
+            networkImageSource={
+              sourceToken?.chainId
+                ? getNetworkImageSource({
+                    chainId: sourceToken?.chainId,
+                  })
+                : undefined
+            }
+            testID="source-token-area"
+            tokenType={TokenInputAreaType.Source}
+            onTokenPress={handleSourceTokenPress}
+            onFocus={() => setIsInputFocused(true)}
+            onBlur={() => setIsInputFocused(false)}
+            onInputPress={() => setIsInputFocused(true)}
+          />
+          <Box style={styles.arrowContainer}>
+            <Box style={styles.arrowCircle}>
+              <ButtonIcon
+                iconName={IconName.Arrow2Down}
+                onPress={handleSwitchTokens}
+                disabled={!destChainId || !destToken}
+                testID="arrow-button"
+              />
             </Box>
-            <TokenInputArea
-              amount={destTokenAmount}
-              token={destToken}
-              networkImageSource={
-                destToken
-                  ? getNetworkImageSource({ chainId: destToken?.chainId })
-                  : undefined
-              }
-              testID="dest-token-area"
-              tokenType={TokenInputAreaType.Destination}
-              onTokenPress={handleDestTokenPress}
-              isLoading={isLoading}
-            />
           </Box>
+          <TokenInputArea
+            amount={destTokenAmount}
+            token={destToken}
+            networkImageSource={
+              destToken
+                ? getNetworkImageSource({ chainId: destToken?.chainId })
+                : undefined
+            }
+            testID="dest-token-area"
+            tokenType={TokenInputAreaType.Destination}
+            onTokenPress={handleDestTokenPress}
+            isLoading={isLoading}
+          />
+        </Box>
+
+        {/* Scrollable Dynamic Content */}
+        <ScrollView
+          testID="bridge-view-scroll"
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+        >
           <Box style={styles.dynamicContent}>
             <Box style={styles.destinationAccountSelectorContainer}>
               {hasDestinationPicker && <DestinationAccountSelector />}
@@ -442,7 +450,7 @@ const BridgeView = () => {
               </Box>
             ) : null}
           </Box>
-        </Box>
+        </ScrollView>
         {renderBottomContent()}
       </Box>
     </ScreenView>

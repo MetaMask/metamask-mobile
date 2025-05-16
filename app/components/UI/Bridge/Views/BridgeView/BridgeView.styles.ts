@@ -68,9 +68,6 @@ export const createStyles = (params: { theme: Theme }) => {
     destinationAccountSelectorContainer: {
       paddingBottom: 12,
     },
-    mainContent: {
-      flex: 1,
-    },
     dynamicContent: {
       flex: 1,
       paddingBottom: 12,
@@ -80,6 +77,12 @@ export const createStyles = (params: { theme: Theme }) => {
       justifyContent: 'center',
       paddingTop: 8,
       paddingBottom: 12,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollViewContent: {
+      flexGrow: 1,
     },
   });
 };
