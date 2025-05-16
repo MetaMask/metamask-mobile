@@ -231,6 +231,7 @@ export const NETWORK_CHAIN_ID: {
   readonly SONEIUM_MAINNET: '0x74c';
   readonly SONEIUM_MINATO_TESTNET: '0x79a';
   readonly XRPLEVM_TESTNET: '0x161c28';
+  readonly SEI_MAINNET: '0x531';
   readonly MATCHAIN_MAINNET: '0x2ba';
   readonly FLOW_MAINNET: '0x2eb';
   readonly LENS: '0xe8';
@@ -247,6 +248,7 @@ export const NETWORK_CHAIN_ID: {
   SONEIUM_MAINNET: '0x74c',
   SONEIUM_MINATO_TESTNET: '0x79a',
   XRPLEVM_TESTNET: '0x161c28',
+  SEI_MAINNET: '0x531',
   MATCHAIN_MAINNET: '0x2ba',
   FLOW_MAINNET: '0x2eb',
   LENS: '0xe8',
@@ -267,6 +269,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.SONEIUM_MINATO_TESTNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.SONEIUM_MAINNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: require('../../images/xrplevm.png'),
+  [NETWORK_CHAIN_ID.SEI_MAINNET]: require('../../images/sei.png'),
   [NETWORK_CHAIN_ID.MATCHAIN_MAINNET]: require('../../images/matchain.png'),
   [NETWORK_CHAIN_ID.FLOW_MAINNET]: require('../../images/flow.png'),
   [NETWORK_CHAIN_ID.LENS]: require('../../images/lens.png'),
