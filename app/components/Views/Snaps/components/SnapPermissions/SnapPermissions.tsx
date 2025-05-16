@@ -199,19 +199,14 @@ const SnapPermissions = ({
       const walletSnapPermissionData: SnapPermissionData[] = [];
       const date = permissionsList[key].date;
       const requestedSnaps = permissionsList[key].caveats?.[0].value;
-      const snapNames = Object.keys(requestedSnaps).reduce(
-        (acc, snapId, index, snapsToConnect) =>
-          acc +
-          stripSnapPrefix(snapId) +
-          (index < snapsToConnect.length - 1 ? ', ' : ''),
-        '',
-      );
 
-      const title = strings(
-        `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
-        { otherSnapName: snapNames },
-      );
-      walletSnapPermissionData.push({ label: title, date });
+      Object.keys(requestedSnaps).forEach((snapId) => {
+        const title = strings(
+          `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
+          { otherSnapName: stripSnapPrefix(snapId) },
+        );
+        walletSnapPermissionData.push({ label: title, date });
+      });
 
       return walletSnapPermissionData;
     },
