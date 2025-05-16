@@ -14,22 +14,7 @@ describe('useSupportsEIP1559', () => {
             .TransactionController.transactions[0],
         ),
       {
-        state: merge({}, stakingDepositConfirmationState, {
-          engine: {
-            backgroundState: {
-              NetworkController: {
-                networksMetadata: {
-                  mainnet: {
-                    EIPS: { 1559: true },
-                  },
-                  sepolia: {
-                    EIPS: { 1559: true },
-                  },
-                },
-              },
-            },
-          },
-        }),
+        state: stakingDepositConfirmationState,
       },
     );
 

@@ -559,6 +559,17 @@ const stakingConfirmationBaseState = {
           },
         },
       },
+      NetworkController: {
+        ...backgroundState.NetworkController,
+        networksMetadata: {
+          mainnet: {
+            EIPS: { 1559: true },
+          },
+          sepolia: {
+            EIPS: { 1559: true },
+          },
+        },
+      },
       TokensController: {
         allTokens: {
           '0x1': {
