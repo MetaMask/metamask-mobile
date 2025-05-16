@@ -172,6 +172,11 @@ export interface EndTraceRequest {
 interface PreConsentCallBuffer<T = TraceRequest | EndTraceRequest> {
   type: 'start' | 'end';
   request: T;
+  parentTraceName?: string; // Track parent trace name for reconnecting during flush
+}
+
+interface SentrySpanWithName extends Span {
+  _name?: string;
 }
 
 export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
@@ -197,14 +202,22 @@ export function trace<T>(
     if (consentCache === null) {
       updateIsConsentGivenForSentry();
     }
+    // Extract parent trace name if parentContext exists
+    let parentTraceName: string | undefined;
+    if (request.parentContext && typeof request.parentContext === 'object') {
+      const parentSpan = request.parentContext as SentrySpanWithName;
+      parentTraceName = parentSpan._name;
+    }
     preConsentCallBuffer.push({
       type: 'start',
       request: {
         ...request,
+        parentContext: undefined, // Remove original parentContext to avoid invalid references
         // Use `Date.now()` as `performance.timeOrigin` is only valid for measuring durations within
         // the same session; it won't produce valid event times for Sentry if buffered and flushed later
         startTime: request.startTime ?? Date.now(),
       },
+      parentTraceName, // Store the parent trace name for later reconnection
     });
   }
 
@@ -272,11 +285,29 @@ export async function flushBufferedTraces(): Promise<void> {
   const bufferToProcess = [...preConsentCallBuffer];
   preConsentCallBuffer.length = 0;
 
+  const activeSpans = new Map<string, Span>();
+
   for (const call of bufferToProcess) {
     if (call.type === 'start') {
-      trace(call.request);
+      const traceName = call.request.name as string;
+
+      // Get parent if applicable
+      let parentSpan: Span | undefined;
+      if (call.parentTraceName) {
+        parentSpan = activeSpans.get(call.parentTraceName);
+      }
+
+      const span = trace({
+        ...call.request,
+        parentContext: parentSpan,
+      }) as unknown as Span;
+
+      if (span) {
+        activeSpans.set(traceName, span);
+      }
     } else if (call.type === 'end') {
       endTrace(call.request);
+      activeSpans.delete(call.request.name as string);
     }
   }
   log('Finished flushing buffered traces');
