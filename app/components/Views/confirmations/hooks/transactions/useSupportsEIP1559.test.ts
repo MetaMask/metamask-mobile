@@ -5,7 +5,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { stakingDepositConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { useSupportsEIP1559 } from './useSupportsEIP1559';
 
-describe('useEIP1559TxFees', () => {
+describe('useSupportsEIP1559', () => {
   it('returns true for EIP1559 transaction', async () => {
     const { result } = renderHookWithProvider(
       () =>
@@ -14,7 +14,22 @@ describe('useEIP1559TxFees', () => {
             .TransactionController.transactions[0],
         ),
       {
-        state: stakingDepositConfirmationState,
+        state: merge({}, stakingDepositConfirmationState, {
+          engine: {
+            backgroundState: {
+              NetworkController: {
+                networksMetadata: {
+                  mainnet: {
+                    EIPS: { 1559: true },
+                  },
+                  sepolia: {
+                    EIPS: { 1559: true },
+                  },
+                },
+              },
+            },
+          },
+        }),
       },
     );
 
