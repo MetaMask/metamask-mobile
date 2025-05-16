@@ -12,16 +12,26 @@ import { RemoteFeatureFlagInitParamTypes } from './types';
 import AppConstants from '../../../AppConstants';
 
 const getFeatureFlagAppEnvironment = () => {
+  // For some manual builds, we might want to override the launch darkly environment
+  // For example: a production build that uses the staging environment variables
+  const featureFlagEnv = process.env.FEATURE_FLAG_ENVIRONMENT;
   const env = process.env.METAMASK_ENVIRONMENT;
-  switch (env) {
-    case 'local':
-      return EnvironmentType.Development;
+
+  const flagEnv = featureFlagEnv ?? env;
+  switch (flagEnv) {
     case 'pre-release':
+    case EnvironmentType.ReleaseCandidate: {
       return EnvironmentType.ReleaseCandidate;
+    }
     case 'production':
+    case EnvironmentType.Production: {
       return EnvironmentType.Production;
-    default:
+    }
+    case 'local':
+    case EnvironmentType.Development:
+    default: {
       return EnvironmentType.Development;
+    }
   }
 };
 
@@ -39,7 +49,8 @@ const getFeatureFlagAppDistribution = () => {
   }
 };
 
-export const isRemoteFeatureFlagOverrideActivated = process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true';
+export const isRemoteFeatureFlagOverrideActivated =
+  process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true';
 
 export const createRemoteFeatureFlagController = ({
   state,
