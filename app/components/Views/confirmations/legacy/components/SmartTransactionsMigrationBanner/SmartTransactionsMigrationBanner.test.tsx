@@ -4,6 +4,12 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import SmartTransactionsMigrationBanner from './SmartTransactionsMigrationBanner';
 import Engine from '../../../../../../core/Engine';
+import { Linking } from 'react-native';
+import AppConstants from '../../../../../../core/AppConstants';
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+}));
 
 jest.mock('../../../../../../core/Engine', () => ({
  context: {
@@ -32,6 +38,7 @@ describe('SmartTransactionsMigrationBanner', () => {
  const mockSetFeatureFlag = jest.mocked(Engine.context.PreferencesController.setFeatureFlag);
  const mockedPreferences = jest.requireMock('../../../../../../selectors/preferencesController');
  const mockedSmartTransactions = jest.requireMock('../../../../../../selectors/smartTransactionsController');
+ const mockOpenURL = jest.mocked(Linking.openURL);
 
  beforeEach(() => {
    jest.clearAllMocks();
@@ -102,6 +109,25 @@ describe('SmartTransactionsMigrationBanner', () => {
      );
 
      fireEvent.press(getByTestId('banner-close-button-icon'));
+     expect(mockSetFeatureFlag).toHaveBeenCalledWith(
+       'smartTransactionsBannerDismissed',
+       true,
+     );
+   });
+
+   it('opens URL and dismisses banner when learn more link is pressed', () => {
+     const store = mockStore({});
+
+     const { getByText } = render(
+       <Provider store={store}>
+         <SmartTransactionsMigrationBanner />
+       </Provider>
+     );
+
+     fireEvent.press(getByText('smart_transactions_migration.link'));
+
+     expect(mockOpenURL).toHaveBeenCalledTimes(1);
+     expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.SMART_TXS);
      expect(mockSetFeatureFlag).toHaveBeenCalledWith(
        'smartTransactionsBannerDismissed',
        true,

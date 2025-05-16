@@ -1,4 +1,6 @@
+import { toHex } from '@metamask/controller-utils';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { RelayerTypes } from '@walletconnect/types';
 import { parseRelayParams } from '@walletconnect/utils';
@@ -10,14 +12,14 @@ import {
   selectProviderConfig,
 } from '../../selectors/networkController';
 import Engine from '../Engine';
-import { getPermittedAccounts, getPermittedChains } from '../Permissions';
+import { getPermittedAccounts, getPermittedChains, removePermittedChain, updatePermittedChains } from '../Permissions';
 import {
   findExistingNetwork,
   switchToNetwork,
 } from '../RPCMethods/lib/ethereum-chain-utils';
+import { getRpcMethodMiddlewareHooks } from '../RPCMethods/RPCMethodMiddleware';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
-import { KnownCaipNamespace } from '@metamask/utils';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -158,9 +160,7 @@ export const waitForNetworkModalOnboarding = async ({
   }
 };
 
-export const getApprovedSessionMethods = (_: {
-  origin: string;
-}): string[] => {
+export const getApprovedSessionMethods = (_: { origin: string }): string[] => {
   const allEIP155Methods = [
     // Standard JSON-RPC methods
     'eth_sendTransaction',
@@ -200,23 +200,30 @@ export const getApprovedSessionMethods = (_: {
 };
 
 export const getScopedPermissions = async ({ origin }: { origin: string }) => {
-  // origin is already normalized by this point - no need to normalize again
-  const approvedAccounts = await getPermittedAccounts(origin);
-  const chains = await getPermittedChains(getHostname(origin));
+  const hostname = getHostname(origin);
+  const approvedAccounts = getPermittedAccounts(hostname);
+  const chains = await getPermittedChains(hostname);
 
   DevLogger.log(
     `WC::getScopedPermissions for ${origin}, found accounts:`,
     approvedAccounts,
   );
 
+  DevLogger.log(
+    `WC::getScopedPermissions for ${origin}, found chains:`,
+    chains,
+  );
+
   // Create properly formatted account strings for each chain and account
   const accountsPerChains = chains.flatMap((chain) =>
-    approvedAccounts.map((account) => `${chain}:${account}`),
+    Array.isArray(approvedAccounts)
+      ? approvedAccounts.map((account) => `${chain}:${account}`)
+      : []
   );
 
   const scopedPermissions = {
     chains,
-    methods: getApprovedSessionMethods({ origin: getHostname(origin) }),
+    methods: getApprovedSessionMethods({ origin }),
     events: ['chainChanged', 'accountsChanged'],
     accounts: accountsPerChains,
   };
@@ -232,7 +239,7 @@ export const getScopedPermissions = async ({ origin }: { origin: string }) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const onRequestUserApproval = (origin: string) => async (args: any) => {
-  await Engine.context.ApprovalController.clear(
+  Engine.context.ApprovalController.clear(
     providerErrors.userRejectedRequest(),
   );
   const responseData = await Engine.context.ApprovalController.add({
@@ -246,10 +253,11 @@ export const onRequestUserApproval = (origin: string) => async (args: any) => {
 export const checkWCPermissions = async ({
   origin,
   caip2ChainId,
-}: { origin: string; caip2ChainId: string }) => {
+  allowSwitchingToNewChain = false,
+}: { origin: string; caip2ChainId: CaipChainId; allowSwitchingToNewChain?: boolean }) => {
   const networkConfigurations = selectNetworkConfigurations(store.getState());
   const decimalChainId = caip2ChainId.split(':')[1];
-  const hexChainIdString = `0x${parseInt(decimalChainId, 10).toString(16)}`;
+  const hexChainIdString = toHex(`0x${parseInt(decimalChainId, 10).toString(16)}`);
 
   const existingNetwork = findExistingNetwork(
     hexChainIdString,
@@ -263,18 +271,25 @@ export const checkWCPermissions = async ({
     });
   }
 
-  const permittedChains = await getPermittedChains(getHostname(origin));
+  const hostname = getHostname(origin);
+  const permittedChains = await getPermittedChains(hostname);
   const isAllowedChainId = permittedChains.includes(caip2ChainId);
 
+  DevLogger.log(`WC::checkWCPermissions permittedChains: ${permittedChains}`);
+
   const providerConfig = selectProviderConfig(store.getState());
-  const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(providerConfig.chainId, 16)}`;
+  const activeChainIdHex = providerConfig.chainId;
+  const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(
+    activeChainIdHex,
+    16,
+  )}`;
 
   DevLogger.log(
     `WC::checkWCPermissions origin=${origin} caip2ChainId=${caip2ChainId} activeCaip2ChainId=${activeCaip2ChainId} permittedChains=${permittedChains} isAllowedChainId=${isAllowedChainId}`,
   );
 
-
-  if (!isAllowedChainId) {
+  // If the chainId is not permitted and we're not allowed to switch to a new chain, throw an error
+  if (!isAllowedChainId && !allowSwitchingToNewChain) {
     DevLogger.log(`WC::checkWCPermissions chainId is not permitted`);
     throw rpcErrors.invalidParams({
       message: `Invalid parameters: active chainId is different than the one provided.`,
@@ -288,21 +303,35 @@ export const checkWCPermissions = async ({
 
   if (caip2ChainId !== activeCaip2ChainId) {
     try {
+      if (!isAllowedChainId && allowSwitchingToNewChain) {
+        // Preemptively add the chain to the permitted chains
+        // This is to prevent a race condition where WalletConnect is told about the chain switch before permissions are updated
+        DevLogger.log(`WC::checkWCPermissions adding permitted chain for ${hostname}:`, hexChainIdString);
+        updatePermittedChains(hostname, [hexChainIdString]);
+      }
+
       await switchToNetwork({
         network: existingNetwork,
         chainId: hexChainIdString,
-        controllers: Engine.context,
         requestUserApproval: onRequestUserApproval(origin),
         analytics: {},
         origin,
         isAddNetworkFlow: false,
+        hooks: getRpcMethodMiddlewareHooks(origin),
       });
-
     } catch (error) {
       DevLogger.log(
         `WC::checkWCPermissions error switching to network:`,
         error,
       );
+
+      if (!isAllowedChainId && allowSwitchingToNewChain) {
+        // If we failed to switch to the network, remove the chain from the permitted chains
+        // This is so we don't leave any dangling permissions if the user rejects the switch
+        DevLogger.log(`WC::checkWCPermissions removing permitted chain for ${hostname}:`, hexChainIdString);
+        removePermittedChain(hostname, hexChainIdString);
+      }
+
       return false;
     }
   }

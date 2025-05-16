@@ -174,7 +174,7 @@ const SearchTokenAutocomplete = ({
   );
 
   const handleSelectAsset = useCallback(
-    (asset) => {
+    (asset: { address: string }) => {
       const assetAddressLower = asset.address.toLowerCase();
 
       const newSelectedAsset = selectedAssets.reduce(
@@ -206,6 +206,13 @@ const SearchTokenAutocomplete = ({
       iconUrl,
       name,
       chainId: networkId,
+    }: {
+      address: Hex;
+      symbol: string;
+      decimals: number;
+      iconUrl: string;
+      name: string;
+      chainId: Hex;
     }) => {
       const networkConfig =
         Engine.context.NetworkController.state
@@ -377,9 +384,7 @@ const SearchTokenAutocomplete = ({
             >
               <Text style={styles.title}>
                 {isAllNetworksEnabled
-                  ? `${strings('app_settings.popular')} ${strings(
-                      'app_settings.networks',
-                    )}`
+                  ? strings('wallet.popular_networks')
                   : networkName}
               </Text>
             </TouchableOpacity>

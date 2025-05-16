@@ -42,6 +42,7 @@ exports[`AddCustomToken render correctly 1`] = `
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {
@@ -202,6 +203,7 @@ exports[`AddCustomToken render correctly 1`] = `
             >
               <SvgMock
                 color="#121314"
+                fill="currentColor"
                 height={16}
                 name="ArrowDown"
                 style={
@@ -285,7 +287,7 @@ exports[`AddCustomToken render correctly 1`] = `
           "alignItems": "center",
           "alignSelf": "center",
           "backgroundColor": "#4459ff",
-          "borderRadius": 24,
+          "borderRadius": 12,
           "color": "#4459ff",
           "flexDirection": "row",
           "fontFamily": "CentraNo1-Book",

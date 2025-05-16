@@ -22,11 +22,9 @@ type MessengerActions =
 
 type MessengerEvents = never;
 
-
 export function getSignatureControllerMessenger(
   messenger: Messenger<MessengerActions, MessengerEvents>,
 ): SignatureControllerMessenger {
-  // @ts-expect-error TODO: Resolve type mismatch in AccountsController
   return messenger.getRestricted({
     name: 'SignatureController',
     allowedActions: [

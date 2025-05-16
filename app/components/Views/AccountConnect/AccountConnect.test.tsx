@@ -65,6 +65,7 @@ jest.mock('../../../core/Engine', () => {
     [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
     MOCK_ADDRESS_1,
   );
+  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
 
   return {
     context: {
@@ -74,12 +75,32 @@ jest.mock('../../../core/Engine', () => {
           if (url === 'phishing.com') return { result: true };
           return { result: false };
         }),
+        scanUrl: jest.fn((domainName: string) => ({
+          domainName,
+          recommendedAction: 'NONE'
+        })),
       },
       PermissionController: {
         rejectPermissionsRequest: jest.fn(),
       },
       AccountsController: {
         state: mockAccountsState,
+      },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              type: KeyringTypes.hd,
+              accounts: [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
+            },
+          ],
+          keyringsMetadata: [
+            {
+              id: '01JNG71B7GTWH0J1TSJY9891S0',
+              name: '',
+            },
+          ],
+        },
       },
     },
   };
@@ -232,7 +253,7 @@ describe('AccountConnect', () => {
   });
 
   describe('AccountConnectMultiSelector handlers', () => {
-    it('invokes onPrimaryActionButtonPress property and renders permissions summary', async () => {
+    it('invokes onSubmit property and renders permissions summary', async () => {
       // Render the container component with necessary props
       const { getByTestId, UNSAFE_getByType, findByTestId } =
         renderWithProvider(
@@ -266,7 +287,7 @@ describe('AccountConnect', () => {
       const multiSelector = UNSAFE_getByType(AccountConnectMultiSelector);
 
       // Now we can access the component's props
-      multiSelector.props.onPrimaryActionButtonPress();
+      multiSelector.props.onSubmit([mockAddress2]);
 
       // Verify that the screen changed back to PermissionsSummary
       expect(

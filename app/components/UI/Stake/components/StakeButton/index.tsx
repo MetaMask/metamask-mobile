@@ -28,6 +28,10 @@ import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
 import Engine from '../../../../../core/Engine';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -42,6 +46,14 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const chainId = useSelector(selectEvmChainId);
   const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
+
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+
+  const areEarnExperiencesDisabled =
+    !isPooledStakingEnabled && !isStablecoinLendingEnabled;
 
   const onStakeButtonPress = async () => {
     if (!isStakingSupportedChain) {
@@ -90,22 +102,25 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     );
   };
 
+  if (areEarnExperiencesDisabled) return <></>;
+
   return (
     <Pressable
       onPress={onStakeButtonPress}
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}
     >
-      <Text variant={TextVariant.BodyLGMedium}>
+      <Text variant={TextVariant.BodyMDMedium} style={styles.dot}>
         {' • '}
-        <Text color={TextColor.Primary} variant={TextVariant.BodyLGMedium}>
-          {`${strings('stake.earn')} `}
-        </Text>
+      </Text>
+      <Text color={TextColor.Primary} variant={TextVariant.BodyMDMedium}>
+        {`${strings('stake.earn')}`}
       </Text>
       <Icon
         name={IconName.Plant}
         size={IconSize.Sm}
         color={IconColor.Primary}
+        style={styles.sprout}
       />
     </Pressable>
   );

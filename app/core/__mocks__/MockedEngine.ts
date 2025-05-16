@@ -6,9 +6,66 @@ import { MOCK_KEYRING_CONTROLLER_STATE } from '../../util/test/keyringController
 
 export const mockedEngine = {
   init: () => Engine.init({}),
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
+    subscribe: jest.fn(),
+    call: jest.fn().mockImplementation((method) => {
+      if (method === 'SelectedNetworkController:getNetworkClientIdForDomain') {
+        return 'mainnet';
+      }
+
+      if (method === 'NetworkController:getNetworkClientById') {
+        return {
+          configuration: {
+            chainId: '0x1',
+            ticker: 'ETH',
+          },
+        };
+      }
+    }),
+  },
+  datamodel: {
+    state: { PreferencesController: { selectedAddress: '' } },
+  },
   context: {
-    KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
+    AccountsController: {
+      listAccounts: jest.fn(),
+      getSelectedAccount: jest.fn(),
+    },
+    AccountTrackerController: {
+      state: {
+        accounts: {},
+      },
+    },
+    ApprovalController: {
+      addAndShowApprovalRequest: jest.fn(),
+    },
+    PermissionController: {
+      createPermissionMiddleware: jest.fn(),
+      requestPermissions: jest.fn(),
+      getCaveat: jest.fn(),
+      updateCaveat: jest.fn(),
+      revokePermission: jest.fn(),
+      revokePermissions: jest.fn(),
+      getPermissions: jest.fn(),
+      hasPermissions: jest.fn(),
+      hasPermission: jest.fn(),
+      executeRestrictedMethod: jest.fn(),
+      state: {
+        subjects: {},
+      },
+    },
+    SelectedNetworkController: {
+      getProviderAndBlockTracker: jest.fn(),
+    },
+    KeyringController: {
+      ...MOCK_KEYRING_CONTROLLER_STATE,
+      setLocked: jest.fn(),
+      createNewVaultAndRestore: jest.fn(),
+      createNewVaultAndKeychain: jest.fn(),
+    },
     NetworkController: {
+      getNetworkConfigurationByChainId: jest.fn(),
       getNetworkClientById: (networkClientId: NetworkClientId) => {
         if (networkClientId === 'linea_goerli') {
           return {
@@ -42,6 +99,8 @@ export const mockedEngine = {
     },
   },
   hasFunds: jest.fn(),
+  resetState: jest.fn(),
+  getCaip25PermissionFromLegacyPermissions: jest.fn(),
 };
 
 export default mockedEngine;

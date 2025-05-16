@@ -51,6 +51,7 @@ interface MatchedAccountInfoProps {
   displayName: string;
   handleClear: () => void;
   disabled?: boolean;
+  error?: string;
 }
 
 const MatchedAccountInfo = ({
@@ -61,6 +62,7 @@ const MatchedAccountInfo = ({
   displayName,
   handleClear,
   disabled,
+  error,
 }: MatchedAccountInfoProps) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
@@ -115,6 +117,12 @@ const MatchedAccountInfo = ({
           testID="snap-ui-address-input__clear-button"
         />
       </Box>
+      {error && (
+        // eslint-disable-next-line react-native/no-inline-styles
+        <HelpText severity={HelpTextSeverity.Error} style={{ marginTop: 4 }}>
+          {error}
+        </HelpText>
+      )}
     </Box>
   );
 };
@@ -204,7 +212,7 @@ export const SnapUIAddressInput = ({
     handleInputChange(name, '', form);
   };
 
-  if (displayName && !error) {
+  if (displayName) {
     return (
       <MatchedAccountInfo
         label={label}
@@ -214,6 +222,7 @@ export const SnapUIAddressInput = ({
         displayName={displayName}
         handleClear={handleClear}
         disabled={disabled}
+        error={error}
       />
     );
   }

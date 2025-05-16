@@ -5,6 +5,12 @@ import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  setEthAccounts,
+  setPermittedEthChainIds,
+} from '@metamask/chain-agnostic-permission';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -54,6 +60,18 @@ class FixtureBuilder {
   }
 
   /**
+   * Ensures that the Solana feature modal is suppressed by adding the appropriate flag to asyncState.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  ensureSolanaModalSuppressed() {
+    if (!this.fixture.asyncState) {
+      this.fixture.asyncState = {};
+    }
+    this.fixture.asyncState['@MetaMask:solanaFeatureModalShown'] = 'true';
+    return this;
+  }
+
+  /**
    * Set the default fixture values.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
@@ -70,11 +88,6 @@ class FixtureBuilder {
         engine: {
           backgroundState: {
             AccountTrackerController: {
-              accounts: {
-                [DEFAULT_FIXTURE_ACCOUNT]: {
-                  balance: '0x0',
-                },
-              },
               accountsByChainId: {
                 64: {
                   [DEFAULT_FIXTURE_ACCOUNT]: {
@@ -87,9 +100,6 @@ class FixtureBuilder {
                   },
                 },
               },
-              _U: 0,
-              _V: 1,
-              _X: null,
             },
             AddressBookController: {
               addressBook: {},
@@ -100,35 +110,40 @@ class FixtureBuilder {
               ignoredNfts: [],
             },
             TokenListController: {
-              tokenList: {
-                '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f': {
-                  address: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
-                  symbol: 'SNX',
-                  decimals: 18,
-                  name: 'Synthetix Network Token',
-                  iconUrl:
-                    'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
-                  type: 'erc20',
-                  aggregators: [
-                    'Aave',
-                    'Bancor',
-                    'CMC',
-                    'Crypto.com',
-                    'CoinGecko',
-                    '1inch',
-                    'PMM',
-                    'Synthetix',
-                    'Zerion',
-                    'Lifi',
+              tokensChainsCache: {
+                '0x1': {
+                  data: [
+                    {
+                      '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f': {
+                        address: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
+                        symbol: 'SNX',
+                        decimals: 18,
+                        name: 'Synthetix Network Token',
+                        iconUrl:
+                          'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
+                        type: 'erc20',
+                        aggregators: [
+                          'Aave',
+                          'Bancor',
+                          'CMC',
+                          'Crypto.com',
+                          'CoinGecko',
+                          '1inch',
+                          'PMM',
+                          'Synthetix',
+                          'Zerion',
+                          'Lifi',
+                        ],
+                        occurrences: 10,
+                        fees: {
+                          '0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f': 0,
+                          '0xda4ef8520b1a57d7d63f1e249606d1a459698876': 0,
+                        },
+                      },
+                    },
                   ],
-                  occurrences: 10,
-                  fees: {
-                    '0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f': 0,
-                    '0xda4ef8520b1a57d7d63f1e249606d1a459698876': 0,
-                  },
                 },
               },
-              tokensChainsCache: {},
               preventPollingOnNetworkRestart: false,
             },
             CurrencyRateController: {
@@ -298,62 +313,14 @@ class FixtureBuilder {
               useSafeChainsListValidation: false,
               isMultiAccountBalancesEnabled: true,
               showTestNetworks: true,
-              _U: 0,
-              _V: 1,
-              _W: {
-                featureFlags: {},
-                frequentRpcList: [],
-                identities: {
-                  [DEFAULT_FIXTURE_ACCOUNT]: {
-                    address: DEFAULT_FIXTURE_ACCOUNT,
-                    name: 'Account 1',
-                    importTime: 1684232000456,
-                  },
-                },
-                ipfsGateway: 'https://dweb.link/ipfs/',
-                lostIdentities: {},
-                selectedAddress: DEFAULT_FIXTURE_ACCOUNT,
-                useTokenDetection: true,
-                useNftDetection: false,
-                displayNftMedia: true,
-                useSafeChainsListValidation: false,
-                isMultiAccountBalancesEnabled: true,
-                showTestNetworks: true,
-                showIncomingTransactions: {
-                  '0x1': true,
-                  '0x5': true,
-                  '0x38': true,
-                  '0x61': true,
-                  '0xa': true,
-                  '0xa869': true,
-                  '0x1a4': true,
-                  '0x89': true,
-                  '0x13881': true,
-                  '0xa86a': true,
-                  '0xfa': true,
-                  '0xfa2': true,
-                  '0xaa36a7': true,
-                  '0xe704': true,
-                  '0xe705': true,
-                  '0xe708': true,
-                  '0x504': true,
-                  '0x507': true,
-                  '0x505': true,
-                  '0x64': true,
-                },
-              },
-              _X: null,
             },
             TokenBalancesController: {
-              contractBalances: {},
+              tokenBalances: {},
             },
             TokenRatesController: {
               marketData: {},
             },
             TokensController: {
-              tokens: [],
-              ignoredTokens: [],
-              detectedTokens: [],
               allTokens: {},
               allIgnoredTokens: {},
               allDetectedTokens: {},
@@ -361,7 +328,6 @@ class FixtureBuilder {
             TransactionController: {
               methodData: {},
               transactions: [],
-              internalTransactions: [],
               swapsTransactions: {},
             },
             SwapsController: {
@@ -693,6 +659,7 @@ class FixtureBuilder {
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
+        '@MetaMask:solanaFeatureModalShown': 'true',
       },
     };
     return this;
@@ -749,38 +716,40 @@ class FixtureBuilder {
     // Update selectedNetworkClientId to the new network client ID
     networkController.selectedNetworkClientId = newNetworkClientId;
 
-    // Merge the rest of the data
-    merge(networkController, data);
-
-    if (data.providerConfig.ticker !== 'ETH') {
-      this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
-        data.providerConfig.ticker;
-    }
-
     return this;
   }
 
   /**
    * Private helper method to create permission controller configuration
    * @private
-   * @param {Object} additionalPermissions - Additional permissions to merge with eth_accounts
+   * @param {Object} additionalPermissions - Additional permissions to merge with permission
    * @returns {Object} Permission controller configuration object
    */
   createPermissionControllerConfig(additionalPermissions = {}) {
+    const caip25CaveatValue = additionalPermissions?.[
+      Caip25EndowmentPermissionName
+    ]?.caveats?.find((caveat) => caveat.type === Caip25CaveatType)?.value ?? {
+      optionalScopes: {
+        'eip155:1': { accounts: [] },
+      },
+      requiredScopes: {},
+      sessionProperties: {},
+      isMultichainOrigin: false,
+    };
+
     const basePermissions = {
-      eth_accounts: {
+      [Caip25EndowmentPermissionName]: {
         id: 'ZaqPEWxyhNCJYACFw93jE',
-        parentCapability: 'eth_accounts',
+        parentCapability: Caip25EndowmentPermissionName,
         invoker: DAPP_URL,
         caveats: [
           {
-            type: 'restrictReturnedAccounts',
-            value: [DEFAULT_FIXTURE_ACCOUNT],
+            type: Caip25CaveatType,
+            value: setEthAccounts(caip25CaveatValue, [DEFAULT_FIXTURE_ACCOUNT]),
           },
         ],
         date: 1664388714636,
       },
-      ...additionalPermissions,
     };
 
     return {
@@ -795,11 +764,16 @@ class FixtureBuilder {
 
   /**
    * Connects the PermissionController to a test dapp with specific accounts permissions and origins.
+   * @param {Object} additionalPermissions - Additional permissions to merge.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withPermissionControllerConnectedToTestDapp() {
-    this.withPermissionController(this.createPermissionControllerConfig());
-    return this;
+  withPermissionControllerConnectedToTestDapp(additionalPermissions = {}) {
+    this.withPermissionController(
+      this.createPermissionControllerConfig(additionalPermissions),
+    );
+    
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withRampsSelectedRegion(region = null) {
@@ -832,15 +806,28 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withChainPermission(chainIds = ['0x1']) {
+    const optionalScopes = chainIds
+      .map((id) => ({
+        [`eip155:${parseInt(id)}`]: { accounts: [] },
+      }))
+      .reduce(((acc, obj) => ({ ...acc, ...obj })));
+
+    const defaultCaip25CaveatValue = {
+      optionalScopes,
+      requiredScopes: {},
+      sessionProperties: {},
+      isMultichainOrigin: false,
+    };
+
     const chainPermission = {
-      'endowment:permitted-chains': {
+      [Caip25EndowmentPermissionName]: {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
-        parentCapability: 'endowment:permitted-chains',
+        parentCapability: Caip25EndowmentPermissionName,
         invoker: 'localhost',
         caveats: [
           {
-            type: 'restrictNetworkSwitching',
-            value: chainIds,
+            type: Caip25CaveatType,
+            value: setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds),
           },
         ],
         date: 1732715918637,
@@ -898,7 +885,8 @@ class FixtureBuilder {
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
-    return this;
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withSepoliaNetwork() {
@@ -938,10 +926,8 @@ class FixtureBuilder {
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
-    // Set isCustomNetwork to true (if this property still exists in the new state)
-    fixtures.NetworkController.isCustomNetwork = true;
-
-    return this;
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withPopularNetworks() {
@@ -989,11 +975,11 @@ class FixtureBuilder {
     // Assign networkConfigurationsByChainId object to NetworkController in fixtures
     fixtures.NetworkController = {
       ...fixtures.NetworkController,
-      isCustomNetwork: true,
       networkConfigurationsByChainId,
     };
 
-    return this;
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withPreferencesController(data) {
@@ -1008,8 +994,8 @@ class FixtureBuilder {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
         {
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
           type: 'HD Key Tree',
-          accounts: ['0x37cc5ef6bfe753aeaf81f945efe88134b238face'],
         },
         { type: 'QR Hardware Wallet Device', accounts: [] },
       ],

@@ -87,6 +87,10 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { useChainRedirect } from './useChainRedirect';
+///: END:ONLY_INCLUDE_IF
+
 const createStyles = (colors) =>
   StyleSheet.create({
     container: { backgroundColor: colors.background.default },
@@ -205,6 +209,11 @@ function SwapsAmountView({
   const styles = createStyles(colors);
 
   const previousSelectedAddress = useRef();
+
+  // Use the new hook for chain redirection
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  useChainRedirect(selectedAddress);
+  ///: END:ONLY_INCLUDE_IF
 
   const explorer = useBlockExplorer(networkConfigurations);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
@@ -552,7 +561,13 @@ function SwapsAmountView({
     ) {
       const { TokensController } = Engine.context;
       const { address, symbol, decimals, name } = sourceToken;
-      await TokensController.addToken({ address, symbol, decimals, name });
+      await TokensController.addToken({
+        address,
+        symbol,
+        decimals,
+        name,
+        networkClientId: selectedNetworkClientId,
+      });
     }
     return navigation.navigate(
       'SwapsQuotesView',
@@ -573,6 +588,7 @@ function SwapsAmountView({
     slippage,
     sourceToken,
     isBalanceZero,
+    selectedNetworkClientId,
   ]);
 
   /* Keypad Handlers */
@@ -595,9 +611,11 @@ function SwapsAmountView({
         destinationTokenAddress,
       );
       if (enableDirectWrapping && !isDirectWrapping) {
+        // ETH <> WETH, set slippage to 0
         setSlippage(0);
         setIsDirectWrapping(true);
       } else if (isDirectWrapping && !enableDirectWrapping) {
+        // Coming out of ETH <> WETH to a non (ETH <> WETH) pair, reset slippage
         setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
         setIsDirectWrapping(false);
       }
@@ -766,7 +784,7 @@ function SwapsAmountView({
         >
           <View style={styles.horizontalRule} />
           <TouchableOpacity onPress={handleFlipTokens}>
-            <IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+            <IonicIcon style={styles.arrowDown} name="arrow-down" />
           </TouchableOpacity>
           <View style={styles.horizontalRule} />
         </View>
@@ -1038,7 +1056,10 @@ const mapStateToProps = (state) => ({
   selectedNetworkClientId: selectSelectedNetworkClientId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
+    state,
+    selectEvmChainId(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

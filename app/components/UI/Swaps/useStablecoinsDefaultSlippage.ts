@@ -3,6 +3,7 @@ import AppConstants from '../../../core/AppConstants';
 import { Hex } from '@metamask/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import usePrevious from '../../hooks/usePrevious';
 
 // USDC and USDT for now
 const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
@@ -50,6 +51,81 @@ const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
 };
 
 /**
+ * This function checks if the source and destination tokens are both stablecoins.
+ * @param sourceTokenAddress - The address of the source token.
+ * @param destTokenAddress - The address of the destination token.
+ * @param chainId - The chain id of the swap.
+ * @returns true if the source and destination tokens are both stablecoins, false otherwise.
+ */
+const getIsStablecoinPair = (
+  sourceTokenAddress: string,
+  destTokenAddress: string,
+  chainId: Hex,
+) => {
+  const stablecoins = StablecoinsByChainId[chainId];
+
+  if (!stablecoins) return false;
+
+  return (
+    (stablecoins.has(sourceTokenAddress.toLowerCase()) ||
+      stablecoins.has(toChecksumHexAddress(sourceTokenAddress))) &&
+    (stablecoins.has(destTokenAddress.toLowerCase()) ||
+      stablecoins.has(toChecksumHexAddress(destTokenAddress)))
+  );
+};
+
+/**
+ * This function handles the slippage for stablecoins swaps.
+ * It checks if the source and destination tokens are both stablecoins and if so,
+ * it sets the slippage to 0.5%.
+ * @param sourceTokenAddress - The address of the source token.
+ * @param destTokenAddress - The address of the destination token.
+ * @param chainId - The chain id of the swap.
+ * @param setSlippage - The function to set the slippage.
+ * @param prevSourceTokenAddress - The previous source token address.
+ * @param prevDestTokenAddress - The previous destination token address.
+ */
+export const handleStablecoinSlippage = ({
+  sourceTokenAddress,
+  destTokenAddress,
+  chainId,
+  setSlippage,
+  prevSourceTokenAddress,
+  prevDestTokenAddress,
+}: {
+  sourceTokenAddress?: string;
+  destTokenAddress?: string;
+  chainId: Hex;
+  setSlippage: (slippage: number) => void;
+  prevSourceTokenAddress?: string;
+  prevDestTokenAddress?: string;
+}) => {
+  if (!sourceTokenAddress || !destTokenAddress) return;
+
+  const isStablecoinPair = getIsStablecoinPair(
+    sourceTokenAddress,
+    destTokenAddress,
+    chainId,
+  );
+
+  if (isStablecoinPair) {
+    setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
+  }
+
+  if (!prevSourceTokenAddress || !prevDestTokenAddress) return;
+
+  const prevIsStablecoinPair = getIsStablecoinPair(
+    prevSourceTokenAddress,
+    prevDestTokenAddress,
+    chainId,
+  );
+
+  if (prevIsStablecoinPair && !isStablecoinPair) {
+    setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+  }
+};
+
+/**
  * This hook is used to update the slippage for stablecoins swaps.
  * It checks if the source and destination tokens are both stablecoins and if so,
  * it sets the slippage to 0.5%.
@@ -69,19 +145,24 @@ export const useStablecoinsDefaultSlippage = ({
   chainId: Hex;
   setSlippage: (slippage: number) => void;
 }) => {
-  useEffect(() => {
-    const stablecoins = StablecoinsByChainId[chainId];
+  const prevSourceTokenAddress = usePrevious(sourceTokenAddress);
+  const prevDestTokenAddress = usePrevious(destTokenAddress);
 
-    if (
-      stablecoins &&
-      sourceTokenAddress &&
-      destTokenAddress &&
-      (stablecoins.has(sourceTokenAddress.toLowerCase()) ||
-        stablecoins.has(toChecksumHexAddress(sourceTokenAddress))) &&
-      (stablecoins.has(destTokenAddress.toLowerCase()) ||
-        stablecoins.has(toChecksumHexAddress(destTokenAddress)))
-    ) {
-      setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
-    }
-  }, [setSlippage, sourceTokenAddress, destTokenAddress, chainId]);
+  useEffect(() => {
+    handleStablecoinSlippage({
+      sourceTokenAddress,
+      destTokenAddress,
+      chainId,
+      setSlippage,
+      prevSourceTokenAddress,
+      prevDestTokenAddress,
+    });
+  }, [
+    setSlippage,
+    sourceTokenAddress,
+    destTokenAddress,
+    chainId,
+    prevSourceTokenAddress,
+    prevDestTokenAddress,
+  ]);
 };

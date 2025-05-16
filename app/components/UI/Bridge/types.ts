@@ -12,6 +12,7 @@ export interface BridgeToken {
   balance?: string; // A truncated non-atomic balance, e.g. 1.23456
   balanceFiat?: string; // A formatted fiat value, e.g. "$100.12345", "100.12345 cad"
   tokenFiatAmount?: number; // A sortable fiat value in the user's currency, e.g. 100.12345
+  currencyExchangeRate?: number; // A rate of the token in the user's currency, e.g. 100.12345
 }
 
 // TODO: use type from @metamask/bridge-controller once "approval" is made optional
@@ -20,4 +21,9 @@ export interface QuoteResponse {
   approval?: TxData | null;
   trade: TxData;
   estimatedProcessingTimeInSeconds: number;
+}
+// TODO: remove this once we move to Unified Swaps
+export enum BridgeViewMode {
+  Swap = 'Swap',
+  Bridge = 'Bridge'
 }

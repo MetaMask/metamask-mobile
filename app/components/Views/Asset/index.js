@@ -20,8 +20,6 @@ import AppConstants from '../../../core/AppConstants';
 import {
   getFeatureFlagChainId,
   setSwapsLiveness,
-  swapsLivenessMultichainSelector,
-  swapsLivenessSelector,
   swapsTokensMultiChainObjectSelector,
   swapsTokensObjectSelector,
 } from '../../../reducers/swaps';
@@ -69,7 +67,10 @@ import {
 } from '../../../selectors/transactionController';
 import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
+import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -162,6 +163,7 @@ class Asset extends PureComponent {
     tokens: PropTypes.array,
     swapsIsLive: PropTypes.bool,
     swapsTokens: PropTypes.object,
+    searchDiscoverySwapsTokens: PropTypes.array,
     swapsTransactions: PropTypes.object,
     /**
      * Object that represents the current route info like params passed to it
@@ -230,7 +232,8 @@ class Asset extends PureComponent {
         false,
         navigation,
         colors,
-        shouldShowMoreOptionsInNavBar
+        // TODO: remove !isNonEvmChainId check once bottom sheet options are fixed for non-EVM chains
+        shouldShowMoreOptionsInNavBar && !isNonEvmChainId(chainId)
           ? () =>
               navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
                 screen: 'AssetOptions',
@@ -514,17 +517,22 @@ class Asset extends PureComponent {
     const styles = createStyles(colors);
     const asset = navigation && params;
     const isSwapsFeatureLive = this.props.swapsIsLive;
-    const isNetworkAllowed = isPortfolioViewEnabled()
+    const isSwapsNetworkAllowed = isPortfolioViewEnabled()
       ? isSwapsAllowed(asset.chainId)
       : isSwapsAllowed(chainId);
 
-    const isAssetAllowed =
-      asset.isETH ||
-      asset.isNative ||
-      asset.address?.toLowerCase() in this.props.swapsTokens;
+    const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
+      asset,
+      searchDiscoverySwapsTokens: this.props.searchDiscoverySwapsTokens,
+      swapsTokens: this.props.swapsTokens,
+    });
 
     const displaySwapsButton =
-      isNetworkAllowed && isAssetAllowed && AppConstants.SWAPS.ACTIVE;
+      isSwapsNetworkAllowed && isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
+
+    const displayBridgeButton = isPortfolioViewEnabled()
+      ? isBridgeAllowed(asset.chainId)
+      : isBridgeAllowed(chainId);
 
     const displayBuyButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
@@ -541,6 +549,7 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
+                  displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
@@ -572,12 +581,14 @@ class Asset extends PureComponent {
 Asset.contextType = ThemeContext;
 
 const mapStateToProps = (state, { route }) => ({
-  swapsIsLive: isPortfolioViewEnabled()
-    ? swapsLivenessMultichainSelector(state, route.params.chainId)
-    : swapsLivenessSelector(state),
+  swapsIsLive: getSwapsIsLive(state, route.params.chainId),
   swapsTokens: isPortfolioViewEnabled()
     ? swapsTokensMultiChainObjectSelector(state)
     : swapsTokensObjectSelector(state),
+  searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
+    state,
+    route.params.chainId,
+  ),
   swapsTransactions: selectSwapsTransactions(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
