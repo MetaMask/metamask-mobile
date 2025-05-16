@@ -39,6 +39,8 @@ import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { parseUnits } from 'ethers/lib/utils';
 import parseAmount from '../../../Ramp/utils/parseAmount';
 
+const MAX_DECIMALS = 5;
+
 const createStyles = () =>
   StyleSheet.create({
     content: {
@@ -207,7 +209,7 @@ export const TokenInputArea = forwardRef<
               ) : (
                 <Input
                   ref={inputRef}
-                  value={amount ? parseAmount(amount, 7) : amount}
+                  value={amount ? parseAmount(amount, MAX_DECIMALS) : amount}
                   style={styles.input}
                   isDisabled={false}
                   isReadonly={tokenType === TokenInputAreaType.Destination}
