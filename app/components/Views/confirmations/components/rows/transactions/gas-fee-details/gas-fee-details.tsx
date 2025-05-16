@@ -10,7 +10,6 @@ import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confir
 import { useStyles } from '../../../../../../../component-library/hooks';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
-import { useGasFeeMetrics } from '../../../../hooks/metrics/useGasFeeMetrics';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { GasFeeModal } from '../../../modals/gas-fee-modal';
@@ -68,7 +67,6 @@ const ClickableEstimationInfo = ({
 };
 
 const GasFeesDetails = ({ disableUpdate = false }) => {
-  useGasFeeMetrics();
   const [gasModalVisible, setGasModalVisible] = useState(false);
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();

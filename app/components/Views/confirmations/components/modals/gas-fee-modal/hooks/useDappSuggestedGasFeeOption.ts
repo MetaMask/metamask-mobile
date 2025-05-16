@@ -73,7 +73,6 @@ export const useDappSuggestedGasFeeOption = ({
       estimatedTime: undefined,
       isSelected: isDappSuggestedGasFeeSelected,
       key: 'site_suggested',
-      metricKey: 'dapp_proposed',
       name: strings('transactions.gas_modal.site_suggested'),
       onSelect: onDappSuggestedGasFeeClick,
       value: preciseNativeCurrencyFee || '',

@@ -10,7 +10,7 @@ export const useGasOptions = ({
   setActiveModal,
 }: {
   handleCloseModals: () => void;
-  setActiveModal: (modal?: GasModalType) => void;
+  setActiveModal: (modal: GasModalType) => void;
 }) => {
   const advancedGasFeeOptions = useAdvancedGasFeeOption({
     setActiveModal,
