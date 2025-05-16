@@ -272,7 +272,6 @@ describe('generateDefaultTransactionMetrics', () => {
     });
 
     it('includes low, medium, high options for FeeMarket and Legacy types', () => {
-      // Test FeeMarket type
       const feeMarketMeta = {
         ...mockTransactionMeta,
         gasFeeEstimatesLoaded: true,
@@ -294,7 +293,6 @@ describe('generateDefaultTransactionMetrics', () => {
         GasFeeEstimateLevel.High,
       ]);
 
-      // Test Legacy type
       const legacyMeta = {
         ...mockTransactionMeta,
         gasFeeEstimatesLoaded: true,
@@ -346,7 +344,6 @@ describe('generateDefaultTransactionMetrics', () => {
           type: GasFeeEstimateType.FeeMarket,
         } as unknown as FeeMarketGasFeeEstimates,
         dappSuggestedGasFees: {
-          // Values don't matter for this test, just need a non-null object
           gasPrice: '0x1',
         },
       };
