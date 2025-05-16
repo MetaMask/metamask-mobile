@@ -33,7 +33,6 @@ import {
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import SkeletonText from '../../Ramp/components/SkeletonText';
-import { renderFromTokenMinimalUnit } from '../../../../util/number';
 import parseAmount from '../../Ramp/utils/parseAmount';
 
 const createStyles = ({
