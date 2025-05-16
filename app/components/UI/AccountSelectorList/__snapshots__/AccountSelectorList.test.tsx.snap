@@ -284,7 +284,34 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                   >
                     Account 1
                   </Text>
-                  <View>
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      {
+                        "alignItems": "flex-start",
+                        "flexDirection": "row",
+                        "marginBottom": 0,
+                        "zIndex": 1,
+                      }
+                    }
+                  >
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -301,7 +328,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                     >
                       0xC4955...4D272
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={
@@ -666,7 +693,34 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                   >
                     Account 2
                   </Text>
-                  <View>
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      {
+                        "alignItems": "flex-start",
+                        "flexDirection": "row",
+                        "marginBottom": 0,
+                        "zIndex": 1,
+                      }
+                    }
+                  >
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -683,7 +737,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                     >
                       0xd0185...a78E7
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={
@@ -1080,7 +1134,34 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                   >
                     Account 1
                   </Text>
-                  <View>
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      {
+                        "alignItems": "flex-start",
+                        "flexDirection": "row",
+                        "marginBottom": 0,
+                        "zIndex": 1,
+                      }
+                    }
+                  >
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -1097,7 +1178,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                     >
                       0xC4955...4D272
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={
@@ -1418,7 +1499,34 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                   >
                     Account 2
                   </Text>
-                  <View>
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      {
+                        "alignItems": "flex-start",
+                        "flexDirection": "row",
+                        "marginBottom": 0,
+                        "zIndex": 1,
+                      }
+                    }
+                  >
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -1435,7 +1543,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                     >
                       0xd0185...a78E7
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={
@@ -1786,7 +1894,34 @@ exports[`AccountSelectorList renders correctly 1`] = `
                   >
                     Account 1
                   </Text>
-                  <View>
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      {
+                        "alignItems": "flex-start",
+                        "flexDirection": "row",
+                        "marginBottom": 0,
+                        "zIndex": 1,
+                      }
+                    }
+                  >
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -1803,7 +1938,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     >
                       0xC4955...4D272
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={
@@ -2168,7 +2303,34 @@ exports[`AccountSelectorList renders correctly 1`] = `
                   >
                     Account 2
                   </Text>
-                  <View>
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      {
+                        "alignItems": "flex-start",
+                        "flexDirection": "row",
+                        "marginBottom": 0,
+                        "zIndex": 1,
+                      }
+                    }
+                  >
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -2185,7 +2347,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     >
                       0xd0185...a78E7
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={

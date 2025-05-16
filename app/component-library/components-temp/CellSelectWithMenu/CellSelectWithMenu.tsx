@@ -36,29 +36,9 @@ const CellSelectWithMenu = ({
   children,
   withAvatar = true,
   showSecondaryTextIcon = true,
-  onTextClick,
   ...props
 }: CellSelectWithMenuProps) => {
   const { styles } = useStyles(styleSheet, { style });
-
-  const renderSecondaryText = () => (
-    <>
-      <Text
-        numberOfLines={1}
-        variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
-        style={styles.secondaryText}
-      >
-        {secondaryText}
-      </Text>
-      {showSecondaryTextIcon && (
-        <Icon
-          name={IconName.ArrowDown}
-          size={IconSize.Xss}
-          style={styles.arrowStyle}
-        />
-      )}
-    </>
-  );
 
   return (
     <ListItemMultiSelectButton
@@ -90,18 +70,28 @@ const CellSelectWithMenu = ({
           ) : (
             title
           )}
-          {!!secondaryText && onTextClick && (
+          {!!secondaryText && (
             <TouchableWithoutFeedback>
               <TouchableOpacity
                 style={styles.containerRow}
-                onPress={onTextClick}
+                onPress={props.onTextClick}
               >
-                {renderSecondaryText()}
+                <Text
+                  numberOfLines={1}
+                  variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
+                  style={styles.secondaryText}
+                >
+                  {secondaryText}
+                </Text>
+                {showSecondaryTextIcon && (
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Xss}
+                    style={styles.arrowStyle}
+                  />
+                )}
               </TouchableOpacity>
             </TouchableWithoutFeedback>
-          )}
-          {!!secondaryText && !onTextClick && (
-            <View>{renderSecondaryText()}</View>
           )}
           {!!tagLabel && (
             <Tag
