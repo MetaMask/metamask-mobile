@@ -103,6 +103,7 @@ export async function doENSReverseLookup(address, chainId) {
 export async function doENSLookup(ensName, chainId) {
   const { provider } =
     Engine.context.NetworkController.getProviderAndBlockTracker();
+  if (!provider) return null;
 
   const networkHasEnsSupport = ENS_SUPPORTED_CHAIN_IDS.includes(chainId);
 
@@ -111,10 +112,16 @@ export async function doENSLookup(ensName, chainId) {
     this.ens = new ENS({ provider, network: networkId });
     try {
       const resolvedAddress = await this.ens.lookup(ensName);
-      if (resolvedAddress === EMPTY_ADDRESS) return;
+      if (
+        resolvedAddress === EMPTY_ADDRESS ||
+        resolvedAddress === PREFIX_HEX_STRING
+      )
+        return;
       return resolvedAddress;
       // eslint-disable-next-line no-empty
-    } catch (e) {}
+    } catch (e) {
+      Logger.log('Failed ENS Lookup', error);
+    }
   }
 }
 
