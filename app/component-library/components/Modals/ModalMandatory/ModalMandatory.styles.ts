@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, Dimensions, TextStyle } from 'react-native';
+import { StyleSheet, Dimensions, TextStyle, Platform } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 import { getFontFamily, TextVariant } from '../../Texts/Text';
 import { typography } from '@metamask/design-tokens';
@@ -26,8 +26,9 @@ const styleSheet = (params: { theme: Theme }) => {
     modal: {
       backgroundColor: colors.background.default,
       borderRadius: 10,
-      padding: 16,
-      marginHorizontal: 16,
+      padding: 0,
+      paddingHorizontal: 16,
+      paddingTop: 16,
     },
     headerContainer: {
       flexDirection: 'row',
@@ -45,13 +46,16 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 32,
       height: 32,
     },
-    bodyContainer: { height: screenHeight / 2 },
+    bodyContainer: { height: screenHeight / 2, padding: 0 },
     checkboxContainer: {
       flexDirection: 'row',
       marginTop: 16,
       columnGap: 8,
       marginRight: 16,
       width: '90%',
+      borderTopWidth: 1,
+      borderColor: colors.border.muted,
+      paddingTop: 16,
     },
     checkboxText: {
       marginLeft: 8,
@@ -83,6 +87,7 @@ const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.alternative,
       ...(typography.sBodySM as TextStyle),
       fontFamily: getFontFamily(TextVariant.BodySM),
+      marginBottom: Platform.OS === 'ios' ? 8 : 16,
     },
   });
 };

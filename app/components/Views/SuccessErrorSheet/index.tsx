@@ -34,6 +34,7 @@ export interface SuccessErrorSheetParams {
   closeOnPrimaryButtonPress?: boolean;
   closeOnSecondaryButtonPress?: boolean;
   reverseButtonOrder?: boolean;
+  descriptionAlign?: 'center' | 'left';
 }
 
 export interface SuccessErrorSheetProps {
@@ -55,6 +56,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     closeOnPrimaryButtonPress = false,
     closeOnSecondaryButtonPress = true,
     reverseButtonOrder = false,
+    descriptionAlign = 'left',
   } = route.params;
 
   const { colors } = useTheme();
@@ -114,7 +116,11 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Default}
-            style={styles.description}
+            style={
+              descriptionAlign === 'center'
+                ? styles.descriptionCenter
+                : styles.descriptionLeft
+            }
           >
             {description}
           </Text>

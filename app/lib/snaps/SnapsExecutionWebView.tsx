@@ -7,7 +7,7 @@ import { WebViewInterface } from '@metamask/snaps-controllers/react-native';
 import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
 // @ts-expect-error Types are currently broken for this.
-import WebViewHTML from '@metamask/snaps-execution-environments/dist/browserify/webview/index.html';
+import WebViewHTML from '@metamask/snaps-execution-environments/dist/webpack/webview/index.html';
 import { EmptyObject } from '@metamask/snaps-sdk';
 
 const styles = createStyles();

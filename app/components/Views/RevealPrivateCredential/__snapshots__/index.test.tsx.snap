@@ -188,6 +188,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={24}
               name="EyeSlash"
               style={
@@ -615,6 +616,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={24}
               name="EyeSlash"
               style={
@@ -979,6 +981,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={24}
               name="EyeSlash"
               style={
@@ -1332,6 +1335,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={24}
               name="EyeSlash"
               style={
