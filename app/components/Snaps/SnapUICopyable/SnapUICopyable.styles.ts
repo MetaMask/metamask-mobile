@@ -24,6 +24,9 @@ const styleSheet = (params: StyleSheetParams) => {
   const { sensitive, isVisible } = vars;
 
   return StyleSheet.create({
+    containerWrapper: {
+      width: '100%',
+    },
     container: {
       backgroundColor:
         isVisible && sensitive ? colors.error.muted : colors.background.muted,
@@ -36,6 +39,12 @@ const styleSheet = (params: StyleSheetParams) => {
       flexWrap: 'wrap',
       gap: 8,
       width: '100%',
+      position: 'relative',
+    },
+    content: {
+      flex: 1,
+      width: '100%',
+      flexDirection: 'column',
     },
     revealText: {
       color: colors.text.alternative,
@@ -50,11 +59,19 @@ const styleSheet = (params: StyleSheetParams) => {
     icon: {
       color:
         isVisible && sensitive ? colors.error.default : colors.text.alternative,
-      flex: 1,
     },
     background: {
       backgroundColor:
         isVisible && sensitive ? colors.error.muted : colors.background.muted,
+    },
+    moreButton: {
+      alignSelf: 'flex-end',
+      position: 'absolute',
+      bottom: 12,
+      right: 10,
+    },
+    moreButtonText: {
+      color: colors.primary.default,
     },
   });
 };

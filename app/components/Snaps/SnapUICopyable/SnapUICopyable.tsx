@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
@@ -20,10 +20,18 @@ export const SnapUICopyable: React.FC<SnapUICopyableProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(!sensitive);
   const [isClicked, setIsClicked] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { styles } = useStyles(styleSheet, {
     sensitive,
     isVisible,
   });
+
+  const CHARACTER_LIMIT = 100;
+  const isTextTooLong = text.length > CHARACTER_LIMIT;
+  const displayText =
+    isExpanded || !isTextTooLong
+      ? text
+      : `${text.substring(0, CHARACTER_LIMIT)}...`;
 
   const startTimeout = () =>
     // 3 seconds
@@ -39,35 +47,61 @@ export const SnapUICopyable: React.FC<SnapUICopyableProps> = ({
     startTimeout();
   };
 
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
-    <TouchableOpacity
-      onPress={
-        sensitive && !isVisible ? handleVisibilityClick : handleCopyPress
-      }
-      style={styles.container}
-    >
-      {sensitive && (
-        <TouchableOpacity onPress={handleVisibilityClick}>
+    <View style={styles.containerWrapper}>
+      <TouchableOpacity
+        onPress={
+          sensitive && !isVisible ? handleVisibilityClick : handleCopyPress
+        }
+        style={styles.container}
+      >
+        {sensitive && (
+          <TouchableOpacity onPress={handleVisibilityClick}>
+            <Icon
+              name={isVisible ? IconName.EyeSlash : IconName.Eye}
+              color={styles.icon.color}
+              testID="reveal-icon"
+            />
+          </TouchableOpacity>
+        )}
+        {sensitive && !isVisible && (
+          <Text style={styles.revealText}>
+            {strings('snap_ui.revealSensitiveContent.message')}
+          </Text>
+        )}
+        <View style={styles.content}>
+          {isVisible && (
+            <Text style={styles.text} testID="copyable-text">
+              {displayText}
+            </Text>
+          )}
+        </View>
+        {isVisible && (
           <Icon
-            name={isVisible ? IconName.EyeSlash : IconName.Eye}
+            name={isClicked ? IconName.CopySuccess : IconName.Copy}
             color={styles.icon.color}
-            testID="reveal-icon"
+            testID="copy-icon"
           />
-        </TouchableOpacity>
-      )}
-      {sensitive && !isVisible && (
-        <Text style={styles.revealText}>
-          {strings('snap_ui.revealSensitiveContent.message')}
-        </Text>
-      )}
-      {isVisible && <Text style={styles.text}>{text}</Text>}
-      {isVisible && (
-        <Icon
-          name={isClicked ? IconName.CopySuccess : IconName.Copy}
-          color={styles.icon.color}
-          testID="copy-icon"
-        />
-      )}
-    </TouchableOpacity>
+        )}
+        {isVisible && isTextTooLong && (
+          <TouchableOpacity
+            onPress={toggleExpand}
+            style={styles.moreButton}
+            testID="more-button"
+            activeOpacity={0.7}
+          >
+            <Text style={styles.moreButtonText}>
+              {isExpanded
+                ? strings('snap_ui.show_less')
+                : strings('snap_ui.show_more')}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </TouchableOpacity>
+    </View>
   );
 };

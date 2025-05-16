@@ -17,6 +17,12 @@ jest.mock('../../../../../locales/i18n', () => ({
     if (key === 'snap_ui.revealSensitiveContent.message') {
       return 'Reveal sensitive content';
     }
+    if (key === 'snap_ui.show_more') {
+      return 'Show more';
+    }
+    if (key === 'snap_ui.show_less') {
+      return 'Show less';
+    }
     return key;
   }),
 }));
@@ -192,13 +198,65 @@ describe('SnapUICopyable', () => {
       expect(queryByText('Secret data')).toBeNull();
     });
 
+    it('truncates long text and shows "more" button', () => {
+      // Create text longer than the 100 character limit
+      const longText = 'A'.repeat(150);
+      const { getByTestId, getByText } = renderInterface(
+        Copyable({ value: longText }),
+      );
+
+      // Should show truncated text
+      const truncatedText = 'A'.repeat(100) + '...';
+      expect(getByTestId('copyable-text').props.children).toBe(truncatedText);
+
+      // Should show "Show more" button
+      expect(getByText('Show more')).toBeDefined();
+    });
+
+    it('expands truncated text when clicking "more" button', () => {
+      const longText = 'A'.repeat(150);
+      const { getByTestId, getByText } = renderInterface(
+        Copyable({ value: longText }),
+      );
+
+      // Initially truncated
+      expect(getByTestId('copyable-text').props.children).toBe(
+        'A'.repeat(100) + '...',
+      );
+
+      // Click "Show more"
+      fireEvent.press(getByTestId('more-button'));
+
+      // Should now show full text
+      expect(getByTestId('copyable-text').props.children).toBe(longText);
+
+      // Should show "Show less" button
+      expect(getByText('Show less')).toBeDefined();
+
+      // Click "Show less"
+      fireEvent.press(getByTestId('more-button'));
+
+      // Should truncate again
+      expect(getByTestId('copyable-text').props.children).toBe(
+        'A'.repeat(100) + '...',
+      );
+    });
+
+    it('does not show "more" button for short text', () => {
+      const shortText = 'Short text under the limit';
+      const { queryByTestId } = renderInterface(Copyable({ value: shortText }));
+
+      // No "more" button
+      expect(queryByTestId('more-button')).toBeNull();
+    });
+
     it('calls ClipboardManager.setString when non-sensitive text is clicked', async () => {
       const { getByText } = renderInterface(
         Copyable({ value: 'Copy this text' }),
       );
 
       const textElement = getByText('Copy this text');
-      fireEvent.press(textElement);
+      fireEvent.press(textElement.parent!);
 
       await waitFor(() => {
         expect(ClipboardManager.setString).toHaveBeenCalledWith(
@@ -216,7 +274,7 @@ describe('SnapUICopyable', () => {
       fireEvent.press(getByTestId('reveal-icon'));
 
       // Now click the text to copy
-      const container = getByText('Secret to copy').parent!;
+      const container = getByText('Secret to copy').parent!.parent!;
       fireEvent.press(container);
 
       await waitFor(() => {

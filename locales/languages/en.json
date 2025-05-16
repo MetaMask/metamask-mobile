@@ -4001,6 +4001,8 @@
     },
     "revealSensitiveContent": {
       "message": "Reveal sensitive content"
-    }
+    },
+    "show_more": "more",
+    "show_less": "less"
   }
 }
