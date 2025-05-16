@@ -11,6 +11,8 @@ exports[`NotificationsDetails renders correctly 1`] = `
       "paddingTop": 16,
     }
   }
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   onGestureHandlerEvent={[Function]}
   onGestureHandlerStateChange={[Function]}
 >

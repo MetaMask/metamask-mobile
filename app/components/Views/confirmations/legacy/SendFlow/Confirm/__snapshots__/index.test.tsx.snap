@@ -356,6 +356,9 @@ exports[`Confirm should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -426,9 +429,12 @@ exports[`Confirm should render correctly 1`] = `
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
