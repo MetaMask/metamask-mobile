@@ -28,6 +28,26 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 8,
     },
+    networkFeeTooltipContent: {
+      gap: 16,
+    },
+    networkFeeRight: {
+      flexDirection: 'row',
+      gap: 4,
+    },
+    foxIcon: {
+      fontSize: 14,
+      marginRight: 4,
+    },
+    advancedDetailsContainer: {
+      paddingHorizontal: 8,
+      paddingBottom: 8,
+      gap: 16,
+    },
+    healthFactorRight: {
+      flexDirection: 'row',
+      gap: 8,
+    },
   });
 };
 

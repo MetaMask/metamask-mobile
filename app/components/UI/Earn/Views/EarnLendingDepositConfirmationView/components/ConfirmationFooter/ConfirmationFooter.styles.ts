@@ -1,13 +1,17 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { hasProgressBar: boolean };
+}) => {
+  const { theme, vars } = params;
+  const { hasProgressBar = false } = vars;
 
   return StyleSheet.create({
     footerContainer: {
       backgroundColor: theme.colors.primary.inverse,
-      paddingTop: 32,
+      paddingTop: hasProgressBar ? 32 : 16,
     },
     footerButtonsContainer: {
       backgroundColor: theme.colors.primary.inverse,

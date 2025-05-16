@@ -14,38 +14,38 @@ import {
 import { strings } from '../../../../../../../../locales/i18n';
 import AppConstants from '../../../../../../../core/AppConstants';
 import ProgressStepper, { ProgressStep } from '../ProgressStepper';
-import styleSheet from './DepositFooter.styles';
+import styleSheet from './ConfirmationFooter.styles';
 
 interface FooterButton {
   text?: string;
   disabled?: boolean;
 }
 
-export interface DepositFooterProps {
+export interface ConfirmationFooterProps {
   onConfirm: () => void;
   onCancel: () => void;
   buttonPrimary?: FooterButton;
   buttonSecondary?: FooterButton;
-  activeStep: number;
-  steps: ProgressStep[];
+  progressBar?: { activeStep: number; steps: ProgressStep[] };
 }
 
-export const DEPOSIT_FOOTER_TEST_ID = 'depositFooter';
+export const CONFIRMATION_FOOTER_TEST_IDS = 'confirmationFooter';
 
-export const LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS = {
-  CANCEL_BUTTON: 'earn-lending-deposit-confirmation-footer-cancel-button',
-  CONFIRM_BUTTON: 'earn-lending-deposit-confirmation-footer-confirm-button',
+export const CONFIRMATION_FOOTER_BUTTON_TEST_IDS = {
+  CANCEL_BUTTON: 'earn-lending-confirmation-footer-cancel-button',
+  CONFIRM_BUTTON: 'earn-lending-confirmation-footer-confirm-button',
 };
 
-const DepositFooter = ({
+const ConfirmationFooter = ({
   onConfirm,
   onCancel,
   buttonPrimary,
   buttonSecondary,
-  activeStep,
-  steps,
-}: DepositFooterProps) => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  progressBar,
+}: ConfirmationFooterProps) => {
+  const { styles, theme } = useStyles(styleSheet, {
+    hasProgressBar: Boolean(progressBar),
+  });
 
   const buttons = [
     {
@@ -54,7 +54,7 @@ const DepositFooter = ({
       isDisabled: Boolean(buttonSecondary?.disabled),
       size: ButtonSize.Lg,
       onPress: onCancel,
-      testID: LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
+      testID: CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
     },
     {
       variant: ButtonVariants.Primary,
@@ -62,20 +62,22 @@ const DepositFooter = ({
       label: buttonPrimary?.text ?? strings('confirm.confirm'),
       size: ButtonSize.Lg,
       onPress: onConfirm,
-      testID: LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      testID: CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
     },
   ];
 
   return (
-    <View style={styles.footerContainer} testID={DEPOSIT_FOOTER_TEST_ID}>
-      <View>
-        <ProgressStepper
-          stroke={theme.colors.primary.default}
-          strokeWidth={1}
-          activeStep={activeStep}
-          steps={steps}
-        />
-      </View>
+    <View style={styles.footerContainer} testID={CONFIRMATION_FOOTER_TEST_IDS}>
+      {progressBar && (
+        <View>
+          <ProgressStepper
+            stroke={theme.colors.primary.default}
+            strokeWidth={1}
+            activeStep={progressBar.activeStep}
+            steps={progressBar.steps}
+          />
+        </View>
+      )}
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         buttonPropsArray={buttons}
@@ -117,4 +119,4 @@ const DepositFooter = ({
   );
 };
 
-export default DepositFooter;
+export default ConfirmationFooter;

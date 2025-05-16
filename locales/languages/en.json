@@ -3638,7 +3638,9 @@
     "withdrawal_time": "Withdrawal time",
     "withdrawing_to": "Withdrawing to",
     "network_fee": "Network Fee",
-    "network": "Network"
+    "network": "Network",
+    "health_factor": "Health factor",
+    "liquidation_risk": "Liquidation risk"
   },
   "stake": {
     "stake": "Stake",

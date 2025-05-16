@@ -12,9 +12,9 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
 import {
-  DEPOSIT_FOOTER_TEST_ID,
-  LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS,
-} from './components/DepositFooter';
+  CONFIRMATION_FOOTER_TEST_IDS,
+  CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
+} from './components/ConfirmationFooter';
 import { act, fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
@@ -138,12 +138,12 @@ describe('EarnLendingDepositConfirmationView', () => {
     // Deposit Receive Section
     expect(getByTestId(DEPOSIT_RECEIVE_SECTION_TEST_ID)).toBeDefined();
     // Footer
-    expect(getByTestId(DEPOSIT_FOOTER_TEST_ID)).toBeDefined();
+    expect(getByTestId(CONFIRMATION_FOOTER_TEST_IDS)).toBeDefined();
     expect(
-      getByTestId(LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
+      getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON),
+      getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON),
     ).toBeDefined();
   });
 
@@ -169,7 +169,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     );
 
     const cancelButton = getByTestId(
-      LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
     );
 
     act(() => {
@@ -204,7 +204,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     );
 
     const approveButton = getByTestId(
-      LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
     );
 
     // Ensure we're on the approval step
@@ -247,7 +247,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     );
 
     const depositButton = getByTestId(
-      LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
     );
 
     // Ensure we're on the deposit step
