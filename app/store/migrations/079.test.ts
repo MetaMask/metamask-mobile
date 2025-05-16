@@ -42,20 +42,6 @@ describe(`Migration #${VERSION}`, () => {
     }
   });
 
-  it('logs an error and returns the state unchanged if MM_INFURA_PROJECT_ID is not set', async () => {
-    const state = {};
-    const expectedState = state;
-
-    const newState = migrate(state);
-
-    expect(newState).toBe(expectedState);
-    expect(captureExceptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: No MM_INFURA_PROJECT_ID set!`,
-      }),
-    );
-  });
-
   it('logs an error and returns the state unchanged if the state is not an object', () => {
     process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
     const state = 'not-an-object';
@@ -66,7 +52,7 @@ describe(`Migration #${VERSION}`, () => {
     expect(newState).toBe(expectedState);
     expect(captureExceptionMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Expected state to be an object, but is string`,
+        message: `FATAL ERROR: Migration ${VERSION}: Invalid state error: 'string'`,
       }),
     );
   });
@@ -81,7 +67,7 @@ describe(`Migration #${VERSION}`, () => {
     expect(newState).toBe(expectedState);
     expect(captureExceptionMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Missing state.engine`,
+        message: `FATAL ERROR: Migration ${VERSION}: Invalid engine state error: 'undefined'`,
       }),
     );
   });
@@ -96,7 +82,7 @@ describe(`Migration #${VERSION}`, () => {
     expect(newState).toBe(expectedState);
     expect(captureExceptionMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Expected state.engine to be an object, but is string`,
+        message: `FATAL ERROR: Migration ${VERSION}: Invalid engine state error: 'string'`,
       }),
     );
   });
@@ -113,7 +99,7 @@ describe(`Migration #${VERSION}`, () => {
     expect(newState).toBe(expectedState);
     expect(captureExceptionMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Missing state.engine.backgroundState`,
+        message: `FATAL ERROR: Migration ${VERSION}: Invalid engine backgroundState error: 'undefined'`,
       }),
     );
   });
@@ -132,7 +118,7 @@ describe(`Migration #${VERSION}`, () => {
     expect(newState).toBe(expectedState);
     expect(captureExceptionMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Expected state.engine.backgroundState to be an object, but is string`,
+        message: `FATAL ERROR: Migration ${VERSION}: Invalid engine backgroundState error: 'string'`,
       }),
     );
   });
@@ -217,6 +203,28 @@ describe(`Migration #${VERSION}`, () => {
     expect(captureExceptionMock).toHaveBeenCalledWith(
       expect.objectContaining({
         message: `FATAL ERROR: Migration ${VERSION}: Expected state.engine.backgroundState.NetworkController.networkConfigurationsByChainId to be an object, but is string`,
+      }),
+    );
+  });
+
+  it('logs an error and returns the state unchanged if MM_INFURA_PROJECT_ID is not set', async () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {},
+          },
+        },
+      },
+    };
+    const expectedState = state;
+
+    const newState = migrate(state);
+
+    expect(newState).toBe(expectedState);
+    expect(captureExceptionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: `FATAL ERROR: Migration ${VERSION}: No MM_INFURA_PROJECT_ID set!`,
       }),
     );
   });

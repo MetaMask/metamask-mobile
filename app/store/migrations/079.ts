@@ -2,6 +2,7 @@ import { RpcEndpointType } from '@metamask/network-controller';
 import { getErrorMessage, hasProperty, Hex, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { cloneDeep, escapeRegExp } from 'lodash';
+import { ensureValidState, ValidState } from './util';
 
 const VERSION = 79;
 
@@ -68,6 +69,10 @@ export const INFURA_CHAINS_WITH_FAILOVERS: Map<
 export default function migrate(state: unknown) {
   const newState = cloneDeep(state);
 
+  if (!ensureValidState(newState, VERSION)) {
+    return state;
+  }
+
   try {
     updateState(newState);
     return newState;
@@ -79,36 +84,7 @@ export default function migrate(state: unknown) {
   }
 }
 
-function updateState(state: unknown) {
-  if (!process.env.MM_INFURA_PROJECT_ID) {
-    throw new Error('No MM_INFURA_PROJECT_ID set!');
-  }
-
-  if (!isObject(state)) {
-    throw new Error(`Expected state to be an object, but is ${typeof state}`);
-  }
-
-  if (!hasProperty(state, 'engine')) {
-    throw new Error('Missing state.engine');
-  }
-
-  if (!isObject(state.engine)) {
-    throw new Error(
-      `Expected state.engine to be an object, but is ${typeof state.engine}`,
-    );
-  }
-
-  if (!hasProperty(state.engine, 'backgroundState')) {
-    throw new Error('Missing state.engine.backgroundState');
-  }
-
-  if (!isObject(state.engine.backgroundState)) {
-    throw new Error(
-      `Expected state.engine.backgroundState to be an object, but is ${typeof state
-        .engine.backgroundState}`,
-    );
-  }
-
+function updateState(state: ValidState) {
   if (!hasProperty(state.engine.backgroundState, 'NetworkController')) {
     throw new Error('Missing state.engine.backgroundState.NetworkController');
   }
@@ -142,6 +118,10 @@ function updateState(state: unknown) {
         .engine.backgroundState.NetworkController
         .networkConfigurationsByChainId}`,
     );
+  }
+
+  if (!process.env.MM_INFURA_PROJECT_ID) {
+    throw new Error('No MM_INFURA_PROJECT_ID set!');
   }
 
   const { networkConfigurationsByChainId } =
