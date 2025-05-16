@@ -28,7 +28,7 @@ const Root = ({ foxCode }: RootProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const segmentClient = createClient({
-    writeKey: 'IKTFv1wYObT20NTYO85nJ1E3LW3NF9Kb'
+    writeKey: ''
   });
 
   /**

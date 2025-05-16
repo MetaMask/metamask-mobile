@@ -202,11 +202,11 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   const initialize = useCallback(async () => {
     updateNavBar();
     // Reference for the original code implementation for tracking events
-    // track(
-    //   MetricsEventBuilder.createEventBuilder(
-    //     MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED,
-    //   ).build(),
-    // );
+    track(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED,
+      ).build(),
+    );
     try {
       // await welcomeMessageViewed({
       //   properties: {
@@ -223,7 +223,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     }
     const newAppStartTime = await StorageWrapper.getItem('appStartTime');
     setAppStartTime(newAppStartTime);
-  }, [updateNavBar, typewriter]);
+  }, [updateNavBar, typewriter, track]);
 
   useEffect(() => {
     initialize();

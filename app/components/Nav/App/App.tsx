@@ -136,6 +136,7 @@ import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet
 import NavigationService from '../../../core/NavigationService';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccount from '../../Views/AddNewAccount';
+import { useAnalytics } from '../../../core/Analytics/typewriter/segment';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -715,6 +716,7 @@ const App: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
+  const typewriterFunctions = useAnalytics();
 
   const isFirstRender = useRef(true);
 
@@ -732,6 +734,10 @@ const App: React.FC = () => {
     // End trace when first render is complete
     endTrace({ name: TraceName.UIStartup });
   }, []);
+
+  useEffect(() => {
+    MetaMetrics.setTypewriterFunctions(typewriterFunctions);
+  }, [typewriterFunctions]);
 
   useEffect(() => {
     const appTriggeredAuth = async () => {

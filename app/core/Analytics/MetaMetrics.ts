@@ -178,6 +178,20 @@ class MetaMetrics implements IMetaMetrics {
   private deleteRegulationDate: DataDeleteDate;
 
   /**
+   * Keep a singleton reference to typewriter functions
+   * @private
+   */
+  private static typewriterFunctionsRef: Record<string, unknown> = {};
+
+  /**
+   * Method to set typewriter functions reference (call once at app init)
+   * @param functions - Typewriter functions
+   */
+  public static setTypewriterFunctions(functions: Record<string, unknown>): void {
+    MetaMetrics.typewriterFunctionsRef = functions;
+  }
+
+  /**
    * Retrieve state of metrics from the preference
    *
    * Defaults to disabled if not explicitely enabled
@@ -679,6 +693,9 @@ class MetaMetrics implements IMetaMetrics {
       return;
     }
 
+    // Add validation step
+    this.validateEventProperties(event);
+
     if (isE2E) {
       MetaMetricsTestUtils.getInstance().trackEvent(event);
       return;
@@ -805,6 +822,56 @@ class MetaMetrics implements IMetaMetrics {
    */
   getMetaMetricsId = async (): Promise<string | undefined> =>
     this.metametricsId ?? (await this.#getMetaMetricsId());
+
+  /**
+   * Internal validation helper
+   * @param event - Event to validate
+   */
+  private validateEventProperties(event: ITrackingEvent): void {
+    if (!MetaMetrics.typewriterFunctionsRef) return;
+
+    // Map your event names to typewriter function names
+    const EVENT_MAP: Record<string, string> = {
+      'Onboarding Welcome Message Viewed': 'welcomeMessageViewed',
+      // Add a few important ones as needed
+    };
+
+    const typewriterFunctionName = EVENT_MAP[event.name];
+    if (!typewriterFunctionName) return;
+
+    const typewriterFunction = MetaMetrics.typewriterFunctionsRef[typewriterFunctionName as keyof typeof MetaMetrics.typewriterFunctionsRef];
+    if (!typewriterFunction) return;
+
+    try {
+      // Use typewriter's type definition to extract parameter types
+      const functionType = typewriterFunction.toString();
+      const requiredParams = this.extractRequiredParams(functionType);
+
+      // Check for missing required properties
+      const missingProps = requiredParams.filter(prop => !event.properties[prop]);
+      if (missingProps.length) {
+        console.warn(`Event ${event.name} missing required properties: ${missingProps.join(', ')}`);
+      }
+    } catch (e) {
+      // Silently continue if validation fails
+    }
+  }
+
+  /**
+   * Helper to extract required params from typewriter function definition
+   * @param functionStr - Function string
+   * @returns Array of required parameter names
+   */
+  private extractRequiredParams(functionStr: string): string[] {
+    // Simple regex to extract property names from typewriter function
+    // This is a basic implementation - might need refinement
+    const match = functionStr.match(/properties:\s*{\s*([^}]+)\s*}/);
+    if (!match) return [];
+
+    const propsSection = match[1];
+    const propMatches = propsSection.match(/(\$?\w+)(?=\s*:)/g);
+    return propMatches || [];
+  }
 }
 
 export default MetaMetrics;
