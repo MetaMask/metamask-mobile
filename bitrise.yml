@@ -2300,13 +2300,13 @@ app:
       VERSION_NAME: 7.46.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1849
+      VERSION_NUMBER: 1850
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.46.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1849
+      FLASK_VERSION_NUMBER: 1850
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
