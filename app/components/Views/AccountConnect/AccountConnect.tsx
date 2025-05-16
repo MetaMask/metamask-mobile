@@ -11,6 +11,7 @@ import React, {
 } from 'react';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
+
 // External dependencies.
 import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
@@ -46,7 +47,7 @@ import { Account, useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
-import { ImageURISource, ImageSourcePropType, StyleSheet } from 'react-native';
+import { ImageURISource } from 'react-native';
 import URLParse from 'url-parse';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -66,6 +67,7 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import {
   AccountConnectProps,
   AccountConnectScreens,
+  NetworkAvatarProps,
 } from './AccountConnect.types';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
@@ -74,7 +76,10 @@ import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSumma
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
@@ -87,25 +92,33 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
-import { CaipAccountId, CaipChainId, KnownCaipNamespace, parseCaipAccountId, parseCaipChainId } from '@metamask/utils';
-import { getAllNamespacesFromCaip25CaveatValue, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue, isCaipAccountIdInPermittedAccountIds} from '@metamask/chain-agnostic-permission';
-import { isEqualCaseInsensitive } from '@metamask/controller-utils';
-
-const createStyles = () =>
-  StyleSheet.create({
-    fullScreenModal: {
-      flex: 1,
-    },
-  });
+import {
+  CaipAccountId,
+  CaipChainId,
+  KnownCaipNamespace,
+  parseCaipAccountId,
+  parseCaipChainId,
+} from '@metamask/utils';
+import {
+  getAllNamespacesFromCaip25CaveatValue,
+  getAllScopesFromCaip25CaveatValue,
+  getCaipAccountIdsFromCaip25CaveatValue,
+  isCaipAccountIdInPermittedAccountIds,
+} from '@metamask/chain-agnostic-permission';
+import { isEqualCaseInsensitive, toHex } from '@metamask/controller-utils';
+import styleSheet from './AccountConnect.styles';
+import { useStyles } from '../../../component-library/hooks';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
-  const styles = createStyles();
+  const { styles } = useStyles(styleSheet, {});
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
+  const [tabIndex, setTabIndex] = useState(0);
   const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
+
   const previousIdentitiesListSize = useRef<number>();
   const internalAccounts = useSelector(selectInternalAccountsWithCaipAccountId);
   const navigation = useNavigation();
@@ -114,11 +127,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [blockedUrl, setBlockedUrl] = useState('');
 
   const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
-    {
-      size: AvatarSize;
-      name: string;
-      imageSource: ImageSourcePropType;
-    }[]
+    NetworkAvatarProps[]
   >([]);
 
   const requestedCaip25CaveatValue = useMemo(() => getRequestedCaip25CaveatValue(
@@ -151,19 +160,30 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? supportedRequestedCaipChainIds
       : allNetworksList;
 
-  const [selectedChainIds, _setSelectedChainIds] = useState<CaipChainId[]>(defaultSelectedChainIds as CaipChainId[]);
-  const setSelectedChainIds = useCallback((newSelectedChainIds: CaipChainId[]) => {
-    _setSelectedChainIds(newSelectedChainIds);
+  const [selectedChainIds, _setSelectedChainIds] = useState<CaipChainId[]>(
+    defaultSelectedChainIds as CaipChainId[],
+  );
+  const setSelectedChainIds = useCallback(
+    (newSelectedChainIds: CaipChainId[]) => {
+      _setSelectedChainIds(newSelectedChainIds);
 
-    const newNetworkAvatars = newSelectedChainIds.map(
-      (newSelectedChainId) => ({
-        size: AvatarSize.Xs,
-        name: networkConfigurations[newSelectedChainId]?.name || '',
-        imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
-      }),
-    );
-    setSelectedNetworkAvatars(newNetworkAvatars);
-  }, [networkConfigurations, setSelectedNetworkAvatars]);
+      const newNetworkAvatars: NetworkAvatarProps[] = newSelectedChainIds.map(
+        (newSelectedChainId) => {
+          const parsedCaipChainId = parseCaipChainId(newSelectedChainId);
+          const chainId = toHex(parsedCaipChainId.reference);
+          return {
+            size: AvatarSize.Xs,
+            name: networkConfigurations[newSelectedChainId]?.name || '',
+            imageSource: getNetworkImageSource({ chainId }),
+            variant: AvatarVariant.Network,
+          };
+        },
+      );
+
+      setSelectedNetworkAvatars(newNetworkAvatars);
+    },
+    [networkConfigurations, setSelectedNetworkAvatars],
+  );
 
   // all accounts that match the requested namespaces
   const supportedAccountsForRequestedNamespaces = internalAccounts.filter(
@@ -206,7 +226,9 @@ const AccountConnect = (props: AccountConnectProps) => {
     ({ caipAccountId }) => caipAccountId,
   );
 
-  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(defaultCaipAccountAddresses);
+  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(
+    defaultCaipAccountAddresses,
+  );
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
@@ -284,13 +306,19 @@ const AccountConnect = (props: AccountConnectProps) => {
   useEffect(() => {
     // Create network avatars for all enabled networks
     const networkAvatars = Object.values(networkConfigurations).map(
-      (network) => ({
-        size: AvatarSize.Xs,
-        name: network.name || '',
-        imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
-      }),
+      (network) => {
+        const parsedCaipChainId = parseCaipChainId(network.caipChainId);
+        const chainId = toHex(parsedCaipChainId.reference);
+        return {
+          size: AvatarSize.Xs,
+          name: network.name || '',
+          imageSource: getNetworkImageSource({
+            chainId,
+          }),
+          variant: AvatarVariant.Network,
+        };
+      },
     );
-
     setSelectedNetworkAvatars(networkAvatars);
 
     // No need to update selectedChainIds here since it's already initialized with all networks
@@ -351,14 +379,14 @@ const AccountConnect = (props: AccountConnectProps) => {
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
     // Extract the address list from the internalAccounts array
-    const accountsAddressList = internalAccounts.map((account) =>
-      account.caipAccountId
+    const accountsAddressList = internalAccounts.map(
+      (account) => account.caipAccountId,
     );
 
     if (previousIdentitiesListSize.current !== accountsAddressList.length) {
       // Clean up selected addresses that are no longer part of accounts.
       const updatedSelectedAddresses = selectedAddresses.filter((address) =>
-        isCaipAccountIdInPermittedAccountIds(address, accountsAddressList)
+        isCaipAccountIdInPermittedAccountIds(address, accountsAddressList),
       );
 
       setSelectedAddresses(updatedSelectedAddresses);
@@ -530,7 +558,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         const checksummedAddress = safeToChecksumAddress(
           addedAccountAddress,
         ) as string;
-        !isMultiSelect && setSelectedAddresses([`eip155:0:${checksummedAddress}`]);
+        !isMultiSelect &&
+          setSelectedAddresses([`eip155:0:${checksummedAddress}`]);
         trackEvent(
           createEventBuilder(
             MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
@@ -590,7 +619,13 @@ const AccountConnect = (props: AccountConnectProps) => {
       setSelectedAddresses(newSelectedAccountAddresses);
       setScreen(AccountConnectScreens.SingleConnect);
     },
-    [setSelectedAddresses, setScreen, selectedChainIds, allNetworksList, setSelectedChainIds],
+    [
+      setSelectedAddresses,
+      setScreen,
+      selectedChainIds,
+      allNetworksList,
+      setSelectedChainIds,
+    ],
   );
 
   const handleNetworksSelected = useCallback(
@@ -688,7 +723,9 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const renderSingleConnectScreen = useCallback(() => {
     const selectedAddress = selectedAddresses[0];
-    const selectedAccount = accounts.find((account) => account.caipAccountId === selectedAddress);
+    const selectedAccount = accounts.find(
+      (account) => account.caipAccountId === selectedAddress,
+    );
     const { address } = parseCaipAccountId(selectedAddress);
     const ensName = ensByAccountAddress[address];
     const defaultSelectedAccount: Account | undefined = selectedAccount
@@ -742,9 +779,11 @@ const AccountConnect = (props: AccountConnectProps) => {
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
       accountAddresses: selectedAddresses,
+      ensByAccountAddress,
       accounts,
-      // @ts-expect-error imageSource not yet typed
       networkAvatars: selectedNetworkAvatars,
+      setTabIndex,
+      tabIndex,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [
@@ -753,6 +792,9 @@ const AccountConnect = (props: AccountConnectProps) => {
     selectedAddresses,
     selectedNetworkAvatars,
     accounts,
+    ensByAccountAddress,
+    tabIndex,
+    setTabIndex,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
@@ -774,7 +816,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       isLoading,
       setUserIntent,
       setScreen,
-    handleAccountsSelected,
+      handleAccountsSelected,
     ],
   );
 
@@ -797,11 +839,11 @@ const AccountConnect = (props: AccountConnectProps) => {
     [
       accounts,
       ensByAccountAddress,
-      selectedAddresses,
       isLoading,
       sdkConnection,
       hostname,
-      handleAccountsSelected
+      handleAccountsSelected,
+      selectedAddresses,
     ],
   );
 
@@ -815,12 +857,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         defaultSelectedChainIds={selectedChainIds}
       />
     ),
-    [
-      isLoading,
-      urlWithProtocol,
-      handleNetworksSelected,
-      selectedChainIds,
-    ],
+    [isLoading, urlWithProtocol, handleNetworksSelected, selectedChainIds],
   );
 
   const renderPhishingModal = useCallback(
@@ -883,7 +920,14 @@ const AccountConnect = (props: AccountConnectProps) => {
   ]);
 
   return (
-    <BottomSheet onClose={handleSheetDismiss} ref={sheetRef}>
+    <BottomSheet
+      style={
+        screen === AccountConnectScreens.SingleConnect &&
+        styles.bottomSheetBackground
+      }
+      onClose={handleSheetDismiss}
+      ref={sheetRef}
+    >
       {renderConnectScreens()}
       {renderPhishingModal()}
     </BottomSheet>
