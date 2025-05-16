@@ -59,8 +59,7 @@ export const createStyles = (params: { theme: Theme }) => {
     keypadContainer: {
       flex: 1,
       justifyContent: 'flex-end',
-      paddingBottom: 36,
-      paddingTop: 8,
+      paddingBottom: 8,
     },
     keypad: {
       paddingHorizontal: 4,
@@ -74,9 +73,8 @@ export const createStyles = (params: { theme: Theme }) => {
       justifyContent: 'flex-start',
     },
     keypadContainerWithDestinationPicker: {
-      justifyContent: 'center',
-      paddingTop: 8,
-      paddingBottom: 12,
+      justifyContent: 'flex-end',
+      paddingBottom: 8,
     },
     scrollView: {
       flex: 1,
