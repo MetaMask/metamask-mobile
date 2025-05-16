@@ -102,7 +102,6 @@ export default class DeeplinkProtocolService {
     const defaultBridgeParams = getDefaultBridgeParams(clientInfo);
 
     const bridge = new BackgroundBridge({
-      tabId: '',
       webview: null,
       channelId: clientInfo.clientId,
       isMMSDK: true,
