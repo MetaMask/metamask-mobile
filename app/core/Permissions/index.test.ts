@@ -19,6 +19,7 @@ import {
 } from '@metamask/permission-controller';
 import {
   getPermittedAccountsByHostname,
+  getPermittedChainIdsByHostname,
   getDefaultCaip25CaveatValue,
   getCaip25Caveat,
   addPermittedAccounts,
@@ -166,6 +167,132 @@ describe('Permission Utility Functions', () => {
       };
 
       const result = getPermittedAccountsByHostname(
+        mockState,
+        'https://example.com',
+      );
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getPermittedChainIdsByHostname', () => {
+    it('should return eth chainIds for a given hostname', () => {
+      const mockState = {
+        subjects: {
+          'https://example.com': {
+            permissions: {
+              [Caip25EndowmentPermissionName]: {
+                caveats: [
+                  {
+                    type: Caip25CaveatType,
+                    value: {
+                      optionalScopes: {
+                        'eip155:1': {
+                          accounts: []
+                        },
+                        'eip155:2': {
+                          accounts: []
+                        }
+                      },
+                      requiredScopes: {},
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          'https://another.com': {
+            permissions: {
+              [Caip25EndowmentPermissionName]: {
+                caveats: [
+                  {
+                    type: Caip25CaveatType,
+                    value: {
+                      optionalScopes: {
+                        'eip155:3': {
+                          accounts: []
+                        }
+                      },
+                      requiredScopes: {},
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      };
+
+      (getPermittedEthChainIds as jest.Mock).mockImplementation((value) => {
+        if (
+          value ===
+          mockState.subjects['https://example.com'].permissions[
+            Caip25EndowmentPermissionName
+          ].caveats[0].value
+        ) {
+          return ['0x1', '0x2'];
+        }
+        return ['0x3'];
+          });
+
+      const result = getPermittedChainIdsByHostname(
+        mockState,
+        'https://example.com',
+      );
+      expect(result).toEqual(['0x1', '0x2']);
+    });
+
+    it('should return empty array if hostname has no eth chainIds', () => {
+      const mockState = {
+        subjects: {
+          'https://example.com': {
+            permissions: {
+              [Caip25EndowmentPermissionName]: {
+                caveats: [
+                  {
+                    type: Caip25CaveatType,
+                    value: {
+                      optionalScopes: {
+                        'wallet': {
+                          accounts: []
+                        }
+                      },
+                      requiredScopes: {},
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      };
+
+
+      (getPermittedEthChainIds as jest.Mock).mockImplementation((value) => {
+        if (
+          value ===
+          mockState.subjects['https://example.com'].permissions[
+            Caip25EndowmentPermissionName
+          ].caveats[0].value
+        ) {
+          return [];
+        }
+          });
+
+      const result = getPermittedChainIdsByHostname(
+        mockState,
+        'https://example.com',
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('should handle subjects without permissions', () => {
+      const mockState = {
+        subjects: {
+          'https://example.com': {},
+        },
+      };
+
+      const result = getPermittedChainIdsByHostname(
         mockState,
         'https://example.com',
       );

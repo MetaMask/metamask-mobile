@@ -187,11 +187,7 @@ import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import {
-  BRIDGE_DEV_API_BASE_URL,
-  BridgeClientId,
-  BridgeController,
-} from '@metamask/bridge-controller';
+import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
@@ -205,6 +201,7 @@ import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
+import { BRIDGE_API_BASE_URL } from '../../constants/bridge';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -319,7 +316,10 @@ export class Engine {
         fetch,
         btoa,
       }),
-      additionalDefaultNetworks: [ChainId['megaeth-testnet']],
+      additionalDefaultNetworks: [
+        ChainId['megaeth-testnet'],
+        ChainId['monad-testnet'],
+      ],
     };
     const networkController = new NetworkController(networkControllerOpts);
 
@@ -441,6 +441,7 @@ export class Engine {
         'AccountsController:setSelectedAccount',
         'AccountsController:getAccountByAddress',
         'AccountsController:setAccountName',
+        'AccountsController:setAccountNameAndSelectAccount',
         'AccountsController:listMultichainAccounts',
         'SnapController:handleRequest',
         SnapControllerGetSnapAction,
@@ -957,9 +958,10 @@ export class Engine {
           chainId,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }) as any,
+
       fetchFn: handleFetch,
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
       trackMetaMetricsFn: (event, properties) => {
         const metricsEvent = MetricsEventBuilder.createEventBuilder({
@@ -1006,7 +1008,7 @@ export class Engine {
           ...args,
         ),
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
     });
 
@@ -1437,7 +1439,7 @@ export class Engine {
       (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
-          NetworkStatus.Available &&
+            NetworkStatus.Available &&
           getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
@@ -1610,7 +1612,7 @@ export class Engine {
       const chainIdHex = toHexadecimal(chainId);
       const tokens =
         TokensController.state.allTokens?.[chainIdHex]?.[
-        selectedInternalAccount.address
+          selectedInternalAccount.address
         ] || [];
       const { marketData } = TokenRatesController.state;
       const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
@@ -1623,7 +1625,7 @@ export class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-        selectedInternalAccountFormattedAddress
+          selectedInternalAccountFormattedAddress
         ]
       ) {
         const balanceHex =
@@ -1664,7 +1666,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-          chainId
+            chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1675,9 +1677,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                  tokenBalances[item.address as Hex],
-                  item.decimals,
-                )
+                    tokenBalances[item.address as Hex],
+                    item.decimals,
+                  )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
@@ -1833,7 +1835,7 @@ export class Engine {
     // Remove all permissions.
     PermissionController?.clearState?.();
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    SnapController.clearState();
+    await SnapController.clearState();
     ///: END:ONLY_INCLUDE_IF
 
     // Clear selected network
