@@ -52,7 +52,6 @@ import {
   SignatureController,
 } from '@metamask/signature-controller';
 import { createAsyncWalletMiddleware } from './createAsyncWalletMiddleware';
-import { parseAndSanitizeSignTypedData } from '../../components/Views/confirmations/utils/signature';
 
 
 // TODO: Replace "any" with type
@@ -727,11 +726,6 @@ export const getRpcMethodMiddleware = ({
         },
 
         eth_signTypedData: async () => {
-          // Validate that params exist and both params[0] (data) and params[1] (from address) exist
-          if (!req.params?.[0] || !req.params?.[1]) {
-            throw rpcErrors.invalidParams('Invalid parameters: missing required parameters');
-          }
-
           endTrace({ name: TraceName.Middleware, id: req.id });
 
           const pageMeta = {
@@ -783,29 +777,10 @@ export const getRpcMethodMiddleware = ({
         },
 
         eth_signTypedData_v3: async () => {
-          if (!req.params?.[1]) {
-            throw rpcErrors.invalidParams('Invalid parameters: missing message data');
-          }
-
-          let data;
-          try {
-            data = typeof req.params[1] === 'string'
+          const data =
+            typeof req.params[1] === 'string'
               ? JSON.parse(req.params[1])
               : req.params[1];
-
-            // Quick validation of the parsed data
-            if (!data?.domain || !data?.types || !data?.message) {
-              throw rpcErrors.invalidParams('Invalid parameters: missing required fields');
-            }
-
-            // Pre-parse to validate structure using the same function as UI
-            parseAndSanitizeSignTypedData(
-              typeof req.params[1] === 'string' ? req.params[1] : JSON.stringify(req.params[1])
-            );
-          } catch (error) {
-            throw rpcErrors.invalidParams('Invalid typed data: ' + (error instanceof Error ? error.message : String(error)));
-          }
-
           const chainId = data.domain.chainId;
 
           trace(
@@ -831,31 +806,11 @@ export const getRpcMethodMiddleware = ({
         },
 
         eth_signTypedData_v4: async () => {
-          if (!req.params?.[1]) {
-            throw rpcErrors.invalidParams('Invalid parameters: missing message data');
-          }
-
-          let data;
-          try {
-            data = typeof req.params[1] === 'string'
+          const data =
+            typeof req.params[1] === 'string'
               ? JSON.parse(req.params[1])
               : req.params[1];
-
-            // Quick validation of the parsed data
-            if (!data?.domain || !data?.types || !data?.message) {
-              throw rpcErrors.invalidParams('Invalid parameters: missing required fields');
-            }
-
-            // Pre-parse to validate structure using the same function as UI
-            parseAndSanitizeSignTypedData(
-              typeof req.params[1] === 'string' ? req.params[1] : JSON.stringify(req.params[1])
-            );
-          } catch (error) {
-            throw rpcErrors.invalidParams('Invalid typed data: ' + (error instanceof Error ? error.message : String(error)));
-          }
-
           const chainId = data.domain.chainId;
-
           trace(
             { name: TraceName.PPOMValidation, parentContext: req.traceContext },
             () => PPOMUtil.validateRequest(req),
