@@ -30,6 +30,7 @@ import { renderNumber, renderFiat } from '../../../../../util/number';
 import { formatUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
   multiChainMarketData: ReturnType<typeof selectTokenMarketData>;
@@ -113,8 +114,13 @@ export const calculateEvmBalances = ({
       multiChainConversionRate || 0,
       currentCurrency || '',
     );
+    const erc20BalanceAtomicHex =
+      multiChainTokenBalances?.[token.address as Hex] ||
+      multiChainTokenBalances?.[getChecksumAddress(token.address as Hex)] ||
+      '0x0';
+
     const erc20Balance = formatUnits(
-      BigNumber.from(multiChainTokenBalances?.[token.address as Hex]),
+      BigNumber.from(erc20BalanceAtomicHex),
       token.decimals,
     );
 
