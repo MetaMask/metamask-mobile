@@ -18,6 +18,7 @@ import { isTest } from '../../../util/test/utils';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
+import { AnalyticsProvider, createClient } from '../../../core/Analytics/typewriter/segment';
 
 /**
  * Top level of the component hierarchy
@@ -25,6 +26,10 @@ import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
  */
 const Root = ({ foxCode }: RootProps) => {
   const [isLoading, setIsLoading] = useState(true);
+
+  const segmentClient = createClient({
+    writeKey: 'DUMMY_KEY'
+  });
 
   /**
    * Wait for store to be initialized in Detox tests
@@ -75,7 +80,9 @@ const Root = ({ foxCode }: RootProps) => {
                 <ToastContextWrapper>
                   <ErrorBoundary view="Root">
                     <ReducedMotionConfig mode={ReduceMotion.Never} />
-                    <App />
+                    <AnalyticsProvider client={segmentClient}>
+                      <App />
+                    </AnalyticsProvider>
                   </ErrorBoundary>
                 </ToastContextWrapper>
               </ControllersGate>
