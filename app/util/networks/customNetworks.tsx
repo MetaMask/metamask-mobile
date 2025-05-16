@@ -1,7 +1,9 @@
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { BtcScope, SolScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
