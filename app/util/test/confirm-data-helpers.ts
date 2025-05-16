@@ -559,17 +559,6 @@ const stakingConfirmationBaseState = {
           },
         },
       },
-      NetworkController: {
-        ...backgroundState.NetworkController,
-        networksMetadata: {
-          mainnet: {
-            EIPS: { 1559: true },
-          },
-          sepolia: {
-            EIPS: { 1559: true },
-          },
-        },
-      },
       TokensController: {
         allTokens: {
           '0x1': {
@@ -646,6 +635,30 @@ const stakingConfirmationBaseState = {
       } as unknown as TransactionControllerState,
       RemoteFeatureFlagController: {
         ...confirmationRedesignRemoteFlagsState,
+      },
+      NetworkController: {
+        ...backgroundState.NetworkController,
+        networksMetadata: {
+          mainnet: {
+            EIPS: { 1559: true },
+          },
+          sepolia: {
+            EIPS: { 1559: true },
+          },
+        },
+        networkConfigurationsByChainId: {
+          ...backgroundState.NetworkController.networkConfigurationsByChainId,
+          '0xaa36a7': {
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'sepolia',
+                url: 'https://sepolia.infura.io/v3/1234567890',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
       },
       GasFeeController: {
         gasFeeEstimatesByChainId: {
