@@ -24,7 +24,6 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../../Tokens/types';
-import { useNavigation } from '@react-navigation/native';
 import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
 import {
   PopularList,
@@ -78,7 +77,6 @@ export const NetworkBadgeSource = (chainId: Hex) => {
 
 const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
