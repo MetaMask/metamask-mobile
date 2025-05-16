@@ -31,12 +31,18 @@ import { getPermittedAccountsByHostname } from '../../../../core/Permissions';
 import { useAccounts } from '../../../hooks/useAccounts';
 import { useFavicon } from '../../../hooks/useFavicon';
 
+
+const thumbnailRenders = {
+
+}
+console.log('TabThumbnail render', thumbnailRenders[tab.id] ? thumbnailRenders[tab.id]++ : 0);
+
 /**
  * View that renders a tab thumbnail to be displayed in the in-app browser.
  * The thumbnail displays the favicon and title of the website, as well as
  * a close button to close the tab.
  */
-const TabThumbnail = ({
+const TabThumbnail = React.memo(({
   isActiveTab,
   tab,
   onClose,
@@ -60,7 +66,7 @@ const TabThumbnail = ({
   );
   const { networkName, networkImageSource } = useNetworkInfo(tabTitle);
   const faviconSource = useFavicon(tab.url);
-
+  console.log('TabThumbnail render', thumbnailRenders[tab.id] ? thumbnailRenders[tab.id]++ : 0);
   return (
     <Container style={styles.checkWrapper} elevation={8}>
       <TouchableOpacity
@@ -133,6 +139,11 @@ const TabThumbnail = ({
       </TouchableOpacity>
     </Container>
   );
-};
+}, (prevProps, nextProps) =>
+  prevProps.isActiveTab === nextProps.isActiveTab &&
+  prevProps.tab.id === nextProps.tab.id &&
+  prevProps.tab.url === nextProps.tab.url &&
+  prevProps.tab.image === nextProps.tab.image
+);
 
 export default TabThumbnail;
