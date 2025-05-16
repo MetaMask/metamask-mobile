@@ -392,7 +392,7 @@ class Onboarding extends PureComponent {
             oauthLoginSuccess: true,
           });
         } else {
-          this.props.navigation.push('ChoosePassword', {
+          this.props.navigation.navigate('ChoosePassword', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
           });
@@ -400,7 +400,7 @@ class Onboarding extends PureComponent {
         }
       } else if (!createWallet) {
         if (result.existingUser) {
-          this.props.navigation.push('Login', {
+          this.props.navigation.navigate('Rehydrate', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
           });

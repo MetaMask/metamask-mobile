@@ -280,10 +280,7 @@ const Login: React.FC = () => {
   };
 
   const handleUseOtherMethod = () => {
-    navigation.navigate('OnboardingRootNav', {
-      screen: 'OnboardingNav',
-      params: { screen: 'Onboarding' },
-    });
+    navigation.goBack();
     OAuthService.resetOauthState();
   };
 

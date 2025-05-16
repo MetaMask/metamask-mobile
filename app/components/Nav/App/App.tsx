@@ -248,6 +248,7 @@ const OnboardingNav = () => (
       component={AccountAlreadyExists}
     />
     <Stack.Screen name="AccountNotFound" component={AccountNotFound} />
+    <Stack.Screen name="Rehydrate" component={Login} />
   </Stack.Navigator>
 );
 
