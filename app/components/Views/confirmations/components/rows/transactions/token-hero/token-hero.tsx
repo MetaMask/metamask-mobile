@@ -7,6 +7,7 @@ import Text, {
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { selectTransactionState } from '../../../../../../../reducers/transaction';
+import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 import { useConfirmationContext } from '../../../../context/confirmation-context';
 import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
 import { useTokenAsset } from '../../../../hooks/useTokenAsset';
@@ -48,12 +49,18 @@ const AssetFiatConversion = ({
 }: {
   fiatDisplay?: string;
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
-}) =>
-  fiatDisplay ? (
+}) => {
+  const hideFiatForTestnet = useHideFiatForTestnet();
+  if (hideFiatForTestnet || !fiatDisplay) {
+    return null;
+  }
+
+  return (
     <Text style={styles.assetFiatConversionText} variant={TextVariant.BodyMD}>
       {fiatDisplay}
     </Text>
-  ) : null;
+  );
+};
 
 const TokenHero = ({
   amountWei,
