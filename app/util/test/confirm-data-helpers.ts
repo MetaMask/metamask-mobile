@@ -519,6 +519,16 @@ const stakingConfirmationBaseState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            '0x0000000000000000000000000000000000000000': {
+              address: '0x0000000000000000000000000000000000000000',
+            },
+          },
+          selectedAccount: '0x0000000000000000000000000000000000000000',
+        },
+      },
       ApprovalController: {
         pendingApprovals: {
           '699ca2f0-e459-11ef-b6f6-d182277cf5e1': {
@@ -714,16 +724,6 @@ export const stakingWithdrawalConfirmationState = merge(
         TransactionController: {
           transactions: [{ type: TransactionType.stakingUnstake }],
         } as unknown as TransactionControllerState,
-        AccountsController: {
-          internalAccounts: {
-            accounts: {
-              '0x0000000000000000000000000000000000000000': {
-                address: '0x0000000000000000000000000000000000000000',
-              },
-            },
-            selectedAccount: '0x0000000000000000000000000000000000000000',
-          },
-        },
       },
     },
   },
@@ -738,16 +738,6 @@ export const stakingClaimConfirmationState = merge(
         TransactionController: {
           transactions: [{ type: TransactionType.stakingClaim }],
         } as unknown as TransactionControllerState,
-        AccountsController: {
-          internalAccounts: {
-            accounts: {
-              '0x0000000000000000000000000000000000000000': {
-                address: '0x0000000000000000000000000000000000000000',
-              },
-            },
-            selectedAccount: '0x0000000000000000000000000000000000000000',
-          },
-        },
       },
     },
   },
