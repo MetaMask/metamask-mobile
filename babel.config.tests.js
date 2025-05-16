@@ -10,7 +10,10 @@ const newOverrides = [
   ...baseConfig.overrides,
   // Don't transform environment variables for files that depend on them.
   {
-    exclude: ['app/components/UI/Earn/selectors/featureFlags/index.ts'],
+    exclude: [
+      'app/components/UI/Earn/selectors/featureFlags/index.ts',
+      'app/core/Engine/controllers/remote-feature-flag-controller/utils.ts',
+    ],
     plugins: ['transform-inline-environment-variables'],
   },
 ];
