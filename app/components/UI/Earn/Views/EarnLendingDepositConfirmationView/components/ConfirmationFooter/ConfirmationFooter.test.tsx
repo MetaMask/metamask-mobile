@@ -1,8 +1,8 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import DepositFooter, {
-  DepositFooterProps,
-  LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS,
+import ConfirmationFooter, {
+  ConfirmationFooterProps,
+  CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
 } from './index';
 import { strings } from '../../../../../../../../locales/i18n';
 import { act, fireEvent } from '@testing-library/react-native';
@@ -10,8 +10,8 @@ import { act, fireEvent } from '@testing-library/react-native';
 const mockOnCancel = jest.fn();
 const mockOnConfirm = jest.fn();
 
-describe('Deposit Footer', () => {
-  const defaultProps: DepositFooterProps = {
+describe('ConfirmationFooter', () => {
+  const defaultProps: ConfirmationFooterProps = {
     onCancel: mockOnCancel,
     onConfirm: mockOnConfirm,
     buttonPrimary: {
@@ -22,17 +22,19 @@ describe('Deposit Footer', () => {
       disabled: false,
       text: strings('earn.cancel'),
     },
-    activeStep: 0,
-    steps: [
-      {
-        label: strings('earn.approve'),
-        isLoading: false,
-      },
-      {
-        label: strings('earn.deposit'),
-        isLoading: false,
-      },
-    ],
+    progressBar: {
+      activeStep: 0,
+      steps: [
+        {
+          label: strings('earn.approve'),
+          isLoading: false,
+        },
+        {
+          label: strings('earn.deposit'),
+          isLoading: false,
+        },
+      ],
+    },
   };
 
   beforeEach(() => {
@@ -41,7 +43,7 @@ describe('Deposit Footer', () => {
 
   it('renders correctly', () => {
     const { toJSON, getByText } = renderWithProvider(
-      <DepositFooter {...defaultProps} />,
+      <ConfirmationFooter {...defaultProps} />,
     );
 
     expect(toJSON()).toMatchSnapshot();
@@ -53,11 +55,11 @@ describe('Deposit Footer', () => {
 
   it('should onCancel prop when cancel button pressed', async () => {
     const { getByTestId } = renderWithProvider(
-      <DepositFooter {...defaultProps} />,
+      <ConfirmationFooter {...defaultProps} />,
     );
 
     const cancelButton = getByTestId(
-      LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
     );
 
     await act(async () => {
@@ -70,11 +72,11 @@ describe('Deposit Footer', () => {
 
   it('should onConfirm prop when confirm button pressed', async () => {
     const { getByTestId } = renderWithProvider(
-      <DepositFooter {...defaultProps} />,
+      <ConfirmationFooter {...defaultProps} />,
     );
 
     const confirmButton = getByTestId(
-      LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
     );
 
     await act(async () => {

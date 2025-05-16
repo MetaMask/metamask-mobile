@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { Linking, View } from 'react-native';
 import { getStakingNavbar } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -8,13 +8,13 @@ import { useStyles } from '../../../../hooks/useStyles';
 import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
 import { TokenI } from '../../../Tokens/types';
 import InfoSection from '../../../../Views/confirmations/components/UI/info-row/info-section';
+import InfoSectionAccordion from '../../../../Views/confirmations/components/UI/info-section-accordion';
 import KeyValueRow, {
   TooltipSizes,
 } from '../../../../../component-library/components-temp/KeyValueRow';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';
 import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
@@ -28,6 +28,19 @@ import Badge, {
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
+import AppConstants from '../../../../../core/AppConstants';
+import Button, {
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
+import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
+import { generateLendingWithdrawalTransaction } from '../../utils/tempLending';
+import useLendingTokenPair from '../../hooks/useLendingTokenPair';
+import Routes from '../../../../../constants/navigation/Routes';
+import Toast, {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI;
@@ -49,8 +62,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const navigation = useNavigation();
 
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-
   const { params } = useRoute<EarnWithdrawalConfirmationViewProps['route']>();
 
   const {
@@ -61,10 +72,33 @@ const EarnLendingWithdrawalConfirmationView = () => {
     lendingProtocol,
   } = params;
 
+  const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
+
+  // Get lending and receipt token using either lending or receipt token to find pair.
+  const { lendingToken } = useLendingTokenPair(token);
+
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
+
+  const { toastRef } = useContext(ToastContext);
+
+  const showTransactionSubmissionToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Check,
+      iconColor: theme.colors.success.default,
+      backgroundColor: theme.colors.background.default,
+      labelOptions: [
+        {
+          label: `${strings('earn.transaction_submitted')}`,
+          isBold: false,
+        },
+      ],
+      hasNoTimeout: false,
+    });
+  }, [theme.colors.background.default, theme.colors.success.default, toastRef]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -86,13 +120,65 @@ const EarnLendingWithdrawalConfirmationView = () => {
   )
     return null;
 
-  const earnToken = getTokenWithBalanceAndApr(token);
-
   // Needed to get token's network name
   const networkConfig =
     Engine.context.NetworkController.getNetworkConfigurationByChainId(
       toHex(token.chainId),
     );
+
+  const handleCancel = () => {
+    navigation.goBack();
+  };
+
+  const handleConfirm = async () => {
+    if (
+      !lendingToken?.address ||
+      !amountTokenMinimalUnit ||
+      !lendingToken?.chainId
+    )
+      return;
+
+    try {
+      setIsConfirmButtonDisabled(true);
+
+      const { txParams, txOptions } = generateLendingWithdrawalTransaction(
+        lendingToken.address,
+        amountTokenMinimalUnit.toString(),
+        activeAccount.address,
+        lendingToken.chainId,
+      );
+
+      const txRes = await Engine.context.TransactionController.addTransaction(
+        txParams,
+        txOptions,
+      );
+
+      const transactionId = txRes.transactionMeta.id;
+
+      // Transaction Event Listeners
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionRejected',
+        () => {
+          setIsConfirmButtonDisabled(false);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionSubmitted',
+        () => {
+          showTransactionSubmissionToast();
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+    } catch (e) {
+      setIsConfirmButtonDisabled(false);
+    }
+  };
+
+  const handleNavigateToNetworkFeeFaq = () =>
+    Linking.openURL(AppConstants.URLS.WHY_TRANSACTION_TAKE_TIME);
 
   return (
     <View style={styles.pageContainer}>
@@ -206,30 +292,94 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   },
                   tooltip: {
                     title: strings('earn.network_fee'),
-                    content: strings('earn.tooltip_content.protocol'),
+                    content: (
+                      <View style={styles.networkFeeTooltipContent}>
+                        <Text>
+                          {strings('earn.tooltip_content.network_fee.part_one')}
+                        </Text>
+                        <Text>
+                          {strings('earn.tooltip_content.network_fee.part_two')}
+                        </Text>
+                        <Button
+                          variant={ButtonVariants.Link}
+                          label={strings(
+                            'earn.tooltip_content.network_fee.part_three',
+                          )}
+                          onPress={handleNavigateToNetworkFeeFaq}
+                        />
+                      </View>
+                    ),
                     size: TooltipSizes.Sm,
                   },
                 }}
                 value={{
                   label: (
-                    <View style={styles.networkRowRight}>
-                      <Badge
-                        variant={BadgeVariant.Network}
-                        size={AvatarSize.Xs}
-                        isScaled={false}
-                        imageSource={getNetworkImageSource({
-                          chainId: token?.chainId,
-                        })}
-                      />
-                      <Text>{networkConfig?.name}</Text>
+                    <View style={styles.networkFeeRight}>
+                      <Text style={styles.foxIcon}>🦊</Text>
+                      <Text color={theme.colors.text.alternative}>$3.22</Text>
+                      <Text variant={TextVariant.BodyMDMedium}>0.001 ETH</Text>
                     </View>
                   ),
                 }}
               />
             </View>
           </InfoSection>
+          <InfoSectionAccordion header={strings('stake.advanced_details')}>
+            <View style={styles.advancedDetailsContainer}>
+              <KeyValueRow
+                field={{
+                  label: {
+                    text: strings('earn.health_factor'),
+                    variant: TextVariant.BodyMDMedium,
+                  },
+                }}
+                value={{
+                  label: (
+                    <View style={styles.healthFactorRight}>
+                      <Text
+                        variant={TextVariant.BodyMDMedium}
+                        color={theme.colors.success.default}
+                      >
+                        13.7
+                      </Text>
+                      <Text>→</Text>
+                      <Text
+                        variant={TextVariant.BodyMDMedium}
+                        color={theme.colors.success.default}
+                      >
+                        7.0
+                      </Text>
+                    </View>
+                  ),
+                }}
+              />
+              <KeyValueRow
+                field={{
+                  label: {
+                    text: strings('earn.liquidation_risk'),
+                    variant: TextVariant.BodyMDMedium,
+                  },
+                }}
+                value={{
+                  label: (
+                    <View>
+                      <Text>Low</Text>
+                    </View>
+                  ),
+                }}
+              />
+            </View>
+          </InfoSectionAccordion>
         </View>
       </View>
+      <ConfirmationFooter
+        onCancel={handleCancel}
+        onConfirm={handleConfirm}
+        buttonPrimary={{
+          disabled: isConfirmButtonDisabled,
+        }}
+      />
+      <Toast ref={toastRef} />
     </View>
   );
 };

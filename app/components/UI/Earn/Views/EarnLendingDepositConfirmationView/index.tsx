@@ -15,7 +15,7 @@ import { isEmpty } from 'lodash';
 import { strings } from '../../../../../../locales/i18n';
 import DepositInfoSection from './components/DepositInfoSection';
 import DepositReceiveSection from './components/DepositReceiveSection';
-import DepositFooter from './components/DepositFooter';
+import ConfirmationFooter from './components/ConfirmationFooter';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import {
@@ -354,18 +354,20 @@ const EarnLendingDepositConfirmationView = () => {
           }
         />
       </View>
-      <DepositFooter
+      <ConfirmationFooter
         onCancel={handleCancel}
         onConfirm={handleConfirm}
         buttonPrimary={{
           disabled: isConfirmButtonDisabled,
           text: confirmButtonText,
         }}
-        activeStep={activeStep}
-        steps={[
-          { label: strings('earn.approve'), isLoading: isApprovalLoading },
-          { label: strings('earn.deposit'), isLoading: isDepositLoading },
-        ]}
+        progressBar={{
+          activeStep,
+          steps: [
+            { label: strings('earn.approve'), isLoading: isApprovalLoading },
+            { label: strings('earn.deposit'), isLoading: isDepositLoading },
+          ],
+        }}
       />
       <Toast ref={toastRef} />
     </View>

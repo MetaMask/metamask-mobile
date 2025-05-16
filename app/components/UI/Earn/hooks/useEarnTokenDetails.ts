@@ -46,6 +46,7 @@ export interface EarnTokenDetails extends TokenI {
   balanceFiatNumber: number;
   estimatedAnnualRewardsFormatted: string;
   experience: string;
+  tokenUsdExchangeRate: number;
 }
 
 export const useEarnTokenDetails = () => {
@@ -58,7 +59,6 @@ export const useEarnTokenDetails = () => {
   );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentCurrency = useSelector(selectCurrentCurrency);
-
   const isStablecoinLendingFeatureEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
@@ -78,14 +78,31 @@ export const useEarnTokenDetails = () => {
             ]?.[token.address as Hex],
           );
 
+      const tokenExchangeRates = multiChainMarketData?.[tokenChainId] || {};
+
+      const tokenToEthExchangeRate =
+        tokenExchangeRates[token?.address as Hex]?.price ?? 0;
+
+      const ethToUsdConversionRate =
+        multiChainCurrencyRates?.[nativeCurrency]?.usdConversionRate ?? 0;
+
+      // Token -> USD exchange rate needed for AAVE v3 risk-aware withdrawal calculations.
+      const tokenUsdExchangeRate = new BigNumber(ethToUsdConversionRate)
+        .multipliedBy(tokenToEthExchangeRate)
+        .dividedBy(1)
+        .toNumber();
+
+      const ethToUserSelectedFiatConversionRate =
+        multiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0;
+
       const { balanceValueFormatted, balanceFiat, balanceFiatCalculation } =
         deriveBalanceFromAssetMarketDetails(
           token,
-          multiChainMarketData?.[tokenChainId] || {},
+          tokenExchangeRates,
           multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
             tokenChainId
           ] || {},
-          multiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0,
+          ethToUserSelectedFiatConversionRate,
           currentCurrency || '',
         );
 
@@ -171,6 +188,7 @@ export const useEarnTokenDetails = () => {
         // i.e. $2.12 or £0.00
         estimatedAnnualRewardsFormatted,
         experience: getTokenEarnExperience(),
+        tokenUsdExchangeRate,
       };
     },
     [
