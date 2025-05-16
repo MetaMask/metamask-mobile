@@ -1,21 +1,20 @@
 import { useCallback } from 'react';
 import StorageWrapper from '../../../store/storage-wrapper';
 import Logger from '../../../util/Logger';
-import { EXISTING_USER, USE_TERMS } from '../../../constants/storage';
+import { EXISTING_USER } from '../../../constants/storage';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { resetVaultBackup } from '../../../core/BackupVault/backupVault';
+import { clearAllVaultBackups } from '../../../core/BackupVault';
 import { useMetrics } from '../useMetrics';
 
 const useDeleteWallet = () => {
   const metrics = useMetrics();
   const resetWalletState = useCallback(async () => {
     try {
-      await StorageWrapper.removeItem(USE_TERMS);
       await Authentication.newWalletAndKeychain(`${Date.now()}`, {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
-      await resetVaultBackup();
+      await clearAllVaultBackups();
       await Authentication.lockApp();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -75,7 +75,7 @@ const createStyles = (colors: ThemeColors) =>
       marginBottom: 28,
       justifyContent: 'center',
       textAlign: 'center',
-      paddingHorizontal: 60,
+      paddingHorizontal: Device.isAndroid() ? 40 : 60,
       fontFamily: 'MMSans-Regular',
     },
     subtitle: {

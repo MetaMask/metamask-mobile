@@ -76,6 +76,7 @@ import {
   PASSCODE_NOT_SET_ERROR,
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
+  WRONG_PASSWORD_ERROR_ANDROID_2,
 } from './constants';
 import {
   ParamListBase,
@@ -187,10 +188,6 @@ const Login: React.FC = () => {
   }, []);
 
   const handleVaultCorruption = async () => {
-    // This is so we can log vault corruption error in sentry
-    const vaultCorruptionError = new Error('Vault Corruption Error');
-    Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
-
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
     if (!passwordRequirementsMet(password)) {
@@ -288,17 +285,15 @@ const Login: React.FC = () => {
     } catch (loginErr: unknown) {
       const loginError = loginErr as Error;
       const loginErrorMessage = loginError.toString();
-
       if (
-        toLowerCaseEquals(loginError, WRONG_PASSWORD_ERROR) ||
-        toLowerCaseEquals(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
+        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
+        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
+        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
         loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET)
       ) {
         setLoading(false);
         setError(strings('login.invalid_password'));
-
         trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
-
         return;
       } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
         Alert.alert(

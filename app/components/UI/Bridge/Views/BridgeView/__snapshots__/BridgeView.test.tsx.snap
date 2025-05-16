@@ -728,6 +728,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="Arrow2Down"
                                         style={
@@ -824,7 +825,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "alignItems": "center",
                                             "alignSelf": "flex-start",
                                             "backgroundColor": "#4459ff",
-                                            "borderRadius": 20,
+                                            "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 40,
                                             "justifyContent": "center",
@@ -909,6 +910,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
+                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]
@@ -1674,6 +1676,7 @@ exports[`BridgeView renders 1`] = `
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="Arrow2Down"
                                         style={
@@ -1770,7 +1773,7 @@ exports[`BridgeView renders 1`] = `
                                             "alignItems": "center",
                                             "alignSelf": "flex-start",
                                             "backgroundColor": "#4459ff",
-                                            "borderRadius": 20,
+                                            "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 40,
                                             "justifyContent": "center",
@@ -1855,6 +1858,7 @@ exports[`BridgeView renders 1`] = `
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
+                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]
