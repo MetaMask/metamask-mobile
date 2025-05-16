@@ -6,7 +6,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, isInternalAccountInPermittedAccountIds, setChainIdsInCaip25CaveatValue, setNonSCACaipAccountIdsInCaip25CaveatValue} from '@metamask/chain-agnostic-permission';
 import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
-import { getNetworkConfigurationsByCaipChainId } from '../Multichain/networks';
+import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
