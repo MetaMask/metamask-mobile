@@ -128,7 +128,7 @@ class TransactionDetails extends PureComponent {
     /**
      * Chain ID string
      */
-       chainId: PropTypes.string,
+    chainId: PropTypes.string,
     /**
      * Object corresponding to a transaction, containing transaction object, networkId and transaction hash string
      */
