@@ -11,6 +11,8 @@ import {
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
+import { AGREED, METRICS_OPT_IN } from '../constants/storage';
+import StorageWrapper from '../store/storage-wrapper';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
@@ -89,6 +91,9 @@ export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 const tracesByKey: Map<string, PendingTrace> = new Map();
 
+let consentCache: boolean | null = null;
+const preConsentCallBuffer: PreConsentCallBuffer[] = [];
+
 export interface PendingTrace {
   end: (timestamp?: number) => void;
   request: TraceRequest;
@@ -164,6 +169,11 @@ export interface EndTraceRequest {
   timestamp?: number;
 }
 
+interface PreConsentCallBuffer<T = TraceRequest | EndTraceRequest> {
+  type: 'start' | 'end';
+  request: T;
+}
+
 export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
 
 export function trace(request: TraceRequest): TraceContext;
@@ -182,6 +192,22 @@ export function trace<T>(
   request: TraceRequest,
   fn?: TraceCallback<T>,
 ): T | TraceContext {
+  // If consent is not cached or not given, buffer the trace start
+  if (consentCache !== true) {
+    if (consentCache === null) {
+      updateIsConsentGivenForSentry();
+    }
+    preConsentCallBuffer.push({
+      type: 'start',
+      request: {
+        ...request,
+        // Use `Date.now()` as `performance.timeOrigin` is only valid for measuring durations within
+        // the same session; it won't produce valid event times for Sentry if buffered and flushed later
+        startTime: request.startTime ?? Date.now(),
+      },
+    });
+  }
+
   if (!fn) {
     return startTrace(request);
   }
@@ -195,7 +221,23 @@ export function trace<T>(
  *
  * @param request - The data necessary to identify and end the pending trace.
  */
-export function endTrace(request: EndTraceRequest) {
+export function endTrace(request: EndTraceRequest): void {
+  // If consent is not cached or not given, buffer the trace end
+  if (consentCache !== true) {
+    if (consentCache === null) {
+      updateIsConsentGivenForSentry();
+    }
+    preConsentCallBuffer.push({
+      type: 'end',
+      request: {
+        ...request,
+        // Use `Date.now()` as `performance.timeOrigin` is only valid for measuring durations within
+        // the same session; it won't produce valid event times for Sentry if buffered and flushed later
+        timestamp: request.timestamp ?? Date.now(),
+      },
+    });
+  }
+
   const { name, timestamp } = request;
   const id = getTraceId(request);
   const key = getTraceKey(request);
@@ -216,6 +258,32 @@ export function endTrace(request: EndTraceRequest) {
   const duration = endTime - startTime;
 
   log('Finished trace', name, id, duration, { request: pendingRequest });
+}
+
+export async function flushBufferedTraces(): Promise<void> {
+  const canFlush = await updateIsConsentGivenForSentry();
+  if (!canFlush) {
+    log('Consent not given, cannot flush buffered traces.');
+    preConsentCallBuffer.length = 0;
+    return;
+  }
+
+  log('Flushing buffered traces. Count:', preConsentCallBuffer.length);
+  const bufferToProcess = [...preConsentCallBuffer];
+  preConsentCallBuffer.length = 0;
+
+  for (const call of bufferToProcess) {
+    if (call.type === 'start') {
+      trace(call.request);
+    } else if (call.type === 'end') {
+      endTrace(call.request);
+    }
+  }
+  log('Finished flushing buffered traces');
+}
+
+export async function discardBufferedTraces() {
+  preConsentCallBuffer.length = 0;
 }
 
 function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
@@ -307,11 +375,11 @@ function startSpan<T>(
   }) as T;
 }
 
-function getTraceId(request: TraceRequest) {
+function getTraceId(request: TraceRequest | EndTraceRequest) {
   return request.id ?? ID_DEFAULT;
 }
 
-function getTraceKey(request: TraceRequest) {
+function getTraceKey(request: TraceRequest | EndTraceRequest) {
   const { name } = request;
   const id = getTraceId(request);
 
@@ -383,4 +451,10 @@ function tryCatchMaybePromise<T>(
   }
 
   return undefined;
+}
+
+async function updateIsConsentGivenForSentry(): Promise<boolean> {
+  const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
+  consentCache = metricsOptIn === AGREED;
+  return consentCache;
 }
