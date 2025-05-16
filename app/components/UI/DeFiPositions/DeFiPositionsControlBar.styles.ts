@@ -28,6 +28,9 @@ const styleSheet = (params: { theme: Theme }) => {
       marginRight: 5,
       maxWidth: '60%',
     },
+    controlButtonText: {
+      color: colors.text.default,
+    },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,

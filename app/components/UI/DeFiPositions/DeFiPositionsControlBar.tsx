@@ -42,7 +42,7 @@ const DeFiPositionsControlBar: React.FC = () => {
     <View style={styles.actionBarWrapper}>
       <ButtonBase
         label={
-          <Text numberOfLines={1}>
+          <Text style={styles.controlButtonText} numberOfLines={1}>
             {isAllNetworks && isPopularNetwork
               ? strings('wallet.popular_networks')
               : networkName ?? strings('wallet.current_network')}
