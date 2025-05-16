@@ -19,9 +19,14 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   useClearConfirmationOnBackSwipe();
 
   const { trackPageViewedEvent, setConfirmationMetric } =
-    useConfirmationMetricEvents();
+  useConfirmationMetricEvents();
   const { amountDisplay } = useTokenAmount({ amountWei });
+
   useEffect(() => {
+    if (amountDisplay === undefined) {
+      return;
+    }
+
     setConfirmationMetric({
       properties: {
         selected_provider: EVENT_PROVIDERS.CONSENSYS,
