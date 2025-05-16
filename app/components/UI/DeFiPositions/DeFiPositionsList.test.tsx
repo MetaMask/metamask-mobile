@@ -192,6 +192,8 @@ describe('DeFiPositionsList', () => {
     expect(await findByTestId(DEFI_POSITIONS_CONTAINER)).toBeOnTheScreen();
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(queryByText('Protocol 2')).not.toBeOnTheScreen();
+    expect(await findByText('$100.00')).toBeOnTheScreen();
+    expect(queryByText('$10.00')).not.toBeOnTheScreen();
   });
 
   it('renders protocol name and aggregated value for all chains when all networks is selected', async () => {
@@ -222,6 +224,8 @@ describe('DeFiPositionsList', () => {
     expect(await findByTestId(DEFI_POSITIONS_CONTAINER)).toBeOnTheScreen();
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(await findByText('Protocol 2')).toBeOnTheScreen();
+    expect(await findByText('$100.00')).toBeOnTheScreen();
+    expect(await findByText('$10.00')).toBeOnTheScreen();
   });
 
   it('renders the loading positions message when positions are not yet available', async () => {
@@ -246,7 +250,7 @@ describe('DeFiPositionsList', () => {
     expect(await findByText('Loading DeFi positions...')).toBeOnTheScreen();
   });
 
-  it('renders the error message when the positions are null for that address', async () => {
+  it('renders the error message when the positions fetching failed for that address', async () => {
     const { findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
