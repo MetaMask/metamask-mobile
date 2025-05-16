@@ -117,14 +117,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         asset={asset}
         balance={mainBalance}
         secondaryBalance={secondaryBalance}
-        onPress={() =>
-          !asset.isETH &&
-          !asset.isNative &&
-          navigation.navigate('AssetDetails', {
-            chainId: asset.chainId,
-            address: asset.address,
-          })
-        }
+        disabled
       >
         <BadgeWrapper
           style={styles.badgeWrapper}
