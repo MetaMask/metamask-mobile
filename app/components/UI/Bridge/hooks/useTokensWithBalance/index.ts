@@ -27,6 +27,8 @@ import { selectAccountTokensAcrossChainsForAddress } from '../../../../../select
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
 import { renderNumber, renderFiat } from '../../../../../util/number';
+import { formatUnits } from 'ethers/lib/utils';
+import { BigNumber } from 'ethers';
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
   multiChainMarketData: ReturnType<typeof selectTokenMarketData>;
@@ -57,7 +59,7 @@ interface CalculateFiatBalancesParams {
  * // balance: A truncated non-atomic balance, e.g. 1.23456
  * // balanceFiat: A formatted fiat value, e.g. "$100.12345", "100.12345 cad"
  */
-export const calculateBalances = ({
+export const calculateEvmBalances = ({
   assets,
   multiChainMarketData,
   multiChainTokenBalance,
@@ -80,14 +82,17 @@ export const calculateBalances = ({
     const multiChainConversionRate =
       multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
 
+    // Native EVM token
     if (token.isETH || token.isNative) {
       return {
         tokenFiatAmount: parseFloat(token.balance) * multiChainConversionRate,
+        // Don't use TokenI.balance as it could be "< 0.00001" for small amounts
         balance: token.balance,
         balanceFiat: token.balanceFiat,
       };
     }
 
+    // ERC20 tokens
     const res = deriveBalanceFromAssetMarketDetails(
       token,
       multiChainExchangeRates || {},
@@ -95,9 +100,15 @@ export const calculateBalances = ({
       multiChainConversionRate || 0,
       currentCurrency || '',
     );
+    const erc20Balance = formatUnits(
+      BigNumber.from(multiChainTokenBalances?.[token.address as Hex]),
+      token.decimals,
+    );
+
     return {
       tokenFiatAmount: res.balanceFiatCalculation ?? 0, // A sortable fiat value in the user's currency, e.g. 100.12345
-      balance: res.balance ?? '0', // A truncated non-atomic balance, e.g. 1.23456
+      // Don't use res.balance as it could be "< 0.00001" for small amounts
+      balance: erc20Balance ?? '0', // A non-atomic balance, e.g. 1.23456, non-truncated
       balanceFiat: res.balanceFiat, // A formatted fiat value, e.g. "$100.12345", "100.12345 cad"
     };
   });
@@ -132,14 +143,16 @@ export const useTokensWithBalance: ({
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
 
   // All EVM tokens across chains and their balances
-  // Includes native and non-native tokens
+  // Includes native and non-native ERC20 tokens
   const evmAccountTokensAcrossChains = useSelector((state: RootState) =>
     selectAccountTokensAcrossChainsForAddress(
       state,
       lastSelectedEvmAccount?.address,
     ),
   );
+  // EVM non-native token balances in atomic hex amount
   const evmTokenBalances = useSelector(selectTokensBalances);
+  console.log('evmTokenBalances', evmTokenBalances);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Already contains balance and fiat values for native SOL and SPL tokens
@@ -166,7 +179,7 @@ export const useTokensWithBalance: ({
     ).filter((token) => chainIds.includes(token.chainId));
     ///: END:ONLY_INCLUDE_IF
 
-    const balances = calculateBalances({
+    const evmBalances = calculateEvmBalances({
       assets: allEvmAccountTokens,
       multiChainMarketData,
       multiChainTokenBalance: evmTokenBalances,
@@ -186,16 +199,16 @@ export const useTokensWithBalance: ({
     const properTokens: BridgeToken[] = allTokens
       .filter((token) => Boolean(token.chainId)) // Ensure token has a chainId
       .map((token, i) => {
-        const evmBalance = balances?.[i]?.balance;
+        const evmBalance = evmBalances?.[i]?.balance;
         const nonEvmBalance = renderNumber(token.balance ?? '0');
 
-        const evmBalanceFiat = balances?.[i]?.balanceFiat;
+        const evmBalanceFiat = evmBalances?.[i]?.balanceFiat;
         const nonEvmBalanceFiat = renderFiat(
           Number(token.balanceFiat ?? 0),
           currentCurrency,
         );
 
-        const evmTokenFiatAmount = balances?.[i]?.tokenFiatAmount;
+        const evmTokenFiatAmount = evmBalances?.[i]?.tokenFiatAmount;
         const nonEvmTokenFiatAmount = Number(token.balanceFiat);
 
         return {
