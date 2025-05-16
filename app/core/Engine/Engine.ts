@@ -192,6 +192,7 @@ import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
+import { MultichainRouter } from '@metamask/snaps-controllers';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
@@ -251,6 +252,7 @@ export class Engine {
   keyringController: KeyringController;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
+  multichainRouter: MultichainRouter;
 
   /**
    * Creates a CoreController instance
@@ -748,6 +750,18 @@ export class Engine {
       }),
       state: initialState.PermissionController,
       caveatSpecifications: getCaveatSpecifications({
+        //@ts-expect-error typescript FIXME: [ffmcgee]
+        isNonEvmScopeSupported: this.controllerMessenger.call.bind(
+          this.controllerMessenger,
+          //@ts-expect-error typescript FIXME: [ffmcgee]
+          'MultichainRouter:isSupportedScope',
+        ),
+        //@ts-expect-error typescript FIXME: [ffmcgee]
+        getNonEvmAccountAddresses: this.controllerMessenger.call.bind(
+          this.controllerMessenger,
+          //@ts-expect-error typescript FIXME: [ffmcgee]
+          'MultichainRouter:getSupportedAccounts',
+        ),
         listAccounts: (...args) =>
           this.accountsController.listAccounts(...args),
         findNetworkClientIdByChainId:
@@ -1495,6 +1509,34 @@ export class Engine {
       },
     );
     ///: END:ONLY_INCLUDE_IF
+
+    // @TODO(snaps): This fixes an issue where `withKeyring` would lock the `KeyringController` mutex.
+    // That meant that if a snap requested a keyring operation (like requesting entropy) while the `KeyringController` was locked,
+    // it would cause a deadlock.
+    // This is a temporary fix until we can refactor how we handle requests to the Snaps Keyring.
+    const withSnapKeyring = async (operation: ({ keyring }: { keyring: unknown }) => void) => {
+      const keyring = await this.getSnapKeyring();
+
+      return operation({ keyring });
+    };
+
+    const multichainRouterMessenger = this.controllerMessenger.getRestricted({
+      name: 'MultichainRouter',
+      allowedActions: [
+        `SnapController:getAll`,
+        `SnapController:handleRequest`,
+        `${permissionController.name}:getPermissions`,
+        `AccountsController:listMultichainAccounts`,
+      ],
+      allowedEvents: [],
+    });
+
+    this.multichainRouter = new MultichainRouter({
+      //@ts-expect-error FIXME [ffmcgee] types
+      messenger: multichainRouterMessenger,
+      //@ts-expect-error FIXME [ffmcgee] types
+      withSnapKeyring,
+    });
 
     this.configureControllersOnNetworkChange();
     this.startPolling();
