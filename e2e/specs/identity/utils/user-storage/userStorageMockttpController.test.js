@@ -1,6 +1,7 @@
 import { getLocal } from 'mockttp';
 import { UserStorageMockttpController } from './userStorageMockttpController';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { MOCK_SRP_E2E_IDENTIFIER_BASE_KEY } from '../mocks';
 
 describe('UserStorageMockttpController', () => {
   let mockServer;
@@ -23,6 +24,9 @@ describe('UserStorageMockttpController', () => {
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
           url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
         },
       );
 
@@ -36,11 +40,13 @@ describe('UserStorageMockttpController', () => {
           HashedKey:
             '7f8a7963423985c50f75f6ad42a6cf4e7eac43a6c55e3c6fcd49d73f01c1471b',
           Data: 'data1',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
         {
           HashedKey:
             'c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468',
           Data: 'data2',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
       ];
 
@@ -56,6 +62,9 @@ describe('UserStorageMockttpController', () => {
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
           url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
         },
       );
 
@@ -69,11 +78,13 @@ describe('UserStorageMockttpController', () => {
           HashedKey:
             '7f8a7963423985c50f75f6ad42a6cf4e7eac43a6c55e3c6fcd49d73f01c1471b',
           Data: 'data1',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
         {
           HashedKey:
             'c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468',
           Data: 'data2',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
       ];
 
@@ -89,6 +100,9 @@ describe('UserStorageMockttpController', () => {
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
           url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
         },
       );
 
@@ -102,11 +116,13 @@ describe('UserStorageMockttpController', () => {
           HashedKey:
             '7f8a7963423985c50f75f6ad42a6cf4e7eac43a6c55e3c6fcd49d73f01c1471b',
           Data: 'data1',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
         {
           HashedKey:
             'c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468',
           Data: 'data2',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
       ];
 
@@ -122,6 +138,9 @@ describe('UserStorageMockttpController', () => {
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
           url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}/7f8a7963423985c50f75f6ad42a6cf4e7eac43a6c55e3c6fcd49d73f01c1471b`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
         },
       );
 
@@ -135,17 +154,20 @@ describe('UserStorageMockttpController', () => {
           HashedKey:
             '7f8a7963423985c50f75f6ad42a6cf4e7eac43a6c55e3c6fcd49d73f01c1471b',
           Data: 'data1',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
         {
           HashedKey:
             'c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468',
           Data: 'data2',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
       ];
       const mockedAddedData = {
         HashedKey:
           '6afbe024087495b4e0d56c4bdfc981c84eba44a7c284d4f455b5db4fcabc2173',
         Data: 'data3',
+        SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
       };
 
       await controller.setupPath(
@@ -160,6 +182,9 @@ describe('UserStorageMockttpController', () => {
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
           url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}/6afbe024087495b4e0d56c4bdfc981c84eba44a7c284d4f455b5db4fcabc2173`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
           body: {
             getJson: async () => ({
               data: mockedAddedData.Data,
@@ -174,6 +199,9 @@ describe('UserStorageMockttpController', () => {
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
           url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
         },
       );
 
@@ -187,17 +215,20 @@ describe('UserStorageMockttpController', () => {
           HashedKey:
             '7f8a7963423985c50f75f6ad42a6cf4e7eac43a6c55e3c6fcd49d73f01c1471b',
           Data: 'data1',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
         {
           HashedKey:
             'c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468',
           Data: 'data2',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
       ];
       const mockedUpdatedData = {
         HashedKey:
           'c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468',
         Data: 'data3',
+        SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
       };
 
       await controller.setupPath(
@@ -212,6 +243,9 @@ describe('UserStorageMockttpController', () => {
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
           url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}/c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
           body: {
             getJson: async () => ({
               data: mockedUpdatedData.Data,
@@ -226,6 +260,9 @@ describe('UserStorageMockttpController', () => {
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
           url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
         },
       );
 
@@ -239,11 +276,13 @@ describe('UserStorageMockttpController', () => {
           HashedKey:
             '7f8a7963423985c50f75f6ad42a6cf4e7eac43a6c55e3c6fcd49d73f01c1471b',
           Data: 'data1',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
         {
           HashedKey:
             'c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468',
           Data: 'data2',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
       ];
       const mockedUpdatedData = [
@@ -251,11 +290,13 @@ describe('UserStorageMockttpController', () => {
           HashedKey:
             '7f8a7963423985c50f75f6ad42a6cf4e7eac43a6c55e3c6fcd49d73f01c1471b',
           Data: 'data3',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
         {
           HashedKey:
             'c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468',
           Data: 'data4',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
       ];
 
@@ -276,6 +317,9 @@ describe('UserStorageMockttpController', () => {
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
           url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
           body: {
             getJson: async () => ({
               data: putData,
@@ -290,6 +334,9 @@ describe('UserStorageMockttpController', () => {
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
           url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
         },
       );
 
@@ -303,11 +350,13 @@ describe('UserStorageMockttpController', () => {
           HashedKey:
             '7f8a7963423985c50f75f6ad42a6cf4e7eac43a6c55e3c6fcd49d73f01c1471b',
           Data: 'data1',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
         {
           HashedKey:
             'c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468',
           Data: 'data2',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
       ];
 
@@ -323,6 +372,9 @@ describe('UserStorageMockttpController', () => {
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
           url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}/c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
         },
       );
 
@@ -332,6 +384,9 @@ describe('UserStorageMockttpController', () => {
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
           url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
         },
       );
 
@@ -345,16 +400,19 @@ describe('UserStorageMockttpController', () => {
           HashedKey:
             '7f8a7963423985c50f75f6ad42a6cf4e7eac43a6c55e3c6fcd49d73f01c1471b',
           Data: 'data1',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
         {
           HashedKey:
             'c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468',
           Data: 'data2',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
         {
           HashedKey:
             'x236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468',
           Data: 'data3',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
       ];
 
@@ -365,7 +423,10 @@ describe('UserStorageMockttpController', () => {
       const deleteRequest = await controller.onPut(
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
-          path: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
           body: {
             getJson: async () => ({
               batch_delete: [mockedData[1].HashedKey, mockedData[2].HashedKey],
@@ -379,7 +440,10 @@ describe('UserStorageMockttpController', () => {
       const getRequest = await controller.onGet(
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
-          path: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
         },
       );
 
@@ -393,11 +457,13 @@ describe('UserStorageMockttpController', () => {
           HashedKey:
             '7f8a7963423985c50f75f6ad42a6cf4e7eac43a6c55e3c6fcd49d73f01c1471b',
           Data: 'data1',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
         {
           HashedKey:
             'c236b92ea7d513b2beda062cb546986961dfa7ca4334a2913f7837e43d050468',
           Data: 'data2',
+          SrpIdentifier: `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
         },
       ];
 
@@ -412,7 +478,10 @@ describe('UserStorageMockttpController', () => {
       const deleteRequest = await controller.onDelete(
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
-          path: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
         },
       );
 
@@ -421,7 +490,10 @@ describe('UserStorageMockttpController', () => {
       const getRequest = await controller.onGet(
         USER_STORAGE_FEATURE_NAMES.accounts,
         {
-          path: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          url: `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+          headers: {
+            authorization: `Bearer ${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`,
+          },
         },
       );
 

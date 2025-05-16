@@ -206,7 +206,7 @@
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/ppom-validator": "0.36.0",
     "@metamask/preferences-controller": "^17.0.0",
-    "@metamask/profile-sync-controller": "npm:@metamask-previews/profile-sync-controller@14.0.0-preview-6a340ce8",
+    "@metamask/profile-sync-controller": "npm:@metamask-previews/profile-sync-controller@15.0.0-preview-0c874fe4",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/react-native-payments": "^2.0.0",
