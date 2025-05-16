@@ -930,6 +930,7 @@ export default async function decodeTransaction(args) {
     ticker,
     chainIdToUse,
   );
+  console.log('================================', actionKey);
   let transactionElement, transactionDetails;
 
   if (

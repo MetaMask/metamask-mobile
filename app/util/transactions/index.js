@@ -483,10 +483,6 @@ export async function getTransactionActionKey(transaction, chainId) {
       ? transaction.toSmartContract
       : await isSmartContractAddress(to, chainId, networkClientId);
 
-  if (toSmartContract) {
-    return SMART_CONTRACT_INTERACTION_ACTION_KEY;
-  }
-
   const authorizationAddress = authorizationList?.[0]?.address;
   const isDowngrade =
     Boolean(authorizationAddress) &&
@@ -504,6 +500,10 @@ export async function getTransactionActionKey(transaction, chainId) {
     return UPGRADE_SMART_ACCOUNT_ACTION_KEY;
   }
 
+  if (toSmartContract) {
+    return SMART_CONTRACT_INTERACTION_ACTION_KEY;
+  }
+
   return SEND_ETHER_ACTION_KEY;
 }
 
@@ -516,6 +516,7 @@ export async function getTransactionActionKey(transaction, chainId) {
  */
 export async function getActionKey(tx, selectedAddress, ticker, chainId) {
   const actionKey = await getTransactionActionKey(tx, chainId);
+  console.log('==========actionKey===========', actionKey);
   if (actionKey === SEND_ETHER_ACTION_KEY) {
     let currencySymbol = ticker;
 
