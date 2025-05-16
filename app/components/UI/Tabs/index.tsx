@@ -1,5 +1,4 @@
-import PropTypes from 'prop-types';
-import React, { PureComponent } from 'react';
+import React, { useRef, useContext, useCallback } from 'react';
 import {
   Dimensions,
   InteractionManager,
@@ -19,6 +18,9 @@ import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
 import TabThumbnail from './TabThumbnail';
+import { IWithMetricsAwarenessProps } from '../../hooks/useMetrics/withMetricsAwareness.types';
+import { TabThumbnailProps } from './TabThumbnail/TabThumbnail.types';
+import { Theme } from '../../../util/theme/models';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -31,7 +33,18 @@ const ROWS_VISIBLE = Math.floor(
 );
 const TABS_VISIBLE = ROWS_VISIBLE;
 
-const createStyles = (colors, shadows) =>
+interface TabsProps {
+  tabs: TabThumbnailProps['tab'][];
+  activeTab: number;
+  newTab: () => void;
+  closeTab: (tab: TabThumbnailProps['tab']) => void;
+  closeAllTabs: () => void;
+  closeTabsView: () => void;
+  switchToTab: (tab: TabThumbnailProps['tab']) => void;
+  animateCurrentTab: () => void;
+}
+
+const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
   StyleSheet.create({
     noTabs: {
       flex: 1,
@@ -56,7 +69,6 @@ const createStyles = (colors, shadows) =>
       alignSelf: 'flex-start',
       justifyContent: 'center',
     },
-
     tabActionleft: {
       justifyContent: 'center',
     },
@@ -120,238 +132,147 @@ const createStyles = (colors, shadows) =>
     }
   });
 
-/**
- * PureComponent that wraps all the thumbnails
- * representing all the open tabs
- */
-class Tabs extends PureComponent {
-  static propTypes = {
-    /**
-     * Array of tabs
-     */
-    tabs: PropTypes.array,
-    /**
-     * ID of the active tab
-     */
-    activeTab: PropTypes.number,
-    /**
-     * Opens a new tab
-     */
-    newTab: PropTypes.func,
-    /**
-     * Closes a tab
-     */
-    closeTab: PropTypes.func,
-    /**
-     * Closes all tabs
-     */
-    closeAllTabs: PropTypes.func,
-    /**
-     * Dismiss the entire view
-     */
-    closeTabsView: PropTypes.func,
-    /**
-     * Switches to a specific tab
-     */
-    switchToTab: PropTypes.func,
-    /**
-     * Sets the current tab used for the animation
-     */
-    animateCurrentTab: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object
-  };
+const TabsComponent = ({
+  tabs,
+  activeTab,
+  newTab,
+  closeTab,
+  closeAllTabs,
+  closeTabsView,
+  switchToTab,
+  metrics,
+}: TabsProps & IWithMetricsAwarenessProps) => {
+  const scrollview = useRef<ScrollView>(null);
+  const { colors, shadows } = useContext(ThemeContext) || mockTheme;
+  const styles = createStyles(colors, shadows);
 
-  thumbnails = {};
+  const onSwitch = useCallback((tab: TabThumbnailProps['tab']) => {
+    switchToTab(tab);
+  }, [switchToTab]);
 
-  state = {
-    currentTab: null,
-  };
+  const onNewTabPress = useCallback(() => {
+    newTab();
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
+        .addProperties({
+          option_chosen: 'Browser Bottom Bar Menu',
+          number_of_tabs: tabs.length,
+        })
+        .build(),
+    );
+  }, [newTab, metrics, tabs.length]);
 
-  scrollview = React.createRef();
+  const renderNoTabs = () => (
+    <View style={styles.noTabs}>
+      <Text
+        style={styles.noTabsTitle}
+        testID={BrowserViewSelectorsIDs.NO_TABS_MESSAGE}
+      >
+        {strings('browser.no_tabs_title')}
+      </Text>
+      <Text style={styles.noTabsDesc}>{strings('browser.no_tabs_desc')}</Text>
+    </View>
+  );
 
-  constructor(props) {
-    super(props);
-    this.createTabsRef(props.tabs);
-  }
+  const renderTabs = (tabList: TabThumbnailProps['tab'][], activeTabId: number) => (
+    <ScrollView
+      style={styles.tabs}
+      contentContainerStyle={styles.tabsContent}
+      ref={scrollview}
+    >
+      {tabList.map((tab) => (
+        <TabThumbnail
+          key={tab.id}
+          tab={tab}
+          isActiveTab={activeTabId === tab.id}
+          onClose={closeTab}
+          onSwitch={onSwitch}
+        />
+      ))}
+    </ScrollView>
+  );
 
-  componentDidMount() {
-    if (this.props.tabs.length > TABS_VISIBLE) {
-      // Find the selected index
+  const renderTabActions = () => (
+    <View style={styles.tabActions}>
+      <TouchableOpacity
+        style={[styles.tabAction, styles.tabActionleft]}
+        onPress={closeAllTabs}
+        testID={BrowserViewSelectorsIDs.CLOSE_ALL_TABS}
+      >
+        <Text
+          style={[
+            styles.tabActionText,
+            tabs.length === 0 ? styles.actionDisabled : null,
+          ]}
+        >
+          {strings('browser.tabs_close_all')}
+        </Text>
+      </TouchableOpacity>
+      <View style={styles.tabAction}>
+        <TouchableOpacity
+          style={styles.newTabIconButton}
+          onPress={onNewTabPress}
+          testID={BrowserViewSelectorsIDs.ADD_NEW_TAB}
+        >
+          <MaterialCommunityIcon
+            name="plus"
+            size={15}
+            style={styles.newTabIcon}
+          />
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        style={[styles.tabAction, styles.tabActionRight]}
+        onPress={closeTabsView}
+        testID={BrowserViewSelectorsIDs.DONE_BUTTON}
+      >
+        <Text
+          style={[
+            styles.tabActionText,
+            styles.tabActionDone,
+            tabs.length === 0 ? styles.actionDisabled : null,
+          ]}
+        >
+          {strings('browser.tabs_done')}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  React.useEffect(() => {
+    if (tabs.length > TABS_VISIBLE) {
       let index = 0;
-      this.props.tabs.forEach((tab, i) => {
-        if (tab.id === this.props.activeTab) {
+      tabs.forEach((tab, i) => {
+        if (tab.id === activeTab) {
           index = i;
         }
       });
 
-      // Calculate the row
-
       const row = index + 1;
-
-      // Scroll if needed
       const pos = (row - 1) * THUMB_HEIGHT;
 
       InteractionManager.runAfterInteractions(() => {
-        this.scrollview.current &&
-          this.scrollview.current.scrollTo({ x: 0, y: pos, animated: true });
+        scrollview.current?.scrollTo({ x: 0, y: pos, animated: true });
       });
     }
-  }
+  }, [tabs, activeTab]);
 
-  createTabsRef(tabs) {
-    tabs.forEach((tab) => {
-      this.thumbnails[tab.id] = React.createRef();
-    });
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.tabs.length !== Object.keys(this.thumbnails).length) {
-      this.createTabsRef(this.props.tabs);
-    }
-  }
-
-  onSwitch = async (tab) => {
-    this.props.switchToTab(tab);
-  };
-
-  getStyles = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const shadows = this.context.shadows || mockTheme.shadows;
-    return createStyles(colors, shadows);
-  };
-
-  renderNoTabs() {
-    const styles = this.getStyles();
-
-    return (
-      <View style={styles.noTabs}>
-        <Text
-          style={styles.noTabsTitle}
-          testID={BrowserViewSelectorsIDs.NO_TABS_MESSAGE}
-        >
-          {strings('browser.no_tabs_title')}
-        </Text>
-        <Text style={styles.noTabsDesc}>{strings('browser.no_tabs_desc')}</Text>
-      </View>
-    );
-  }
-  renderTabs(tabs, activeTab) {
-    const styles = this.getStyles();
-
-    return (
-      <ScrollView
-        style={styles.tabs}
-        contentContainerStyle={styles.tabsContent}
-        ref={this.scrollview}
-      >
-        {tabs.map((tab) => (
-          // eslint-disable-next-line react/jsx-key
-          <TabThumbnail
-            ref={this.thumbnails[tab.id]}
-            key={tab.id}
-            tab={tab}
-            isActiveTab={activeTab === tab.id}
-            onClose={this.props.closeTab}
-            onSwitch={this.onSwitch}
-          />
-        ))}
-      </ScrollView>
-    );
-  }
-
-  onNewTabPress = () => {
-    const { tabs, newTab } = this.props;
-    newTab();
-    this.trackNewTabEvent(tabs.length);
-  };
-
-  trackNewTabEvent = (tabsNumber) => {
-    this.props.metrics.trackEvent(
-      this.props.metrics
-        .createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
-        .addProperties({
-          option_chosen: 'Browser Bottom Bar Menu',
-          number_of_tabs: tabsNumber,
-        })
-        .build(),
-    );
-  };
-
-  renderTabActions() {
-    const { tabs, closeAllTabs, closeTabsView } = this.props;
-    const styles = this.getStyles();
-
-    return (
-      <View style={styles.tabActions}>
-        <TouchableOpacity
-          style={[styles.tabAction, styles.tabActionleft]}
-          onPress={closeAllTabs}
-          testID={BrowserViewSelectorsIDs.CLOSE_ALL_TABS}
-        >
-          <Text
-            style={[
-              styles.tabActionText,
-              tabs.length === 0 ? styles.actionDisabled : null,
-            ]}
-          >
-            {strings('browser.tabs_close_all')}
-          </Text>
-        </TouchableOpacity>
-        <View style={styles.tabAction}>
-          <TouchableOpacity
-            style={styles.newTabIconButton}
-            onPress={this.onNewTabPress}
-            testID={BrowserViewSelectorsIDs.ADD_NEW_TAB}
-          >
-            <MaterialCommunityIcon
-              name="plus"
-              size={15}
-              style={styles.newTabIcon}
-            />
-          </TouchableOpacity>
+  return (
+    <SafeAreaInsetsContext.Consumer>
+      {(insets) => (
+        <View style={{ ...styles.tabsView, paddingTop: insets?.top }}>
+          {tabs.length === 0
+            ? renderNoTabs()
+            : renderTabs(tabs, activeTab)}
+          {renderTabActions()}
         </View>
+      )}
+    </SafeAreaInsetsContext.Consumer>
+  );
+};
 
-        <TouchableOpacity
-          style={[styles.tabAction, styles.tabActionRight]}
-          onPress={closeTabsView}
-          testID={BrowserViewSelectorsIDs.DONE_BUTTON}
-        >
-          <Text
-            style={[
-              styles.tabActionText,
-              styles.tabActionDone,
-              tabs.length === 0 ? styles.actionDisabled : null,
-            ]}
-          >
-            {strings('browser.tabs_done')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  render() {
-    const { tabs, activeTab } = this.props;
-    const styles = this.getStyles();
-
-    return (
-      <SafeAreaInsetsContext.Consumer>
-        {(insets) => (
-          <View style={{ ...styles.tabsView, paddingTop: insets.top }}>
-            {tabs.length === 0
-              ? this.renderNoTabs()
-              : this.renderTabs(tabs, activeTab)}
-            {this.renderTabActions()}
-          </View>
-        )}
-      </SafeAreaInsetsContext.Consumer>
-    );
-  }
-}
-
-Tabs.contextType = ThemeContext;
-
-export default withMetricsAwareness(Tabs);
+// @ts-expect-error - withMetricsAwareness types need to be fixed
+const Tabs = withMetricsAwareness(TabsComponent);
+export default Tabs;
