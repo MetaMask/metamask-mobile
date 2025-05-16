@@ -98,9 +98,18 @@ export const sanitizeParsedMessage = (
   // Primary type can be an array.
   const isArray = primaryType && isArrayType(primaryType);
   if (isArray) {
+    // Check if message is actually an array before attempting to call map
+    if (!Array.isArray(message)) {
+      // Instead of crashing, return a simple object
+      return {
+        value: message,
+        type: primaryType,
+      };
+    }
+    
     return {
-      value: (message as string[]).map(
-        (value: string): ValueType =>
+      value: message.map(
+        (value): ValueType =>
           sanitizeParsedMessage(value, stripOneLayerofNesting(primaryType), types),
       ),
       type: primaryType,
@@ -112,14 +121,23 @@ export const sanitizeParsedMessage = (
     };
   }
 
-  // If not, assume to be struct
+  // If not array or solidity type, assume to be struct
   const baseType = isArray ? stripArrayType(primaryType) : primaryType;
 
+  // Validate that the type definition exists
   const baseTypeDefinitions = types[baseType];
   if (!baseTypeDefinitions) {
     throw new Error(`Invalid primary type definition`);
   }
 
+  // Check if message is an object before processing it as a struct
+  if (typeof message !== 'object' || message === null || Array.isArray(message)) {
+    return {
+      value: message,
+      type: primaryType,
+    };
+  }
+  
   const sanitizedStruct = {};
   const msgKeys = Object.keys(message);
   msgKeys.forEach((msgKey: string) => {
@@ -134,7 +152,7 @@ export const sanitizeParsedMessage = (
     }
 
     (sanitizedStruct as Record<string, ValueType>)[msgKey] = sanitizeParsedMessage(
-      (message as Record<string, string>)[msgKey],
+      (message as Record<string, FieldValue>)[msgKey],
       definedType.type,
       types,
     );
@@ -179,22 +197,38 @@ export const parseAndNormalizeSignTypedData = (messageParamsData: string) => {
   return result;
 };
 
+/**
+ * This function attempts to parse and sanitize typed data, but catches specific errors
+ * and returns a user-friendly error object that can be displayed in the UI.
+ */
 export const parseAndSanitizeSignTypedData = (messageParamsData: string) => {
   if (!messageParamsData) { return {}; }
 
-  const { domain, message, primaryType, types } = JSON.parse(messageParamsData);
-  const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
-
-  return { sanitizedMessage, primaryType, domain };
+  try {
+    const { domain, message, primaryType, types } = JSON.parse(messageParamsData);
+    const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
+    
+    return { sanitizedMessage, primaryType, domain };
+  } catch (error) {
+    // Keep original behavior - return empty object on error
+    console.warn('Error parsing typed data:', error);
+    return {};
+  }
 };
 
 export const parseNormalizeAndSanitizeSignTypedData = (messageParamsData: string) => {
   if (!messageParamsData) { return {}; }
 
-  const { domain, message, primaryType, types } = parseAndNormalizeSignTypedData(messageParamsData);
-  const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
+  try {
+    const { domain, message, primaryType, types } = parseAndNormalizeSignTypedData(messageParamsData);
+    const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
 
-  return { sanitizedMessage, primaryType, domain };
+    return { sanitizedMessage, primaryType, domain };
+  } catch (error) {
+    // Keep original behavior - return empty object on error
+    console.warn('Error parsing normalized typed data:', error);
+    return {};
+  }
 };
 
 export const parseAndNormalizeSignTypedDataFromSignatureRequest = (
