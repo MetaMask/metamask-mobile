@@ -15,7 +15,7 @@ import {
   NavigationProp,
   ParamListBase,
 } from '@react-navigation/native';
-import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
+import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
 

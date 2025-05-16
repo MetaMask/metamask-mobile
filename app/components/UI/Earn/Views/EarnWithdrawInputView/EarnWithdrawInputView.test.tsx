@@ -13,7 +13,7 @@ import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_MAINNET_ASSET,
-} from '../../../Stake/__mocks__/mockData';
+} from '../../../Stake/__mocks__/stakeMockData';
 import EarnWithdrawInputView from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { flushPromises } from '../../../../../util/test/utils';

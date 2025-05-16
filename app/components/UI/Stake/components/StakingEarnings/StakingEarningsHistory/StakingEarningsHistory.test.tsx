@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import StakingEarningsHistory from './StakingEarningsHistory';
 import useStakingEarningsHistory from '../../../hooks/useStakingEarningsHistory';
-import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
+import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';

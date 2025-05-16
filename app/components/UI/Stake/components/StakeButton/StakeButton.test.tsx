@@ -4,7 +4,10 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import StakeButton from './index';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { MOCK_ETH_MAINNET_ASSET } from '../../__mocks__/mockData';
+import {
+  MOCK_ETH_MAINNET_ASSET,
+  MOCK_USDC_MAINNET_ASSET,
+} from '../../__mocks__/stakeMockData';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { mockNetworkState } from '../../../../../util/test/network';
@@ -13,13 +16,36 @@ import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+import { TokenI } from '../../../Tokens/types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 
 const mockNavigate = jest.fn();
+
+const MOCK_APR_VALUES: { [symbol: string]: string } = {
+  Ethereum: '2.3',
+  USDC: '4.5',
+  USDT: '4.1',
+  DAI: '5.0',
+};
+
+jest.mock('../../../Earn/hooks/useEarnTokenDetails', () => ({
+  useEarnTokenDetails: () => ({
+    getTokenWithBalanceAndApr: (token: TokenI) => ({
+      ...token,
+      apr: MOCK_APR_VALUES[token.symbol] ?? '0.0',
+      balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
+      balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
+      balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
+      balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
+      experience:
+        token.symbol === 'USDC' ? 'STABLECOIN_LENDING' : 'POOLED_STAKING',
+    }),
+  }),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -149,105 +175,129 @@ describe('StakeButton', () => {
     expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
 
-  it('navigates to Web view when stake button is pressed and user is not eligible', async () => {
-    (useStakingEligibility as jest.Mock).mockReturnValue({
-      isEligible: false,
-      isLoadingEligibility: false,
-      refreshPooledStakingEligibility: jest
-        .fn()
-        .mockResolvedValue({ isEligible: false }),
-      error: false,
-    });
-    const { getByTestId } = renderComponent();
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-        params: {
-          newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
-          timestamp: expect.any(Number),
-        },
-        screen: Routes.BROWSER.VIEW,
+  describe('Pooled-Staking', () => {
+    it('navigates to Web view when earn button is pressed and user is not eligible', async () => {
+      (useStakingEligibility as jest.Mock).mockReturnValue({
+        isEligible: false,
+        isLoadingEligibility: false,
+        refreshPooledStakingEligibility: jest
+          .fn()
+          .mockResolvedValue({ isEligible: false }),
+        error: false,
       });
-    });
-  });
+      const { getByTestId } = renderComponent();
 
-  it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
-    (useStakingEligibility as jest.Mock).mockReturnValue({
-      isEligible: true,
-      isLoadingEligibility: false,
-      refreshPooledStakingEligibility: jest
-        .fn()
-        .mockResolvedValue({ isEligible: true }),
-      error: false,
-    });
-    const { getByTestId } = renderComponent();
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: MOCK_ETH_MAINNET_ASSET,
-          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
-        },
-      });
-    });
-  });
-
-  it('navigates to Stake Input screen when on unsupported network', async () => {
-    // Update the mock for this specific test
-    useStakingChain.mockImplementation(() => ({
-      isStakingSupportedChain: false,
-    }));
-
-    const UNSUPPORTED_NETWORK_STATE = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: '0x89', // Polygon
-            }),
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+          params: {
+            newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
+            timestamp: expect.any(Number),
           },
-          MultichainNetworkController: {
-            isEvmSelected: true,
-            selectedMultichainNetworkChainId: SolScope.Mainnet,
+          screen: Routes.BROWSER.VIEW,
+        });
+      });
+    });
 
-            multichainNetworkConfigurationsByChainId: {
-              'bip122:000000000019d6689c085ae165831e93': {
-                chainId: 'bip122:000000000019d6689c085ae165831e93',
-                name: 'Bitcoin Mainnet',
-                nativeCurrency:
-                  'bip122:000000000019d6689c085ae165831e93/slip44:0',
-                isEvm: false,
-              },
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-                name: 'Solana Mainnet',
-                nativeCurrency:
-                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                isEvm: false,
+    it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
+      (useStakingEligibility as jest.Mock).mockReturnValue({
+        isEligible: true,
+        isLoadingEligibility: false,
+        refreshPooledStakingEligibility: jest
+          .fn()
+          .mockResolvedValue({ isEligible: true }),
+        error: false,
+      });
+      const { getByTestId } = renderComponent();
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+          screen: Routes.STAKING.STAKE,
+          params: {
+            token: MOCK_ETH_MAINNET_ASSET,
+            action: EARN_INPUT_VIEW_ACTIONS.STAKE,
+          },
+        });
+      });
+    });
+
+    it('navigates to Stake Input screen when on unsupported network', async () => {
+      // Update the mock for this specific test
+      useStakingChain.mockImplementation(() => ({
+        isStakingSupportedChain: false,
+      }));
+
+      const UNSUPPORTED_NETWORK_STATE = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              ...mockNetworkState({
+                chainId: '0x89', // Polygon
+              }),
+            },
+            MultichainNetworkController: {
+              isEvmSelected: true,
+              selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+              multichainNetworkConfigurationsByChainId: {
+                'bip122:000000000019d6689c085ae165831e93': {
+                  chainId: 'bip122:000000000019d6689c085ae165831e93',
+                  name: 'Bitcoin Mainnet',
+                  nativeCurrency:
+                    'bip122:000000000019d6689c085ae165831e93/slip44:0',
+                  isEvm: false,
+                },
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                  name: 'Solana Mainnet',
+                  nativeCurrency:
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                  isEvm: false,
+                },
               },
             },
           },
         },
-      },
-    } as unknown as RootState;
+      } as unknown as RootState;
 
-    const spySetActiveNetwork = jest.spyOn(
-      Engine.context.MultichainNetworkController,
-      'setActiveNetwork',
-    );
-    const { getByTestId } = renderComponent(UNSUPPORTED_NETWORK_STATE);
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-    await waitFor(() => {
-      expect(spySetActiveNetwork).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: MOCK_ETH_MAINNET_ASSET,
-          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
+      const spySetActiveNetwork = jest.spyOn(
+        Engine.context.MultichainNetworkController,
+        'setActiveNetwork',
+      );
+      const { getByTestId } = renderComponent(UNSUPPORTED_NETWORK_STATE);
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+      await waitFor(() => {
+        expect(spySetActiveNetwork).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+          screen: Routes.STAKING.STAKE,
+          params: {
+            token: MOCK_ETH_MAINNET_ASSET,
+            action: EARN_INPUT_VIEW_ACTIONS.STAKE,
+          },
+        });
+      });
+    });
+  });
+
+  describe('Stablecoin Lending', () => {
+    it('navigates to Lending Input View when earn button is pressed', async () => {
+      const { getByTestId } = renderWithProvider(
+        <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
+        {
+          state: STATE_MOCK,
         },
+      );
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+          screen: Routes.STAKING.STAKE,
+          params: {
+            token: MOCK_USDC_MAINNET_ASSET,
+          },
+        });
       });
     });
   });
