@@ -79,11 +79,7 @@ const CellSelectWithMenu = ({
         ) : null}
 
         <View style={styles.cellBaseInfo}>
-          {title === undefined ||
-          title === null ||
-          typeof title === 'string' ||
-          typeof title === 'number' ||
-          typeof title === 'boolean' ? (
+          {title === undefined || typeof title === 'string' ? (
             <Text
               numberOfLines={1}
               variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
