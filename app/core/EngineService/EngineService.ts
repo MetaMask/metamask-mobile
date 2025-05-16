@@ -26,6 +26,11 @@ interface InitializeEngineResult {
 
 const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
 const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
+/**
+ * This is the frequency of batch flushing in milliseconds
+ * delay of 0 means "flush on the next macrotask"
+ */
+const BATCH_FLUSH_TIMER = 250;
 
 /**
  * Batcher class for handling batched operations
@@ -90,7 +95,7 @@ export class EngineService {
           }
         });
       }),
-    0, // delay of 0 means "flush on the next macrotask", might be tuned to higher values
+    BATCH_FLUSH_TIMER,
   );
 
   /**
