@@ -359,7 +359,9 @@ const ImportFromSecretRecoveryPhrase = ({
     if (text.includes(' ')) {
       setSeedPhrase((prev) => {
         // handle use pasting multiple words / whole seed phrase separated by spaces
-        const splitArray = text.trim().split(/\s+/); // split by any spaces
+        const splitArray = text.endsWith(' ')
+          ? [...text.trim().split(' '), '']
+          : text.trim().split(' ');
         return [
           ...prev.slice(0, index),
           ...splitArray,
