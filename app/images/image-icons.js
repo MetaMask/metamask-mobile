@@ -26,7 +26,8 @@ import MATCHAIN from './matchain.png';
 import FLOW from './flow.png';
 import LENS from './lens.png';
 import PLUME from './plume.png';
-
+import ABSTRACT from './abstract.png'
+import ABSTRACT_TESTNET from './abstract-testnet.png'
 
 export default {
   PALM,
@@ -59,4 +60,6 @@ export default {
   FLOW,
   LENS,
   PLUME,
+  ABSTRACT,
+  'ABSTRACT-TESTNET': ABSTRACT_TESTNET,
 };
