@@ -22,7 +22,7 @@ describe(SmokeNetworkExpansion('Error Boundary Screen'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it.skip('should trigger error boundary screen to reveal SRP', async () => {
+  it('should trigger error boundary screen to reveal SRP', async () => {
     await withFixtures(
       {
         dapp: true,
