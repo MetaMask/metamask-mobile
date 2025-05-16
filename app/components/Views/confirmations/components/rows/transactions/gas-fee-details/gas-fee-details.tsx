@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { TransactionMeta } from '@metamask/transaction-controller';
+
 import Icon, {
   IconSize,
   IconName,

@@ -1,5 +1,8 @@
 import { useCallback, useMemo } from 'react';
-import { type TransactionMeta } from '@metamask/transaction-controller';
+import {
+  UserFeeLevel,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
@@ -29,14 +32,13 @@ export const useDappSuggestedGasFeeOption = ({
     handleCloseModals();
   }, [id, dappSuggestedGasFees, handleCloseModals]);
 
-  const shouldIncludeDappSuggestedGasFeeOption = useMemo(() => origin !== MMM_ORIGIN && dappSuggestedGasFees, [origin, dappSuggestedGasFees]);
+  const shouldIncludeDappSuggestedGasFeeOption = useMemo(
+    () => origin !== MMM_ORIGIN && dappSuggestedGasFees,
+    [origin, dappSuggestedGasFees],
+  );
 
-  const isDappSuggestedGasFeeSelected = useMemo(() => !!(
-      userFeeLevel === 'dappSuggested' ||
-      // TODO: This is a temporary fix to handle the case where the user fee level is undefined but the dapp suggested gas fees exist
-      // Task will be to create a new issue to handle this
-      (userFeeLevel === undefined && dappSuggestedGasFees)
-    ), [userFeeLevel, dappSuggestedGasFees]);
+  const isDappSuggestedGasFeeSelected =
+    userFeeLevel === UserFeeLevel.DAPP_SUGGESTED;
 
   const options: GasOption[] = [];
 
