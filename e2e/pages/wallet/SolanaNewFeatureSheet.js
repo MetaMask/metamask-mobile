@@ -4,32 +4,33 @@ import { SolanaNewFeatureSheetSelectorsIDs } from '../../selectors/wallet/Solana
 import Gestures from '../../utils/Gestures';
 import Assertions from '../../utils/Assertions';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
+import Matchers from '../../utils/Matchers';
 
 class SolanaNewFeatureSheet {
   // Sheet container
   get sheetContainer() {
-    return element(by.id(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET));
+    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET);
   }
 
   // Create Account button
   get createAccountButton() {
-    return element(by.id(SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON));
+    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON);
   }
 
   get learnMoreButton() {
-    return element(by.id(SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON));
+    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON);
   }
 
   get notNowButton() {
-    return element(by.id(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON));
+    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON);
   }
 
   get addAccountButton() {
-    return element(by.id(SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET));
+    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET);
   }
 
   get carouselLogo() {
-    return element(by.id(WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE));
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE);
   }
 
   // Interaction methods
@@ -45,9 +46,6 @@ class SolanaNewFeatureSheet {
     await Gestures.waitAndTap(this.learnMoreButton);
   }
 
-  async verifyCreateAccountButtonIsVisible() {
-    await Assertions.checkIfVisible(SolanaNewFeatureSheetSelectorsIDs.CREATE_ACCOUNT_BUTTON);
-  }
 
   async tapNotNowButton() {
     await Gestures.waitAndTap(this.notNowButton);

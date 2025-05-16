@@ -26,8 +26,7 @@ import Engine from '../../../core/Engine';
 import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import { SolanaNewFeatureSheetSelectorsIDs, SolanaNewFeatureSheetSelectorsText } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
-
+import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
 
 const SolanaNewFeatureContent = () => {
   const [isVisible, setIsVisible] = useState(false);
