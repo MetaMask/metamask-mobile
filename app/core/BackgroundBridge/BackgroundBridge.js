@@ -109,7 +109,6 @@ const legacyNetworkId = () => {
 
 export class BackgroundBridge extends EventEmitter {
   constructor({
-    tabId,
     webview,
     url,
     getRpcMethodMiddleware,
@@ -124,7 +123,6 @@ export class BackgroundBridge extends EventEmitter {
     channelId,
   }) {
     super();
-    this.tabId = tabId;
     this.url = url;
     // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
     this.hostname = new URL(url).hostname;
@@ -994,7 +992,6 @@ export class BackgroundBridge extends EventEmitter {
           this.addMultichainApiEthSubscriptionMiddleware({
             scope,
             origin,
-            tabId: this.tabId,
           });
         }
       });
@@ -1014,7 +1011,6 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(
       this.multichainMiddlewareManager.generateMultichainMiddlewareForOriginAndTabId(
         origin,
-        this.tabId,
       ),
     );
 

@@ -29,6 +29,7 @@ import Assertions from './utils/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
+import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -67,6 +68,15 @@ have to have all these workarounds in the tests
     /* eslint-disable no-undef */
 
     console.log('The marketing toast is not visible');
+  }
+
+  // Handle Solana New feature sheet
+  try {
+    await SolanaNewFeatureSheet.swipeWithCarouselLogo();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The new Solana feature modal is not visible');
   }
 };
 
