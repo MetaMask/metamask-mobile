@@ -446,6 +446,14 @@
     "multisrp": {
       "title": "여러 비밀복구구문 추가",
       "subtitle": "MetaMask로 여러 지갑 가져와 사용하기"
+    },
+    "backupAndSync": {
+      "title": "백업 및 동기화 소개",
+      "subtitle": "계정을 백업하고 설정을 동기화하세요."
+    },
+    "solana": {
+      "title": "이제 솔라나가 지원됩니다",
+      "subtitle": "솔라나 계정을 만들고 시작하세요"
     }
   },
   "wallet": {
@@ -483,6 +491,7 @@
     "sort_by": "정렬 기준",
     "filter_by": "필터링 기준:",
     "current_network": "현재 네트워크",
+    "popular_networks": "인기 네트워크",
     "all_networks": "모든 네트워크",
     "declining_balance": "잔액 내림차순({{currency}} 높은순-낮은순)",
     "alphabetically": "알파벳순(A-Z)",
@@ -534,7 +543,7 @@
     "logout_to_import_seed": "비밀복구구문을 가져오려면 먼저 로그아웃해야 합니다.",
     "ready_to_explore": "블록 체인 애플리케이션 탐색을 시작할 준비가 되셨습니까?",
     "unable_to_load": "잔고를 가져올 수 없습니다",
-    "unable_to_find_conversion_rate": "환율을 찾을 수 없습니다",
+    "unable_to_find_conversion_rate": "환율 없음",
     "display_nft_media_desc": "NFT를 가져오려면 설정 > 보안 및 개인정보에서 NFT 미디어 표시를 켜세요.",
     "display_nft_media_cta": "NFT 미디어 표시 켜기",
     "display_media_nft_warning": "NFT 미디어와 데이터를 표시하면 IP 주소가 중앙 서버에 노출될 수 있습니다. 관련 위험을 이해하고 있는 경우에만 NFT를 가져오세요.",
@@ -730,6 +739,7 @@
     "receive": "받기"
   },
   "accounts": {
+    "srp_index": "비밀복구구문 #{{index}}",
     "snap_account_tag": "Snap(베타)",
     "create_new_account": "신규 계정 생성",
     "import_account": "계정 가져오기",
@@ -860,8 +870,6 @@
     "reset_notifications_description": "알림 초기화는 알림 스토리지 키를 삭제하고 모든 알림 기록을 초기화한다는 의미입니다. 정말 알림을 초기화하시겠습니까?",
     "reset_notifications": "알림 초기화",
     "reset_notifications_success": "알림 스토리지 키 삭제/재생성 및 알림 기록 초기화.",
-    "enabling_profile_sync": "프로필 동기화 활성화 중...",
-    "disabling_profile_sync": "프로필 동기화 비활성화 중...",
     "notifications_dismiss_modal": "해지",
     "select_rpc_url": "RPC URL을 선택하세요",
     "title": "설정",
@@ -982,11 +990,9 @@
     "networks_desc": "맞춤 RPC 네트워크 추가 및 편집",
     "network_name_label": "네트워크 이름",
     "network_name_placeholder": "네트워크 이름 (선택 사항)",
-    "network_rpc_url_label": "RPC URL",
+    "network_rpc_url_label": "RPC Url",
     "network_rpc_name_label": "RPC 이름",
     "network_rpc_placeholder": "신규 RPC 네트워크",
-    "network_failover_rpc_url_label": "대체 RPC URL",
-    "failover": "대체",
     "network_chain_id_label": "체인 ID",
     "network_chain_id_placeholder": "체인 ID",
     "network_symbol_label": "기호",
@@ -1359,7 +1365,7 @@
     "token_marketplace": "토큰 마켓플레이스",
     "sell_button": "매도",
     "receive_button": "받기",
-    "portfolio_button": "포트폴리오",
+    "portfolio_button": "Portfolio",
     "earn_button": "수익",
     "add_collectible_button": "추가",
     "info": "정보",
@@ -1729,7 +1735,13 @@
       "generic": "이 웹사이트는 자동 외부 앱 열기가 차단되어 있습니다"
     },
     "ipfs_gateway_off_title": "IPFS 게이트웨이 꺼짐",
-    "ipfs_gateway_off_content": "이 사이트를 보려면 개인정보 및 보안 설정에서 IPFS 게이트웨이를 켜야 합니다."
+    "ipfs_gateway_off_content": "이 사이트를 보려면 개인정보 및 보안 설정에서 IPFS 게이트웨이를 켜야 합니다.",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "솔라나 디앱 연결 기능이 곧 제공됩니다",
+        "message": "확장 프로그램에서 솔라나 디앱에 연결하거나, 앱 내에서 솔라나 토큰을 거래할 수 있습니다."
+      }
+    }
   },
   "backup_alert": {
     "title": "지갑 보호하기",
@@ -1829,6 +1841,8 @@
     "sign_description_2": "서명 받기를 누르세요",
     "sign_get_signature": "서명 받기",
     "transaction_id": "트랜잭션 ID",
+    "network": "네트워크",
+    "request_from": "요청자:",
     "network_fee": "네트워크 수수료",
     "network_fee_tooltip": "네트워크에서 트랜잭션 처리를 위해 지불된 금액입니다."
   },
@@ -3294,15 +3308,6 @@
     "enable_remember_me": "로그인 정보 저장",
     "enable_remember_me_description": "로그인 정보를 저장하면 회원님의 휴대폰을 이용하는 모든 사람이 회원님의 MetaMask 계정에 액세스할 수 있습니다."
   },
-  "profile_sync": {
-    "title": "프로필 동기화",
-    "disable_warning": "프로필 동기화를 끄면 알림을 받을 수 없게 됩니다.",
-    "enable_description": "MetaMask가 기기 간에 일부 설정을 동기화하는 데 사용할 프로필을 생성합니다. 알림을 받으려면 프로필이 필요합니다. ",
-    "enable_description2": " 을(를) 참고하세요.",
-    "enable_privacy_link": "개인 정보 보호 방법 알아보기",
-    "bottomSheetTurnOn": "프로필 동기화 켜기",
-    "bottomSheetTurnOff": "프로필 동기화 끄기"
-  },
   "turn_off_remember_me": {
     "title": "로그인 정보 저장 기능을 끄려면 비밀번호를 입력하세요",
     "placeholder": "비밀번호",
@@ -3505,6 +3510,7 @@
     "connect_hardware_wallet": "계정 연결",
     "import_wallet_or_account": "지갑 또는 계정 가져오기",
     "add_account": "새 계정 만들기",
+    "add_multichain_account": "새로운 {{networkName}} 계정 생성",
     "create_an_account": "새 계정 만들기",
     "add_new_account": "이더리움 계정",
     "import_srp": "비밀복구구문",
@@ -3512,7 +3518,12 @@
     "import_account": "개인 키",
     "add_bitcoin_account_testnet": "비트코인 테스트넷 계정",
     "add_bitcoin_account_mainnet": "비트코인 계정",
-    "add_solana_account": "솔라나 계정"
+    "add_solana_account": "솔라나 계정",
+    "switch_to_smart_account": "스마트 계정으로 전환",
+    "headers": {
+      "bitcoin": "비트코인",
+      "solana": "솔라나"
+    }
   },
   "show_nft": {
     "show_nft_title": "NFT 표시",
@@ -3535,13 +3546,14 @@
     "title": "MetaMask를 통한 솔라나 이용",
     "create_solana_account": "솔라나 계정 만들기",
     "not_now": "나중에",
-    "got_it": "확인",
+    "view_solana_account": "솔라나 계정 보기",
     "feature_1_title": "토큰 스왑 또는 주고 받기",
     "feature_1_description": "SOL, USDC 등 다양한 토큰을 전송하고 트랜잭션을 진행하세요.",
     "feature_2_title": "솔라나 계정 가져오기",
     "feature_2_description": "다른 지갑에서 솔라나 계정을 마이그레이션하려면 비밀복구구문을 가져와야 합니다.",
     "feature_3_title": "솔라나 디앱, NFTs, 하드웨어 지갑 지원 등",
-    "feature_3_description": "솔라나 디앱, NFT, 하드웨어 지갑 지원 등 더 많은 기능이 곧 추가됩니다."
+    "feature_3_description": "솔라나 디앱, NFT, 하드웨어 지갑 지원 등 더 많은 기능이 곧 추가됩니다.",
+    "learn_more": "솔라나 계정에 대해 더 자세히 알아보기"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS 게이트웨이",
@@ -3575,6 +3587,32 @@
       "body_prefix": "연간 최대",
       "body_suffix": "의 수익을 올릴 수 있습니다({{tokenSymbol}} 빌려줄 경우).",
       "start_earning": "수익화 시작"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "현재 점검 중입니다. 빠른 시일 내에 서비스를 재개하겠습니다!"
+    },
+    "deposit": "Deposit",
+    "approve": "Approve",
+    "approval": "Approval",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "transaction_submitted": "Transaction Submitted",
+    "every_minute": "Every minute",
+    "immediate": "Immediate",
+    "apr": "APR",
+    "protocol": "Protocol",
+    "receive_tooltip": "receive tooltip",
+    "button": "button",
+    "receive": "Receive",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "Expected yearly increase of the value of your deposit, based on the reward rate over the past week.",
+        "part_two": "Note: APR changes over time."
+      },
+      "protocol": "A lending protocol is a smart contract that lets you lend tokens to earn rewards. It also lets users borrow tokens by putting up other tokens as collateral, against a fee which is paid to lenders.",
+      "reward_frequency": "Frequency at which your rewards are accounted for.",
+      "withdrawal_time": "The time it takes to withdraw your token from the protocol and get it back in your wallet",
+      "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets."
     }
   },
   "stake": {
@@ -3709,12 +3747,17 @@
     "basic_functionality": "기본 기능",
     "manage_networks": "네트워크 선택",
     "manage_networks_body": "가능한 가장 안정적인 비공개 이더리움 액세스를 위해 Infura를 원격 프로시저 호출(RPC) 공급업체로 선정하였습니다. 회원님은 개인적으로 원하는 RPC를 선택할 수 있습니다. 하지만, 모든 RPC는 트랜잭션을 위해 회원님의 이더리움 지갑과 IP 주소를 수령한다는 점에 유의해야 합니다. 다음을 확인하세요: ",
-    "manage_networks_body2": " infura의 데이터 처리 방법 확인.",
+    "manage_networks_body2": " Infura가 EVM 계정 및 Solana 계정의 데이터를 어떻게 처리하는지 자세히 알아보세요. ",
+    "manage_networks_body3": "여기를 클릭하세요.",
     "functionality_body": "MetaMask는 인터넷 서비스를 통해 토큰 세부 정보 및 가스 설정과 같은 기본 기능을 제공합니다. 인터넷 서비스를 이용할 때 IP 주소가 공유되며, 이 경우 MetaMask와 공유됩니다. 이는 다른 웹사이트를 방문할 때와 마찬가지입니다. MetaMask는 이 데이터를 일시적으로 사용하며 데이터를 절대 판매하지 않습니다. VPN을 사용하거나 이러한 서비스를 비활성화할 수 있지만 MetaMask 사용 환경에 영향을 미칠 수 있습니다. 자세한 내용은 ",
     "functionality_body2": " 을(를) 참고하세요.",
     "sheet": {
       "title_off": "기본 기능 끄기",
       "description_off": "이렇게 하면 MetaMask에서 시간을 완전히 최적화할 수 없습니다. 기본 기능(토큰 세부 정보, 최적의 가스 설정 등)을 사용할 수 없게 됩니다.",
+      "description_off2": "이 기능을 끄면 보안 및 개인정보 보호,",
+      "description_off2_related_features1": "백업 및 동기화, 알림에 포함된 모든 기능도",
+      "description_off2_related_features1_and": "함께",
+      "description_off2_related_features2": "비활성화됩니다.",
       "title_on": "기본 기능 켜기",
       "description_on": "MetaMask에서 시간을 최적화하려면 이 기능을 켜야 합니다. 기본 기능(토큰 세부 정보, 최적의 가스 설정, 알림 등)은 웹3 경험에 중요한 요소입니다.",
       "checkbox_label": "이해했습니다. 계속 진행하겠습니다",
@@ -3796,7 +3839,9 @@
       "primary_type": "기본 유형",
       "request_from": "요청자:",
       "signing_in_with": "다음으로 로그인 중:",
-      "spender": "지출자:"
+      "spender": "지출자:",
+      "now": "지금",
+      "switching_to": "다음으로 전환 중"
     },
     "title": {
       "signature": "서명 요청",
@@ -3804,14 +3849,18 @@
       "permit_revoke": "권한 제거",
       "permit_NFTs": "출금 요청",
       "signature_siwe": "로그인 요청",
-      "contract_interaction": "트랜잭션 요청"
+      "contract_interaction": "트랜잭션 요청",
+      "transfer": "전송 요청",
+      "switch_account_type": "계정 업데이트"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",
       "permit_NFTs": "이 사이트에서 NFT 인출 권한을 요청합니다.",
       "signature": "컨펌하기 전에 요청 세부 사항을 검토하세요.",
       "signature_siwe": "어떤 사이트에서 귀하가 이 계정을 소유했는지 확인하기 위해 로그인을 요청하고 있습니다.",
-      "contract_interaction": "컨펌하기 전에 요청 세부 사항을 검토하세요."
+      "contract_interaction": "컨펌하기 전에 요청 세부 사항을 검토하세요.",
+      "switch_to_smart_account": "스마트 계정으로 전환 중입니다.",
+      "switch_to_standard_account": "일반 계정(EOA)으로 전환 중입니다."
     },
     "request_from": "요청자:",
     "staking_from": "스테이킹 출처:",
@@ -3823,6 +3872,9 @@
     "qr_get_sign": "서명 받기",
     "qr_scan_text": "하드웨어 지갑으로 스캔하기",
     "sign_with_ledger": "Ledger로 서명",
+    "smart_account": "스마트 계정",
+    "smart_contract": "스마트 계약",
+    "standard_account": "일반 계정",
     "siwe_message": {
       "url": "URL",
       "network": "네트워크",
@@ -3852,11 +3904,17 @@
       "tooltip": "예상 변동 사항은 이 트랜잭션을 진행할 경우 발생하는 결과를 예측한 것입니다. 이는 예측일 뿐 결과를 보장하지는 않습니다.",
       "unavailable": "사용 불가"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "스마트 계정",
+      "standardAccountLabel": "일반 계정",
+      "switch": "전환"
+    },
     "unlimited": "무제한",
     "none": "없음",
     "advanced_details": "고급 세부 정보",
     "interacting_with": "상호작용 대상:",
-    "review": "Review"
+    "review": "검토",
+    "transferRequest": "전송 요청"
   },
   "change_in_simulation_modal": {
     "title": "결과가 변경되었습니다",
@@ -3905,12 +3963,13 @@
     "bridge_to": "브릿지 대상:",
     "title": "브릿지",
     "submitting_transaction": "제출 중",
-    "fetching_quote": "견적 가져오기"
+    "fetching_quote": "견적 가져오기",
+    "fee_disclaimer": "Includes 0.875% MM fee"
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "새로운 견적이 있습니다",
+    "description": "환율은 {{refreshRate}}초마다 갱신됩니다. 준비가 되면 ‘새 견적 받기’를 눌러주세요.",
+    "get_new_quote": "새 견적 받기"
   },
   "bridge_transaction_details": {
     "status": "상태",
@@ -3926,5 +3985,31 @@
     "transaction_details": "트랜잭션 세부 사항",
     "bridge_to_chain": "{{chainName}}(으)로 브릿지",
     "recipient": "받는 사람"
+  },
+  "backupAndSync": {
+    "title": "백업 및 동기화",
+    "description": "계정을 백업하고 설정을 동기화하세요.",
+    "enabling": "백업 및 동기화 활성화 중",
+    "disabling": "백업 및 동기화 비활성화 중",
+    "enable": {
+      "title": "백업 및 동기화 켜기",
+      "confirmation": "백업 및 동기화를 켜면 기본 기능도 함께 활성화됩니다. 계속하시겠습니까?",
+      "description": "백업 및 동기화를 사용하면 맞춤 설정과 기능을 암호화된 상태로 저장할 수 있습니다. 이 기능은 MetaMask를 여러 기기에서 동일하게 사용할 수 있게 해주며, 앱을 재설치할 경우 설정과 기능을 복원해 줍니다.",
+      "updatePreferences": "언제든지 설정 > 백업 및 동기화에서",
+      "settingsPath": "설정을 변경할 수 있습니다."
+    },
+    "privacyLink": "개인 정보 보호 방법 알아보기",
+    "features": {
+      "accounts": "계정"
+    },
+    "manageWhatYouSync": {
+      "title": "동기화할 항목 관리",
+      "description": "기기 간에 동기화할 항목을 활성화하세요."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "자산 선택"
+    }
   }
 }
