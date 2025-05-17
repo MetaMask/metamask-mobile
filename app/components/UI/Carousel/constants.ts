@@ -1,7 +1,6 @@
 import { ImageSourcePropType } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { CarouselSlide, SlideId } from './types';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
@@ -41,9 +40,6 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
         },
       ],
     },
-    testID: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE,
-    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE_TITLE,
-    testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE_CLOSE_BUTTON,
   },
   ///: END:ONLY_INCLUDE_IF
   {
@@ -52,9 +48,6 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
     description: strings('banner.card.subtitle'),
     undismissable: false,
     navigation: { type: 'url', href: 'https://portfolio.metamask.io/card' },
-    testID: WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE,
-    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE,
-    testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_CLOSE_BUTTON,
   },
   {
     id: 'fund',
@@ -65,10 +58,6 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
       type: 'function',
       navigate: () => createBuyNavigationDetails(),
     },
-    testID: WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE,
-    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE,
-    testIDCloseButton:
-      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_CLOSE_BUTTON,
   },
   {
     id: 'cashout',
@@ -79,9 +68,6 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
       type: 'function',
       navigate: () => createSellNavigationDetails(),
     },
-    testID: WalletViewSelectorsIDs.CAROUSEL_THIRD_SLIDE,
-    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_THIRD_SLIDE_TITLE,
-    testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_THIRD_SLIDE_CLOSE_BUTTON,
   },
   {
     id: 'aggregated',
@@ -93,10 +79,6 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
       route: Routes.ONBOARDING.GENERAL_SETTINGS,
       navigationStack: Routes.SETTINGS_VIEW,
     },
-    testID: WalletViewSelectorsIDs.CAROUSEL_FOURTH_SLIDE,
-    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_FOURTH_SLIDE_TITLE,
-    testIDCloseButton:
-      WalletViewSelectorsIDs.CAROUSEL_FOURTH_SLIDE_CLOSE_BUTTON,
   },
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   {
@@ -109,9 +91,6 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
       route: Routes.MULTI_SRP.IMPORT,
       navigationStack: Routes.SHEET.ACCOUNT_ACTIONS,
     },
-    testID: WalletViewSelectorsIDs.CAROUSEL_FIFTH_SLIDE,
-    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_FIFTH_SLIDE_TITLE,
-    testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_FIFTH_SLIDE_CLOSE_BUTTON,
   },
   ///: END:ONLY_INCLUDE_IF
   {
@@ -123,10 +102,6 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
       type: 'route',
       route: Routes.IDENTITY.TURN_ON_BACKUP_AND_SYNC,
     },
-    testID: WalletViewSelectorsIDs.CAROUSEL_SEVENTH_SLIDE,
-    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_SEVENTH_SLIDE_TITLE,
-    testIDCloseButton:
-      WalletViewSelectorsIDs.CAROUSEL_SEVENTH_SLIDE_CLOSE_BUTTON,
   },
 ];
 
