@@ -446,6 +446,14 @@
     "multisrp": {
       "title": "Birden fazla Gizli Kurtarma İfadesi ekleyin",
       "subtitle": "MetaMask'te cüzdanları içe aktarın veya kullanın"
+    },
+    "backupAndSync": {
+      "title": "Yedekleme ve senkronizasyon hizmetinizde",
+      "subtitle": "Hesaplarınızı yedekleyin ve ayarları senkronize edin."
+    },
+    "solana": {
+      "title": "Solana artık destekleniyor",
+      "subtitle": "Başlamak için bir Solana hesabı oluşturun"
     }
   },
   "wallet": {
@@ -482,7 +490,8 @@
     "import": "İçe aktar",
     "sort_by": "Şuna göre sırala",
     "filter_by": "Farklı filtrele",
-    "current_network": "Geçerli Ağ",
+    "current_network": "Geçerli ağ",
+    "popular_networks": "Popüler ağlar",
     "all_networks": "Tüm Ağlar",
     "declining_balance": "Azalan bakiye ({{currency}} yüksek-düşük)",
     "alphabetically": "Alfabetik olarak (A-Z)",
@@ -534,7 +543,7 @@
     "logout_to_import_seed": "Bir Gizli Kurtarma İfadesini içe aktarmak için önce oturumu kapatmanız gerekiyor.",
     "ready_to_explore": "Blokzinciri uygulamalarını keşfetmeye başlamak için hazır mısınız?",
     "unable_to_load": "Bakiye yüklenmedi",
-    "unable_to_find_conversion_rate": "dönüştürme oranı bulunamıyor",
+    "unable_to_find_conversion_rate": "dönüştürme oranı yok",
     "display_nft_media_desc": "Bir NFT'yi içe aktarmak için Ayarlar > Güvenlik ve gizlilik kısmında NFT medyasını göster seçeneğini açın.",
     "display_nft_media_cta": "NFT medyasını göster seçeneğini açın",
     "display_media_nft_warning": "NFT medyasını ve verilerini göstermek IP adresinizi merkezi sunuculara ifşa edebilir. Sadece mevcut riskleri anlıyorsanız NFT'yi içe aktarın.",
@@ -730,6 +739,7 @@
     "receive": "AL"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Yeni hesap oluştur",
     "import_account": "Bir hesabı içe aktar",
@@ -860,8 +870,6 @@
     "reset_notifications_description": "Bildirimlerin sıfırlanması, bildirim depolama anahtarlarınızı sildiğiniz ve tüm bildirim geçmişinizi sıfırladığınız anlamına gelir. Bunu yapmak istediğinizden emin misiniz?",
     "reset_notifications": "Bildirimleri sıfırla",
     "reset_notifications_success": "Bildirim depolama anahtarı silindi/yeniden oluşturuldu ve bildirim geçmişi sıfırlandı.",
-    "enabling_profile_sync": "Profil senkronizasyonu etkinleştiriliyor...",
-    "disabling_profile_sync": "Profil senkronizasyonu devre dışı bırakılıyor...",
     "notifications_dismiss_modal": "Yok say",
     "select_rpc_url": "RPC URL adresini seç",
     "title": "Ayarlar",
@@ -982,11 +990,9 @@
     "networks_desc": "Kişisel RPC ağı ekle ve düzenle",
     "network_name_label": "Ağ Adı",
     "network_name_placeholder": "Ağ Adı (isteğe bağlı)",
-    "network_rpc_url_label": "RPC URL adresi",
+    "network_rpc_url_label": "RPC Url adresi",
     "network_rpc_name_label": "RPC Adı",
     "network_rpc_placeholder": "Yeni RPC Ağı",
-    "network_failover_rpc_url_label": "Yedek RPC URL adresi",
-    "failover": "Yedekleme",
     "network_chain_id_label": "Zincir Kimliği",
     "network_chain_id_placeholder": "Zincir Kimliği",
     "network_symbol_label": "Sembol",
@@ -1359,7 +1365,7 @@
     "token_marketplace": "Token pazar yeri",
     "sell_button": "Sat",
     "receive_button": "Al",
-    "portfolio_button": "Portföy",
+    "portfolio_button": "Portfolio",
     "earn_button": "Kazan",
     "add_collectible_button": "Ekle",
     "info": "Bilgi",
@@ -1729,7 +1735,13 @@
       "generic": "Bu web sitesinin otomatik olarak harici bir uygulamayı açması engellendi"
     },
     "ipfs_gateway_off_title": "IPFS ağ geçidi kapalı",
-    "ipfs_gateway_off_content": "Bu siteyi görmek için Gizlilik ve Güvenlik Ayarlarında IPFS ağ geçidini açın."
+    "ipfs_gateway_off_content": "Bu siteyi görmek için Gizlilik ve Güvenlik Ayarlarında IPFS ağ geçidini açın.",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Solana dapp bağlantısı çok yakında hizmetinizde",
+        "message": "Uzantıda Solana dapp'lerine bağlanabilir veya uygulama içinde Solana token işlemleri yapabilirsiniz."
+      }
+    }
   },
   "backup_alert": {
     "title": "Cüzdanınızı koruyun",
@@ -1829,6 +1841,8 @@
     "sign_description_2": "İmzayı Al tuşuna tıklayın",
     "sign_get_signature": "İmza Al",
     "transaction_id": "İşlem Kimliği",
+    "network": "Ağ",
+    "request_from": "Talebi gönderen",
     "network_fee": "Ağ Ücreti",
     "network_fee_tooltip": "Ağ üzerinde işlemi gerçekleştirmek için ödenen tutar."
   },
@@ -3294,15 +3308,6 @@
     "enable_remember_me": "Beni Hatırla özelliğini aç",
     "enable_remember_me_description": "Beni Hatırla özelliği açıldığında telefonunuza erişimi olan herkes MetaMask hesabınıza erişim sağlayabilir."
   },
-  "profile_sync": {
-    "title": "Profil Senkronizasyonu",
-    "disable_warning": "Profil senkronizasyonunu kapatırsanız bildirimleri alamayacaksınız.",
-    "enable_description": "MetaMask'in cihazlarınız arasında bazı ayarları senkronize etmek için kullandığı bir profil oluşturur. Bildirim almak için bu gereklidir. ",
-    "enable_description2": " daha fazla bilgi edinin.",
-    "enable_privacy_link": "Gizliliğinizi nasıl koruduğumuzu öğrenin",
-    "bottomSheetTurnOn": "Profil Senkronizasyonu Açılıyor",
-    "bottomSheetTurnOff": "Profil Senkronizasyonu Kapatılıyor"
-  },
   "turn_off_remember_me": {
     "title": "Beni Hatırla özelliğini kapatmak için şifrenizi girin",
     "placeholder": "Şifre",
@@ -3505,6 +3510,7 @@
     "connect_hardware_wallet": "Bir hesabı bağla",
     "import_wallet_or_account": "Bir cüzdanı veya hesabı içe aktar",
     "add_account": "Yeni bir hesap oluştur",
+    "add_multichain_account": "Yeni bir {{networkName}} hesabı oluştur",
     "create_an_account": "Yeni bir hesap oluştur",
     "add_new_account": "Ethereum hesabı",
     "import_srp": "Gizli Kurtarma İfadesi",
@@ -3512,7 +3518,12 @@
     "import_account": "Özel anahtar",
     "add_bitcoin_account_testnet": "Bitcoin test ağı hesabı",
     "add_bitcoin_account_mainnet": "Bitcoin hesabı",
-    "add_solana_account": "Solana hesabı"
+    "add_solana_account": "Solana hesabı",
+    "switch_to_smart_account": "Akıllı Hesaba Geçiş Yap",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "NFT'yi göster",
@@ -3535,13 +3546,14 @@
     "title": "MetaMask'te Solana",
     "create_solana_account": "Solana hesabı oluştur",
     "not_now": "Şimdi değil",
-    "got_it": "Anladım",
+    "view_solana_account": "Solana hesabını görüntüle",
     "feature_1_title": "Token'ları gönder, al ve swap yap",
     "feature_1_description": "SOL, USDC ve diğerleri gibi token'larla transfer ve işlem yap.",
     "feature_2_title": "Solana hesaplarını içe aktar",
     "feature_2_description": "Başka bir cüzdandan Solana hesabınızı taşımak için bir Gizli Kurtarma İfadesini içe aktarın.",
     "feature_3_title": "Daha fazla özellik çok yakında",
-    "feature_3_description": "Solana merkeziyetsiz uygulamaları, NFT'ler, donanım cüzdanı desteği ve daha fazlası çok yakında."
+    "feature_3_description": "Solana merkeziyetsiz uygulamaları, NFT'ler, donanım cüzdanı desteği ve daha fazlası çok yakında.",
+    "learn_more": "Solana hesapları hakkında daha fazla bilgi edinin"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS ağ geçidi",
@@ -3575,6 +3587,32 @@
       "body_prefix": "Yılda",
       "body_suffix": "tutara kadar kazanmak için {{tokenSymbol}} borç verebilirsiniz.",
       "start_earning": "Kazanmaya başlayın"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "Bakım çalışması nedeniyle kapalıyız. Kısa sürede tekrar burada olacağız!"
+    },
+    "deposit": "Deposit",
+    "approve": "Approve",
+    "approval": "Approval",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "transaction_submitted": "Transaction Submitted",
+    "every_minute": "Every minute",
+    "immediate": "Immediate",
+    "apr": "APR",
+    "protocol": "Protocol",
+    "receive_tooltip": "receive tooltip",
+    "button": "button",
+    "receive": "Receive",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "Expected yearly increase of the value of your deposit, based on the reward rate over the past week.",
+        "part_two": "Note: APR changes over time."
+      },
+      "protocol": "A lending protocol is a smart contract that lets you lend tokens to earn rewards. It also lets users borrow tokens by putting up other tokens as collateral, against a fee which is paid to lenders.",
+      "reward_frequency": "Frequency at which your rewards are accounted for.",
+      "withdrawal_time": "The time it takes to withdraw your token from the protocol and get it back in your wallet",
+      "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets."
     }
   },
   "stake": {
@@ -3709,12 +3747,17 @@
     "basic_functionality": "Temel işlevsellik",
     "manage_networks": "Ağınızı seçin",
     "manage_networks_body": "Ethereum verilerine mümkün olan en güvenilir ve gizli erişimi sunmak amacıyla uzak yordam çağrısı (RPC) sağlayıcısı olarak Infura kullanırız. Kendi RPC'nizi seçebilirsiniz ancak tüm RPC'lerin işlemleri gerçekleştirmek için IP adresinizi ve Ethereum cüzdanınızı alacağını unutmayın. Infura'nın verileri nasıl kullandığı hakkında daha fazla bilgi edinmek için ",
-    "manage_networks_body2": " $1 bölümümüzü okuyun.",
+    "manage_networks_body2": " ve Infura'nın EVM hesaplarının verilerini nasıl ele aldığını öğrenin; Solana hesapları için ise ",
+    "manage_networks_body3": "buraya tıklayın.",
     "functionality_body": "MetaMask, internet hizmetleri üzerinden token bilgileri ve gaz ayarları gibi temel özellikler sunar. İnternet hizmetlerini kullandığınızda IP adresiniz, bu durumda MetaMask ile, paylaşılır. Bu tıpkı herhangi bir web sitesini ziyaret ettiğinizde olduğu gibidir. MetaMask bu verileri geçici olarak kullanır ve verilerinizi hiçbir zaman satmaz. Bir VPN kullanabilir veya bu hizmetleri kapatabilirsiniz ancak bu durum MetaMask deneyiminizi etkileyebilir. Daha fazla bilgi için ",
     "functionality_body2": " bölümümüzü okuyun.",
     "sheet": {
       "title_off": "Temel işlevselliği kapat",
       "description_off": "Bu, MetaMask'te zamanınızı tamamen optimize edemeyeceğiniz anlamına gelir. Temel özellikler (token bilgileri, en iyi gaz ayarları vb. gibi) sizin için sunulmayacaktır.",
+      "description_off2": "Bunu kapattığınızda şuradaki tüm özellikler de devre dışı bırakılır:",
+      "description_off2_related_features1": "güvenlik ve gizlilik, yedekleme ve senkronizasyon",
+      "description_off2_related_features1_and": "ve",
+      "description_off2_related_features2": "bildirimler.",
       "title_on": "Temel işlevselliği aç",
       "description_on": "MetaMask'te zamanınızı tamamen optimize etmek için bu özelliği açmanız gerekecektir. Temel özellikler (token bilgileri, en iyi gaz ayarları, bildirimler vb. gibi) web3 deneyimi için önemlidir.",
       "checkbox_label": "Anlıyorum ve devam etmek istiyorum",
@@ -3796,7 +3839,9 @@
       "primary_type": "Birincil tür",
       "request_from": "Talebi gönderen",
       "signing_in_with": "Şununla giriş yapılıyor:",
-      "spender": "Harcayan"
+      "spender": "Harcayan",
+      "now": "Şimdi",
+      "switching_to": "Geçiş Yapılan"
     },
     "title": {
       "signature": "İmza talebi",
@@ -3804,25 +3849,32 @@
       "permit_revoke": "İzni kaldır",
       "permit_NFTs": "Para çekme talebi",
       "signature_siwe": "Giriş talebi",
-      "contract_interaction": "İşlem talebi"
+      "contract_interaction": "İşlem talebi",
+      "transfer": "Transfer talebi",
+      "switch_account_type": "Hesap güncellemesi"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",
       "permit_NFTs": "Bu site NFT'lerinizi çekmek için izin istiyor.",
       "signature": "Onaylamadan önce talep bilgilerini inceleyin.",
       "signature_siwe": "Bir site, bu hesabın sahibinin siz olduğunuzu kanıtlamak için giriş yapmanızı istiyor.",
-      "contract_interaction": "Onaylamadan önce talep bilgilerini inceleyin."
+      "contract_interaction": "Onaylamadan önce talep bilgilerini inceleyin.",
+      "switch_to_smart_account": "Akıllı bir hesaba geçiş yapıyorsunuz.",
+      "switch_to_standard_account": "Tekrar standart bir hesaba geçiş yapıyorsunuz (EOA)."
     },
     "request_from": "Talebi gönderen",
     "staking_from": "Stake edilecek yer",
     "signing_in_with": "Şununla giriş yapılıyor:",
     "message": "Mesaj",
     "personal_sign_tooltip": "Bu site imzanızı istiyor",
-    "transaction_tooltip": "Bu site işleminizi istiyor",
+    "transaction_tooltip": "Bu site, işleminizi istiyor",
     "details": "Ayrıntılar",
     "qr_get_sign": "İmza Al",
     "qr_scan_text": "Donanım cüzdanınızla tarayın",
     "sign_with_ledger": "Ledger ile oturum aç",
+    "smart_account": "Akıllı Hesap",
+    "smart_contract": "Akıllı sözleşme",
+    "standard_account": "Standart Hesap",
     "siwe_message": {
       "url": "URL Adresi",
       "network": "Ağ",
@@ -3852,11 +3904,17 @@
       "tooltip": "Tahmini değişiklikler bu işlemi gerçekleştirirseniz meydana gelebilecek değişikliklerdir. Bu bir garanti değil, sadece bir tahmindir.",
       "unavailable": "Mevcut değil"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Akıllı Hesap",
+      "standardAccountLabel": "Standart Hesap",
+      "switch": "Değiştir"
+    },
     "unlimited": "Sınırsız",
     "none": "Hiçbiri",
     "advanced_details": "Gelişmiş bilgiler",
     "interacting_with": "Etkileşimde",
-    "review": "Review"
+    "review": "İncele",
+    "transferRequest": "Transfer talebi"
   },
   "change_in_simulation_modal": {
     "title": "Sonuçlar değişti",
@@ -3898,19 +3956,20 @@
     "quote_info_content": "Aramamıza göre bu teklif en iyi getiriyi sunmaktadır. Swap oranına dayanır ve köprüleme ücretleri ve %0,875 MetaMask ücreti dahildir ancak gaz ücretleri dahil değildir. Gaz ücretleri ağ faaliyetine ve işlemin karmaşıklığına göre değişiklik gösterebilir.",
     "quote_info_title": "Neden bu teklifi öneriyoruz",
     "see_other_quotes": "Diğer teklifleri gör",
-    "receive_at": "Alınacak",
-    "error_banner_description": "Bu işlem rotası şu anda kullanılamıyor. Tutarı, ağı veya token'ı değiştirmeyi deneyin ve en iyi seçeneği bulalım.",
+    "receive_at": "Şurada alınacak:",
+    "error_banner_description": "Bu işlem rotası şu anda kullanılamıyor. Tutarı, ağı veya token'ı değiştirmeyi deneyin ve sizin için en iyi seçeneği bulalım.",
     "insufficient_funds": "Para yetersiz",
     "select_amount": "Tutar seçin",
-    "bridge_to": "Köprü yapılan",
+    "bridge_to": "Köprü yapılan:",
     "title": "Köprü",
     "submitting_transaction": "Gönderiliyor",
-    "fetching_quote": "Teklif alınıyor"
+    "fetching_quote": "Teklif alınıyor",
+    "fee_disclaimer": "Includes 0.875% MM fee"
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "Yeni teklifler mevcut",
+    "description": "Oranlar {{refreshRate}} dakikada bir güncellenir, bu yüzden hazır olduğunuzda Yeni teklif al seçeneğine dokunun.",
+    "get_new_quote": "Yeni teklif al"
   },
   "bridge_transaction_details": {
     "status": "Durum",
@@ -3922,9 +3981,35 @@
     "bridge_step_action_swap_complete": "{{srcSymbol}} - {{destSymbol}} swap işlemi gerçekleştirildi",
     "bridge_step_action_swap_pending": "{{srcSymbol}} - {{destSymbol}} swap işlemi gerçekleştiriliyor",
     "view_on_block_explorer": "Blok Gezgininde Görüntüle",
-    "block_explorer_description": "Bu işlem iki ağda da bulunuyor. Birinci bağlantı kaynağı gösterir, ikincisi onaylandıktan sonra hedefi gösterir.",
+    "block_explorer_description": "Bu işlem iki ağda da bulunuyor. Birinci bağlantı, kaynağı gösterirken ikincisi onaylandıktan sonra hedefi gösterir.",
     "transaction_details": "İşlem Bilgileri",
     "bridge_to_chain": "{{chainName}} için köprü",
     "recipient": "Alıcı"
+  },
+  "backupAndSync": {
+    "title": "Yedekleme ve senkronizasyon",
+    "description": "Hesaplarınızı yedekleyin ve ayarları senkronize edin.",
+    "enabling": "Yedekleme ve senkronizasyon etkinleştiriliyor",
+    "disabling": "Yedekleme ve senkronizasyon devre dışı bırakılıyor",
+    "enable": {
+      "title": "Yedekleme ve senkronizasyonu aç",
+      "confirmation": "Yedekleme ve senkronizasyonu açtığınızda temel işlevselliği de açarsınız. Devam etmek istiyor musunuz?",
+      "description": "Yedekleme ve senkronizasyon, özel ayarlarınız ve özellikleriniz için şifrelenmiş verileri depolamamızı sağlar. Bu, cihazlar arasında aynı MetaMask deneyimini yaşamanızı sağlar ve MetaMask'i yeniden yüklemeniz gerekirse ayarları ve özellikleri geri yükler.",
+      "updatePreferences": "Tercihlerinizi dilediğiniz zaman şurada güncelleyebilirsiniz:",
+      "settingsPath": "Ayarlar > Yedekleme ve senkronizasyon."
+    },
+    "privacyLink": "Gizliliğinizi nasıl koruduğumuzu öğrenin",
+    "features": {
+      "accounts": "Hesaplar"
+    },
+    "manageWhatYouSync": {
+      "title": "Neleri senkronize ettiğinizi yönetin",
+      "description": "Cihazlarınız arasında nelerin senkronize edildiğini açın."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Bir varlık seçin"
+    }
   }
 }
