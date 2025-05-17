@@ -83,7 +83,7 @@ const Price = ({
 
   const price: number = isEvmNetworkSelected
     ? distributedPriceData[activeChartIndex]?.[1] || currentPrice
-    : Number(multichainAssetRates.rate);
+    : Number(multichainAssetRates?.rate);
 
   const date: string | undefined = distributedPriceData[activeChartIndex]?.[0]
     ? toDateFormat(distributedPriceData[activeChartIndex]?.[0])
