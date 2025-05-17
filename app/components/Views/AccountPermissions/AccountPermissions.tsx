@@ -42,6 +42,7 @@ import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 // Internal dependencies.
 import {
@@ -56,7 +57,7 @@ import URLParse from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
-import { getNetworkImageSource } from '../../../util/networks';
+import { getNetworkImageSource, isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
@@ -87,7 +88,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const accountsLength = useSelector(selectAccountsLength);
   const currentChainId = useSelector(selectEvmChainId);
-
+  const networkInfo = useNetworkInfo(hostname);
   const nonTestnetNetworks = useSelector(
     (state: RootState) =>
       Object.keys(selectEvmNetworkConfigurationsByChainId(state)).length + 1,
@@ -276,18 +277,21 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     /* eslint-disable-next-line */
     [setIsLoading],
   );
-
   const handleSelectChainIds = useCallback(async (chainIds: string[]) => {
     if (chainIds.length === 0) {
       toggleRevokeAllPermissionsModal();
       return;
     }
 
+    const { chainId: effectiveChainId } = isPerDappSelectedNetworkEnabled()
+    ? networkInfo
+    : { chainId: currentChainId };
+
       // Check if current network was originally permitted and is now being removed
       const wasCurrentNetworkOriginallyPermitted =
-        permittedChainIds.includes(currentChainId);
+        permittedChainIds.includes(effectiveChainId);
       const isCurrentNetworkStillPermitted =
-        chainIds.includes(currentChainId);
+        chainIds.includes(effectiveChainId);
 
       if (
         wasCurrentNetworkOriginallyPermitted &&
@@ -303,10 +307,18 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           const { rpcEndpoints, defaultRpcEndpointIndex } = config;
           const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
-          // Switch to the network using networkClientId
-          await Engine.context.MultichainNetworkController.setActiveNetwork(
-            networkClientId,
-          );
+          if (isPerDappSelectedNetworkEnabled()) {
+            // For per-dapp network selection, directly set the network for this domain
+            Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
+              hostname,
+              networkClientId,
+            );
+          } else {
+            // For global network selection, switch the active network
+            await Engine.context.MultichainNetworkController.setActiveNetwork(
+              networkClientId,
+            );
+          }
         }
       }
 
@@ -319,7 +331,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hostname,
     networkConfigurations,
     permittedChainIds,
-    toggleRevokeAllPermissionsModal
+    toggleRevokeAllPermissionsModal,
+    networkInfo
   ]);
 
   const handleSelectAccountAddresses = useCallback((selectedAccounts: string[], newUserIntent: USER_INTENT) => {
