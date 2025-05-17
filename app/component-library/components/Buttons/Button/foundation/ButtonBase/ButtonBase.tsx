@@ -31,6 +31,7 @@ const ButtonBase = ({
   style,
   width = DEFAULT_BUTTONBASE_WIDTH,
   isDisabled,
+  testID,
   ...props
 }: ButtonBaseProps) => {
   const { styles } = useStyles(styleSheet, {

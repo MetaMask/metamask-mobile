@@ -15,6 +15,18 @@ class SendView {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_INPUT);
   }
 
+  get solanaAddressInputField() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.SOLANA_INPUT_ADDRESS_FIELD);
+  }
+
+  get invalidAddressError() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.INVALID_ADDRESS_ERROR);
+  }
+
+  get sendSOLTransactionButton() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.SEND_TRANSACTION_BUTTON);
+  }
+
   get nextButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON)
@@ -83,6 +95,15 @@ class SendView {
     await Gestures.waitAndTap(this.addAddressButton);
   }
 
+  async inputSolanaAddress(address) {
+    await Gestures.replaceTextInField(this.solanaAddressInputField, address);
+  }
+
+  async inputSolanaAmount(amount) {
+    await Gestures.typeTextByIdAtIndex(SendViewSelectorsIDs.SOLANA_INPUT_ADDRESS_FIELD, 1, amount);
+  }
+
+
   async removeAddress() {
     await Gestures.waitAndTap(this.removeAddressButton);
     await TestHelpers.delay(1000);
@@ -91,6 +112,10 @@ class SendView {
   async splitAddressText(){
     const attributes = await (await this.sendAddressConfirmation).getAttributes();
     return await attributes.label.split(' ');
+  }
+
+  async tapSendSOLTransactionButton() {
+    await Gestures.waitAndTap(this.sendSOLTransactionButton);
   }
 }
 export default new SendView();
