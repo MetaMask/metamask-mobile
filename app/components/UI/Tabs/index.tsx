@@ -150,6 +150,10 @@ const TabsComponent = ({
     switchToTab(tab);
   }, [switchToTab]);
 
+const onClose = useCallback((tab: TabThumbnailProps['tab']) => {
+  closeTab(tab);
+}, [closeTab]);
+
   const onNewTabPress = useCallback(() => {
     newTab();
     metrics.trackEvent(
@@ -186,7 +190,7 @@ const TabsComponent = ({
           key={tab.id}
           tab={tab}
           isActiveTab={activeTabId === tab.id}
-          onClose={closeTab}
+          onClose={onClose}
           onSwitch={onSwitch}
         />
       ))}

@@ -147,15 +147,15 @@ export const Browser = (props) => {
     [updateTab],
   );
 
-  const hideTabsAndUpdateUrl = (url) => {
+  const hideTabsAndUpdateUrl = useCallback((url) => {
     navigation.setParams({
       ...route.params,
       showTabs: false,
       url,
     });
-  };
+  }, [navigation, route.params]);
 
-  const switchToTab = (tab) => {
+  const switchToTab = useCallback((tab) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build(),
     );
@@ -165,7 +165,7 @@ export const Browser = (props) => {
       url: tab.url,
       isArchived: false,
     });
-  };
+  }, [hideTabsAndUpdateUrl, trackEvent, createEventBuilder, setActiveTab, updateTabInfo]);
 
   const hasAccounts = useRef(Boolean(accounts.length));
 
@@ -361,7 +361,7 @@ export const Browser = (props) => {
     }
   };
 
-  const closeTab = (tab) => {
+  const closeTab = useCallback((tab) => {
     // If the tab was selected we have to select
     // the next one, and if there's no next one,
     // we select the previous one.
@@ -389,7 +389,7 @@ export const Browser = (props) => {
     }
 
     triggerCloseTab(tab.id);
-  };
+  }, [triggerCloseTab, tabs, activeTabId, navigation, setActiveTab, route.params]);
 
   const closeTabsView = () => {
     if (tabs.length) {
