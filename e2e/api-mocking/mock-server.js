@@ -84,8 +84,19 @@ export const startMockServer = async (events, port) => {
             };
           }
 
-          // We don't use _.isEqual because we want to ignore extra fields in the request body
-          const matches = _.isMatch(requestBodyJson, matchingEvent.requestBody);
+          // Clone objects to avoid mutations
+          const requestToCheck = _.cloneDeep(requestBodyJson);
+          const expectedRequest = _.cloneDeep(matchingEvent.requestBody);
+          
+          const ignoreFields = matchingEvent.ignoreFields || [];
+          
+          // Remove ignored fields from both objects for comparison
+          ignoreFields.forEach(field => {
+            _.unset(requestToCheck, field);
+            _.unset(expectedRequest, field);
+          });
+
+          const matches = _.isMatch(requestToCheck, expectedRequest);
 
           if (!matches) {
             console.log('Request body validation failed:');
