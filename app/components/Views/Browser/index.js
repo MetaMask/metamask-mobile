@@ -78,6 +78,8 @@ export const Browser = (props) => {
   const prevSiteHostname = useRef(browserUrl);
   const { evmAccounts: accounts, ensByAccountAddress } = useAccounts();
   const [_tabIdleTimes, setTabIdleTimes] = useState({});
+  const [shouldShowTabs, setShouldShowTabs] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState(browserUrl);
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -148,11 +150,8 @@ export const Browser = (props) => {
   );
 
   const hideTabsAndUpdateUrl = (url) => {
-    navigation.setParams({
-      ...route.params,
-      showTabs: false,
-      url,
-    });
+    setShouldShowTabs(false);
+    setCurrentUrl(url);
   };
 
   const switchToTab = (tab) => {
@@ -208,7 +207,7 @@ export const Browser = (props) => {
 
   useEffect(() => {
     const checkIfActiveAccountChanged = () => {
-      const hostname = new URL(browserUrl).hostname;
+      const hostname = new URL(currentUrl || browserUrl).hostname;
       const permittedAccounts = getPermittedAccounts(hostname);
       const activeAccountAddress = permittedAccounts?.[0];
 
@@ -235,22 +234,23 @@ export const Browser = (props) => {
     };
 
     // Handle when the Browser initially mounts and when url changes.
-    if (accounts.length && browserUrl) {
-      const hostname = new URL(browserUrl).hostname;
+    const effectiveUrl = currentUrl || browserUrl;
+    if (accounts.length && effectiveUrl) {
+      const hostname = new URL(effectiveUrl).hostname;
       if (prevSiteHostname.current !== hostname || !hasAccounts.current) {
         checkIfActiveAccountChanged();
       }
       hasAccounts.current = true;
       prevSiteHostname.current = hostname;
     }
-  }, [browserUrl, accounts, ensByAccountAddress, accountAvatarType, toastRef]);
+  }, [currentUrl, browserUrl, accounts, ensByAccountAddress, accountAvatarType, toastRef]);
 
   // componentDidMount
   useEffect(
     () => {
-      const currentUrl = route.params?.newTabUrl;
+      const newTabUrl = route.params?.newTabUrl;
       const existingTabId = route.params?.existingTabId;
-      if (!currentUrl && !existingTabId) {
+      if (!newTabUrl && !existingTabId) {
         // Nothing from deeplink, carry on.
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (activeTab) {
@@ -337,7 +337,7 @@ export const Browser = (props) => {
     [updateTab],
   );
 
-  const showTabs = useCallback(async () => {
+  const showTabsView = useCallback(async () => {
     try {
       const activeTab = tabs.find((tab) => tab.id === activeTabId);
       await takeScreenshot(activeTab.url, activeTab.id);
@@ -345,19 +345,13 @@ export const Browser = (props) => {
       Logger.error(e);
     }
 
-    navigation.setParams({
-      ...route.params,
-      showTabs: true,
-    });
-  }, [tabs, activeTabId, route.params, navigation, takeScreenshot]);
+    setShouldShowTabs(true);
+  }, [tabs, activeTabId, takeScreenshot]);
 
   const closeAllTabs = () => {
     if (tabs.length) {
       triggerCloseAllTabs();
-      navigation.setParams({
-        ...route.params,
-        url: null,
-      });
+      setCurrentUrl(null);
     }
   };
 
@@ -374,17 +368,11 @@ export const Browser = (props) => {
               newTab = tabs[i + 1];
             }
             setActiveTab(newTab.id);
-            navigation.setParams({
-              ...route.params,
-              url: newTab.url,
-            });
+            setCurrentUrl(newTab.url);
           }
         });
       } else {
-        navigation.setParams({
-          ...route.params,
-          url: null,
-        });
+        setCurrentUrl(null);
       }
     }
 
@@ -393,16 +381,12 @@ export const Browser = (props) => {
 
   const closeTabsView = () => {
     if (tabs.length) {
-      navigation.setParams({
-        ...route.params,
-        showTabs: false,
-      });
+      setShouldShowTabs(false);
     }
   };
 
   const renderTabList = () => {
-    const showTabs = route.params?.showTabs;
-    if (showTabs) {
+    if (shouldShowTabs) {
       return (
         <Tabs
           tabs={tabs}
@@ -429,19 +413,19 @@ export const Browser = (props) => {
             initialUrl={tab.url}
             linkType={tab.linkType}
             updateTabInfo={updateTabInfo}
-            showTabs={showTabs}
+            showTabs={showTabsView}
             newTab={newTab}
-            isInTabsView={route.params?.showTabs}
+            isInTabsView={shouldShowTabs}
             homePageUrl={homePageUrl()}
           />
         )),
     [
       tabs,
-      route.params?.showTabs,
+      shouldShowTabs,
       newTab,
       homePageUrl,
       updateTabInfo,
-      showTabs,
+      showTabsView,
     ],
   );
 
