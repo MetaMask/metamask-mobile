@@ -25,8 +25,8 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
+  getDefaultNetworkControllerState,
   NetworkController,
-  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
@@ -202,6 +202,14 @@ import { appMetadataControllerInit } from './controllers/app-metadata-controller
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
 import { BRIDGE_API_BASE_URL } from '../../constants/bridge';
+import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
+import {
+  onRpcEndpointDegraded,
+  onRpcEndpointUnavailable,
+} from './controllers/network-controller/messenger-action-handlers';
+import { INFURA_PROJECT_ID } from '../../constants/network';
+import { SECOND } from '../../constants/time';
+import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -304,25 +312,118 @@ export class Engine {
       },
     });
 
-    const networkControllerOpts = {
-      infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-      state: initialState.NetworkController,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'NetworkController',
-        allowedEvents: [],
-        allowedActions: [],
-      }) as unknown as NetworkControllerMessenger,
-      getRpcServiceOptions: () => ({
-        fetch,
-        btoa,
-      }),
-      additionalDefaultNetworks: [
-        ChainId['megaeth-testnet'],
-        ChainId['monad-testnet'],
-      ],
-    };
-    const networkController = new NetworkController(networkControllerOpts);
+    const networkControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'NetworkController',
+      allowedEvents: [],
+      allowedActions: [],
+    });
 
+    const additionalDefaultNetworks = [
+      ChainId['megaeth-testnet'],
+      ChainId['monad-testnet'],
+    ];
+
+    let initialNetworkControllerState = initialState.NetworkController;
+    if (!initialNetworkControllerState) {
+      initialNetworkControllerState = getDefaultNetworkControllerState(
+        additionalDefaultNetworks,
+      );
+
+      // Add failovers for default Infura RPC endpoints
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId.mainnet
+      ].rpcEndpoints[0].failoverUrls =
+        getFailoverUrlsForInfuraNetwork('ethereum-mainnet');
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId['linea-mainnet']
+      ].rpcEndpoints[0].failoverUrls =
+        getFailoverUrlsForInfuraNetwork('linea-mainnet');
+    }
+
+    const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
+    const networkControllerOptions = {
+      infuraProjectId,
+      state: initialNetworkControllerState,
+      messenger: networkControllerMessenger,
+      getBlockTrackerOptions: () =>
+        process.env.IN_TEST
+          ? {}
+          : {
+              pollingInterval: 20 * SECOND,
+              // The retry timeout is pretty short by default, and if the endpoint is
+              // down, it will end up exhausting the max number of consecutive
+              // failures quickly.
+              retryTimeout: 20 * SECOND,
+            },
+      getRpcServiceOptions: (rpcEndpointUrl: string) => {
+        const maxRetries = 4;
+        const commonOptions = {
+          fetch: globalThis.fetch.bind(globalThis),
+          btoa: globalThis.btoa.bind(globalThis),
+        };
+
+        if (getIsQuicknodeEndpointUrl(rpcEndpointUrl)) {
+          return {
+            ...commonOptions,
+            policyOptions: {
+              maxRetries,
+              // When we fail over to Quicknode, we expect it to be down at
+              // first while it is being automatically activated. If an endpoint
+              // is down, the failover logic enters a "cooldown period" of 30
+              // minutes. We'd really rather not enter that for Quicknode, so
+              // keep retrying longer.
+              maxConsecutiveFailures: (maxRetries + 1) * 14,
+            },
+          };
+        }
+
+        return {
+          ...commonOptions,
+          policyOptions: {
+            maxRetries,
+            // Ensure that the circuit does not break too quickly.
+            maxConsecutiveFailures: (maxRetries + 1) * 7,
+          },
+        };
+      },
+      additionalDefaultNetworks,
+    };
+    const networkController = new NetworkController(networkControllerOptions);
+    networkControllerMessenger.subscribe(
+      'NetworkController:rpcEndpointUnavailable',
+      async ({ chainId, endpointUrl, error }) => {
+        onRpcEndpointUnavailable({
+          chainId,
+          endpointUrl,
+          infuraProjectId,
+          error,
+          trackEvent: ({ event, properties }) => {
+            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
+              .addProperties(properties)
+              .build();
+            MetaMetrics.getInstance().trackEvent(metricsEvent);
+          },
+          metaMetricsId: await MetaMetrics.getInstance().getMetaMetricsId(),
+        });
+      },
+    );
+    networkControllerMessenger.subscribe(
+      'NetworkController:rpcEndpointDegraded',
+      async ({ chainId, endpointUrl }) => {
+        onRpcEndpointDegraded({
+          chainId,
+          endpointUrl,
+          infuraProjectId,
+          trackEvent: ({ event, properties }) => {
+            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
+              .addProperties(properties)
+              .build();
+            MetaMetrics.getInstance().trackEvent(metricsEvent);
+          },
+          metaMetricsId: await MetaMetrics.getInstance().getMetaMetricsId(),
+        });
+      },
+    );
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
@@ -367,12 +468,35 @@ export class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
-    const remoteFeatureFlagController = createRemoteFeatureFlagController({
-      messenger: this.controllerMessenger.getRestricted({
+    const remoteFeatureFlagControllerMessenger =
+      this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
         allowedActions: [],
         allowedEvents: [],
-      }),
+      });
+    remoteFeatureFlagControllerMessenger.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      (isRpcFailoverEnabled) => {
+        if (isRpcFailoverEnabled) {
+          Logger.log(
+            'isRpcFailoverEnabled = ',
+            isRpcFailoverEnabled,
+            ', enabling RPC failover',
+          );
+          networkController.enableRpcFailover();
+        } else {
+          Logger.log(
+            'isRpcFailoverEnabled = ',
+            isRpcFailoverEnabled,
+            ', disabling RPC failover',
+          );
+          networkController.disableRpcFailover();
+        }
+      },
+      (state) => state.remoteFeatureFlags.walletFrameworkRpcFailoverEnabled,
+    );
+    const remoteFeatureFlagController = createRemoteFeatureFlagController({
+      messenger: remoteFeatureFlagControllerMessenger,
       disabled: !isBasicFunctionalityToggleEnabled(),
       getMetaMetricsId: () => metaMetricsId ?? '',
     });
