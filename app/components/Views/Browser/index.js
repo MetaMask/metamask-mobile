@@ -78,8 +78,8 @@ export const Browser = (props) => {
   const prevSiteHostname = useRef(browserUrl);
   const { evmAccounts: accounts, ensByAccountAddress } = useAccounts();
   const [_tabIdleTimes, setTabIdleTimes] = useState({});
-  const [showTabs, setShowTabs] = useState(false);
-  const [currentUrl, setCurrentUrl] = useState(null);
+  const [shouldShowTabs, setShouldShowTabs] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState(browserUrl);
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -150,7 +150,7 @@ export const Browser = (props) => {
   );
 
   const hideTabsAndUpdateUrl = (url) => {
-    setShowTabs(false);
+    setShouldShowTabs(false);
     setCurrentUrl(url);
   };
 
@@ -345,7 +345,7 @@ export const Browser = (props) => {
       Logger.error(e);
     }
 
-    setShowTabs(true);
+    setShouldShowTabs(true);
   }, [tabs, activeTabId, takeScreenshot]);
 
   const closeAllTabs = () => {
@@ -381,12 +381,12 @@ export const Browser = (props) => {
 
   const closeTabsView = () => {
     if (tabs.length) {
-      setShowTabs(false);
+      setShouldShowTabs(false);
     }
   };
 
   const renderTabList = () => {
-    if (showTabs) {
+    if (shouldShowTabs) {
       return (
         <Tabs
           tabs={tabs}
@@ -415,13 +415,13 @@ export const Browser = (props) => {
             updateTabInfo={updateTabInfo}
             showTabs={showTabsView}
             newTab={newTab}
-            isInTabsView={showTabs}
+            isInTabsView={shouldShowTabs}
             homePageUrl={homePageUrl()}
           />
         )),
     [
       tabs,
-      showTabs,
+      shouldShowTabs,
       newTab,
       homePageUrl,
       updateTabInfo,
