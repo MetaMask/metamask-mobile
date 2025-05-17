@@ -37,6 +37,7 @@ import { getDecodedProxiedURL } from './helpers';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { encryptedStorageWithTriggers } from './mock-user-storage-data';
 import { NOTIFICATION_STORAGE_HASHED_KEY } from './constants';
+import { mockIdentityServices } from '../../identity/utils/mocks';
 
 export const mockListNotificationsResponse = getMockListNotificationsResponse();
 mockListNotificationsResponse.response = [
@@ -82,15 +83,12 @@ export function getMockFeatureAnnouncementItemId() {
  * @param {import('mockttp').Mockttp} server - obj used to mock our endpoints
  */
 export async function mockNotificationServices(server) {
-  // Auth
-  mockAPICall(server, getMockAuthNonceResponse());
-  mockAPICall(server, getMockAuthLoginResponse());
-  mockAPICall(server, getMockAuthAccessTokenResponse());
+  // Storage and Auth
+  const { userStorageMockttpControllerInstance } = await mockIdentityServices(
+    server,
+  );
 
   // User Storage
-  const userStorageMockttpControllerInstance =
-    new UserStorageMockttpController();
-
   const initialEncryptedTriggers = await encryptedStorageWithTriggers();
   await userStorageMockttpControllerInstance.setupPath(
     USER_STORAGE_FEATURE_NAMES.notifications,
