@@ -2,53 +2,29 @@ import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import images from '../../../../../../../images/image-icons';
 import { selectTransactionState } from '../../../../../../../reducers/transaction';
-import TokenIcon from '../../../../../../UI/Swaps/components/TokenIcon';
+import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 import { useConfirmationContext } from '../../../../context/confirmation-context';
-import { useTokenValues } from '../../../../hooks/useTokenValues';
 import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
+import { useTokenAsset } from '../../../../hooks/useTokenAsset';
+import { useTokenAmount } from '../../../../hooks/useTokenAmount';
 import AnimatedPulse from '../../../UI/animated-pulse';
 import { TooltipModal } from '../../../UI/Tooltip/Tooltip';
+import { AvatarTokenWithNetworkBadge } from './avatar-token-with-network-badge';
 import styleSheet from './token-hero.styles';
 
-const NetworkAndTokenImage = ({
-  tokenSymbol,
-  styles,
-}: {
-  tokenSymbol: string;
-  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
-}) => (
-  <View style={styles.networkAndTokenContainer}>
-    <BadgeWrapper
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        <Badge imageSource={images.ETHEREUM} variant={BadgeVariant.Network} />
-      }
-    >
-      <TokenIcon big symbol={tokenSymbol} />
-    </BadgeWrapper>
-  </View>
-);
-
 const AssetAmount = ({
-  tokenAmountDisplayValue,
+  amountDisplay,
   tokenSymbol,
   styles,
   setIsModalVisible,
 }: {
-  tokenAmountDisplayValue: string;
-  tokenSymbol: string;
+  amountDisplay?: string;
+  tokenSymbol?: string;
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
   setIsModalVisible: ((isModalVisible: boolean) => void) | null;
 }) => (
@@ -56,44 +32,59 @@ const AssetAmount = ({
     {setIsModalVisible ? (
       <TouchableOpacity onPress={() => setIsModalVisible(true)}>
         <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
-          {tokenAmountDisplayValue} {tokenSymbol}
+          {amountDisplay} {tokenSymbol}
         </Text>
       </TouchableOpacity>
     ) : (
       <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
-        {tokenAmountDisplayValue} {tokenSymbol}
+        {amountDisplay} {tokenSymbol}
       </Text>
     )}
   </View>
 );
 
 const AssetFiatConversion = ({
-  fiatDisplayValue,
+  fiatDisplay,
   styles,
 }: {
-  fiatDisplayValue: string;
+  fiatDisplay?: string;
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
-}) => (
-  <Text style={styles.assetFiatConversionText} variant={TextVariant.BodyMD}>
-    {fiatDisplayValue}
-  </Text>
-);
+}) => {
+  const hideFiatForTestnet = useHideFiatForTestnet();
+  if (hideFiatForTestnet || !fiatDisplay) {
+    return null;
+  }
 
-const TokenHero = ({ amountWei }: { amountWei?: string }) => {
+  return (
+    <Text style={styles.assetFiatConversionText} variant={TextVariant.BodyMD}>
+      {fiatDisplay}
+    </Text>
+  );
+};
+
+const TokenHero = ({
+  amountWei,
+  showNetworkBadge = true,
+}: {
+  amountWei?: string;
+  showNetworkBadge?: boolean;
+}) => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
   const { isTransactionValueUpdating } = useConfirmationContext();
   const { isFlatConfirmation } = useFlatConfirmation();
   const { maxValueMode } = useSelector(selectTransactionState);
   const { styles } = useStyles(styleSheet, {
     isFlatConfirmation,
   });
-  const { tokenAmountValue, tokenAmountDisplayValue, fiatDisplayValue } =
-    useTokenValues({ amountWei });
-  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const displayTokenAmountIsRounded =
-    tokenAmountValue !== tokenAmountDisplayValue;
+  const { amountPreciseDisplay, amountDisplay, fiatDisplay } =
+    useTokenAmount({ amountWei });
+  const {
+    asset: { symbol, ticker },
+  } = useTokenAsset();
 
-  const tokenSymbol = 'ETH';
+  const isRoundedAmount = amountPreciseDisplay !== amountDisplay;
 
   return (
     <AnimatedPulse
@@ -101,24 +92,21 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
       preventPulse={!maxValueMode}
     >
       <View style={styles.container}>
-        <NetworkAndTokenImage tokenSymbol={tokenSymbol} styles={styles} />
+        <View style={styles.containerAvatarTokenNetworkWithBadge}>
+          <AvatarTokenWithNetworkBadge canShowBadge={showNetworkBadge} />
+        </View>
         <AssetAmount
-          tokenAmountDisplayValue={tokenAmountDisplayValue}
-          tokenSymbol={tokenSymbol}
+          amountDisplay={amountDisplay}
+          tokenSymbol={ticker || symbol}
           styles={styles}
-          setIsModalVisible={
-            displayTokenAmountIsRounded ? setIsModalVisible : null
-          }
+          setIsModalVisible={isRoundedAmount ? setIsModalVisible : null}
         />
-        <AssetFiatConversion
-          fiatDisplayValue={fiatDisplayValue}
-          styles={styles}
-        />
-        {displayTokenAmountIsRounded && (
+        <AssetFiatConversion fiatDisplay={fiatDisplay} styles={styles} />
+        {isRoundedAmount && (
           <TooltipModal
             open={isModalVisible}
             setOpen={setIsModalVisible}
-            content={tokenAmountValue}
+            content={amountPreciseDisplay}
             title={strings('send.amount')}
             tooltipTestId="token-hero-amount"
           />
