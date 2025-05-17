@@ -66,8 +66,8 @@ const AccountConnectSingle = ({
               label: strings('accounts.connect_multiple_accounts'),
               onPress: () => {
                 onSetSelectedAddresses(
-                  defaultSelectedAccount?.address
-                    ? [defaultSelectedAccount.address]
+                  defaultSelectedAccount?.caipAccountId
+                    ? [defaultSelectedAccount.caipAccountId]
                     : [],
                 );
                 onSetScreen(AccountConnectScreens.MultiConnectSelector);
@@ -93,7 +93,7 @@ const AccountConnectSingle = ({
       onSetSelectedAddresses,
       isLoading,
       styles,
-      defaultSelectedAccount?.address,
+      defaultSelectedAccount?.caipAccountId,
       connection,
     ],
   );
