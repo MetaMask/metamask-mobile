@@ -1197,11 +1197,12 @@ export const MOCK_KEYRING_CONTROLLER_STATE = {
         '0x089595380921f555d52ab6f5a49defdaab23b444',
         '0xa4a80ce0afdfb8e6bd1221d3b18a1653eee6d19d',
       ],
+      metadata: { id: '01JT88PPSFQW1C2SGPKTS874ZX', name: '' },
     },
-    { type: 'QR Hardware Wallet Device', accounts: [] },
-  ],
-  keyringsMetadata: [
-    { id: '01JT88PPSFQW1C2SGPKTS874ZX', name: '' },
-    { id: '01JT88PSBXWQ36YBFJWHJAC9T2', name: '' },
+    {
+      type: 'QR Hardware Wallet Device',
+      accounts: [],
+      metadata: { id: '01JT88PSBXWQ36YBFJWHJAC9T2', name: '' },
+    },
   ],
 };

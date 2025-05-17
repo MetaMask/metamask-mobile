@@ -77,26 +77,22 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const mockKeyringMetadata1 = {
-  id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
-  name: '',
-};
-
-const mockKeyringMetadata2 = {
-  id: '01JKZ56KRVYEEHC601HSNW28T2',
-  name: '',
-};
-
 const mockKeyring1 = {
   type: ExtendedKeyringTypes.hd,
   accounts: [internalAccount1.address],
-  metadata: mockKeyringMetadata1,
+  metadata: {
+    id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
+    name: '',
+  },
 };
 
 const mockKeyring2 = {
   type: ExtendedKeyringTypes.hd,
   accounts: [internalAccount2.address],
-  metadata: mockKeyringMetadata2,
+  metadata: {
+    id: '01JKZ56KRVYEEHC601HSNW28T2',
+    name: '',
+  },
 };
 
 const mockNextAccountName = 'Account 3';
@@ -108,7 +104,6 @@ const initialState = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       KeyringController: {
         keyrings: [mockKeyring1, mockKeyring2],
-        keyringsMetadata: [mockKeyringMetadata1, mockKeyringMetadata2],
       },
     },
   },
@@ -213,7 +208,7 @@ describe('AddNewAccount', () => {
     fireEvent.press(addButton);
 
     expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyringMetadata2.id,
+      mockKeyring2.metadata.id,
       mockNextAccountName,
     );
   });
@@ -228,7 +223,7 @@ describe('AddNewAccount', () => {
     fireEvent.press(addButton);
 
     expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyringMetadata2.id,
+      mockKeyring2.metadata.id,
       'My Custom Account',
     );
   });
@@ -330,7 +325,7 @@ describe('AddNewAccount', () => {
         ).toHaveBeenCalledWith({
           scope: MultichainNetwork.Solana,
           accountNameSuggestion: 'Solana Account 1',
-          entropySource: mockKeyringMetadata2.id,
+          entropySource: mockKeyring2.metadata.id,
         });
       });
     });
