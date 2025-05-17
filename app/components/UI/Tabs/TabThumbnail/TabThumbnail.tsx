@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useEffect, useMemo } from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../../locales/i18n';
@@ -42,10 +42,27 @@ const TabThumbnail = ({
   onClose,
   onSwitch,
 }: TabThumbnailProps) => {
+  console.log('TabThumbnail executing')
   const { colors } = useContext(ThemeContext) || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
   const Container: React.ElementType = Device.isAndroid() ? View : ElevatedView;
   const tabTitle = getHost(tab.url);
+
+  useEffect(() => {
+    console.log('[TabThumbnail] tab changed', tab.id);
+  }, [tab]);
+  
+  useEffect(() => {
+    console.log('[TabThumbnail] isActiveTab changed', isActiveTab);
+  }, [isActiveTab]);
+  
+  useEffect(() => {
+    console.log('[TabThumbnail] onClose reference changed');
+  }, [onClose]);
+  
+  useEffect(() => {
+    console.log('[TabThumbnail] onSwitch reference changed');
+  }, [onSwitch]);
 
   // Get permitted accounts for this hostname
   const permittedAccountsList = useSelector(selectPermissionControllerState);
@@ -135,4 +152,4 @@ const TabThumbnail = ({
   );
 };
 
-export default TabThumbnail;
+export default React.memo(TabThumbnail);

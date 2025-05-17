@@ -26,6 +26,8 @@ import {
 } from '../../../core/Multichain/utils';
 import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
 
+let i = 0;
+
 /**
  * Hook that returns both wallet accounts and ens name information.
  *
@@ -35,6 +37,7 @@ const useAccounts = ({
   checkBalanceError: checkBalanceErrorFn,
   isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
+  console.log('useAccounts executing', i++)
   const isMountedRef = useRef(false);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [evmAccounts, setEVMAccounts] = useState<Account[]>([]);

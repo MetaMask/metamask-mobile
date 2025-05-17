@@ -15,6 +15,7 @@ const browserReducer = (state = initialState, action) => {
   switch (action.type) {
     case BrowserActionTypes.ADD_TO_VIEWED_DAPP: {
       const { hostname } = action;
+      console.log('ADD_TO_VIEWED_DAPP', hostname);
       return {
         ...state,
         visitedDappsByHostname: {
@@ -25,18 +26,20 @@ const browserReducer = (state = initialState, action) => {
     }
     case 'ADD_TO_BROWSER_HISTORY': {
       const { url, name } = action;
-
+      console.log('ADD_TO_BROWSER_HISTORY', url, name);
       return {
         ...state,
         history: [...state.history, { url, name }].slice(-50),
       };
     }
     case 'ADD_TO_BROWSER_WHITELIST':
+      console.log('ADD_TO_BROWSER_WHITELIST', action.url);
       return {
         ...state,
         whitelist: [...state.whitelist, action.url],
       };
     case 'CLEAR_BROWSER_HISTORY':
+      console.log('CLEAR_BROWSER_HISTORY', action.id);
       return {
         ...state,
         history: [],
@@ -53,11 +56,13 @@ const browserReducer = (state = initialState, action) => {
         activeTab: action.id,
       };
     case 'CLOSE_ALL_TABS':
+      console.log('CLOSE_ALL_TABS');
       return {
         ...state,
         tabs: [],
       };
     case 'CREATE_NEW_TAB':
+      console.log('CREATE_NEW_TAB', action.id, action.url);
       return {
         ...state,
         tabs: [
@@ -70,16 +75,19 @@ const browserReducer = (state = initialState, action) => {
         ],
       };
     case 'CLOSE_TAB':
+      console.log('CLOSE_TAB', action.id);
       return {
         ...state,
         tabs: state.tabs.filter((tab) => tab.id !== action.id),
       };
     case 'SET_ACTIVE_TAB':
+      console.log('SET_ACTIVE_TAB', action.id);
       return {
         ...state,
         activeTab: action.id,
       };
     case 'UPDATE_TAB':
+      console.log('UPDATE_TAB', action.id, action.data);
       return {
         ...state,
         tabs: state.tabs.map((tab) => {
@@ -90,6 +98,7 @@ const browserReducer = (state = initialState, action) => {
         }),
       };
     case 'STORE_FAVICON_URL':
+      console.log('STORE_FAVICON_URL', action.origin);
       return {
         ...state,
         favicons: [

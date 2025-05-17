@@ -91,6 +91,54 @@ export const Browser = (props) => {
   const currentSelectedAccount = useSelector(selectSelectedInternalAccount);
   ///: END:ONLY_INCLUDE_IF
 
+
+  useEffect(() => {
+    console.log('[Browser] route changed', route);
+  }, [route]);
+  
+  useEffect(() => {
+    console.log('[Browser] navigation changed', navigation);
+  }, [navigation]);
+  
+  useEffect(() => {
+    console.log('[Browser] createNewTab changed');
+  }, [createNewTab]);
+  
+  useEffect(() => {
+    console.log('[Browser] triggerCloseAllTabs changed');
+  }, [triggerCloseAllTabs]);
+  
+  useEffect(() => {
+    console.log('[Browser] triggerCloseTab changed');
+  }, [triggerCloseTab]);
+  
+  useEffect(() => {
+    console.log('[Browser] setActiveTab changed');
+  }, [setActiveTab]);
+  
+  useEffect(() => {
+    console.log('[Browser] updateTab changed');
+  }, [updateTab]);
+  
+  useEffect(() => {
+    console.log('[Browser] activeTabId changed', activeTabId);
+  }, [activeTabId]);
+  
+  useEffect(() => {
+    console.log('[Browser] tabs changed', tabs.length);
+  }, [tabs]);
+  
+  useEffect(() => {
+    console.log('[Browser] tabs contents changed');
+  }, [JSON.stringify(tabs)]);
+  
+  // Specifically for route.params which is often problematic
+  useEffect(() => {
+    console.log('[Browser] route.params changed', route.params);
+  }, [route.params]);
+
+
+
   const homePageUrl = useCallback(
     () =>
       appendURLParams(AppConstants.HOMEPAGE_URL, {
