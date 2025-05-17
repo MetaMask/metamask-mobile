@@ -41,6 +41,10 @@ class TokenOverview {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.SWAP_BUTTON);
   }
 
+  get bridgeButton() {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.BRIDGE_BUTTON);
+  }
+
   get claimButton() {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.CLAIM_BUTTON);
   }
@@ -91,6 +95,10 @@ class TokenOverview {
 
   async tapActionSheetSendButton() {
     await Gestures.waitAndTap(this.actionSheetSendButton);
+  }
+
+  async tapBridgeButton() {
+    await Gestures.waitAndTap(this.bridgeButton);
   }
 
   async tapSwapButton() {

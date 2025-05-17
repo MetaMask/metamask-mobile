@@ -177,6 +177,10 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE);
   }
 
+  get notNow() {
+    return Matchers.getElementByText('Not now');
+  }
+
   async tapCurrentMainWalletAccountActions() {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
@@ -310,6 +314,10 @@ class WalletView {
 
   async tapCarouselSlide() {
     await Gestures.tap(this.carouselSlide);
+  }
+
+  async tapNotNow() {
+    await Gestures.tap(this.notNow);
   }
 }
 

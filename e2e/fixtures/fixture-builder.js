@@ -851,7 +851,7 @@ class FixtureBuilder {
     return this;
   }
 
-  withGanacheNetwork() {
+  withGanacheNetwork(chainId = '0x539') {
     const fixtures = this.fixture.state.engine.backgroundState;
 
     // Generate a unique key for the new network client ID
@@ -862,7 +862,7 @@ class FixtureBuilder {
 
     // Define the Ganache network configuration
     const ganacheNetworkConfig = {
-      chainId: '0x539',
+      chainId,
       rpcEndpoints: [
         {
           networkClientId: newNetworkClientId,
@@ -879,7 +879,7 @@ class FixtureBuilder {
     };
 
     // Add the new Ganache network configuration
-    fixtures.NetworkController.networkConfigurationsByChainId['0x539'] =
+    fixtures.NetworkController.networkConfigurationsByChainId[chainId] =
       ganacheNetworkConfig;
 
     // Update selectedNetworkClientId to the new network client ID
