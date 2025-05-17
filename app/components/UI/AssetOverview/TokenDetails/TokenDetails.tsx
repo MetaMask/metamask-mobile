@@ -11,7 +11,7 @@ import { useSelector } from 'react-redux';
 import i18n from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './TokenDetails.styles';
-import { safeToChecksumAddress } from '../../../../util/address';
+import { toFormattedAddress } from '../../../../util/address';
 import {
   selectConversionRateBySymbol,
   selectCurrentCurrency,
@@ -81,7 +81,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
 
   const tokenContractAddress = isEvmNetworkSelected
-    ? safeToChecksumAddress(asset.address)
+    ? toFormattedAddress(asset.address)
     : asset.address;
 
   const tokenSearchResult = useSelector((state: RootState) =>
