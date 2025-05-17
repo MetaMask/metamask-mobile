@@ -23,8 +23,21 @@ import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
-import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
+import {
+  PermissionDoesNotExistError,
+  SubjectType,
+} from '@metamask/permission-controller';
+
+import {
+  multichainMethodCallValidatorMiddleware,
+  MultichainSubscriptionManager,
+  MultichainMiddlewareManager,
+  walletCreateSession,
+  walletGetSession,
+  walletInvokeMethod,
+  walletRevokeSession,
+} from '@metamask/multichain-api-middleware';
 
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
 const createFilterMiddleware = require('@metamask/eth-json-rpc-filters');
@@ -35,14 +48,30 @@ const pump = require('pump');
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import { getPermittedAccounts } from '../Permissions';
+import {
+  captureKeyringTypesWithMissingIdentities,
+  getPermittedAccounts,
+} from '../Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
 import createEthAccountsMethodMiddleware from '../RPCMethods/createEthAccountsMethodMiddleware';
-import createTracingMiddleware from '../createTracingMiddleware';
+import createTracingMiddleware, {
+  MESSAGE_TYPE,
+} from '../createTracingMiddleware';
 import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193MethodMiddleware';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  getEthAccounts,
+  getSessionScopes,
+} from '@metamask/chain-agnostic-permission';
+import {
+  makeMethodMiddlewareMaker,
+  UNSUPPORTED_RPC_METHODS,
+} from '../RPCMethods/utils';
 import { getCaip25PermissionFromLegacyPermissions } from '../../util/permissions';
+import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -85,7 +114,6 @@ export class BackgroundBridge extends EventEmitter {
     this.getApprovedHosts = getApprovedHosts;
     this.channelId = channelId;
     this.deprecatedNetworkVersions = {};
-
     this.createMiddleware = getRpcMethodMiddleware;
 
     this.port = isRemoteConn
@@ -95,6 +123,9 @@ export class BackgroundBridge extends EventEmitter {
       : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
+    this.multichainEngine = null;
+    this.multichainSubscriptionManager = null;
+    this.multichainMiddlewareManager = null;
 
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
@@ -121,7 +152,7 @@ export class BackgroundBridge extends EventEmitter {
     // setup multiplexing
     const mux = setupMultiplex(portStream);
     // connect features
-    this.setupProviderConnection(
+    this.setupProviderConnectionEip1193(
       mux.createStream(
         isWalletConnect ? 'walletconnect-provider' : 'metamask-provider',
       ),
@@ -150,6 +181,24 @@ export class BackgroundBridge extends EventEmitter {
       'KeyringController:unlock',
       this.onUnlock.bind(this),
     );
+
+    if (AppConstants.MULTICHAIN_API && !this.isMMSDK && !this.isWalletConnect) {
+      this.multichainSubscriptionManager = new MultichainSubscriptionManager({
+        getNetworkClientById:
+          Engine.context.NetworkController.getNetworkClientById.bind(
+            Engine.context.NetworkController,
+          ),
+        findNetworkClientIdByChainId:
+          Engine.context.NetworkController.findNetworkClientIdByChainId.bind(
+            Engine.context.NetworkController,
+          ),
+      });
+      this.multichainMiddlewareManager = new MultichainMiddlewareManager();
+
+      this.setupProviderConnectionCaip(
+        mux.createStream('metamask-multichain-provider'),
+      );
+    }
 
     try {
       const pc = Engine.context.PermissionController;
@@ -272,6 +321,19 @@ export class BackgroundBridge extends EventEmitter {
     });
   }
 
+  /**
+   * Gets supported methods for a given scope using the Multichain Router.
+   *
+   * @param {string} scope - The scope to get supported methods for.
+   * @returns {string[]} Array of supported method names.
+   */
+  getNonEvmSupportedMethods(scope) {
+    return Engine.controllerMessenger.call(
+      'MultichainRouter:getSupportedMethods',
+      scope,
+    );
+  }
+
   async notifySelectedAddressChanged(selectedAddress) {
     try {
       let approvedAccounts = [];
@@ -383,8 +445,8 @@ export class BackgroundBridge extends EventEmitter {
    * A method for serving our ethereum provider over a given stream.
    * @param {*} outStream - The stream to provide over.
    */
-  setupProviderConnection(outStream) {
-    this.engine = this.setupProviderEngine();
+  setupProviderConnectionEip1193(outStream) {
+    this.engine = this.setupProviderEngineEip1193();
 
     // setup connection
     const providerStream = createEngineStream({ engine: this.engine });
@@ -397,9 +459,29 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   /**
+   * A method for serving our CAIP provider over a given stream.
+   *
+   * @param {*} outStream - The stream to provide over.
+   */
+  setupProviderConnectionCaip(outStream) {
+    this.multichainEngine = this.setupProviderEngineCaip();
+
+    // setup connection
+    const providerStream = createEngineStream({
+      engine: this.multichainEngine,
+    });
+
+    pump(outStream, providerStream, outStream, (err) => {
+      // handle any middleware cleanup
+      this.multichainEngine.destroy();
+      if (err) Logger.log('Error with provider stream conn', err);
+    });
+  }
+
+  /**
    * A method for creating a provider that is safely restricted for the requesting domain.
    **/
-  setupProviderEngine() {
+  setupProviderEngineEip1193() {
     const origin = this.isMMSDK ? this.channelId : this.hostname;
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
@@ -555,6 +637,179 @@ export class BackgroundBridge extends EventEmitter {
     return engine;
   }
 
+  /**
+   * A method for creating a CAIP Multichain provider that is safely restricted for the requesting subject.
+   */
+  setupProviderEngineCaip() {
+    if (!AppConstants.MULTICHAIN_API) {
+      return null;
+    }
+
+    const origin = this.isMMSDK ? this.channelId : this.hostname;
+
+    const {
+      ApprovalController,
+      NetworkController,
+      AccountsController,
+      PermissionController,
+    } = Engine.context;
+
+    const engine = new JsonRpcEngine();
+
+    // Append origin to each request
+    engine.push(createOriginMiddleware({ origin }));
+
+    engine.push(createLoggerMiddleware({ origin }));
+
+    engine.push((req, _res, next, end) => {
+      if (
+        ![
+          MESSAGE_TYPE.WALLET_CREATE_SESSION,
+          MESSAGE_TYPE.WALLET_INVOKE_METHOD,
+          MESSAGE_TYPE.WALLET_GET_SESSION,
+          MESSAGE_TYPE.WALLET_REVOKE_SESSION,
+        ].includes(req.method)
+      ) {
+        return end(rpcErrors.methodNotFound({ data: { method: req.method } }));
+      }
+      return next();
+    });
+
+    engine.push(multichainMethodCallValidatorMiddleware);
+
+    const middlewareMaker = makeMethodMiddlewareMaker([
+      walletRevokeSession,
+      walletGetSession,
+      walletInvokeMethod,
+      walletCreateSession,
+    ]);
+
+    engine.push(
+      middlewareMaker({
+        findNetworkClientIdByChainId:
+          NetworkController.findNetworkClientIdByChainId.bind(
+            NetworkController,
+          ),
+        listAccounts: AccountsController.listAccounts.bind(AccountsController),
+        requestPermissionsForOrigin: (requestedPermissions) =>
+          PermissionController.requestPermissions(
+            { origin },
+            requestedPermissions,
+          ),
+        getCaveatForOrigin: PermissionController.getCaveat.bind(
+          PermissionController,
+          origin,
+        ),
+        getSelectedNetworkClientId: () =>
+          NetworkController.state.selectedNetworkClientId,
+        revokePermissionForOrigin: PermissionController.revokePermission.bind(
+          PermissionController,
+          origin,
+        ),
+
+        getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+        isNonEvmScopeSupported: Engine.controllerMessenger.call.bind(
+          Engine.controllerMessenger.controllerMessenger,
+          'MultichainRouter:isSupportedScope',
+        ),
+        handleNonEvmRequestForOrigin: (params) =>
+          Engine.controllerMessenger.call('MultichainRouter:handleRequest', {
+            ...params,
+            origin,
+          }),
+        getNonEvmAccountAddresses: Engine.controllerMessenger.call.bind(
+          Engine.controllerMessenger,
+          'MultichainRouter:getSupportedAccounts',
+        ),
+        trackSessionCreatedEvent: () => undefined,
+      }),
+    );
+
+    engine.push(
+      createUnsupportedMethodMiddleware(
+        new Set([
+          ...UNSUPPORTED_RPC_METHODS,
+          'eth_requestAccounts',
+          'eth_accounts',
+        ]),
+      ),
+    );
+
+    engine.push(
+      createMultichainMethodMiddleware({
+        // getProviderState handler related
+        getProviderState: this.getProviderState.bind(this),
+      }),
+    );
+
+    try {
+      const caip25Caveat = PermissionController.getCaveat(
+        origin,
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
+      );
+
+      // add new notification subscriptions for changed authorizations
+      const sessionScopes = getSessionScopes(caip25Caveat.value, {
+        getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+      });
+
+      // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
+      // then get the subscriptionManager going for that scope
+      Object.entries(sessionScopes).forEach(([scope, scopeObject]) => {
+        if (
+          scopeObject.notifications.includes('eth_subscription') &&
+          scopeObject.methods.includes('eth_subscribe')
+        ) {
+          this.addMultichainApiEthSubscriptionMiddleware({
+            scope,
+            origin,
+          });
+        } else {
+          this.removeMultichainApiEthSubscriptionMiddleware({
+            scope,
+            origin,
+          });
+        }
+      });
+    } catch (err) {
+      // noop
+    }
+
+    this.multichainSubscriptionManager.on(
+      'notification',
+      (targetOrigin, message) => {
+        if (origin === targetOrigin) {
+          engine.emit('notification', message);
+        }
+      },
+    );
+
+    engine.push(
+      this.multichainMiddlewareManager.generateMultichainMiddlewareForOriginAndTabId(
+        origin,
+      ),
+    );
+
+    // user-facing RPC methods
+    engine.push(
+      this.createMiddleware({
+        hostname: this.hostname,
+        getProviderState: this.getProviderState.bind(this),
+      }),
+    );
+
+    engine.push(async (req, res, _next, end) => {
+      const { provider } = NetworkController.getNetworkClientById(
+        req.networkClientId,
+      );
+      res.result = await provider.request(req);
+      return end();
+    });
+
+    return engine;
+  }
+
   sendNotification(payload) {
     DevLogger.log(`BackgroundBridge::sendNotification: `, payload);
     this.engine && this.engine.emit('notification', payload);
@@ -578,6 +833,86 @@ export class BackgroundBridge extends EventEmitter {
       network: legacyNetworkId(),
       selectedAddress,
     };
+  }
+
+  /**
+   * If it does not already exist, creates and inserts middleware to handle eth
+   * subscriptions for a particular evm scope on a specific Multichain API
+   * JSON-RPC pipeline by origin.
+   *
+   * @param {object} options - The options object.
+   * @param {string} options.scope - The evm scope to handle eth susbcriptions for.
+   * @param {string} options.origin - The origin to handle eth subscriptions for.
+   */
+  addMultichainApiEthSubscriptionMiddleware({ scope, origin }) {
+    const subscriptionManager = this.multichainSubscriptionManager.subscribe({
+      scope,
+      origin,
+    });
+    this.multichainMiddlewareManager.addMiddleware({
+      scope,
+      origin,
+      middleware: subscriptionManager.middleware,
+    });
+  }
+
+  /**
+   * If it does exist, removes all middleware that were handling eth
+   * subscriptions for a particular evm scope for all Multichain API
+   * JSON-RPC pipelines for an origin.
+   *
+   * @param {object} options - The options object.
+   * @param {string} options.scope - The evm scope to handle eth susbcriptions for.
+   * @param {string} options.origin - The origin to handle eth subscriptions for.
+   */
+  removeMultichainApiEthSubscriptionMiddleware({ scope, origin }) {
+    this.multichainMiddlewareManager.removeMiddlewareByScopeAndOrigin(
+      scope,
+      origin,
+    );
+    this.multichainSubscriptionManager.unsubscribeByScopeAndOrigin(
+      scope,
+      origin,
+    );
+  }
+
+  /**
+   * Gets the sorted permitted accounts for the specified origin. Returns an empty
+   * array if no accounts are permitted or the wallet is locked. Returns any permitted
+   * accounts if the wallet is locked and `ignoreLock` is true. This lock bypass is needed
+   * for the `eth_requestAccounts` & `wallet_getPermission` handlers both of which
+   * return permissioned accounts to the dapp when the wallet is locked.
+   *
+   * @param {string} origin - The origin whose exposed accounts to retrieve.
+   * @param {object} [options] - The options object
+   * @param {boolean} [options.ignoreLock] - If accounts should be returned even if the wallet is locked.
+   * @returns {Promise<string[]>} The origin's permitted accounts, or an empty
+   * array.
+   */
+  getPermittedAccounts(origin, { ignoreLock } = {}) {
+    let caveat;
+    const { PermissionController } = Engine.context;
+    try {
+      caveat = PermissionController.getCaveat(
+        origin,
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
+      );
+    } catch (err) {
+      if (err instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+        return [];
+      }
+      throw err;
+    }
+
+    if (!this.isUnlocked() && !ignoreLock) {
+      return [];
+    }
+
+    const ethAccounts = getEthAccounts(caveat.value);
+    return this.sortEvmAccountsByLastSelected(ethAccounts);
   }
 }
 

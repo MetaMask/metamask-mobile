@@ -805,6 +805,8 @@ export const getRpcMethodMiddleware = ({
           });
         },
 
+        // TODO: Fix for Multichain API call via wallet_invokeMethod. Currently this RPC method is broken for Multichain.
+        // ticket with details regarding the issue here: https://github.com/MetaMask/MetaMask-planning/issues/4951
         eth_signTypedData_v4: async () => {
           const data = JSON.parse(req.params[1]);
           const chainId = data.domain.chainId;
