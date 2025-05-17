@@ -241,6 +241,9 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -339,6 +342,9 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                       />
                       <View
                         collapsable={false}
+                        enabled={true}
+                        handlerTag={3}
+                        handlerType="PanGestureHandler"
                         onGestureHandlerEvent={[Function]}
                         onGestureHandlerStateChange={[Function]}
                         style={
@@ -569,6 +575,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   "paddingHorizontal": 4,
                                 }
                               }
+                              handlerTag={1}
+                              handlerType="NativeViewGestureHandler"
                               horizontal={true}
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -804,6 +812,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             }
                             getItem={[Function]}
                             getItemCount={[Function]}
+                            handlerTag={2}
+                            handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             onContentSizeChange={[Function]}
                             onGestureHandlerEvent={[Function]}

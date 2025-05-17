@@ -241,6 +241,9 @@ exports[`Browser should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -319,6 +322,14 @@ exports[`Browser should render correctly 1`] = `
                       testID="browser-screen"
                     >
                       <RNCSafeAreaView
+                        edges={
+                          {
+                            "bottom": "additive",
+                            "left": "additive",
+                            "right": "additive",
+                            "top": "additive",
+                          }
+                        }
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -587,6 +598,8 @@ exports[`Browser should render correctly 1`] = `
                           >
                             <RCTScrollView
                               collapsable={false}
+                              handlerTag={2}
+                              handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
                             >

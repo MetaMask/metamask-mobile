@@ -37,7 +37,7 @@ class RNFSStorageBackend implements StorageBackend {
   }
 
   public async read(key: StorageKey, _checksum: string): Promise<ArrayBuffer> {
-    let data: Uint8Array | undefined;
+    let data: ArrayBuffer | undefined;
     try {
       data = this.storage.getBuffer(this._getDataFilePath(key));
     } catch (error) {
@@ -56,8 +56,7 @@ class RNFSStorageBackend implements StorageBackend {
     data: ArrayBuffer,
     _checksum: string,
   ): Promise<void> {
-    const dataArray = new Uint8Array(data);
-    this.storage.set(this._getDataFilePath(key), dataArray);
+    this.storage.set(this._getDataFilePath(key), data);
   }
 
   public async delete(key: StorageKey): Promise<void> {
