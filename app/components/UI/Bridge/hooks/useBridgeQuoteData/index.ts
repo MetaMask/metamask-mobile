@@ -24,6 +24,7 @@ import { formatAmount } from '../../../SimulationDetails/formatAmount';
 import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../../locales/i18n';
 import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import useIsInsufficientBalance from '../useInsufficientBalance';
 /**
  * Hook for getting bridge quote data without request logic
  */
@@ -46,12 +47,14 @@ export const useBridgeQuoteData = () => {
     quotesLoadingStatus,
     quotesLastFetched,
     quotesRefreshCount,
-    quoteRequest,
   } = bridgeControllerState;
 
   const refreshRate = getQuoteRefreshRate(bridgeFeatureFlags, sourceToken);
   const maxRefreshCount = bridgeFeatureFlags?.maxRefreshCount ?? 5; // Default to 5 refresh attempts
-  const { insufficientBal } = quoteRequest;
+  const insufficientBal = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+  });
 
   const willRefresh = shouldRefreshQuote(
     insufficientBal ?? false,
