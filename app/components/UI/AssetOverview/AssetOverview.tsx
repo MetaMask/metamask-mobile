@@ -70,9 +70,16 @@ import {
 import { swapsUtils } from '@metamask/swaps-controller';
 import { TraceName, endTrace } from '../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectMultichainAssetsRates } from '../../../selectors/multichain';
+import {
+  selectMultichainAssetsRates,
+  selectMultichainHistoricalPrices,
+} from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
+import {
+  formatDurationForDisplay,
+  sortDurationsByLength,
+} from './utils/dynamicChartDurations';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -126,6 +133,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   ///: END:ONLY_INCLUDE_IF
 
   const currentAddress = asset.address as Hex;
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const multichainHistoricalPrices = useSelector(
+    selectMultichainHistoricalPrices,
+  );
+  ///: END:ONLY_INCLUDE_IF
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
@@ -260,13 +273,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     </View>
   );
 
-  const chartNavigationButtons: TimePeriod[] = useMemo(
-    () =>
-      isEvmSelected
-        ? ['1d', '1w', '1m', '3m', '1y', '3y']
-        : ['1d', '1w', '1m', '3m', '1y'],
-    [isEvmSelected],
-  );
+  const chartNavigationButtons = useMemo(() => {
+    if (isEvmSelected) {
+      return ['1D', '1W', '1M', '3M', '1Y', '3Y'];
+    }
+
+    // For non-EVM, get intervals from multichainHistoricalPrices
+    const intervals =
+      multichainHistoricalPrices[asset.address as CaipAssetId]?.usd
+        ?.intervals || {};
+
+    // Get available intervals and sort them by duration
+    return sortDurationsByLength(Object.keys(intervals));
+  }, [isEvmSelected, multichainHistoricalPrices, asset.address]);
 
   const handleSelectTimePeriod = useCallback((_timePeriod: TimePeriod) => {
     setTimePeriod(_timePeriod);
@@ -277,14 +296,18 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       chartNavigationButtons.map((label) => (
         <ChartNavigationButton
           key={label}
-          label={strings(
-            `asset_overview.chart_time_period_navigation.${label}`,
-          )}
-          onPress={() => handleSelectTimePeriod(label)}
+          // label={strings(
+          //   `asset_overview.chart_time_period_navigation.${
+          //     isEvmSelected ? label : formatDurationForDisplay(label)
+          //   }`,
+          // )}
+          // TODO: internationalze this label with asset_overview.chart_time_period_navigation
+          label={isEvmSelected ? label : formatDurationForDisplay(label)}
+          onPress={() => handleSelectTimePeriod(label as TimePeriod)}
           selected={timePeriod === label}
         />
       )),
-    [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
+    [handleSelectTimePeriod, timePeriod, chartNavigationButtons, isEvmSelected],
   );
 
   const itemAddress = isEvmSelected
