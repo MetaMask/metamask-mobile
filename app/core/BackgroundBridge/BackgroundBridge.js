@@ -61,7 +61,6 @@ import createTracingMiddleware, {
 } from '../createTracingMiddleware';
 import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193MethodMiddleware';
 import {
-  Caip25CaveatMutators,
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
   getEthAccounts,
@@ -71,29 +70,8 @@ import {
   makeMethodMiddlewareMaker,
   UNSUPPORTED_RPC_METHODS,
 } from '../RPCMethods/utils';
-import {
-  diffMap,
-  getChangedAuthorizations,
-  getRemovedAuthorizations,
-  getCaip25PermissionFromLegacyPermissions,
-  requestPermittedChainsPermissionIncremental,
-  rejectOriginPendingApprovals,
-} from '../../util/permissions';
-import {
-  getAuthorizedScopesByOrigin,
-  getPermittedAccountsByOrigin,
-  getPermittedChainsByOrigin,
-} from '../../selectors/permissions';
-import { previousValueComparator } from '../../util/validators';
-import { hexToBigInt, toCaipChainId } from '@metamask/utils';
-import { TransactionController } from '@metamask/transaction-controller';
+import { getCaip25PermissionFromLegacyPermissions } from '../../util/permissions';
 import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
-
-// Types of APIs
-const API_TYPE = {
-  EIP1193: 'eip-1193',
-  CAIP_MULTICHAIN: 'caip-multichain',
-};
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -221,8 +199,6 @@ export class BackgroundBridge extends EventEmitter {
         mux.createStream('metamask-multichain-provider'),
       );
     }
-
-    this.setupControllerEventSubscriptions();
 
     try {
       const pc = Engine.context.PermissionController;
@@ -355,209 +331,6 @@ export class BackgroundBridge extends EventEmitter {
     return Engine.controllerMessenger.call(
       'MultichainRouter:getSupportedMethods',
       scope,
-    );
-  }
-
-  /**
-   * Sets up BaseController V2 event subscriptions. Currently, this includes
-   * the subscriptions necessary to notify permission subjects of account
-   * changes.
-   *
-   * Some of the subscriptions in this method are Messenger selector
-   * event subscriptions. See the relevant documentation for
-   * `@metamask/base-controller` for more information.
-   *
-   * Note that account-related notifications emitted when the extension
-   * becomes unlocked are handled in MetaMaskController._onUnlock.
-   */
-  setupControllerEventSubscriptions() {
-    let lastSelectedAddress;
-
-    const { controllerMessenger } = Engine;
-    const {
-      SelectedNetworkController,
-      NetworkController,
-      PreferencesController,
-      AccountsController,
-      PermissionController,
-    } = Engine.context;
-
-    controllerMessenger.subscribe(
-      'PreferencesController:stateChange',
-      previousValueComparator(async (prevState, currState) => {
-        this._restartSmartTransactionPoller();
-        this._checkTokenListPolling(currState, prevState);
-      }, PreferencesController.state),
-    );
-
-    controllerMessenger.subscribe(
-      `${AccountsController.name}:selectedAccountChange`,
-      async (account) => {
-        if (account.address && account.address !== lastSelectedAddress) {
-          lastSelectedAddress = account.address;
-          await this._onAccountChange(account.address);
-        }
-      },
-    );
-
-    // This handles account changes every time relevant permission state
-    // changes, for any reason.
-    controllerMessenger.subscribe(
-      `${PermissionController.name}:stateChange`,
-      async (currentValue, previousValue) => {
-        const changedAccounts = diffMap(currentValue, previousValue);
-
-        // TODO: [ffmcgee] refactor this implementation for single origin instead of multiple
-        for (const [origin, accounts] of changedAccounts.entries()) {
-          this._notifyAccountsChange(origin, accounts);
-        }
-      },
-      getPermittedAccountsByOrigin,
-    );
-
-    // This handles CAIP-25 authorization changes every time relevant permission state
-    // changes, for any reason.
-    if (AppConstants.MULTICHAIN_API) {
-      // wallet_sessionChanged and eth_subscription setup/teardown
-      controllerMessenger.subscribe(
-        `${PermissionController.name}:stateChange`,
-        async (currentValue, previousValue) => {
-          const changedAuthorizations = getChangedAuthorizations(
-            currentValue,
-            previousValue,
-          );
-
-          const removedAuthorizations = getRemovedAuthorizations(
-            currentValue,
-            previousValue,
-          );
-
-          // TODO: [ffmcgee] refactor this implementation for single origin instead of multiple
-          // remove any existing notification subscriptions for removed authorizations
-          for (const [
-            origin,
-            authorization,
-          ] of removedAuthorizations.entries()) {
-            const sessionScopes = getSessionScopes(authorization, {
-              getNonEvmSupportedMethods:
-                this.getNonEvmSupportedMethods.bind(this),
-            });
-            // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
-            // then remove middleware and unsubscribe
-            Object.entries(sessionScopes).forEach(([scope, scopeObject]) => {
-              if (
-                scopeObject.notifications.includes('eth_subscription') &&
-                scopeObject.methods.includes('eth_subscribe')
-              ) {
-                this.removeMultichainApiEthSubscriptionMiddleware({
-                  scope,
-                  origin,
-                });
-              }
-            });
-          }
-
-          // TODO: [ffmcgee] refactor this implementation for single origin instead of multiple
-          // add new notification subscriptions for added/changed authorizations
-          for (const [
-            origin,
-            authorization,
-          ] of changedAuthorizations.entries()) {
-            const sessionScopes = getSessionScopes(authorization, {
-              getNonEvmSupportedMethods:
-                this.getNonEvmSupportedMethods.bind(this),
-            });
-
-            // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
-            // then get the subscriptionManager going for that scope
-            Object.entries(sessionScopes).forEach(([scope, scopeObject]) => {
-              if (
-                scopeObject.notifications.includes('eth_subscription') &&
-                scopeObject.methods.includes('eth_subscribe')
-              ) {
-                this.addMultichainApiEthSubscriptionMiddleware({
-                  scope,
-                  origin,
-                });
-              } else {
-                this.removeMultichainApiEthSubscriptionMiddleware({
-                  scope,
-                  origin,
-                });
-              }
-            });
-            this._notifyCaipAuthorizationChange(authorization);
-          }
-        },
-        getAuthorizedScopesByOrigin,
-      );
-    }
-
-    controllerMessenger.subscribe(
-      `${PermissionController.name}:stateChange`,
-      async (currentValue, previousValue) => {
-        const changedChains = diffMap(currentValue, previousValue);
-
-        // This operates under the assumption that there will be at maximum
-        // one origin permittedChains value change per event handler call
-        for (const [origin, chains] of changedChains.entries()) {
-          const currentNetworkClientIdForOrigin =
-            SelectedNetworkController.getNetworkClientIdForDomain(origin);
-          const { chainId: currentChainIdForOrigin } =
-            NetworkController.getNetworkConfigurationByNetworkClientId(
-              currentNetworkClientIdForOrigin,
-            );
-          // if(chains.length === 0) {
-          // TODO: [migrated from extension?] This particular case should also occur at the same time
-          // that eth_accounts is revoked. When eth_accounts is revoked,
-          // the networkClientId for that origin should be reset to track
-          // the globally selected network.
-          // }
-          if (chains.length > 0 && !chains.includes(currentChainIdForOrigin)) {
-            const networkClientId =
-              NetworkController.findNetworkClientIdByChainId(chains[0]);
-            // setActiveNetwork should be called before setNetworkClientIdForDomain
-            // to ensure that the isConnected value can be accurately inferred from
-            // NetworkController.state.networksMetadata in return value of
-            // `metamask_getProviderState` requests and `metamask_chainChanged` events.
-            NetworkController.setActiveNetwork(networkClientId);
-            SelectedNetworkController.setNetworkClientIdForDomain(
-              origin,
-              networkClientId,
-            );
-          }
-        }
-      },
-      getPermittedChainsByOrigin,
-    );
-
-    controllerMessenger.subscribe(
-      'NetworkController:networkRemoved',
-      ({ chainId }) => {
-        const scopeString = toCaipChainId(
-          'eip155',
-          hexToBigInt(chainId).toString(10),
-        );
-        PermissionController.updatePermissionsByCaveat(
-          Caip25CaveatType,
-          (existingScopes) =>
-            Caip25CaveatMutators[Caip25CaveatType].removeScope(
-              existingScopes,
-              scopeString,
-            ),
-        );
-      },
-    );
-
-    controllerMessenger.subscribe(
-      'NetworkController:networkDidChange',
-      async () => {
-        if (PreferencesController.state.useExternalServices) {
-          TransactionController.stopIncomingTransactionPolling();
-          await TransactionController.updateIncomingTransactions();
-          TransactionController.startIncomingTransactionPolling();
-        }
-      },
     );
   }
 
@@ -992,6 +765,11 @@ export class BackgroundBridge extends EventEmitter {
             scope,
             origin,
           });
+        } else {
+          this.removeMultichainApiEthSubscriptionMiddleware({
+            scope,
+            origin,
+          });
         }
       });
     } catch (err) {
@@ -1058,81 +836,22 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   /**
-   * Sorts a list of multichain account addresses by most recently selected by using
-   * the lastSelected value for the matching InternalAccount object stored in state.
-   *
-   * @param {string[]} [addresses] - The list of addresses (not full CAIP-10 Account IDs) to sort.
-   * @returns {string[]} The sorted accounts addresses.
-   */
-  sortMultichainAccountsByLastSelected(addresses) {
-    const internalAccounts =
-      Engine.context.AccountsController.listMultichainAccounts();
-    return this.sortAddressesWithInternalAccounts(addresses, internalAccounts);
-  }
-
-  /**
-   * Sorts a list of addresses by most recently selected by using the lastSelected value for
-   * the matching InternalAccount object from the list of internalAccounts provided.
-   *
-   * @param {string[]} [addresses] - The list of caip accounts addresses to sort.
-   * @param {InternalAccount[]} [internalAccounts] - The list of InternalAccounts to determine lastSelected from.
-   * @returns {string[]} The sorted accounts addresses.
-   */
-  sortAddressesWithInternalAccounts(addresses, internalAccounts) {
-    return addresses.sort((firstAddress, secondAddress) => {
-      const firstAccount = internalAccounts.find(
-        (internalAccount) =>
-          internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
-      );
-
-      const secondAccount = internalAccounts.find(
-        (internalAccount) =>
-          internalAccount.address.toLowerCase() === secondAddress.toLowerCase(),
-      );
-
-      if (!firstAccount) {
-        captureKeyringTypesWithMissingIdentities(internalAccounts, addresses);
-        throw new Error(`Missing identity for address: "${firstAddress}".`);
-      } else if (!secondAccount) {
-        captureKeyringTypesWithMissingIdentities(internalAccounts, addresses);
-        throw new Error(`Missing identity for address: "${secondAddress}".`);
-      } else if (
-        firstAccount.metadata.lastSelected ===
-        secondAccount.metadata.lastSelected
-      ) {
-        return 0;
-      } else if (firstAccount.metadata.lastSelected === undefined) {
-        return 1;
-      } else if (secondAccount.metadata.lastSelected === undefined) {
-        return -1;
-      }
-
-      return (
-        secondAccount.metadata.lastSelected - firstAccount.metadata.lastSelected
-      );
-    });
-  }
-
-  /**
    * If it does not already exist, creates and inserts middleware to handle eth
    * subscriptions for a particular evm scope on a specific Multichain API
-   * JSON-RPC pipeline by origin and tabId.
+   * JSON-RPC pipeline by origin.
    *
    * @param {object} options - The options object.
    * @param {string} options.scope - The evm scope to handle eth susbcriptions for.
    * @param {string} options.origin - The origin to handle eth subscriptions for.
-   * @param {string} options.tabId - The tabId to handle eth subscriptions for.
    */
-  addMultichainApiEthSubscriptionMiddleware({ scope, origin, tabId }) {
+  addMultichainApiEthSubscriptionMiddleware({ scope, origin }) {
     const subscriptionManager = this.multichainSubscriptionManager.subscribe({
       scope,
       origin,
-      tabId,
     });
     this.multichainMiddlewareManager.addMiddleware({
       scope,
       origin,
-      tabId,
       middleware: subscriptionManager.middleware,
     });
   }
@@ -1155,58 +874,6 @@ export class BackgroundBridge extends EventEmitter {
       scope,
       origin,
     );
-  }
-
-  // TODO [ffmcgee]: refactor `getPermittedAccountsByOrigin` and method implementation itself for single origin instead of multiple
-  async _onAccountChange(newAddress) {
-    const permittedAccountsMap = getPermittedAccountsByOrigin(
-      Engine.context.PermissionController.state,
-    );
-
-    for (const [origin, accounts] of permittedAccountsMap.entries()) {
-      if (accounts.includes(newAddress)) {
-        this._notifyAccountsChange(origin, accounts);
-      }
-    }
-
-    await Engine.context.TransactionController.updateIncomingTransactions();
-  }
-
-  _notifyCaipAuthorizationChange(newAuthorization) {
-    this.multichainEngine.emit('notification', {
-      method: 'wallet_sessionChanged',
-      params: {
-        sessionScopes: getSessionScopes(newAuthorization, {
-          getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
-        }),
-      },
-    });
-  }
-
-  _notifyAccountsChange(origin, newAccounts) {
-    this._notifyConnection({
-      method: NOTIFICATION_NAMES.accountsChanged,
-      // This should be the same as the return value of `eth_accounts`,
-      // namely an array of the current / most recently selected Ethereum
-      // account.
-      params:
-        newAccounts.length < 2
-          ? // If the length is 1 or 0, the accounts are sorted by definition.
-            newAccounts
-          : // If the length is 2 or greater, we have to execute
-            // `eth_accounts` vi this method.
-            this.getPermittedAccounts(origin),
-    });
-
-    Engine.context.PermissionLogController.updateAccountsHistory(
-      origin,
-      newAccounts,
-    );
-  }
-
-  _notifyConnection(payload) {
-    this.engine.emit('notification', payload);
-    this.multichainEngine.emit('notification', payload);
   }
 
   /**
@@ -1246,46 +913,6 @@ export class BackgroundBridge extends EventEmitter {
 
     const ethAccounts = getEthAccounts(caveat.value);
     return this.sortEvmAccountsByLastSelected(ethAccounts);
-  }
-
-  _restartSmartTransactionPoller() {
-    const { PreferencesController, TransactionController } = Engine.context;
-
-    if (
-      PreferencesController?.state?.useExternalServices === true &&
-      TransactionController
-    ) {
-      TransactionController.stopIncomingTransactionPolling();
-      TransactionController.startIncomingTransactionPolling();
-    }
-  }
-
-  _checkTokenListPolling(currentState, previousState) {
-    const previousEnabled = this._isTokenListPollingRequired(previousState);
-    const newEnabled = this._isTokenListPollingRequired(currentState);
-
-    if (previousEnabled === newEnabled || !Engine.context.TokenListController) {
-      return;
-    }
-
-    Engine.context.TokenListController.updatePreventPollingOnNetworkRestart(
-      !newEnabled,
-    );
-  }
-
-  _isTokenListPollingRequired(preferencesControllerState) {
-    if (!preferencesControllerState) {
-      return false;
-    }
-
-    const { useTokenDetection, useTransactionSimulations, preferences } =
-      preferencesControllerState;
-
-    const { petnamesEnabled } = preferences ?? {};
-
-    return Boolean(
-      useTokenDetection || petnamesEnabled || useTransactionSimulations,
-    );
   }
 }
 

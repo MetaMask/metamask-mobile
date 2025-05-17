@@ -27,57 +27,6 @@ jest.mock('../../core/Encryptor', () => ({
  * wallet data formats and user inputs.
  */
 describe('Validator Utilities', () => {
-  describe('previousValueComparator', () => {
-    // Define a type for our test comparator that accepts any string values
-    type TestComparator = (prev: string, curr: string) => boolean;
-
-    it('calls comparator with initialValue and value on first call', () => {
-      const comparator = jest.fn().mockReturnValue(true) as TestComparator;
-      // Create a less strictly typed version for testing
-      const compare = previousValueComparator<string>(comparator, 'initial');
-
-      compare('test');
-
-      expect(comparator).toHaveBeenCalledWith('initial', 'test');
-    });
-
-    it('calls comparator with cached value and new value on subsequent calls', () => {
-      const comparator = jest.fn().mockReturnValue(true) as TestComparator;
-      const compare = previousValueComparator<string>(comparator, 'initial');
-
-      compare('first');
-      compare('second');
-
-      expect(comparator).toHaveBeenCalledWith('initial', 'first');
-      expect(comparator).toHaveBeenCalledWith('first', 'second');
-    });
-
-    it('uses the value as initial value when no initialValue is provided', () => {
-      const comparator = jest.fn().mockReturnValue(true) as TestComparator;
-      //@ts-expect-error for this test we need to handle undefined
-      const compare = previousValueComparator<string | undefined>(comparator, undefined);
-
-      compare('test');
-
-      expect(comparator).toHaveBeenCalledWith('test', 'test');
-    });
-
-    it('stores value even if comparator throws an error', () => {
-      const comparator = jest.fn().mockImplementation((prev: string) => {
-        if (prev === 'initial') {
-          throw new Error('Test error');
-        }
-        return true;
-      }) as TestComparator;
-
-      const compare = previousValueComparator<string>(comparator, 'initial');
-
-      expect(() => compare('first')).toThrow('Test error');
-      expect(() => compare('second')).not.toThrow();
-      expect(comparator).toHaveBeenCalledWith('first', 'second');
-    });
-  });
-
   describe('failedSeedPhraseRequirements', () => {
     it('rejects phrases with less than 12 words', () => {
       const shortPhrase = 'word1 word2 word3';
