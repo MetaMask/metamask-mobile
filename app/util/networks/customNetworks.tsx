@@ -11,6 +11,17 @@ const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 export const PopularList = [
   {
+    chainId: toHex('2741'),
+    nickname: 'Abstract',
+    rpcUrl: 'https://api.mainnet.abs.xyz',
+    ticker: 'ETH',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://abscan.org',
+      imageUrl: 'ABSTRACT',
+      imageSource: require('../../images/abstract.png'),
+    },
+  },
+  {
     chainId: toHex('43114'),
     nickname: 'Avalanche C-Chain',
     rpcUrl: `https://avalanche-mainnet.infura.io/v3/${infuraProjectId}`,
@@ -236,7 +247,8 @@ export const NETWORK_CHAIN_ID: {
   readonly FLOW_MAINNET: '0x2eb';
   readonly LENS: '0xe8';
   readonly PLUME: '0x18232';
-
+  readonly ABSTRACT: '0xab5';
+  readonly ABSTRACT_TESTNET: '0x2b74';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -274,4 +286,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FLOW_MAINNET]: require('../../images/flow.png'),
   [NETWORK_CHAIN_ID.LENS]: require('../../images/lens.png'),
   [NETWORK_CHAIN_ID.PLUME]: require('../../images/plume.png'),
+  [NETWORK_CHAIN_ID.ABSTRACT]: require('../../images/abstract.png'),
+  [NETWORK_CHAIN_ID.ABSTRACT_TESTNET]: require('../../images/abstract-testnet.png'),
 };
