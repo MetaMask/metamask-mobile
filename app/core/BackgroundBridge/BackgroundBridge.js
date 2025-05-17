@@ -48,7 +48,7 @@ const pump = require('pump');
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import { getPermittedAccounts } from '../Permissions';
+import { getCaip25Caveat, getPermittedAccounts } from '../Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
@@ -66,8 +66,13 @@ import {
   makeMethodMiddlewareMaker,
   UNSUPPORTED_RPC_METHODS,
 } from '../RPCMethods/utils';
-import { getCaip25PermissionFromLegacyPermissions } from '../../util/permissions';
+import {
+  getCaip25PermissionFromLegacyPermissions,
+  getChangedAuthorization,
+  getRemovedAuthorization,
+} from '../../util/permissions';
 import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
+import { getAuthorizedScopes } from '../../selectors/permissions';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -194,6 +199,8 @@ export class BackgroundBridge extends EventEmitter {
       this.setupProviderConnectionCaip(
         mux.createStream('metamask-multichain-provider'),
       );
+
+      this.setupCaipEventSubscriptions();
     }
 
     try {
@@ -761,11 +768,6 @@ export class BackgroundBridge extends EventEmitter {
             scope,
             origin,
           });
-        } else {
-          this.removeMultichainApiEthSubscriptionMiddleware({
-            scope,
-            origin,
-          });
         }
       });
     } catch (err) {
@@ -804,6 +806,74 @@ export class BackgroundBridge extends EventEmitter {
     });
 
     return engine;
+  }
+
+  /**
+   * This handles CAIP-25 authorization changes every time relevant permission state changes, for any reason.
+   */
+  setupCaipEventSubscriptions() {
+    const origin = this.isMMSDK ? this.channelId : this.hostname;
+    const { controllerMessenger, context } = Engine;
+
+    // wallet_sessionChanged and eth_subscription setup/teardown
+    controllerMessenger.subscribe(
+      `${context.PermissionController.name}:stateChange`,
+      async (currentValue, previousValue) => {
+        const changedAuthorization = getChangedAuthorization(
+          currentValue,
+          previousValue,
+        );
+
+        const removedAuthorization = getRemovedAuthorization(
+          currentValue,
+          previousValue,
+        );
+
+        // remove any existing notification subscriptions for removed authorization
+        const removedSessionScopes = getSessionScopes(removedAuthorization, {
+          getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+        });
+        // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
+        // then remove middleware and unsubscribe
+        Object.entries(removedSessionScopes).forEach(([scope, scopeObject]) => {
+          if (
+            scopeObject.notifications.includes('eth_subscription') &&
+            scopeObject.methods.includes('eth_subscribe')
+          ) {
+            this.removeMultichainApiEthSubscriptionMiddleware({
+              scope,
+              origin,
+            });
+          }
+        });
+
+        // add new notification subscriptions for added/changed authorization
+        const changedSessionScopes = getSessionScopes(changedAuthorization, {
+          getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+        });
+
+        // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
+        // then get the subscriptionManager going for that scope
+        Object.entries(changedSessionScopes).forEach(([scope, scopeObject]) => {
+          if (
+            scopeObject.notifications.includes('eth_subscription') &&
+            scopeObject.methods.includes('eth_subscribe')
+          ) {
+            this.addMultichainApiEthSubscriptionMiddleware({
+              scope,
+              origin,
+            });
+          } else {
+            this.removeMultichainApiEthSubscriptionMiddleware({
+              scope,
+              origin,
+            });
+          }
+        });
+        this.notifyCaipAuthorizationChange(changedAuthorization);
+      },
+      getAuthorizedScopes,
+    );
   }
 
   sendNotification(payload) {
@@ -850,6 +920,24 @@ export class BackgroundBridge extends EventEmitter {
       origin,
       middleware: subscriptionManager.middleware,
     });
+  }
+
+  /**
+   * Causes the Multichain RPC engine to emit a sessionChanged notification event with the given payload.
+   * @param {object} newAuthorization - The new CAIP-25 authorization.
+   */
+  notifyCaipAuthorizationChange(newAuthorization) {
+    if (this.multichainEngine) {
+      this.multichainEngine.emit('notification', {
+        method: 'wallet_sessionChanged',
+        params: {
+          sessionScopes: getSessionScopes(newAuthorization, {
+            getNonEvmSupportedMethods:
+              this.getNonEvmSupportedMethods.bind(this),
+          }),
+        },
+      });
+    }
   }
 
   /**
