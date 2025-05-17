@@ -19,7 +19,7 @@ import { createSelector } from 'reselect';
  * @param {Record<string, unknown>} state - The PermissionController state.
  * @returns {Record<string, unknown>} The PermissionController subject.
  */
-const getSubject = (state) => state.subjects; // subject is a single Record<string, unknown>
+const getSubjects = (state) => state.subjects;
 
 /**
  * Get the authorized CAIP-25 scopes for the subject.
@@ -28,7 +28,7 @@ const getSubject = (state) => state.subjects; // subject is a single Record<stri
  *
  * @returns {Caip25CaveatValue | undefined} The current authorization or undefined if no authorization exists.
  */
-export const getAuthorizedScopes = createSelector(getSubject, (subject) => {
+export const getAuthorizedScopes = createSelector(getSubjects, (subject) => {
   if (!subject) {
     return undefined;
   }
