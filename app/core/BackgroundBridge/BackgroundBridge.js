@@ -48,10 +48,7 @@ const pump = require('pump');
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import {
-  captureKeyringTypesWithMissingIdentities,
-  getPermittedAccounts,
-} from '../Permissions';
+import { getPermittedAccounts } from '../Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
@@ -63,7 +60,6 @@ import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193Method
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
-  getEthAccounts,
   getSessionScopes,
 } from '@metamask/chain-agnostic-permission';
 import {
@@ -874,45 +870,6 @@ export class BackgroundBridge extends EventEmitter {
       scope,
       origin,
     );
-  }
-
-  /**
-   * Gets the sorted permitted accounts for the specified origin. Returns an empty
-   * array if no accounts are permitted or the wallet is locked. Returns any permitted
-   * accounts if the wallet is locked and `ignoreLock` is true. This lock bypass is needed
-   * for the `eth_requestAccounts` & `wallet_getPermission` handlers both of which
-   * return permissioned accounts to the dapp when the wallet is locked.
-   *
-   * @param {string} origin - The origin whose exposed accounts to retrieve.
-   * @param {object} [options] - The options object
-   * @param {boolean} [options.ignoreLock] - If accounts should be returned even if the wallet is locked.
-   * @returns {Promise<string[]>} The origin's permitted accounts, or an empty
-   * array.
-   */
-  getPermittedAccounts(origin, { ignoreLock } = {}) {
-    let caveat;
-    const { PermissionController } = Engine.context;
-    try {
-      caveat = PermissionController.getCaveat(
-        origin,
-        Caip25EndowmentPermissionName,
-        Caip25CaveatType,
-      );
-    } catch (err) {
-      if (err instanceof PermissionDoesNotExistError) {
-        // suppress expected error in case that the origin
-        // does not have the target permission yet
-        return [];
-      }
-      throw err;
-    }
-
-    if (!this.isUnlocked() && !ignoreLock) {
-      return [];
-    }
-
-    const ethAccounts = getEthAccounts(caveat.value);
-    return this.sortEvmAccountsByLastSelected(ethAccounts);
   }
 }
 
