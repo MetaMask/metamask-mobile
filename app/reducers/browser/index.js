@@ -94,7 +94,7 @@ const browserReducer = (state = initialState, action) => {
           if (tab.id === action.id) {
             return { ...tab, ...action.data };
           }
-          return { ...tab };
+          return tab;
         }),
       };
     case 'STORE_FAVICON_URL':

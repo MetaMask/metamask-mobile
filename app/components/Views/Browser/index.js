@@ -203,13 +203,15 @@ export const Browser = (props) => {
     });
   }, [navigation, route.params]);
 
-  const switchToTab = useCallback((tab) => {
+  const switchToTab = useCallback((id) => {
+    const tab = tabs.find((tab) => tab.id === id);
+    console.log('[Browser] switchToTab id', id, 'tabs', tabs);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build(),
     );
-    setActiveTab(tab.id);
+    setActiveTab(id);
     hideTabsAndUpdateUrl(tab.url);
-    updateTabInfo(tab.id, {
+    updateTabInfo(id, {
       url: tab.url,
       isArchived: false,
     });
@@ -303,12 +305,12 @@ export const Browser = (props) => {
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (activeTab) {
           // Resume where last left off.
-          switchToTab(activeTab);
+          switchToTab(activeTab.id);
         } else {
           /* eslint-disable-next-line */
           if (tabs.length) {
             // Tabs exists but no active set. Show first tab.
-            switchToTab(tabs[0]);
+            switchToTab(tabs[0].id);
           } else {
             // No tabs. Create a new one.
             newTab();
@@ -328,7 +330,7 @@ export const Browser = (props) => {
       if (previousTabs.current && tabs.length > previousTabs.current.length) {
         // New tab was added.
         const tabToSwitch = tabs[tabs.length - 1];
-        switchToTab(tabToSwitch);
+        switchToTab(tabToSwitch.id);
       }
       previousTabs.current = tabs;
     },
@@ -348,7 +350,7 @@ export const Browser = (props) => {
       } else if (existingTabId) {
         const existingTab = tabs.find((tab) => tab.id === existingTabId);
         if (existingTab) {
-          switchToTab(existingTab);
+          switchToTab(existingTab.id);
         }
       }
     },
@@ -409,7 +411,8 @@ export const Browser = (props) => {
     }
   };
 
-  const closeTab = useCallback((tab) => {
+  const closeTab = useCallback((id) => {
+    const tab = tabs.find((tab) => tab.id === id);
     // If the tab was selected we have to select
     // the next one, and if there's no next one,
     // we select the previous one.

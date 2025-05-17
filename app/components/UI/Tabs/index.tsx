@@ -146,12 +146,12 @@ const TabsComponent = ({
   const { colors, shadows } = useContext(ThemeContext) || mockTheme;
   const styles = createStyles(colors, shadows);
 
-  const onSwitch = useCallback((tab: TabThumbnailProps['tab']) => {
-    switchToTab(tab);
+  const onSwitch = useCallback((id: string) => {
+    switchToTab(id);
   }, [switchToTab]);
 
-const onClose = useCallback((tab: TabThumbnailProps['tab']) => {
-  closeTab(tab);
+const onClose = useCallback((id: string) => {
+  closeTab(id);
 }, [closeTab]);
 
   const onNewTabPress = useCallback(() => {
@@ -188,7 +188,7 @@ const onClose = useCallback((tab: TabThumbnailProps['tab']) => {
       {tabList.map((tab) => (
         <TabThumbnail
           key={tab.id}
-          tab={tab}
+          {...tab}
           isActiveTab={activeTabId === tab.id}
           onClose={onClose}
           onSwitch={onSwitch}

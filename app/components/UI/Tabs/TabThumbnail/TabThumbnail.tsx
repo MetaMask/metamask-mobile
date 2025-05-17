@@ -41,15 +41,18 @@ const TabThumbnail = ({
   tab,
   onClose,
   onSwitch,
+  url,
+  image,
+  id
 }: TabThumbnailProps) => {
   console.log('TabThumbnail executing')
   const { colors } = useContext(ThemeContext) || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
   const Container: React.ElementType = Device.isAndroid() ? View : ElevatedView;
-  const tabTitle = getHost(tab.url);
+  const tabTitle = getHost(url);
 
   useEffect(() => {
-    console.log('[TabThumbnail] tab changed', tab.id);
+    console.log('[TabThumbnail] tab changed', id);
   }, [tab]);
   
   useEffect(() => {
@@ -76,14 +79,14 @@ const TabThumbnail = ({
     (account) => account.address.toLowerCase() === activeAddress?.toLowerCase(),
   );
   const { networkName, networkImageSource } = useNetworkInfo(tabTitle);
-  const faviconSource = useFavicon(tab.url);
+  const faviconSource = useFavicon(url);
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>
       <TouchableOpacity
         accessible
         accessibilityLabel={strings('browser.switch_tab')}
-        onPress={() => onSwitch(tab)}
+        onPress={() => onSwitch(id)}
         style={[styles.tabWrapper, isActiveTab && styles.activeTab]}
       >
         <View style={styles.tabHeader}>
@@ -101,7 +104,7 @@ const TabThumbnail = ({
           <TouchableOpacity
             accessible
             accessibilityLabel={strings('browser.close_tab')}
-            onPress={() => onClose(tab)}
+            onPress={() => onClose(tab.id)}
             hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
           >
             <Icon
@@ -112,7 +115,7 @@ const TabThumbnail = ({
           </TouchableOpacity>
         </View>
         <View style={styles.tab}>
-          <Image source={{ uri: tab.image }} style={styles.tabImage} />
+          <Image source={{ uri: image }} style={styles.tabImage} />
         </View>
         {selectedAccount && (
           <View testID="footer-container" style={styles.footerContainer}>
