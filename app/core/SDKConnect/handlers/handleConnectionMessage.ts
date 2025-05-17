@@ -4,6 +4,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import {
   CommunicationLayerMessage,
+  IGNORE_ANALYTICS_RPCS,
   MessageType,
   SendAnalytics,
   TrackingEvents,
@@ -22,6 +23,7 @@ import {
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
+import { analytics } from '@metamask/sdk-analytics';
 // eslint-disable-next-line
 const { version } = require('../../../../package.json');
 
@@ -75,6 +77,13 @@ export const handleConnectionMessage = async ({
   DevLogger.log(
     `Connection::onMessage id=${connection.channelId} method=${message.method}`,
   );
+
+  const anonId = connection.originatorInfo?.anonId;
+
+  if (anonId && !IGNORE_ANALYTICS_RPCS.includes(message.method)) {
+    DevLogger.log(`[MM SDK Analytics] event=wallet_action_received anonId=${anonId}`);
+    analytics.track('wallet_action_received', { anon_id: anonId });
+  }
 
   connection.setLoading(false);
 
