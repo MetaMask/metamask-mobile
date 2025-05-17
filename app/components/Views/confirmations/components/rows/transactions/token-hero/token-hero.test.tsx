@@ -35,9 +35,8 @@ describe('TokenHero', () => {
     );
     const { getByText, queryByTestId } = renderWithProvider(<TokenHero />, { state });
 
-    expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();
-
     await waitFor(async () => {
+      expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();
       expect(getByText('0.0556 ETH')).toBeDefined();
       expect(getByText('$199.79')).toBeDefined();
     });
@@ -56,9 +55,8 @@ describe('TokenHero', () => {
       state: stakingDepositConfirmationState,
     });
 
-    expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();
-
     await waitFor(async () => {
+      expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();
       expect(getByText('0.0001 ETH')).toBeDefined();
       expect(getByText('$0.36')).toBeDefined();
     });
@@ -86,9 +84,8 @@ describe('TokenHero', () => {
       { state },
     );
 
-    expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();
-
     await waitFor(() => {
+      expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();
       expect(getByText('0.0123 ETH')).toBeDefined();
       expect(getByText('$44.40')).toBeDefined();
     });
