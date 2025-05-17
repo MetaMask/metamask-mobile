@@ -27,6 +27,28 @@ exports[`AddCustomCollectible should render correctly 1`] = `
     }
   }
 >
-  <AddCustomCollectible />
+  <AddCustomCollectible
+    chainId="0x1"
+    selectedNetwork={
+      {
+        "blockExplorerUrls": [
+          "https://etherscan.io",
+        ],
+        "chainId": "0x1",
+        "defaultBlockExplorerUrlIndex": 0,
+        "defaultRpcEndpointIndex": 0,
+        "name": "mainnet",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "mainnet",
+            "type": "infura",
+            "url": "https://mainnet.infura.io/v3/{infuraProjectId}",
+          },
+        ],
+      }
+    }
+    setOpenNetworkSelector={[MockFunction]}
+  />
 </ContextProvider>
 `;

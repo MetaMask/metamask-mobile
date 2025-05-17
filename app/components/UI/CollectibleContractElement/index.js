@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
+import { toHex } from '@metamask/controller-utils';
 import { fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Device from '../../../util/device';
@@ -11,7 +12,10 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { useTheme } from '../../../util/theme';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import Icon, {
   IconName,
@@ -23,6 +27,7 @@ import {
   useMetrics,
 } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
+import { removeNft } from './util';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -96,6 +101,7 @@ function CollectibleContractElement({
   selectedAddress,
   removeFavoriteCollectible,
 }) {
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const [collectiblesGrid, setCollectiblesGrid] = useState([]);
   const [collectiblesVisible, setCollectiblesVisible] = useState(
     propsCollectiblesVisible,
@@ -122,17 +128,14 @@ function CollectibleContractElement({
     longPressedCollectible.current = collectible;
   }, []);
 
-  const removeNft = () => {
-    const { NftController } = Engine.context;
-    removeFavoriteCollectible(
+  const handleRemoveNft = () => {
+    removeNft({
       selectedAddress,
       chainId,
-      longPressedCollectible.current,
-    );
-    NftController.removeAndIgnoreNft(
-      longPressedCollectible.current.address,
-      longPressedCollectible.current.tokenId,
-    );
+      longPressedCollectible,
+      removeFavoriteCollectible,
+      networkConfigurations,
+    });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.COLLECTIBLE_REMOVED)
         .addProperties({
@@ -147,17 +150,27 @@ function CollectibleContractElement({
   };
 
   const refreshMetadata = () => {
+    const chainIdHex = toHex(longPressedCollectible.current.chainId);
+    const config = networkConfigurations[chainIdHex];
+    const nftNetworkClientId =
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      config?.rpcEndpoints?.[config.defaultRpcEndpointIndex]?.networkClientId;
     const { NftController } = Engine.context;
 
     NftController.addNft(
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
+      {
+        networkClientId: nftNetworkClientId,
+        userAddress: selectedAddress.toLowerCase(),
+      },
     );
   };
 
   const handleMenuAction = (index) => {
     if (index === 1) {
-      removeNft();
+      handleRemoveNft();
     } else if (index === 0) {
       refreshMetadata();
     }
