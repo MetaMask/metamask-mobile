@@ -34,7 +34,8 @@ import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { appendURLParams } from '../../../util/browser';
+
+import { appendURLParams, isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import {
   THUMB_WIDTH,
   THUMB_HEIGHT,
@@ -100,6 +101,18 @@ export const Browser = (props) => {
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
+  const newTab = useCallback((url, linkType) => {
+    // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+    if (tabs.length >= MAX_BROWSER_TABS) {
+      navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+    } else if (isTokenDiscoveryBrowserEnabled()) {
+      // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+      createNewTab(url, linkType);
+    } else {
+      createNewTab(url || homePageUrl(), linkType);
+    }
+  }, [tabs, navigation, createNewTab, homePageUrl]);
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // TODO remove after we release Solana dapp connectivity
   useFocusEffect(
@@ -126,19 +139,6 @@ export const Browser = (props) => {
     }, [toastRef, currentSelectedAccount]),
   );
   ///: END:ONLY_INCLUDE_IF
-
-  const newTab = useCallback(
-    (url, linkType) => {
-      // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
-      if (tabs.length >= MAX_BROWSER_TABS) {
-        navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
-      } else {
-        // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-        createNewTab(url || homePageUrl(), linkType);
-      }
-    },
-    [tabs, navigation, homePageUrl, createNewTab],
-  );
 
   const updateTabInfo = useCallback(
     (tabID, info) => {

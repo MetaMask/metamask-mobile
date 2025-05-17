@@ -56,8 +56,13 @@ interface ResultsWithCategory {
 const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
->(({ onSelect, onDismiss }, ref) => {
-  const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>([]);
+>(({ onSelect, onDismiss, onSwap }, ref) => {
+  const browserHistory = useSelector(selectBrowserHistoryWithType);
+  const bookmarks = useSelector(selectBrowserBookmarksWithType);
+  const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>([
+    ...browserHistory,
+    ...bookmarks,
+  ]);
   const {searchTokens, results: tokenSearchResults, reset: resetTokenSearch, isLoading: isTokenSearchLoading} = useTokenSearchDiscovery();
   const usdConversionRate = useSelector(selectUsdConversionRate);
   const tokenResults: TokenSearchResult[] = useMemo(
@@ -117,8 +122,6 @@ const UrlAutocomplete = forwardRef<
     })
   ), [fuseResults, tokenResults, isTokenSearchLoading]);
 
-  const browserHistory = useSelector(selectBrowserHistoryWithType);
-  const bookmarks = useSelector(selectBrowserBookmarksWithType);
   const fuseRef = useRef<Fuse<FuseSearchResult> | null>(null);
   const resultsRef = useRef<View | null>(null);
   const { styles } = useStyles(styleSheet, {});
@@ -213,13 +216,12 @@ const UrlAutocomplete = forwardRef<
 
   const goToSwaps = useCallback(async (result: TokenSearchResult) => {
     try {
+      onSwap();
       await goToSwapsHook(result);
     } catch (error) {
       return;
     }
-    hide();
-    onDismiss();
-  }, [hide, onDismiss, goToSwapsHook]);
+  }, [goToSwapsHook, onSwap]);
 
   const renderSectionHeader = useCallback(({section: { category }}: {section: ResultsWithCategory}) => (
     <View style={styles.categoryWrapper}>
@@ -234,7 +236,9 @@ const UrlAutocomplete = forwardRef<
     <Result
       result={item}
       onPress={() => {
-        hide();
+        if (item.category !== UrlAutocompleteCategory.Tokens) {
+            hide();
+        }
         onSelect(item);
       }}
       onSwapPress={goToSwaps}
