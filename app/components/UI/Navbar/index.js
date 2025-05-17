@@ -1310,7 +1310,7 @@ export function getNetworkNavbarOptions(
           />
         }
         endAccessory={
-          onRightPress && (
+          onRightPress ? (
             <ButtonIcon
               style={styles.headerRightButton}
               onPress={onRightPress}
@@ -1318,6 +1318,9 @@ export function getNetworkNavbarOptions(
               iconName={IconName.MoreVertical}
               iconColor={IconColor.Default}
             />
+          ) : (
+            // Empty View to maintain layout spacing without showing a button
+            <View style={styles.headerRightButton} />
           )
         }
       >
