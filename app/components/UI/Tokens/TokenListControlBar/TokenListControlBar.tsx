@@ -29,7 +29,7 @@ interface TokenListNavigationParamList {
 }
 
 interface TokenListControlBarProps {
-  goToAddToken: () => void;
+  goToAddToken?: () => void;
 }
 
 export const TokenListControlBar = ({
