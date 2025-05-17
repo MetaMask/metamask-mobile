@@ -159,15 +159,15 @@ export const TokenInputArea = forwardRef<
       balance: token?.balance,
     });
     const isValidAmount =
-    amount !== undefined && amount !== '.' && token?.decimals;
+      amount !== undefined && amount !== '.' && token?.decimals;
 
     // quoteRequest.insufficientBal is undefined for Solana quotes, so we need to manually check if the source amount is greater than the balance
     const isInsufficientBalance =
-    quoteRequest?.insufficientBal ||
-    (isValidAmount &&
-      parseUnits(amount, token.decimals).gt(
-        latestBalance?.atomicBalance ?? BigNumber.from(0),
-      ));
+      quoteRequest?.insufficientBal ||
+      (isValidAmount &&
+        parseUnits(amount, token.decimals).gt(
+          latestBalance?.atomicBalance ?? BigNumber.from(0),
+        ));
 
     let nonEvmMultichainAssetRates = {};
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -205,7 +205,7 @@ export const TokenInputArea = forwardRef<
           <Box style={styles.row}>
             <Box style={styles.amountContainer}>
               {isLoading ? (
-                <Skeleton width={100} height={40} style={styles.input} />
+                <Skeleton width="50%" height="80%" style={styles.input} />
               ) : (
                 <Input
                   ref={inputRef}
@@ -250,7 +250,7 @@ export const TokenInputArea = forwardRef<
           </Box>
           <Box style={styles.row}>
             {isLoading ? (
-              <Skeleton width={100} height={10} />
+              <Skeleton width={80} height={24} />
             ) : (
               <>
                 {token && currencyValue ? (

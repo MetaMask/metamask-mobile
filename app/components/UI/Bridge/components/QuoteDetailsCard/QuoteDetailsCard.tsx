@@ -45,6 +45,7 @@ import {
   selectSourceAmount,
   selectDestToken,
   selectSourceToken,
+  selectIsEvmSolanaBridge,
 } from '../../../../../core/redux/slices/bridge';
 
 const ANIMATION_DURATION_MS = 50;
@@ -93,22 +94,17 @@ const QuoteDetailsCard = () => {
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
+  const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
 
   const isSameChainId = sourceToken?.chainId === destToken?.chainId;
-
   // Initialize expanded state based on whether destination is Solana or it's a Solana swap
   useEffect(() => {
-    if (isSameChainId) {
+    if (isSameChainId || !isEvmSolanaBridge) {
       setIsExpanded(true);
     }
-  }, [isSameChainId]);
+  }, [isEvmSolanaBridge, isSameChainId]);
 
   const toggleAccordion = useCallback(() => {
-    // Don't allow toggling if destination is Solana or it's a Solana swap
-    if (isSameChainId) {
-      return;
-    }
-
     LayoutAnimation.configureNext(
       LayoutAnimation.create(
         ANIMATION_DURATION_MS,
@@ -122,7 +118,7 @@ const QuoteDetailsCard = () => {
     rotationValue.value = withTiming(newExpandedState ? 1 : 0, {
       duration: ANIMATION_DURATION_MS,
     });
-  }, [isExpanded, rotationValue, isSameChainId]);
+  }, [isExpanded, rotationValue]);
 
   const arrowStyle = useAnimatedStyle(() => {
     const rotation = interpolate(rotationValue.value, [0, 1], [0, 180]);
@@ -175,25 +171,27 @@ const QuoteDetailsCard = () => {
                 <Icon name={IconName.Arrow2Right} size={IconSize.Sm} />
                 <NetworkBadge chainId={String(destToken.chainId)} />
               </Box>
-              <Animated.View style={arrowStyle}>
-                <TouchableOpacity
-                  onPress={toggleAccordion}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    isExpanded
-                      ? 'Collapse quote details'
-                      : 'Expand quote details'
-                  }
-                  testID="expand-quote-details"
-                >
-                  <Icon
-                    name={IconName.ArrowDown}
-                    size={IconSize.Sm}
-                    color={theme.colors.icon.muted}
-                  />
-                </TouchableOpacity>
-              </Animated.View>
+              {isEvmSolanaBridge && (
+                <Animated.View style={arrowStyle}>
+                  <TouchableOpacity
+                    onPress={toggleAccordion}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      isExpanded
+                        ? 'Collapse quote details'
+                        : 'Expand quote details'
+                    }
+                    testID="expand-quote-details"
+                  >
+                    <Icon
+                      name={IconName.ArrowDown}
+                      size={IconSize.Sm}
+                      color={theme.colors.icon.muted}
+                    />
+                  </TouchableOpacity>
+                </Animated.View>
+              )}
             </>
           )}
         </Box>
