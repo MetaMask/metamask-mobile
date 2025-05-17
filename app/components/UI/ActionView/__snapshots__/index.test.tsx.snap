@@ -3,9 +3,16 @@
 exports[`ActionView should render correctly 1`] = `
 <View
   style={
-    {
-      "flex": 1,
-    }
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "flex": 1,
+        "flexDirection": "column",
+        "height": "100%",
+      },
+    ]
   }
 >
   <RCTScrollView
@@ -47,6 +54,11 @@ exports[`ActionView should render correctly 1`] = `
           "flex": 1,
         },
         undefined,
+        {
+          "flex": 1,
+          "flexDirection": "column",
+          "height": "100%",
+        },
       ]
     }
     update={[Function]}
@@ -54,163 +66,182 @@ exports[`ActionView should render correctly 1`] = `
   >
     <View>
       <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessible={true}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-      >
-        <Text>
-          Confirm
-        </Text>
-      </View>
-      <View
         style={
           {
-            "flex": 0,
-            "flexDirection": "row",
-            "paddingHorizontal": 24,
-            "paddingVertical": 16,
+            "flex": 1,
+            "flexDirection": "column",
+            "justifyContent": "space-between",
           }
         }
       >
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={0.2}
-          disabled={false}
-          style={
-            [
-              [
-                {
-                  "borderRadius": 100,
-                  "justifyContent": "center",
-                  "padding": 15,
-                },
-                {
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#686e7d",
-                  "borderWidth": 1,
-                },
-                [
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "marginRight": 8,
-                  },
-                ],
-              ],
-              null,
-            ]
-          }
-          testID=""
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
-                [
-                  {
-                    "fontFamily": "CentraNo1-Bold",
-                    "fontSize": 14,
-                    "fontWeight": "600",
-                    "textAlign": "center",
-                  },
-                  {
-                    "color": "#686e7d",
-                  },
-                  undefined,
-                ],
-                null,
-              ]
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
             }
-          >
-            Cancel
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={0.2}
-          disabled={false}
-          style={
-            [
-              [
-                {
-                  "borderRadius": 100,
-                  "justifyContent": "center",
-                  "padding": 15,
-                },
-                {
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#4459ff",
-                  "borderWidth": 1,
-                },
-                [
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "marginLeft": 8,
-                  },
-                  {},
-                  {},
-                ],
-              ],
-              null,
-            ]
           }
-          testID=""
+          accessible={true}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
         >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
-                [
-                  {
-                    "fontFamily": "CentraNo1-Bold",
-                    "fontSize": 14,
-                    "fontWeight": "600",
-                    "textAlign": "center",
-                  },
-                  {
-                    "color": "#4459ff",
-                  },
-                  undefined,
-                ],
-                null,
-              ]
-            }
-          >
+          <Text>
             Confirm
           </Text>
-        </TouchableOpacity>
+        </View>
+        <View
+          style={
+            [
+              {
+                "flexDirection": "row",
+                "justifyContent": "flex-end",
+                "marginBottom": 16,
+                "paddingHorizontal": 16,
+                "width": "100%",
+              },
+              undefined,
+            ]
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={0.2}
+            disabled={false}
+            style={
+              [
+                [
+                  {
+                    "borderRadius": 100,
+                    "justifyContent": "center",
+                    "padding": 15,
+                  },
+                  {
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#686e7d",
+                    "borderWidth": 1,
+                  },
+                  [
+                    {
+                      "flex": 1,
+                      "flexDirection": "column",
+                      "justifyContent": "flex-end",
+                    },
+                    {
+                      "marginRight": 8,
+                    },
+                  ],
+                ],
+                null,
+              ]
+            }
+            testID=""
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#007aff",
+                    "fontSize": 17,
+                    "fontWeight": "500",
+                    "textAlign": "center",
+                  },
+                  null,
+                  [
+                    {
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "600",
+                      "textAlign": "center",
+                    },
+                    {
+                      "color": "#686e7d",
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
+              }
+            >
+              Cancel
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={0.2}
+            disabled={false}
+            style={
+              [
+                [
+                  {
+                    "borderRadius": 100,
+                    "justifyContent": "center",
+                    "padding": 15,
+                  },
+                  {
+                    "backgroundColor": "transparent",
+                    "borderColor": "#4459ff",
+                    "borderWidth": 1,
+                  },
+                  [
+                    {
+                      "flex": 1,
+                      "flexDirection": "column",
+                      "justifyContent": "flex-end",
+                    },
+                    {
+                      "marginLeft": 8,
+                      "marginTop": "auto",
+                    },
+                    {},
+                    {},
+                  ],
+                ],
+                null,
+              ]
+            }
+            testID=""
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#007aff",
+                    "fontSize": 17,
+                    "fontWeight": "500",
+                    "textAlign": "center",
+                  },
+                  null,
+                  [
+                    {
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "600",
+                      "textAlign": "center",
+                    },
+                    {
+                      "color": "#4459ff",
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
+              }
+            >
+              Confirm
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   </RCTScrollView>

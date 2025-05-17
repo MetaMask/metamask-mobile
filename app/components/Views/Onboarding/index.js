@@ -6,23 +6,21 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Image,
   InteractionManager,
   Animated,
   Easing,
+  Platform,
 } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
-import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
   baseStyles,
   colors as importedColors,
 } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import Button from '@metamask/react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
@@ -35,7 +33,6 @@ import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
-import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -43,17 +40,29 @@ import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
-
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import LottieView from 'lottie-react-native';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
+import fox from '../../../animations/Searching_Fox.json';
+
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
+import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 const createStyles = (colors) =>
   StyleSheet.create({
     scroll: {
       flex: 1,
+      // marginTop: 100,
     },
     wrapper: {
       flex: 1,
@@ -61,34 +70,43 @@ const createStyles = (colors) =>
       paddingVertical: 30,
     },
     foxWrapper: {
-      width: Device.isIos() ? 90 : 45,
-      height: Device.isIos() ? 90 : 45,
+      width: Device.isLargeDevice() ? 200 : 175,
+      height: Device.isLargeDevice() ? 200 : 175,
       marginVertical: 20,
     },
     image: {
       alignSelf: 'center',
-      width: Device.isIos() ? 90 : 45,
-      height: Device.isIos() ? 90 : 45,
+      width: Device.isLargeDevice() ? 200 : 175,
+      height: Device.isLargeDevice() ? 200 : 175,
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      marginVertical: 24,
+      paddingTop: Device.isLargeDevice() ? 60 : 40,
+      paddingBottom: Device.isLargeDevice() ? 100 : 40,
     },
     foxImage: {
-      width: 125,
-      height: 125,
+      width: 145,
+      height: 145,
       resizeMode: 'contain',
     },
     title: {
+      fontSize: 40,
+      lineHeight: 40,
+      justifyContent: 'center',
       textAlign: 'center',
+      paddingHorizontal: 60,
+      fontFamily: 'MMSans-Regular',
+      color: importedColors.gettingStartedTextColor,
     },
     ctas: {
       flex: 1,
       position: 'relative',
+      width: '100%',
+      paddingHorizontal: 20,
     },
     footer: {
-      marginTop: -20,
-      marginBottom: 20,
+      marginTop: -40,
+      marginBottom: 40,
     },
     login: {
       fontSize: 18,
@@ -104,11 +122,21 @@ const createStyles = (colors) =>
     },
     createWrapper: {
       flex: 1,
+      flexDirection: 'column',
       justifyContent: 'flex-end',
-      marginBottom: 24,
+      rowGap: 16,
+      marginBottom: 16,
     },
     buttonWrapper: {
-      marginBottom: 16,
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      gap: 16,
+      width: '100%',
+    },
+    buttonLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      columnGap: 8,
     },
     loader: {
       marginTop: 180,
@@ -131,6 +159,41 @@ const createStyles = (colors) =>
       flex: 0.1,
       flexDirection: 'row',
       alignItems: 'flex-end',
+    },
+    divider: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border.muted,
+    },
+    bottomSheetContainer: {
+      padding: 16,
+      flexDirection: 'column',
+      rowGap: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    socialBtn: {
+      borderColor: colors.border.muted,
+      borderWidth: 1,
+      color: colors.text.default,
+    },
+    createWalletButton: {
+      borderRadius: 12,
+      color: importedColors.whiteTransparent,
+      backgroundColor: importedColors.btnBlack,
+    },
+    existingWalletButton: {
+      borderRadius: 12,
+      color: colors.text.default,
+      backgroundColor: colors.transparent,
+      borderWidth: 1,
+      borderColor: importedColors.btnBlack,
     },
   });
 
@@ -168,12 +231,7 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
   };
-
   notificationAnimated = new Animated.Value(100);
   detailsYAnimated = new Animated.Value(0);
   actionXAnimated = new Animated.Value(0);
@@ -192,6 +250,10 @@ class Onboarding extends PureComponent {
     warningModalVisible: false,
     loading: false,
     existingUser: false,
+    createWallet: false,
+    existingWallet: false,
+    bottomSheetVisible: false,
+    errorSheetVisible: false,
   };
 
   seedwords = null;
@@ -224,12 +286,20 @@ class Onboarding extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
       route.params?.delete
-        ? getTransparentOnboardingNavbarOptions(colors)
-        : getTransparentBackOnboardingNavbarOptions(colors),
+        ? getTransparentOnboardingNavbarOptions(
+            colors,
+            true,
+            importedColors.gettingStartedPageBackgroundColor,
+          )
+        : getTransparentBackOnboardingNavbarOptions(
+            colors,
+            importedColors.gettingStartedPageBackgroundColor,
+          ),
     );
   };
 
   componentDidMount() {
+    this.props.unsetLoading();
     this.updateNavBar();
     this.mounted = true;
     this.checkIfExistingUser();
@@ -284,50 +354,121 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
+    this.setState({ bottomSheetVisible: false });
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+    OAuthLoginService.resetOauthState();
+    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
     const action = () => {
-      const { metrics } = this.props;
-      if (metrics.isEnabled()) {
-        this.props.navigation.navigate('ChoosePassword', {
-          [PREVIOUS_SCREEN]: ONBOARDING,
-        });
-        this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
-      } else {
-        this.props.navigation.navigate('OptinMetrics', {
-          onContinue: () => {
-            this.props.navigation.replace('ChoosePassword', {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-            });
-            this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
-          },
-        });
-      }
+      this.props.navigation.navigate('ChoosePassword', {
+        [PREVIOUS_SCREEN]: ONBOARDING,
+      });
+      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
     };
 
     this.handleExistingUser(action);
   };
 
   onPressImport = () => {
+    this.setState({ bottomSheetVisible: false });
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+    OAuthLoginService.resetOauthState();
+    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
     const action = async () => {
-      const { metrics } = this.props;
-      if (metrics.isEnabled()) {
-        this.props.navigation.push(
-          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        );
-        this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
-      } else {
-        this.props.navigation.navigate('OptinMetrics', {
-          onContinue: () => {
-            this.props.navigation.replace(
-              Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-            );
-            this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
-          },
-        });
-      }
+      this.props.navigation.navigate(
+        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+      );
+      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
     };
     this.handleExistingUser(action);
   };
 
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  handlePostSocialLogin = (result, createWallet) => {
+    if (result.type === 'success') {
+      if (createWallet) {
+        if (result.existingUser) {
+          this.props.navigation.navigate('AccountAlreadyExists', {
+            accountName: result.accountName,
+            oauthLoginSuccess: true,
+          });
+        } else {
+          this.props.navigation.navigate('ChoosePassword', {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          });
+          this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
+        }
+      } else if (!createWallet) {
+        if (result.existingUser) {
+          this.props.navigation.navigate('Rehydrate', {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          });
+          this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
+        } else {
+          this.props.navigation.navigate('AccountNotFound', {
+            accountName: result.accountName,
+            oauthLoginSuccess: true,
+          });
+        }
+      }
+    } else {
+      // handle error: show error message in the UI
+    }
+  };
+
+  onPressContinueWithApple = async (createWallet) => {
+    this.props.navigation.navigate('Onboarding');
+    const action = async () => {
+      const loginHandler = createLoginHandler(Platform.OS, 'apple');
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+      ).catch((e) => {
+        this.handleLoginError(e);
+        return { type: 'error', error: e, existingUser: false };
+      });
+      this.handlePostSocialLogin(result, createWallet);
+    };
+    this.handleExistingUser(action);
+  };
+
+  onPressContinueWithGoogle = async (createWallet) => {
+    this.props.navigation.navigate('Onboarding');
+    const action = async () => {
+      const loginHandler = createLoginHandler(Platform.OS, 'google');
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+      ).catch((error) => {
+        this.handleLoginError(error);
+        return { type: 'error', error, existingUser: false };
+      });
+      this.handlePostSocialLogin(result, createWallet);
+    };
+    this.handleExistingUser(action);
+  };
+
+  handleLoginError = (error) => {
+    let errorMessage;
+    if (error instanceof OAuthError) {
+      if (error.code === OAuthErrorType.UserCancelled) {
+        errorMessage = 'user_cancelled';
+      } else {
+        errorMessage = 'oauth_error';
+      }
+    }
+
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings(`error_sheet.${errorMessage}_title`),
+        description: strings(`error_sheet.${errorMessage}_description`),
+        descriptionAlign: 'center',
+        buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+        type: 'error',
+      },
+    });
+  };
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   track = (event) => {
     trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
   };
@@ -343,6 +484,31 @@ class Onboarding extends PureComponent {
   toggleWarningModal = () => {
     const warningModalVisible = this.state.warningModalVisible;
     this.setState({ warningModalVisible: !warningModalVisible });
+  };
+
+  handleCtaActions = (actionType) => {
+    let seedlessOnboarding;
+    seedlessOnboarding = false;
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ONBOARDING_SHEET,
+      params: {
+        onPressCreate: this.onPressCreate,
+        onPressImport: this.onPressImport,
+        onPressContinueWithGoogle: this.onPressContinueWithGoogle,
+        onPressContinueWithApple: this.onPressContinueWithApple,
+        createWallet: actionType === 'create',
+      },
+    });
+    seedlessOnboarding = true;
+    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+    if (!seedlessOnboarding) {
+      if (actionType === 'create') {
+        this.onPressCreate();
+      } else {
+        this.onPressImport();
+      }
+    }
   };
 
   renderLoader = () => {
@@ -366,46 +532,49 @@ class Onboarding extends PureComponent {
     return (
       <View style={styles.ctas}>
         <View style={styles.largeFoxWrapper}>
-          <Image
-            source={require('../../../images/branding/fox.png')}
-            style={styles.foxImage}
-            resizeMethod={'auto'}
+          <LottieView
+            style={styles.image}
+            autoPlay
+            loop
+            source={fox}
+            resizeMode="contain"
           />
         </View>
+
         <Text
-          variant={TextVariant.HeadingLG}
+          variant={TextVariant.HeadingSMRegular}
           style={styles.title}
           testID={OnboardingSelectorIDs.SCREEN_TITLE}
         >
           {strings('onboarding.title')}
         </Text>
-        <View style={styles.importWrapper}>
-          <Text
-            style={styles.buttonDescription}
-            testID={OnboardingSelectorIDs.SCREEN_DESCRIPTION}
-          >
-            {strings('onboarding.import')}
-          </Text>
-        </View>
+
         <View style={styles.createWrapper}>
-          <View style={styles.buttonWrapper}>
-            <StyledButton
-              type={'normal'}
-              onPress={this.onPressImport}
-              testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
-            >
-              {strings('import_wallet.import_from_seed_button')}
-            </StyledButton>
-          </View>
-          <View style={styles.buttonWrapper}>
-            <StyledButton
-              type={'blue'}
-              onPress={this.onPressCreate}
-              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            >
-              {strings('onboarding.start_exploring_now')}
-            </StyledButton>
-          </View>
+          <Button
+            variant={ButtonVariants.Primary}
+            onPress={() => this.handleCtaActions('create')}
+            testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+            label={strings('onboarding.start_exploring_now')}
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+            style={styles.createWalletButton}
+          />
+          <Button
+            variant={ButtonVariants.Secondary}
+            onPress={() => this.handleCtaActions('existing')}
+            testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+            style={styles.existingWalletButton}
+            label={
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={colors.text.default}
+              >
+                {strings('onboarding.have_existing_wallet')}
+              </Text>
+            }
+          />
         </View>
       </View>
     );
@@ -445,7 +614,10 @@ class Onboarding extends PureComponent {
 
     return (
       <View
-        style={baseStyles.flexGrow}
+        style={[
+          baseStyles.flexGrow,
+          { backgroundColor: importedColors.gettingStartedPageBackgroundColor },
+        ]}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
         <ScrollView
@@ -454,21 +626,28 @@ class Onboarding extends PureComponent {
         >
           <View style={styles.wrapper}>
             {loading && (
-              <View style={styles.foxWrapper}>
-                <Image
-                  source={require('../../../images/branding/fox.png')}
+              <View style={styles.largeFoxWrapper}>
+                <LottieView
                   style={styles.image}
-                  resizeMethod={'auto'}
+                  autoPlay
+                  loop
+                  source={fox}
+                  resizeMode="contain"
                 />
               </View>
             )}
             {loading ? this.renderLoader() : this.renderContent()}
           </View>
+
           {existingUser && !loading && (
             <View style={styles.footer}>
-              <Button style={styles.login} onPress={this.onLogin}>
-                {strings('onboarding.unlock')}
-              </Button>
+              <Button
+                variant={ButtonVariants.Link}
+                onPress={this.onLogin}
+                label={strings('onboarding.unlock')}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+              />
             </View>
           )}
         </ScrollView>
@@ -476,13 +655,6 @@ class Onboarding extends PureComponent {
         <FadeOutOverlay />
 
         <View>{this.handleSimpleNotification()}</View>
-
-        <WarningExistingUserModal
-          warningModalVisible={this.state.warningModalVisible}
-          onCancelPress={this.warningCallback}
-          onRequestClose={this.toggleWarningModal}
-          onConfirmPress={this.toggleWarningModal}
-        />
       </View>
     );
   }
@@ -495,6 +667,10 @@ const mapStateToProps = (state) => ({
   passwordSet: state.user.passwordSet,
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,
+
+  oauth2LoginError: state.user.oauth2LoginError,
+  oauth2LoginSuccess: state.user.oauth2LoginSuccess,
+  oauth2LoginExistingUser: state.user.oauth2LoginExistingUser,
 });
 
 const mapDispatchToProps = (dispatch) => ({

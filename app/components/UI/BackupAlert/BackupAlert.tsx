@@ -64,7 +64,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
   useEffect(() => {
     const isInBrowserView = currentRouteName === BROWSER_ROUTE;
     const blockedView =
-      BLOCKED_LIST.find((path) => currentRouteName.includes(path)) ||
+      BLOCKED_LIST.find((path) => currentRouteName?.includes(path)) ||
       currentRouteName === 'SetPasswordFlow';
 
     setInBrowserView(isInBrowserView);
@@ -74,7 +74,8 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
   const goToBackupFlow = () => {
     setIsVisible(false);
     navigation.navigate('SetPasswordFlow', {
-      screen: 'AccountBackupStep1',
+      screen: 'ManualBackupStep1',
+      params: { backupFlow: true },
     });
 
     trackEvent(
