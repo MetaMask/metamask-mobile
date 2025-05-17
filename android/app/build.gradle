@@ -216,6 +216,9 @@ android {
 
     androidResources {
       ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
+      androidResources {
+        noCompress += ["bundle"] // reduce app start up time
+      }
     }
 
 	  signingConfigs {
