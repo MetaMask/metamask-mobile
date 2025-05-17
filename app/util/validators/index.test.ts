@@ -1,7 +1,6 @@
 import { ethers } from 'ethers';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../core/Encryptor';
 import {
-  previousValueComparator,
   failedSeedPhraseRequirements,
   parseVaultValue,
   parseSeedPhrase,
