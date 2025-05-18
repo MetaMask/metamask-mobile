@@ -37,6 +37,7 @@ export const WALLET_SNAP_MAP = {
 
 export interface MultichainWalletSnapOptions {
   scope: CaipChainId;
+  synchronize?: boolean;
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   entropySource?: string;
   accountNameSuggestion?: string;
@@ -246,6 +247,16 @@ export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
 
   protected getSnapSender(): Sender {
     return new BitcoinWalletSnapSender();
+  }
+
+  async createAccount(
+    options: MultichainWalletSnapOptions,
+    snapKeyringOptions?: SnapKeyringOptions,
+  ) {
+    return super.createAccount(
+      { ...options, synchronize: true },
+      snapKeyringOptions,
+    );
   }
 }
 
