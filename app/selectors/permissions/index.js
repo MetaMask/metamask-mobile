@@ -28,7 +28,9 @@ const getSubjects = (state) => state.subjects;
  *
  * @returns {Caip25CaveatValue | undefined} The current authorization or undefined if no authorization exists.
  */
-export const getAuthorizedScopes = createSelector(getSubjects, (subject) => {
+export const getAuthorizedScopes = createSelector(getSubjects, (subjects) => {
+  const subject = Object.values(subjects)[0];
+
   if (!subject) {
     return undefined;
   }
