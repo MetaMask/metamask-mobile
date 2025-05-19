@@ -1105,6 +1105,29 @@ class FixtureBuilder {
   }
 
   /**
+   * Sets up a minimal Solana fixture with mainnet configuration
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
+   */
+  withSolanaFixture() {
+    const SOLANA_TOKEN = 'token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
+      selectedMultichainNetworkChainId: SolScope.Mainnet,
+      multichainNetworkConfigurationsByChainId: {
+        [SolScope.Mainnet]: {
+          chainId: SolScope.Mainnet,
+          name: 'Solana Mainnet',
+          nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
+          isEvm: false
+        }
+      },
+      isEvmSelected: false
+    };
+
+    return this;
+  }
+
+  /**
    * Build and return the fixture object.
    * @returns {Object} - The built fixture object.
    */

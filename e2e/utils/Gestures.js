@@ -28,6 +28,18 @@ class Gestures {
   }
 
   /**
+   * Taps at the center of an element, or at specified normalized coordinates
+   *
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
+   * @param {number} x - Normalized x-coordinate (0-1, default: 0.5 for center)
+   * @param {number} y - Normalized y-coordinate (0-1, default: 0.5 for center)
+   */
+  static async tapAtRelativePosition(elementID, x = 0, y = 0) {
+    const element = await elementID;
+    await element.tap({ x, y });
+  }
+
+  /**
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
@@ -38,33 +50,52 @@ class Gestures {
     await element.tap();
   }
 
-  /**
-   * Tap an element with text partial text matching before tapping it
-   *
-   * @param {string} textPattern - Regular expression pattern to match the text
-   */
-  static async tapTextBeginingWith(textPattern) {
-    await element(by.text(new RegExp(`^/${textPattern} .*$/`))).tap();
-  }
 
-  /**
-   * Wait for an element to be visible and then tap it.
-   *
-   * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
-   * @param {Object} [options={}] - Configuration options
-   * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
-   * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
-   */
-  static async waitAndTap(elementID, options = {}) {
-    const { timeout = 15000, delayBeforeTap = 0 } = options;
-    const element = await elementID;
-    await waitFor(element).toBeVisible().withTimeout(timeout);
-  
-    if (delayBeforeTap > 0) {
-      await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
-    }
-    await element.tap();
+/**
+ * Wait for an element whose text matches the specified pattern based on matchType and then tap it
+ *
+ * @param {string} textPattern - Text pattern to match
+ * @param {string} matchType - Type of match: 'prefix', 'suffix', or 'contains' (default: 'contains')
+ * @param {number} index - Index of the element if multiple elements match (0-based)
+ * @param {number} timeout - Timeout for waiting (default: 15000ms)
+ */
+static async waitAndTapByTextPrefix(textPattern, index = 0, timeout = 15000) {
+  const elementToTap = element(by.text(new RegExp(`^${textPattern}.*`))).atIndex(index);
+  await waitFor(elementToTap).toBeVisible().withTimeout(timeout);
+  await elementToTap.tap();
+}
+
+/**
+ * Wait for an element whose text ends with the specified pattern to be visible and then tap it
+ *
+ * @param {string} textPattern - Text suffix to match at the end of element text
+ * @param {number} index - Index of the element if multiple elements match (0-based)
+ * @param {number} timeout - Timeout for waiting (default: 15000ms)
+ */
+static async waitAndTapByTextSuffix(textPattern, index = 0, timeout = 15000) {
+  const elementToTap = element(by.text(new RegExp(`.*${textPattern}$`))).atIndex(index);
+  await waitFor(elementToTap).toBeVisible().withTimeout(timeout);
+  await elementToTap.tap();
+}
+
+/**
+ * Wait for an element to be visible and then tap it.
+ *
+ * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
+ * @param {Object} [options={}] - Configuration options
+ * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
+ * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
+ */
+static async waitAndTap(elementID, options = {}) {
+  const { timeout = 15000, delayBeforeTap = 0 } = options;
+  const element = await elementID;
+  await waitFor(element).toBeVisible().withTimeout(timeout);
+
+  if (delayBeforeTap > 0) {
+    await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
   }
+  await element.tap();
+}
 
   /**
    * Wait for an element at a specific index to be visible and then tap it.
@@ -141,6 +172,24 @@ class Gestures {
   }
 
   /**
+ * Type text into an element with specified index
+ *
+ * @param {string} elementId - ID of the element to type into
+ * @param {number} index - Index of the element (0-based)
+ * @param {string} text - Text to type
+ */
+static async typeTextByIdAtIndex(elementId, index, text) {
+  // Create a direct reference to element at index
+  const targetElement = element(by.id(elementId)).atIndex(index);
+  
+  // Wait for element to be visible
+  await waitFor(targetElement).toBeVisible().withTimeout(10000);
+  
+  // Type text into the element
+  await targetElement.replaceText(text);
+}
+
+  /**
    * Swipe on an element identified by ID.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to swipe on
@@ -212,6 +261,18 @@ class Gestures {
       .toBeVisible()
       .whileElement(scrollableElement)
       .scroll(scrollAmount, direction);
+  }
+
+  /**
+   * Get an element by text starting with the specified pattern.
+   *
+   * @param {string} startingText - Text pattern to match at the beginning of element text
+   * @returns {Promise<Detox.IndexableNativeElement>} - A promise resolving to the matching element
+   */
+  static getElementByTextStartingWith(startingText) {
+    return element(
+      by.text(new RegExp(`^${startingText}.*`))
+    );
   }
 }
 
