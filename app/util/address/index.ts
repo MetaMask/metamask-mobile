@@ -357,7 +357,9 @@ export function getLabelTextByAddress(address: string) {
             );
             // -1 means the address is not found in any of the hd keyrings
             if (hdKeyringIndex !== -1) {
-              return strings('accounts.srp_index', { index: hdKeyringIndex + 1 });
+              return strings('accounts.srp_index', {
+                index: hdKeyringIndex + 1,
+              });
             }
           }
         }
@@ -721,6 +723,8 @@ export const getTokenDetails = async (
     tokenId,
     networkClientId,
   );
+  // eslint-disable-next-line
+  console.log('tokenData ======================== ', tokenData);
   const { standard, name, symbol, decimals } = tokenData;
   if (standard === ERC721 || standard === ERC1155) {
     return {

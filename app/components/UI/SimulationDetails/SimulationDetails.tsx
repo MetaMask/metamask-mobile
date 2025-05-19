@@ -23,6 +23,7 @@ import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
 import styleSheet from './SimulationDetails.styles';
 import useBalanceChanges from './useBalanceChanges';
 import { useSimulationMetrics } from './useSimulationMetrics';
+import BatchApprovalRow from './BatchApprovalRow/BatchApprovalRow';
 
 export interface SimulationDetailsProps {
   transaction: TransactionMeta;
@@ -149,8 +150,17 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   isTransactionsRedesign = false,
 }: SimulationDetailsProps) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
-  const { chainId, id: transactionId, simulationData, networkClientId } = transaction;
-  const balanceChangesResult = useBalanceChanges({ chainId, simulationData, networkClientId });
+  const {
+    chainId,
+    id: transactionId,
+    simulationData,
+    networkClientId,
+  } = transaction;
+  const balanceChangesResult = useBalanceChanges({
+    chainId,
+    simulationData,
+    networkClientId,
+  });
   const loading = !simulationData || balanceChangesResult.pending;
 
   useSimulationMetrics({
@@ -213,6 +223,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   return (
     <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
       <View style={styles.changeListContainer}>
+        <BatchApprovalRow />
         <BalanceChangeList
           testID="simulation-details-balance-change-list-outgoing"
           heading={strings('simulation_details.outgoing_heading')}
