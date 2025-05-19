@@ -65,11 +65,19 @@ function NftGridItem({
           privacyMode={privacyMode}
         />
       </View>
-      <Text numberOfLines={1} ellipsizeMode="tail">
+      <Text
+        style={styles.collectibleText}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
         {nft.name}
       </Text>
-      <Text numberOfLines={1} ellipsizeMode="tail">
-        {nft.collection?.name}
+      <Text
+        style={styles.collectibleText}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {nft.collection?.name || ''}
       </Text>
     </TouchableOpacity>
   );

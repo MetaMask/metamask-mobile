@@ -1,5 +1,12 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import { Colors } from '../../../util/theme/models';
+
+const DEVICE_WIDTH = Dimensions.get('window').width;
+const GRID_PADDING = 10;
+const NUM_COLUMNS = 3;
+const ITEM_WIDTH =
+  (DEVICE_WIDTH - GRID_PADDING * 2 * NUM_COLUMNS) / NUM_COLUMNS;
+const ITEM_HEIGHT = ITEM_WIDTH + 60; // Width + space for text
 
 const styleSheet = (colors: Colors) =>
   StyleSheet.create({
@@ -7,22 +14,28 @@ const styleSheet = (colors: Colors) =>
       flex: 1,
     },
     collectibleIcon: {
-      width: '100%',
-      aspectRatio: 1,
+      width: ITEM_WIDTH,
+      height: ITEM_WIDTH,
+      borderRadius: 8,
     },
     collectibleCard: {
-      flexBasis: '33%',
-      padding: 10,
-      marginBottom: 10,
-      justifyContent: 'center',
+      width: ITEM_WIDTH,
+      height: ITEM_HEIGHT,
+      padding: GRID_PADDING,
+      marginBottom: GRID_PADDING,
+      justifyContent: 'flex-start',
       alignItems: 'center',
     },
-    // Some images do not have a size, and collapse to 0.
-    // This ensures that we at least give the container a size, so the image can fill it.
     collectibleIconContainer: {
+      width: ITEM_WIDTH,
+      height: ITEM_WIDTH,
+      marginBottom: 8,
+      borderRadius: 8,
+      overflow: 'hidden',
+    },
+    collectibleText: {
       width: '100%',
-      aspectRatio: 1,
-      marginBottom: 10,
+      textAlign: 'center',
     },
     footer: {
       display: 'flex',

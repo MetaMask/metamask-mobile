@@ -5,7 +5,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, Alert, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  View,
+  Alert,
+  ActivityIndicator,
+  RefreshControl,
+  Dimensions,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
@@ -117,6 +123,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
       StackNavigationProp<NftGridNavigationParamList, 'AddAsset'>
     >();
   const multichainCollectibles = useSelector(multichainCollectiblesSelector);
+
   const privacyMode = useSelector(selectPrivacyMode);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
@@ -134,6 +141,13 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
   const [refreshing, setRefreshing] = useState(false);
+
+  const DEVICE_WIDTH = Dimensions.get('window').width;
+  const GRID_PADDING = 10;
+  const NUM_COLUMNS = 3;
+  const ITEM_WIDTH =
+    (DEVICE_WIDTH - GRID_PADDING * 2 * NUM_COLUMNS) / NUM_COLUMNS;
+  const ITEM_HEIGHT = ITEM_WIDTH + 60; // Width + space for text
 
   // Memoize the hex chain IDs to avoid repeated conversions during flatMultichainCollectibles loop
   const hexChainIds = useMemo(
@@ -336,11 +350,13 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
       {!isNftFetchingProgress && flatMultichainCollectibles.length > 0 && (
         <MasonryFlashList
           data={flatMultichainCollectibles}
-          numColumns={3}
-          estimatedItemSize={200}
+          numColumns={NUM_COLUMNS}
+          estimatedItemSize={ITEM_HEIGHT}
           keyExtractor={keyExtractor}
           testID={RefreshTestId}
           renderItem={renderItem}
+          onEndReachedThreshold={0.5}
+          contentContainerStyle={{ padding: GRID_PADDING }}
           refreshControl={
             <RefreshControl
               testID={RefreshTestId}
@@ -350,7 +366,11 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
               onRefresh={onRefresh}
             />
           }
-          ListFooterComponent={<NftGridFooter navigation={navigation} />}
+          ListFooterComponent={
+            <>
+              <NftGridFooter navigation={navigation} />
+            </>
+          }
         />
       )}
       <ActionSheet
