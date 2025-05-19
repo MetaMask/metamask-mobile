@@ -31,6 +31,27 @@ jest.mock('@metamask/bridge-controller', () => {
   };
 });
 
+// Mock Engine context
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
+      getNetworkClientById: jest.fn(() => ({
+        configuration: {
+          chainId: '0x1',
+        },
+      })),
+    },
+  },
+}));
+
+// Mock getProviderByChainId
+jest.mock('../../../../../util/notifications/methods/common', () => ({
+  getProviderByChainId: jest.fn(() => ({
+    getBalance: jest.fn().mockResolvedValue('1000000000000000000'),
+  })),
+}));
+
 describe('useBridgeQuoteData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
