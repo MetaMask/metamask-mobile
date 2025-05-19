@@ -127,6 +127,7 @@
 	<key>branch_universal_link_domains</key>
 	<array>
 		<string>metamask.app.link</string>
+		<string>link.metamask.io</string>
 		<string>metamask-alternate.app.link</string>
 		<string>metamask.test.app.link</string>
 		<string>metamask-alternate.test.app.link</string>

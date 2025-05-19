@@ -10,6 +10,7 @@ import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 import { RampType } from '../../reducers/fiatOrders/types';
+import { handleSwapUrl } from './Handlers/handleSwapUrl';
 import Routes from '../../constants/navigation/Routes';
 
 class DeeplinkManager {
@@ -88,9 +89,22 @@ class DeeplinkManager {
       rampType: RampType.SELL,
     });
   }
-  // FRANK: *Step 7: open the home screen
+
+  // NOTE: open the home screen for new subdomain
   _handleOpenHome() {
     this.navigation.navigate(Routes.WALLET.HOME);
+  }
+
+  // NOTE: this will be used for new deeplink subdomain
+  _handleSwap(swapPath: string) {
+    handleSwapUrl({
+      swapPath,
+      navigation: this.navigation,
+    });
+  }
+  // NOTE: keeping this for backwards compatibility
+  _handleOpenSwap() {
+    this.navigation.navigate(Routes.SWAPS);
   }
 
   parse(
