@@ -84,7 +84,8 @@ function mockAPICall(server, response) {
       return url.includes(String(response.url));
     })
     .thenCallback(async (request) => {
-      const { path, body } = request;
+      const { url, body } = request;
+      const decodedPath = getDecodedProxiedURL(url);
 
       const [requestBodyJson, requestBodyText] = await Promise.all([
         body.getJson(),
@@ -94,7 +95,7 @@ function mockAPICall(server, response) {
 
       const json = response.response(
         requestBody,
-        path,
+        decodedPath,
         getE2ESrpIdentifierForPublicKey,
       );
 

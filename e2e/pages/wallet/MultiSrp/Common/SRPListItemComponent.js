@@ -29,6 +29,14 @@ class SRPListItemComponent {
     );
     await Gestures.waitAndTap(srpSelector);
   }
+
+  async tapListItemByIndex(index) {
+    const srpSelector = Matchers.getElementByID(
+      new RegExp(`^${SRPListItemSelectorsIDs.SRP_LIST_ITEM}.*`),
+      index,
+    );
+    await Gestures.waitAndTap(srpSelector);
+  }
 }
 
 export default new SRPListItemComponent();
