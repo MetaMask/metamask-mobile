@@ -77,9 +77,11 @@ interface ContractWithNfts {
   name: string;
   nfts: Nft[];
   isExpanded: boolean;
+  loadedNftCount: number;
 }
 
 const CONTRACTS_PER_PAGE = 5;
+const NFTS_PER_CONTRACT = 20;
 
 /**
  * Handles the refresh functionality for NFTs
@@ -180,7 +182,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [tokenNetworkFilter],
   );
 
-  // Get all contracts and their NFTs
+  // Get all contracts and their NFTs with initial pagination
   const contractsWithNfts = useMemo(() => {
     const contracts: ContractWithNfts[] = [];
     const allCollectibles = Object.values(
@@ -204,8 +206,9 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
         contracts.push({
           address: contract.address,
           name: contract.name || contract.symbol || 'Unknown Collection',
-          nfts: contractNfts,
+          nfts: contractNfts.slice(0, NFTS_PER_CONTRACT), // Initially load only NFTS_PER_CONTRACT
           isExpanded: false,
+          loadedNftCount: NFTS_PER_CONTRACT,
         });
       }
     });
@@ -227,6 +230,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     }
   }, [contractsWithNfts]);
 
+  // Load more contracts when reaching the end
   const loadMoreContracts = useCallback(() => {
     if (isLoadingMore || !hasMoreContracts) return;
 
