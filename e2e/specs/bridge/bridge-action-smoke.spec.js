@@ -1,40 +1,19 @@
 'use strict';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
+import SettingsView from '../../pages/Settings/SettingsView';
 import QuoteView from '../../pages/Bridge/QuoteView';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
-
-  loadFixture,
-  startFixtureServer,
-  stopFixtureServer,
 } from '../../fixtures/fixture-helper';
-import TokenOverview from '../../pages/wallet/TokenOverview';
 import WalletView from '../../pages/wallet/WalletView';
-import { CustomNetworks, PopularNetworksList } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
-import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../utils/Assertions';
-import StakeView from '../../pages/Stake/StakeView';
-import StakeConfirmView from '../../pages/Stake/StakeConfirmView';
-import SendView from '../../pages/Send/SendView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import AmountView from '../../pages/Send/AmountView';
-import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import axios from 'axios';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { ETH_TO_BASE_URL, ETH_TO_BASE_RESPONSE } from './costants';
 
 
@@ -64,7 +43,11 @@ it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
     async () => {
       await loginToApp();
       await Assertions.checkIfVisible(WalletView.container);
-      await WalletView.tapNotNow();
+      await TabBarComponent.tapSettings();
+      await SettingsView.tapAdvancedTitle();
+      await AdvancedSettingsView.tapSmartTransactionSwitch();
+      await TabBarComponent.tapWallet();
+
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapBridgeButton();
       await device.disableSynchronization();
