@@ -1,7 +1,7 @@
-import { Platform } from 'react-native';
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
+import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 
 import { UserActionType } from '../../actions/user';
 import {
@@ -135,15 +135,44 @@ export class OAuthService {
     this.#dispatchLogin();
 
     try {
-      const result = await loginHandler.login();
+      let result, data, handleCodeFlowResult;
+      let providerLoginSuccess = false;
+      try {
+        trace({
+          name: TraceName.OnboardingOAuthProviderLogin,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        result = await loginHandler.login();
+        providerLoginSuccess = true;
+      } finally {
+        endTrace({
+          name: TraceName.OnboardingOAuthProviderLogin,
+          data: { success: providerLoginSuccess },
+        });
+      }
+
       const authConnection = loginHandler.authConnection;
 
       Logger.log('handleOAuthLogin: result', result);
       if (result) {
-        const data = await loginHandler.getAuthTokens(
-          { ...result, web3AuthNetwork },
-          this.config.authServerUrl,
-        );
+        let getAuthTokensSuccess = false;
+        try {
+          trace({
+            name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+            op: TraceOperation.OnboardingSecurityOp,
+          });
+          data = await loginHandler.getAuthTokens(
+            { ...result, web3AuthNetwork },
+            this.config.authServerUrl,
+          );
+          getAuthTokensSuccess = true;
+        } finally {
+          endTrace({
+            name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+            data: { success: getAuthTokensSuccess },
+          });
+        }
+
         const audience = 'metamask';
 
         if (!data.jwt_tokens[audience]) {
@@ -160,10 +189,25 @@ export class OAuthService {
           userId,
           accountName,
         });
-        const handleCodeFlowResult = await this.handleSeedlessAuthenticate(
-          data,
-          authConnection,
-        );
+
+        let seedlessAuthSuccess = false;
+        try {
+          trace({
+            name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+            op: TraceOperation.OnboardingSecurityOp,
+          });
+          handleCodeFlowResult = await this.handleSeedlessAuthenticate(
+            data,
+            authConnection,
+          );
+          seedlessAuthSuccess = true;
+        } finally {
+          endTrace({
+            name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+            data: { success: seedlessAuthSuccess },
+          });
+        }
+
         this.#dispatchPostLogin(handleCodeFlowResult);
         return handleCodeFlowResult;
       }

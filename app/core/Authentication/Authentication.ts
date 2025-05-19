@@ -110,7 +110,7 @@ class AuthenticationService {
     try {
       trace({
         name: TraceName.OnboardingAddSrp,
-        op: TraceOperation.OnboardingAddSrpOp,
+        op: TraceOperation.OnboardingSecurityOp,
       });
       await KeyringController.createNewVaultAndRestore(password, parsedSeed);
       traceSucceeded = true;
@@ -579,7 +579,7 @@ class AuthenticationService {
       try {
         trace({
           name: TraceName.OnboardingFetchSrps,
-          op: TraceOperation.OnboardingFetchSrpsOp,
+          op: TraceOperation.OnboardingSecurityOp,
         });
         result = await SeedlessOnboardingController.fetchAllSeedPhrases(
           password,

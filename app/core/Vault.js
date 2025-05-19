@@ -116,7 +116,7 @@ export const recreateVaultWithNewPassword = async (
   ) {
     let specificTraceSucceeded = false;
     try {
-      trace({ name: TraceName.OnboardingResetPassword, op: TraceOperation.OnboardingResetPasswordOp });
+      trace({ name: TraceName.OnboardingResetPassword, op: TraceOperation.OnboardingSecurityOp });
       await SeedlessOnboardingController.changePassword(newPassword, password);
       specificTraceSucceeded = true;
     } finally {

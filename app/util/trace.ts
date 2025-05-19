@@ -67,6 +67,9 @@ export enum TraceName {
   OnboardingResetPassword = 'Onboarding - Reset Password',
   OnboardingAddSrp = 'Onboarding - Add SRP',
   OnboardingFetchSrps = 'Onboarding - Fetch SRPs',
+  OnboardingOAuthProviderLogin = 'Onboarding - OAuth Provider Login',
+  OnboardingOAuthBYOAServerGetAuthTokens = 'Onboarding - OAuth BYOA Server Get Auth Tokens',
+  OnboardingOAuthSeedlessAuthenticate = 'Onboarding - OAuth Seedless Authenticate',
 }
 
 export enum TraceOperation {
@@ -87,9 +90,7 @@ export enum TraceOperation {
   CreateSnapAccount = 'create.snap.account',
   AddSnapAccount = 'add.snap.account',
   OnboardingUserJourney = 'onboarding.user_journey',
-  OnboardingResetPasswordOp = 'onboarding.reset_password',
-  OnboardingAddSrpOp = 'onboarding.add_srp',
-  OnboardingFetchSrpsOp = 'onboarding.fetch_srps',
+  OnboardingSecurityOp = 'onboarding.security_operation',
 }
 
 const ID_DEFAULT = 'default';
