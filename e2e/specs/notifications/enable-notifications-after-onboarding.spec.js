@@ -87,10 +87,10 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     // Wallet Annonucement Details
     const walletNotifications = getMockWalletNotificationItemIds();
     for (const walletNotificationId of walletNotifications) {
+      await NotificationMenuView.scrollToNotificationItem(walletNotificationId);
       await NotificationMenuView.tapOnNotificationItem(walletNotificationId);
       await Assertions.checkIfVisible(NotificationDetailsView.title);
       await NotificationDetailsView.tapOnBackButton();
-      await NotificationMenuView.scrollToNotificationItem(walletNotificationId);
     }
   });
 });

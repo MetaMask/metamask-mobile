@@ -23,6 +23,11 @@ class EnableNotificationsModal {
       NotificationMenuViewSelectorsText.ANNOUNCEMENTS_TAB,
     );
   }
+  get scrollViewIdentifier() {
+    return Matchers.getIdentifier(
+      NotificationMenuViewSelectorsIDs.ITEM_LIST_SCROLLVIEW,
+    );
+  }
 
   selectNotificationItem(
     /** @type {string} */
@@ -51,9 +56,9 @@ class EnableNotificationsModal {
   ) {
     await Gestures.scrollToElement(
       this.selectNotificationItem(id),
-      Matchers.getIdentifier(
-        NotificationMenuViewSelectorsIDs.ITEM_LIST_SCROLLVIEW,
-      ),
+      this.scrollViewIdentifier,
+      'down',
+      60,
     );
   }
 }
