@@ -91,12 +91,21 @@ const persistTransform = createTransform(
     for (const [key, value] of Object.entries(controllers)) {
       if (!value || typeof value !== 'object') continue;
 
-      const persistedState = getPersistentState(
-        value,
-        // @ts-expect-error - EngineContext have stateless controllers, so metadata is not available
-        Engine.context[key as keyof EngineContext]?.metadata,
-      );
-      persistableControllersState[key] = persistedState;
+      try {
+        const persistedState = getPersistentState(
+          value,
+          // @ts-expect-error - EngineContext have stateless controllers, so metadata is not available
+          Engine.context[key as keyof EngineContext]?.metadata,
+        );
+        persistableControllersState[key] = persistedState;
+      } catch (error) {
+        // This can happen if the controller state properties were either deleted or renamed
+        // Since migrations are run after transforms, they should handle those cases
+        // Then the next time the transform is run, both states will be in sync
+        Logger.error(error as Error, {
+          message: `Failed to get persistent state for ${key}`,
+        });
+      }
     }
     // Reconstruct data to persist
     const newState = {
