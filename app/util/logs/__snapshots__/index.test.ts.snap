@@ -525,6 +525,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isAccountSyncingReadyToBeDispatched": false,
         "isBackupAndSyncEnabled": true,
         "isBackupAndSyncUpdateLoading": false,
+        "isProfileSyncingEnabled": true,
+        "isProfileSyncingUpdateLoading": false,
       },
     },
   },
