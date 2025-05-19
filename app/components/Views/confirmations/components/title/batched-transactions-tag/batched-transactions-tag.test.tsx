@@ -7,7 +7,6 @@ import {
 } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { BatchedTransactionTag } from './batched-transactions-tag';
-import Engine from '../../../../../../core/Engine';
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
