@@ -117,5 +117,17 @@ class SendView {
   async tapSendSOLTransactionButton() {
     await Gestures.waitAndTap(this.sendSOLTransactionButton);
   }
+
+  async tapCancelButtonSolana() {
+    await Gestures.waitAndTapByTextPrefix('Cancel');
+  }
+
+  async tapContinueButtonSolana() {
+    await Gestures.waitAndTapByTextPrefix('Continue');
+  }
+
+  async tapCloseButtonSolana() {
+    await Gestures.waitAndTapByTextPrefix('Close');
+  }
 }
 export default new SendView();

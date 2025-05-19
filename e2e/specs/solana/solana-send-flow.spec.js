@@ -17,6 +17,7 @@ import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 
 // Test constants
 const SOLANA_ACCOUNT_NAME = 'Solana Account 1';
@@ -48,7 +49,7 @@ describe(
       await AddNewHdAccountComponent.tapConfirm();
       await NetworkEducationModal.tapGotItButton();
       // Assert account created, which is an existing account with SOL
-      await Assertions.checkIfTextRegexExists(SOLANA_ACCOUNT_NAME, 1);
+      await Assertions.checkIfTextIsDisplayed(SOLANA_ACCOUNT_NAME, 1);
     });
 
     it('should validate recipient address format correctly', async () => {
@@ -60,7 +61,7 @@ describe(
         INVALID_ADDRESS_ERROR,
       );
       // Snap UI components prove tricky for testID's
-      await Gestures.waitAndTapByTextPrefix('Cancel');
+      await SendView.tapCancelButtonSolana();
 
     });
 
@@ -70,7 +71,7 @@ describe(
       await SendView.inputSolanaAmount(TRANSFER_AMOUNT);
 
       // Snap UI components prove tricky for testID's
-      await Gestures.waitAndTapByTextPrefix('Continue');
+      await SendView.tapContinueButtonSolana();
       await Assertions.checkIfTextIsDisplayed(
         SendViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
       );
@@ -81,11 +82,11 @@ describe(
     });
 
     it('Should verify that transaction is sent successfully', async () => {
-      await Gestures.waitAndTapByTextPrefix('Close');
+      await SendView.tapCloseButtonSolana();
       await WalletActionsBottomSheet.swipeDownActionsBottomSheet();
       await TabBarComponent.tapActivity();
-      await Gestures.waitAndTapByTextSuffix('0.001 SOL', 0);
-      await Assertions.checkIfTextWithPrefixExists(RECIPIENT_SHORT_ADDRESS);
+      await ActivitiesView.tapOnTransactionValue(TRANSFER_AMOUNT + ' SOL');
+      await Assertions.checkIfTextIsDisplayed(RECIPIENT_SHORT_ADDRESS);
     
     });
   },

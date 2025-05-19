@@ -36,37 +36,6 @@ class Assertions {
 
 
   /**
-   * Check if text matching a regex pattern exists in the UI, without requiring it to be visible.
-   * @param {RegExp|string} text - The regex pattern or string to check if it exists in any element's text.
-   * @param {number} [index=undefined] - Optional index if multiple elements match the pattern.
-   * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
-   */
-    static async checkIfTextRegexExists(text, index = undefined, timeout = TIMEOUT) {
-      let textElement;
-      let regex = text;
-
-      // If text is a string, convert it to a RegExp
-      if (typeof text === 'string') {
-        regex = new RegExp(text);
-      }
-      // Ensure the pattern is a proper regex
-      else if (!(text instanceof RegExp)) {
-        throw new Error('Pattern must be a valid regular expression or string');
-      }
-
-      // Create element matcher directly using Detox's by.text() with regex
-      if (index !== undefined) {
-        textElement = element(by.text(regex)).atIndex(index);
-      } else {
-        textElement = element(by.text(regex));
-      }
-
-      return await waitFor(textElement)
-        .toExist()
-        .withTimeout(timeout);
-    }
-
-  /**
    * Check if an element with the specified ID is not visible.
    * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement>} elementId - The ID of the element to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
@@ -109,21 +78,23 @@ class Assertions {
   /**
    * Check if text is visible.
    * @param {string} text - The text to check if displayed.
+   * @param {number} [index=0] - Index of the element if multiple elements match.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
-  static async checkIfTextIsDisplayed(text, timeout = TIMEOUT) {
-    const element = Matchers.getElementByText(text);
-    return this.checkIfVisible(element, timeout);
+  static async checkIfTextIsDisplayed(text, index = 0, timeout = TIMEOUT) {
+    const textElement = element(by.text(text)).atIndex(index);
+    return this.checkIfVisible(textElement, timeout);
   }
 
   /**
    * Check if text is not visible.
    * @param {string} text - The text to check if not displayed.
+   * @param {number} [index=0] - Index of the element if multiple elements match.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
-  static async checkIfTextIsNotDisplayed(text, timeout = TIMEOUT) {
-    const element = Matchers.getElementByText(text);
-    return this.checkIfNotVisible(element, timeout);
+  static async checkIfTextIsNotDisplayed(text, index = 0, timeout = TIMEOUT) {
+    const textElement = element(by.text(text)).atIndex(index);
+    return this.checkIfNotVisible(textElement, timeout);
   }
 
   /**

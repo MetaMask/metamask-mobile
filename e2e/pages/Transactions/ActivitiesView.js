@@ -76,6 +76,9 @@ class ActivitiesView {
   async swipeDown() {
     await Gestures.swipe(this.container, 'down', 'slow', 0.5);
   }
+  async tapOnTransactionValue(transaction) {
+    await Gestures.waitAndTapByTextSuffix(transaction, 0);
+  }
 }
 
 export default new ActivitiesView();

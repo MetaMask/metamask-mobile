@@ -28,18 +28,6 @@ class Gestures {
   }
 
   /**
-   * Taps at the center of an element, or at specified normalized coordinates
-   *
-   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
-   * @param {number} x - Normalized x-coordinate (0-1, default: 0.5 for center)
-   * @param {number} y - Normalized y-coordinate (0-1, default: 0.5 for center)
-   */
-  static async tapAtRelativePosition(elementID, x = 0, y = 0) {
-    const element = await elementID;
-    await element.tap({ x, y });
-  }
-
-  /**
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
