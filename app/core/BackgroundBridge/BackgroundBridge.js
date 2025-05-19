@@ -441,6 +441,13 @@ export class BackgroundBridge extends EventEmitter {
       this.sendStateUpdate,
     );
 
+    if (AppConstants.MULTICHAIN_API && !this.isMMSDK && !this.isWalletConnect) {
+      Engine.controllerMessenger.unsubscribe(
+        `${Engine.context.PermissionController.name}:stateChange`,
+        this.handleCaipSessionScopeChanges(),
+      );
+    }
+
     this.port.emit('disconnect', { name: this.port.name, data: null });
   };
 
@@ -818,63 +825,71 @@ export class BackgroundBridge extends EventEmitter {
     // wallet_sessionChanged and eth_subscription setup/teardown
     controllerMessenger.subscribe(
       `${context.PermissionController.name}:stateChange`,
-      async (currentValue, previousValue) => {
-        const changedAuthorization = getChangedAuthorization(
-          currentValue,
-          previousValue,
-        );
-
-        const removedAuthorization = getRemovedAuthorization(
-          currentValue,
-          previousValue,
-        );
-
-        // remove any existing notification subscriptions for removed authorization
-        const removedSessionScopes = getSessionScopes(removedAuthorization, {
-          getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
-        });
-        // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
-        // then remove middleware and unsubscribe
-        Object.entries(removedSessionScopes).forEach(([scope, scopeObject]) => {
-          if (
-            scopeObject.notifications.includes('eth_subscription') &&
-            scopeObject.methods.includes('eth_subscribe')
-          ) {
-            this.removeMultichainApiEthSubscriptionMiddleware({
-              scope,
-              origin,
-            });
-          }
-        });
-
-        // add new notification subscriptions for added/changed authorization
-        const changedSessionScopes = getSessionScopes(changedAuthorization, {
-          getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
-        });
-
-        // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
-        // then get the subscriptionManager going for that scope
-        Object.entries(changedSessionScopes).forEach(([scope, scopeObject]) => {
-          if (
-            scopeObject.notifications.includes('eth_subscription') &&
-            scopeObject.methods.includes('eth_subscribe')
-          ) {
-            this.addMultichainApiEthSubscriptionMiddleware({
-              scope,
-              origin,
-            });
-          } else {
-            this.removeMultichainApiEthSubscriptionMiddleware({
-              scope,
-              origin,
-            });
-          }
-        });
-        this.notifyCaipAuthorizationChange(changedAuthorization);
-      },
+      this.handleCaipSessionScopeChanges(),
       getAuthorizedScopes(origin),
     );
-    // TODO: [ffmcgee] onDisconnect (unsubscribe to the things that are subscribed here)
+  }
+
+  /**
+   * Handler for CAIP permission state changes.
+   * @returns function that handlers session scope changes.
+   */
+  handleCaipSessionScopeChanges() {
+    const origin = this.isMMSDK ? this.channelId : this.hostname;
+    return async (currentValue, previousValue) => {
+      const changedAuthorization = getChangedAuthorization(
+        currentValue,
+        previousValue,
+      );
+
+      const removedAuthorization = getRemovedAuthorization(
+        currentValue,
+        previousValue,
+      );
+
+      // remove any existing notification subscriptions for removed authorization
+      const removedSessionScopes = getSessionScopes(removedAuthorization, {
+        getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+      });
+      // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
+      // then remove middleware and unsubscribe
+      Object.entries(removedSessionScopes).forEach(([scope, scopeObject]) => {
+        if (
+          scopeObject.notifications.includes('eth_subscription') &&
+          scopeObject.methods.includes('eth_subscribe')
+        ) {
+          this.removeMultichainApiEthSubscriptionMiddleware({
+            scope,
+            origin,
+          });
+        }
+      });
+
+      // add new notification subscriptions for added/changed authorization
+      const changedSessionScopes = getSessionScopes(changedAuthorization, {
+        getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+      });
+
+      // if the eth_subscription notification is in the scope and eth_subscribe is in the methods
+      // then get the subscriptionManager going for that scope
+      Object.entries(changedSessionScopes).forEach(([scope, scopeObject]) => {
+        if (
+          scopeObject.notifications.includes('eth_subscription') &&
+          scopeObject.methods.includes('eth_subscribe')
+        ) {
+          this.addMultichainApiEthSubscriptionMiddleware({
+            scope,
+            origin,
+          });
+        } else {
+          this.removeMultichainApiEthSubscriptionMiddleware({
+            scope,
+            origin,
+          });
+        }
+      });
+      this.notifyCaipAuthorizationChange(changedAuthorization);
+    };
   }
 
   sendNotification(payload) {
