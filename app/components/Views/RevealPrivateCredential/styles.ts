@@ -15,10 +15,7 @@ export const createStyles = (theme: Theme) =>
     },
     seedPhrase: {
       backgroundColor: theme.colors.background.default,
-      marginTop: 10,
-      paddingBottom: 20,
-      paddingLeft: 20,
-      paddingRight: 20,
+      paddingBottom: 16,
       fontSize: 20,
       textAlign: 'center',
       color: theme.colors.text.default,
@@ -30,6 +27,7 @@ export const createStyles = (theme: Theme) =>
       borderRadius: 10,
       borderWidth: 1,
       borderColor: theme.colors.border.default,
+      padding: 16,
     },
     clipboardButton: {
       alignSelf: 'center',
@@ -96,6 +94,9 @@ export const createStyles = (theme: Theme) =>
     },
     tabContent: {
       padding: 20,
+      flexDirection: 'column',
+      justifyContent: 'center',
+      flex: 1,
     },
     qrCodeContainer: {
       padding: 8,
@@ -132,8 +133,6 @@ export const createStyles = (theme: Theme) =>
       flex: 1,
     },
     ctaContainer: {
-      flex: 1,
-      justifyContent: 'flex-end',
       marginTop: 'auto',
     },
     warning: {
