@@ -66,6 +66,7 @@ import { selectSelectedNetworkClientId } from '../../../../../selectors/networkC
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -111,7 +112,7 @@ const BridgeView = () => {
     isExpired,
     willRefresh,
   } = useBridgeQuoteData();
-  const { quoteRequest, quotesLastFetched } = useSelector(
+  const { quotesLastFetched } = useSelector(
     selectBridgeControllerState,
   );
   const { handleSwitchTokens } = useSwitchTokens();
@@ -154,7 +155,10 @@ const BridgeView = () => {
   const hasValidBridgeInputs =
     isValidSourceAmount && !!sourceToken && !!destToken;
 
-  const hasInsufficientBalance = quoteRequest?.insufficientBal;
+  const hasInsufficientBalance = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+  });
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad =
@@ -251,6 +255,7 @@ const BridgeView = () => {
       // Necessary because snaps prevents navigation after tx is submitted
       if (isSolanaSwap || isSolanaToEvm) {
         navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        dispatch(setIsSubmittingTx(false));
       }
       await submitBridgeTx({
         quoteResponse: activeQuote,
@@ -367,8 +372,7 @@ const BridgeView = () => {
               tokenBalance={latestSourceBalance?.displayBalance}
               networkImageSource={
                 sourceToken?.chainId
-                  ?
-                    getNetworkImageSource({
+                  ? getNetworkImageSource({
                       chainId: sourceToken?.chainId,
                     })
                   : undefined
@@ -395,8 +399,7 @@ const BridgeView = () => {
               token={destToken}
               networkImageSource={
                 destToken
-                  ?
-                    getNetworkImageSource({ chainId: destToken?.chainId })
+                  ? getNetworkImageSource({ chainId: destToken?.chainId })
                   : undefined
               }
               testID="dest-token-area"
