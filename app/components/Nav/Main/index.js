@@ -53,7 +53,6 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
@@ -91,6 +90,7 @@ import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
+import Routes from '../../../constants/navigation/Routes';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
 
@@ -125,7 +125,6 @@ const Main = (props) => {
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
   useNotificationHandler();
   useIdentityEffects();
-  useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
   const { chainId, networkClientId, showIncomingTransactionsNetworks } = props;
@@ -212,6 +211,20 @@ const Main = (props) => {
 
   const toggleRemindLater = () => {
     setShowRemindLaterModal(!showRemindLaterModal);
+    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
+      params: {
+        onConfirm: () => {
+          props.navigation.navigate('SetPasswordFlow', {
+            screen: 'AccountBackupStep1B',
+            params: { ...props.route.params },
+          });
+        },
+        onCancel: () => {
+          toggleRemindLater();
+        },
+      },
+    });
   };
 
   const toggleSkipCheckbox = () => {
@@ -437,21 +450,10 @@ const Main = (props) => {
         <Notification navigation={props.navigation} />
         <RampOrders />
         <SwapsLiveness />
-        <BackupAlert
-          onDismiss={toggleRemindLater}
-          navigation={props.navigation}
-        />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,
         )}
-        <SkipAccountSecurityModal
-          modalVisible={showRemindLaterModal}
-          onCancel={skipAccountModalSecureNow}
-          onConfirm={skipAccountModalSkip}
-          skipCheckbox={skipCheckbox}
-          toggleSkipCheckbox={toggleSkipCheckbox}
-        />
         <ProtectYourWalletModal navigation={props.navigation} />
         <InfoNetworkModal />
         <RootRPCMethodsUI navigation={props.navigation} />

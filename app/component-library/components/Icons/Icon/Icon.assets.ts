@@ -273,6 +273,15 @@ import webtrafficSVG from './assets/web-traffic.svg';
 import widgetsSVG from './assets/widgets.svg';
 import wifioffSVG from './assets/wifi-off.svg';
 import wifiSVG from './assets/wifi.svg';
+import googleSVG from './assets/google.svg';
+import appleSVG from './assets/apple.svg';
+import eyeSlashSolidSVG from './assets/eye-slash-solid.svg';
+import eyeSolidSVG from './assets/eye-solid.svg';
+import dangerSolidSVG from './assets/danger-solid.svg';
+import successSolidSVG from './assets/success.svg';
+import accountSVG from './assets/account.svg';
+import accountTypeSVG from './assets/account-type.svg';
+import richDangerSVG from './assets/rich-danger.svg';
 import xSVG from './assets/x.svg';
 
 /**
@@ -548,5 +557,14 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Widgets]: widgetsSVG,
   [IconName.WifiOff]: wifioffSVG,
   [IconName.Wifi]: wifiSVG,
+  [IconName.Google]: googleSVG,
+  [IconName.Apple]: appleSVG,
+  [IconName.EyeSlashSolid]: eyeSlashSolidSVG,
+  [IconName.EyeSolid]: eyeSolidSVG,
+  [IconName.DangerSolid]: dangerSolidSVG,
+  [IconName.SuccessSolid]: successSolidSVG,
+  [IconName.Account]: accountSVG,
+  [IconName.AccountType]: accountTypeSVG,
+  [IconName.RichDanger]: richDangerSVG,
   [IconName.X]: xSVG,
 };

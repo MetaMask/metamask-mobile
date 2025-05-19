@@ -64,7 +64,6 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
-import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
@@ -134,6 +133,11 @@ import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPh
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
+import AccountStatus from '../../Views/AccountStatus';
+import OnboardingSheet from '../../Views/OnboardingSheet';
+import SeedphraseModal from '../../UI/SeedphraseModal';
+import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
+import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccount from '../../Views/AddNewAccount';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
@@ -176,6 +180,10 @@ const OnboardingSuccessComponentNoSRP = () => {
   );
 };
 
+const AccountAlreadyExists = () => <AccountStatus type="found" />;
+
+const AccountNotFound = () => <AccountStatus type="not_exist" />;
+
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
     <Stack.Screen
@@ -200,6 +208,7 @@ const OnboardingSuccessFlow = () => (
     />
   </Stack.Navigator>
 );
+
 /**
  * Stack navigator responsible for the onboarding process
  * Create Wallet and Import from Secret Recovery Phrase
@@ -232,6 +241,13 @@ const OnboardingNav = () => (
       component={ImportFromSecretRecoveryPhrase}
     />
     <Stack.Screen name="OptinMetrics" component={OptinMetrics} />
+    <Stack.Screen name="AccountStatus" component={AccountStatus} />
+    <Stack.Screen
+      name="AccountAlreadyExists"
+      component={AccountAlreadyExists}
+    />
+    <Stack.Screen name="AccountNotFound" component={AccountNotFound} />
+    <Stack.Screen name="Rehydrate" component={Login} />
   </Stack.Navigator>
 );
 
@@ -335,6 +351,22 @@ const RootModalFlow = (
       component={ModalMandatory}
     />
     <Stack.Screen
+      name={Routes.SHEET.ONBOARDING_SHEET}
+      component={OnboardingSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SEEDPHRASE_MODAL}
+      component={SeedphraseModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL}
+      component={SkipAccountSecurityModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SUCCESS_ERROR_SHEET}
+      component={SuccessErrorSheet}
+    />
+    <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
@@ -425,10 +457,6 @@ const RootModalFlow = (
     <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
     <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
-    <Stack.Screen
-      name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
-      component={EnableAutomaticSecurityChecksModal}
-    />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
       <Stack.Screen

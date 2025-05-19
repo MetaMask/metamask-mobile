@@ -39,7 +39,6 @@ import {
   DeleteMetaMetricsData,
   DeleteWalletData,
   RememberMeOptionSection,
-  AutomaticSecurityChecks,
   ProtectYourWallet,
   LoginOptionsSettings,
   RevealPrivateKey,
@@ -602,16 +601,6 @@ const Settings: React.FC = () => {
           </View>
         )}
         <IPFSGatewaySettings />
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
-          style={styles.subHeading}
-        >
-          {strings('app_settings.security_check_subheading')}
-        </Text>
-        <View style={styles.halfSetting}>
-          <AutomaticSecurityChecks />
-        </View>
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

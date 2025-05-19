@@ -1,4 +1,3 @@
-import AutomaticSecurityChecks from './AutomaticSecurityChecks';
 import ClearCookiesSection from './ClearCookiesSection';
 import DeleteMetaMetricsData from './DeleteMetaMetricsData';
 import DeleteWalletData from './DeleteWalletData';
@@ -12,7 +11,6 @@ import ClearPrivacy from './ClearPrivacy/ClearPrivacy';
 import BlockaidSettings from './BlockaidSettings';
 
 export {
-  AutomaticSecurityChecks,
   ClearCookiesSection,
   DeleteMetaMetricsData,
   DeleteWalletData,
