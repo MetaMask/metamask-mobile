@@ -66,6 +66,7 @@ import { selectSelectedNetworkClientId } from '../../../../../selectors/networkC
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -111,7 +112,7 @@ const BridgeView = () => {
     isExpired,
     willRefresh,
   } = useBridgeQuoteData();
-  const { quoteRequest, quotesLastFetched } = useSelector(
+  const { quotesLastFetched } = useSelector(
     selectBridgeControllerState,
   );
   const { handleSwitchTokens } = useSwitchTokens();
@@ -154,7 +155,10 @@ const BridgeView = () => {
   const hasValidBridgeInputs =
     isValidSourceAmount && !!sourceToken && !!destToken;
 
-  const hasInsufficientBalance = quoteRequest?.insufficientBal;
+  const hasInsufficientBalance = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+  });
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad =
