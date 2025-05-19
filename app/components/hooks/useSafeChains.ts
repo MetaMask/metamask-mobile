@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectUseSafeChainsListValidation } from '../../selectors/preferencesController';
-import Logger from '../../util/Logger';
 import StorageWrapper from '../../store/storage-wrapper';
+import Logger from '../../util/Logger';
 
 export interface SafeChain {
   chainId: string;
@@ -16,37 +16,28 @@ export const useSafeChains = () => {
     selectUseSafeChainsListValidation,
   );
 
-  Logger.log('[SafeChains Debug] useSafeChainsListValidation:', useSafeChainsListValidation);
-
   const [safeChains, setSafeChains] = useState<{
     safeChains?: SafeChain[];
     error?: Error | unknown;
   }>({ safeChains: [] });
 
   useEffect(() => {
-    Logger.log('[SafeChains Debug] useEffect triggered, validation setting:', useSafeChainsListValidation);
-
     if (useSafeChainsListValidation) {
       const fetchSafeChains = async () => {
-        Logger.log('[SafeChains Debug] Fetching safe chains...');
         try {
           const response = await fetch('https://chainid.network/chains.json');
-          Logger.log('[SafeChains Debug] Fetch response status:', response.status);
-
           const safeChainsData: SafeChain[] = await response.json();
-          Logger.log('[SafeChains Debug] Received chains count:', safeChainsData.length);
 
-          // Let's try to cache the data ourselves
           try {
             await StorageWrapper.setItem('SAFE_CHAINS_CACHE', JSON.stringify(safeChainsData));
-            Logger.log('[SafeChains Debug] Successfully cached chains data');
           } catch (cacheError) {
+            // This creates an error but doesn't do anything with it
+            // Consider logging it instead:
             Logger.log('[SafeChains Debug] Error caching chains data:', cacheError);
           }
 
           setSafeChains({ safeChains: safeChainsData });
         } catch (error) {
-          Logger.log('[SafeChains Debug] Error fetching chains:', error);
           setSafeChains({ error });
         }
       };
@@ -55,4 +46,27 @@ export const useSafeChains = () => {
   }, [useSafeChainsListValidation]);
 
   return safeChains;
+};
+
+export const rpcIdentifierUtility = (
+  rpcUrl: string,
+  safeChains: SafeChain[],
+) => {
+  const { host } = new URL(rpcUrl);
+
+  for (const chain of safeChains) {
+    for (const rpc of chain.rpc) {
+      if (host === new URL(rpc).host) {
+        return {
+          safeChain: chain,
+          safeRPCUrl: host,
+        };
+      }
+    }
+  }
+
+  return {
+    safeChain: { chainId: '', nativeCurrency: { symbol: '' } },
+    safeRPCUrl: 'Unknown rpcUrl',
+  };
 };

@@ -2,7 +2,6 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import { TRANSACTION_EVENTS } from '../../../Analytics/events/confirmations';
 import { extractRpcDomain, getNetworkRpcUrl } from '../../../../util/rpc-domain-utils';
 
 import type { RootState } from '../../../../reducers';
@@ -15,7 +14,6 @@ import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
 } from './types';
-import Logger from '../../../../util/Logger';
 
 export function getTransactionTypeValue(
   transactionType: TransactionType | undefined,
@@ -99,11 +97,6 @@ export function generateDefaultTransactionMetrics(
   transactionMeta: TransactionMeta,
   _transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
-  // Optional logging to debug the structure
-  Logger.log('Event type:', eventType);
-  Logger.log('TRANSACTION_EVENTS.TRANSACTION_SUBMITTED:', TRANSACTION_EVENTS.TRANSACTION_SUBMITTED);
-  Logger.log('TransactionMeta:', JSON.stringify(transactionMeta, null, 2));
-
   const { chainId, status, origin, type } = transactionMeta;
 
   // Define a type for transaction data
@@ -139,27 +132,13 @@ export function generateDefaultTransactionMetrics(
     transaction_envelope_type: txData.type,
   };
 
-  // Add RPC domain for specific event types
-  // Check if we need to handle TRANSACTION_EVENTS differently
-  // First, log the event structure to see how to access the category
-  Logger.log('TRANSACTION_EVENTS.TRANSACTION_SUBMITTED structure:', TRANSACTION_EVENTS.TRANSACTION_SUBMITTED);
-
-  // Try different ways to compare event types
   const isSubmittedOrFinalized =
-    eventType === TRANSACTION_EVENTS.TRANSACTION_SUBMITTED.category ||
-    eventType === TRANSACTION_EVENTS.TRANSACTION_FINALIZED.category ||
-    eventType === TRANSACTION_EVENTS.TRANSACTION_SUBMITTED ||
-    eventType === TRANSACTION_EVENTS.TRANSACTION_FINALIZED ||
     eventType === 'transaction_submitted' ||
     eventType === 'transaction_finalized';
 
   if (isSubmittedOrFinalized) {
-    Logger.log('Getting RPC URL for chain ID:', chainId);
     const rpcUrl = getNetworkRpcUrl(chainId);
-    Logger.log('RPC URL:', rpcUrl);
     const rpc_domain = extractRpcDomain(rpcUrl);
-    Logger.log('Extracted RPC domain:', rpc_domain);
-
     if (rpc_domain) {
       properties.rpc_domain = rpc_domain;
     }
