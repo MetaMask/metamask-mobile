@@ -91,9 +91,7 @@
         ]
       },
       "0x279f": {
-        "blockExplorerUrls": [
-          "https://testnet.monadexplorer.com"
-        ],
+        "blockExplorerUrls": ["https://testnet.monadexplorer.com"],
         "chainId": "0x279f",
         "defaultBlockExplorerUrlIndex": 0,
         "defaultRpcEndpointIndex": 0,
@@ -380,7 +378,9 @@
     "isAccountSyncingReadyToBeDispatched": false,
     "isAccountSyncingInProgress": false,
     "isBackupAndSyncEnabled": true,
+    "isProfileSyncingEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
+    "isProfileSyncingUpdateLoading": false,
     "isAccountSyncingEnabled": true
   },
   "MultichainBalancesController": {
