@@ -1433,6 +1433,13 @@
   dependencies:
     expo-build-properties "^0.13.1"
 
+"@consensys/native-ramps-sdk@https://github.com/consensys-vertical-apps/va-mmcx-native-ramps-sdk":
+  version "0.1.2"
+  resolved "https://github.com/consensys-vertical-apps/va-mmcx-native-ramps-sdk#2a52e4e8a850c85093631324de640b3c843e4e47"
+  dependencies:
+    axios "^1.8.3"
+    reflect-metadata "^0.2.2"
+
 "@consensys/on-ramp-sdk@2.1.8":
   version "2.1.8"
   resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-2.1.8.tgz#285244aaf85f704461230ef351eef84cf3451cc9"
@@ -25516,6 +25523,11 @@ reflect-metadata@^0.1.13:
   version "0.1.14"
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.14.tgz#24cf721fe60677146bb77eeb0e1f9dece3d65859"
   integrity sha512-ZhYeb6nRaXCfhnndflDK8qI6ZQ/YcWZCISRAWICW9XYqMUwjZM9Z0DveWX/ABN01oxSHwVxKQmxeYZSsm0jh5A==
+
+reflect-metadata@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.2.2.tgz#400c845b6cba87a21f2c65c4aeb158f4fa4d9c5b"
+  integrity sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==
 
 reflect.getprototypeof@^1.0.4:
   version "1.0.6"
