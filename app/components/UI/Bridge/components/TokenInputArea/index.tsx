@@ -191,7 +191,7 @@ export const TokenInputArea = forwardRef<
               ) : (
                 <Input
                   ref={inputRef}
-                  value={amount}
+                  value={amount ? parseAmount(amount, MAX_DECIMALS) : amount}
                   style={styles.input}
                   isDisabled={false}
                   isReadonly={tokenType === TokenInputAreaType.Destination}
@@ -207,6 +207,9 @@ export const TokenInputArea = forwardRef<
                   onBlur={() => {
                     onBlur?.();
                   }}
+                  // Android only issue, for long numbers, the input field will focus on the right hand side
+                  // Force it to focus on the left hand side
+                  selection={{ start: 0, end: 0 }}
                 />
               )}
             </Box>
