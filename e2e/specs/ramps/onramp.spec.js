@@ -43,15 +43,11 @@ describe(SmokeTrade('Buy Crypto'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should select Region to see the Build Buy Quote screen', async () => {
+  it('should select Get Started to see the Build Buy Quote screen', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
     await BuyGetStartedView.tapGetStartedButton();
-    await BuildQuoteView.tapSelectRegionDropdown();
-    await SelectRegionView.tapRegionOption('United States of America');
-    await SelectRegionView.tapRegionOption('California');
-    await SelectRegionView.tapContinueButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
     await BuildQuoteView.tapCancelButton();
