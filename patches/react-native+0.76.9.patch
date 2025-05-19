@@ -1,3 +1,85 @@
+diff --git a/node_modules/react-native/Libraries/Core/InitializeCore.js b/node_modules/react-native/Libraries/Core/InitializeCore.js
+index f01d96e..e48f8fb 100644
+--- a/node_modules/react-native/Libraries/Core/InitializeCore.js
++++ b/node_modules/react-native/Libraries/Core/InitializeCore.js
+@@ -26,6 +26,13 @@
+ 
+ 'use strict';
+ 
++const Platform = require('../Utilities/Platform');
++
++// Set up Hardened JavaScript on iOS JSC before RN
++if (Platform.OS === 'ios' && !global?.HermesInternal) {
++  require('./setUpSes');
++}
++
+ const start = Date.now();
+ 
+ require('./setUpGlobals');
+diff --git a/node_modules/react-native/Libraries/Core/setUpSes b/node_modules/react-native/Libraries/Core/setUpSes
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native/Libraries/Core/setUpSes.js b/node_modules/react-native/Libraries/Core/setUpSes.js
+new file mode 100644
+index 0000000..4cdb115
+--- /dev/null
++++ b/node_modules/react-native/Libraries/Core/setUpSes.js
+@@ -0,0 +1,55 @@
++/**
++ * Copyright (c) 2024 MetaMask
++ *
++ * Permission to use, copy, modify, and/or distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ *
++ * @flow strict-local
++ * @format
++ */
++
++"use strict";
++
++/**
++ * Set up Hardened JS (SES) in InitializeCore via MMKV
++ */
++
++import { MMKV } from "react-native-mmkv";
++
++const storage = new MMKV(); // id: mmkv.default
++var isSesEnabled = storage.getBoolean("is-ses-enabled");
++
++// Enable SES by default
++if (isSesEnabled === undefined) {
++  isSesEnabled = true;
++  storage.set("is-ses-enabled", true);
++}
++
++// SES disabled in debug-mode
++// See: https://github.com/MetaMask/metamask-mobile/issues/7923
++if (isSesEnabled && !__DEV__) {
++  // The Hermes JS compiler for RN 0.76.9 parses the SES shim in the Metro
++  // 0.81.1 bundle when building Android, despite SES running on iOS JSC,
++  // so we use the SES shim compatible with Hermes compliler.
++  // NB: This will be replaced by @lavamoat/react-native-lockdown.
++  require("../../../../ses-hermes.cjs");
++  repairIntrinsics({
++    errorTaming: "unsafe",
++    consoleTaming: "unsafe",
++    errorTrapping: "none",
++    unhandledRejectionTrapping: "none",
++    overrideTaming: "severe",
++    stackFiltering: "verbose",
++  });
++  require("reflect-metadata");
++  hardenIntrinsics();
++}
 diff --git a/node_modules/react-native/React/Views/RCTModalHostViewManager.m b/node_modules/react-native/React/Views/RCTModalHostViewManager.m
 index 8407662..09d29e7 100644
 --- a/node_modules/react-native/React/Views/RCTModalHostViewManager.m
