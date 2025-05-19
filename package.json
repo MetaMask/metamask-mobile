@@ -414,6 +414,7 @@
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
+    "@metamask/foundryup": "file:../core/packages/foundryup",
     "@babel/core": "^7.25.2",
     "@babel/eslint-parser": "^7.25.1",
     "@babel/preset-env": "^7.25.3",

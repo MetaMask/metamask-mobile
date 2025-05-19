@@ -3959,6 +3959,13 @@
     wrap-ansi "^8.1.0"
     wrap-ansi-cjs "npm:wrap-ansi@^7.0.0"
 
+"@isaacs/fs-minipass@^4.0.0":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@isaacs/fs-minipass/-/fs-minipass-4.0.1.tgz#2d59ae3ab4b38fb4270bfa23d30f8e2e86c7fe32"
+  integrity sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==
+  dependencies:
+    minipass "^7.0.4"
+
 "@isaacs/ttlcache@^1.4.1":
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/@isaacs/ttlcache/-/ttlcache-1.4.1.tgz#21fb23db34e9b6220c6ba023a0118a2dd3461ea2"
@@ -5126,6 +5133,15 @@
   dependencies:
     is-hex-prefixed "1.0.0"
     strip-hex-prefix "1.0.0"
+
+"@metamask/foundryup@file:../core/packages/foundryup":
+  version "0.0.0"
+  dependencies:
+    minipass "^7.1.2"
+    tar "^7.4.3"
+    unzipper "^0.12.3"
+    yargs "17.7.2"
+    yargs-parser "^21.1.1"
 
 "@metamask/gas-fee-controller@^23.0.0":
   version "23.0.0"
@@ -13169,7 +13185,7 @@ blockhash-core@^0.1.0:
   resolved "https://registry.yarnpkg.com/blockhash-core/-/blockhash-core-0.1.0.tgz#dc25bd864b5af05c33e4266fb4d8f4e619462d04"
   integrity sha512-Cv7BgBo0jjVPaeuel4cvxf9LqIGsYNIPz9DAGvvrF9LRlEq9Q3HXu+S8bklPCae0sCxAXic4HGMoImf3FeO3Nw==
 
-bluebird@3.7.2, bluebird@^3.4.7, bluebird@^3.5.0, bluebird@^3.5.1, bluebird@^3.5.4, bluebird@^3.7.2:
+bluebird@3.7.2, bluebird@^3.4.7, bluebird@^3.5.0, bluebird@^3.5.1, bluebird@^3.5.4, bluebird@^3.7.2, bluebird@~3.7.2:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
   integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
@@ -13875,6 +13891,11 @@ chownr@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/chownr/-/chownr-2.0.0.tgz#15bfbe53d2eab4cf70f18a8cd68ebe5b3cb1dece"
   integrity sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==
+
+chownr@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/chownr/-/chownr-3.0.0.tgz#9855e64ecd240a9cc4267ce8a4aa5d24a1da15e4"
+  integrity sha512-+IxzY9BZOQd/XuYPRmrvEVjF/nqj5kgT4kEq7VofrDoM1MxoRjEWkrCC3EtLi59TVawxTAn+orJwFQcrqEN1+g==
 
 chrome-launcher@^0.15.0, chrome-launcher@^0.15.2:
   version "0.15.2"
@@ -15679,7 +15700,7 @@ dtrace-provider@~0.8:
   dependencies:
     nan "^2.14.0"
 
-duplexer2@^0.1.2:
+duplexer2@^0.1.2, duplexer2@~0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/duplexer2/-/duplexer2-0.1.4.tgz#8b12dab878c0d69e3e7891051662a32fc6bddcc1"
   integrity sha512-asLFVfWWtJ90ZyOUHMqk7/S2w2guQKxUI2itj3d92ADHhxUSbCMGi1f1cBcJ7xM1To+pE/Khbwo1yuNbMEPKeA==
@@ -17951,6 +17972,15 @@ fs-extra@^10.0.0, fs-extra@^10.1.0:
     jsonfile "^6.0.1"
     universalify "^2.0.0"
 
+fs-extra@^11.2.0:
+  version "11.3.0"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.3.0.tgz#0daced136bbaf65a555a326719af931adc7a314d"
+  integrity sha512-Z4XaCL6dUDHfP/jT25jJKMmtxvuwbkrD1vNSMFlo9lNLY2c5FHYSQgHPRZUjAB26TpDEoW9HCOgplrdbaPV/ew==
+  dependencies:
+    graceful-fs "^4.2.0"
+    jsonfile "^6.0.1"
+    universalify "^2.0.0"
+
 fs-extra@^7.0.1:
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-7.0.1.tgz#4f189c44aa123b895f722804f55ea23eadc348e9"
@@ -18505,7 +18535,7 @@ got@^11.0.2, got@^11.8.1:
     p-cancelable "^2.0.0"
     responselike "^2.0.0"
 
-graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.3, graceful-fs@^4.1.6, graceful-fs@^4.2.0, graceful-fs@^4.2.4, graceful-fs@^4.2.6, graceful-fs@^4.2.9:
+graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.3, graceful-fs@^4.1.6, graceful-fs@^4.2.0, graceful-fs@^4.2.2, graceful-fs@^4.2.4, graceful-fs@^4.2.6, graceful-fs@^4.2.9:
   version "4.2.11"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.11.tgz#4183e4e8bf08bb6e05bbb2f7d2e0c8f712ca40e3"
   integrity sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==
@@ -22139,7 +22169,7 @@ minipass@^5.0.0:
   resolved "https://registry.yarnpkg.com/minipass/-/minipass-5.0.0.tgz#3e9788ffb90b694a5d0ec94479a45b5d8738133d"
   integrity sha512-3FnjYuehv9k6ovOEbyOswadCDPX1piCfhV8ncmYtHOjuPwylVWsghTLo7rabjC3Rx5xD4HDx8Wm1xnMF7S5qFQ==
 
-"minipass@^5.0.0 || ^6.0.2 || ^7.0.0", minipass@^7.0.2, minipass@^7.0.3, minipass@^7.1.2:
+"minipass@^5.0.0 || ^6.0.2 || ^7.0.0", minipass@^7.0.2, minipass@^7.0.3, minipass@^7.0.4, minipass@^7.1.2:
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/minipass/-/minipass-7.1.2.tgz#93a9626ce5e5e66bd4db86849e7515e92340a707"
   integrity sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==
@@ -22151,6 +22181,13 @@ minizlib@^2.1.1, minizlib@^2.1.2:
   dependencies:
     minipass "^3.0.0"
     yallist "^4.0.0"
+
+minizlib@^3.0.1:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/minizlib/-/minizlib-3.0.2.tgz#f33d638eb279f664439aa38dc5f91607468cb574"
+  integrity sha512-oG62iEk+CYt5Xj2YqI5Xi9xWUeZhDI8jjQmC5oThVH5JGCTgIjr7ciJDzC7MBzYd//WvR1OTmP5Q38Q8ShQtVA==
+  dependencies:
+    minipass "^7.1.2"
 
 mitt@^3.0.1:
   version "3.0.1"
@@ -22182,7 +22219,7 @@ mkdirp@^1.0.3, mkdirp@^1.0.4:
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
 
-mkdirp@^3.0.0:
+mkdirp@^3.0.0, mkdirp@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-3.0.1.tgz#e44e4c5607fb279c168241713cc6e0fea9adcb50"
   integrity sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg==
@@ -27373,6 +27410,18 @@ tar@^6.1.11, tar@^6.1.2, tar@^6.2.1:
     mkdirp "^1.0.3"
     yallist "^4.0.0"
 
+tar@^7.4.3:
+  version "7.4.3"
+  resolved "https://registry.yarnpkg.com/tar/-/tar-7.4.3.tgz#88bbe9286a3fcd900e94592cda7a22b192e80571"
+  integrity sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==
+  dependencies:
+    "@isaacs/fs-minipass" "^4.0.0"
+    chownr "^3.0.0"
+    minipass "^7.1.2"
+    minizlib "^3.0.1"
+    mkdirp "^3.0.1"
+    yallist "^5.0.0"
+
 tcp-port-used@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/tcp-port-used/-/tcp-port-used-1.0.2.tgz#9652b7436eb1f4cfae111c79b558a25769f6faea"
@@ -28168,6 +28217,17 @@ untun@^0.1.2:
     citty "^0.1.5"
     consola "^3.2.3"
     pathe "^1.1.1"
+
+unzipper@^0.12.3:
+  version "0.12.3"
+  resolved "https://registry.yarnpkg.com/unzipper/-/unzipper-0.12.3.tgz#31958f5eed7368ed8f57deae547e5a673e984f87"
+  integrity sha512-PZ8hTS+AqcGxsaQntl3IRBw65QrBI6lxzqDEL7IAo/XCEqRTKGfOX56Vea5TH9SZczRVxuzk1re04z/YjuYCJA==
+  dependencies:
+    bluebird "~3.7.2"
+    duplexer2 "~0.1.4"
+    fs-extra "^11.2.0"
+    graceful-fs "^4.2.2"
+    node-int64 "^0.4.0"
 
 update-browserslist-db@^1.1.1:
   version "1.1.1"
@@ -29192,6 +29252,11 @@ yallist@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/yallist/-/yallist-4.0.0.tgz#9bb92790d9c0effec63be73519e11a35019a3a72"
   integrity sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==
+
+yallist@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/yallist/-/yallist-5.0.0.tgz#00e2de443639ed0d78fd87de0d27469fbcffb533"
+  integrity sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw==
 
 yaml@2.6.0:
   version "2.6.0"

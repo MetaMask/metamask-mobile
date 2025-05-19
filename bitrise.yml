@@ -1059,16 +1059,16 @@ workflows:
                 #!/usr/bin/env bash
                 export METAMASK_ENVIRONMENT='local'
                  node -v
-                  echo "Running foundryup to install the latest version..."
+                  # echo "Running foundryup to install the latest version..."
 
-                 curl -L https://foundry.paradigm.xyz | bash
+                #  curl -L https://foundry.paradigm.xyz | bash
 
-                # Add Foundry binaries to PATH for *this step*
-                export PATH="$HOME/.foundry/bin:$PATH"
+                # # Add Foundry binaries to PATH for *this step*
+                # export PATH="$HOME/.foundry/bin:$PATH"
 
-                $HOME/.foundry/bin/foundryup
-                command -v forge && forge --version
-                command -v anvil && anvil --version
+                # $HOME/.foundry/bin/foundryup
+                # command -v forge && forge --version
+                # command -v anvil && anvil --version
 
                 which anvil
                 anvil --version
@@ -1326,17 +1326,17 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
 
-                node -v
-                   echo "Running foundryup to install the latest version..."
+                # node -v
+                #    echo "Running foundryup to install the latest version..."
 
-                 curl -L https://foundry.paradigm.xyz | bash
+                #  curl -L https://foundry.paradigm.xyz | bash
 
-                # Add Foundry binaries to PATH for *this step*
-                export PATH="$HOME/.foundry/bin:$PATH"
+                # # Add Foundry binaries to PATH for *this step*
+                # export PATH="$HOME/.foundry/bin:$PATH"
 
-                $HOME/.foundry/bin/foundryup
-                command -v forge && forge --version
-                command -v anvil && anvil --version
+                # $HOME/.foundry/bin/foundryup
+                # command -v forge && forge --version
+                # command -v anvil && anvil --version
 
                 which anvil
                 anvil --version
