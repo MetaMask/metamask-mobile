@@ -1,0 +1,66 @@
+diff --git a/node_modules/@metamask/profile-sync-controller/dist/controllers/user-storage/UserStorageController.cjs b/node_modules/@metamask/profile-sync-controller/dist/controllers/user-storage/UserStorageController.cjs
+index 7c41963..2325413 100644
+--- a/node_modules/@metamask/profile-sync-controller/dist/controllers/user-storage/UserStorageController.cjs
++++ b/node_modules/@metamask/profile-sync-controller/dist/controllers/user-storage/UserStorageController.cjs
+@@ -23,7 +23,9 @@ const auth_snap_requests_1 = require("../authentication/auth-snap-requests.cjs")
+ const controllerName = 'UserStorageController';
+ exports.defaultState = {
+     isBackupAndSyncEnabled: true,
++    isProfileSyncingEnabled: true,
+     isBackupAndSyncUpdateLoading: false,
++    isProfileSyncingUpdateLoading: false,
+     isAccountSyncingEnabled: true,
+     hasAccountSyncingSyncedAtLeastOnce: false,
+     isAccountSyncingReadyToBeDispatched: false,
+@@ -34,10 +36,18 @@ const metadata = {
+         persist: true,
+         anonymous: true,
+     },
++    isProfileSyncingEnabled: {
++        persist: true,
++        anonymous: true,
++    },
+     isBackupAndSyncUpdateLoading: {
+         persist: false,
+         anonymous: false,
+     },
++    isProfileSyncingUpdateLoading: {
++        persist: false,
++        anonymous: false,
++    },
+     isAccountSyncingEnabled: {
+         persist: true,
+         anonymous: true,
+diff --git a/node_modules/@metamask/profile-sync-controller/dist/controllers/user-storage/UserStorageController.mjs b/node_modules/@metamask/profile-sync-controller/dist/controllers/user-storage/UserStorageController.mjs
+index a5d470a..2471e9e 100644
+--- a/node_modules/@metamask/profile-sync-controller/dist/controllers/user-storage/UserStorageController.mjs
++++ b/node_modules/@metamask/profile-sync-controller/dist/controllers/user-storage/UserStorageController.mjs
+@@ -20,7 +20,9 @@ import { createSnapSignMessageRequest } from "../authentication/auth-snap-reques
+ const controllerName = 'UserStorageController';
+ export const defaultState = {
+     isBackupAndSyncEnabled: true,
++    isProfileSyncingEnabled: true,
+     isBackupAndSyncUpdateLoading: false,
++    isProfileSyncingUpdateLoading: false,
+     isAccountSyncingEnabled: true,
+     hasAccountSyncingSyncedAtLeastOnce: false,
+     isAccountSyncingReadyToBeDispatched: false,
+@@ -31,10 +33,18 @@ const metadata = {
+         persist: true,
+         anonymous: true,
+     },
++    isProfileSyncingEnabled: {
++        persist: true,
++        anonymous: true,
++    },
+     isBackupAndSyncUpdateLoading: {
+         persist: false,
+         anonymous: false,
+     },
++    isProfileSyncingUpdateLoading: {
++        persist: false,
++        anonymous: false,
++    },
+     isAccountSyncingEnabled: {
+         persist: true,
+         anonymous: true,
