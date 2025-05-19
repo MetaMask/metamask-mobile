@@ -33,6 +33,7 @@ import {
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import SkeletonText from '../../Ramp/components/SkeletonText';
+import parseAmount from '../../Ramp/utils/parseAmount';
 
 const createStyles = ({
   theme,
@@ -106,7 +107,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const { styles } = useStyles(createStyles, { isSelected });
   const fiatValue = token.balanceFiat;
   const balanceWithSymbol = token.balance
-    ? `${token.balance} ${token.symbol}`
+    ? `${Number(token.balance) < 0.00001 ? '< 0.00001' : parseAmount(token.balance, 5)} ${token.symbol}`
     : undefined;
 
   const isNative = token.address === ethers.constants.AddressZero;
