@@ -23,6 +23,8 @@ export enum WalletClientType {
   Solana = 'solana',
 }
 import { getMultichainAccountName } from './utils/getMultichainAccountName';
+import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
+import { getTraceTags } from '../../util/sentry/tags';
 
 export const WALLET_SNAP_MAP = {
   [WalletClientType.Bitcoin]: {
@@ -36,9 +38,10 @@ export const WALLET_SNAP_MAP = {
 };
 
 export interface MultichainWalletSnapOptions {
-  scope: CaipChainId;
+  scope?: CaipChainId;
   synchronize?: boolean;
   entropySource?: string;
+  derivationPath?: string;
   accountNameSuggestion?: string;
   derivationPath?: string;
 }
@@ -94,6 +97,34 @@ export abstract class MultichainWalletSnapClient {
   }
 
   /**
+   * Starts sentry tracing.
+   *
+   * @param name Trace name.
+   * @param op Trace operation.
+   */
+  private startTrace(name: TraceName, op: TraceOperation) {
+    trace({
+      name,
+      op,
+      tags: {
+        'snap.id': this.snapId,
+        ...getTraceTags(store.getState())
+      },
+    });
+  }
+
+  /**
+   * Ends sentry tracing.
+   *
+   * @param name Trace name.
+   */
+  private endTrace(name: TraceName) {
+    endTrace({
+      name,
+    });
+  }
+
+  /**
    * Creates a new account using the SnapKeyring.
    * This method wraps the account creation process with proper SnapKeyring initialization and error handling.
    *
@@ -113,6 +144,9 @@ export abstract class MultichainWalletSnapClient {
         eventName: PerformanceEventNames.AddSnapAccount,
       }),
     );
+
+    // Same here.
+    this.startTrace(TraceName.CreateSnapAccount, TraceOperation.CreateSnapAccount);
 
     const accountName =
       options?.accountNameSuggestion ??
@@ -170,6 +204,11 @@ export abstract class MultichainWalletSnapClient {
    * @throws Error if account discovery or addition fails
    */
   async addDiscoveredAccounts(entropySource: EntropySourceId) {
+    this.startTrace(
+      TraceName.SnapDiscoverAccounts,
+      TraceOperation.DiscoverAccounts,
+    );
+
     for (let index = 0; ; index++) {
       const discoveredAccounts = await this.discoverAccounts(
         [this.getScope()],
@@ -220,6 +259,10 @@ export abstract class MultichainWalletSnapClient {
         }
       }
     }
+
+    this.endTrace(
+      TraceName.SnapDiscoverAccounts,
+    );
   }
 }
 

@@ -50,6 +50,8 @@ import {
 } from '@metamask/keyring-controller';
 import { type Hex, isHexString } from '@metamask/utils';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
+import { endTrace, trace, TraceName, TraceOperation } from '../trace';
+import { getTraceTags } from '../sentry/tags';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -161,6 +163,12 @@ export function renderAccountName(
  */
 
 export async function importAccountFromPrivateKey(private_key: string) {
+  trace({
+    name: TraceName.ImportEvmAccount,
+    op: TraceOperation.ImportAccount,
+    tags: getTraceTags(store.getState()),
+  });
+
   const { KeyringController } = Engine.context;
   // Import private key
   let pkey = private_key;
@@ -175,6 +183,10 @@ export async function importAccountFromPrivateKey(private_key: string) {
     );
   const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
   Engine.setSelectedAddress(checksummedAddress);
+
+  endTrace({
+    name: TraceName.ImportEvmAccount,
+  });
 }
 
 export function isHDOrFirstPartySnapAccount(account: InternalAccount) {

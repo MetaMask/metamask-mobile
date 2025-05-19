@@ -43,8 +43,8 @@ export enum TraceName {
   StoreInit = 'Store Initialization',
   Tokens = 'Tokens List',
   CreateHdAccount = 'Create HD Account',
+  ImportEvmAccount = 'Import EVM Account',
   CreateSnapAccount = 'Create Snap Account',
-  AddSnapAccount = 'Add Snap Account',
   SelectAccount = 'Select Account',
   AddNetwork = 'Add Network',
   UpdateNetwork = 'Update Network',
@@ -53,6 +53,10 @@ export enum TraceName {
   ImportTokens = 'Import Tokens',
   RampQuoteLoading = 'Ramp Quote Loading',
   LoadRampExperience = 'Load Ramp Experience',
+  RevealSrp = 'Reveal SRP',
+  RevealPrivateKey = 'Reveal Private Key',
+  EvmDiscoverAccounts = 'EVM Discover Accounts',
+  SnapDiscoverAccounts = 'Snap Discover Accounts',
 }
 
 export enum TraceOperation {
@@ -70,9 +74,11 @@ export enum TraceOperation {
   AccountList = 'account.list',
   StoreInit = 'store.initialization',
   Login = 'login',
+  ImportAccount = 'import.account',
   CreateAccount = 'create.account',
   CreateSnapAccount = 'create.snap.account',
-  AddSnapAccount = 'add.snap.account',
+  RevealPrivateCredential = 'reveal.private.credential',
+  DiscoverAccounts = 'discover.accounts',
 }
 
 const ID_DEFAULT = 'default';

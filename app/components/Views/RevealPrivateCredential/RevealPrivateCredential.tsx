@@ -20,6 +20,7 @@ import ScrollableTabView, {
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = View as any;
+import { store } from '../../../store';
 import StorageWrapper from '../../../store/storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
@@ -61,6 +62,8 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { endTrace, trace, TraceName, TraceOperation } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -148,6 +151,15 @@ const RevealPrivateCredential = ({
       const { KeyringController } = Engine.context as any;
       const isPrivateKeyReveal = privCredentialName === PRIVATE_KEY;
 
+      // This will trigger after the user hold-pressed the button, we want to trace the actual
+      // keyring operation of extracting the credential
+      const traceName = isPrivateKeyReveal ? TraceName.RevealPrivateKey : TraceName.RevealSrp;
+      trace({
+        name: traceName,
+        op: TraceOperation.RevealPrivateCredential,
+        tags: getTraceTags(store.getState()),
+      });
+
       try {
         let privateCredential;
         if (!isPrivateKeyReveal) {
@@ -166,6 +178,11 @@ const RevealPrivateCredential = ({
         if (privateCredential) {
           setClipboardPrivateCredential(privateCredential);
           setUnlocked(true);
+
+          // We would reveal the private credential after this point, so that's the end of the flow.
+          endTrace({
+            name: traceName,
+          });
         }
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
