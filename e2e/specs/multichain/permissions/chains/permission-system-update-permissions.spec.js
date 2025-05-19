@@ -156,6 +156,10 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await AccountListBottomSheet.tapAccountIndex(0);
         await AccountListBottomSheet.tapConnectAccountsButton();
 
+        // validate that the correct amount of accounts are displayed
+        await Assertions.checkIfTextIsDisplayed(AccountTwoText);
+        await Assertions.checkIfTextIsDisplayed(AccountThreeText);
+
         // should add accounts from an alternative path by clicking "Edit Accounts" in the bottom sheet
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await ConnectedAccountsModal.tapManagePermissionsButton();
