@@ -54,6 +54,21 @@ module.exports = function (baseConfig) {
           },
         }),
       },
+      serializer: {
+        getPolyfills: () => [
+          require.resolve('ses/hermes'),
+          require.resolve('./repair.js'),
+          // eslint-disable-next-line import/no-extraneous-dependencies
+          ...require('@react-native/js-polyfills')(),
+          require.resolve('reflect-metadata'),
+        ],
+        getRunModuleStatement: (moduleId) => {
+          if (moduleId !== 0) {
+            return `__r(${moduleId});hardenIntrinsics();`;
+          }
+          return `__r(${moduleId})`;
+        },
+      },
       resetCache: true,
     }),
   );
