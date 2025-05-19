@@ -4,6 +4,7 @@ import {
   UserProfileMetaData,
   UserProfileProperty,
 } from './UserProfileAnalyticsMetaData.types';
+import { selectHDKeyrings } from '../../../selectors/keyringController';
 
 /**
  * Generate user profile analytics meta data
@@ -19,6 +20,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
     appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
   const isDataCollectionForMarketingEnabled =
       reduxState?.security?.dataCollectionForMarketing;
+  const hdKeyrings = selectHDKeyrings(reduxState);
 
   return {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
@@ -43,6 +45,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
     [UserProfileProperty.HAS_MARKETING_CONSENT]: isDataCollectionForMarketingEnabled
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
+    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: String(hdKeyrings.length),
   };
 };
 
