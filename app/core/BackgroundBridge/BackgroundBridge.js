@@ -778,7 +778,7 @@ export class BackgroundBridge extends EventEmitter {
 
     this.multichainSubscriptionManager.on(
       'notification',
-      (targetOrigin,_, message) => {
+      (targetOrigin, _, message) => {
         if (origin === targetOrigin) {
           engine.emit('notification', message);
         }
