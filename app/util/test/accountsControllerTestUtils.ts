@@ -20,9 +20,11 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import {
   mockQrKeyringAddress,
+  mockSecondHDKeyringAddress,
   mockSimpleKeyringAddress,
   mockSnapAddress1,
   mockSnapAddress2,
+  mockSolanaAddress,
 } from './keyringControllerTestUtils';
 
 export function createMockUuidFromAddress(address: string): AccountId {
@@ -107,7 +109,45 @@ export function createMockInternalAccount(
 export function createMockSnapInternalAccount(
   address: string,
   nickname: string,
+  accountType: KeyringAccountType = EthAccountType.Eoa,
+  entropySource: string = '',
 ): InternalAccount {
+  let methods: string[] = [];
+  switch (accountType) {
+    case EthAccountType.Eoa:
+      methods = [
+        EthMethod.PersonalSign,
+        EthMethod.SignTransaction,
+        EthMethod.SignTypedDataV1,
+        EthMethod.SignTypedDataV3,
+        EthMethod.SignTypedDataV4,
+      ];
+      break;
+    case BtcAccountType.P2wpkh:
+      methods = [BtcMethod.SendBitcoin];
+      break;
+    case SolAccountType.DataAccount:
+      methods = [SolMethod.SendAndConfirmTransaction];
+      break;
+    default:
+      throw new Error(`Unsupported account type: ${accountType}`);
+  }
+
+  let type: KeyringAccountType;
+  switch (accountType) {
+    case EthAccountType.Eoa:
+      type = EthAccountType.Eoa;
+      break;
+    case BtcAccountType.P2wpkh:
+      type = BtcAccountType.P2wpkh;
+      break;
+    case SolAccountType.DataAccount:
+      type = SolAccountType.DataAccount;
+      break;
+    default:
+      throw new Error(`Unsupported account type: ${accountType}`);
+  }
+
   return {
     address,
     id: createMockUuidFromAddress(address),
@@ -123,16 +163,12 @@ export function createMockSnapInternalAccount(
         enabled: true,
       },
     },
-    options: {},
-    methods: [
-      EthMethod.PersonalSign,
-      EthMethod.SignTransaction,
-      EthMethod.SignTypedDataV1,
-      EthMethod.SignTypedDataV3,
-      EthMethod.SignTypedDataV4,
-    ],
-    type: EthAccountType.Eoa,
-    scopes: [EthScope.Eoa],
+    options: {
+      entropySource,
+    },
+    methods,
+    type,
+    scopes: getAccountTypeScopes(accountType),
   };
 }
 
@@ -224,6 +260,16 @@ export const internalAccount2 = createMockInternalAccount(
   'Account 2',
 );
 
+export const expectedSecondHDKeyringUuid = createMockUuidFromAddress(
+  mockSecondHDKeyringAddress,
+);
+
+export const mockSecondHDKeyringInternalAccount = createMockInternalAccount(
+  mockSecondHDKeyringAddress,
+  'Second HD Keyring Account',
+  KeyringTypes.hd,
+);
+
 // used as a default mock for other tests
 export const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
   internalAccounts: {
@@ -269,6 +315,18 @@ const mockSnapAccount2InternalAccount: InternalAccount =
     KeyringTypes.snap,
   );
 
+const mockSolanaInternalAccount: InternalAccount = {
+  ...createMockInternalAccount(
+    mockSolanaAddress,
+    'Solana Account',
+    KeyringTypes.snap,
+  ),
+  options: {
+    imported: true,
+    entropySource: '01JNG7170V9X27V5NFDTY04PJ4',
+  },
+};
+
 export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES: AccountsControllerState =
   {
     ...MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -290,6 +348,8 @@ export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES: AccountsControll
             },
           },
         },
+        [expectedSecondHDKeyringUuid]: mockSecondHDKeyringInternalAccount,
+        [mockSolanaInternalAccount.id]: mockSolanaInternalAccount,
       },
     },
   };

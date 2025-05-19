@@ -6,11 +6,10 @@ import {
   selectSourceAmount,
   selectSlippage,
   selectBridgeQuotes,
+  selectIsSubmittingTx,
+  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
-import {
-  BridgeFeatureFlagsKey,
-  RequestStatus,
-} from '@metamask/bridge-controller';
+import { RequestStatus } from '@metamask/bridge-controller';
 import { useCallback, useMemo } from 'react';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
@@ -25,6 +24,7 @@ import { formatAmount } from '../../../SimulationDetails/formatAmount';
 import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../../locales/i18n';
 import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import useIsInsufficientBalance from '../useInsufficientBalance';
 /**
  * Hook for getting bridge quote data without request logic
  */
@@ -34,33 +34,33 @@ export const useBridgeQuoteData = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const slippage = useSelector(selectSlippage);
+  const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const locale = I18n.locale;
   const fiatFormatter = useFiatFormatter();
   const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
   const ticker = useSelector(selectTicker);
-
   const quotes = useSelector(selectBridgeQuotes);
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
 
   const {
     quoteFetchError,
     quotesLoadingStatus,
     quotesLastFetched,
     quotesRefreshCount,
-    bridgeFeatureFlags,
-    quoteRequest,
   } = bridgeControllerState;
 
   const refreshRate = getQuoteRefreshRate(bridgeFeatureFlags, sourceToken);
-
-  const mobileConfig =
-    bridgeFeatureFlags?.[BridgeFeatureFlagsKey.MOBILE_CONFIG];
-  const maxRefreshCount = mobileConfig?.maxRefreshCount ?? 5; // Default to 5 refresh attempts
-  const { insufficientBal } = quoteRequest;
+  const maxRefreshCount = bridgeFeatureFlags?.maxRefreshCount ?? 5; // Default to 5 refresh attempts
+  const insufficientBal = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+  });
 
   const willRefresh = shouldRefreshQuote(
     insufficientBal ?? false,
     quotesRefreshCount,
     maxRefreshCount,
+    isSubmittingTx,
   );
 
   const isExpired = isQuoteExpired(willRefresh, refreshRate, quotesLastFetched);
@@ -77,7 +77,7 @@ export const useBridgeQuoteData = () => {
         )
       : undefined;
   const formattedDestTokenAmount = destTokenAmount
-    ? Number(destTokenAmount).toFixed(2)
+    ? Number(destTokenAmount).toString()
     : undefined;
 
   const quoteRate =
@@ -112,8 +112,7 @@ export const useBridgeQuoteData = () => {
 
     const { quote, estimatedProcessingTimeInSeconds } = activeQuote;
 
-    //@ts-expect-error - priceImpact is not typed
-    const priceImpact = quote.bridgePriceData.priceImpact;
+    const priceImpact = quote.priceData?.priceImpact;
     const priceImpactPercentage = Number(priceImpact) * 100;
 
     const rate = quoteRate
@@ -127,7 +126,7 @@ export const useBridgeQuoteData = () => {
       estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
       rate,
       priceImpact: `${priceImpactPercentage.toFixed(2)}%`,
-      slippage: `${slippage}%`,
+      slippage: slippage ? `${slippage}%` : 'Auto',
     };
   }, [
     activeQuote,
@@ -152,5 +151,7 @@ export const useBridgeQuoteData = () => {
     isLoading: quotesLoadingStatus === RequestStatus.LOADING,
     formattedQuoteData,
     isNoQuotesAvailable,
+    willRefresh,
+    isExpired,
   };
 };

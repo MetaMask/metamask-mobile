@@ -13,7 +13,8 @@ import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import type { QuickAmount } from '../../Ramp/types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { isStablecoinLendingFeatureEnabled } from '../constants';
+import { useSelector } from 'react-redux';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -34,6 +35,7 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       paddingHorizontal: 16,
       alignItems: 'center',
+      borderRadius: 20,
     },
   });
 
@@ -49,7 +51,9 @@ const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
 
   const handlePress = useCallback(() => {
     if (value === 1 && onMaxPress) {

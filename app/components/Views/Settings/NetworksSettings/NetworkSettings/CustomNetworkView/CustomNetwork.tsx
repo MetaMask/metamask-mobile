@@ -9,12 +9,9 @@ import EmptyPopularList from '../emptyList';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import {
-  Network,
-  PopularList,
-} from '../../../../../../util/networks/customNetworks';
+import { PopularList } from '../../../../../../util/networks/customNetworks';
 import createStyles from '../styles';
-import { CustomNetworkProps } from './CustomNetwork.types';
+import { CustomNetworkProps, Network } from './CustomNetwork.types';
 import {
   selectChainId,
   selectNetworkConfigurations,
@@ -54,7 +51,8 @@ const CustomNetwork = ({
         ) => {
           if (
             isNonEvmChainId(networkConfiguration.chainId) ||
-            isNonEvmChainId(savedNetwork.chainId)
+            isNonEvmChainId(savedNetwork.chainId) ||
+            ('isEvm' in savedNetwork && savedNetwork.isEvm === false)
           ) {
             return false;
           }
@@ -86,7 +84,7 @@ const CustomNetwork = ({
 
   return (
     <>
-      {isNetworkModalVisible && selectedNetwork && (
+      {isNetworkModalVisible && (
         <NetworkModals
           showPopularNetworkModal={showPopularNetworkModal}
           isVisible={isNetworkModalVisible}

@@ -42,9 +42,7 @@ import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   isHDOrFirstPartySnapAccount,
-  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
   ///: END:ONLY_INCLUDE_IF
@@ -57,11 +55,9 @@ import { forgetLedger } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
-import { Hex } from '@metamask/utils';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { selectKeyrings } from '../../../selectors/keyringController';
-///: END:ONLY_INCLUDE_IF
 import { isEvmAccountType } from '@metamask/keyring-api';
+import { toHex } from '@metamask/controller-utils';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -84,7 +80,6 @@ const AccountActions = () => {
     return { KeyringController, PreferencesController };
   }, []);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const existingKeyrings = useSelector(selectKeyrings);
 
   const keyringId = useMemo(() => {
@@ -93,7 +88,6 @@ const AccountActions = () => {
     );
     return keyring?.metadata.id;
   }, [existingKeyrings, selectedAccount.address]);
-  ///: END:ONLY_INCLUDE_IF
 
   const providerConfig = useSelector(selectProviderConfig);
 
@@ -220,7 +214,15 @@ const AccountActions = () => {
     });
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  const goToSwitchAccountType = () => {
+    navigate(Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE, {
+      screen: Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE,
+      params: {
+        address: selectedAddress,
+      },
+    });
+  };
+
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -229,7 +231,6 @@ const AccountActions = () => {
       });
     });
   };
-  ///: END:ONLY_INCLUDE_IF
 
   const showRemoveHWAlert = useCallback(() => {
     Alert.alert(
@@ -257,8 +258,9 @@ const AccountActions = () => {
    */
   const removeHardwareAccount = useCallback(async () => {
     if (selectedAddress) {
-      await controllers.KeyringController.removeAccount(selectedAddress as Hex);
-      await removeAccountsFromPermissions([selectedAddress]);
+      const hexSelectedAddress = toHex(selectedAddress);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
+      await removeAccountsFromPermissions([hexSelectedAddress]);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -293,8 +295,9 @@ const AccountActions = () => {
    */
   const removeSnapAccount = useCallback(async () => {
     if (selectedAddress) {
-      await controllers.KeyringController.removeAccount(selectedAddress as Hex);
-      await removeAccountsFromPermissions([selectedAddress]);
+      const hexSelectedAddress = toHex(selectedAddress);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
+      await removeAccountsFromPermissions([hexSelectedAddress]);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -415,7 +418,7 @@ const AccountActions = () => {
   ]);
 
   const goToEditAccountName = () => {
-    navigate('EditAccountName', { selectedAccount });
+    navigate(Routes.EDIT_ACCOUNT_NAME, { selectedAccount });
   };
 
   const isExplorerVisible = Boolean(
@@ -457,7 +460,6 @@ const AccountActions = () => {
           />
         )}
         {
-          ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
           selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
             <AccountAction
               actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
@@ -468,7 +470,6 @@ const AccountActions = () => {
               }
             />
           )
-          ///: END:ONLY_INCLUDE_IF
         }
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
@@ -492,6 +493,13 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
+        {process.env.MM_SMART_ACCOUNT_UI_ENABLED && (
+          <AccountAction
+            actionTitle={strings('account_actions.switch_to_smart_account')}
+            iconName={IconName.SwapHorizontal}
+            onPress={goToSwitchAccountType}
+          />
+        )}
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}

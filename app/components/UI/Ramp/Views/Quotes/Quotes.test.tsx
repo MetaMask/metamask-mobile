@@ -29,6 +29,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RampType, Region } from '../../types';
 import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -182,10 +183,17 @@ jest.mock('../../hooks/useQuotesAndCustomActions', () =>
   jest.fn(() => mockUseQuotesAndCustomActionsValues),
 );
 
+jest.mock('../../../../../util/trace', () => ({
+  endTrace: jest.fn(),
+  TraceName: {
+    RampQuoteLoading: 'Ramp Quote Loading',
+  },
+}));
+
 describe('Quotes', () => {
   afterEach(() => {
     jest.clearAllMocks();
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   beforeEach(() => {
@@ -231,7 +239,7 @@ describe('Quotes', () => {
           ?.length,
     });
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -249,12 +257,12 @@ describe('Quotes', () => {
           ?.length,
     });
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
   it('renders animation on first fetching', async () => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
     mockUseQuotesAndCustomActionsValues = {
       ...mockUseQuotesAndCustomActionsInitialValues,
       isFetching: true,
@@ -283,7 +291,7 @@ describe('Quotes', () => {
     expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('No providers available')).toBeTruthy();
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -295,7 +303,7 @@ describe('Quotes', () => {
     });
     expect(screen.toJSON()).toMatchSnapshot();
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -331,7 +339,7 @@ describe('Quotes', () => {
     `);
     expect(screen.toJSON()).toMatchSnapshot();
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -391,7 +399,7 @@ describe('Quotes', () => {
     act(() => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
 
     const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
@@ -451,7 +459,7 @@ describe('Quotes', () => {
       act(() => {
         jest.advanceTimersByTime(3000);
         jest.clearAllTimers();
-        jest.useRealTimers();
+        jest.useFakeTimers({ legacyFakeTimers: true });
       });
 
       const customActionToSelect = screen.getByLabelText(
@@ -482,7 +490,7 @@ describe('Quotes', () => {
       });
       expect(screen.toJSON()).toMatchSnapshot();
       act(() => {
-        jest.useRealTimers();
+        jest.useFakeTimers({ legacyFakeTimers: true });
       });
     });
 
@@ -797,7 +805,7 @@ describe('Quotes', () => {
     expect(description).toBeTruthy();
 
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -809,7 +817,7 @@ describe('Quotes', () => {
     });
     expect(mockQueryGetQuotes).toHaveBeenCalledTimes(1);
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -821,7 +829,7 @@ describe('Quotes', () => {
     });
     expect(screen.getByText('Quotes expire in', { exact: false })).toBeTruthy();
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -839,15 +847,18 @@ describe('Quotes', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Get new quotes' }));
     expect(mockQueryGetQuotes).toHaveBeenCalledTimes(1);
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
-  it('calls track event on quotes received and quote error', async () => {
+  it('calls endTrace and track event on quotes received and quote error', async () => {
     render(Quotes);
     act(() => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.RampQuoteLoading,
     });
     expect(mockTrackEvent.mock.calls).toMatchInlineSnapshot(`
       [
@@ -887,7 +898,7 @@ describe('Quotes', () => {
       ]
     `);
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -899,6 +910,9 @@ describe('Quotes', () => {
     act(() => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.RampQuoteLoading,
     });
     expect(mockTrackEvent.mock.calls).toMatchInlineSnapshot(`
       [
@@ -938,7 +952,7 @@ describe('Quotes', () => {
       ]
     `);
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -951,7 +965,7 @@ describe('Quotes', () => {
     expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('Example SDK Error')).toBeTruthy();
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -966,7 +980,7 @@ describe('Quotes', () => {
     );
     expect(mockPop).toBeCalledTimes(1);
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -978,7 +992,7 @@ describe('Quotes', () => {
     render(Quotes);
     expect(screen.toJSON()).toMatchSnapshot();
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -991,7 +1005,7 @@ describe('Quotes', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
     expect(mockQueryGetQuotes).toBeCalledTimes(1);
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 });

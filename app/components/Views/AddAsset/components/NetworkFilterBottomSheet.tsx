@@ -66,9 +66,7 @@ export default function NetworkFilterBottomSheet({
           verticalAlignment={VerticalAlignment.Center}
         >
           <Text style={styles.bottomSheetText}>
-            {`${strings('app_settings.popular')} ${strings(
-              'app_settings.networks',
-            )}`}
+            {strings('wallet.popular_networks')}
           </Text>
           <View style={styles.networkImageContainer}>
             <NetworkImageComponent
