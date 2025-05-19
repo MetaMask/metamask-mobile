@@ -31,7 +31,6 @@ describe('useTokenAsset', () => {
     });
 
     expect(result.current.asset).toEqual({
-      name: strings('token.unknown'),
       symbol: strings('token.unknown'),
     });
   });
