@@ -58,7 +58,7 @@ class EnableNotificationsModal {
       this.selectNotificationItem(id),
       this.scrollViewIdentifier,
       'down',
-      60,
+      100,
     );
   }
 }
