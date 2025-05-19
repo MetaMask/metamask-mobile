@@ -154,14 +154,14 @@ export abstract class MultichainWalletSnapClient {
 
     return await this.withSnapKeyring(async (keyring) => {
       await keyring.createAccount(
-        this.snapId,
-        {
-          ...options,
-          accountNameSuggestion: accountName,
-        } as unknown as Record<string, Json>,
-        snapKeyringOptions ?? this.snapKeyringOptions,
-      );
-    });
+          this.snapId,
+          {
+            ...options,
+            accountNameSuggestion: accountName,
+          } as unknown as Record<string, Json>,
+          snapKeyringOptions ?? this.snapKeyringOptions
+        );
+      });
   }
 
   /**
