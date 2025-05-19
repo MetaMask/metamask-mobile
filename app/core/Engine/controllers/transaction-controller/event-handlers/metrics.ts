@@ -8,6 +8,7 @@ import { MetaMetrics } from '../../../../Analytics';
 import { BaseControllerMessenger } from '../../../types';
 import { generateDefaultTransactionMetrics, generateEvent } from '../utils';
 import type { TransactionEventHandlerRequest } from '../types';
+import Logger from '../../../../../util/Logger';
 
 // Generic handler for simple transaction events
 const createTransactionEventHandler =
@@ -24,6 +25,18 @@ const createTransactionEventHandler =
       );
 
     const event = generateEvent(defaultTransactionMetricProperties);
+
+    // Only log for TRANSACTION_SUBMITTED events since that's what we care about
+    if (eventType === TRANSACTION_EVENTS.TRANSACTION_SUBMITTED) {
+      Logger.log('SENDING METRICS EVENT (SUBMITTED):', JSON.stringify({
+        event: event.name,
+        properties: event.properties,
+        // Don't log sensitive properties for privacy
+        has_rpc_domain: event.properties.rpc_domain !== undefined,
+        rpc_domain: event.properties.rpc_domain,
+      }));
+    }
+
     MetaMetrics.getInstance().trackEvent(event);
   };
 
@@ -77,6 +90,14 @@ export async function handleTransactionFinalizedEventForMetrics(
   );
 
   const event = generateEvent(mergedEventProperties);
+
+  Logger.log('SENDING METRICS EVENT:', JSON.stringify({
+    event: event.name,
+    properties: event.properties,
+    // Don't log sensitive properties for privacy
+    has_rpc_domain: event.properties.rpc_domain !== undefined,
+    rpc_domain: event.properties.rpc_domain,
+  }));
 
   MetaMetrics.getInstance().trackEvent(event);
 }
