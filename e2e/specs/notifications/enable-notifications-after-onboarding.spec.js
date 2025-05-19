@@ -14,7 +14,7 @@ import {
 } from './utils/constants';
 import {
   getMockFeatureAnnouncementItemId,
-  getMockWalletNotificationItemId,
+  getMockWalletNotificationItemIds,
   mockNotificationServices,
 } from './utils/mocks';
 
@@ -53,12 +53,10 @@ describe(SmokeNotifications('Notification Onboarding'), () => {
 
   it('enables notifications through bell icon', async () => {
     // Onboard - Import SRP
-    await importWalletWithRecoveryPhrase(
-      {
-        seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
-        password: NOTIFICATIONS_TEAM_PASSWORD,
-      }
-    );
+    await importWalletWithRecoveryPhrase({
+      seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
+      password: NOTIFICATIONS_TEAM_PASSWORD,
+    });
 
     // Bell Icon
     await WalletView.tapBellIcon();
@@ -71,11 +69,6 @@ describe(SmokeNotifications('Notification Onboarding'), () => {
   it('shows notifications visible in the notifications menu', async () => {
     // Notifications Menu
     await Assertions.checkIfVisible(NotificationMenuView.title);
-    await Assertions.checkIfVisible(
-      NotificationMenuView.selectNotificationItem(
-        getMockWalletNotificationItemId(),
-      ),
-    );
     await Assertions.checkIfVisible(
       NotificationMenuView.selectNotificationItem(
         getMockFeatureAnnouncementItemId(),
@@ -92,10 +85,11 @@ describe(SmokeNotifications('Notification Onboarding'), () => {
     await NotificationDetailsView.tapOnBackButton();
 
     // Wallet Annonucement Details
-    await NotificationMenuView.tapOnNotificationItem(
-      getMockWalletNotificationItemId(),
-    );
-    await Assertions.checkIfVisible(NotificationDetailsView.title);
-    await NotificationDetailsView.tapOnBackButton();
+    const walletNotifications = getMockWalletNotificationItemIds();
+    for (const walletNotificationId of walletNotifications) {
+      await NotificationMenuView.tapOnNotificationItem(walletNotificationId);
+      await Assertions.checkIfVisible(NotificationDetailsView.title);
+      await NotificationDetailsView.tapOnBackButton();
+    }
   });
 });

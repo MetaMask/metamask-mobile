@@ -55,18 +55,25 @@ mockListNotificationsResponse.response = [
   createMockNotificationLidoWithdrawalRequested(),
   createMockNotificationLidoReadyToBeWithdrawn(),
   createMockNotificationLidoWithdrawalCompleted(),
-];
+].map((n, i) => {
+  const date = new Date();
+  date.setDate(date.getDate() - i);
+  n.created_at = date.toString();
+  return n;
+});
 
 const mockFeatureAnnouncementResponse = getMockFeatureAnnouncementResponse();
 mockFeatureAnnouncementResponse.url =
   mockFeatureAnnouncementResponse.url.replace(/:space_id.*/, '');
+if (mockFeatureAnnouncementResponse.response.items?.[0]) {
+  const date = new Date();
+  date.setMonth(date.getMonth() - 1);
+  mockFeatureAnnouncementResponse.response.items[0].sys.createdAt =
+    date.toString();
+}
 
-export function getMockWalletNotificationItemId() {
-  return (
-    mockListNotificationsResponse.response.find(
-      (n) => n.data.kind === 'erc1155_sent',
-    )?.id ?? 'DOES NOT EXIST'
-  );
+export function getMockWalletNotificationItemIds() {
+  return mockListNotificationsResponse.response.map((n) => n.id);
 }
 
 export function getMockFeatureAnnouncementItemId() {

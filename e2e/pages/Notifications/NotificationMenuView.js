@@ -41,6 +41,7 @@ class EnableNotificationsModal {
     /** @type {string} */
     id,
   ) {
+    // await Gestures.scrollToElement(this.selectNotificationItem(id));
     await Gestures.waitAndTap(this.selectNotificationItem(id));
   }
 }
