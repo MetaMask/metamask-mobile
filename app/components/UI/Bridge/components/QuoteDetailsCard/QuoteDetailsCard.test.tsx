@@ -30,7 +30,25 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   })),
 }));
 
-const testState = createBridgeTestState();
+// want to make the source token solana and dest token evm
+const testState = createBridgeTestState({
+  bridgeReducerOverrides: {
+    sourceToken: {
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      address: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      symbol: 'SOL',
+      decimals: 9,
+      name: 'Solana',
+    },
+    destToken: {
+      chainId: 'evm:1',
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      decimals: 18,
+      name: 'Ethereum',
+    },
+  },
+});
 
 describe('QuoteDetailsCard', () => {
   beforeEach(() => {
@@ -151,12 +169,15 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('displays network names', () => {
+    // want to make the source token solana and dest token evm
+    const initialTestState = createBridgeTestState();
+
     const { getByText } = renderScreen(
       QuoteDetailsCard,
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: testState },
+      { state: initialTestState },
     );
 
     expect(getByText('Ethereum Mainnet')).toBeDefined();

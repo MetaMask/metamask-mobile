@@ -436,7 +436,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   }
                                 }
                               >
-                                Ethereum Mainnet
+                                Solana
                               </Text>
                             </View>
                             <SvgMock
@@ -476,9 +476,9 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#ffffff",
+                                      "backgroundColor": "#f3f5f9",
                                       "borderColor": "#ffffff",
-                                      "borderRadius": 8,
+                                      "borderRadius": 12,
                                       "borderWidth": 1.5,
                                       "height": 24,
                                       "justifyContent": "center",
@@ -494,18 +494,21 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     }
                                   }
                                 >
-                                  <Image
-                                    onError={[Function]}
-                                    resizeMode="contain"
-                                    source={1}
+                                  <Text
+                                    accessibilityRole="text"
                                     style={
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                       }
                                     }
-                                    testID="network-avatar-image"
-                                  />
+                                  >
+                                    ?
+                                  </Text>
                                 </View>
                               </View>
                               <Text
@@ -520,9 +523,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     "lineHeight": 24,
                                   }
                                 }
-                              >
-                                Optimism
-                              </Text>
+                              />
                             </View>
                           </View>
                           <View
@@ -1641,7 +1642,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 }
                               >
-                                Ethereum Mainnet
+                                Solana
                               </Text>
                             </View>
                             <SvgMock
@@ -1681,9 +1682,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#ffffff",
+                                      "backgroundColor": "#f3f5f9",
                                       "borderColor": "#ffffff",
-                                      "borderRadius": 8,
+                                      "borderRadius": 12,
                                       "borderWidth": 1.5,
                                       "height": 24,
                                       "justifyContent": "center",
@@ -1699,18 +1700,21 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   }
                                 >
-                                  <Image
-                                    onError={[Function]}
-                                    resizeMode="contain"
-                                    source={1}
+                                  <Text
+                                    accessibilityRole="text"
                                     style={
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                       }
                                     }
-                                    testID="network-avatar-image"
-                                  />
+                                  >
+                                    ?
+                                  </Text>
                                 </View>
                               </View>
                               <Text
@@ -1725,9 +1729,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     "lineHeight": 24,
                                   }
                                 }
-                              >
-                                Optimism
-                              </Text>
+                              />
                             </View>
                           </View>
                           <View

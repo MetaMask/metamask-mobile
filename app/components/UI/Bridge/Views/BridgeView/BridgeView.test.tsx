@@ -631,4 +631,100 @@ describe('BridgeView', () => {
       expect(toJSON()).toMatchSnapshot();
     });
   });
+
+  describe('Error Banner Visibility', () => {
+    it('should hide error banner when input is focused', async () => {
+      // Setup state with error condition
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+
+      // Mock quote data to show an error
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          quoteFetchError: 'Error fetching quote',
+          isNoQuotesAvailable: true,
+          isLoading: false,
+        }));
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Error banner should be visible initially
+      await waitFor(() => {
+        expect(queryByTestId('banneralert')).toBeTruthy();
+      });
+
+      // Focus the input
+      const input = getByTestId('source-token-area-input');
+      fireEvent(input, 'focus');
+
+      // Error banner should be hidden
+      await waitFor(() => {
+        expect(queryByTestId('banneralert')).toBeNull();
+      });
+    });
+
+    it('should focus input and show keypad when error banner is closed', async () => {
+      // Setup state with error condition
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+
+      // Mock quote data to show an error
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          quoteFetchError: 'Error fetching quote',
+          isNoQuotesAvailable: true,
+          isLoading: false,
+        }));
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Error banner should be visible initially
+      await waitFor(() => {
+        expect(queryByTestId('banneralert')).toBeTruthy();
+      });
+
+      // Close the banner by clicking close button
+      const closeButton = getByTestId('banner-close-button-icon');
+      fireEvent.press(closeButton);
+
+      // Error banner should be hidden and keypad should be visible
+      await waitFor(() => {
+        expect(queryByTestId('banneralert')).toBeNull();
+        // Keypad should be visible - check for the delete button which is part of the keypad
+        expect(queryByTestId('keypad-delete-button')).toBeTruthy();
+      });
+    });
+  });
 });
