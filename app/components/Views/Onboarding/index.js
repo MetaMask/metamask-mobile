@@ -184,7 +184,7 @@ const createStyles = (colors) =>
     },
     existingWalletButton: {
       borderRadius: 12,
-      color: colors.text.default,
+      color: importedColors.btnBlack,
       backgroundColor: colors.transparent,
       borderWidth: 1,
       borderColor: importedColors.btnBlack,
@@ -284,6 +284,7 @@ class Onboarding extends PureComponent {
             colors,
             true,
             importedColors.gettingStartedPageBackgroundColor,
+            true,
           )
         : getTransparentBackOnboardingNavbarOptions(
             colors,
@@ -443,7 +444,7 @@ class Onboarding extends PureComponent {
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={colors.text.default}
+                color={importedColors.btnBlack}
               >
                 {strings('onboarding.have_existing_wallet')}
               </Text>

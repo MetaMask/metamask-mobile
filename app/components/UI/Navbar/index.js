@@ -686,6 +686,7 @@ export function getTransparentOnboardingNavbarOptions(
   themeColors,
   showLogo = true,
   color,
+  darkColor = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -696,7 +697,7 @@ export function getTransparentOnboardingNavbarOptions(
     metamaskName: {
       width: 70,
       height: 35,
-      tintColor: themeColors.text.default,
+      tintColor: darkColor ? importedColors.btnBlack : themeColors.text.default,
     },
   });
   return {
@@ -770,7 +771,6 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors, color) {
     metamaskName: {
       width: 70,
       height: 35,
-      tintColor: themeColors.text.default,
     },
   });
   return {
