@@ -196,19 +196,16 @@ const SnapPermissions = ({
       permissionsList: RequestedPermissions,
       key: typeof RestrictedMethods.wallet_snap,
     ) => {
-      const walletSnapPermissionData: SnapPermissionData[] = [];
       const date = permissionsList[key].date;
       const requestedSnaps = permissionsList[key].caveats?.[0].value;
 
-      Object.keys(requestedSnaps).forEach((snapId) => {
+      return Object.keys(requestedSnaps).map((snapId) => {
         const title = strings(
           `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
           { otherSnapName: stripSnapPrefix(snapId) },
         );
-        walletSnapPermissionData.push({ label: title, date });
+        return { label: title, date };
       });
-
-      return walletSnapPermissionData;
     },
     [],
   );
