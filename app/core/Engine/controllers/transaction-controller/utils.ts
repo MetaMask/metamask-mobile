@@ -93,7 +93,7 @@ interface TransactionMetricsProperties {
 }
 
 export function generateDefaultTransactionMetrics(
-  eventType: string,
+  eventType: string, // Should be a string, not IMetaMetricsEvent
   transactionMeta: TransactionMeta,
   _transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
