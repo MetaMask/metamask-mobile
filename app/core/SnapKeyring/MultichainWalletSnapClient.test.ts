@@ -292,20 +292,10 @@ describe('Wallet Client Implementations', () => {
         entropySource: 'test-entropy',
       };
 
-      const mockKeyring = {
-        createAccount: jest.fn(),
-      };
-
-      (Engine.controllerMessenger.call as jest.Mock).mockImplementationOnce(
-        async (_, __, callback) => {
-          await callback({ keyring: mockKeyring });
-        },
-      );
-
       const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
       await bitcoinClient.createAccount(mockOptions);
 
-      expect(mockKeyring.createAccount).toHaveBeenCalledWith(
+      expect(mockSnapKeyring.createAccount).toHaveBeenCalledWith(
         BITCOIN_WALLET_SNAP_ID,
         { ...mockOptions, synchronize: true },
         mockSnapKeyringOptions,
