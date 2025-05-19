@@ -109,16 +109,12 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   }, [asset, styles.ethLogo]);
 
   const isDisabled = useMemo(
-    () =>
-      asset.isETH ||
-      asset.isNative ||
-      isCaipChainId(asset.chainId as CaipAssetId),
+    () => asset.isNative || isCaipChainId(asset.chainId as CaipAssetId),
     [asset.chainId, asset.isETH, asset.isNative],
   );
 
   const handlePress = useCallback(
     () =>
-      !asset.isETH &&
       !asset.isNative &&
       navigation.navigate('AssetDetails', {
         chainId: asset.chainId,
