@@ -247,6 +247,7 @@ const patchPackageTask = {
 const installFoundry = {
   title: 'Installing Foundry Binaries',
   task: async () => {
+    await $`yarn`;
     await $`yarn mm-foundryup`;
   },
 };
