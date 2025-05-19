@@ -648,7 +648,7 @@ const RevealPrivateCredential = ({
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
       <KeyboardAwareScrollView
-        style={[baseStyles.flexGrow, styles.wrapper]}
+        contentContainerStyle={baseStyles.flexGrow}
         enableOnAndroid
       >
         <ActionView
