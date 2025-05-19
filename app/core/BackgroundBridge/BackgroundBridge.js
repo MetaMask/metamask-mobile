@@ -831,7 +831,7 @@ export class BackgroundBridge extends EventEmitter {
    * @param previousValue - The previous CAIP-25 authorization.
    * @returns function that handlers session scope changes.
    */
-  async handleCaipSessionScopeChanges(currentValue, previousValue) {
+  handleCaipSessionScopeChanges = async (currentValue, previousValue) => {
     const origin = this.origin;
     const changedAuthorization = getChangedAuthorization(
       currentValue,
