@@ -78,6 +78,7 @@ export interface BridgeRouteParams {
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
   // Ref necessary to avoid race condition between Redux state and component state
@@ -165,13 +166,14 @@ const BridgeView = () => {
         latestSourceBalance?.atomicBalance ?? BigNumber.from(0),
       ));
 
-  // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
-  const shouldDisplayKeypad =
-    isInputFocused || !hasValidBridgeInputs || !activeQuote;
   const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
 
   // Compute error state directly from dependencies
   const isError = isNoQuotesAvailable || quoteFetchError;
+
+  // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
+  const shouldDisplayKeypad =
+    isInputFocused || !hasValidBridgeInputs || (!activeQuote && !isError);
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
@@ -243,6 +245,20 @@ const BridgeView = () => {
     route.params.bridgeViewMode,
   ]);
 
+  // Update isErrorBannerVisible when input focus changes
+  useEffect(() => {
+    if (isInputFocused) {
+      setIsErrorBannerVisible(false);
+    }
+  }, [isInputFocused]);
+
+  // Reset isErrorBannerVisible when error state changes
+  useEffect(() => {
+    if (isError) {
+      setIsErrorBannerVisible(true);
+    }
+  }, [isError]);
+
   const handleKeypadChange = ({
     value,
   }: {
@@ -307,7 +323,7 @@ const BridgeView = () => {
   }, [isExpired, willRefresh, navigation]);
 
   const renderBottomContent = () => {
-    if (shouldDisplayKeypad && !isLoading && !isError) {
+    if (shouldDisplayKeypad && !isLoading) {
       return (
         <Box style={styles.buttonContainer}>
           <Text color={TextColor.Primary}>
@@ -327,12 +343,15 @@ const BridgeView = () => {
       );
     }
 
-    if (isError) {
+    if (isError && isErrorBannerVisible) {
       return (
         <Box style={styles.buttonContainer}>
           <BannerAlert
             severity={BannerAlertSeverity.Error}
             description={strings('bridge.error_banner_description')}
+            onClose={() => {
+              setIsErrorBannerVisible(false);
+            }}
           />
         </Box>
       );
