@@ -233,7 +233,6 @@ export class BackgroundBridge extends EventEmitter {
     }
   }
 
-
   get origin() {
     return this.isMMSDK ? this.channelId : this.hostname;
   }
@@ -494,7 +493,7 @@ export class BackgroundBridge extends EventEmitter {
    * A method for creating a provider that is safely restricted for the requesting domain.
    **/
   setupProviderEngineEip1193() {
-    const origin = this.isMMSDK ? this.channelId : this.hostname;
+    const origin = this.origin;
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
 
@@ -534,8 +533,7 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(
       createEip1193MethodMiddleware({
         // Permission-related
-        getAccounts: (...args) =>
-          getPermittedAccounts(origin, ...args),
+        getAccounts: (...args) => getPermittedAccounts(origin, ...args),
         getCaip25PermissionFromLegacyPermissionsForOrigin: (
           requestedPermissions,
         ) =>
@@ -588,8 +586,7 @@ export class BackgroundBridge extends EventEmitter {
     // Legacy RPC methods that need to be implemented ahead of the permission middleware
     engine.push(
       createEthAccountsMethodMiddleware({
-        getAccounts: (...args) =>
-          getPermittedAccounts(origin, ...args),
+        getAccounts: (...args) => getPermittedAccounts(origin, ...args),
       }),
     );
 
@@ -615,7 +612,7 @@ export class BackgroundBridge extends EventEmitter {
       Engine.context.PermissionController.createPermissionMiddleware({
         // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
         // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
-        origin
+        origin,
       }),
     );
 
@@ -657,14 +654,10 @@ export class BackgroundBridge extends EventEmitter {
       return null;
     }
 
-    const origin = this.isMMSDK ? this.channelId : this.hostname;
+    const origin = this.origin;
 
-    const {
-      ApprovalController,
-      NetworkController,
-      AccountsController,
-      PermissionController,
-    } = Engine.context;
+    const { NetworkController, AccountsController, PermissionController } =
+      Engine.context;
 
     const engine = new JsonRpcEngine();
 
@@ -821,14 +814,13 @@ export class BackgroundBridge extends EventEmitter {
    * This handles CAIP-25 authorization changes every time relevant permission state changes, for any reason.
    */
   setupCaipEventSubscriptions() {
-    const origin = this.isMMSDK ? this.channelId : this.hostname;
     const { controllerMessenger, context } = Engine;
 
     // wallet_sessionChanged and eth_subscription setup/teardown
     controllerMessenger.subscribe(
       `${context.PermissionController.name}:stateChange`,
       this.handleCaipSessionScopeChanges(),
-      getAuthorizedScopes(origin),
+      getAuthorizedScopes(this.origin),
     );
   }
 
@@ -837,7 +829,7 @@ export class BackgroundBridge extends EventEmitter {
    * @returns function that handlers session scope changes.
    */
   handleCaipSessionScopeChanges() {
-    const origin = this.isMMSDK ? this.channelId : this.hostname;
+    const origin = this.origin;
     return async (currentValue, previousValue) => {
       const changedAuthorization = getChangedAuthorization(
         currentValue,
