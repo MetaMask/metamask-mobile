@@ -872,8 +872,9 @@ export class BackgroundBridge extends EventEmitter {
         });
         this.notifyCaipAuthorizationChange(changedAuthorization);
       },
-      getAuthorizedScopes,
+      getAuthorizedScopes(origin),
     );
+    // TODO: [ffmcgee] onDisconnect (unsubscribe to the things that are subscribed here)
   }
 
   sendNotification(payload) {

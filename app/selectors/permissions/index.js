@@ -26,19 +26,21 @@ const getSubjects = (state) => state.subjects;
  * The returned value is an immutable value from the PermissionController state,
  * or undefined if no authorization exists.
  *
+ * @param origin - The origin to match the subject state from.
  * @returns {Caip25CaveatValue | undefined} The current authorization or undefined if no authorization exists.
  */
-export const getAuthorizedScopes = createSelector(getSubjects, (subjects) => {
-  const subject = Object.values(subjects)[0];
+export const getAuthorizedScopes = (origin) =>
+  createSelector(getSubjects, (subjects) => {
+    const subject = subjects[origin];
 
-  if (!subject) {
-    return undefined;
-  }
+    if (!subject) {
+      return undefined;
+    }
 
-  const caveats =
-    subject.permissions?.[Caip25EndowmentPermissionName]?.caveats || [];
+    const caveats =
+      subject.permissions?.[Caip25EndowmentPermissionName]?.caveats || [];
 
-  const caveat = caveats.find(({ type }) => type === Caip25CaveatType);
+    const caveat = caveats.find(({ type }) => type === Caip25CaveatType);
 
-  return caveat?.value;
-});
+    return caveat?.value;
+  });

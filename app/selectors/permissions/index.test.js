@@ -58,12 +58,12 @@ describe('PermissionController selectors', () => {
         isMultichainOrigin: true,
       };
 
-      const selected1 = getAuthorizedScopes(state1);
+      const selected1 = getAuthorizedScopes('foo.bar')(state1);
 
       expect(selected1).toStrictEqual(expected1);
       // The selector should return the memoized value if state.subjects is
       // the same object
-      expect(selected1).toBe(getAuthorizedScopes(state1));
+      expect(selected1).toBe(getAuthorizedScopes('foo.bar')(state1));
 
       // If we mutate the state, the selector return value should be different
       const state2 = cloneDeep(state1);
@@ -84,13 +84,13 @@ describe('PermissionController selectors', () => {
         isMultichainOrigin: true,
       };
 
-      const selected2 = getAuthorizedScopes(state2);
+      const selected2 = getAuthorizedScopes('foo.bar')(state2);
 
       expect(selected2).toStrictEqual(expected2);
       expect(selected2).not.toBe(selected1);
       // Since we didn't mutate the state at this point, the value should once
       // again be the memoized.
-      expect(selected2).toBe(getAuthorizedScopes(state2));
+      expect(selected2).toBe(getAuthorizedScopes('foo.bar')(state2));
     });
 
     it('returns undefined for empty subjects', () => {
@@ -98,7 +98,7 @@ describe('PermissionController selectors', () => {
         subjects: {},
       };
 
-      const selected = getAuthorizedScopes(state);
+      const selected = getAuthorizedScopes('foo.bar')(state);
       expect(selected).toBeUndefined();
     });
 
@@ -116,7 +116,7 @@ describe('PermissionController selectors', () => {
         },
       };
 
-      const selected = getAuthorizedScopes(state);
+      const selected = getAuthorizedScopes('foo.bar')(state);
       expect(selected).toBeUndefined();
     });
 
@@ -141,7 +141,7 @@ describe('PermissionController selectors', () => {
         },
       };
 
-      const selected = getAuthorizedScopes(state);
+      const selected = getAuthorizedScopes('foo.bar')(state);
       expect(selected).toBeUndefined();
     });
   });
