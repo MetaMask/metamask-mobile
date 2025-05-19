@@ -12,6 +12,7 @@ import {
   RefreshControl,
   Dimensions,
   Platform,
+  ViewToken,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -72,16 +73,9 @@ interface NftGridProps {
   selectedAddress: string;
 }
 
-interface ContractWithNfts {
-  address: string;
-  name: string;
-  nfts: Nft[];
-  isExpanded: boolean;
-  loadedNftCount: number;
-}
-
-const CONTRACTS_PER_PAGE = 5;
-const NFTS_PER_CONTRACT = 20;
+const INITIAL_NFT_COUNT = 20;
+const LAZY_LOAD_COUNT = 10;
+const PREFETCH_THRESHOLD = 0.8; // Start prefetching when 80% through the buffer
 
 /**
  * Handles the refresh functionality for NFTs
@@ -158,12 +152,14 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
   const [refreshing, setRefreshing] = useState(false);
-  const [visibleContracts, setVisibleContracts] = useState<ContractWithNfts[]>(
-    [],
-  );
-  const [hasMoreContracts, setHasMoreContracts] = useState(true);
+  const [visibleNftRange, setVisibleNftRange] = useState({
+    start: 0,
+    end: INITIAL_NFT_COUNT,
+  });
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isPrefetching, setIsPrefetching] = useState(false);
   const listRef = useRef<MasonryFlashListRef<Nft>>(null);
+  const lastVisibleIndexRef = useRef(0);
 
   const DEVICE_WIDTH = Dimensions.get('window').width;
   const GRID_PADDING = 10;
@@ -182,9 +178,9 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [tokenNetworkFilter],
   );
 
-  // Get all contracts and their NFTs with initial pagination
-  const contractsWithNfts = useMemo(() => {
-    const contracts: ContractWithNfts[] = [];
+  // Get all NFTs from contracts
+  const allNfts = useMemo(() => {
+    const nfts: Nft[] = [];
     const allCollectibles = Object.values(
       multichainCollectibles,
     ).flat() as Nft[];
@@ -203,65 +199,75 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
       );
 
       if (contractNfts.length > 0) {
-        contracts.push({
-          address: contract.address,
-          name: contract.name || contract.symbol || 'Unknown Collection',
-          nfts: contractNfts.slice(0, NFTS_PER_CONTRACT), // Initially load only NFTS_PER_CONTRACT
-          isExpanded: false,
-          loadedNftCount: NFTS_PER_CONTRACT,
-        });
+        nfts.push(...contractNfts);
       }
     });
 
-    return contracts;
+    return nfts;
   }, [multichainCollectibles, multichainContracts, hexChainIds]);
 
-  // Load initial contracts
-  useEffect(() => {
-    if (contractsWithNfts.length > 0) {
-      const initialContracts = contractsWithNfts
-        .slice(0, CONTRACTS_PER_PAGE)
-        .map((contract) => ({
-          ...contract,
-          isExpanded: true,
-        }));
-      setVisibleContracts(initialContracts);
-      setHasMoreContracts(contractsWithNfts.length > CONTRACTS_PER_PAGE);
-    }
-  }, [contractsWithNfts]);
-
-  // Load more contracts when reaching the end
-  const loadMoreContracts = useCallback(() => {
-    if (isLoadingMore || !hasMoreContracts) return;
-
-    setIsLoadingMore(true);
-    try {
-      const currentLength = visibleContracts.length;
-      const nextContracts = contractsWithNfts
-        .slice(currentLength, currentLength + CONTRACTS_PER_PAGE)
-        .map((contract) => ({ ...contract, isExpanded: true }));
-
-      setVisibleContracts((prev) => [...prev, ...nextContracts]);
-      setHasMoreContracts(
-        currentLength + CONTRACTS_PER_PAGE < contractsWithNfts.length,
-      );
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [
-    isLoadingMore,
-    hasMoreContracts,
-    visibleContracts.length,
-    contractsWithNfts,
-  ]);
-
-  // Flatten visible NFTs from expanded contracts
+  // Get the current window of NFTs to display
   const visibleNfts = useMemo(
-    () =>
-      visibleContracts
-        .filter((contract) => contract.isExpanded)
-        .flatMap((contract) => contract.nfts),
-    [visibleContracts],
+    () => allNfts.slice(visibleNftRange.start, visibleNftRange.end),
+    [allNfts, visibleNftRange],
+  );
+
+  // Check if we have more NFTs to load
+  const hasMoreNfts = useMemo(
+    () => visibleNftRange.end < allNfts.length,
+    [allNfts.length, visibleNftRange.end],
+  );
+
+  // Track visible items and trigger prefetching
+  const handleViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems.length === 0) return;
+
+      const lastVisible = viewableItems[viewableItems.length - 1].index ?? 0;
+      lastVisibleIndexRef.current = lastVisible;
+
+      // Calculate how far through the buffer we are
+      const bufferProgress = lastVisible / (visibleNfts.length - 1);
+
+      // If we're past the prefetch threshold and not already loading, trigger prefetch
+      if (
+        bufferProgress > PREFETCH_THRESHOLD &&
+        !isLoadingMore &&
+        !isPrefetching &&
+        hasMoreNfts
+      ) {
+        setIsPrefetching(true);
+      }
+    },
+    [visibleNfts.length, isLoadingMore, isPrefetching, hasMoreNfts],
+  );
+
+  // Load more NFTs when prefetching is triggered
+  useEffect(() => {
+    if (!isPrefetching || isLoadingMore || !hasMoreNfts) return;
+
+    const loadMore = async () => {
+      setIsLoadingMore(true);
+      try {
+        setVisibleNftRange((prev) => ({
+          start: prev.start, // Keep the start index the same
+          end: Math.min(prev.end + LAZY_LOAD_COUNT, allNfts.length), // Only increment the end
+        }));
+      } finally {
+        setIsLoadingMore(false);
+        setIsPrefetching(false);
+      }
+    };
+
+    loadMore();
+  }, [isPrefetching, isLoadingMore, hasMoreNfts, allNfts.length]);
+
+  const viewabilityConfig = useMemo(
+    () => ({
+      itemVisiblePercentThreshold: 50,
+      minimumViewTime: 100,
+    }),
+    [],
   );
 
   const onRefresh = useCallback(() => {
@@ -412,12 +418,6 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [colors.primary.default],
   );
 
-  const handleEndReached = useCallback(() => {
-    if (!isLoadingMore && hasMoreContracts) {
-      loadMoreContracts();
-    }
-  }, [isLoadingMore, hasMoreContracts, loadMoreContracts]);
-
   return (
     <View testID="collectible-contracts" style={styles.container}>
       <TokenListControlBar
@@ -451,8 +451,8 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
           keyExtractor={keyExtractor}
           testID={RefreshTestId}
           renderItem={renderItem}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.5}
+          onViewableItemsChanged={handleViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
           contentContainerStyle={{ padding: GRID_PADDING }}
           decelerationRate={0}
           removeClippedSubviews={Platform.OS === 'android'}
@@ -467,14 +467,16 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
           }
           ListFooterComponent={
             <>
-              {isLoadingMore && (
+              {(isLoadingMore || isPrefetching) && (
                 <ActivityIndicator
                   size="small"
                   style={styles.spinner}
                   color={colors.primary.default}
                 />
               )}
-              <NftGridFooter navigation={navigation} />
+              {!isLoadingMore && !isPrefetching && !hasMoreNfts && (
+                <NftGridFooter navigation={navigation} />
+              )}
             </>
           }
         />
