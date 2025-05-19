@@ -35,9 +35,11 @@ it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
   };
   await withFixtures(
   {
-    fixture: new FixtureBuilder().withGanacheNetwork('0x1').build(),
+    fixture: new FixtureBuilder().build(),
     restartDevice: true,
-    ganacheOptions: defaultGanacheOptions,
+    //.withGanacheNetwork('0x1')
+   // ganacheOptions: defaultGanacheOptions,
+    //localNodeOptions: [{ type: 'anvil', options: {chainId: 1, hardfork: 'london'}}],
     testSpecificMock,
   },
     async () => {
