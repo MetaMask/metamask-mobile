@@ -9,11 +9,11 @@ import {
   selectDepositProviderFrontendAuth,
   selectDepositProviderApiKey,
 } from '../../../../selectors/featureFlagController/deposit';
-
+import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 export interface DepositSDK {
-  // TODO: Add properties and methods to the DepositSDK interface
-  providerApiKey: string | null;
-  providerFrontendAuth: string | null;
+  nativeRampsSdk: NativeRampsSdk;
+  providerApiKey: string;
+  providerFrontendAuth: string;
 }
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
@@ -27,14 +27,22 @@ export const DepositSDKProvider = ({
   const providerApiKey = useSelector(selectDepositProviderApiKey);
   const providerFrontendAuth = useSelector(selectDepositProviderFrontendAuth);
 
-  const contextValue = useMemo(
-    (): DepositSDK => ({
-      // TODO: Add properties and methods to the DepositSDK context value
+  const contextValue = useMemo((): DepositSDK => {
+    if (!providerApiKey || !providerFrontendAuth) {
+      throw new Error('Deposit SDK requires valid API key and frontend auth');
+    }
+
+    const nativeRampsSdk = new NativeRampsSdk({
+      partnerApiKey: providerApiKey,
+      frontendAuth: providerFrontendAuth,
+    });
+
+    return {
+      nativeRampsSdk,
       providerApiKey,
       providerFrontendAuth,
-    }),
-    [providerApiKey, providerFrontendAuth],
-  );
+    };
+  }, [providerApiKey, providerFrontendAuth]);
 
   return (
     <DepositSDKContext.Provider value={value ?? contextValue} {...props} />
@@ -43,5 +51,8 @@ export const DepositSDKProvider = ({
 
 export const useDepositSDK = () => {
   const contextValue = useContext(DepositSDKContext);
-  return contextValue as DepositSDK;
+  if (!contextValue) {
+    throw new Error('useDepositSDK must be used within a DepositSDKProvider');
+  }
+  return contextValue;
 };
