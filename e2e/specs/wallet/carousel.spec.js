@@ -12,7 +12,6 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
-import Gestures from '../../utils/Gestures';
 
 const fixtureServer = new FixtureServer();
 
@@ -36,62 +35,84 @@ describe(Regression('Carousel Tests'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
+  const SLIDES = [
+    {
+      title: 'Solana is now supported',
+      id: 'solana',
+    },
+    {
+      title: 'MetaMask Card',
+      id: 'card'
+    },
+    {
+      title: 'Fund your wallet',
+      id: 'fund',
+    },
+  ];
+
   it('should display carousel with correct slides', async () => {
-    const carouselContainer = await WalletView.carouselContainer;
-    const carouselFirstSlide = await WalletView.carouselFirstSlide;
-    const carouselFirstSlideTitle = await WalletView.carouselFirstSlideTitle;
+    const carouselFirstSlide = await WalletView.getCarouselSlide(SLIDES[0].id);
+    const carouselFirstSlideTitle = await WalletView.getCarouselSlideTitle(SLIDES[0].id);
     const carouselProgressDots = await WalletView.carouselProgressDots;
-    await Assertions.checkIfVisible(carouselContainer, 5000);
     await Assertions.checkIfVisible(carouselFirstSlide, 5000);
     await Assertions.checkIfElementToHaveText(
       carouselFirstSlideTitle,
-      'MetaMask Card',
+      SLIDES[0].title,
       5000,
     );
     await Assertions.checkIfVisible(carouselProgressDots, 5000);
   });
+
   it('should navigate between slides', async () => {
-    const carouselContainer = await WalletView.carouselContainer;
-    const carouselSecondSlide = await WalletView.carouselSecondSlide;
-    const carouselSecondSlideTitle = await WalletView.carouselSecondSlideTitle;
-    const carouselFirstSlideTitle = await WalletView.carouselFirstSlideTitle;
-    await Gestures.swipe(carouselContainer, 'left', 'slow', 0.7);
+    const carouselSecondSlide = await WalletView.getCarouselSlide(SLIDES[1].id);
+    const carouselSecondSlideTitle = await WalletView.getCarouselSlideTitle(SLIDES[1].id);
+    const carouselFirstSlideTitle = await WalletView.getCarouselSlideTitle(SLIDES[0].id);
+    await WalletView.swipeCarousel('left');
     await Assertions.checkIfVisible(carouselSecondSlide, 5000);
     await Assertions.checkIfElementToHaveText(
       carouselSecondSlideTitle,
-      'Fund your wallet',
+      SLIDES[1].title,
       5000,
     );
-    await Gestures.swipe(carouselContainer, 'right', 'slow', 0.7);
+    await WalletView.swipeCarousel('right');
     await Assertions.checkIfElementToHaveText(
       carouselFirstSlideTitle,
-      'MetaMask Card',
+      SLIDES[0].title,
       5000,
     );
   });
+
   it('should dismiss a slide', async () => {
     await device.disableSynchronization();
-    const carouselSecondSlideTitle = await WalletView.carouselSecondSlideTitle;
+    const carouselSecondSlideTitle = await WalletView.getCarouselSlideTitle(SLIDES[1].id);
     const firstSlideCloseButton =
-      await WalletView.carouselFirstSlideCloseButton;
+      await WalletView.getCarouselSlideCloseButton(SLIDES[0].id);
     await Assertions.checkIfVisible(firstSlideCloseButton, 5000);
-    await Gestures.waitAndTap(firstSlideCloseButton);
+    await WalletView.closeCarouselSlide(SLIDES[0].id);
     await TestHelpers.delay(5000);
     await Assertions.checkIfElementToHaveText(
       carouselSecondSlideTitle,
-      'Fund your wallet',
+      SLIDES[1].title,
       5000,
     );
     await device.enableSynchronization();
   });
+
   it('should handle slide interactions', async () => {
     await device.disableSynchronization();
-    const carouselSecondSlide = await WalletView.carouselSecondSlide;
+    // First slide was already dismissed in the previous test
+    // Dismissing the second slide as it's opening portfolio
+    await WalletView.closeCarouselSlide(SLIDES[1].id);
+    const thirdCarouselSlideTitle = await WalletView.getCarouselSlideTitle(SLIDES[2].id);
     const container = await WalletView.container;
-    await Assertions.checkIfVisible(carouselSecondSlide, 5000);
-    await Gestures.waitAndTap(carouselSecondSlide);
-    // await Assertions.checkIfVisible(container, 5000);
-    // await TestHelpers.delay(5000);
-    // await device.enableSynchronization();
+    await Assertions.checkIfElementToHaveText(
+      thirdCarouselSlideTitle,
+      SLIDES[2].title,
+      5000,
+    );
+    await WalletView.tapCarouselSlide(SLIDES[2].id);
+    await Assertions.checkIfVisible(container, 5000);
+    await TestHelpers.delay(5000);
+    await device.enableSynchronization();
   });
 });
