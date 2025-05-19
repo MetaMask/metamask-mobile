@@ -942,6 +942,7 @@ exports[`AssetOverview should render correctly 1`] = `
         Your balance
       </Text>
       <TouchableOpacity
+        disabled={false}
         onLongPress={[Function]}
         onPress={[Function]}
         style={
@@ -2102,6 +2103,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         Your balance
       </Text>
       <TouchableOpacity
+        disabled={true}
         onLongPress={[Function]}
         onPress={[Function]}
         style={
@@ -3162,6 +3164,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         Your balance
       </Text>
       <TouchableOpacity
+        disabled={true}
         onLongPress={[Function]}
         onPress={[Function]}
         style={
