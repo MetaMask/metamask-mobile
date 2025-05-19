@@ -15,3 +15,14 @@ export const selectAppServicesReady = (state: RootState) =>
  * Selects the userLoggedIn state
  */
 export const selectUserLoggedIn = (state: RootState) => state.user.userLoggedIn;
+
+/**
+ * Selects the passwordSet state
+ */
+export const selectPasswordSet = (state: RootState) => state.user.passwordSet;
+
+/**
+ * Selects the seedphraseBackedUp state
+ */
+export const selectSeedphraseBackedUp = (state: RootState) =>
+  state.user.seedphraseBackedUp;
