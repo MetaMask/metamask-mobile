@@ -15,7 +15,6 @@ import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { goToImportSrp, inputSrp } from '../../multisrp/utils';
@@ -103,7 +102,7 @@ describe(
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapCreateAccount();
       await AddNewHdAccountComponent.tapSrpSelector();
-      await SRPListItemComponent.tapListItemByIndex(2);
+      await SRPListItemComponent.tapListItemByIndex(1);
       await AddNewHdAccountComponent.enterName(thirdAccountNameSrp2);
       await TestHelpers.delay(2000);
 

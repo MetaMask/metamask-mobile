@@ -32,7 +32,7 @@ class SRPListItemComponent {
 
   async tapListItemByIndex(index) {
     const srpSelector = Matchers.getElementByID(
-      new RegExp(`^${SRPListItemSelectorsIDs.SRP_LIST_ITEM}.*`),
+      new RegExp(`^${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-\\w+$`),
       index,
     );
     await Gestures.waitAndTap(srpSelector);
