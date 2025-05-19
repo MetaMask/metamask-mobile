@@ -233,6 +233,11 @@ export class BackgroundBridge extends EventEmitter {
     }
   }
 
+
+  get origin() {
+    return this.isMMSDK ? this.channelId : this.hostname;
+  }
+
   onUnlock() {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
@@ -320,7 +325,7 @@ export class BackgroundBridge extends EventEmitter {
     DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotification({
       method: NOTIFICATION_NAMES.chainChanged,
-      params: params ?? (await this.getProviderNetworkState(this.hostname)),
+      params: params ?? (await this.getProviderNetworkState(this.origin)),
     });
   }
 
@@ -346,9 +351,7 @@ export class BackgroundBridge extends EventEmitter {
       if (this.isWalletConnect) {
         approvedAccounts = getPermittedAccounts(this.url);
       } else {
-        approvedAccounts = getPermittedAccounts(
-          this.channelId ?? this.hostname,
-        );
+        approvedAccounts = getPermittedAccounts(this.channelId);
       }
       // Check if selectedAddress is approved
       const found = approvedAccounts
@@ -387,8 +390,7 @@ export class BackgroundBridge extends EventEmitter {
     if (!memState) {
       memState = this.getState();
     }
-    const publicState = await this.getProviderNetworkState(this.hostname);
-
+    const publicState = await this.getProviderNetworkState(this.origin);
     // Check if update already sent
     if (
       this.lastChainIdSent !== publicState.chainId ||
@@ -533,7 +535,7 @@ export class BackgroundBridge extends EventEmitter {
       createEip1193MethodMiddleware({
         // Permission-related
         getAccounts: (...args) =>
-          getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
+          getPermittedAccounts(origin, ...args),
         getCaip25PermissionFromLegacyPermissionsForOrigin: (
           requestedPermissions,
         ) =>
@@ -587,7 +589,7 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(
       createEthAccountsMethodMiddleware({
         getAccounts: (...args) =>
-          getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
+          getPermittedAccounts(origin, ...args),
       }),
     );
 
@@ -613,7 +615,7 @@ export class BackgroundBridge extends EventEmitter {
       Engine.context.PermissionController.createPermissionMiddleware({
         // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
         // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
-        origin: this.isMMSDK ? this.channelId : origin,
+        origin
       }),
     );
 
