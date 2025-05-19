@@ -105,7 +105,7 @@ import {
   getCaipAccountIdsFromCaip25CaveatValue,
   isCaipAccountIdInPermittedAccountIds,
 } from '@metamask/chain-agnostic-permission';
-import { isEqualCaseInsensitive, toHex } from '@metamask/controller-utils';
+import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import styleSheet from './AccountConnect.styles';
 import { useStyles } from '../../../component-library/hooks';
 
@@ -130,21 +130,24 @@ const AccountConnect = (props: AccountConnectProps) => {
     NetworkAvatarProps[]
   >([]);
 
-  const requestedCaip25CaveatValue = useMemo(() => getRequestedCaip25CaveatValue(
-    hostInfo.permissions,
-  ), [hostInfo.permissions]
+  const requestedCaip25CaveatValue = useMemo(
+    () => getRequestedCaip25CaveatValue(hostInfo.permissions),
+    [hostInfo.permissions],
   );
 
-  const requestedCaipAccountIds = useMemo(() => getCaipAccountIdsFromCaip25CaveatValue(
-    requestedCaip25CaveatValue,
-  ), [requestedCaip25CaveatValue]);
-  const requestedCaipChainIds = useMemo(() => getAllScopesFromCaip25CaveatValue(
-    requestedCaip25CaveatValue,
-  ), [requestedCaip25CaveatValue]);
+  const requestedCaipAccountIds = useMemo(
+    () => getCaipAccountIdsFromCaip25CaveatValue(requestedCaip25CaveatValue),
+    [requestedCaip25CaveatValue],
+  );
+  const requestedCaipChainIds = useMemo(
+    () => getAllScopesFromCaip25CaveatValue(requestedCaip25CaveatValue),
+    [requestedCaip25CaveatValue],
+  );
 
-  const requestedNamespaces = useMemo(() => getAllNamespacesFromCaip25CaveatValue(
-    requestedCaip25CaveatValue,
-  ), [requestedCaip25CaveatValue]);
+  const requestedNamespaces = useMemo(
+    () => getAllNamespacesFromCaip25CaveatValue(requestedCaip25CaveatValue),
+    [requestedCaip25CaveatValue],
+  );
 
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -167,19 +170,14 @@ const AccountConnect = (props: AccountConnectProps) => {
     (newSelectedChainIds: CaipChainId[]) => {
       _setSelectedChainIds(newSelectedChainIds);
 
-      const newNetworkAvatars: NetworkAvatarProps[] = newSelectedChainIds.map(
-        (newSelectedChainId) => {
-          const parsedCaipChainId = parseCaipChainId(newSelectedChainId);
-          const chainId = toHex(parsedCaipChainId.reference);
-          return {
-            size: AvatarSize.Xs,
-            name: networkConfigurations[newSelectedChainId]?.name || '',
-            imageSource: getNetworkImageSource({ chainId }),
-            variant: AvatarVariant.Network,
-          };
-        },
+      const newNetworkAvatars = newSelectedChainIds.map(
+        (newSelectedChainId) => ({
+          size: AvatarSize.Xs,
+          name: networkConfigurations[newSelectedChainId]?.name || '',
+          imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
+          variant: AvatarVariant.Network,
+        }),
       );
-
       setSelectedNetworkAvatars(newNetworkAvatars);
     },
     [networkConfigurations, setSelectedNetworkAvatars],
@@ -306,19 +304,14 @@ const AccountConnect = (props: AccountConnectProps) => {
   useEffect(() => {
     // Create network avatars for all enabled networks
     const networkAvatars = Object.values(networkConfigurations).map(
-      (network) => {
-        const parsedCaipChainId = parseCaipChainId(network.caipChainId);
-        const chainId = toHex(parsedCaipChainId.reference);
-        return {
-          size: AvatarSize.Xs,
-          name: network.name || '',
-          imageSource: getNetworkImageSource({
-            chainId,
-          }),
-          variant: AvatarVariant.Network,
-        };
-      },
+      (network) => ({
+        size: AvatarSize.Xs,
+        name: network.name || '',
+        imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
+        variant: AvatarVariant.Network,
+      }),
     );
+
     setSelectedNetworkAvatars(networkAvatars);
 
     // No need to update selectedChainIds here since it's already initialized with all networks

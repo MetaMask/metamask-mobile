@@ -32,12 +32,11 @@ import TextComponent, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT } from '../../../UI/PermissionsSummary/PermissionSummary.constants';
 
 // internal dependencies
 import { NetworkAvatarProps } from '../AccountConnect.types';
 import styleSheet from './AccountsConnectedItemList.styles';
-
-const ITEM_HEIGHT = 75;
 
 const AccountsConnectedItemList = ({
   selectedAddresses,
@@ -54,8 +53,14 @@ const AccountsConnectedItemList = ({
   networkAvatars: NetworkAvatarProps[];
   handleEditAccountsButtonPress: () => void;
 }) => {
+  const HEIGHT_BY_ACCOUNTS_LENGTH =
+    selectedAddresses.length * ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT;
+  const MAX_PARENT_HEIGHT = 3.5;
   const MAX_HEIGHT =
-    selectedAddresses.length < 4 ? selectedAddresses.length * ITEM_HEIGHT : 3.5;
+    selectedAddresses.length < 4
+      ? HEIGHT_BY_ACCOUNTS_LENGTH
+      : MAX_PARENT_HEIGHT;
+
   const { styles } = useStyles(styleSheet, { itemHeight: MAX_HEIGHT });
   const accountAvatarType = useSelector(
     (state: RootState) =>

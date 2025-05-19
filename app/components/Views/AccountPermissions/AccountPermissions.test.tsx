@@ -1,5 +1,8 @@
 import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { Account } from '../../hooks/useAccounts';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
@@ -22,40 +25,84 @@ import {
 import { Hex } from '@metamask/utils';
 import Engine from '../../../core/Engine';
 
-const MOCK_ACCOUNTS = [
+const MOCK_EVM_ACCOUNT_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+const MOCK_EVM_ACCOUNT_2 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+
+const MOCK_EVM_ACCOUNT_1_NAME = 'Account 1';
+const MOCK_EVM_ACCOUNT_2_NAME = 'Account 2';
+
+const MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID = `eip155:0:${MOCK_EVM_ACCOUNT_1}`;
+const MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID = `eip155:0:${MOCK_EVM_ACCOUNT_2}`;
+
+const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
   {
-    name: 'Account 1',
-    address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+    name: MOCK_EVM_ACCOUNT_1_NAME,
+    address: MOCK_EVM_ACCOUNT_1,
     assets: {
       fiatBalance: '$3200.00\n1 ETH',
       tokens: [],
     },
-    type: 'HD Key Tree',
+    type: KeyringTypes.hd,
     yOffset: 0,
     isSelected: true,
     balanceError: undefined,
-    caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-    metadata: {
-      name: 'Account 1',
-      address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-    },
+    caipAccountId: MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID,
   },
   {
-    name: 'Account 2',
-    address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
+    name: MOCK_EVM_ACCOUNT_2_NAME,
+    address: MOCK_EVM_ACCOUNT_2,
     assets: {
       fiatBalance: '$6400.00\n2 ETH',
       tokens: [],
     },
-    type: 'HD Key Tree',
+    type: KeyringTypes.hd,
     yOffset: 78,
     isSelected: false,
     balanceError: undefined,
-    caipAccountId: 'eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7',
+    caipAccountId: MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID,
+  },
+];
+
+const MOCK_INTERNAL_ACCOUNTS: InternalAccount[] = [
+  {
+    type: 'eip155:eoa',
+    id: 'mock-id-1',
+    options: {},
     metadata: {
-      name: 'Account 2',
-      address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
+      name: MOCK_EVM_ACCOUNT_1_NAME,
+      importTime: 1700000000,
+      keyring: { type: KeyringTypes.hd },
     },
+    address: MOCK_EVM_ACCOUNT_1,
+    scopes: [MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID],
+    methods: [
+      'personal_sign',
+      'eth_sign',
+      'eth_signTransaction',
+      'eth_signTypedData_v1',
+      'eth_signTypedData_v3',
+      'eth_signTypedData_v4',
+    ],
+  },
+  {
+    type: 'eip155:eoa',
+    id: 'mock-id-2',
+    options: {},
+    metadata: {
+      name: MOCK_EVM_ACCOUNT_2_NAME,
+      importTime: 1700000001,
+      keyring: { type: KeyringTypes.hd },
+    },
+    address: MOCK_EVM_ACCOUNT_2,
+    scopes: [MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID],
+    methods: [
+      'personal_sign',
+      'eth_sign',
+      'eth_signTransaction',
+      'eth_signTypedData_v1',
+      'eth_signTypedData_v3',
+      'eth_signTypedData_v4',
+    ],
   },
 ];
 
@@ -85,9 +132,9 @@ jest.mock('../../../core/Engine', () => ({
       },
     },
     AccountsController: {
-      listAccounts: jest.fn(() => MOCK_ACCOUNTS),
+      listAccounts: jest.fn(() => MOCK_USE_ACCOUNTS_RETURN),
       getAccountByAddress: jest.fn((address: string) =>
-        MOCK_ACCOUNTS.find((account) => account.address === address),
+        MOCK_INTERNAL_ACCOUNTS.find((account) => account.address === address),
       ),
       state: {
         internalAccounts: {
@@ -140,8 +187,8 @@ jest.mock('react-native-safe-area-context', () => {
 
 jest.mock('../../hooks/useAccounts', () => {
   const useAccountsMock = jest.fn(() => ({
-    evmAccounts: MOCK_ACCOUNTS,
-    accounts: MOCK_ACCOUNTS,
+    evmAccounts: MOCK_USE_ACCOUNTS_RETURN,
+    accounts: MOCK_USE_ACCOUNTS_RETURN,
     ensByAccountAddress: {},
   }));
   return {

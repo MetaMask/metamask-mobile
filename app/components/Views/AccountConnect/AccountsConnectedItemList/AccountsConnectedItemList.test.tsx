@@ -2,7 +2,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { CaipAccountId } from '@metamask/utils';
 import { render, fireEvent } from '@testing-library/react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
@@ -22,7 +21,7 @@ type HandleEditAccountsButtonPress = () => void;
 const mockAccounts: Account[] = [
   {
     address: '0x123',
-    caipAccountId: 'eip155:1:0x123' as CaipAccountId,
+    caipAccountId: 'eip155:1:0x123',
     name: 'Account 1',
     assets: { fiatBalance: '$100.00\nETH' },
     type: KeyringTypes.hd,
@@ -31,7 +30,7 @@ const mockAccounts: Account[] = [
   },
   {
     address: '0x456',
-    caipAccountId: 'eip155:1:0x456' as CaipAccountId,
+    caipAccountId: 'eip155:1:0x456',
     name: 'Account 2',
     assets: { fiatBalance: '$200.00\nETH' },
     type: KeyringTypes.hd,

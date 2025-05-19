@@ -57,10 +57,9 @@ import AccountsConnectedItemList from '../../Views/AccountConnect/AccountsConnec
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { parseCaipAccountId } from '@metamask/utils';
 import {
-  BASE_HEIGHT,
-  ITEM_HEIGHT,
+  BOTTOM_SHEET_BASE_HEIGHT,
+  ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT,
   MAX_VISIBLE_ITEMS,
-  OVERFLOW_MULTIPLIER,
   SCALE_FACTOR,
 } from './PermissionSummary.constants';
 
@@ -93,6 +92,7 @@ const PermissionsSummary = ({
     isRenderedAsBottomSheet,
   });
   const navigation = useNavigation();
+  const { navigate } = navigation;
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
   const privacyMode = useSelector(selectPrivacyMode);
@@ -177,7 +177,7 @@ const PermissionsSummary = ({
               iconName={IconName.Info}
               iconColor={IconColor.Default}
               onPress={() => {
-                navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+                navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
                   screen: Routes.SHEET.CONNECTION_DETAILS,
                   params: {
                     hostInfo: {
@@ -218,11 +218,11 @@ const PermissionsSummary = ({
 
   const onRevokeAllHandler = useCallback(async () => {
     await Engine.context.PermissionController.revokeAllPermissions(hostname);
-    navigation.navigate('PermissionsManager');
-  }, [hostname, navigation]);
+    navigate('PermissionsManager');
+  }, [hostname, navigate]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
         hostInfo: {
@@ -233,7 +233,7 @@ const PermissionsSummary = ({
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [isRenderedAsBottomSheet, onRevokeAllHandler, hostname, navigation]);
+  }, [isRenderedAsBottomSheet, onRevokeAllHandler, hostname, navigate]);
 
   const getAccountLabel = useCallback(() => {
     if (isAlreadyConnected) {
@@ -426,21 +426,21 @@ const PermissionsSummary = ({
   }
 
   const calculateBottomSheetHeight = useMemo(() => {
-    let currentBaseHeight = BASE_HEIGHT;
+    let currentBaseHeight = BOTTOM_SHEET_BASE_HEIGHT;
     if (isNonDappNetworkSwitch) {
       currentBaseHeight += 150;
     }
 
-    if (accountAddresses.length === 2) {
+    if (accountAddresses.length <= 2) {
       return currentBaseHeight;
     }
 
     const visibleItems =
       accountAddresses.length >= MAX_VISIBLE_ITEMS
-        ? OVERFLOW_MULTIPLIER
+        ? MAX_VISIBLE_ITEMS
         : accountAddresses.length;
-
-    const listHeight = currentBaseHeight + ITEM_HEIGHT * visibleItems;
+    const listHeight =
+      currentBaseHeight + ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT * visibleItems;
     return listHeight * SCALE_FACTOR;
   }, [accountAddresses.length, isNonDappNetworkSwitch]);
 
@@ -490,30 +490,38 @@ const PermissionsSummary = ({
     [styles, colors],
   );
 
-  const renderTabsContent = () => (
-    <ScrollableTabView
-      initialPage={tabIndex}
-      renderTabBar={renderTabBar}
-      onChangeTab={onChangeTab}
-    >
-      <AccountsConnectedItemList
-        selectedAddresses={accountAddresses}
-        ensByAccountAddress={ensByAccountAddress}
-        accounts={accounts}
-        privacyMode={privacyMode}
-        networkAvatars={networkAvatars}
-        handleEditAccountsButtonPress={handleEditAccountsButtonPress}
-        {...accountsConnectedTabProps}
-      />
-      <View
-        style={styles.permissionsManagementContainer}
-        {...permissionsTabProps}
+  const renderTabsContent = () => {
+    const { key: accountsConnectedTabKey, ...restAccountsConnectedTabProps } =
+      accountsConnectedTabProps;
+    const { key: permissionsTabKey, ...restPermissionsTabProps } =
+      permissionsTabProps;
+    return (
+      <ScrollableTabView
+        initialPage={tabIndex}
+        renderTabBar={renderTabBar}
+        onChangeTab={onChangeTab}
       >
-        {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
-        {renderNetworkPermissionsRequestInfoCard()}
-      </View>
-    </ScrollableTabView>
-  );
+        <AccountsConnectedItemList
+          key={accountsConnectedTabKey}
+          selectedAddresses={accountAddresses}
+          ensByAccountAddress={ensByAccountAddress}
+          accounts={accounts}
+          privacyMode={privacyMode}
+          networkAvatars={networkAvatars}
+          handleEditAccountsButtonPress={handleEditAccountsButtonPress}
+          {...restAccountsConnectedTabProps}
+        />
+        <View
+          key={permissionsTabKey}
+          style={styles.permissionsManagementContainer}
+          {...restPermissionsTabProps}
+        >
+          {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
+          {renderNetworkPermissionsRequestInfoCard()}
+        </View>
+      </ScrollableTabView>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
