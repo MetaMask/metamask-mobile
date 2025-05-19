@@ -22,6 +22,10 @@ const StakingDeposit = () => {
   } = useConfirmationMetricEvents();
   const { amountDisplay } = useTokenAmount();
   useEffect(() => {
+    if (amountDisplay === undefined) {
+      return;
+    }
+
     setConfirmationMetric({
       properties: {
         selected_provider: EVENT_PROVIDERS.CONSENSYS,
