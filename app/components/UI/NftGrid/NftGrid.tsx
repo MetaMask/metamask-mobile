@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -46,7 +47,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { TokenListControlBar } from '../Tokens/TokenListControlBar';
 import { toHex } from '@metamask/controller-utils';
-import { MasonryFlashList } from '@shopify/flash-list';
+import { MasonryFlashList, MasonryFlashListRef } from '@shopify/flash-list';
 import { toLowerCaseEquals } from '../../../util/general';
 
 export const RefreshTestId = 'refreshControl';
@@ -160,6 +161,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   );
   const [hasMoreContracts, setHasMoreContracts] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const listRef = useRef<MasonryFlashListRef<Nft>>(null);
 
   const DEVICE_WIDTH = Dimensions.get('window').width;
   const GRID_PADDING = 10;
@@ -438,6 +440,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
       {/* nft grid */}
       {!isNftFetchingProgress && visibleNfts.length > 0 && (
         <MasonryFlashList
+          ref={listRef}
           data={visibleNfts}
           numColumns={NUM_COLUMNS}
           estimatedItemSize={ITEM_HEIGHT}
@@ -447,6 +450,8 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.5}
           contentContainerStyle={{ padding: GRID_PADDING }}
+          decelerationRate={0}
+          removeClippedSubviews={Platform.OS === 'android'}
           refreshControl={
             <RefreshControl
               testID={RefreshTestId}
