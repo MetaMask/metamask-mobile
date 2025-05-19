@@ -139,6 +139,7 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { updateTransactionToMaxValue } from './utils';
 import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../../utils/generic';
+import { selectHdEntropyIndex } from '../../../../../../selectors/keyringController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -296,6 +297,10 @@ class Confirm extends PureComponent {
      * Function that sets the transaction value
      */
     setTransactionValue: PropTypes.func,
+    /**
+     * HD entropy index
+     */
+    hdEntropyIndex: PropTypes.number,
   };
 
   state = {
@@ -1044,6 +1049,7 @@ class Confirm extends PureComponent {
                   ...this.getAnalyticsParams(),
                   ...getBlockaidTransactionMetricsParams(transaction),
                   ...this.getTransactionMetrics(),
+                  hd_entropy_index: this.props.hdEntropyIndex,
                 },
               ),
             type: 'signTransaction',
@@ -1084,6 +1090,7 @@ class Confirm extends PureComponent {
               ...this.getAnalyticsParams(transactionMeta),
               ...getBlockaidTransactionMetricsParams(transaction),
               ...this.getTransactionMetrics(),
+              hd_entropy_index: this.props.hdEntropyIndex,
             })
             .build(),
         );
@@ -1212,11 +1219,7 @@ class Confirm extends PureComponent {
             style={styles.hexDataClose}
             onPress={this.toggleHexDataModal}
           >
-            <IonicIcon
-              name={'close'}
-              size={28}
-              color={colors.text.default}
-            />
+            <IonicIcon name={'close'} size={28} color={colors.text.default} />
           </TouchableOpacity>
           <View style={styles.qrCode}>
             <Text style={styles.addressTitle}>
@@ -1630,6 +1633,7 @@ const mapStateToProps = (state) => {
     transactionMetadata: selectCurrentTransactionMetadata(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
     maxValueMode: state.transaction.maxValueMode,
+    hdEntropyIndex: selectHdEntropyIndex(state),
   };
 };
 

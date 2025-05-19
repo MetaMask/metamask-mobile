@@ -73,9 +73,14 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     );
   }, [onBack, navigate, trackEvent, createEventBuilder]);
   const openImportSrp = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
+      ).build(),
+    );
     navigate(Routes.MULTI_SRP.IMPORT);
     onBack();
-  }, [onBack, navigate]);
+  }, [onBack, navigate, trackEvent, createEventBuilder]);
 
   const createNewAccount = useCallback(async () => {
     if (hasMultipleSRPs) {

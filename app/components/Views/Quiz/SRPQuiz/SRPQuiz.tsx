@@ -13,6 +13,8 @@ import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../../constants/urls';
+import { store } from '../../../../store';
+import { selectHdEntropyIndex } from '../../../../selectors/multisrp';
 
 import { QuizStage } from '../types';
 import { QuizContent } from '../QuizContent';
@@ -38,9 +40,7 @@ export interface SRPQuizProps {
   };
 }
 
-const SRPQuiz = (
-  props: SRPQuizProps,
-) => {
+const SRPQuiz = (props: SRPQuizProps) => {
   // It has be destructured like this because of prettier
   // shifting the fence to the ending curly brace.
   const {
@@ -94,20 +94,25 @@ const SRPQuiz = (
 
   const goToRevealPrivateCredential = useCallback((): void => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.REVEAL_SRP_INITIATED).build(),
+      createEventBuilder(MetaMetricsEvents.REVEAL_SRP_INITIATED)
+        .addProperties({
+          hd_entropy_index: selectHdEntropyIndex(store.getState()),
+        })
+        .build(),
     );
-    trackEvent(createEventBuilder(MetaMetricsEvents.REVEAL_SRP_CTA).build());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REVEAL_SRP_CTA)
+        .addProperties({
+          hd_entropy_index: selectHdEntropyIndex(store.getState()),
+        })
+        .build(),
+    );
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'seed_phrase',
       shouldUpdateNav: true,
       keyringId,
     });
-  }, [
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    keyringId,
-  ]);
+  }, [navigation, trackEvent, createEventBuilder, keyringId]);
 
   const introduction = useCallback(() => {
     trackEvent(

@@ -19,7 +19,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
   const appThemeStyle =
     appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
   const isDataCollectionForMarketingEnabled =
-      reduxState?.security?.dataCollectionForMarketing;
+    reduxState?.security?.dataCollectionForMarketing;
   const hdKeyrings = selectHDKeyrings(reduxState);
 
   return {
@@ -42,10 +42,11 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
         : UserProfileProperty.OFF,
     [UserProfileProperty.SECURITY_PROVIDERS]:
       preferencesController?.securityAlertsEnabled ? 'blockaid' : '',
-    [UserProfileProperty.HAS_MARKETING_CONSENT]: isDataCollectionForMarketingEnabled
+    [UserProfileProperty.HAS_MARKETING_CONSENT]:
+      isDataCollectionForMarketingEnabled
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
-    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: String(hdKeyrings.length),
+    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length - 1,
   };
 };
 
