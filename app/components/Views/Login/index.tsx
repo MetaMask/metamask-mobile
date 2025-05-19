@@ -152,12 +152,14 @@ const Login: React.FC = () => {
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
 
+  const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
+
   const handleBackPress = () => {
-    Authentication.lockApp();
+    if (!oauthLoginSuccess) {
+      Authentication.lockApp();
+    }
     return false;
   };
-
-  const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
   const getHint = async () => {
     const hint = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
