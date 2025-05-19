@@ -19,6 +19,7 @@ import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import {
   isNftFetchingProgressSelector,
+  multichainCollectibleContractsSelector,
   multichainCollectiblesSelector,
 } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
@@ -46,6 +47,7 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { TokenListControlBar } from '../Tokens/TokenListControlBar';
 import { toHex } from '@metamask/controller-utils';
 import { MasonryFlashList } from '@shopify/flash-list';
+import { toLowerCaseEquals } from '../../../util/general';
 
 export const RefreshTestId = 'refreshControl';
 export const SpinnerTestId = 'spinner';
@@ -68,6 +70,15 @@ interface NftGridProps {
   chainId: string;
   selectedAddress: string;
 }
+
+interface ContractWithNfts {
+  address: string;
+  name: string;
+  nfts: Nft[];
+  isExpanded: boolean;
+}
+
+const CONTRACTS_PER_PAGE = 5;
 
 /**
  * Handles the refresh functionality for NFTs
@@ -123,6 +134,9 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
       StackNavigationProp<NftGridNavigationParamList, 'AddAsset'>
     >();
   const multichainCollectibles = useSelector(multichainCollectiblesSelector);
+  const multichainContracts = useSelector(
+    multichainCollectibleContractsSelector,
+  );
 
   const privacyMode = useSelector(selectPrivacyMode);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
@@ -141,6 +155,11 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [visibleContracts, setVisibleContracts] = useState<ContractWithNfts[]>(
+    [],
+  );
+  const [hasMoreContracts, setHasMoreContracts] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const DEVICE_WIDTH = Dimensions.get('window').width;
   const GRID_PADDING = 10;
@@ -159,20 +178,85 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [tokenNetworkFilter],
   );
 
-  const flatMultichainCollectibles = useMemo(() => {
-    const collectibles: Nft[] = [];
-    (Object.values(multichainCollectibles) as Nft[][]).forEach(
-      (chainCollectibles) => {
-        chainCollectibles.forEach((nft) => {
-          const hexChainId = toHex(nft.chainId as number);
-          if (hexChainIds[hexChainId]) {
-            collectibles.push(nft);
-          }
+  // Get all contracts and their NFTs
+  const contractsWithNfts = useMemo(() => {
+    const contracts: ContractWithNfts[] = [];
+    const allCollectibles = Object.values(
+      multichainCollectibles,
+    ).flat() as Nft[];
+    const allContracts = Object.values(multichainContracts).flat() as {
+      address: string;
+      name?: string;
+      symbol?: string;
+    }[];
+
+    allContracts.forEach((contract) => {
+      const contractNfts = allCollectibles.filter(
+        (nft) =>
+          toLowerCaseEquals(nft.address, contract.address) &&
+          nft.isCurrentlyOwned &&
+          hexChainIds[toHex(nft.chainId as number)],
+      );
+
+      if (contractNfts.length > 0) {
+        contracts.push({
+          address: contract.address,
+          name: contract.name || contract.symbol || 'Unknown Collection',
+          nfts: contractNfts,
+          isExpanded: false,
         });
-      },
-    );
-    return collectibles;
-  }, [multichainCollectibles, hexChainIds]);
+      }
+    });
+
+    return contracts;
+  }, [multichainCollectibles, multichainContracts, hexChainIds]);
+
+  // Load initial contracts
+  useEffect(() => {
+    if (contractsWithNfts.length > 0) {
+      const initialContracts = contractsWithNfts
+        .slice(0, CONTRACTS_PER_PAGE)
+        .map((contract) => ({
+          ...contract,
+          isExpanded: true,
+        }));
+      setVisibleContracts(initialContracts);
+      setHasMoreContracts(contractsWithNfts.length > CONTRACTS_PER_PAGE);
+    }
+  }, [contractsWithNfts]);
+
+  const loadMoreContracts = useCallback(() => {
+    if (isLoadingMore || !hasMoreContracts) return;
+
+    setIsLoadingMore(true);
+    try {
+      const currentLength = visibleContracts.length;
+      const nextContracts = contractsWithNfts
+        .slice(currentLength, currentLength + CONTRACTS_PER_PAGE)
+        .map((contract) => ({ ...contract, isExpanded: true }));
+
+      setVisibleContracts((prev) => [...prev, ...nextContracts]);
+      setHasMoreContracts(
+        currentLength + CONTRACTS_PER_PAGE < contractsWithNfts.length,
+      );
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [
+    isLoadingMore,
+    hasMoreContracts,
+    visibleContracts.length,
+    contractsWithNfts,
+  ]);
+
+  // Flatten visible NFTs from expanded contracts
+  const visibleNfts = useMemo(
+    () =>
+      visibleContracts
+        .filter((contract) => contract.isExpanded)
+        .flatMap((contract) => contract.nfts),
+    [visibleContracts],
+  );
 
   const onRefresh = useCallback(() => {
     requestAnimationFrame(async () => {
@@ -280,9 +364,8 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
 
   // Memoize the updatable collectibles to avoid recalculating on every render
   const updatableCollectibles = useMemo(
-    () =>
-      flatMultichainCollectibles?.filter(shouldUpdateCollectibleMetadata) || [],
-    [flatMultichainCollectibles, shouldUpdateCollectibleMetadata],
+    () => visibleNfts?.filter(shouldUpdateCollectibleMetadata) || [],
+    [visibleNfts, shouldUpdateCollectibleMetadata],
   );
 
   useEffect(() => {
@@ -323,6 +406,12 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [colors.primary.default],
   );
 
+  const handleEndReached = useCallback(() => {
+    if (!isLoadingMore && hasMoreContracts) {
+      loadMoreContracts();
+    }
+  }, [isLoadingMore, hasMoreContracts, loadMoreContracts]);
+
   return (
     <View testID="collectible-contracts" style={styles.container}>
       <TokenListControlBar
@@ -340,21 +429,22 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
         />
       )}
       {/* empty state */}
-      {!isNftFetchingProgress && flatMultichainCollectibles.length === 0 && (
+      {!isNftFetchingProgress && visibleNfts.length === 0 && (
         <>
           <NftGridEmpty navigation={navigation} />
           <NftGridFooter navigation={navigation} />
         </>
       )}
       {/* nft grid */}
-      {!isNftFetchingProgress && flatMultichainCollectibles.length > 0 && (
+      {!isNftFetchingProgress && visibleNfts.length > 0 && (
         <MasonryFlashList
-          data={flatMultichainCollectibles}
+          data={visibleNfts}
           numColumns={NUM_COLUMNS}
           estimatedItemSize={ITEM_HEIGHT}
           keyExtractor={keyExtractor}
           testID={RefreshTestId}
           renderItem={renderItem}
+          onEndReached={handleEndReached}
           onEndReachedThreshold={0.5}
           contentContainerStyle={{ padding: GRID_PADDING }}
           refreshControl={
@@ -368,6 +458,13 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
           }
           ListFooterComponent={
             <>
+              {isLoadingMore && (
+                <ActivityIndicator
+                  size="small"
+                  style={styles.spinner}
+                  color={colors.primary.default}
+                />
+              )}
               <NftGridFooter navigation={navigation} />
             </>
           }
