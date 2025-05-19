@@ -88,7 +88,7 @@ import { TextFieldSize } from '../../../component-library/components/Form/TextFi
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { TraceName, endTrace } from '../../../util/trace';
+import { TraceName, endTrace, trace, TraceOperation } from '../../../util/trace';
 import { useMetrics } from '../../hooks/useMetrics';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
@@ -115,6 +115,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const seedPhraseInputRefs = useRef([]);
   const { toastRef } = useContext(ToastContext);
+  const passwordSetupAttemptTraceCtxRef = useRef(null);
 
   const passwordInput = React.createRef();
   const confirmPasswordInput = React.createRef();
@@ -192,6 +193,10 @@ const ImportFromSecretRecoveryPhrase = ({
     if (currentStep === 0) {
       navigation.goBack();
     } else {
+      if (currentStep === 1 && passwordSetupAttemptTraceCtxRef.current) {
+        endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+        passwordSetupAttemptTraceCtxRef.current = null;
+      }
       setCurrentStep(currentStep - 1);
     }
   };
@@ -481,6 +486,15 @@ const ImportFromSecretRecoveryPhrase = ({
       return;
     }
     setCurrentStep(currentStep + 1);
+    // Start the trace when moving to the password setup step
+    const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtx) {
+      passwordSetupAttemptTraceCtxRef.current = trace({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtx,
+      });
+    }
   };
 
   const isContinueButtonDisabled = () =>
@@ -559,6 +573,7 @@ const ImportFromSecretRecoveryPhrase = ({
           new_wallet: false,
         });
         !onboardingWizard && setOnboardingWizardStep(1);
+        endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
 
         if (isMetricsEnabled()) {
           endTrace({ name: TraceName.OnboardingExistingSrpImport });

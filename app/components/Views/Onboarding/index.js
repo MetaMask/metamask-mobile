@@ -381,6 +381,7 @@ class Onboarding extends PureComponent {
       });
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
+        onboardingTraceCtx: this.onboardingTraceCtx,
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
     };
@@ -400,6 +401,9 @@ class Onboarding extends PureComponent {
       });
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        {
+          onboardingTraceCtx: this.onboardingTraceCtx,
+        },
       );
       this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
     };
@@ -437,6 +441,7 @@ class Onboarding extends PureComponent {
           this.props.navigation.push('ChoosePassword', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
+            onboardingTraceCtx: this.onboardingTraceCtx,
           });
           this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
         }
@@ -451,6 +456,7 @@ class Onboarding extends PureComponent {
           this.props.navigation.push('Login', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
+            onboardingTraceCtx: this.onboardingTraceCtx,
           });
           this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
         } else {

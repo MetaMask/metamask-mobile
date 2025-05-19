@@ -114,6 +114,7 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
       StackActions.replace(targetRoute, {
         [PREVIOUS_SCREEN]: previousScreen,
         oauthLoginSuccess,
+        onboardingTraceCtx,
       }),
     );
     track(

@@ -62,6 +62,8 @@ export enum TraceName {
   OnboardingExistingSrpImport = 'Onboarding - Existing SRP Import',
   OnboardingJourneyOverall = 'Onboarding - Overall Journey',
   OnboardingSocialLoginAttempt = 'Onboarding - Social Login Attempt',
+  OnboardingPasswordSetupAttempt = 'Onboarding - Password Setup Attempt',
+  OnboardingPasswordLoginAttempt = 'Onboarding - Password Login Attempt',
 }
 
 export enum TraceOperation {

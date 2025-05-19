@@ -74,7 +74,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
-import { TraceName, endTrace } from '../../../util/trace';
+import { TraceName, endTrace, trace, TraceOperation } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -225,6 +225,7 @@ class ChoosePassword extends PureComponent {
   };
 
   mounted = true;
+  passwordSetupAttemptTraceCtx = null;
 
   confirmPasswordInput = React.createRef();
   // Flag to know if password in keyring was set or not
@@ -268,6 +269,16 @@ class ChoosePassword extends PureComponent {
   };
 
   async componentDidMount() {
+    const { route } = this.props;
+    const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtx) {
+      this.passwordSetupAttemptTraceCtx = trace({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtx,
+      });
+    }
+
     const authData = await Authentication.getType();
     const previouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
@@ -312,6 +323,10 @@ class ChoosePassword extends PureComponent {
 
   componentWillUnmount() {
     this.mounted = false;
+    if (this.passwordSetupAttemptTraceCtx) {
+      endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+      this.passwordSetupAttemptTraceCtx = null;
+    }
   }
 
   setSelection = () => {
@@ -363,6 +378,7 @@ class ChoosePassword extends PureComponent {
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
+      endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
 
       if (authType.oauth2Login) {
         if (this.props.metrics.isEnabled()) {
