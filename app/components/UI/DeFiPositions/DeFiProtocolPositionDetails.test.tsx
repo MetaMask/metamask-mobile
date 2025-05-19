@@ -103,7 +103,7 @@ describe('DeFiProtocolPositionDetails', () => {
 
     expect(mockSetOptions).toHaveBeenCalledTimes(1);
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
-    expect(queryByText('$100.00')).not.toBeOnTheScreen();
+    expect(queryByText(/^\$\d+\.\d{2}$/)).not.toBeOnTheScreen(); // Matches dollar amounts like "$100.00"
     expect(
       await findByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID),
     ).toHaveTextContent('•••••••••');

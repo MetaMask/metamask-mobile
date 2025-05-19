@@ -30,6 +30,7 @@ import Icon, {
 import { useStyles } from '../../hooks/useStyles';
 
 export const DEFI_POSITIONS_CONTAINER = 'defi_positions_container';
+export const DEFI_POSITIONS_LIST = 'defi_positions_list';
 
 export interface DeFiPositionsListProps {
   tabLabel: string;
@@ -130,6 +131,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
       <DeFiPositionsControlBar />
       <View>
         <FlatList
+          testID={DEFI_POSITIONS_LIST}
           data={formattedDeFiPositions}
           renderItem={({ item: { chainId, protocolAggregate } }) => (
             <DeFiPositionsListItem

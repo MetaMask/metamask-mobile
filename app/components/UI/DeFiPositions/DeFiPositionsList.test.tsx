@@ -3,6 +3,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import DeFiPositionsList, {
   DEFI_POSITIONS_CONTAINER,
+  DEFI_POSITIONS_LIST,
 } from './DeFiPositionsList';
 import { RootState } from '../../../reducers';
 
@@ -182,7 +183,7 @@ describe('DeFiPositionsList', () => {
   });
 
   it('renders protocol name and aggregated value for selected account and chain', async () => {
-    const { findByTestId, findByText, queryByText } = renderWithProvider(
+    const { findByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
         state: mockInitialState,
@@ -191,9 +192,10 @@ describe('DeFiPositionsList', () => {
 
     expect(await findByTestId(DEFI_POSITIONS_CONTAINER)).toBeOnTheScreen();
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
-    expect(queryByText('Protocol 2')).not.toBeOnTheScreen();
     expect(await findByText('$100.00')).toBeOnTheScreen();
-    expect(queryByText('$10.00')).not.toBeOnTheScreen();
+
+    const flatList = await findByTestId(DEFI_POSITIONS_LIST);
+    expect(flatList.props.data.length).toEqual(1);
   });
 
   it('renders protocol name and aggregated value for all chains when all networks is selected', async () => {
@@ -226,6 +228,8 @@ describe('DeFiPositionsList', () => {
     expect(await findByText('Protocol 2')).toBeOnTheScreen();
     expect(await findByText('$100.00')).toBeOnTheScreen();
     expect(await findByText('$10.00')).toBeOnTheScreen();
+    const flatList = await findByTestId(DEFI_POSITIONS_LIST);
+    expect(flatList.props.data.length).toEqual(2);
   });
 
   it('renders the loading positions message when positions are not yet available', async () => {

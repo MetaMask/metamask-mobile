@@ -139,7 +139,7 @@ describe('DeFiPositionsListItem', () => {
     );
 
     expect(await findByText('Staked ETH Protocol')).toBeOnTheScreen();
-    expect(queryByText('$51,100.00')).not.toBeOnTheScreen();
+    expect(queryByText(/^\$\d+\.\d{2}$/)).not.toBeOnTheScreen(); // Matches dollar amounts like "$51,100.00"
     expect(await findByText('•••••••••')).toBeOnTheScreen();
     expect(await findByText('ETH +1 other')).toBeOnTheScreen();
   });

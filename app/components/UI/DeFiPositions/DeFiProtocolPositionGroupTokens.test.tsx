@@ -79,11 +79,9 @@ describe('DeFiProtocolPositionGroupTokens', () => {
 
     expect(await findByText('Supplied')).toBeOnTheScreen();
     expect(await findByText('TKN1')).toBeOnTheScreen();
-    expect(queryByText('$50.00')).not.toBeOnTheScreen();
-    expect(queryByText('500 TKN1')).not.toBeOnTheScreen();
     expect(await findByText('TKN2')).toBeOnTheScreen();
-    expect(queryByText('$2.00')).not.toBeOnTheScreen();
-    expect(queryByText('20 TKN2')).not.toBeOnTheScreen();
+    expect(queryByText(/^\$\d+\.\d{2}$/)).not.toBeOnTheScreen(); // Matches dollar amounts like "$2.00"
+    expect(queryByText(/^\d+\s[A-Z0-9]+$/)).not.toBeOnTheScreen(); // Matches token quantities like "20 TKN2"
     expect(await findAllByText('•••••••••')).toHaveLength(2);
     expect(await findAllByText('••••••')).toHaveLength(2);
   });
