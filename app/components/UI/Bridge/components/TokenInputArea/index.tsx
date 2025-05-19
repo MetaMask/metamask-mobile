@@ -15,7 +15,7 @@ import {
 import { renderNumber } from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
@@ -26,7 +26,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
-  selectBridgeControllerState,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
@@ -35,8 +34,7 @@ import { selectMultichainAssetsRates } from '../../../../../selectors/multichain
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
-import { parseUnits } from 'ethers/lib/utils';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -147,24 +145,8 @@ export const TokenInputArea = forwardRef<
     const networkConfigurationsByChainId = useSelector(
       selectNetworkConfigurations,
     );
-    const { quoteRequest } = useSelector(selectBridgeControllerState);
 
-    const latestBalance = useLatestBalance({
-      address: token?.address,
-      decimals: token?.decimals,
-      chainId: token?.chainId,
-      balance: token?.balance,
-    });
-    const isValidAmount =
-    amount !== undefined && amount !== '.' && token?.decimals;
-
-    // quoteRequest.insufficientBal is undefined for Solana quotes, so we need to manually check if the source amount is greater than the balance
-    const isInsufficientBalance =
-    quoteRequest?.insufficientBal ||
-    (isValidAmount &&
-      parseUnits(amount, token.decimals).gt(
-        latestBalance?.atomicBalance ?? BigNumber.from(0),
-      ));
+    const isInsufficientBalance = useIsInsufficientBalance({ amount, token });
 
     let nonEvmMultichainAssetRates = {};
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
